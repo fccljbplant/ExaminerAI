@@ -1,31 +1,25 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useAuth } from '@/lib/auth-store'
+import { LoginPage } from '@/components/login-page'
+import { AppShell } from '@/components/app-shell'
+
 export default function Home() {
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      gap: '2rem',
-      padding: '1rem'
-    }}>
-      <div style={{
-        position: 'relative',
-        width: '6rem',
-        height: '6rem'
-      }}>
-        <img
-          src="/logo.svg"
-          alt="Z.ai Logo"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain'
-          }}
-        />
+  const { user, loading, refresh } = useAuth()
+
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading ExaminerAI…</div>
       </div>
-    </div>
-  )
+    )
+  }
+
+  if (!user) return <LoginPage />
+  return <AppShell />
 }

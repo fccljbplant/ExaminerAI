@@ -54,6 +54,8 @@ model User {
   // Activity
   auditLogs       AuditLog[]
   interactions    Interaction[]
+  growthReports   GrowthReport[]
+  alertsAboutMe   Alert[]       @relation("AlertStudent")
 }
 
 model Institution {
@@ -114,6 +116,7 @@ model Course {
   assignments     Assignment[]
   sessions        ClassSession[]
   timelineEvents  TimelineEvent[]
+  alerts          Alert[]
 }
 
 model Batch {
@@ -254,6 +257,8 @@ model Alert {
 
   fromUser    User     @relation("AlertFrom", fields: [fromUserId], references: [id])
   toUser      User     @relation("AlertTo", fields: [toUserId], references: [id])
+  student     User?    @relation("AlertStudent", fields: [studentId], references: [id])
+  course      Course?  @relation(fields: [courseId], references: [id])
 }
 
 // ============================================================
@@ -268,8 +273,8 @@ model StudentCounsellorAssignment {
   reason        String?
   status        String   @default("ACTIVE")
 
-  student       User     @relation(fields: [studentId], references: [id])
-  counsellor    User     @relation(fields: [counsellorId], references: [id])
+  student       User     @relation("CounsellorAssignment", fields: [studentId], references: [id])
+  counsellor    User     @relation("CounsellorOf", fields: [counsellorId], references: [id])
 }
 
 model MentorSession {
