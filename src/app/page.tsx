@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useAuth } from '@/lib/auth-store'
-import { LoginPage } from '@/components/login-page'
+import { LandingPage } from '@/components/landing-page'
 import { AppShell } from '@/components/app-shell'
 
 export default function Home() {
@@ -20,6 +20,6 @@ export default function Home() {
     )
   }
 
-  if (!user) return <LoginPage />
+  if (!user) return <LandingPage />
   return <AppShell />
 }
