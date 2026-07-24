@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/interactions?userId=...&week=... — list interactions.
  *  - Students see only their own.
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 
 /** POST /api/interactions — record a new AI assessment interaction. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing interactions"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json().catch(() => ({}));

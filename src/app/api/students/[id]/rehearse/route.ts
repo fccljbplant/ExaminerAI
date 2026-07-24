@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/students/[id]/rehearse — practice a hard conversation
  *  against an AI playing a plausible version of the student.
@@ -23,6 +24,7 @@ interface RehearseMessage {
 const MAX_EXCHANGES = 8;
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const _demoBlock = await demoWriteBlock("rehearsing"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }

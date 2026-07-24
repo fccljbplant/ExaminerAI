@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/report-cards?userId=... */
 export async function GET(req: NextRequest) {
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
 
 /** POST /api/report-cards — teacher/admin writes a report card. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("generating report cards"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

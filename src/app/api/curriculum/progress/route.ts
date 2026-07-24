@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { getBootcampDayNumber } from "@/lib/course-topics";
 import { getCourseTopics, getCourseDurationWeeks } from "@/lib/course-db";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/curriculum/progress — returns the student's curriculum completion.
  *
@@ -90,6 +91,7 @@ export async function GET() {
  *  Body: { week: number (1..courseDuration), day: number (1-5) }
  *  Idempotent — if already marked, returns success. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("updating curriculum progress"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -118,6 +120,7 @@ export async function POST(req: NextRequest) {
 /** DELETE /api/curriculum/progress — unmark a curriculum day.
  *  Body: { week: number, day: number } */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("updating curriculum progress"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

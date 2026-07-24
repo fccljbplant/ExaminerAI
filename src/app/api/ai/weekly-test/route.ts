@@ -12,6 +12,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 import { fallbackGrade, parseQuestionExplanations, type TeachingFeedback, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { trackTestCompletion } from "@/modules/assessment/lib/engagement-tracker";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * POST /api/ai/weekly-test
@@ -118,6 +119,7 @@ Mix the 4 Socratic pillars (Why Probe, Break-It Scenario, Client Translation, Ed
 }
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("running AI operations"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }

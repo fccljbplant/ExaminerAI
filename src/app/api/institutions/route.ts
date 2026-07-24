@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/institutions — register a new institution.
  *  Admin/developer only for now (no public self-serve signup yet).
  *  Body: { name, contactEmail, logoUrl? } */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing institutions"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

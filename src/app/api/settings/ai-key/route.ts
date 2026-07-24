@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { setAIKey, isAIConfigured, hasAI } from "@/lib/ai-provider";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/settings/ai-key — returns whether AI is configured.
  *  Supports both Z.ai (primary) and DeepSeek (fallback). */
@@ -29,6 +30,7 @@ export async function GET() {
  *  Body: { apiKey: string, provider?: "zai" | "deepseek" }
  *  Default provider is "zai" (Z.ai). */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing settings"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -65,6 +67,7 @@ export async function POST(req: NextRequest) {
 /** DELETE /api/settings/ai-key — clear the DB-stored key.
  *  Query: ?provider=zai|deepseek (default: zai) */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing settings"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -5,6 +5,7 @@ import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
 import { buildTeacherBatchSummary } from "@/lib/teacher-batch-summary";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/teacher/copilot — free-text question about the batch,
  *  answered from existing data (PsychEvidence, ConfidenceRating,
@@ -19,6 +20,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
  */
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("using teacher copilot"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }

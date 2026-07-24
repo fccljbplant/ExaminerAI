@@ -5,6 +5,7 @@ import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth"
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import crypto from "crypto";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/certificates/generate — auto-generate a certificate for the
  *  student when they complete their course.
@@ -25,6 +26,7 @@ import crypto from "crypto";
  *  Returns: { certificate: { id, courseName, studentName, grade, score, issuedAt, signedBy, verifyToken, verifyUrl } }
  */
 export async function POST(req: Request) {
+  const _demoBlock = await demoWriteBlock("generating certificates"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

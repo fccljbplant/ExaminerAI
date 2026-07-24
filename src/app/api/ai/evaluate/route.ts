@@ -3,10 +3,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI, translateBehavioralSignals, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { evaluatePrompt } from "@/lib/ai-prompts";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/ai/evaluate — evaluate a student's answer to a Socratic question.
  *  Returns correctness 0-100, feedback, level, gaps, followUp, and persists the interaction. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("running AI operations"); if (_demoBlock) return _demoBlock;
   const { isFeatureEnabled } = await import("@/lib/feature-flags");
   if (!(await isFeatureEnabled("ai_enabled"))) return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   const user = await getCurrentUser();

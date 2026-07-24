@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/project/reports — list all project reports for the current user. */
 export async function GET() {
@@ -27,6 +28,7 @@ export async function GET() {
  *  Body: { week: number, reportType: "weekly"|"final", reportText: string }
  *  Returns the created report WITH the AI analysis (analyzed immediately). */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("generating project reports"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -146,6 +148,7 @@ Example:
 
 /** DELETE /api/project/reports?id=... — delete a project report. */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("generating project reports"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

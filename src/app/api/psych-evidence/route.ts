@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { getCurrentUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/psych-evidence?userId=X — list psychological evidence for a student.
  *  Staff can query any student. Students can query their own (no userId needed). */
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
 
 /** POST /api/psych-evidence — write a new evidence row (staff only). */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing psychology evidence"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 

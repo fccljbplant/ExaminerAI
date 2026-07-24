@@ -11,6 +11,7 @@ import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
 import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { trackTestCompletion } from "@/modules/assessment/lib/engagement-tracker";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * POST /api/ai/practice — Socratic practice conversation.
@@ -40,6 +41,7 @@ interface ChatMessage {
 const MAX_EXCHANGES = 3; // 3 questions max (like daily test)
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("running AI operations"); if (_demoBlock) return _demoBlock;
   const { isFeatureEnabled } = await import("@/lib/feature-flags");
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });

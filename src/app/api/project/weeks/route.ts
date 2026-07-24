@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/project/weeks — list all project weeks for the current user.
  *  Returns the custom week titles + summaries. If no ProjectWeek rows exist
@@ -21,6 +22,7 @@ export async function GET() {
  *  Body: { weekNumber, title, summary?, milestones? }
  *  Uses upsert so the student can edit an existing week or create a new one. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing project weeks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -64,6 +66,7 @@ export async function POST(req: NextRequest) {
 /** PATCH /api/project/weeks — update a specific week by id.
  *  Body: { id, title?, summary?, milestones? } */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing project weeks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -99,6 +102,7 @@ export async function PATCH(req: NextRequest) {
 
 /** DELETE /api/project/weeks?id=... — delete a project week. */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing project weeks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

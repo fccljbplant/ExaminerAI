@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/admin/cleanup-psych-data — removes old junk from psychological
  *  data tables that were created by the old per-message pipeline.
@@ -24,6 +25,7 @@ import { logger } from "@/lib/logger";
  *  Admin-only (principal + administrator).
  */
 export async function POST() {
+  const _demoBlock = await demoWriteBlock("cleaning up data"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

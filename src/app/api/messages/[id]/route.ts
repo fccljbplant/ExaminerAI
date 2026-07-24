@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** DELETE /api/messages/[id] — delete a message.
  *
@@ -16,6 +17,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("sending messages"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

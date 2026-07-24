@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { callAI } from "@/lib/ai-provider";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/teacher/topic-guidance — AI drafts guidance for future
  *  question generation on a topic, based on actual wrong answers.
@@ -12,6 +13,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
  */
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing topic guidance"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }
@@ -47,6 +49,7 @@ Guidance:`;
 
 /** PUT /api/teacher/topic-guidance — save approved guidance to CourseDay */
 export async function PUT(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing topic guidance"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI } from "@/lib/ai-provider";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** Generate a concise project summary + key features from the project definition.
  *  Used by POST (create) and PATCH (edit) to keep the summary in sync.
@@ -78,6 +79,7 @@ No markdown, no explanation.`,
  *  /api/project/generate-tasks.
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("setting up projects"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -203,6 +205,7 @@ export async function GET() {
  *  business case), the AI summary is regenerated to stay in sync.
  *  Accepts any subset of the project fields. Does NOT touch tasks. */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("setting up projects"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -273,6 +276,7 @@ export async function PATCH(req: NextRequest) {
 
 /** DELETE /api/project/setup — deletes the project + ALL tasks + their comments. */
 export async function DELETE() {
+  const _demoBlock = await demoWriteBlock("setting up projects"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

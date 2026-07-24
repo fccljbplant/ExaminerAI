@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * GET /api/peer-assessment?groupTaskId=X
@@ -103,6 +104,7 @@ export async function GET(req: NextRequest) {
  * collaboration signals) and SkillMastery (collaboration skill).
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("submitting peer assessments"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "student") {

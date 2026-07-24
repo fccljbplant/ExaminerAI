@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseDurationWeeks } from "@/lib/course-db";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/students/[id]/generate-report-card — teacher/admin auto-generates
  *  a report card for a student based on their accumulated data (weekly tests,
@@ -24,6 +25,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("generating report cards"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

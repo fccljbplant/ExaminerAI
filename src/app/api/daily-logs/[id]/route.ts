@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PATCH /api/daily-logs/[id] — teacher/admin edits a student's daily check-in.
  *
@@ -12,6 +13,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("managing daily logs"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -37,6 +39,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("managing daily logs"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

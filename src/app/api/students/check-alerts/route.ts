@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
 import { getAuthUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/students/check-alerts — scans all students for struggle signals
  *  and auto-creates Messages to nudge students + alert teachers.
@@ -244,6 +245,7 @@ This is an automated alert — review the student's portfolio before acting.`;
 
 /** POST — admin manual trigger (from the AdminDashboard UI). */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("checking alerts"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Admin only" }, { status: 403 });

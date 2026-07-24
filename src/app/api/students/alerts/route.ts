@@ -2,6 +2,7 @@ import { isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/students/alerts — returns open alerts for students in the teacher's batch.
  *  Also returns the StudentHealthSummary for each student with alerts.
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
 /** PATCH /api/students/alerts — resolve or acknowledge an alert.
  *  Body: { alertId, status, resolutionNote? } */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing alerts"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/tasks?week=3 — list tasks for current user, optionally by week. */
 export async function GET(req: NextRequest) {
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
  *  Validates week is 1-52 and day (if provided) is 1-5.
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
@@ -91,6 +93,7 @@ export async function POST(req: NextRequest) {
  *  Validates week (1-52) and day (1-5 or null) when provided.
  */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
@@ -163,6 +166,7 @@ export async function PATCH(req: NextRequest) {
 
 /** DELETE /api/tasks?id=... — delete a task + its comments (cascade). */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = req.nextUrl.searchParams.get("id");

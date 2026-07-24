@@ -183,7 +183,7 @@ export default function AppShell() {
     });
   };
   // Admin/Developer can impersonate ANY role to test dashboards.
-  const [adminAs, setAdminAs] = useState<string>("admin");
+  const [adminAs, setAdminAs] = useState<string>("principal");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Map raw role (including legacy aliases) to canonical nav role.
@@ -514,7 +514,6 @@ export default function AppShell() {
             <div className="text-[10px] uppercase tracking-wider text-primary font-bold">View As Role</div>
             <div className="grid grid-cols-2 gap-1">
               {([
-                { role: "admin", label: "Admin", view: "admin-dashboard" },
                 { role: "student", label: "Student", view: "dashboard" },
                 { role: "teacher", label: "Teacher", view: "batch" },
                 { role: "course_coordinator", label: "Coordinator", view: "course-planner" },
@@ -540,7 +539,7 @@ export default function AppShell() {
               ))}
             </div>
             <p className="text-[9px] text-muted-foreground leading-snug">
-              Switch to any role to test their dashboard & UI.
+              Switch to any role to preview their dashboard.
             </p>
           </div>
         )}

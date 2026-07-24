@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/mentorship/touchpoints?userId=X — list touchpoints for a student.
  *
@@ -58,6 +59,7 @@ export async function GET(req: NextRequest) {
  *
  *  Audit-logged so we know who logged what, when. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing mentorship touchpoints"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,

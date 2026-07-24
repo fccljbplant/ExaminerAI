@@ -3,10 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { seedDatabase } from "@/lib/seed";
 import { ensureAdminUser, signToken, TOKEN_COOKIE, ADMIN_EMAIL, ADMIN_PASSWORD, getAuthUser, getCookieOptions } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/seed — bootstraps the database with admin. Admin-only.
  *  Safe to call repeatedly (idempotent). */
 export async function POST() {
+  const _demoBlock = await demoWriteBlock("seeding data"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 });

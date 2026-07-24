@@ -4,6 +4,7 @@ import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-
 import { getAuthUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/mentorship/touchpoints/parse — parse free text or voice
  *  transcript into structured MentorshipTouchpoint fields.
@@ -13,6 +14,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
  */
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("parsing touchpoints"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }

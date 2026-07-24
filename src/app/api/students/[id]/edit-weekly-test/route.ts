@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { getCourseDurationWeeks } from "@/lib/course-db";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PATCH /api/students/[id]/edit-weekly-test — teacher/admin edits the
  *  AI-generated results of a completed weekly test.
@@ -27,6 +28,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("editing weekly tests"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

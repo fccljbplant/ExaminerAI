@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/teacher/rules — list teacher's personal rules */
 export async function GET() {
@@ -16,6 +17,7 @@ export async function GET() {
 
 /** POST /api/teacher/rules — create a new rule */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing teacher rules"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR]);
   if (!auth.ok) return auth.response;
 
@@ -40,6 +42,7 @@ export async function POST(req: NextRequest) {
 
 /** DELETE /api/teacher/rules?id=X — delete a rule */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing teacher rules"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR]);
   if (!auth.ok) return auth.response;
 

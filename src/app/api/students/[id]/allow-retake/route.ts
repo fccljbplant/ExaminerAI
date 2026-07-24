@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { getCourseDurationWeeks } from "@/lib/course-db";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/students/[id]/allow-retake — teacher/admin explicitly allows a
  *  student to retake a completed weekly test.
@@ -20,6 +21,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("allowing retakes"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -81,6 +83,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("allowing retakes"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

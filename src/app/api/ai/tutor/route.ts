@@ -11,6 +11,7 @@ import {
   getCourseTopics,
 } from "@/lib/course-db";
 import { trackTutorEngagement } from "@/modules/assessment/lib/engagement-tracker";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/ai/tutor — in-app AI Tutor chatbot.
  *
@@ -32,6 +33,7 @@ import { trackTutorEngagement } from "@/modules/assessment/lib/engagement-tracke
  */
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("running AI operations"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }

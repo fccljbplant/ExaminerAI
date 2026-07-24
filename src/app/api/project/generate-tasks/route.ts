@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI } from "@/lib/ai-provider";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/project/generate-tasks — AI generates project-specific tasks.
  *
@@ -24,6 +25,7 @@ import { callAI } from "@/lib/ai-provider";
  *  the student BUILDS for their project each week.
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("generating project tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

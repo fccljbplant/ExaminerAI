@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { getCourseDurationWeeks } from "@/lib/course-db";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/students/[id]/unlock-test — teacher/admin unlocks a week's test
  *  for a student, bypassing the task-completion requirement.
@@ -21,6 +22,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("unlocking tests"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

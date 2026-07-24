@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { callAI, hasAI, isAIConfigured, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { connectionTestPrompt } from "@/lib/ai-prompts";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/ai/test — admin-only diagnostic endpoint that runs a real AI
  *  call and returns the result + timing + provider used.
@@ -13,6 +14,7 @@ import { connectionTestPrompt } from "@/lib/ai-prompts";
  *    - apiKey (optional) — a DeepSeek API key to test inline
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("running AI operations"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

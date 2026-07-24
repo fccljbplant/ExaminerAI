@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/messages — list messages for current user. */
 export async function GET(req: NextRequest) {
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
 
 /** POST /api/messages — send a message. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("sending messages"); if (_demoBlock) return _demoBlock;
   const { isFeatureEnabled } = await import("@/lib/feature-flags");
   if (!(await isFeatureEnabled("messages_enabled"))) return NextResponse.json({ error: "Messaging is currently disabled." }, { status: 403 });
   const user = await getCurrentUser();

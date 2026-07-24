@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { isStaffRole } from "@/lib/rbac";
 import { trackTutorEngagement } from "@/modules/assessment/lib/engagement-tracker";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/ai/teacher-tutor — AI Assistant chatbot for TEACHERS.
  *
@@ -22,6 +23,7 @@ import { trackTutorEngagement } from "@/modules/assessment/lib/engagement-tracke
  */
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("running AI operations"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }

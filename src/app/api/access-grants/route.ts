@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole, ADMIN_ROLES, hasRole, type DataScope } from "@/lib/rbac";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/access-grants — list access grants. Admins see all, staff see own. */
 export async function GET(req: NextRequest) {
@@ -35,6 +36,7 @@ export async function GET(req: NextRequest) {
 
 /** POST /api/access-grants — create/update an access grant. Admin only. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing access grants"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 

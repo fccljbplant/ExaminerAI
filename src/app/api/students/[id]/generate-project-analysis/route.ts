@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/students/[id]/generate-project-analysis — teacher/admin generates
  *  a final project analysis for a student. This is shown in the final result.
@@ -20,6 +21,7 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("generating project analysis"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden — teachers only" }, { status: 403 });

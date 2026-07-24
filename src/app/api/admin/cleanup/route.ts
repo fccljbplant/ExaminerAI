@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/admin/cleanup — cleans up junk data from the admin user.
  *
@@ -16,6 +17,7 @@ import { getAuthUser } from "@/lib/auth";
  *  comments (those are legitimate admin activity).
  */
 export async function POST() {
+  const _demoBlock = await demoWriteBlock("cleaning up data"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

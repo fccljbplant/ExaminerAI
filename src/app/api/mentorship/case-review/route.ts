@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole, STAFF_ROLES } from "@/lib/rbac";
 import { callAI } from "@/lib/ai-provider";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/mentorship/case-review — create an anonymized case review.
  *
@@ -10,6 +11,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
  *  Teacher reviews the anonymized version before it's shared.
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("reviewing cases"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }
@@ -47,6 +49,7 @@ Return ONLY the anonymized version (2-4 sentences). Do not include any names, da
 
 /** PUT /api/mentorship/case-review — confirm + publish */
 export async function PUT(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("reviewing cases"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR]);
   if (!auth.ok) return auth.response;
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/daily-logs?week=3 — list current user's logs, optionally filtered by week. */
 export async function GET(req: NextRequest) {
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
  *  - nextQuestion: "What's your next question to explore?"
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing daily logs"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json().catch(() => ({}));

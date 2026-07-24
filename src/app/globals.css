@@ -102,41 +102,41 @@
 }
 
 /* ============================================================
-   DARK THEME — Modern Slate Dark
-   Slate-950 background, slate-800 cards, amber accents.
+   DARK THEME — Modern Dark
+   Deep charcoal background, amber accents, vibrant chart colors.
    ============================================================ */
 .dark {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --card: #1e293b;
-  --card-foreground: #f8fafc;
-  --popover: #1e293b;
-  --popover-foreground: #f8fafc;
-  --primary: #f8fafc;
-  --primary-foreground: #0f172a;
-  --secondary: #334155;
-  --secondary-foreground: #f8fafc;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-  --accent: #422006;
+  --background: #0a0a0f;
+  --foreground: #fafafa;
+  --card: #16161f;
+  --card-foreground: #fafafa;
+  --popover: #1c1c28;
+  --popover-foreground: #fafafa;
+  --primary: #fbbf24;
+  --primary-foreground: #0a0a0f;
+  --secondary: #26263a;
+  --secondary-foreground: #e5e7eb;
+  --muted: #1c1c28;
+  --muted-foreground: #9ca3af;
+  --accent: #3d2e0e;
   --accent-foreground: #fbbf24;
   --destructive: #f87171;
-  --border: #334155;
-  --input: #334155;
-  --ring: #f59e0b;
+  --border: #2a2a3a;
+  --input: #2a2a3a;
+  --ring: #fbbf24;
   --chart-1: #fbbf24;
   --chart-2: #34d399;
   --chart-3: #60a5fa;
-  --chart-4: #f87171;
+  --chart-4: #f472b6;
   --chart-5: #a78bfa;
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #f59e0b;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: #334155;
-  --sidebar-ring: #f59e0b;
+  --sidebar: #0f0f17;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #fbbf24;
+  --sidebar-primary-foreground: #0a0a0f;
+  --sidebar-accent: #26263a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #2a2a3a;
+  --sidebar-ring: #fbbf24;
 
   /* Phase C: growth palette — dark mode adjustments */
   --growth-sage:           #7eb39a;

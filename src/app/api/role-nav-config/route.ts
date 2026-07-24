@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { hasRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/rbac";
 import { getCurrentUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** All possible nav items (the full menu). Admin picks which ones each role sees. */
 export const ALL_NAV_KEYS = [
@@ -52,6 +53,7 @@ export async function GET() {
  *  Body: { role: string, navItems: string[] }
  *  Admin-only. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing role nav config"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const isAdmin = hasRole(user.role, ADMIN_ROLES);
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
 /** DELETE /api/role-nav-config — reset a role's config to defaults.
  *  Body: { role: string } */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing role nav config"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const isAdmin = hasRole(user.role, ADMIN_ROLES);

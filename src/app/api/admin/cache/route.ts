@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getCacheStats, clearTokenCache } from "@/modules/assessment/lib/token-cache";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/admin/cache — returns token cache stats for the admin dashboard.
  *
@@ -23,6 +24,7 @@ export async function GET() {
  *  persist across clears for long-run visibility.
  */
 export async function DELETE() {
+  const _demoBlock = await demoWriteBlock("clearing cache"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

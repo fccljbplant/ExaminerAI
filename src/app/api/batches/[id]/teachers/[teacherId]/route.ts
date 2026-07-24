@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { canAccessBatch } from "@/lib/batch-teachers";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** DELETE /api/batches/[id]/teachers/[teacherId] — remove a teacher from a batch.
  *  Same permission rule as POST: ADMIN_ROLES or existing batch teacher. */
@@ -10,6 +11,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; teacherId: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("managing batch teachers"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

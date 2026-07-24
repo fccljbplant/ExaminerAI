@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/crisis-flags?userId=X — list crisis flags for a student.
  *  Sensitive — content not duplicated. Returns metadata only, never the evidence text. */
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest) {
  *  interaction it came from, not duplicated here.
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing crisis flags"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,
@@ -123,6 +125,7 @@ export async function POST(req: NextRequest) {
 
 /** PATCH /api/crisis-flags — update a flag's status (resolve/acknowledge). */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing crisis flags"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,

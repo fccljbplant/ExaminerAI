@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { WEEKLY_TOPICS } from "@/lib/course-topics";
+import { demoWriteBlock } from "@/lib/demo-guard";
 import {
   DEFAULT_TEST_CONFIG,
   DEFAULT_REPORT_CARD_TEMPLATE,
@@ -15,6 +16,7 @@ import {
  *  from course-defaults.ts + course-topics.ts. ALL configs are seeded.
  *  Idempotent — if a course with the same name exists, returns it. */
 export async function POST() {
+  const _demoBlock = await demoWriteBlock("seeding courses"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

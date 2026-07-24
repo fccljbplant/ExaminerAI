@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/journey — returns the student's completed manual step IDs. */
 export async function GET() {
@@ -21,6 +22,7 @@ export async function GET() {
 /** POST /api/journey — save a completed step ID to the DB.
  *  Body: { stepId: string } */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("updating journey"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -51,6 +53,7 @@ export async function POST(req: NextRequest) {
 /** DELETE /api/journey — remove a step ID (for going back).
  *  Body: { stepId: string } */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("updating journey"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -86,6 +89,7 @@ export async function DELETE(req: NextRequest) {
 /** PUT /api/journey — replace all completed steps (full reset or batch update).
  *  Body: { stepIds: string[] } */
 export async function PUT(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("updating journey"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
