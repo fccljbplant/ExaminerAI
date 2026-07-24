@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UnifiedThemeToggle } from "@/modules/theme";
 
 export type ViewKey =
   | "dashboard"
@@ -215,6 +216,15 @@ export default function AppShell() {
       const res = await api.get<{ user: PublicUser | null }>("/api/auth/me");
       setUser(res.user);
       if (res.user) {
+        // Set demo flag for client-side write blocking
+        const isDemo = res.user.email === "demo@examiner.ai";
+        if (typeof window !== "undefined") {
+          if (isDemo) {
+            localStorage.setItem("examiner-is-demo", "1");
+          } else {
+            localStorage.removeItem("examiner-is-demo");
+          }
+        }
         const role = res.user.role;
         const adminRoles = ["principal", "administrator", "developer", "admin", "institution_admin", "platform_admin"];
         if (adminRoles.includes(role)) {
@@ -315,6 +325,9 @@ export default function AppShell() {
     } catch {
       // ignore
     }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("examiner-is-demo");
+    }
     setUser(null);
     setView("dashboard");
   }, []);
@@ -407,7 +420,15 @@ export default function AppShell() {
   // The TeacherShell sidebar is not used — the AppShell sidebar handles nav.
   // TeacherDashboard's internal tab state provides the sub-navigation.
   return (
-    <div className="min-h-screen flex bg-background text-foreground">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* DEMO BANNER */}
+      {user?.email === "demo@examiner.ai" && (
+        <div className="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xs py-1.5 px-4 text-center font-medium flex items-center justify-center gap-2 flex-shrink-0">
+          <Sparkles className="w-3.5 h-3.5" />
+          DEMO MODE — Read-only access. Write actions are blocked. Use the role switcher below to preview any dashboard.
+        </div>
+      )}
+      <div className="flex flex-1 min-h-0">
       {/* Mobile sidebar toggle */}
       <button
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border text-foreground shadow-sm"
@@ -428,8 +449,8 @@ export default function AppShell() {
           <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <GraduationCap className="h-5 w-5" />
           </div>
-          <span className="font-bold text-foreground flex-1">AI Examiner</span>
-          <ThemeToggle />
+          <span className="font-bold text-foreground flex-1">ExaminerAI</span>
+          <UnifiedThemeToggle />
         </div>
 
         <nav className="px-3 py-4 space-y-1 overflow-y-auto flex-1">
@@ -600,6 +621,7 @@ export default function AppShell() {
       {effectiveRole === "student" && view !== "messages" && (
         <AskMyTeacher currentView={view} />
       )}
+      </div>
     </div>
   );
 }

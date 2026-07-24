@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * POST /api/group-tasks/submit — student submits their work for a group task.
@@ -8,6 +9,7 @@ import { getCurrentUser } from "@/lib/auth";
  * Creates or updates the submission (upsert via unique [groupTaskId, userId]).
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("submitting group tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "student") {
@@ -85,6 +87,7 @@ export async function GET(req: NextRequest) {
  * Body: { submissionId, score, feedback? }
  */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("submitting group tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!["teacher", "principal", "administrator", "admin"].includes(user.role)) {

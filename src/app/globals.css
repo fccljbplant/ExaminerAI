@@ -44,45 +44,45 @@
 }
 
 /* ============================================================
-   LIGHT THEME (default) — NotebookLM-inspired
-   White surfaces, Google blue primary, #202124 text
-   + Phase C: warm growth-oriented accent palette
-     (sage / amber / coral) layered on top — existing
-     primary (blue) preserved for backward compat.
+   LIGHT THEME (default) — Modern Slate
+   Clean white surfaces, slate-900 primary, warm amber accents.
+   This is the default fallback — the ThemePresetProvider in
+   src/modules/theme/ overrides these at runtime with the user's
+   chosen preset (Modern Slate, Ocean Blue, Forest Sage, Sunset Rose).
    ============================================================ */
 :root {
   --radius: 0.75rem;
-  --background: #f8f9fa;
-  --foreground: #202124;
+  --background: #fafafa;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #202124;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #202124;
-  --primary: #1a73e8;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a;
   --primary-foreground: #ffffff;
-  --secondary: #e8f0fe;
-  --secondary-foreground: #1967d2;
-  --muted: #f1f3f4;
-  --muted-foreground: #5f6368;
-  --accent: #e8f0fe;
-  --accent-foreground: #1967d2;
-  --destructive: #d93025;
-  --border: #dadce0;
-  --input: #dadce0;
-  --ring: #1a73e8;
-  --chart-1: #1a73e8;
-  --chart-2: #34a853;
-  --chart-3: #fbbc04;
-  --chart-4: #ea4335;
-  --chart-5: #9334e8;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #fef3c7;
+  --accent-foreground: #92400e;
+  --destructive: #dc2626;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #f59e0b;
+  --chart-1: #f59e0b;
+  --chart-2: #10b981;
+  --chart-3: #3b82f6;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
   --sidebar: #ffffff;
-  --sidebar-foreground: #202124;
-  --sidebar-primary: #1a73e8;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f172a;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e8f0fe;
-  --sidebar-accent-foreground: #1967d2;
-  --sidebar-border: #dadce0;
-  --sidebar-ring: #1a73e8;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #f59e0b;
 
   /* ---- Phase C: warm growth-oriented palette ----
      Sage   — progress, success, growth      (cooler, calming)
@@ -102,41 +102,41 @@
 }
 
 /* ============================================================
-   DARK THEME — NotebookLM dark mode
-   Dark surfaces (#1e1f20), Google blue accents, light text
+   DARK THEME — Modern Slate Dark
+   Slate-950 background, slate-800 cards, amber accents.
    ============================================================ */
 .dark {
-  --background: #1e1f20;
-  --foreground: #e8eaed;
-  --card: #28292c;
-  --card-foreground: #e8eaed;
-  --popover: #28292c;
-  --popover-foreground: #e8eaed;
-  --primary: #8ab4f8;
-  --primary-foreground: #1e1f20;
-  --secondary: #3c4043;
-  --secondary-foreground: #8ab4f8;
-  --muted: #3c4043;
-  --muted-foreground: #9aa0a6;
-  --accent: #3c4043;
-  --accent-foreground: #8ab4f8;
-  --destructive: #f28b82;
-  --border: #5f6368;
-  --input: #5f6368;
-  --ring: #8ab4f8;
-  --chart-1: #8ab4f8;
-  --chart-2: #81c995;
-  --chart-3: #fdd663;
-  --chart-4: #f28b82;
-  --chart-5: #c58af9;
-  --sidebar: #28292c;
-  --sidebar-foreground: #e8eaed;
-  --sidebar-primary: #8ab4f8;
-  --sidebar-primary-foreground: #1e1f20;
-  --sidebar-accent: #3c4043;
-  --sidebar-accent-foreground: #8ab4f8;
-  --sidebar-border: #5f6368;
-  --sidebar-ring: #8ab4f8;
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #f8fafc;
+  --primary-foreground: #0f172a;
+  --secondary: #334155;
+  --secondary-foreground: #f8fafc;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #422006;
+  --accent-foreground: #fbbf24;
+  --destructive: #f87171;
+  --border: #334155;
+  --input: #334155;
+  --ring: #f59e0b;
+  --chart-1: #fbbf24;
+  --chart-2: #34d399;
+  --chart-3: #60a5fa;
+  --chart-4: #f87171;
+  --chart-5: #a78bfa;
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #f59e0b;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #334155;
+  --sidebar-ring: #f59e0b;
 
   /* Phase C: growth palette — dark mode adjustments */
   --growth-sage:           #7eb39a;

@@ -5,6 +5,7 @@ import { getAuthUser } from "@/lib/auth";
 import { WEEKLY_TOPICS } from "@/lib/course-topics";
 import { validateCourseName, validateCourseWeeks } from "@/lib/course-validation";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * Normalize AI-generated course data before validation.
@@ -138,6 +139,7 @@ export async function GET() {
  *  domain, level, etc.) that don't map to the CourseDay model.
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("creating courses"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -4,12 +4,14 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { getTeacherBatchIds } from "@/lib/batch-teachers";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PUT /api/users/[id]/approve — approve a pending user. Teacher/admin only. */
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("approving users"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,

@@ -3,6 +3,7 @@ import { canAccessBatch } from "@/lib/batch-teachers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PATCH /api/batches/[id] — update a batch.
  *
@@ -25,6 +26,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("editing batches"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

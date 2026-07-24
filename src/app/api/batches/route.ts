@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/batches — list all batches with member counts.
  *  Available to teachers + admins. */
@@ -46,6 +47,7 @@ export async function GET() {
 
 /** POST /api/batches — create a new batch. Admin only. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("creating batches"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

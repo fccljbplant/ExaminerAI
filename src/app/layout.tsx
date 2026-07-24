@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ThemePresetProvider } from "@/modules/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,10 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Examiner — Socratic Assessment Platform",
-  description: "Conversational Socratic assessments for the Modern Web Development & AI Bootcamp. Role-based dashboards for students, teachers, and developers.",
-  keywords: ["AI Examiner", "Socratic", "Bootcamp", "Next.js", "AI Tutor"],
-  authors: [{ name: "ExaminerAI" }],
+  title: "ExaminerAI — Socratic Assessment & Mentorship Platform",
+  description: "AI-powered assessment, GROW mentorship, and 7-dimension psychology for institutions. 9 role dashboards, Socratic testing, AI tutor, and real-time alerts.",
+  keywords: ["ExaminerAI", "Socratic", "Assessment", "Mentorship", "AI Tutor", "LMS"],
+  authors: [{ name: "FCCL JB Plant IT" }],
   icons: {
     icon: "/logo.svg",
   },
@@ -35,8 +36,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <ThemeProvider>
-          {children}
-          <Toaster />
+          <ThemePresetProvider>
+            {children}
+            <Toaster />
+          </ThemePresetProvider>
         </ThemeProvider>
       </body>
     </html>

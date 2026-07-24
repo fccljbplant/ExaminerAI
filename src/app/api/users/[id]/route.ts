@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** DELETE /api/users/[id] — delete a user and ALL their data.
  *  Admin only. Explicitly deletes every related record in a transaction
@@ -10,6 +11,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("editing users"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

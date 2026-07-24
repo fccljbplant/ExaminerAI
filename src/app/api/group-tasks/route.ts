@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
 import { getCurrentUser } from "@/lib/auth";
 import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * GET /api/group-tasks?batchId=X — list group tasks for a batch.
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
  * Body: { batchId, title, description?, type?, dueDate?, week?, maxScore? }
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 
@@ -93,6 +95,7 @@ export async function POST(req: NextRequest) {
  * Body: { taskId, status?, title?, description?, dueDate? }
  */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 
@@ -122,6 +125,7 @@ export async function PATCH(req: NextRequest) {
  * Body: { taskId }
  */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 

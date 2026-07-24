@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/comments?studentId=... — list teacher comments for a student. */
 export async function GET(req: NextRequest) {
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest) {
  *  project comment shown at the top of the student's portfolio.
  */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("posting comments"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -80,6 +82,7 @@ export async function POST(req: NextRequest) {
  *    - marksOverride (optional — new score override, null to clear)
  */
 export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("posting comments"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -112,6 +115,7 @@ export async function PATCH(req: NextRequest) {
 
 /** DELETE /api/comments?id=... — teacher/admin deletes a comment. */
 export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("posting comments"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

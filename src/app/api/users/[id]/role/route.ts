@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { invalidateAuthCache } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PATCH /api/users/[id]/role — change a user's role. Admin only.
  *  Phase RBAC+AUDIT: centralized RBAC + universal audit log. */
@@ -11,6 +12,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("changing user roles"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 

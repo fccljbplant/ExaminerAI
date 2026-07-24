@@ -26,6 +26,21 @@ const DEFAULT_TIMEOUT_MS = 8000;
 const AI_TIMEOUT_MS = 60_000;
 
 async function request<T>(method: string, url: string, body?: unknown, timeoutMs?: number): Promise<T> {
+  // DEMO GUARD — block writes for demo account on the client side
+  const isWrite = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+  if (isWrite && typeof window !== "undefined" && localStorage.getItem("examiner-is-demo") === "1") {
+    // Allow logout
+    if (!url.includes("/api/auth/logout")) {
+      const { toast } = await import("sonner");
+      toast.error("Demo Account Restriction", {
+        description:
+          "🚫 This is a demo account — writes are blocked. You can open all forms, menus, and dialogs for preview, but no changes will be saved.",
+        duration: 5000,
+      });
+      throw new ApiError(403, "Demo account — writes are blocked", { code: "DEMO_BLOCKED" });
+    }
+  }
+
   const controller = new AbortController();
   const timeout = timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const timeoutId = setTimeout(() => controller.abort(), timeout);

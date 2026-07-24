@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/users — list users. Teachers see students+pending only. Admins see all. */
 export async function GET() {
@@ -30,6 +31,7 @@ export async function GET() {
 /** POST /api/users — admin/teacher creates a new user.
  *  Teachers can ONLY create student accounts. Only admins can create teachers/admins. */
 export async function POST(req: Request) {
+  const _demoBlock = await demoWriteBlock("creating users"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

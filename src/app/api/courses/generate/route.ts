@@ -5,6 +5,7 @@ import { callAI } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/courses/generate — AI generates a full course outline for ANY subject.
  *
@@ -64,6 +65,7 @@ function computeFormHash(params: {
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("generating courses"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

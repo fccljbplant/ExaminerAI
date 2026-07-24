@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { canAccessBatch } from "@/lib/batch-teachers";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/batches/[id]/teachers — add a teacher to a batch.
  *  Allowed for ADMIN_ROLES, or for a teacher who already has a BatchTeacher
@@ -11,6 +12,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("managing batch teachers"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

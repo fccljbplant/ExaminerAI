@@ -3,10 +3,12 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { assertCanAccessStudent } from "@/lib/auth";
 import { logAudit, AuditAction } from "@/lib/audit-log";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/grades/override — teacher/admin overrides a grade.
  *  Phase RBAC+AUDIT: centralized RBAC + universal audit log. */
 export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("overriding grades"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;

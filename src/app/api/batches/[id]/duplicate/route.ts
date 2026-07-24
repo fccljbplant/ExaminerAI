@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/batches/[id]/duplicate — create a new batch from an existing one.
  *
@@ -16,6 +17,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _demoBlock = await demoWriteBlock("duplicating batches"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload || !isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
