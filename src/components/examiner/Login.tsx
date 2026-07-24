@@ -33,6 +33,16 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
   const [busy, setBusy] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
+  // Clear any stale demo flag from a previous session before showing the login
+  // form. This prevents the client-side demo write-block from blocking the
+  // login POST itself (the flag persists in localStorage if the user closed
+  // the tab without logging out).
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("examiner-is-demo");
+    }
+  }, []);
+
   const submit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
