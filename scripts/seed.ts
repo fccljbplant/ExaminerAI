@@ -180,6 +180,16 @@ const mgmtTimelineEvents = [
 // MAIN SEED
 // ============================================================
 async function main() {
+  // Idempotent check: skip if users already exist (for Vercel rebuilds)
+  const existingUsers = await db.user.count()
+  if (existingUsers > 0 && process.argv.includes('--if-empty')) {
+    console.log(`ℹ️  Database already has ${existingUsers} users. Skipping seed (--if-empty flag set).`)
+    return
+  }
+  if (existingUsers > 0) {
+    console.log(`ℹ️  Database already has ${existingUsers} users. Re-seeding (cleaning first)...`)
+  }
+
   console.log('🧹 Cleaning DB...')
   await db.interaction.deleteMany()
   await db.auditLog.deleteMany()
