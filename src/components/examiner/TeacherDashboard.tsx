@@ -24,6 +24,7 @@ import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ProminentTabs } from "@/components/shared/prominent-tabs";
 import {
   CalendarDays, Users, HeartHandshake, ClipboardList, BarChart3,
   Mail, Activity, Settings as SettingsIcon, Loader2, RefreshCw,
@@ -141,32 +142,20 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
-      {/* Sub-navigation tabs */}
-      <div className="flex gap-1 flex-wrap border-b border-border pb-2">
-        {TABS.map(item => {
-          const Icon = item.icon;
-          const isActive = tab === item.key;
-          return (
-            <button
-              key={item.key}
-              onClick={() => setTab(item.key)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors relative",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground border border-border"
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" /> {item.label}
-              {item.badge && (
-                <span className="ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-[10px] font-bold rounded-full bg-amber-500 text-white">
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* Sub-navigation tabs — prominent, theme-synced */}
+      <ProminentTabs
+        tabs={TABS.map(item => ({
+          key: item.key,
+          label: item.label,
+          icon: item.icon,
+          badge: item.badge,
+          badgeColor: "amber" as const,
+        }))}
+        active={tab}
+        onChange={(key) => setTab(key as TeacherTab)}
+        variant="pill"
+        size="md"
+      />
 
       {/* Tab content */}
       {tab === "today" && (

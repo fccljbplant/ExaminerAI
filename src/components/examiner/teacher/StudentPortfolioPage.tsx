@@ -24,6 +24,7 @@ import { PsychologicalTab } from "@/components/examiner/teacher/PsychologicalTab
 import { EducationalTab } from "@/components/examiner/teacher/EducationalTab";
 import { MentorshipTabV2 } from "@/components/examiner/teacher/MentorshipTabV2";
 import { StudentAITools } from "@/components/examiner/teacher/ai/StudentAITools";
+import { ProminentTabs } from "@/components/shared/prominent-tabs";
 
 export function StudentPortfolioPage({
   student,
@@ -417,37 +418,25 @@ export function StudentPortfolioPage({
         </div>
       </div>
 
-      {/* Tabs — horizontally scrollable on mobile.
+      {/* Tabs — prominent, theme-synced, horizontally scrollable on mobile.
           Phase Three-Tab Redesign: 'trends' replaced with 'psychological' | 'educational' | 'mentorship'. */}
-      <div className="flex gap-1 border-b border-border overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-        {[
-          { key: "project" as const, label: "Project", icon: FolderOpen },
-          { key: "wizard" as const, label: "Progress", icon: TrendingUp },
-          { key: "logs" as const, label: "Check-Ins", icon: CalendarCheck },
-          { key: "assessments" as const, label: "Assessments", icon: ClipboardList },
-          { key: "report-cards" as const, label: "Report Cards", icon: FileText },
-          { key: "psychological" as const, label: "Psychological", icon: Brain },
-          { key: "educational" as const, label: "Educational", icon: GraduationCap },
-          { key: "mentorship" as const, label: "Mentorship", icon: HeartHandshake },
-          { key: "comments" as const, label: `Comments (${portfolio.comments.length})`, icon: MessageSquare },
-        ].map((t) => {
-          const Icon = t.icon;
-          const active = tab === t.key;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1 px-2.5 sm:px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.label}</span>
-              <span className="sm:hidden">{t.label.split(" ")[0]}</span>
-            </button>
-          );
-        })}
-      </div>
+      <ProminentTabs
+        tabs={[
+          { key: "project", label: "Project", icon: FolderOpen },
+          { key: "wizard", label: "Progress", icon: TrendingUp },
+          { key: "logs", label: "Check-Ins", icon: CalendarCheck },
+          { key: "assessments", label: "Assessments", icon: ClipboardList },
+          { key: "report-cards", label: "Report Cards", icon: FileText },
+          { key: "psychological", label: "Psychological", icon: Brain },
+          { key: "educational", label: "Educational", icon: GraduationCap },
+          { key: "mentorship", label: "Mentorship", icon: HeartHandshake },
+          { key: "comments", label: `Comments (${portfolio.comments.length})`, icon: MessageSquare },
+        ]}
+        active={tab}
+        onChange={(key) => setTab(key as typeof tab)}
+        variant="underline"
+        size="md"
+      />
 
       {/* Tab content — full width, properly scrollable */}
       <div className="min-h-[300px]">
