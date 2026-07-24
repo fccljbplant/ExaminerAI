@@ -21,13 +21,16 @@ fi
 echo "🔧 Generating Prisma client..."
 bunx prisma generate
 
-# Step 3: Push schema to DB (creates tables if needed)
-echo "🗄️  Pushing schema to database..."
-bunx prisma db push --accept-data-loss --skip-generate
+# Step 3: Push schema to DB. Use --force-reset for clean state (we re-seed after).
+echo "🗄️  Pushing schema to database (with force-reset for clean state)..."
+bunx prisma db push --accept-data-loss --force-reset --skip-generate 2>&1 || {
+  echo "⚠️  --force-reset failed, trying without..."
+  bunx prisma db push --accept-data-loss --skip-generate
+}
 
-# Step 4: Run seed (only if DB is empty — checked inside seed script)
-echo "🌱 Seeding demo data (if DB is empty)..."
-bun run scripts/seed.ts --if-empty 2>/dev/null || bun run scripts/seed.ts 2>/dev/null || echo "⚠️  Seed skipped (may already have data)"
+# Step 4: Run seed
+echo "🌱 Seeding demo data..."
+bun run scripts/seed.ts --if-empty 2>/dev/null || bun run scripts/seed.ts 2>/dev/null || echo "⚠️  Seed skipped"
 
 # Step 5: Build Next.js
 echo "🏗️  Building Next.js..."
