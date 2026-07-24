@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * CoPilotBox — AI query box on the Today view.
+ * AIAssistantBox — AI query box on the Today view.
  *
  * Free-text question → synthesized answer with reasoning + clickable
  * student references. Uses the configured AI model (callAI) via
- * /api/teacher/copilot — not a separate "copilot" service.
+ * /api/teacher/assistant — the AI Assistant.
  *
  * Keeps the last 5 queries in-session (not persisted).
  */
@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Sparkles, Send, ChevronRight } from "lucide-react";
 import type { StudentRow } from "@/components/examiner/teacher/types";
 
-interface CoPilotResponse {
+interface AIAssistantResponse {
   answer: string;
   references: Array<{
     userId: string;
@@ -28,7 +28,7 @@ interface CoPilotResponse {
   }>;
 }
 
-interface CoPilotBoxProps {
+interface AIAssistantBoxProps {
   students: StudentRow[];
   onStudentClick: (student: StudentRow) => void;
 }
@@ -40,11 +40,11 @@ const SUGGESTED_QUESTIONS = [
   "Which topics are causing the most difficulty?",
 ];
 
-export function CoPilotBox({ students, onStudentClick }: CoPilotBoxProps) {
+export function AIAssistantBox({ students, onStudentClick }: AIAssistantBoxProps) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<CoPilotResponse | null>(null);
-  const [history, setHistory] = useState<Array<{ question: string; response: CoPilotResponse }>>([]);
+  const [response, setResponse] = useState<AIAssistantResponse | null>(null);
+  const [history, setHistory] = useState<Array<{ question: string; response: AIAssistantResponse }>>([]);
 
   const ask = async (q?: string) => {
     const query = (q || question).trim();
@@ -52,7 +52,7 @@ export function CoPilotBox({ students, onStudentClick }: CoPilotBoxProps) {
     setLoading(true);
     setQuestion(query);
     try {
-      const res = await api.post<CoPilotResponse>("/api/teacher/copilot", { question: query }, AI_TIMEOUT_MS);
+      const res = await api.post<AIAssistantResponse>("/api/teacher/assistant", { question: query }, AI_TIMEOUT_MS);
       setResponse(res);
       setHistory(prev => [{ question: query, response: res }, ...prev].slice(0, 5));
     } catch {

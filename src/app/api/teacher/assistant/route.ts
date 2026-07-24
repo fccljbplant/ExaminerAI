@@ -7,11 +7,11 @@ import { buildTeacherBatchSummary } from "@/lib/teacher-batch-summary";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** POST /api/teacher/copilot — free-text question about the batch,
+/** POST /api/teacher/assistant — free-text question about the batch,
  *  answered from existing data (PsychEvidence, ConfidenceRating,
  *  SkillMastery, MentorshipTouchpoint, CrisisFlag).
  *
- *  Uses the configured AI model (callAI) — not a separate "copilot".
+ *  Uses the configured AI model (callAI) — the AI Assistant.
  *
  *  The response must:
  *  - Cite which students and which specific signal led to the answer
@@ -20,7 +20,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  */
 
 export async function POST(req: NextRequest) {
-  const _demoBlock = await demoWriteBlock("using teacher copilot"); if (_demoBlock) return _demoBlock;
+  const _demoBlock = await demoWriteBlock("using AI Assistant"); if (_demoBlock) return _demoBlock;
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }
@@ -103,7 +103,7 @@ Answer:`;
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ], {
-      feature: "teacher_copilot",
+      feature: "teacher_assistant",
       temperature: 0.3, // low temp — analytical, not creative
       maxTokens: 800,
     });
@@ -127,7 +127,7 @@ Answer:`;
       queryTimestamp: new Date().toISOString(),
     });
   } catch (err) {
-    logger.error("Teacher copilot AI call failed", { teacherId, error: err instanceof Error ? err.message : String(err) });
+    logger.error("Teacher AI Assistant call failed", { teacherId, error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({
       answer: "I wasn't able to process your question right now. Please try again in a moment.",
       references: [],

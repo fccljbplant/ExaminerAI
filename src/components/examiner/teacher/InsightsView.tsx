@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * InsightsView — batch-level analytics + AI copilot for weekly review.
+ * InsightsView — batch-level analytics + AI Assistant for weekly review.
  *
  * This is the "zoom out" view. Where Today is tactical (who needs me now),
  * Insights is strategic (how is the batch trending? what should I plan?).
@@ -10,7 +10,7 @@
  * 1. Batch distribution — wellbeing tiers, score distribution, engagement
  * 2. Trend charts — score trend, engagement trend, alert volume
  * 3. Topic mastery heatmap — which topics are batch-wide weak spots
- * 4. AI Copilot — free-text Q&A about the batch ("Who's likely to drop off?")
+ * 4. AI Assistant — free-text Q&A about the batch ("Who's likely to drop off?")
  */
 
 import { useEffect, useState, useMemo } from "react";
@@ -39,9 +39,9 @@ interface InsightsViewProps {
 const WELLBEING_COLORS = { green: "#10b981", amber: "#f59e0b", red: "#ef4444" };
 
 export function InsightsView({ students, stats, onStudentClick }: InsightsViewProps) {
-  const [copilotQuery, setCopilotQuery] = useState("");
-  const [copilotAnswer, setCopilotAnswer] = useState<string | null>(null);
-  const [copilotLoading, setCopilotLoading] = useState(false);
+  const [assistantQuery, setAssistantQuery] = useState("");
+  const [assistantAnswer, setAssistantAnswer] = useState<string | null>(null);
+  const [assistantLoading, setAssistantLoading] = useState(false);
 
   // Batch distribution data
   const distribution = useMemo(() => {
@@ -102,43 +102,43 @@ export function InsightsView({ students, stats, onStudentClick }: InsightsViewPr
     [students]
   );
 
-  const handleCopilotAsk = async () => {
-    if (!copilotQuery.trim()) return;
-    setCopilotLoading(true);
-    setCopilotAnswer(null);
+  const handleAssistantAsk = async () => {
+    if (!assistantQuery.trim()) return;
+    setAssistantLoading(true);
+    setAssistantAnswer(null);
     try {
-      const res = await api.post<{ answer: string }>("/api/teacher/copilot", { query: copilotQuery }, AI_TIMEOUT_MS);
-      setCopilotAnswer(res.answer);
+      const res = await api.post<{ answer: string }>("/api/teacher/assistant", { question: assistantQuery }, AI_TIMEOUT_MS);
+      setAssistantAnswer(res.answer);
     } catch (e: any) {
-      setCopilotAnswer(`Unable to get AI insight: ${e.message}`);
+      setAssistantAnswer(`Unable to get AI insight: ${e.message}`);
     } finally {
-      setCopilotLoading(false);
+      setAssistantLoading(false);
     }
   };
 
   return (
     <div className="space-y-4">
       {/* ============================================ */}
-      {/* AI COPILOT */}
+      {/* AI ASSISTANT */}
       {/* ============================================ */}
       <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Brain className="w-4 h-4 text-primary" />
-            AI Copilot — Ask about your batch
+            AI Assistant — Ask about your batch
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex gap-2">
             <Input
               placeholder="e.g., 'Who's likely to drop off?' or 'Which students improved most this week?'"
-              value={copilotQuery}
-              onChange={(e) => setCopilotQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCopilotAsk()}
+              value={assistantQuery}
+              onChange={(e) => setAssistantQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAssistantAsk()}
               className="text-sm"
             />
-            <Button onClick={handleCopilotAsk} disabled={copilotLoading || !copilotQuery.trim()}>
-              {copilotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            <Button onClick={handleAssistantAsk} disabled={assistantLoading || !assistantQuery.trim()}>
+              {assistantLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
           </div>
           {/* Quick prompts */}
@@ -151,18 +151,18 @@ export function InsightsView({ students, stats, onStudentClick }: InsightsViewPr
             ].map(prompt => (
               <button
                 key={prompt}
-                onClick={() => setCopilotQuery(prompt)}
+                onClick={() => setAssistantQuery(prompt)}
                 className="text-[10px] px-2 py-1 rounded-full border bg-card hover:bg-accent transition-colors"
               >
                 {prompt}
               </button>
             ))}
           </div>
-          {copilotAnswer && (
+          {assistantAnswer && (
             <div className="mt-3 p-3 rounded-lg bg-card border text-sm">
               <div className="flex items-start gap-2">
                 <Sparkles className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                <div className="prose prose-sm max-w-none whitespace-pre-wrap">{copilotAnswer}</div>
+                <div className="prose prose-sm max-w-none whitespace-pre-wrap">{assistantAnswer}</div>
               </div>
             </div>
           )}

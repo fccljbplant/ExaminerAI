@@ -8,7 +8,7 @@ import crypto from "crypto";
 /** GET /api/students/[id]/explain — AI-generated narrative summary
  *  of a student's trajectory.
  *
- *  Uses the configured AI model (callAI) — not a separate "copilot".
+ *  Uses the configured AI model (callAI) — the AI Assistant.
  *  Cached via AICache model, invalidated when new evidence is added.
  *
  *  The narrative is:

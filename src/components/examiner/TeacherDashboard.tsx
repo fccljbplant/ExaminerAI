@@ -15,7 +15,7 @@
  * - Students: searchable roster with attention flags
  * - Mentorship: GROW coaching queue + follow-ups due
  * - Assignments: group tasks + peer assessment + events
- * - Insights: batch-level analytics + AI copilot (weekly review)
+ * - Insights: batch-level analytics + AI Assistant (weekly review)
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -36,7 +36,7 @@ import { MentorshipView } from "@/components/examiner/teacher/MentorshipView";
 import { AssignmentsTab } from "@/components/examiner/teacher/AssignmentsTab";
 import { InsightsView } from "@/components/examiner/teacher/InsightsView";
 import { StudentPortfolioPage } from "@/components/examiner/teacher/StudentPortfolioPage";
-import { CoPilotBox } from "@/components/examiner/teacher/ai/CoPilotBox";
+import { AIAssistantBox } from "@/components/examiner/teacher/ai/AIAssistantBox";
 
 export type TeacherTab = "today" | "students" | "mentorship" | "assignments" | "insights" | "messages" | "myload" | "settings";
 
@@ -177,7 +177,7 @@ export default function TeacherDashboard() {
             onStudentClick={(s) => setSelectedStudent(s)}
             onViewChange={(v) => setTab(v as TeacherTab)}
           />
-          <CoPilotBox students={students} onStudentClick={(s) => setSelectedStudent(s)} />
+          <AIAssistantBox students={students} onStudentClick={(s) => setSelectedStudent(s)} />
         </div>
       )}
 
