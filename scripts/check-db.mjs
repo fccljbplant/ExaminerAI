@@ -1,0 +1,12 @@
+import { PrismaClient } from "@prisma/client";
+const db = new PrismaClient();
+const wt = await db.weeklyTest.count();
+const wtCompleted = await db.weeklyTest.count({ where: { status: "completed" } });
+const comp = await db.competency.count();
+const students = await db.user.count({ where: { role: "student" } });
+console.log({ wt, wtCompleted, comp, students });
+const sampleTests = await db.weeklyTest.findMany({ take: 5, select: { week: true, status: true, score: true } });
+console.log("Sample tests:", sampleTests);
+const sampleComp = await db.competency.findMany({ take: 5, select: { topic: true, score: true, attempts: true } });
+console.log("Sample competencies:", sampleComp);
+await db.$disconnect();

@@ -43,73 +43,111 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ============================================================
+   LIGHT THEME (default) — NotebookLM-inspired
+   White surfaces, Google blue primary, #202124 text
+   + Phase C: warm growth-oriented accent palette
+     (sage / amber / coral) layered on top — existing
+     primary (blue) preserved for backward compat.
+   ============================================================ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
+  --background: #f8f9fa;
+  --foreground: #202124;
+  --card: #ffffff;
+  --card-foreground: #202124;
+  --popover: #ffffff;
+  --popover-foreground: #202124;
+  --primary: #1a73e8;
+  --primary-foreground: #ffffff;
+  --secondary: #e8f0fe;
+  --secondary-foreground: #1967d2;
+  --muted: #f1f3f4;
+  --muted-foreground: #5f6368;
+  --accent: #e8f0fe;
+  --accent-foreground: #1967d2;
+  --destructive: #d93025;
+  --border: #dadce0;
+  --input: #dadce0;
+  --ring: #1a73e8;
+  --chart-1: #1a73e8;
+  --chart-2: #34a853;
+  --chart-3: #fbbc04;
+  --chart-4: #ea4335;
+  --chart-5: #9334e8;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #202124;
+  --sidebar-primary: #1a73e8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8f0fe;
+  --sidebar-accent-foreground: #1967d2;
+  --sidebar-border: #dadce0;
+  --sidebar-ring: #1a73e8;
+
+  /* ---- Phase C: warm growth-oriented palette ----
+     Sage   — progress, success, growth      (cooler, calming)
+     Amber  — attention, in-progress, energy (warm, motivating)
+     Coral  — alerts, needs-care, gentle     (soft, not alarming red)
+     These are semantic — UI uses them by INTENT not by color.
+     They layer ON TOP of the existing primary (blue) — nothing breaks. */
+  --growth-sage:           #5b8a72;
+  --growth-sage-soft:      #d8ebe0;
+  --growth-sage-foreground: #2f5d4a;
+  --growth-amber:          #c98a2b;
+  --growth-amber-soft:     #fbe8c4;
+  --growth-amber-foreground: #6b4a14;
+  --growth-coral:          #d97766;
+  --growth-coral-soft:     #fadcd5;
+  --growth-coral-foreground: #7a3528;
 }
 
+/* ============================================================
+   DARK THEME — NotebookLM dark mode
+   Dark surfaces (#1e1f20), Google blue accents, light text
+   ============================================================ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #1e1f20;
+  --foreground: #e8eaed;
+  --card: #28292c;
+  --card-foreground: #e8eaed;
+  --popover: #28292c;
+  --popover-foreground: #e8eaed;
+  --primary: #8ab4f8;
+  --primary-foreground: #1e1f20;
+  --secondary: #3c4043;
+  --secondary-foreground: #8ab4f8;
+  --muted: #3c4043;
+  --muted-foreground: #9aa0a6;
+  --accent: #3c4043;
+  --accent-foreground: #8ab4f8;
+  --destructive: #f28b82;
+  --border: #5f6368;
+  --input: #5f6368;
+  --ring: #8ab4f8;
+  --chart-1: #8ab4f8;
+  --chart-2: #81c995;
+  --chart-3: #fdd663;
+  --chart-4: #f28b82;
+  --chart-5: #c58af9;
+  --sidebar: #28292c;
+  --sidebar-foreground: #e8eaed;
+  --sidebar-primary: #8ab4f8;
+  --sidebar-primary-foreground: #1e1f20;
+  --sidebar-accent: #3c4043;
+  --sidebar-accent-foreground: #8ab4f8;
+  --sidebar-border: #5f6368;
+  --sidebar-ring: #8ab4f8;
+
+  /* Phase C: growth palette — dark mode adjustments */
+  --growth-sage:           #7eb39a;
+  --growth-sage-soft:      #2c4035;
+  --growth-sage-foreground: #b5d9c2;
+  --growth-amber:          #e3b062;
+  --growth-amber-soft:     #4a3818;
+  --growth-amber-foreground: #f1d49a;
+  --growth-coral:          #e59a8a;
+  --growth-coral-soft:     #4a2620;
+  --growth-coral-foreground: #f1b8ad;
 }
 
 @layer base {
@@ -118,5 +156,153 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ---- ExaminerAI custom utilities & polish ---- */
+
+@layer utilities {
+  .animate-pulse-slow {
+    animation: pulse-slow 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.78; }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.35s ease-out both;
+  }
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- Phase C: staggered entrance animations ----
+     Apply .animate-stagger to a parent and
+     --stagger-index: <n> to each child. Children appear
+     one after another with a 40ms delay between them.
+     Capped at 12 items — longer lists fall back to
+     simultaneous (avoids a 600ms+ delay for the last item). */
+  .animate-stagger > * {
+    animation: fade-in-up 0.35s ease-out both;
+    animation-delay: calc(var(--stagger-index, 0) * 40ms);
+  }
+  .animate-stagger > *:nth-child(n + 13) {
+    animation-delay: 0ms; /* fallback for long lists */
+  }
+
+  /* ---- Phase C: success burst animation ----
+     A brief, satisfying "pop" on check-in submit, test
+     completion, or certificate generation. 600ms total. */
+  .animate-success-burst {
+    animation: success-burst 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes success-burst {
+    0%   { opacity: 0; transform: scale(0.8); }
+    50%  { opacity: 1; transform: scale(1.04); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ---- Phase C: gentle float for empty-state illustrations ----
+     Subtle up/down movement — gives the empty state a
+     "still alive, just waiting" feel without being distracting. */
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ---- Phase C: growth palette utility classes ----
+     Use these instead of hardcoded emerald/amber/red when
+     the semantic intent matches growth/attention/alert.
+     e.g. <span className="text-growth-sage bg-growth-sage-soft"> */
+  .text-growth-sage           { color: var(--growth-sage); }
+  .text-growth-sage-foreground { color: var(--growth-sage-foreground); }
+  .bg-growth-sage             { background-color: var(--growth-sage); }
+  .bg-growth-sage-soft        { background-color: var(--growth-sage-soft); }
+  .border-growth-sage         { border-color: var(--growth-sage); }
+  .border-growth-sage-soft    { border-color: var(--growth-sage-soft); }
+
+  .text-growth-amber           { color: var(--growth-amber); }
+  .text-growth-amber-foreground { color: var(--growth-amber-foreground); }
+  .bg-growth-amber             { background-color: var(--growth-amber); }
+  .bg-growth-amber-soft        { background-color: var(--growth-amber-soft); }
+  .border-growth-amber         { border-color: var(--growth-amber); }
+  .border-growth-amber-soft    { border-color: var(--growth-amber-soft); }
+
+  .text-growth-coral           { color: var(--growth-coral); }
+  .text-growth-coral-foreground { color: var(--growth-coral-foreground); }
+  .bg-growth-coral             { background-color: var(--growth-coral); }
+  .bg-growth-coral-soft        { background-color: var(--growth-coral-soft); }
+  .border-growth-coral         { border-color: var(--growth-coral); }
+  .border-growth-coral-soft    { border-color: var(--growth-coral-soft); }
+
+  /* ---- Phase C: gradient card (for AI-generated content) ----
+     A subtle vertical gradient that signals "this was
+     generated by AI" without being flashy. Pairs with
+     a small "AI" badge in the corner. */
+  .bg-card-ai-gradient {
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--growth-sage-soft) 50%, var(--card)) 0%,
+        var(--card) 60%);
+  }
+
+  /* ---- Phase C: filled card variant (for stat blocks) ----
+     Solid sage tint instead of border — feels more like
+     a "tile" than an outlined card. */
+  .bg-card-filled-sage {
+    background-color: var(--growth-sage-soft);
+    color: var(--growth-sage-foreground);
+  }
+  .bg-card-filled-amber {
+    background-color: var(--growth-amber-soft);
+    color: var(--growth-amber-foreground);
+  }
+  .bg-card-filled-coral {
+    background-color: var(--growth-coral-soft);
+    color: var(--growth-coral-foreground);
+  }
+}
+
+/* Custom scrollbar — adapts to theme */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  opacity: 0.3;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  opacity: 0.5;
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-slow,
+  .animate-fade-in-up,
+  .animate-stagger > *,
+  .animate-success-burst,
+  .animate-float,
+  .shimmer {
+    animation: none !important;
   }
 }

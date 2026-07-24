@@ -1,25 +1,13 @@
-'use client'
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { ModernLanding } from "@/components/landing/modern-landing";
 
-import { useEffect } from 'react'
-import { useAuth } from '@/lib/auth-store'
-import { LandingPage } from '@/components/landing-page'
-import { AppShell } from '@/components/app-shell'
-
-export default function Home() {
-  const { user, loading, refresh } = useAuth()
-
-  useEffect(() => {
-    refresh()
-  }, [refresh])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading ExaminerAI…</div>
-      </div>
-    )
+/** Root page — shows the marketing landing page for non-authenticated visitors.
+ *  Authenticated users are redirected to the app dashboard. */
+export default async function Page() {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect("/app");
   }
-
-  if (!user) return <LandingPage />
-  return <AppShell />
+  return <ModernLanding />;
 }

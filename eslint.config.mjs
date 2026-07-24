@@ -19,6 +19,10 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     // React rules
     "react-hooks/exhaustive-deps": "off",
     "react-hooks/purity": "off",
+    // set-state-in-effect is overly strict for the common pattern of
+    // setLoading(true) followed by an async fetch. Downgrade to warning.
+    "react-hooks/set-state-in-effect": "warn",
+    "react-hooks/static-components": "warn",
     "react/no-unescaped-entities": "off",
     "react/display-name": "off",
     "react/prop-types": "off",

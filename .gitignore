@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 node_modules
 /.pnp
@@ -30,43 +28,45 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
+# env files
+.env
+.env.local
+.env*.local
 
 # vercel
 .vercel
 
-# database
-/db/*.db
-/db/*.db-journal
-*.sqlite
-*.sqlite3
-
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-local-*
-.claude
-.z-ai-config
+
+# logs
 *.log
 dev.log
 dev.out.log
-test
-prompt
-
 server.log
-# Skills directory
+
+# database (SQLite — don't commit binary DB files)
+db/*.db
+db/*.db-journal
+db/*.db-wal
+db/*.db-shm
+
+# sandbox / platform artifacts (not part of the project)
 /skills/
+/.zscripts/
+/upload/
+/download/
+/tool-results/
+/ExaminerAI/
 
-# OS
-.DS_Store
+# OS files
 Thumbs.db
-
-# Editor
-.vscode/
-.idea/
-
-# Build artifacts
-/download/*.png
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+bun.lock
+.env*
+worklog.md
+.zscripts/*.pid
+upload/*.docx

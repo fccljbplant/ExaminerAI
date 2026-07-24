@@ -1,59 +1,265 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { getSession, isDemoMode } from '@/lib/auth'
-import { demoRefusal } from '@/lib/demo-guard'
+import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
+import { getAuthUser } from "@/lib/auth";
+import { validateCourseWeeks } from "@/lib/course-validation";
 
-// GET /api/courses/[id] — full course detail with outline, timeline, assessments, batches
+/** GET /api/courses/[id] — get a course with all weeks + days. */
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { id } = await params
+  const payload = await getAuthUser();
+  if (!payload || (!isStaffRole(payload.role))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
+  const { id } = await params;
   const course = await db.course.findUnique({
     where: { id },
     include: {
-      teacher: true,
-      institution: true,
-      batches: { include: { teachers: true, _count: { select: { enrollments: true } } } },
-      assessments: { orderBy: { date: 'asc' } },
-      assignments: { orderBy: { dueDate: 'asc' } },
-      timelineEvents: { orderBy: { date: 'asc' } },
-      sessions: { orderBy: { date: 'asc' }, take: 20 },
-      _count: { select: { enrollments: true } }
-    }
-  })
-  if (!course) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json({ course })
+      weeks: {
+        orderBy: { weekNumber: "asc" },
+        include: { days: { orderBy: { day: "asc" } } },
+      },
+      batches: { select: { id: true, name: true } },
+    },
+  });
+
+  if (!course) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+
+  // Parse ALL JSON fields
+  const parseJSON = (str: string | null, fallback: unknown = null) => {
+    try { return str ? JSON.parse(str) : fallback; } catch { return fallback; }
+  };
+
+  const courseWithParsed = {
+    ...course,
+    toolsUsed: parseJSON(course.toolsUsed, []),
+    deliverableTypes: parseJSON(course.deliverableTypes, []),
+    assessmentConfig: parseJSON(course.assessmentConfigJson),
+    weeks: course.weeks.map((w) => ({
+      ...w,
+      days: w.days.map((d) => ({
+        ...d,
+        resources: parseJSON(d.resources, []),
+        topicsCovered: parseJSON(d.topicsCovered, []),
+      })),
+    })),
+    journeySteps: parseJSON(course.journeyStepsJson),
+    projectTemplate: parseJSON(course.projectTemplateJson),
+    aiPrompts: parseJSON(course.aiPromptsJson),
+    testConfig: parseJSON(course.testConfigJson),
+    reportCardTemplate: parseJSON(course.reportCardTemplateJson),
+  };
+
+  return NextResponse.json({ course: courseWithParsed });
 }
 
-// PUT /api/courses/[id] — update course (DEMO BLOCKED)
+/** PUT /api/courses/[id] — update course name/description AND replace all weeks/days.
+ *  Body: { name?, description?, weeks: [{ weekNumber, phase, milestone?, days: [{ day, title, objective?, resources? }] }] }
+ *  This is a FULL REPLACE: all existing weeks/days are deleted and recreated. */
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { demo } = await isDemoMode()
-  if (demo) return demoRefusal('editing courses')
-  const session = await getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { id } = await params
-  const body = await req.json()
-  const course = await db.course.update({ where: { id }, data: body })
-  return NextResponse.json({ course })
+  const payload = await getAuthUser();
+  if (!payload || (!isStaffRole(payload.role))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const body = await req.json().catch(() => ({}));
+  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, notebooklmUrl, subjects } = body as {
+    name?: string;
+    description?: string;
+    weeks?: { weekNumber: number; phase: string; milestone?: string; days: { day: number; title: string; objective?: string; whyItMatters?: string; topicsCovered?: string[]; activity?: string; deliverable?: string; resources?: { label: string; url: string }[] }[] }[];
+    journeySteps?: unknown;
+    projectTemplate?: unknown;
+    aiPrompts?: unknown;
+    testConfig?: unknown;
+    reportCardTemplate?: unknown;
+    domain?: string;
+    level?: string;
+    toolsUsed?: string[];
+    deliverableTypes?: string[];
+    assessmentType?: string;
+    assessmentConfig?: unknown;
+    notebooklmUrl?: string | null;
+    subjects?: string[];
+  };
+
+  // Verify course exists
+  const existing = await db.course.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+
+  // Validate weeks/days structure if weeks are being replaced
+  if (weeks !== undefined) {
+    const v = validateCourseWeeks(weeks);
+    if (!v.ok) {
+      return NextResponse.json({ error: v.error }, { status: 400 });
+    }
+  }
+
+  // Build config + domain update data — only update fields that are provided
+  const configData: Record<string, string | null> = {};
+  if (journeySteps !== undefined) configData.journeyStepsJson = journeySteps ? JSON.stringify(journeySteps) : null;
+  if (projectTemplate !== undefined) configData.projectTemplateJson = projectTemplate ? JSON.stringify(projectTemplate) : null;
+  if (aiPrompts !== undefined) configData.aiPromptsJson = aiPrompts ? JSON.stringify(aiPrompts) : null;
+  if (testConfig !== undefined) configData.testConfigJson = testConfig ? JSON.stringify(testConfig) : null;
+  if (reportCardTemplate !== undefined) configData.reportCardTemplateJson = reportCardTemplate ? JSON.stringify(reportCardTemplate) : null;
+  if (assessmentConfig !== undefined) configData.assessmentConfigJson = assessmentConfig ? JSON.stringify(assessmentConfig) : null;
+  if (toolsUsed !== undefined) configData.toolsUsed = JSON.stringify(toolsUsed || []);
+  if (deliverableTypes !== undefined) configData.deliverableTypes = JSON.stringify(deliverableTypes || []);
+
+  // Transaction: delete old weeks/days, update course + config, create new weeks/days
+  try {
+    await db.$transaction(async (tx) => {
+    // Delete all existing weeks (cascade deletes days) — only if weeks are provided
+    if (weeks !== undefined) {
+      await tx.courseWeek.deleteMany({ where: { courseId: id } });
+    }
+
+    // Update course metadata + config + domain fields
+    await tx.course.update({
+      where: { id },
+      data: {
+        ...(name?.trim() ? { name: name.trim() } : {}),
+        ...(description !== undefined ? { description: description.trim() } : {}),
+        ...(domain !== undefined ? { domain } : {}),
+        ...(level !== undefined ? { level } : {}),
+        ...(assessmentType !== undefined ? { assessmentType } : {}),
+        // Phase AI-Tutor Revert: notebooklmUrl explicitly updatable — empty string clears it (→ null)
+        ...(notebooklmUrl !== undefined ? { notebooklmUrl: notebooklmUrl?.trim() || null } : {}),
+        // Scale Tier 2: subjects updatable
+        ...(subjects !== undefined ? { subjects: JSON.stringify(subjects || []) } : {}),
+        ...configData,
+      },
+    });
+
+    // Create new weeks + days (only if weeks were provided)
+    if (weeks?.length) {
+      for (const w of weeks) {
+        const createdWeek = await tx.courseWeek.create({
+          data: {
+            courseId: id,
+            weekNumber: w.weekNumber,
+            phase: w.phase,
+            milestone: w.milestone || "",
+          },
+        });
+        if (w.days?.length) {
+          await tx.courseDay.createMany({
+            data: w.days.map((d) => ({
+              courseWeekId: createdWeek.id,
+              day: d.day,
+              title: d.title,
+              objective: d.objective || "",
+              whyItMatters: d.whyItMatters || "",
+              topicsCovered: JSON.stringify(d.topicsCovered || []),
+              activity: d.activity || "",
+              deliverable: d.deliverable || "",
+              resources: JSON.stringify(d.resources || []),
+            })),
+          });
+        }
+      }
+    }
+  });
+
+  } catch (err) {
+    logger.error("Failed to update course", { id, error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ error: "Failed to update course" }, { status: 500 });
+  }
+
+  // Return updated course
+  const updated = await db.course.findUnique({
+    where: { id },
+    include: {
+      weeks: { orderBy: { weekNumber: "asc" }, include: { days: { orderBy: { day: "asc" } } } },
+    },
+  });
+
+  // L15-fix: handle null (course deleted between transaction and re-fetch)
+  if (!updated) {
+    return NextResponse.json({ error: "Course not found after update" }, { status: 404 });
+  }
+
+  return NextResponse.json({ course: updated });
 }
 
-// DELETE /api/courses/[id] — DEMO BLOCKED
+/** DELETE /api/courses/[id] — delete a course (cascade deletes weeks + days).
+ *
+ *  By default, REFUSES to delete if any batches are still assigned to the
+ *  course — this protects students mid-bootcamp from losing their curriculum
+ *  because an admin fat-fingered the delete button. The error response lists
+ *  the affected batches so the admin knows what to unassign first.
+ *
+ *  Pass `?force=true` to override: this unassigns the course from all
+ *  batches first, then deletes. Use with caution.
+ */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { demo } = await isDemoMode()
-  if (demo) return demoRefusal('deleting courses')
-  const session = await getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { id } = await params
-  await db.course.delete({ where: { id } })
-  return NextResponse.json({ ok: true })
+  const payload = await getAuthUser();
+  if (!payload || (!isStaffRole(payload.role))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  // Permission: only ADMIN_ROLES (principal, administrator) can delete a course.
+  // No other role — including course_coordinator, counselor, teacher,
+  // teaching_assistant, developer, or the course's own batch-owning teacher —
+  // may delete a course. Course deletion is a high-impact admin action that
+  // can wipe curriculum for an entire batch mid-bootcamp.
+  if (!hasRole(payload.role, ADMIN_ROLES)) {
+    return NextResponse.json({ error: "Only administrators can delete a course" }, { status: 403 });
+  }
+
+  // Verify the course exists (avoid silent 200 on already-deleted)
+  const existing = await db.course.findUnique({
+    where: { id },
+    select: { id: true, name: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  }
+
+  // Check for batches currently using this course
+  const assignedBatches = await db.batch.findMany({
+    where: { courseId: id },
+    select: { id: true, name: true },
+  });
+
+  const force = new URL(req.url).searchParams.get("force") === "true";
+
+  if (assignedBatches.length > 0 && !force) {
+    return NextResponse.json(
+      {
+        error: `Cannot delete: ${assignedBatches.length} batch(s) are still using this course. Unassign them first, or pass ?force=true to unassign + delete in one step.`,
+        assignedBatches: assignedBatches.map(c => ({ id: c.id, name: c.name })),
+      },
+      { status: 409 }
+    );
+  }
+
+  // If force=true (or no batches are assigned), unassign + delete
+  if (assignedBatches.length > 0) {
+    await db.batch.updateMany({ where: { courseId: id }, data: { courseId: null } });
+  }
+
+  try {
+      await db.course.delete({ where: { id } });
+    } catch (err) {
+      logger.error("Failed to delete course", { id, error: err instanceof Error ? err.message : String(err) });
+      return NextResponse.json({ error: "Failed to delete course — it may still have dependent records" }, { status: 500 });
+    }
+
+  return NextResponse.json({
+    ok: true,
+    unassignedBatches: assignedBatches.length,
+  });
 }

@@ -1,0 +1,3231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Web Development &amp; AI Bootcamp — Weeks 1–6</title>
+<script>
+  // Sync theme with parent app (next-themes stores in localStorage 'theme' key).
+  // Runs before first paint to avoid a flash of the wrong theme.
+  (function () {
+    function resolveTheme() {
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'dark') return 'dark';
+        if (saved === 'light') return 'light';
+        if (saved === 'system' || !saved) {
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        return 'light';
+      } catch (e) { return 'light'; }
+    }
+    document.documentElement.setAttribute('data-theme', resolveTheme());
+    // Expose for real-time updates
+    window.__resolveExaminerTheme = resolveTheme;
+  })();
+</script>
+<style>
+  :root {
+    --navy: #1F3A5F;
+    --navy-deep: #14283f;
+    --blue: #2E75B6;
+    --blue-tint: #EAF1F8;
+    --green: #1e8e5a;
+    --green-tint: #e6f4ec;
+    --amber: #a15c00;
+    --amber-tint: #fbf1de;
+    --purple: #6a3fa0;
+    --purple-tint: #f1e9f9;
+    --slate: #3c4552;
+    --slate-tint: #eef1f4;
+    --ink: #1f2328;
+    --muted: #5f6368;
+    --border: #dfe3e8;
+    --bg: #f7f9fb;
+    --card: #ffffff;
+    --card-alt: #ffffff;
+    --sidebar-w: 300px;
+    --shadow: rgba(0,0,0,0.06);
+    --scheme: light;
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    --navy: #2c4d78;
+    --navy-deep: #0f1b2b;
+    --blue: #8ab4f8;
+    --blue-tint: #16233a;
+    --green: #7bd8a8;
+    --green-tint: #10281d;
+    --amber: #f3b95f;
+    --amber-tint: #2c2210;
+    --purple: #c9a8ef;
+    --purple-tint: #24192f;
+    --slate: #b6c0cc;
+    --slate-tint: #1d232c;
+    --ink: #e8eaed;
+    --muted: #9aa4b2;
+    --border: #33404f;
+    --bg: #12161c;
+    --card: #1a2029;
+    --card-alt: #171c24;
+    --shadow: rgba(0,0,0,0.4);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.65;
+    font-size: 16px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--navy-deep);
+    color: #fff;
+    padding: 12px 20px;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: background 0.2s ease;
+  }
+  .topbar .brand {
+    font-weight: 700; letter-spacing: 0.2px; font-size: 15px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .topbar .brand .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #6fd1a0; box-shadow: 0 0 0 4px rgba(111,209,160,0.25);
+  }
+  .topbar .sub { color: #b9c6d6; font-size: 13px; margin-left: auto; display: none; }
+  @media (min-width: 720px) { .topbar .sub { display: block; } }
+  #close-tab {
+    display: none;
+    margin-left: auto;
+    padding: 6px 16px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  #close-tab:hover { background: rgba(255,255,255,0.3); }
+  @media (max-width: 720px) {
+    #close-tab { padding: 6px 12px; font-size: 13px; }
+    .topbar .sub { display: none !important; }
+  }
+  #toc-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 8px;
+    background: rgba(255,255,255,0.12); color: #fff; border: none; cursor: pointer;
+    font-size: 16px; flex-shrink: 0;
+  }
+  #toc-toggle:hover { background: rgba(255,255,255,0.22); }
+  @media (min-width: 980px) { #toc-toggle { display: none; } }
+
+  /* ---------- Layout ---------- */
+  .layout {
+    display: flex;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  nav.sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    position: sticky;
+    top: 57px;
+    align-self: flex-start;
+    height: calc(100vh - 57px);
+    overflow-y: auto;
+    padding: 22px 14px 40px 20px;
+    border-right: 1px solid var(--border);
+    background: var(--card);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  nav.sidebar .toc-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); font-weight: 700; margin: 0 0 10px 4px;
+  }
+  ul.toc-list, ul.toc-sublist { list-style: none; margin: 0; padding: 0; }
+  ul.toc-list > li { margin-bottom: 2px; }
+  ul.toc-sublist { padding-left: 14px; border-left: 2px solid var(--border); margin: 2px 0 8px 8px; }
+  nav.sidebar a {
+    display: block;
+    padding: 7px 10px;
+    border-radius: 7px;
+    color: var(--slate);
+    text-decoration: none;
+    font-size: 13.5px;
+    line-height: 1.35;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  ul.toc-list > li > a { font-weight: 600; color: var(--navy); }
+  nav.sidebar a:hover { background: var(--blue-tint); color: var(--blue); }
+  nav.sidebar a.active { background: var(--navy); color: #fff !important; }
+
+  main {
+    flex: 1;
+    min-width: 0;
+    padding: 24px 32px 40px;
+  }
+  @media (max-width: 720px) {
+    main { padding: 16px 10px 30px; }
+    body { font-size: 14px; }
+    h1 { font-size: 20px; margin-bottom: 10px; }
+    h2 { font-size: 17px; margin-top: 20px; }
+    h3 { font-size: 15px; }
+    p { margin: 0 0 10px; line-height: 1.5; }
+    table { font-size: 13px; display: block; overflow-x: auto; }
+    .topbar { height: 48px; padding: 0 10px; }
+    .topbar .brand { font-size: 13px; }
+    .layout { flex-direction: column; }
+    .callout { padding: 10px 12px; margin: 12px 0; font-size: 13px; }
+    .toc-list { font-size: 13px; }
+    .toc-sublist { font-size: 12px; }
+    ul, ol { padding-left: 18px; }
+  }
+  @media (max-width: 400px) {
+    main { padding: 12px 8px 50px; }
+    body { font-size: 13px; }
+    h1 { font-size: 18px; }
+    .topbar .brand { font-size: 12px; }
+    .topbar .sub { display: none; }
+  }
+
+  /* ---------- Mobile sidebar toggle ---------- */
+  @media (max-width: 979px) {
+    nav.sidebar {
+      position: fixed; left: 0; top: 57px; z-index: 39;
+      width: min(86vw, 340px); height: calc(100vh - 57px);
+      transform: translateX(-105%);
+      transition: transform 0.22s ease;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+    }
+    nav.sidebar.open { transform: translateX(0); }
+    .backdrop {
+      display: none; position: fixed; inset: 57px 0 0 0; z-index: 38;
+      background: rgba(15,20,30,0.35);
+    }
+    .backdrop.show { display: block; }
+  }
+
+  /* ---------- Typography ---------- */
+  h1 {
+    color: var(--navy);
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid var(--navy);
+    scroll-margin-top: 72px;
+  }
+  h1.section-start:not(.section-start-first) { margin-top: 64px; }
+  h2 {
+    color: var(--blue);
+    font-size: 19px;
+    margin: 34px 0 10px;
+    scroll-margin-top: 72px;
+  }
+  h3 { color: var(--slate); font-size: 16px; margin: 22px 0 8px; scroll-margin-top: 72px; }
+  p { margin: 0 0 14px; color: var(--ink); }
+  strong { color: var(--ink); }
+  a { color: var(--blue); }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 5px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  /* ---------- Tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 22px;
+    font-size: 14.5px;
+    box-shadow: 0 1px 3px var(--shadow);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  thead tr.header th {
+    background: var(--navy);
+    color: #fff;
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--ink); }
+  tr.odd td { background: var(--card); }
+  tr.even td { background: var(--blue-tint); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ---------- Callouts ---------- */
+  p.callout {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid var(--slate);
+    background: var(--slate-tint);
+    margin: 4px 0 16px;
+  }
+  p.callout-goal, p.callout-objective, p.callout-link, p.callout-topics {
+    border-left-color: var(--blue); background: var(--blue-tint);
+  }
+  p.callout-activity, p.callout-done, p.callout-checklist, p.callout-tip {
+    border-left-color: var(--green); background: var(--green-tint);
+  }
+  p.callout-why, p.callout-bugs, p.callout-challenge {
+    border-left-color: var(--amber); background: var(--amber-tint);
+  }
+  p.callout-confidence, p.callout-sprint, p.callout-reflection, p.callout-lessons, p.callout-ahead, p.callout-project {
+    border-left-color: var(--purple); background: var(--purple-tint);
+  }
+  p.callout-github, p.callout-update {
+    border-left-color: var(--slate); background: var(--slate-tint);
+  }
+
+  /* ---------- Cover ---------- */
+  .cover {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 42px 38px;
+    margin-bottom: 8px;
+  }
+  .cover .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px;
+    color: #9fc4f5; font-weight: 700; margin-bottom: 10px;
+  }
+  .cover h1 {
+    color: #fff; border: none; font-size: 30px; margin: 0 0 10px; padding: 0;
+  }
+  .cover p { color: #dbe6f2; max-width: 620px; }
+  .cover strong { color: #fff; }
+
+  /* ---------- Print ---------- */
+  @media print {
+    :root, html[data-theme="dark"] {
+      --navy: #1F3A5F; --navy-deep: #14283f; --blue: #2E75B6; --blue-tint: #EAF1F8;
+      --green: #1e8e5a; --green-tint: #e6f4ec; --amber: #a15c00; --amber-tint: #fbf1de;
+      --purple: #6a3fa0; --purple-tint: #f1e9f9; --slate: #3c4552; --slate-tint: #eef1f4;
+      --ink: #1f2328; --muted: #5f6368; --border: #dfe3e8; --bg: #ffffff; --card: #ffffff;
+    }
+    .topbar, nav.sidebar, .backdrop { display: none !important; }
+    main { padding: 0; max-width: 100%; }
+    .layout { display: block; }
+    h1.section-start { page-break-before: always; }
+    a { color: var(--ink); text-decoration: none; }
+    .cover { background: none; color: var(--ink); border: 2px solid var(--navy); }
+    .cover h1, .cover .eyebrow, .cover p, .cover strong { color: var(--ink) !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Topbar — hidden when embedded in iframe, shown when opened standalone -->
+<div class="topbar" id="topbar">
+  <button id="toc-toggle" aria-label="Toggle contents">☰</button>
+  <div class="brand"><span class="dot"></span> Modern Web Development &amp; AI Bootcamp</div>
+  <div class="sub">Weeks 1–6 · ExaminerAI</div>
+  <button id="close-tab" aria-label="Close tab" title="Close this tab">✕ Close</button>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <p class="toc-title">Contents</p>
+    <ul class="toc-list">
+<li><a href="#before-you-begin" data-toc>Before You Begin</a>
+<ul class="toc-sublist">
+<li><a href="#create-your-examinerai-account" data-toc>1. Create Your ExaminerAI
+Account</a></li>
+<li><a href="#your-247-help-the-ai-tutor-tab" data-toc>2. Your 24/7 Help: the AI Tutor
+tab</a></li>
+<li><a href="#weekly-tests" data-toc>3. Weekly Tests</a></li>
+</ul>
+</li>
+<li><a href="#week-1-planning-development-environment" data-toc>Week 1 — Planning &
+Development Environment</a>
+<ul class="toc-sublist">
+<li><a href="#day-1-project-planning-requirement-analysis" data-toc>Day 1 — Project
+Planning & Requirement Analysis</a></li>
+<li><a href="#day-2-development-environment-setup" data-toc>Day 2 — Development
+Environment Setup</a></li>
+<li><a href="#day-3-version-control-with-git-github" data-toc>Day 3 — Version Control
+with Git & GitHub</a></li>
+<li><a href="#day-4-local-development-with-wordpress" data-toc>Day 4 — Local
+Development with WordPress</a></li>
+<li><a href="#day-5-sprint-review-documentation-week-planning" data-toc>Day 5 — Sprint
+Review, Documentation & Week Planning</a></li>
+</ul>
+</li>
+<li><a href="#week-2-website-development-database-fundamentals" data-toc>Week 2 —
+Website Development & Database Fundamentals</a>
+<ul class="toc-sublist">
+<li><a href="#day-1-building-your-homepage" data-toc>Day 1 — Building Your
+Homepage</a></li>
+<li><a href="#day-2-making-your-website-beautiful" data-toc>Day 2 — Making Your Website
+Beautiful</a></li>
+<li><a href="#day-3-understanding-databases-phpmyadmin" data-toc>Day 3 — Understanding
+Databases & phpMyAdmin</a></li>
+<li><a href="#day-4-learning-sql-using-localwp" data-toc>Day 4 — Learning SQL Using
+LocalWP</a></li>
+<li><a href="#day-5-how-wordpress-saves-information" data-toc>Day 5 — How WordPress
+Saves Information</a></li>
+</ul>
+</li>
+<li><a href="#week-3-apis-automation-ai-agents" data-toc>Week 3 — APIs, Automation
+& AI Agents</a>
+<ul class="toc-sublist">
+<li><a href="#day-1-understanding-apis" data-toc>Day 1 — Understanding APIs</a></li>
+<li><a href="#day-2-introduction-to-automation" data-toc>Day 2 — Introduction to
+Automation</a></li>
+<li><a href="#day-3-building-your-first-automation" data-toc>Day 3 — Building Your
+First Automation</a></li>
+<li><a href="#day-4-understanding-ai-agents" data-toc>Day 4 — Understanding AI
+Agents</a></li>
+<li><a href="#day-5-building-an-intelligent-workflow" data-toc>Day 5 — Building an
+Intelligent Workflow</a></li>
+</ul>
+</li>
+<li><a href="#week-4-prompt-engineering-ai-fundamentals-the-gemini-api" data-toc>Week 4
+— Prompt Engineering, AI Fundamentals & the Gemini API</a>
+<ul class="toc-sublist">
+<li><a href="#day-1-understanding-artificial-intelligence" data-toc>Day 1 —
+Understanding Artificial Intelligence</a></li>
+<li><a href="#day-2-prompt-engineering" data-toc>Day 2 — Prompt Engineering</a></li>
+<li><a href="#day-3-connecting-to-the-gemini-api" data-toc>Day 3 — Connecting to the
+Gemini API</a></li>
+<li><a href="#day-4-your-first-gemini-api-integration" data-toc>Day 4 — Your First
+Gemini API Integration</a></li>
+<li><a href="#day-5-building-an-ai-powered-website" data-toc>Day 5 — Building an
+AI-Powered Website</a></li>
+</ul>
+</li>
+<li><a href="#week-5-testing-security-deployment" data-toc>Week 5 — Testing, Security
+& Deployment</a>
+<ul class="toc-sublist">
+<li><a href="#day-1-software-testing-debugging" data-toc>Day 1 — Software Testing &
+Debugging</a></li>
+<li><a href="#day-2-website-performance-optimization" data-toc>Day 2 — Website
+Performance Optimization</a></li>
+<li><a href="#day-3-wordpress-security-backups" data-toc>Day 3 — WordPress Security
+& Backups</a></li>
+<li><a href="#day-4-deploying-your-wordpress-website" data-toc>Day 4 — Deploying Your
+WordPress Website</a></li>
+<li><a href="#day-5-final-testing-project-handover" data-toc>Day 5 — Final Testing
+& Project Handover</a></li>
+</ul>
+</li>
+<li><a href="#week-6-career-preparation-final-capstone" data-toc>Week 6 — Career
+Preparation & Final Capstone</a>
+<ul class="toc-sublist">
+<li><a href="#day-1-final-project-audit-quality-assurance" data-toc>Day 1 — Final
+Project Audit & Quality Assurance</a></li>
+<li><a href="#day-2-building-a-professional-github-portfolio" data-toc>Day 2 — Building
+a Professional GitHub Portfolio</a></li>
+<li><a href="#day-3-technical-interview-preparation-communication-skills" data-toc>Day
+3 — Technical Interview Preparation & Communication Skills</a></li>
+<li><a href="#day-4-final-project-presentation-graduation" data-toc>Day 4 — Final
+Project Presentation & Graduation</a></li>
+</ul>
+</li>
+</ul>
+  </nav>
+  <main id="content">
+    <div class="cover">
+      <div class="eyebrow">Six-Week Capstone Program</div>
+      <p><strong>MODERN WEB DEVELOPMENT &amp; AI BOOTCAMP</strong></p>
+<p><strong>A Six-Week Capstone Program — Weeks 1 to 6</strong></p>
+<p>This program takes you from an empty project idea to a fully
+deployed, AI-powered website — built, tested, and presented the way a
+professional developer would do it. Every week builds directly on the
+last, using one continuous capstone project as the thread that ties the
+whole program together.</p>
+<p><strong>Tools you will learn:</strong> ExaminerAI · VS Code · Git
+&amp; GitHub · WordPress &amp; LocalWP · MySQL / SQL (via phpMyAdmin and
+Adminer) · Make.com automation · the Gemini API · live web hosting &amp;
+deployment</p>
+<p><strong>Program structure:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Week</strong></th>
+<th><strong>Focus</strong></th>
+<th><strong>Days</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Week 1</td>
+<td>Planning &amp; Development Environment</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>Week 2</td>
+<td>Website Development &amp; Database Fundamentals</td>
+<td>5</td>
+</tr>
+<tr class="odd">
+<td>Week 3</td>
+<td>APIs, Automation &amp; AI Agents</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>Week 4</td>
+<td>Prompt Engineering, AI Fundamentals &amp; the Gemini API</td>
+<td>5</td>
+</tr>
+<tr class="odd">
+<td>Week 5</td>
+<td>Testing, Security &amp; Deployment</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>Week 6</td>
+<td>Career Preparation &amp; Final Capstone</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>Each day follows the same simple structure: a clear objective, why it
+matters, the steps to follow, how it applies to your own project, and a
+short reflection — so you always know what you're doing and why. Week 1
+includes a list of 12 project ideas to choose from. See the next page
+before you begin — it covers ExaminerAI, your 24/7 AI Tutor, and weekly
+tests.</p>
+
+    </div>
+    <h1 class="section-start-first" id="before-you-begin">Before You Begin</h1>
+<p>This program runs through ExaminerAI — that's where you'll log your
+daily progress, get AI-powered Socratic assessments on what you're
+learning, take your weekly test, and message your instructor directly
+for feedback. Read this page once before starting Week 1.</p>
+<h2 id="create-your-examinerai-account">1. Create Your ExaminerAI
+Account</h2>
+<p>Every task, bug, daily check-in, AI assessment, and weekly test for
+this program lives in ExaminerAI. Sign up before you start Week 1, Day
+1.</p>
+<p class="callout callout-link"><strong>ExaminerAI link:</strong> <a href="https://examiner-ai-tau.vercel.app"><u>https://examiner-ai-tau.vercel.app</u></a></p>
+<p><em>Sign up with your name, email, and a password. Your account
+starts as Pending until your instructor approves it and assigns you the
+Student role — sign up early so you're not waiting on approval when Day
+1 starts.</em></p>
+<h2 id="your-247-help-the-ai-tutor-tab">2. Your 24/7 Help: the AI Tutor
+tab</h2>
+<p>ExaminerAI has a built-in AI Tutor tab, trained on this entire
+curriculum. Unlike a regular chatbot, it only answers using the course
+material and links its answers back to the section they came from — so
+you can ask it something at any hour (“what's the difference between a
+primary key and a foreign key?” or “what does the Webhook Response
+module do again?”) and get an answer grounded in this course, not a
+generic internet answer. Click AI Tutor in the sidebar and it opens in a
+new tab — no setup, sign-in, or install required. Use it as your first
+stop when you're stuck; if it can't answer from the material, that's a
+good sign the question needs your instructor.</p>
+<h2 id="weekly-tests">3. Weekly Tests</h2>
+<p>At the end of each week, a test unlocks inside ExaminerAI once
+that week's tasks are marked complete. Each test is 10 questions —
+covering the four Socratic pillars (Why Probe, Break-It Scenario,
+Client Translation, Edge Case Test) with up to 5 replies per question.
+The AI examiner probes for clarity, asks follow-ups, and generates a
+psychological analysis + score on completion. The full conversation is
+saved so you can review your Q&A. Completing the test automatically
+advances you to the next week.</p>
+<h1 class="section-start" id="week-1-planning-development-environment">Week 1 — Planning &amp;
+Development Environment</h1>
+<p class="callout callout-goal"><strong>Weekly goal:</strong> This week focuses on planning your
+capstone project and setting up a professional development environment.
+By the end of the week, you will have selected a project, organized it
+in ExaminerAI, prepared your development tools, and created a GitHub
+repository for version control.</p>
+<p><strong>By the end of this week, you will be able to:</strong></p>
+<ul>
+<li><p>Plan a software project using project management
+principles</p></li>
+<li><p>Set up your ExaminerAI dashboard as a real, professional-style
+project tracking tool — not just a task list</p></li>
+<li><p>Define measurable success targets for your project and track them
+alongside your tasks</p></li>
+<li><p>Track your project visually using ExaminerAI's Project tab and Bug
+Tracker</p></li>
+<li><p>Set up a professional development environment</p></li>
+<li><p>Use Git and GitHub for version control</p></li>
+<li><p>Create a local development workspace</p></li>
+<li><p>Maintain daily project documentation, including a running
+progress log inside ExaminerAI (your Daily Check-In (Learning Hub))</p></li>
+<li><p>Track project progress using Agile practices</p></li>
+</ul>
+<h2 id="day-1-project-planning-requirement-analysis">Day 1 — Project
+Planning &amp; Requirement Analysis</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand the importance of
+project planning and create a roadmap for your capstone project.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Successful software projects begin
+with planning, not coding. Before writing a single line of code,
+professional developers define project goals, identify users, list
+required features, estimate timelines, and organize tasks. Good planning
+reduces confusion, minimizes rework, and improves collaboration. Today
+you will set up your ExaminerAI dashboard properly — not just as a task
+list, but the way a professional project manager would: a project
+overview you can see progress against, a task board you can track work
+through, and a daily check-in log of what actually happened, not just
+what was planned.</p>
+<p class="callout callout-topics"><strong>Topics covered:</strong></p>
+<ul>
+<li><p>Introduction to Project Management</p></li>
+<li><p>Software Development Life Cycle (SDLC)</p></li>
+<li><p>Project Scope</p></li>
+<li><p>Functional vs. Non-functional Requirements</p></li>
+<li><p>Agile Project Planning</p></li>
+<li><p>ExaminerAI Basics: signing up and finding your way
+around</p></li>
+<li><p>ExaminerAI Dashboard: Project tab, Bug Tracker &amp; Daily
+Check-In</p></li>
+<li><p>How your data connects — a first look at linking related
+information (you'll meet the formal database version of this in Week
+4)</p></li>
+</ul>
+<p><strong>What you'll do:</strong></p>
+<p>1. Go to examiner-ai-tau.vercel.app and create your account with your
+name, email, and a password. Your account starts as Pending until your
+instructor approves it and assigns you the Student role.</p>
+<p>2. Once approved, log in and open your Student Dashboard. Unlike a
+blank spreadsheet tool, ExaminerAI already gives every student a Project
+Definition (with AI-generated summary + key features), a Project tab
+(Gantt chart + collapsible week plan + task manager), a Bug Tracker,
+a Daily Check-In (Learning Hub with curriculum topics + reflection
+questions), AI Practice Questions (Socratic, 4 pillars), Weekly Tests
+(10 questions, conversation saved), a Report Card (with project reports
++ AI analysis), an AI Tutor tab, and a Journey Wizard that guides you
+step by step — pre-built and linked to your account, so today is about
+filling these in properly, not wiring them together from scratch.</p>
+<p>3. Use the Journey Wizard to create your project: enter the project name,
+scope, objectives, requirements, and business case. The AI will generate
+a summary + key features automatically. Then choose your project duration
+(3-20 weeks) and the AI will generate custom tasks + a week plan tailored
+to your specific project.</p>
+<p>4. Add your first tasks to the Project tab: each task has a description,
+week, day (Mon-Fri), status, due date, estimated time, milestone flag,
+and notes. Tasks are grouped under their week in the collapsible Project
+Week Plan. The Gantt chart shows task bars spanning multiple weeks.</p>
+<p>5. Notice that every task, check-in, and test you log ties back to
+your one student profile automatically. This is the same idea as a
+foreign key connecting two tables in a relational database — you'll
+learn the formal database version of this in Week 4, but you're already
+relying on it here.</p>
+<p>6. Move a task's Status as you work on it — Planned through Completed
+(flag anything stuck as Blocked) — so your Project tab always shows an
+honest, current picture of where the project stands, the same idea as
+the drag-and-drop boards tools like Trello and Jira use.</p>
+<p>7. Open your Daily Check-In (Learning Hub) and get in the habit of filling it in
+every day you touch the project: what you did, any errors you hit, and
+how confident you're feeling (e.g., “Started the homepage layout,”
+“Blocked — plugin conflict with the theme,” “Fixed, resumed work”). Each
+entry is timestamped automatically, so by Week 6 you — and your
+instructor — can scroll back through your check-ins and see exactly how
+the work actually unfolded, not just its final status. This 2-minute
+daily habit is the same one professional teams practice in tools like
+Jira, Asana, or Linear.</p>
+<p>8. Open Practice and try one round with the AI Socratic
+Assessment Chat. Pick a topic from today's material — the AI will
+challenge you with a question drawn from one of four pillars: Why Probe
+(the reasoning behind a concept), Break-It Scenario (what happens when
+it fails), Client Translation (explain it in plain English), or Edge
+Case Test. After you answer, it gives you “sandwich” feedback — what you
+got right, what's missing or wrong, and the mental model to close the
+gap — plus a correctness score. This is where the AI checks your
+understanding topic by topic across the six weeks, instead of a Learning
+Tracker you'd fill in yourself.</p>
+<p>9. Familiarize yourself with the Bug Tracker: Bug ID, Description,
+Severity (Low, Medium, High, Critical), Status, Solution. You won't have
+real bugs yet, but you'll be using this constantly from Week 2
+onward.</p>
+<p>10. Check your Report Card view. Instead of a KPI table
+you build and update by hand, ExaminerAI updates a per-topic competency
+score automatically after every AI chat and weekly test, and maps it to
+a level from Novice up to Architect as your average correctness improves
+— a task tells you what to do; your competency score tells you whether
+it actually landed.</p>
+<p>11. Open the Project Plan tab and find this week's row on the Gantt
+chart — one row per bootcamp week, with a red “today” line marking where
+you are and a pulsing ring around the current week. Each bar fills in as
+you work: solid color for completed tasks, a striped overlay for
+in-progress ones, and a plain slate background for what's still planned
+— so the whole six-week schedule is visible at a glance, drawn from your
+actual tasks, not a static plan. Then open the Progress tab, where a
+line chart of your test scores, a radar chart of your competencies, and
+a bar chart of your topic breakdown will start filling in as you go.</p>
+<p>12. Click the AI Tutor tab — it opens in a new tab, no setup or
+sign-in required. Try asking it one question about today's material.</p>
+<p><strong>How each ExaminerAI feature helps you track your
+project</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Feature</strong></th>
+<th><strong>What It Shows</strong></th>
+<th><strong>Use It To…</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Project tab</td>
+<td>AI summary + key features, Gantt chart with multi-week task bars, collapsible week plan with tasks grouped by week</td>
+<td>Generate AI tasks, add/edit/delete tasks, track milestones, view timeline</td>
+</tr>
+<tr class="even">
+<td>Learning Hub</td>
+<td>Today's curriculum topic + objective + resources, learning progress chart, weekly curriculum, check-in with reflection questions</td>
+<td>Mark curriculum days complete, log daily progress, reflect on learnings</td>
+</tr>
+<tr class="odd">
+<td>Practice Questions</td>
+<td>A running history of Socratic Q&amp;A on each week's concepts with AI evaluation + plagiarism detection</td>
+<td>Check your own understanding as you go, not just at test time</td>
+</tr>
+<tr class="even">
+<td>Daily Check-In (Learning Hub)</td>
+<td>A timestamped log of what you did, errors you hit, and your
+confidence</td>
+<td>Keep an honest, dated log of what actually happened — your project's
+real history</td>
+</tr>
+<tr class="odd">
+<td>Report Card</td>
+<td>A per-topic competency score, generated automatically</td>
+<td>Answer “is this actually landing?” rather than just “is work
+happening?”</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Project Ideas — choose one, or propose your own to your
+instructor</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Project</strong></th>
+<th><strong>What It Does</strong></th>
+<th><strong>A Good AI Feature For It</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>AI Resume Builder</td>
+<td>Users enter their work history and skills; the site formats it into
+a clean, professional resume.</td>
+<td>Gemini rewrites weak bullet points into strong, achievement-focused
+language.</td>
+</tr>
+<tr class="even">
+<td>Smart Restaurant Website</td>
+<td>Menu, online table reservations, and location/hours info for a
+restaurant.</td>
+<td>Gemini recommends dishes based on a customer's stated preferences or
+dietary needs.</td>
+</tr>
+<tr class="odd">
+<td>Clinic Appointment System</td>
+<td>Patients view available doctors and book appointments online.</td>
+<td>Gemini reads a patient's symptom description and suggests which
+department to book.</td>
+</tr>
+<tr class="even">
+<td>Real Estate Portal</td>
+<td>Property listings with photos, price, and location filters.</td>
+<td>Gemini turns a plain-English request (“3-bedroom house under 1 crore
+near the city center”) into search filters.</td>
+</tr>
+<tr class="odd">
+<td>Student Management System</td>
+<td>Tracks student records, grades, and attendance for a school.</td>
+<td>Gemini generates a plain-language progress summary for parents from
+raw grade data.</td>
+</tr>
+<tr class="even">
+<td>AI Portfolio Website</td>
+<td>A personal portfolio showcasing projects, skills, and resume.</td>
+<td>A Gemini-powered chatbot answers visitor questions about the owner's
+work and experience.</td>
+</tr>
+<tr class="odd">
+<td>Event Booking Platform</td>
+<td>Customers browse and book venues or event packages.</td>
+<td>Gemini recommends a package based on guest count, budget, and event
+type.</td>
+</tr>
+<tr class="even">
+<td>Freelancer Marketplace</td>
+<td>Freelancers list services; clients post jobs and hire.</td>
+<td>Gemini turns a client's rough job description into a clear,
+structured project brief.</td>
+</tr>
+<tr class="odd">
+<td>Recipe &amp; Meal Planner</td>
+<td>Users browse recipes and build weekly meal plans.</td>
+<td>Gemini generates a meal plan from a list of ingredients the user
+already has.</td>
+</tr>
+<tr class="even">
+<td>Job Portal / Career Site</td>
+<td>Job seekers browse listings and apply; employers post openings.</td>
+<td>Gemini compares a candidate's resume text against a job description
+and suggests improvements.</td>
+</tr>
+<tr class="odd">
+<td>Small E-Commerce Store</td>
+<td>Product catalog, cart, and checkout for a small business.</td>
+<td>Gemini writes SEO-friendly product descriptions from a short list of
+product features.</td>
+</tr>
+<tr class="even">
+<td>Non-Profit / Donation Website</td>
+<td>Shares an organization's mission and collects donations.</td>
+<td>Gemini drafts a personalized thank-you message for each donor, sent
+automatically via Make.com.</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Select one project from the table
+above — or propose your own idea to your instructor — and commit to
+building it for the full six weeks. List at least 15 features for your
+chosen project and organize them into phases (Week 1–2: planning and
+website build; Week 3–4: automation and AI; Week 5: testing and
+deployment; Week 6: presentation).</p>
+<p>Update ExaminerAI: Project Definition completed; Features listed as
+tasks on your Project tab; First Daily Check-In (Learning Hub) logged; AI Assessment
+Chat tried. Move finished tasks to Completed on your Project tab and log
+a quick note in your Daily Check-In (Learning Hub). You should be at roughly 5% overall
+— check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Create a GitHub account if you don't already
+have one, and complete your profile with a photo, bio, and location.</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What problem does your project solve?</p>
+<p>2. Who are your users?</p>
+<p>3. Which feature do you think will be most challenging to build?</p>
+<p>4. Looking at your Timeline view, does your planned schedule actually
+leave enough time for testing and deployment in Week 5?</p>
+<p>5. Pick one of your KPIs — how will you actually measure it, not just
+guess at it?</p>
+<h2 id="day-2-development-environment-setup">Day 2 — Development
+Environment Setup</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Prepare a professional
+development environment for building and testing your project.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Developers rely on tools to
+improve productivity and maintain code quality. Setting up your
+environment correctly from the beginning saves time and reduces future
+issues. Today's homepage is deliberately simple plain HTML and CSS — not
+your actual capstone — because it gives you a safe, disposable sandbox
+to get comfortable with your tools and with Git (Day 3) before you touch
+the real WordPress project, where mistakes are more expensive to
+undo.</p>
+<p class="callout callout-topics"><strong>Topics covered:</strong></p>
+<ul>
+<li><p>Visual Studio Code</p></li>
+<li><p>Project Folder Structure</p></li>
+<li><p>Extensions</p></li>
+<li><p>Live Server</p></li>
+<li><p>Code Formatting</p></li>
+<li><p>Basic HTML &amp; CSS Review</p></li>
+</ul>
+<p><strong>What you'll do:</strong></p>
+<p>1. Install Visual Studio Code, Git, the Live Server extension, and
+Prettier. Error Lens and Material Icon Theme are optional but
+useful.</p>
+<p>2. Create this project folder structure:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>Capstone-Project/</p>
+<p>├── index.html</p>
+<p>├── style.css</p>
+<p>├── script.js</p>
+<p>├── assets/</p>
+<p>│ ├── images/</p>
+<p>│ └── icons/</p>
+<p>├── docs/</p>
+<p>└── README.md</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>3. Build a simple homepage containing a project title, description,
+navigation bar, hero section, and footer.</p>
+<p>4. Run the project using Live Server to confirm it works.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create a project README including:
+project overview, features, technology stack, project timeline, and team
+members (if applicable).</p>
+<p>Update ExaminerAI: VS Code installed; Folder structure completed;
+Homepage created; README added. Move finished work to Completed on your
+Project tab and log a quick note in your Daily Check-In (Learning Hub). You should be at
+roughly 10% overall — check your dashboard progress to confirm you're on
+pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Create a new repository and upload today's
+project files. Commit with the message: “Initial project setup and
+homepage created.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Which tool was new to you?</p>
+<p>2. Why is a clean folder structure important?</p>
+<p>3. What improvements would you make tomorrow?</p>
+<h2 id="day-3-version-control-with-git-github">Day 3 — Version Control
+with Git &amp; GitHub</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how to manage project
+history using Git and collaborate through GitHub.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Every professional developer uses
+version control. Git lets you save project history, revert mistakes, and
+collaborate with others. GitHub stores your repositories online, making
+your work secure and accessible from anywhere.</p>
+<p class="callout callout-topics"><strong>Topics covered:</strong></p>
+<ul>
+<li><p>What is Version Control?</p></li>
+<li><p>Git Workflow</p></li>
+<li><p>Local vs. Remote Repository</p></li>
+<li><p>Git Commands</p></li>
+<li><p>Branches (Introduction)</p></li>
+<li><p>Commit Best Practices</p></li>
+</ul>
+<p><strong>What you'll do:</strong></p>
+<p>1. Practice the core Git commands:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>git init</p>
+<p>git status</p>
+<p>git add .</p>
+<p>git commit -m "Initial project setup"</p>
+<p>git branch</p>
+<p>git remote add origin &lt;repository-url&gt;</p>
+<p>git push -u origin main</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>2. Modify your homepage: add an About section, update the navigation
+menu, and improve the page styling.</p>
+<p>3. Commit the changes using a meaningful message.</p>
+<p><em>This HTML repo has done its job once you're comfortable with
+these commands. Starting tomorrow, you'll run this exact same workflow —
+init, add, commit, push — against your real WordPress project instead,
+so don't worry about this practice repo again after today.</em></p>
+<p><strong>Daily Progress Log (example)</strong></p>
+<table>
+<colgroup>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Hours Worked</strong></th>
+<th><strong>Tasks Completed</strong></th>
+<th><strong>Bugs Found</strong></th>
+<th><strong>Bugs Fixed</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>4</td>
+<td>Homepage, Git Setup</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Document today's changes in your
+README under a “Development Log” section — e.g., homepage completed,
+navigation added, repository connected, initial styling applied.</p>
+<p>Update ExaminerAI: Git installed; Repository connected; Two commits
+completed; README updated. Move finished work to Completed on your Task
+Board and log a quick note in your Daily Check-In (Learning Hub). You should be at
+roughly 15% overall — check your dashboard progress to confirm you're on
+pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Push at least two commits today with clear
+messages.</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why should developers commit code frequently?</p>
+<p>2. What is the difference between Git and GitHub?</p>
+<p>3. How does version control help software teams work together?</p>
+<h2 id="day-4-local-development-with-wordpress">Day 4 — Local
+Development with WordPress</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand the importance of
+local development and build your first professional WordPress
+environment using LocalWP.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Professional developers don't
+build websites directly on live servers. They build, test, and fix bugs
+on their own computers first, then publish once everything works — a
+process called local development. The workflow is: Planning → Local
+Development → Testing → Bug Fixing → Deployment → Live Website. Every
+feature you build for the rest of this program will be added to the same
+capstone project you selected on Day 1.</p>
+<p class="callout callout-topics"><strong>Topics covered:</strong></p>
+<ul>
+<li><p>Local Development</p></li>
+<li><p>LocalWP</p></li>
+<li><p>WordPress Dashboard</p></li>
+<li><p>Themes</p></li>
+<li><p>Pages</p></li>
+<li><p>Plugins</p></li>
+<li><p>Website Structure</p></li>
+<li><p>Git for WordPress Projects</p></li>
+</ul>
+<p><strong>What you'll do:</strong></p>
+<p>1. Install LocalWP, Google Chrome, Git, and (optionally) GitHub
+Desktop.</p>
+<p>2. In LocalWP: create a new site, choose a professional project name,
+select your preferred environment, and create the WordPress
+administrator account.</p>
+<p>3. Start the site, then open both the site and WP Admin.</p>
+<p>4. Configure General Settings: website title, tagline, time zone, and
+date format.</p>
+<p>5. Delete the default sample content, then install and activate the
+Astra theme.</p>
+<p>6. Explore Appearance &gt; Menus, Widgets, and Customize.</p>
+<p>7. Create these pages: Home, About, Services, Contact, Privacy
+Policy.</p>
+<p>8. Bring Git into the real project: in LocalWP, click your site, then
+“Open Site Shell” (or navigate manually to the site's folder, usually
+under Local Sites/[your-site]/app/public/wp-content/themes/astra). Run
+git init inside that themes folder specifically — not the whole
+WordPress install — since WordPress core files change on every update
+and aren't yours to version. Add a .gitignore with:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>node_modules/</p>
+<p>*.log</p>
+<p>.DS_Store</p>
+<p>wp-config-local.php</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>Then git add ., commit with a message like “Initial WordPress theme
+tracking,” and push to a new GitHub repository — the same workflow you
+practiced on Day 3, now protecting your real capstone. Your page content
+itself lives in the database (not in Git), which is exactly why
+ExaminerAI and your README are doing the job of tracking overall project
+history — Git protects your code, ExaminerAI protects your plan.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Plan your website structure,
+create the navigation menu, select colors and typography, and upload a
+logo if you have one.</p>
+<p>Update ExaminerAI: LocalWP installed; WordPress installed; Theme
+installed; Pages created; Navigation planned; Git tracking theme folder.
+Move finished work to Completed on your Project tab and log a quick note
+in your Daily Check-In (Learning Hub). You should be at roughly 20% overall — check
+your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> This is a new repository, separate from your
+Day 2–3 practice repo — name it after your actual capstone project.
+Commit with the message: “Initial WordPress theme tracking.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why do developers build locally?</p>
+<p>2. Which WordPress feature did you like most?</p>
+<p>3. Why does it make sense to track your theme folder in Git, but not
+the whole WordPress installation?</p>
+<p>4. What will you improve tomorrow?</p>
+<h2 id="day-5-sprint-review-documentation-week-planning">Day 5 — Sprint
+Review, Documentation &amp; Week Planning</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Review your first week using
+Agile practices and prepare for Week 2.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> A sprint review is a short, honest
+check-in on what got done, what didn't, and what you learned — a habit
+every professional team practices at the end of a work cycle.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Open your Kanban Board view: drag any finished tasks into
+Completed, and honestly move anything unfinished back to Planned or Next
+Sprint rather than leaving it stuck In Progress. Then check your
+Timeline view — has your actual pace matched the bars you drew on Day 1?
+Adjust upcoming due dates now if not, rather than letting the schedule
+quietly drift.</p>
+<p>2. Review your competency scores from the AI Assessment Chat and
+record any bugs in the Bug Tracker.</p>
+<p>3. Complete a Sprint Review using the template below.</p>
+<p class="callout callout-sprint"><strong>Sprint review:</strong></p>
+<p class="callout callout-done"><strong>Completed:</strong> Capstone project selected, ExaminerAI
+dashboard created, GitHub repository created, LocalWP installed,
+WordPress configured, Astra theme installed, Website pages created</p>
+<p class="callout callout-challenge"><strong>Challenges:</strong> Git commands, WordPress dashboard,
+Planning</p>
+<p class="callout callout-lessons"><strong>Lessons Learned:</strong> Planning saves time, Documentation
+prevents confusion, Version control protects projects</p>
+<p class="callout callout-goal"><strong>Goals for Week 2:</strong> Design homepage, Build website
+layout, Learn SQL, Explore databases, Improve navigation</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Update your README with: project goal,
+completed tasks, technologies learned, challenges, lessons learned, and
+Week 2 goals. Commit with the message: “Completed Week 1 project setup
+and sprint review.”</p>
+<p><strong>Before moving on, confirm you have:</strong></p>
+<ul>
+<li><p>Project selected</p></li>
+<li><p>ExaminerAI ready</p></li>
+<li><p>GitHub active</p></li>
+<li><p>README created</p></li>
+<li><p>LocalWP installed</p></li>
+<li><p>WordPress configured</p></li>
+<li><p>Astra theme installed</p></li>
+<li><p>Website pages created</p></li>
+<li><p>Website navigation planned</p></li>
+<li><p>Sprint review completed</p></li>
+</ul>
+<p class="callout callout-topics"><strong>What you can now do:</strong></p>
+<p>By the end of Week 1 you have: a defined capstone project, an
+ExaminerAI dashboard, a GitHub repository, a LocalWP environment, a
+WordPress website, a documented website structure, and an Agile workflow
+in place.</p>
+<p class="callout callout-ahead"><strong>Looking ahead:</strong> Week 2: website design and homepage
+development, WordPress customization, and your first look at MySQL and
+SQL fundamentals using LocalWP's built-in database tools.</p>
+<p class="callout callout-confidence"><strong>Weekly confidence check:</strong></p>
+<p>Before moving on, open your Competency Tracker in ExaminerAI and rate
+your confidence (1–5) on each topic below. This isn't graded — it's how
+you catch a shaky topic while it's still cheap to revisit, instead of
+discovering the gap three weeks from now.</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Topic</strong></th>
+<th><strong>Your Confidence (1–5)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Project planning</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>ExaminerAI (dashboard, tasks, bugs, daily check-in)</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Git &amp; GitHub basics</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>LocalWP &amp; WordPress setup</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><em>Weekly test: before moving on to Week 2, complete this week's
+Weekly Test in ExaminerAI — it checks both your understanding of the
+concepts and how your project is progressing.</em></p>
+<h1 class="section-start" id="week-2-website-development-database-fundamentals">Week 2 —
+Website Development &amp; Database Fundamentals</h1>
+<p class="callout callout-goal"><strong>Weekly goal:</strong> During Week 1, you planned your
+project, created a professional project dashboard, installed your
+development tools, and built your local WordPress environment. This week
+shifts from planning to building: you will turn your project idea into a
+real website, and learn how WordPress stores information inside a
+database.</p>
+<p><strong>By the end of this week, you will be able to:</strong></p>
+<ul>
+<li><p>Build a professional homepage</p></li>
+<li><p>Create multiple website pages with consistent branding</p></li>
+<li><p>Explain the basics of how databases work</p></li>
+<li><p>Use phpMyAdmin/Adminer to browse a database</p></li>
+<li><p>Write your first SQL queries</p></li>
+</ul>
+<h2 id="day-1-building-your-homepage">Day 1 — Building Your
+Homepage</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Design and build the homepage of
+your project using WordPress Blocks while learning the basics of good
+website design.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Visitors decide within a few
+seconds whether to stay on a website or leave, much like walking into a
+shop and forming an instant impression. A good homepage should
+immediately answer three questions: What is this website? What problem
+does it solve? What should I do next? Professional designers answer
+these questions on paper before touching any building tool — today
+starts the same way, with a quick wireframe, so you're building from a
+plan instead of improvising section by section inside WordPress.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Start WAMP Server (Apache and MySQL), then open
+http://localhost/your-project and log in to WordPress.</p>
+<p>2. Understand the typical structure of a professional website:
+Navigation → Hero Banner → About → Services → Testimonials → Call to
+Action → Footer.</p>
+<p>3. Before opening the Block Editor, sketch a wireframe of this layout
+— a rough box diagram of where each section sits and roughly how tall it
+is. A pencil and paper is genuinely enough; if you'd rather work
+digitally, Excalidraw and Figma both have free tiers well suited to a
+simple one-page wireframe. The goal isn't a polished mockup, just a plan
+you can build against instead of designing live.</p>
+<p>4. Navigation: keep it to only the important pages (e.g., Home,
+About, Services, Contact) — think of it as a book's table of
+contents.</p>
+<p>5. Hero section: the first thing users see. Include a main heading,
+short description, button, and image (e.g., “Build Professional AI
+Resumes — Create ATS-friendly resumes in minutes using AI. [Get
+Started]”).</p>
+<p>6. About section: explain who you are, what your project does, and
+why users should trust it — keep it simple.</p>
+<p>7. Services/Features: show features as a short list rather than long
+paragraphs (e.g., AI Resume Builder, PDF Export, Resume Templates,
+Download History).</p>
+<p>8. Call to action: every homepage should prompt visitors to act
+(e.g., Download Now, Register Today, Book Appointment, Contact Us).</p>
+<p>9. Footer: typically includes copyright, social links, contact
+information, and a privacy policy link.</p>
+<p>10. Using the WordPress Block Editor, build your homepage against
+your wireframe, section by section: navigation, hero banner, about,
+features, CTA, and footer.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Take a photo or screenshot of your
+wireframe alongside screenshots of your finished homepage, and save them
+both in documentation/screenshots — the “before and after” is worth
+having for your portfolio later.</p>
+<p>Update ExaminerAI: Wireframe sketched; Homepage created; Navigation
+added; Hero section completed. Move finished work to Completed on your
+Project tab and log a quick note in your Daily Check-In (Learning Hub). You should be at
+roughly 30% overall — check your dashboard progress to confirm you're on
+pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Completed homepage
+layout.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What section of your homepage looks the most professional?</p>
+<p>2. What section still needs improvement?</p>
+<p>3. Where did the finished homepage end up differing from your
+wireframe, and why?</p>
+<h2 id="day-2-making-your-website-beautiful">Day 2 — Making Your Website
+Beautiful</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how CSS changes the
+appearance of websites and customize your WordPress theme.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> If HTML builds the structure of a
+page, CSS is what gives it a visual identity — colors, fonts, spacing,
+borders, and animation. Without CSS, every website would look nearly
+identical.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. A WordPress theme works like a furnished house: the structure
+already exists, but you still customize the paint, furniture, and
+curtains — in this case, colors, fonts, layout, and images.</p>
+<p>2. Go to Appearance &gt; Customize and explore Site Identity, Colors,
+Typography, Header, Footer, and Menus. Click through every option to see
+what changes — experimenting is how this sticks.</p>
+<p>3. Go to Appearance &gt; Customize &gt; Additional CSS to write
+custom CSS directly. Example:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>button {</p>
+<p>background: #1f6feb;</p>
+<p>color: white;</p>
+<p>padding: 15px 30px;</p>
+<p>border-radius: 8px;</p>
+<p>}</p>
+<p>Save, then refresh your site to see the change.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>4. Customize your logo, website colors, buttons, typography, header,
+and footer. Choose one consistent color palette rather than random
+colors.</p>
+<p><strong>Branding Document (example)</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Element</strong></th>
+<th><strong>Choice</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Primary Color</td>
+<td>Blue</td>
+</tr>
+<tr class="even">
+<td>Secondary Color</td>
+<td>White</td>
+</tr>
+<tr class="odd">
+<td>Accent Color</td>
+<td>Orange</td>
+</tr>
+<tr class="even">
+<td>Heading Font</td>
+<td>Poppins</td>
+</tr>
+<tr class="odd">
+<td>Body Font</td>
+<td>Roboto</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create a Branding Document
+recording your chosen colors and fonts, using the table above as a
+template.</p>
+<p>Update ExaminerAI: Branding complete; CSS added; Theme customized.
+Move finished work to Completed on your Project tab and log a quick note
+in your Daily Check-In (Learning Hub). You should be at roughly 35% overall — check
+your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Customized website
+branding and styling.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why should every page share the same colors and fonts?</p>
+<h2 id="day-3-understanding-databases-phpmyadmin">Day 3 — Understanding
+Databases &amp; phpMyAdmin</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand where WordPress
+stores information and learn how to view your database using
+phpMyAdmin.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> A database is like a school
+office's filing cabinets — instead of paper records for students,
+teachers, attendance, and exams, a database stores digital information
+in organized tables. MySQL is the software that stores this information
+for WordPress: every time someone creates an account, publishes a page,
+writes a blog post, or books an appointment, WordPress saves that
+information inside MySQL. phpMyAdmin is simply a way for humans to see
+that database visually, the same way File Explorer lets you browse files
+instead of dealing with raw storage directly.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. If using WAMP: start Apache and MySQL, then open
+http://localhost/phpmyadmin and log in (username: root, password:
+usually left empty on a default installation).</p>
+<p>2. Locate and click your “wordpress” (or project) database in the
+left panel — the tables you see are simply containers of information,
+nothing to worry about.</p>
+<p>3. Key WordPress tables: wp_posts (pages, blog posts, attachments —
+even your Home page lives here), wp_users (everyone who can log in),
+wp_comments (visitor comments), wp_options (site settings), wp_terms
+(categories and tags).</p>
+<p>4. Click SQL at the top and run your first query:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>SELECT * FROM wp_posts;</p>
+<p>This returns every WordPress page and post.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>5. Try two more queries:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>SELECT post_title FROM wp_posts; -- shows only titles</p>
+<p>SELECT COUNT(*) FROM wp_posts; -- counts the rows instead of listing
+them</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p><strong>Reading the first query</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Part</strong></th>
+<th><strong>Meaning</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SELECT</td>
+<td>Show me</td>
+</tr>
+<tr class="even">
+<td>*</td>
+<td>everything</td>
+</tr>
+<tr class="odd">
+<td>FROM</td>
+<td>look inside</td>
+</tr>
+<tr class="even">
+<td>wp_posts</td>
+<td>the posts table</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Find your Home, About, and Contact
+pages and confirm which table stores them. Take a screenshot and save it
+in documentation/database.</p>
+<p>Update ExaminerAI: Opened phpMyAdmin; Explored database; Ran first
+SQL query. Move finished work to Completed on your Project tab and log a
+quick note in your Daily Check-In (Learning Hub). You should be at roughly 40% overall
+— check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Completed database
+exploration and SQL basics.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why does WordPress need MySQL?</p>
+<p>2. What is phpMyAdmin used for?</p>
+<p>3. In your own words, what does SELECT * FROM wp_posts; do?</p>
+<h2 id="day-4-learning-sql-using-localwp">Day 4 — Learning SQL Using
+LocalWP</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand how SQL works and
+learn to retrieve information from your WordPress database using LocalWP
+and Adminer, without modifying your website.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> SQL (Structured Query Language) is
+simply how you ask a database questions — the same way you'd ask a
+teacher “show me all students” and get an answer back. LocalWP manages
+your entire local stack automatically (browser → Apache/Nginx → PHP →
+WordPress → MySQL), so you never need to install any of these pieces
+separately.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Open LocalWP, select your project, and click Start Site. Click
+Open Site to confirm your homepage loads, then click WP Admin and log
+in.</p>
+<p>2. In LocalWP, open the Database tab and launch Adminer — a
+lightweight database tool similar to phpMyAdmin, letting you view
+databases, browse tables, run SQL queries, and search records.</p>
+<p>3. Inside Adminer, click SQL Command and run each of the following
+queries in turn, reading the results after each one:</p>
+<p>4. SELECT * FROM wp_posts; -- show everything in the Posts table</p>
+<p>5. SELECT post_title FROM wp_posts; -- show only titles</p>
+<p>6. SELECT COUNT(*) FROM wp_posts; -- count how many rows exist</p>
+<p>7. SELECT post_title FROM wp_posts WHERE post_status='publish'; --
+show only published pages (WHERE filters results, the same way “show me
+only Computer Science students” filters a class list)</p>
+<p>8. SELECT post_title FROM wp_posts ORDER BY post_title; -- sort
+alphabetically</p>
+<p>9. SELECT post_title FROM wp_posts ORDER BY post_date DESC; -- newest
+first (DESC = descending)</p>
+<p>10. SELECT * FROM wp_posts LIMIT 5; -- show only the first 5 rows</p>
+<p>11. Now combine two tables with JOIN. Every post in wp_posts has a
+post_author column that stores the numeric ID of whoever wrote it — that
+ID lives in a separate table, wp_users. A JOIN lets you pull both pieces
+of information into one result:</p>
+<p>12. Run this in Adminer:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>SELECT wp_posts.post_title, wp_users.display_name</p>
+<p>FROM wp_posts</p>
+<p>JOIN wp_users ON wp_posts.post_author = wp_users.ID;</p>
+<p>-- shows each post title next to the actual name of who wrote
+it</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>13. Now try GROUP BY, which answers questions about categories of
+data rather than individual rows, instead of pulling every row back one
+at a time:</p>
+<p>14. Run this next:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>SELECT post_status, COUNT(*) AS total</p>
+<p>FROM wp_posts</p>
+<p>GROUP BY post_status;</p>
+<p>-- counts how many posts fall into each status (publish, draft,
+trash, etc.) in one query</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p><em>JOIN and GROUP BY are the two SQL skills that come up constantly
+in real work — JOIN because your data almost never lives in a single
+table, and GROUP BY because “how many of each” is one of the most common
+questions any business asks of its data. You'll use exactly this pattern
+again in Week 6 when you review your own project's data.</em></p>
+<p><strong>SQL Summary</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Command</strong></th>
+<th><strong>Purpose</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SELECT</td>
+<td>Read information</td>
+</tr>
+<tr class="even">
+<td>FROM</td>
+<td>Select the table</td>
+</tr>
+<tr class="odd">
+<td>WHERE</td>
+<td>Filter data</td>
+</tr>
+<tr class="even">
+<td>ORDER BY</td>
+<td>Sort results</td>
+</tr>
+<tr class="odd">
+<td>COUNT</td>
+<td>Count records</td>
+</tr>
+<tr class="even">
+<td>LIMIT</td>
+<td>Restrict results</td>
+</tr>
+<tr class="odd">
+<td>JOIN</td>
+<td>Combine matching rows from two tables</td>
+</tr>
+<tr class="even">
+<td>GROUP BY</td>
+<td>Summarize rows into categories</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create a new WordPress page named
+“FAQ” and publish it. Run SELECT post_title FROM wp_posts; in Adminer
+and confirm the FAQ page appears. Delete the page, run the query again,
+and notice it's gone — this demonstrates how WordPress automatically
+keeps the database in sync with what you do in the dashboard.</p>
+<p>Update ExaminerAI: Opened Adminer; Explored wp_posts; Executed SQL
+queries; Understood SQL filtering. Move finished work to Completed on
+your Project tab and log a quick note in your Daily Check-In (Learning Hub). You should
+be at roughly 45% overall — check your dashboard progress to confirm
+you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add a “SQL Practice” section to your README.
+Commit with the message: “Completed SQL SELECT practice using
+LocalWP.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What is SQL?</p>
+<p>2. What is Adminer used for?</p>
+<p>3. In your own words, what does SELECT * FROM wp_posts; do?</p>
+<p>4. Why can't the JOIN query get the author's name from wp_posts
+alone?</p>
+<h2 id="day-5-how-wordpress-saves-information">Day 5 — How WordPress
+Saves Information</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand how WordPress stores,
+updates, and deletes information automatically, and complete the Week 2
+sprint review.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Every time you publish, edit, or
+trash a page in WordPress, the dashboard is quietly writing SQL on your
+behalf. You don't need to write these commands yourself for WordPress to
+work — but understanding what's happening behind the scenes is what
+separates someone who uses WordPress from someone who understands
+it.</p>
+<p><em>Important: Do not run INSERT, UPDATE, or DELETE directly on your
+live WordPress tables — practice only on a temporary table if your
+instructor sets one up. WordPress runs these commands for you
+automatically; this exercise is about understanding the concept safely
+using SELECT, which only reads data and can't damage anything.</em></p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Create a new page called “Training Page” and click Publish. Behind
+the scenes, WordPress just ran something similar to INSERT INTO wp_posts
+(...) VALUES (...); — INSERT means “add new information.”</p>
+<p>2. Open the page, change its title, and click Update. WordPress just
+sent an UPDATE query — UPDATE means “modify existing information.”</p>
+<p>3. Move the page to Trash. WordPress communicates with the database
+again — conceptually, this is what SQL's DELETE command does: remove a
+record.</p>
+<p>4. Practical exercise: create “Training Page,” publish it, then in
+Adminer run:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>SELECT post_title FROM wp_posts ORDER BY post_date DESC LIMIT
+5;</p>
+<p>Confirm you see it. Rename it to “Training Page Updated,” run the
+query again, then move it to Trash and run it once more — watch how the
+database reflects each change.</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p><strong>SQL Command Comparison</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Command</strong></th>
+<th><strong>Purpose</strong></th>
+<th><strong>Example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SELECT</td>
+<td>Read data</td>
+<td>SELECT * FROM wp_posts;</td>
+</tr>
+<tr class="even">
+<td>INSERT</td>
+<td>Add data</td>
+<td>INSERT INTO students(name) VALUES('Ali');</td>
+</tr>
+<tr class="odd">
+<td>UPDATE</td>
+<td>Modify data</td>
+<td>UPDATE students SET name='Ahmed' WHERE id=1;</td>
+</tr>
+<tr class="even">
+<td>DELETE</td>
+<td>Remove data</td>
+<td>DELETE FROM students WHERE id=1;</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-sprint"><strong>Sprint review:</strong></p>
+<p class="callout callout-done"><strong>Completed:</strong> Homepage designed, Theme customized, SQL
+queries practiced, Database explored</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add a Week 2 Summary to your README: website
+progress, SQL skills learned, database knowledge, challenges, and plans
+for Week 3. Commit with the message: “Completed Week 2 database
+fundamentals.”</p>
+<p><strong>Before moving on, confirm you have:</strong></p>
+<ul>
+<li><p>Homepage completed</p></li>
+<li><p>Website branding completed</p></li>
+<li><p>LocalWP configured</p></li>
+<li><p>Adminer explored</p></li>
+<li><p>SQL SELECT understood</p></li>
+<li><p>SQL WHERE understood</p></li>
+<li><p>SQL ORDER BY understood</p></li>
+<li><p>SQL LIMIT understood</p></li>
+<li><p>WordPress database explored</p></li>
+<li><p>ExaminerAI updated</p></li>
+<li><p>README updated</p></li>
+<li><p>GitHub repository updated</p></li>
+</ul>
+<p class="callout callout-topics"><strong>What you can now do:</strong></p>
+<p>You can now build WordPress pages, customize a professional website,
+explain how WordPress stores information, use LocalWP confidently,
+explore databases with Adminer, and write and understand basic SQL
+queries — on top of tracking your project in ExaminerAI and maintaining
+your code with Git and GitHub.</p>
+<p class="callout callout-ahead"><strong>Looking ahead:</strong> Week 3: how websites communicate with
+external applications using APIs, how to automate repetitive tasks with
+Make.com, and how to build your first AI-powered workflow.</p>
+<p class="callout callout-confidence"><strong>Weekly confidence check:</strong></p>
+<p>Before moving on, open your Competency Tracker in ExaminerAI and rate
+your confidence (1–5) on each topic below. This isn't graded — it's how
+you catch a shaky topic while it's still cheap to revisit, instead of
+discovering the gap three weeks from now.</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Topic</strong></th>
+<th><strong>Your Confidence (1–5)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>WordPress page building</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>CSS/branding customization</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Databases (what MySQL stores)</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>SQL: SELECT/WHERE/ORDER BY/LIMIT</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>SQL: JOIN &amp; GROUP BY</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><em>Weekly test: before moving on to Week 3, complete this week's
+Weekly Test in ExaminerAI — it checks both your understanding of the
+concepts and how your project is progressing.</em></p>
+<h1 class="section-start" id="week-3-apis-automation-ai-agents">Week 3 — APIs, Automation
+&amp; AI Agents</h1>
+<p class="callout callout-goal"><strong>Weekly goal:</strong> Your website is now functional and
+connected to a database. This week covers what separates modern
+developers from traditional website builders: automation and artificial
+intelligence. Instead of doing repetitive work manually, you'll learn
+how computers can perform it automatically — and how to make that
+automation genuinely intelligent. Don't try to memorize the tools;
+understand the concepts, and new tools become easy to pick up later.</p>
+<p><strong>By the end of this week, you will be able to:</strong></p>
+<ul>
+<li><p>Explain what APIs are and how applications communicate</p></li>
+<li><p>Understand what automation means and how Make.com works</p></li>
+<li><p>Explain what an AI Agent is and how it differs from simple
+automation</p></li>
+<li><p>Connect WordPress with external applications</p></li>
+</ul>
+<h2 id="day-1-understanding-apis">Day 1 — Understanding APIs</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how different applications
+communicate with each other using APIs.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> An API (Application Programming
+Interface) is essentially a messenger between two applications — like a
+waiter carrying your order to the kitchen and bringing the food back,
+rather than you walking in yourself. Every time you use Google Maps,
+WhatsApp, Foodpanda, or Uber, thousands of APIs are working behind the
+scenes to pass information between systems.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Visit Google Maps, Gmail, a weather app, and ChatGPT, and observe
+how each one is clearly talking to some other service to get its data.
+Write down three examples where two applications are communicating.</p>
+<p>2. Think about your own capstone project: which external services
+could it use? (e.g., a restaurant site might use a Maps API, a WhatsApp
+API, and a payment gateway API; a resume builder might use the Gemini
+API and a PDF generator.)</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Write down which external services
+your own project could realistically use, and why.</p>
+<p>Update ExaminerAI: API basics; API examples; Real-life applications.
+Move finished work to Completed on your Project tab and log a quick note
+in your Daily Check-In (Learning Hub). You should be at roughly 50% overall — check
+your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add an “APIs Learned” section to your
+README. Commit with the message: “Learned API fundamentals.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What is an API?</p>
+<p>2. Why can't websites communicate directly?</p>
+<p>3. Give three real-world API examples.</p>
+<h2 id="day-2-introduction-to-automation">Day 2 — Introduction to
+Automation</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand automation and learn
+how repetitive tasks can be performed without human intervention.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Automation means a computer
+performs repetitive work without waiting for you to do it manually — the
+difference between a shop owner manually unlocking the door and turning
+on the lights every morning versus having it all happen on its own.
+Make.com works like a digital employee: instead of hiring a person, you
+build a workflow, and whenever something happens, Make.com does the
+rest.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Every workflow has three parts: Trigger → Action → Result.
+Example: a customer submits a contact form (Trigger) → an email is sent
+(Action) → the customer receives confirmation (Result).</p>
+<p>2. Create a free Make.com account and explore the Dashboard,
+Scenarios, and Templates — today is just exploration, so don't worry if
+it looks unfamiliar.</p>
+<p>3. Sketch three simple automations as diagrams (e.g., Student
+registers → Email sent → Teacher notified).</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Write three automations your own
+project could use (e.g., for a restaurant: Reservation → Confirmation
+Email → Reminder → Review Request).</p>
+<p>Update ExaminerAI: Automation basics; Make.com account; Workflow
+concepts. Move finished work to Completed on your Project tab and log a
+quick note in your Daily Check-In (Learning Hub). You should be at roughly 55% overall
+— check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Documented
+automation ideas.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What is automation?</p>
+<p>2. Which daily task would you automate?</p>
+<p>3. How can automation improve your project?</p>
+<h2 id="day-3-building-your-first-automation">Day 3 — Building Your
+First Automation</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Create your first workflow in
+Make.com and understand how applications exchange information
+automatically.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Today you'll build something real,
+with no coding required: a workflow where adding a row to a spreadsheet
+automatically triggers an email, without you clicking Send or typing
+anything.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Log in to Make.com and click Create Scenario.</p>
+<p>2. Search for “Google Sheets” and select “Watch New Rows” — this
+becomes your Trigger.</p>
+<p>3. Search for “Email” and select “Send Email” — this becomes your
+Action.</p>
+<p>4. Connect your Google account, and point the trigger at a simple
+spreadsheet with a “Task” column — create one now in Google Sheets if
+you don't have one; this is just a practice sheet, separate from your
+ExaminerAI Project tab.</p>
+<p>5. Configure the email: Subject – “New Task Created”; Message – “A
+new task has been added to your sheet. Please take a look.”</p>
+<p>6. Click Run Once, then open the spreadsheet and add a new row (e.g.,
+“Finish Homepage”). Within seconds, an email should arrive — confirming
+your first automation works: New Sheet Row → Trigger Activated →
+Make.com Reads Data → Email Sent.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Design two additional automations
+for your project (e.g., Appointment Booking → Confirmation Email →
+Calendar Entry → Reminder Email).</p>
+<p>Update ExaminerAI: First Make scenario built; Trigger connected;
+Email automation working. Move finished work to Completed on your Task
+Board and log a quick note in your Daily Check-In (Learning Hub). You should be at
+roughly 60% overall — check your dashboard progress to confirm you're on
+pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add an “Automation” section to your README
+describing your first workflow. Commit with the message: “Built first
+Make.com automation.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What is the Trigger?</p>
+<p>2. What is the Action?</p>
+<p>3. What happened automatically?</p>
+<p><em>By the end of Day 3 you should be able to explain what an API is,
+explain automation with real-world examples, and have a working Make.com
+automation connecting a spreadsheet to email. Current project
+completion: 60%.</em></p>
+<h2 id="day-4-understanding-ai-agents">Day 4 — Understanding AI
+Agents</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn what an AI Agent is, how
+it differs from traditional automation, and build your first AI-powered
+workflow.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Traditional automation follows
+fixed rules and always performs the same task — like an employee who
+opens the door and turns on the lights every morning, exactly the same
+way. An AI Agent reads and understands context, then makes a decision:
+given a customer message like “my order arrived cold,” a simple
+automation might just reply “thank you,” while an AI Agent recognizes
+the customer is unhappy, marks the complaint High Priority, emails the
+manager, and sends an apology. Every AI Agent follows roughly the same
+shape: Trigger → Collect Information → AI Thinks → Decision →
+Action.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. In Make.com, create a new scenario. Set the trigger to your
+WordPress Contact Form (or a Webhook if the contact form isn't
+available).</p>
+<p>2. Add a Google Gemini module (OpenAI can also be used).</p>
+<p>3. Give Gemini a clear prompt, for example: “You are a customer
+support assistant. Read the following message and classify it as
+Complaint, Question, or Feedback. Only return one word.”</p>
+<p>4. Test it with a sample message like “My order never arrived.”
+Gemini should reply with a single classification, e.g., “Complaint.”</p>
+<p>5. Notice what just happened: your automation understood human
+language with no IF statements and no traditional programming — the AI
+made the classification decision.</p>
+<p><em>A good prompt always gives the AI a Role, a Task, and the
+Expected Output. Compare a bad prompt (“Help me.”) with a good one
+(“Summarize this email in one sentence.”) — the more specific the
+instruction, the more useful the result.</em></p>
+<p><strong>Automation vs. AI Agent</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Automation</strong></th>
+<th><strong>AI Agent</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Follows fixed rules</td>
+<td>Makes decisions</td>
+</tr>
+<tr class="even">
+<td>Cannot understand meaning</td>
+<td>Understands context</td>
+</tr>
+<tr class="odd">
+<td>Always performs the same task</td>
+<td>Can choose different actions</td>
+</tr>
+<tr class="even">
+<td>No intelligence</td>
+<td>Uses artificial intelligence</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Think about how AI could help your
+own project (e.g., a restaurant recommending meals, a hospital answering
+patient questions, a portfolio generating blog summaries, a resume
+builder improving a CV) and write three prompts you'd use for it.</p>
+<p>Update ExaminerAI: AI Agent basics; Gemini connected; Prompt
+engineering. Move finished work to Completed on your Project tab and log
+a quick note in your Daily Check-In (Learning Hub). You should be at roughly 65%
+overall — check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add an “AI Agent” section to your README
+describing your workflow. Commit with the message: “Created first AI
+Agent workflow.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What is an AI Agent?</p>
+<p>2. How is it different from automation?</p>
+<p>3. Why are prompts important?</p>
+<h2 id="day-5-building-an-intelligent-workflow">Day 5 — Building an
+Intelligent Workflow</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Build a complete workflow that
+combines WordPress, Make.com, Gemini AI, Google Sheets, and email.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Instead of building individual
+pieces, today you connect everything into what's effectively a small
+intelligent business assistant: a visitor fills out your Contact Form,
+and AI immediately reads, classifies, and routes the message — no one
+has to be watching.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Full workflow: Visitor → WordPress Contact Form → Make.com →
+Gemini AI → Classify Message → Google Sheets → Email Notification.</p>
+<p>2. A visitor submits a message, e.g., “Hello, I forgot my password.
+Please help.”</p>
+<p>3. Make.com receives the message and passes it to Gemini with a
+prompt like: “Read this message and return only one category: Support,
+Complaint, Feedback, Sales, or Question.”</p>
+<p>4. Gemini replies with a single category, e.g., “Support.”</p>
+<p>5. Use a Router in Make.com to branch on the category: Support →
+create a new row in your spreadsheet and send an email; Complaint → mark
+High Priority and notify the manager; Feedback → save it in your
+spreadsheet.</p>
+<p>6. End to end, the workflow reads the message, understands it, makes
+a decision, saves the data, and sends a notification — all without
+anyone touching a keyboard once it's live.</p>
+<p class="callout callout-challenge"><strong>Project challenge:</strong> Design one AI Agent idea for your
+own project — e.g., a resume builder where a user uploads a resume,
+Gemini improves the content, and a PDF is generated; or a real estate
+site where a customer asks “I need a house under 1 crore” and AI filters
+listings.</p>
+<p class="callout callout-tip"><strong>Best practice:</strong> AI can make mistakes. Never trust it
+blindly — always verify important outputs, especially for medical
+information, legal advice, or financial decisions. AI should assist
+people, not replace their judgment.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add a Week 3 Summary to your README: APIs
+learned, automation built, AI Agent created, challenges, and
+improvements. Commit with the message: “Completed Week 3 AI automation
+module.”</p>
+<p><strong>Before moving on, confirm you have:</strong></p>
+<ul>
+<li><p>Understand APIs</p></li>
+<li><p>Explain automation</p></li>
+<li><p>Built Make.com scenario</p></li>
+<li><p>Connected Google Sheets</p></li>
+<li><p>Connected email</p></li>
+<li><p>Used Gemini AI</p></li>
+<li><p>Wrote good prompts</p></li>
+<li><p>Built AI Agent</p></li>
+<li><p>Updated ExaminerAI</p></li>
+<li><p>Updated README</p></li>
+<li><p>GitHub updated</p></li>
+</ul>
+<p class="callout callout-topics"><strong>What you can now do:</strong></p>
+<p>Your project is no longer just a website — it's an AI-powered
+application capable of understanding information, making decisions, and
+automating tasks. You can now explain APIs with real-world examples,
+build workflows in Make.com, connect multiple applications, use Gemini
+AI through prompts, and build a basic AI Agent.</p>
+<p class="callout callout-ahead"><strong>Looking ahead:</strong> Week 4: prompt engineering in depth,
+connecting directly to the Gemini API, API keys and security, and
+integrating AI features into your website like a professional
+developer.</p>
+<p class="callout callout-confidence"><strong>Weekly confidence check:</strong></p>
+<p>Before moving on, open your Competency Tracker in ExaminerAI and rate
+your confidence (1–5) on each topic below. This isn't graded — it's how
+you catch a shaky topic while it's still cheap to revisit, instead of
+discovering the gap three weeks from now.</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Topic</strong></th>
+<th><strong>Your Confidence (1–5)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>APIs (what they are)</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Automation / Make.com</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>AI Agents vs. automation</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Prompt basics for AI Agents</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><em>Weekly test: before moving on to Week 4, complete this week's
+Weekly Test in ExaminerAI — it checks both your understanding of the
+concepts and how your project is progressing.</em></p>
+<h1 class="section-start" id="week-4-prompt-engineering-ai-fundamentals-the-gemini-api">Week 4
+— Prompt Engineering, AI Fundamentals &amp; the Gemini API</h1>
+<p class="callout callout-goal"><strong>Weekly goal:</strong> You've already built a WordPress
+website, a database-driven application, your first automation, and your
+first AI Agent. This week goes one level deeper: instead of using AI
+only inside Make.com, you'll learn how developers integrate AI directly
+into applications using APIs.</p>
+<p><strong>By the end of this week, you will be able to:</strong></p>
+<ul>
+<li><p>Explain how AI and Large Language Models (LLMs) work</p></li>
+<li><p>Write effective, structured prompts</p></li>
+<li><p>Understand API keys and how to keep them secure</p></li>
+<li><p>Understand how the Gemini API works</p></li>
+<li><p>Plan how your application will connect to AI</p></li>
+</ul>
+<h2 id="day-1-understanding-artificial-intelligence">Day 1 —
+Understanding Artificial Intelligence</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand how AI works and why
+Large Language Models (LLMs) can understand and generate human
+language.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> AI isn't magic — it's software
+trained on enormous amounts of text, and instead of memorizing answers,
+it predicts the most likely next word. If someone says “The sun rises in
+the ___,” almost everyone answers “east,” because they've seen that
+pattern many times; an LLM (Large Language Model) works the same way,
+having learned patterns from a huge amount of books, articles, and
+documentation. Gemini, ChatGPT, and Claude are all examples of LLMs. The
+flow is roughly: Your Question → AI Reads Prompt → Analyzes Context →
+Predicts Best Response → Returns Answer. AI doesn't search the internet
+for every question — it predicts a response based on training (or on
+tools connected to it).</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Ask Gemini to “explain HTML like I'm 10 years old,” “explain
+databases using a school example,” and “explain APIs using a restaurant
+example.” Notice how the wording of your question changes the
+answer.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> List five places where AI could
+help the users of your specific project (e.g., for a resume builder:
+improve grammar, rewrite experience, generate summaries, suggest skills,
+create cover letters).</p>
+<p>Update ExaminerAI: AI fundamentals; Large Language Models; AI
+applications. Move finished work to Completed on your Project tab and log
+a quick note in your Daily Check-In (Learning Hub). You should be at roughly 68%
+overall — check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What is an LLM?</p>
+<p>2. Does AI memorize or predict?</p>
+<p>3. Give three examples where AI could improve your project.</p>
+<h2 id="day-2-prompt-engineering">Day 2 — Prompt Engineering</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how to communicate
+effectively with AI by writing clear and structured prompts.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Telling an AI “do the work” is
+like telling a new employee the same thing — they'll ask “what work?”
+The clearer your instructions, the better your results. A professional
+prompt generally includes a Role (“You are a software engineer”),
+Context (background information), a Task (exactly what to do), and an
+Output Format (how to respond).</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Compare a bad prompt — “Write something.” — with a better one:
+“You are a professional marketing writer. Write a welcome message for
+visitors to an AI Resume Builder. Maximum 100 words. Use friendly
+language. Return only the final text.”</p>
+<p>2. Use the template: Role – “You are…” / Context – “The project is…”
+/ Task – “Please…” / Output – “Return…”</p>
+<p>3. Write prompts for your own project (e.g., a restaurant generating
+menu descriptions, a clinic writing appointment reminders, a portfolio
+summarizing GitHub projects).</p>
+<p>4. Prompt challenge: write prompts asking Gemini to explain HTML,
+improve grammar, generate FAQs, and write product descriptions, then
+compare the results.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Generate real content for your
+website (homepage introduction, About Us, Services, FAQs) using AI, then
+review and edit the output before publishing — never publish AI content
+unreviewed.</p>
+<p>Update ExaminerAI: Prompt engineering; Website content generated.
+Move finished work to Completed on your Project tab and log a quick note
+in your Daily Check-In (Learning Hub). You should be at roughly 70% overall — check
+your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Document your best prompts in your README.
+Commit with the message: “Created prompt library for project.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why is prompt engineering important?</p>
+<p>2. Which prompt produced the best result?</p>
+<p>3. How could your prompts be improved?</p>
+<h2 id="day-3-connecting-to-the-gemini-api">Day 3 — Connecting to the
+Gemini API</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand API keys and learn
+how applications securely communicate with Gemini.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> An API key is like an ID card at a
+secure building's front desk: it tells Gemini “this application has
+permission to use AI,” and without it, your application can't
+communicate with Gemini at all. Treat your API key like an ATM PIN or an
+email password — never upload it to GitHub, never send it to a friend,
+and never include it inside a public website.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Visit Google AI Studio, sign in with your Google account, click
+Get API Key, and copy the generated key somewhere safe.</p>
+<p>2. Before connecting your website, test the key directly in Google AI
+Studio with a simple prompt (e.g., “Explain SQL in simple language”) to
+confirm it works.</p>
+<p>3. Understand the communication path: Website → Gemini API (using
+your API Key) → Gemini → Response → Website. Every AI feature you
+build follows this same shape — the user only ever sees the final
+result.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create api-planning.md and answer:
+What AI feature will you build? What information will you send? What
+response do you expect? How will users interact with it?</p>
+<p>Update ExaminerAI: Gemini API; API key; AI integration planning. Move
+finished work to Completed on your Project tab and log a quick note in
+your Daily Check-In (Learning Hub). You should be at roughly 75% overall — check your
+dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Planned Gemini API
+integration.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why is an API key required?</p>
+<p>2. Why should API keys never be uploaded to GitHub?</p>
+<p>3. Describe how your website will communicate with Gemini.</p>
+<p><em>You should now be able to explain how AI works, understand LLMs,
+write professional prompts, explain API keys, and have a plan for AI
+integration into your project. Current project completion: 75%.</em></p>
+<h2 id="day-4-your-first-gemini-api-integration">Day 4 — Your First
+Gemini API Integration</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand how websites
+communicate with AI using APIs and learn how to send your first request
+to the Gemini API.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> When you type a prompt into
+ChatGPT and get a response back in seconds, your browser never talks
+directly to the AI model — it goes through an API. Think of an API
+request like sending a parcel: it needs a sender, receiver, package, and
+delivery address. A Gemini request typically includes a Prompt (the
+instruction), a Temperature setting (controls creativity — low is more
+factual, high is more varied), a maximum output length, and your API
+Key.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. In Google AI Studio, write three versions of the same request at
+different levels of detail, e.g.: “Explain HTML in simple words,”
+“Explain HTML to a software engineer,” and “Explain HTML to a
+10-year-old child.” Compare how the same AI adjusts its answer based on
+the prompt.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Design your AI feature and sketch
+the workflow — e.g., for a resume builder: user enters resume → Gemini
+improves the wording; for a clinic: patient describes symptoms → Gemini
+recommends a department.</p>
+<p>Update ExaminerAI: Gemini API concepts; AI feature planning; Prompt
+testing. Move finished work to Completed on your Project tab and log a
+quick note in your Daily Check-In (Learning Hub). You should be at roughly 80% overall
+— check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add an “AI Feature Design” section to your
+README describing the user input, AI processing, and expected output.
+Commit with the message: “Designed Gemini feature.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why does a website need an API?</p>
+<p>2. What is the purpose of Temperature?</p>
+<p>3. What information should never be shared publicly?</p>
+<h2 id="day-5-building-an-ai-powered-website">Day 5 — Building an
+AI-Powered Website</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Wire a real, working AI feature
+directly into your WordPress site, and understand exactly how the pieces
+connect.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> So far, AI has lived either inside
+Google AI Studio (Day 3–4) or inside a Make.com automation that responds
+by email (Week 3 Day 5). Today those two ideas combine into something
+visitors can actually use, live, on your website: they type something
+into a box on your page, and an AI-generated answer appears in the same
+box a few seconds later, with no page reload. There are two different
+patterns for AI on a website, and it's worth knowing both: a background
+automation (Week 3 Day 5's contact form → Make.com → email) is right
+when the user doesn't need an instant answer, while an interactive
+on-page feature (today's lesson) is right when they do. WordPress cannot
+safely call the Gemini API by itself without exposing your API key to
+anyone who views the page's source code — so instead, the page talks to
+a Make.com webhook, and Make.com is the only place that ever holds the
+Gemini API key.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Understand the full path data will travel: WordPress Page (HTML
+form) → JavaScript sends the input → Make.com Webhook (trigger) → Gemini
+module (processes it) → Webhook Response (sends the answer straight
+back) → JavaScript displays it on the same page.</p>
+<p>2. In WordPress, add a Custom HTML block to the page where your AI
+feature will live (e.g., your homepage or a dedicated “Try It” page),
+and paste in this form:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>&lt;div class="ai-feature-box"&gt;</p>
+<p>&lt;textarea id="ai-input" rows="4" placeholder="Paste your resume
+text here..."&gt;&lt;/textarea&gt;</p>
+<p>&lt;button id="ai-submit"&gt;Improve with AI&lt;/button&gt;</p>
+<p>&lt;div id="ai-result"&gt;&lt;/div&gt;</p>
+<p>&lt;/div&gt;</p>
+<p> </p>
+<p>&lt;script&gt;</p>
+<p>document.getElementById('ai-submit').addEventListener('click', async
+function () {</p>
+<p>const inputText = document.getElementById('ai-input').value;</p>
+<p>const resultBox = document.getElementById('ai-result');</p>
+<p>resultBox.innerText = 'Thinking...';</p>
+<p> </p>
+<p>const response = await fetch('https://hook.make.com/your-webhook-id',
+{</p>
+<p>method: 'POST',</p>
+<p>headers: { 'Content-Type': 'application/json' },</p>
+<p>body: JSON.stringify({ text: inputText })</p>
+<p>});</p>
+<p> </p>
+<p>const data = await response.json();</p>
+<p>resultBox.innerText = data.result;</p>
+<p>});</p>
+<p>&lt;/script&gt;</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>Adapt the placeholder text and button label to your own project
+(e.g., “Describe your symptoms” for a clinic app, or “What are you in
+the mood to eat?” for a restaurant).</p>
+<p>3. In Make.com, create a new scenario starting with Webhooks &gt;
+Custom webhook. Click “Add,” name it, and copy the generated webhook URL
+— paste this into the fetch() line in your HTML in place of
+https://hook.make.com/your-webhook-id.</p>
+<p>4. Add a Gemini module as the second step. Write a prompt that
+uses the incoming data, e.g.: “You are a professional resume writer.
+Improve the wording of the following text and keep it under 150 words.
+Return only the improved text: {{1.text}}” — {{1.text}} pulls in
+whatever the visitor typed.</p>
+<p>5. Add a Webhooks &gt; Webhook Response module as the third and final
+step, and set its body to: {"result": "{{2.output}}"} — this is what
+sends the AI's answer straight back to the browser that made the
+request, instead of just logging it somewhere.</p>
+<p>6. Turn the scenario ON (the toggle in the top-left, not just “Run
+once”) so it stays listening for real visitors, not only for your own
+tests.</p>
+<p>7. Test it: open your live WordPress page, type something into the
+box, and click the button. Within a few seconds, the AI's response
+should appear directly in the result box — confirm your Gemini API key
+is visible nowhere in WordPress or in your browser's developer tools; it
+only ever lives inside the Gemini module's configuration in
+Make.com.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Implement this pattern for your
+own project's AI feature (see the project-specific prompt ideas in your
+Day 1 project table). If something in the chain isn't working, test it
+in isolation — first confirm the webhook receives data (Make.com's “Run
+once” mode shows you exactly what arrived), then confirm Gemini returns
+a sensible result, then confirm the response makes it back to the
+page.</p>
+<p>Update ExaminerAI: AI feature live on website; Make.com webhook
+connected; Gemini module configured; Webhook response tested. Move
+finished work to Completed on your Project tab and log a quick note in
+your Daily Check-In (Learning Hub). You should be at roughly 85% overall — check your
+dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-sprint"><strong>Sprint review:</strong></p>
+<p class="callout callout-done"><strong>Completed:</strong> AI fundamentals, Prompt engineering,
+Gemini API, Live AI feature on WordPress, Make.com webhook
+integration</p>
+<p class="callout callout-bugs"><strong>Bugs to watch for:</strong> Weak prompts, Incorrect AI
+responses, Webhook URL typos, Scenario left OFF instead of ON, Missing
+input validation</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add a Week 4 Summary to your README,
+including a short “How the AI Feature Works” section with the WordPress
+→ Make.com → Gemini → Response diagram. Commit with the message:
+“Completed Week 4 AI integration module.”</p>
+<p><strong>Before moving on, confirm you have:</strong></p>
+<ul>
+<li><p>Understand how Gemini API works</p></li>
+<li><p>Explain prompt engineering</p></li>
+<li><p>Explain temperature</p></li>
+<li><p>Explain API keys</p></li>
+<li><p>Built the WordPress form + JavaScript</p></li>
+<li><p>Connected the Make.com webhook</p></li>
+<li><p>Configured the Gemini module</p></li>
+<li><p>Configured the Webhook Response</p></li>
+<li><p>Tested the live feature end-to-end</p></li>
+<li><p>Updated ExaminerAI</p></li>
+<li><p>Updated README</p></li>
+<li><p>Updated GitHub</p></li>
+</ul>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why can't WordPress call the Gemini API directly and safely?</p>
+<p>2. What does the Webhook Response module actually do?</p>
+<p>3. What would a visitor see if the Make.com scenario were turned
+off?</p>
+<p class="callout callout-topics"><strong>What you can now do:</strong></p>
+<p>Your project has evolved from a standard website into an intelligent
+application. You can now explain how AI works, write effective prompts,
+and—most importantly—you have a real, working AI feature live on your
+WordPress site, built on a pattern (WordPress → Make.com Webhook →
+Gemini → Webhook Response) you can reuse for any future AI feature.</p>
+<p class="callout callout-ahead"><strong>Looking ahead:</strong> Week 5: improving website
+performance, tightening security, testing and debugging like a
+professional, and deploying your project from LocalWP to a live, public
+web address.</p>
+<p class="callout callout-confidence"><strong>Weekly confidence check:</strong></p>
+<p>Before moving on, open your Competency Tracker in ExaminerAI and rate
+your confidence (1–5) on each topic below. This isn't graded — it's how
+you catch a shaky topic while it's still cheap to revisit, instead of
+discovering the gap three weeks from now.</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Topic</strong></th>
+<th><strong>Your Confidence (1–5)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>How LLMs work</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Prompt engineering</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>API keys &amp; security</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Gemini API integration</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>WordPress → Make.com → Gemini pattern</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><em>Weekly test: before moving on to Week 5, complete this week's
+Weekly Test in ExaminerAI — it checks both your understanding of the
+concepts and how your project is progressing.</em></p>
+<h1 class="section-start" id="week-5-testing-security-deployment">Week 5 — Testing, Security
+&amp; Deployment</h1>
+<p class="callout callout-goal"><strong>Weekly goal:</strong> Your capstone project now has a plan, a
+professional website, a database, AI automation, and AI-powered
+features. But a professional developer doesn't stop after building —
+they test, optimize, and fix problems before real users ever see the
+product. This week covers how software teams prepare an application for
+the real world, and ends with your project going live on the
+internet.</p>
+<p><strong>By the end of this week, you will be able to:</strong></p>
+<ul>
+<li><p>Test websites professionally and find/fix bugs</p></li>
+<li><p>Improve website performance</p></li>
+<li><p>Secure WordPress and plan backups</p></li>
+<li><p>Deploy a website to live hosting and connect a domain</p></li>
+</ul>
+<h2 id="day-1-software-testing-debugging">Day 1 — Software Testing &amp;
+Debugging</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how professional
+developers test websites before releasing them.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> A car manufacturer doesn't sell a
+new car without testing the brakes, lights, engine, and airbags first —
+software follows the same logic. Testing exists to find problems before
+your users do. A bug is simply a problem in the software: a login button
+that doesn't work, a contact form that doesn't send emails, an AI
+feature that gives incorrect output, a broken image, or a slow page.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Functional testing — does it actually work? (e.g., does clicking
+Login successfully log the user in?)</p>
+<p>2. UI testing — does it look correct? Check buttons, fonts, colors,
+and images.</p>
+<p>3. Responsive testing — does it work on mobile? Resize your browser
+and test mobile, tablet, and desktop views.</p>
+<p>4. User testing — ask someone else to use your website and watch
+whether they can complete tasks without asking you questions.</p>
+<p>5. Test every page of your site: Home, About, Services, Contact, your
+AI feature, forms, navigation, and footer.</p>
+<p><strong>Bug Tracker (example)</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Bug</strong></th>
+<th><strong>Priority</strong></th>
+<th><strong>Status</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Contact form not sending</td>
+<td>High</td>
+<td>Open</td>
+</tr>
+<tr class="even">
+<td>Button color inconsistent</td>
+<td>Low</td>
+<td>Fixed</td>
+</tr>
+<tr class="odd">
+<td>AI response slow</td>
+<td>Medium</td>
+<td>Open</td>
+</tr>
+</tbody>
+</table>
+<p><em>Tip: Don't rely only on your own testing — ask another intern to
+try your project. Fresh eyes catch more bugs than you will on your
+own.</em></p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Ask a partner to visit your
+homepage, find the Contact page, submit the form, test navigation, and
+try your AI feature. Write down everything they found difficult or
+confusing.</p>
+<p>Update ExaminerAI: Functional testing; UI testing; Bug report
+created. Move finished work to Completed on your Project tab and log a
+quick note in your Daily Check-In (Learning Hub). You should be at roughly 88% overall
+— check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Completed website
+testing and bug reporting.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What bugs did you discover?</p>
+<p>2. Which bug was the most serious?</p>
+<p>3. How would users feel if this bug existed on a live website?</p>
+<h2 id="day-2-website-performance-optimization">Day 2 — Website
+Performance Optimization</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Improve website speed and
+performance.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> A visitor who waits too long for a
+page to load behaves the same way as someone waiting 20 minutes for food
+— they leave. Faster websites mean a better experience, better Google
+ranking, and higher satisfaction. Common causes of slow websites include
+large images, too many plugins, unoptimized CSS, large JavaScript files,
+and slow hosting.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Compress any images larger than 2 MB. Prefer JPG, PNG, or WebP
+formats.</p>
+<p>2. Review every installed plugin and ask “do I really need this?”
+Deactivate anything unnecessary.</p>
+<p>3. Research caching plugins such as LiteSpeed Cache, WP Super Cache,
+or W3 Total Cache, and understand what each does before installing
+(discuss with your instructor first).</p>
+<p>4. Run your site through Google PageSpeed Insights and read the
+recommendations — focus on understanding them rather than chasing a
+perfect score.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create performance-report.md
+including your current speed, the problems found, your recommendations,
+and the improvements you made.</p>
+<p>Update ExaminerAI: Images optimized; Plugins reviewed; Performance
+report. Move finished work to Completed on your Project tab and log a
+quick note in your Daily Check-In (Learning Hub). You should be at roughly 91% overall
+— check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Optimized website
+performance.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What makes websites slow?</p>
+<p>2. Which optimization improved performance the most?</p>
+<h2 id="day-3-wordpress-security-backups">Day 3 — WordPress Security
+&amp; Backups</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Understand how to protect
+websites from common security threats.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> You wouldn't leave your front door
+unlocked, and a website needs the same basic vigilance — hackers
+actively search for weak sites. Common risks include weak passwords,
+outdated plugins, old themes, unused administrator accounts, and missing
+backups.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Replace weak passwords (e.g., “123456”) with strong ones (e.g.,
+“MyResume@2026!”).</p>
+<p>2. Check for and apply updates to WordPress core, your theme, and all
+plugins — outdated software is the most common security hole.</p>
+<p>3. Research backup plugins such as UpdraftPlus, All-in-One WP
+Migration, or Duplicator, and understand what each one does.</p>
+<p>4. Run through a security checklist: strong password, updated
+plugins, updated theme, backup created, administrator accounts
+reviewed.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Write security-plan.md covering
+your password policy, backup strategy, update schedule, and plugin
+review process.</p>
+<p>Update ExaminerAI: Security review; Backup research; Security plan.
+Move finished work to Completed on your Project tab and log a quick note
+in your Daily Check-In (Learning Hub). You should be at roughly 94% overall — check
+your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Commit with the message: “Completed security
+review and backup planning.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Why are backups important?</p>
+<p>2. Why should WordPress always be kept updated?</p>
+<p>3. What would happen if your project disappeared tomorrow?</p>
+<p><em>You've now tested your software, reported bugs, improved
+performance, secured WordPress, and planned backups. Current project
+completion: 88%.</em></p>
+<h2 id="day-4-deploying-your-wordpress-website">Day 4 — Deploying Your
+WordPress Website</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how to move your WordPress
+website from LocalWP to a live hosting server.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Right now, your project only
+exists on your own computer (Your Computer → LocalWP → WordPress →
+MySQL) — only you can access it. Deployment changes that path to
+Visitors → Internet → Hosting Server → Your Website, so anyone with your
+website address can visit. Hosting is essentially the “land” your
+website lives on so it's available 24 hours a day (popular providers
+include Hostinger, Bluehost, SiteGround, Namecheap, and InfinityFree for
+practice). A domain is simply a memorable name for your site's address,
+the same way people remember “google.com” instead of an IP address.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Back up your local site first: in WordPress, go to Plugins &gt;
+Add New, search for “All-in-One WP Migration,” install, and activate
+it.</p>
+<p>2. Export your site: All-in-One WP Migration &gt; Export &gt; Export
+To &gt; File. Wait for it to finish and download the backup file (e.g.,
+my-project.wpress) — it contains your pages, images, theme, plugins, and
+database, everything.</p>
+<p>3. Prepare hosting: log in to your hosting account, create a new
+site, and install WordPress (most hosts offer one-click installation).
+Log in to the new WordPress dashboard.</p>
+<p>4. Import your site: install All-in-One WP Migration again on the
+live site, go to Import &gt; Import From &gt; File, select your .wpress
+file, and wait for the import to finish.</p>
+<p>5. Log in again using the same username and password from your
+LocalWP project — your local project is now online.</p>
+<p>6. Verify everything works: images, menus, the contact page, forms,
+your AI feature, and internal links.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create deployment-report.md
+covering your hosting provider, deployment date, domain name, problems
+faced, solutions, and lessons learned.</p>
+<p>Update ExaminerAI: Website exported; Website imported; Live website
+working. Move finished work to Completed on your Project tab and log a
+quick note in your Daily Check-In (Learning Hub). You should be at roughly 97% overall
+— check your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add a “Live Website” section to your README
+with the URL, deployment date, and hosting provider. Commit with the
+message: “Deployed project to live hosting.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. What is hosting?</p>
+<p>2. What is a domain?</p>
+<p>3. Why should you back up before deployment?</p>
+<h2 id="day-5-final-testing-project-handover">Day 5 — Final Testing
+&amp; Project Handover</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Perform final quality-assurance
+checks and prepare your project for presentation.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> A restaurant owner checks the
+lights, chairs, kitchen, and menu before inviting customers in — today
+is your project's final inspection before Week 6.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Visit every page (Home, About, Services, Contact, Blog, AI
+Feature, Forms, Navigation, Footer, Images, Downloads) and confirm each
+one works.</p>
+<p>2. Test on mobile, tablet, and desktop, checking layout, fonts,
+buttons, and menus, and fix anything broken.</p>
+<p>3. Test in Chrome, Edge, and Firefox (and Safari if available) — some
+browsers render things differently.</p>
+<p>4. Confirm SSL/HTTPS is active by checking the padlock icon in your
+browser's address bar; if it's missing, enable SSL from your hosting
+panel. HTTPS protects users' information.</p>
+<p>5. Do a final pass through your Bug Tracker, marking each item
+Resolved, In Progress, or Known Issue.</p>
+<p>6. Run Google PageSpeed Insights again and record your Performance,
+Accessibility, Best Practices, and SEO scores.</p>
+<p>7. Push your latest code to GitHub and confirm your README,
+screenshots, project description, live link, and repository structure
+are all complete.</p>
+<p><strong>Final bug review (example)</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Bug</strong></th>
+<th><strong>Status</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mobile menu</td>
+<td>Fixed</td>
+</tr>
+<tr class="even">
+<td>Contact form</td>
+<td>Fixed</td>
+</tr>
+<tr class="odd">
+<td>AI response delay</td>
+<td>Known issue</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Confirm your project folder
+contains: documentation/, screenshots/, deployment-report.md,
+performance-report.md, security-plan.md, and README.md.</p>
+<p>Update ExaminerAI: Deployment; Live testing; Documentation; Final QA.
+Move finished work to Completed on your Project tab and log a quick note
+in your Daily Check-In (Learning Hub). You should be at roughly 100% overall — check
+your dashboard progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Push all final changes.</p>
+<p><strong>Before moving on, confirm you have:</strong></p>
+<ul>
+<li><p>Website online</p></li>
+<li><p>Domain connected</p></li>
+<li><p>SSL enabled</p></li>
+<li><p>Homepage working</p></li>
+<li><p>AI feature working</p></li>
+<li><p>Contact form working</p></li>
+<li><p>Mobile friendly</p></li>
+<li><p>Performance checked</p></li>
+<li><p>Documentation complete</p></li>
+<li><p>GitHub updated</p></li>
+<li><p>ExaminerAI updated</p></li>
+</ul>
+<p class="callout callout-topics"><strong>What you can now do:</strong></p>
+<p>Your capstone project is now live on the internet. You've planned a
+software project, built a WordPress website, worked with databases,
+learned SQL, created automation workflows, built AI-powered features,
+and deployed your project to a live hosting server. This is no longer a
+classroom exercise — it's a real application you can show to employers,
+clients, and interviewers.</p>
+<p class="callout callout-ahead"><strong>Looking ahead:</strong> Week 6: presenting your work like a
+professional — a polished GitHub portfolio, an AI-improved resume and
+LinkedIn profile, technical interview practice, and your final capstone
+presentation.</p>
+<p class="callout callout-confidence"><strong>Weekly confidence check:</strong></p>
+<p>Before moving on, open your Competency Tracker in ExaminerAI and rate
+your confidence (1–5) on each topic below. This isn't graded — it's how
+you catch a shaky topic while it's still cheap to revisit, instead of
+discovering the gap three weeks from now.</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Topic</strong></th>
+<th><strong>Your Confidence (1–5)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Functional/UI/responsive testing</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Performance optimization</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>WordPress security &amp; backups</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Deployment (export/import/domain)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><em>Weekly test: before moving on to Week 6, complete this week's
+Weekly Test in ExaminerAI — it checks both your understanding of the
+concepts and how your project is progressing.</em></p>
+<h1 class="section-start" id="week-6-career-preparation-final-capstone">Week 6 — Career
+Preparation &amp; Final Capstone</h1>
+<p class="callout callout-goal"><strong>Weekly goal:</strong> Over the past five weeks, you've
+planned a project, managed it with ExaminerAI, built a WordPress
+website, worked with databases and SQL, used Git and GitHub, built
+automations with Make.com, integrated AI using Gemini, and deployed your
+website to a live server. This final week is different: you're no longer
+learning new technology. Instead, you're preparing your project for
+employers, clients, and technical interviews — professional developers
+also know how to test, document, present, and explain their own
+work.</p>
+<p><strong>By the end of this week, you will be able to:</strong></p>
+<ul>
+<li><p>Perform a final quality-assurance pass on your live
+project</p></li>
+<li><p>Build a professional GitHub portfolio</p></li>
+<li><p>Prepare for technical interview questions using the STAR
+method</p></li>
+<li><p>Deliver a confident final capstone presentation</p></li>
+</ul>
+<h2 id="day-1-final-project-audit-quality-assurance">Day 1 — Final
+Project Audit &amp; Quality Assurance</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how professional software
+teams review, test, and prepare projects before releasing them to
+users.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> A shopping mall owner checks the
+lights, elevators, emergency exits, and every shop before inviting
+thousands of visitors in — even one broken thing can hurt the
+experience. Today you become the QA engineer for your own project:
+instead of building anything new, you inspect everything you've already
+built.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Visit your live website as a normal visitor first (don't log in).
+Ask yourself: does the homepage load quickly? Is the layout clean? Are
+all images visible? Is navigation easy to understand?</p>
+<p>2. Test every page one by one using a simple checklist (Home, About,
+Services, Contact, AI Feature, Privacy Policy — opens correctly / needs
+improvement) and log any problems immediately in ExaminerAI.</p>
+<p>3. Click every button (Learn More, Contact Us, Generate Resume,
+Submit, Download PDF) and confirm each one does what it should.</p>
+<p>4. Fill out every form with sample data and confirm: was it submitted
+successfully? Was the information stored? Did any automation run? Was an
+email sent? Was a record created in your spreadsheet?</p>
+<p>5. Test your AI feature with a few different real inputs and judge
+whether the answer is useful, accurate, appropriately concise, and free
+of obvious errors — remember that AI should assist users, not confuse
+them.</p>
+<p>6. Test on desktop, laptop, tablet, and mobile, checking navigation,
+images, buttons, forms, and your AI feature on each.</p>
+<p>7. Test in Chrome, Edge, and Firefox (and Safari if available) — some
+browsers render pages differently.</p>
+<p>8. Log every issue you find in the ExaminerAI Bug Tracker with an ID,
+description, priority, and status — never rely on memory.</p>
+<p><strong>Bug Tracker (example)</strong></p>
+<table>
+<colgroup>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+<col style="width: 25%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Bug ID</strong></th>
+<th><strong>Description</strong></th>
+<th><strong>Priority</strong></th>
+<th><strong>Status</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BUG-21</td>
+<td>Contact form not sending email</td>
+<td>High</td>
+<td>Open</td>
+</tr>
+<tr class="even">
+<td>BUG-22</td>
+<td>AI response too long</td>
+<td>Medium</td>
+<td>Open</td>
+</tr>
+<tr class="odd">
+<td>BUG-23</td>
+<td>Footer misaligned on mobile</td>
+<td>Low</td>
+<td>Fixed</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create quality-assurance-report.md
+covering your website URL, testing date, devices tested, browsers
+tested, bugs found, bugs fixed, and remaining improvements.</p>
+<p>Update ExaminerAI: Website audit; Functional testing; Mobile testing;
+AI testing; Bug report. Move finished work to Completed on your Task
+Board and log a quick note in your Daily Check-In (Learning Hub). You should be at
+roughly 100% overall — check your dashboard progress to confirm you're
+on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Add a “Version 1.0 Release Notes” section to
+your README: new features, bug fixes, known issues, and future
+improvements. Commit with the message: “Completed final quality
+assurance review.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Which bug was the most difficult to fix?</p>
+<p>2. Which feature are you most proud of?</p>
+<p>3. If you had one more week, what would you improve?</p>
+<h2 id="day-2-building-a-professional-github-portfolio">Day 2 — Building
+a Professional GitHub Portfolio</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how to organize your
+GitHub repository so employers can quickly understand your project and
+technical skills.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> When a recruiter asks “can I see
+something you've built,” your GitHub repository is the answer — within
+minutes they can review your code, documentation, project history,
+commits, and problem-solving. Treat it as your technical portfolio, not
+just a backup of your files.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Review your repository: is it public, does it have a meaningful
+name, a complete description, a license, and a README?</p>
+<p>2. Rewrite your README to include: Project Description (2–3
+paragraphs on what it does), Problem Statement (what problem it solves),
+Solution (how it solves it), Technology Stack (every tool used —
+WordPress, LocalWP, MySQL, SQL, Make.com, Gemini, Git, GitHub,
+ExaminerAI), Features (a clear list), Screenshots (homepage, AI feature,
+dashboard, contact form, mobile view), an Installation Guide for another
+developer, and your Live Website link.</p>
+<p>3. Organize your repository structure cleanly:</p>
+<table>
+<colgroup>
+<col style="width: 100%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>Project/</p>
+<p>├── documentation/</p>
+<p>├── screenshots/</p>
+<p>├── assets/</p>
+<p>├── README.md</p>
+<p>├── LICENSE</p>
+<p>├── deployment-report.md</p>
+<p>├── security-plan.md</p>
+<p>├── performance-report.md</p>
+<p>└── prompt-library.md</p></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p>4. Review your commit history: good messages explain what changed
+(“Added AI Resume Generator,” “Improved homepage responsiveness,” “Fixed
+contact form validation”) rather than vague ones (“Update,” “Final,”
+“Changes”).</p>
+<p>5. Create a GitHub Release for Version 1.0, summarizing features, bug
+fixes, known issues, and future plans.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Create portfolio-content.md
+covering your project overview, technologies used, skills learned,
+biggest challenge, best achievement, and future improvements — this will
+feed directly into your resume and LinkedIn profile.</p>
+<p>Update ExaminerAI: Repository reviewed; README improved; Screenshots
+added; Commit history reviewed; Version 1.0 prepared. Move finished work
+to Completed on your Project tab and log a quick note in your Daily
+Check-In. You should be at roughly 100% overall — check your dashboard
+progress to confirm you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Push all changes and confirm your repository
+is genuinely ready to share with employers. Commit with the message:
+“Prepared professional GitHub portfolio.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Would a recruiter understand your project by reading your
+README?</p>
+<p>2. What section of your repository is strongest?</p>
+<p>3. If someone cloned your repository today, could they set it up
+using your documentation alone?</p>
+<p><em>You now have a fully tested website, a completed bug report and
+QA report, and a professional, well-documented GitHub repository ready
+to share.</em></p>
+<h2 id="day-3-technical-interview-preparation-communication-skills">Day
+3 — Technical Interview Preparation &amp; Communication Skills</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Learn how to confidently explain
+your project, answer technical interview questions, and communicate like
+a professional developer.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Between two developers who built
+similarly good projects, employers usually prefer the one who can
+explain their decisions clearly over the one who can't. Interviewers
+aren't expecting you to know everything — they want to see that you can
+solve problems, explain your thinking, learn new technologies, and work
+with a team.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Prepare a one-minute introduction covering: who you are (e.g., “My
+name is Ahmed Ali, and I recently completed a six-week Modern Web
+Development and AI Bootcamp”), what you learned (WordPress, SQL,
+Git/GitHub, Make.com, Gemini), what you built, and your career goals.
+Practice until it sounds natural, not memorized.</p>
+<p>2. Prepare to explain your project using: Problem (what it solves),
+Solution (how your app solves it), Technologies Used (what each tool
+did), and one real Challenge you faced and how you solved it — employers
+value honest problem-solving over a flawless story.</p>
+<p>3. Practice answering common technical questions across WordPress
+(why WordPress, what are plugins/themes, what is LocalWP), databases
+(what is MySQL, why does WordPress need a database, the difference
+between SELECT/INSERT/UPDATE/DELETE), Git (what is Git, why GitHub, why
+commit frequently), and AI (what is an API, what is prompt engineering,
+what is an AI Agent, how did Gemini improve your app).</p>
+<p>4. Use the STAR method for “tell me about a time…” questions:
+Situation, Task, Action, Result. Example — Situation: “My AI automation
+stopped working.” Task: “I needed to identify the problem.” Action: “I
+reviewed the Make.com logs and tested the webhook.” Result: “The
+workflow started working correctly again.”</p>
+<p>5. Do a mock interview in pairs: one person interviews, the other
+answers ten questions, then swap roles after 15 minutes and give each
+other honest feedback.</p>
+<p class="callout callout-activity"><strong>Project activity:</strong> Record a five-minute video
+explaining your project. Watch it back and ask: did I speak clearly? Did
+I explain technical terms? Was I confident? Then practice again.</p>
+<p>Update ExaminerAI: Interview practice; Mock interview; Project
+explanation; Presentation practice. Move finished work to Completed on
+your Project tab and log a quick note in your Daily Check-In (Learning Hub). You should
+be at roughly 100% overall — check your dashboard progress to confirm
+you're on pace.</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Create presentation-notes.md with your
+introduction, project summary, technologies, challenges, and lessons
+learned. Commit with the message: “Prepared interview and presentation
+notes.”</p>
+<p class="callout callout-reflection"><strong>Reflection:</strong></p>
+<p>1. Which interview question was the most difficult?</p>
+<p>2. Which answer needs improvement?</p>
+<p>3. How has your confidence changed since Week 1?</p>
+<h2 id="day-4-final-project-presentation-graduation">Day 4 — Final
+Project Presentation &amp; Graduation</h2>
+<p class="callout callout-objective"><strong>Learning objective:</strong> Present your completed capstone
+project professionally and complete the program.</p>
+<p class="callout callout-why"><strong>Why this matters:</strong> Imagine presenting to a company
+manager, a client, and a technical recruiter all at once — your
+presentation should be professional, simple, and easy to understand for
+all three.</p>
+<p><strong>What you'll do:</strong></p>
+<p>1. Slide 1 – Introduction: your name, project name, program name.</p>
+<p>2. Slide 2 – Problem Statement: the real-world problem, in plain
+language (e.g., “Many students struggle to create professional
+resumes”), avoiding technical jargon.</p>
+<p>3. Slide 3 – Proposed Solution: how your application solves the
+problem, walking through the user's journey.</p>
+<p>4. Slide 4 – Technology Stack: every tool used and why (see the table
+below for a template).</p>
+<p>5. Slide 5 – System Workflow: how information moves through your app,
+e.g., User → WordPress Website → MySQL Database → Make.com Automation →
+Gemini → User Receives Result. Walk through it slowly.</p>
+<p>6. Slide 6 – Live Demonstration: show your homepage, navigation,
+contact form, AI feature, automation, and GitHub repository — narrate
+what's happening rather than silently clicking through.</p>
+<p>7. Slide 7 – Challenges: one real problem and how you solved it
+(e.g., “My AI responses were inconsistent. I improved the prompt by
+providing a role, context, and expected output.”).</p>
+<p>8. Slide 8 – Lessons Learned: e.g., planning before coding, testing
+before deployment, writing meaningful Git commits, building with AI
+responsibly.</p>
+<p>9. Slide 9 – Future Improvements: e.g., user login, a payment
+gateway, a mobile app, an analytics dashboard, an AI chatbot,
+multi-language support.</p>
+<p>10. Slide 10 – Questions: close with a simple “Thank you for your
+time — I'm happy to answer any questions.”</p>
+<p><strong>Technology stack (example)</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Technology</strong></th>
+<th><strong>Purpose</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>WordPress</td>
+<td>Website development</td>
+</tr>
+<tr class="even">
+<td>LocalWP</td>
+<td>Local development</td>
+</tr>
+<tr class="odd">
+<td>MySQL</td>
+<td>Database</td>
+</tr>
+<tr class="even">
+<td>SQL</td>
+<td>Database queries</td>
+</tr>
+<tr class="odd">
+<td>Git</td>
+<td>Version control</td>
+</tr>
+<tr class="even">
+<td>GitHub</td>
+<td>Source code management</td>
+</tr>
+<tr class="odd">
+<td>ExaminerAI</td>
+<td>Project management &amp; AI assessment</td>
+</tr>
+<tr class="even">
+<td>Make.com</td>
+<td>Automation</td>
+</tr>
+<tr class="odd">
+<td>Gemini</td>
+<td>Artificial intelligence</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Instructor Evaluation Rubric</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Category</strong></th>
+<th><strong>Marks</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Project Planning</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<td>Website Development</td>
+<td>15</td>
+</tr>
+<tr class="odd">
+<td>Database Design</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<td>SQL Knowledge</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>AI Integration</td>
+<td>15</td>
+</tr>
+<tr class="even">
+<td>Automation</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>GitHub Repository</td>
+<td>10</td>
+</tr>
+<tr class="even">
+<td>Documentation</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td>Presentation Skills</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td>Professionalism</td>
+<td>5</td>
+</tr>
+<tr class="odd">
+<td>Total</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<p class="callout callout-checklist"><strong>Final submission checklist:</strong></p>
+<p class="callout callout-project"><strong>Project:</strong> Live website working, AI features tested,
+Forms working, Mobile friendly</p>
+<p><strong>Documentation:</strong> README complete, Installation guide,
+Deployment report, Performance report, Security plan, Prompt library</p>
+<p class="callout callout-github"><strong>GitHub:</strong> Repository public, Meaningful commits,
+Screenshots uploaded, Documentation updated</p>
+<p><strong>Portfolio:</strong> Resume updated, LinkedIn updated,
+Portfolio website updated</p>
+<p class="callout callout-update"><strong>ExaminerAI:</strong> Tasks completed, Bug tracker updated,
+Competency tracker completed</p>
+<p class="callout callout-reflection"><strong>Graduation reflection:</strong></p>
+<p>1. What was your biggest achievement during this program?</p>
+<p>2. Which topic challenged you the most?</p>
+<p>3. Which skill improved the most?</p>
+<p>4. What would you improve if you rebuilt this project?</p>
+<p>5. What are your career goals for the next six months?</p>
+<p><strong>Where to go next — a suggested career roadmap:</strong></p>
+<p><strong>Frontend:</strong> JavaScript, React, Tailwind CSS</p>
+<p><strong>Backend:</strong> PHP, Laravel, Node.js</p>
+<p><strong>Databases:</strong> PostgreSQL, MongoDB</p>
+<p><strong>Artificial Intelligence:</strong> Advanced prompt
+engineering, RAG applications, AI agents, LangChain</p>
+<p><strong>Cloud &amp; DevOps:</strong> Linux, Docker, GitHub Actions,
+AWS, Azure</p>
+<p class="callout callout-topics"><strong>What you can now do:</strong></p>
+<p>You've completed a full professional software project. More
+importantly, you've built professional habits that employers value:
+planning before coding, tracking work in ExaminerAI, managing versions
+with Git and GitHub, building with WordPress, working with MySQL and
+SQL, automating business processes, integrating AI, testing and
+deploying applications, and documenting and presenting your work with
+confidence. Technology changes constantly — stay curious, keep building,
+and keep sharing what you learn.</p>
+<p class="callout callout-confidence"><strong>Weekly confidence check:</strong></p>
+<p>Before moving on, open your Competency Tracker in ExaminerAI and rate
+your confidence (1–5) on each topic below. This isn't graded — it's how
+you catch a shaky topic while it's still cheap to revisit, instead of
+discovering the gap three weeks from now.</p>
+<table>
+<colgroup>
+<col style="width: 50%"/>
+<col style="width: 50%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Topic</strong></th>
+<th><strong>Your Confidence (1–5)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>QA / bug triage</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>GitHub portfolio presentation</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>STAR-method interview answers</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Explaining your project's architecture out loud</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><em>Weekly test: complete this final week's Weekly Test in ExaminerAI
+to wrap up the program.</em></p>
+
+  </main>
+</div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('backdrop');
+  const toggle = document.getElementById('toc-toggle');
+  toggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('show');
+  });
+  backdrop.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+  });
+  document.querySelectorAll('nav.sidebar a').forEach(a => {
+    a.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      backdrop.classList.remove('show');
+    });
+  });
+
+  // Theme is synced with the parent app — listen for changes.
+  // next-themes stores in localStorage 'theme' key. When it changes
+  // (user clicks the app's theme toggle), update this page too.
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'theme' && window.__resolveExaminerTheme) {
+      document.documentElement.setAttribute('data-theme', window.__resolveExaminerTheme());
+    }
+  });
+  // Also listen for postMessage from parent (for same-origin iframes)
+  // FIX: Use the theme value sent by the parent DIRECTLY instead of
+  // re-reading from localStorage (which may be stale or out of sync).
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'theme-change') {
+      var theme = e.data.theme;
+      if (theme === 'dark' || theme === 'light') {
+        document.documentElement.setAttribute('data-theme', theme);
+      } else if (window.__resolveExaminerTheme) {
+        document.documentElement.setAttribute('data-theme', window.__resolveExaminerTheme());
+      }
+    }
+  });
+  // Poll for theme changes every 500ms (fallback if storage event doesn't fire
+  // — happens when the toggle is in the same tab as this iframe)
+  setInterval(() => {
+    if (window.__resolveExaminerTheme) {
+      var current = document.documentElement.getAttribute('data-theme');
+      var resolved = window.__resolveExaminerTheme();
+      if (current !== resolved) {
+        document.documentElement.setAttribute('data-theme', resolved);
+      }
+    }
+  }, 500);
+
+  // Scroll-spy: highlight the current section in the sidebar
+  const links = Array.from(document.querySelectorAll('nav.sidebar a[data-toc]'));
+  const targets = links.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  const byId = {};
+  links.forEach(a => byId[a.getAttribute('href').slice(1)] = a);
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const link = byId[entry.target.id];
+      if (!link) return;
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px', threshold: 0 });
+
+  targets.forEach(t => observer.observe(t));
+</script>
+
+<!-- Iframe detection: hide topbar when embedded, show close button when standalone -->
+<script>
+  (function() {
+    var inIframe = (window.self !== window.top);
+    if (inIframe) {
+      // In iframe: hide topbar entirely
+      var topbar = document.getElementById('topbar');
+      if (topbar) topbar.style.display = 'none';
+      var style = document.createElement('style');
+      style.textContent = [
+        '@media (max-width: 979px) {',
+        '  nav.sidebar { top: 0 !important; height: 100vh !important; }',
+        '  .backdrop { top: 0 !important; }',
+        '}',
+        'main { padding-top: 16px !important; }',
+      ].join('\n');
+      document.head.appendChild(style);
+    } else {
+      // Standalone (new tab): show the close button
+      var closeBtn = document.getElementById('close-tab');
+      if (closeBtn) {
+        closeBtn.style.display = 'inline-flex';
+        closeBtn.addEventListener('click', function() {
+          window.close();
+          // If window.close() doesn't work (not opened by script), go back
+          setTimeout(function() {
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              window.location.href = '/';
+            }
+          }, 100);
+        });
+      }
+    }
+  })();
+</script>
+
+<!-- Use the app's font (Geist Sans from Vercel, same as Next.js) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  }
+</style>
+
+</body>
+</html>

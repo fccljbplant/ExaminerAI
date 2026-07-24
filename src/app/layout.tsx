@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,18 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ExaminerAI — AI-Powered Assessment & Mentorship Platform",
-  description: "Comprehensive AI-driven evaluation, mentoring and institution management platform. GROW coaching, psychological & educational mentorship, real-time alerts, and analytics dashboards for every role.",
-  keywords: ["ExaminerAI", "assessment", "mentor", "GROW", "education", "LMS", "AI"],
-  authors: [{ name: "FCCL JB Plant IT" }],
+  title: "AI Examiner — Socratic Assessment Platform",
+  description: "Conversational Socratic assessments for the Modern Web Development & AI Bootcamp. Role-based dashboards for students, teachers, and developers.",
+  keywords: ["AI Examiner", "Socratic", "Bootcamp", "Next.js", "AI Tutor"],
+  authors: [{ name: "ExaminerAI" }],
   icons: {
     icon: "/logo.svg",
-  },
-  openGraph: {
-    title: "ExaminerAI",
-    description: "AI-Powered Assessment & Mentorship Platform",
-    siteName: "ExaminerAI",
-    type: "website",
   },
 };
 
@@ -40,9 +34,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        {children}
-        <Toaster />
-        <SonnerToaster richColors position="top-right" />
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,38 +1,27 @@
 #!/usr/bin/env bash
-# Vercel build script — auto-detects DB type and sets up everything
-# Used as the `vercel-build` script in package.json
+# Vercel build script for ExaminerAI (original project)
+# - Uses prisma/schema.prod.prisma (Postgres) for Vercel
+# - Force-resets DB to apply schema cleanly
+# - Runs the comprehensive demo seed
+# - Builds Next.js
 set -e
 
 echo "=== ExaminerAI Vercel Build ==="
 echo "DATABASE_URL prefix: $(echo "$DATABASE_URL" | sed 's/\/\/.*/\/\/***REDACTED***/')"
 
-# Step 1: Detect DB provider from DATABASE_URL
-if [[ "$DATABASE_URL" == postgres://* ]] || [[ "$DATABASE_URL" == postgresql://* ]]; then
-  echo "📦 Detected PostgreSQL — updating schema provider"
-  sed -i 's|provider = "sqlite"|provider = "postgresql"|' prisma/schema.prisma
-elif [[ "$DATABASE_URL" == file:* ]]; then
-  echo "📦 Detected SQLite (local dev mode) — keeping sqlite provider"
-else
-  echo "⚠️  Unknown DATABASE_URL format, defaulting to PostgreSQL"
-  sed -i 's|provider = "sqlite"|provider = "postgresql"|' prisma/schema.prisma
-fi
+# Step 1: Generate Prisma client using prod schema
+echo "🔧 Generating Prisma client (prod schema)..."
+bunx prisma generate --schema=prisma/schema.prod.prisma
 
-# Step 2: Generate Prisma client
-echo "🔧 Generating Prisma client..."
-bunx prisma generate
+# Step 2: Force-reset DB and push schema (clean state for demo)
+echo "🗄️  Pushing schema to database (force-reset for clean demo state)..."
+bunx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --force-reset --skip-generate
 
-# Step 3: Push schema to DB. Use --force-reset for clean state (we re-seed after).
-echo "🗄️  Pushing schema to database (with force-reset for clean state)..."
-bunx prisma db push --accept-data-loss --force-reset --skip-generate 2>&1 || {
-  echo "⚠️  --force-reset failed, trying without..."
-  bunx prisma db push --accept-data-loss --skip-generate
-}
+# Step 3: Run demo seed
+echo "🌱 Seeding demo data (50 students, 2 courses, alerts, mentor sessions, etc.)..."
+bun run scripts/seed-demo.ts
 
-# Step 4: Run seed
-echo "🌱 Seeding demo data..."
-bun run scripts/seed.ts --if-empty 2>/dev/null || bun run scripts/seed.ts 2>/dev/null || echo "⚠️  Seed skipped"
-
-# Step 5: Build Next.js
+# Step 4: Build Next.js
 echo "🏗️  Building Next.js..."
 bunx next build
 

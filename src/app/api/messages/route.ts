@@ -1,51 +1,61 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { getSession, isDemoMode } from '@/lib/auth'
-import { demoRefusal } from '@/lib/demo-guard'
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { getCurrentUser, getAuthUser } from "@/lib/auth";
 
-// GET /api/messages — list messages for current user (or view-as user)
+/** GET /api/messages — list messages for current user. */
 export async function GET(req: NextRequest) {
-  const session = await getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const effectiveUserId = session.isDemo && session.viewingAsUserId
-    ? session.viewingAsUserId
-    : session.id
-
-  const { searchParams } = new URL(req.url)
-  const withUserId = searchParams.get('with')
-
-  const where = withUserId
-    ? { OR: [
-        { fromId: effectiveUserId, toId: withUserId },
-        { fromId: withUserId, toId: effectiveUserId }
-      ]}
-    : { OR: [{ fromId: effectiveUserId }, { toId: effectiveUserId }] }
-
+  const payload = await getAuthUser();
+  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const box = req.nextUrl.searchParams.get("box") ?? "all"; // all | sent | received
+  const where =
+    box === "sent" ? { fromId: payload.sub } :
+    box === "received" ? { toId: payload.sub } :
+    { OR: [{ fromId: payload.sub }, { toId: payload.sub }] };
   const messages = await db.message.findMany({
     where,
-    include: { fromUser: true, toUser: true },
-    orderBy: { createdAt: 'asc' }
-  })
-  return NextResponse.json({ messages })
+    orderBy: { sentAt: "desc" },
+    include: { from: { select: { name: true, email: true } }, to: { select: { name: true, email: true } } },
+  });
+  return NextResponse.json({ messages });
 }
 
-// POST /api/messages — send message (DEMO BLOCKED)
+/** POST /api/messages — send a message. */
 export async function POST(req: NextRequest) {
-  const { demo } = await isDemoMode()
-  if (demo) return demoRefusal('sending messages — but you CAN preview the compose form!')
-  const session = await getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const body = await req.json()
-  const { toId, content } = body
-  if (!toId || !content) {
-    return NextResponse.json({ error: 'toId and content required' }, { status: 400 })
+  const { isFeatureEnabled } = await import("@/lib/feature-flags");
+  if (!(await isFeatureEnabled("messages_enabled"))) return NextResponse.json({ error: "Messaging is currently disabled." }, { status: 403 });
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await req.json().catch(() => ({}));
+  const { toId, subject, body: text } = body as { toId?: string; subject?: string; body?: string };
+  if (!toId || !text?.trim()) {
+    return NextResponse.json({ error: "toId and body required" }, { status: 400 });
   }
-  const effectiveUserId = session.isDemo && session.viewingAsUserId
-    ? session.viewingAsUserId
-    : session.id
-  const message = await db.message.create({
-    data: { fromId: effectiveUserId, toId, content }
-  })
-  return NextResponse.json({ message })
+  // Length caps — prevent abuse
+  if (subject && subject.length > 200) {
+    return NextResponse.json({ error: "Subject must be 200 characters or less" }, { status: 400 });
+  }
+  if (text.length > 10000) {
+    return NextResponse.json({ error: "Message body must be 10,000 characters or less" }, { status: 400 });
+  }
+  // Verify recipient exists and isn't blocked
+  const recipient = await db.user.findUnique({
+    where: { id: toId },
+    select: { id: true, blocked: true },
+  });
+  if (!recipient) {
+    return NextResponse.json({ error: "Recipient not found" }, { status: 404 });
+  }
+  if (recipient.blocked) {
+    return NextResponse.json({ error: "Recipient account is blocked" }, { status: 400 });
+  }
+  const msg = await db.message.create({
+    data: {
+      fromId: user.id,
+      toId,
+      subject: subject ?? null,
+      body: text.trim(),
+    },
+    include: { from: { select: { name: true, email: true } }, to: { select: { name: true, email: true } } },
+  });
+  return NextResponse.json({ message: msg });
 }

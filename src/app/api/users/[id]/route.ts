@@ -1,0 +1,66 @@
+import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { getAuthUser } from "@/lib/auth";
+
+/** DELETE /api/users/[id] — delete a user and ALL their data.
+ *  Admin only. Explicitly deletes every related record in a transaction
+ *  to guarantee complete cleanup regardless of cascade state. */
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const payload = await getAuthUser();
+  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const { id } = await params;
+
+  // Don't allow deleting the admin account
+  const target = await db.user.findUnique({ where: { id }, select: { email: true, role: true } });
+  if (!target) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+  // Protect all admin accounts (administrator, principal, legacy admin)
+  if (target.email === "admin@examiner.ai" || hasRole(target.role, ADMIN_ROLES)) {
+    return NextResponse.json({ error: "Cannot delete admin accounts" }, { status: 403 });
+  }
+
+  try {
+    // Delete everything in a transaction — guarantees complete cleanup.
+    // Order matters: delete dependent records first.
+    await db.$transaction([
+      // Comments authored by this user (as teacher) or targeting them (as student)
+      db.comment.deleteMany({ where: { teacherId: id } }),
+      db.comment.deleteMany({ where: { studentId: id } }),
+      // Messages sent or received
+      db.message.deleteMany({ where: { fromId: id } }),
+      db.message.deleteMany({ where: { toId: id } }),
+      // Password reset requests
+      db.passwordResetRequest.deleteMany({ where: { userId: id } }),
+      // Psychology observations
+      db.psychologyObs.deleteMany({ where: { userId: id } }),
+      // Report cards
+      db.reportCard.deleteMany({ where: { userId: id } }),
+      // Competencies
+      db.competency.deleteMany({ where: { userId: id } }),
+      // Weekly tests
+      db.weeklyTest.deleteMany({ where: { userId: id } }),
+      // Interactions (AI Q&A)
+      db.interaction.deleteMany({ where: { userId: id } }),
+      // Tasks
+      db.projectTask.deleteMany({ where: { userId: id } }),
+      // Daily logs
+      db.dailyLog.deleteMany({ where: { userId: id } }),
+      // Finally, the user itself
+      db.user.delete({ where: { id } }),
+    ]);
+
+    return NextResponse.json({ ok: true, message: `User ${target.email} and all their data deleted.` });
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Failed to delete user" },
+      { status: 500 }
+    );
+  }
+}
