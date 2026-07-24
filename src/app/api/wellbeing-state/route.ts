@@ -6,7 +6,7 @@ import { requireRole, UserRole } from "@/lib/rbac";
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COUNSELOR,
-    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,
+    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER,
   ]);
   if (!auth.ok) return auth.response;
 

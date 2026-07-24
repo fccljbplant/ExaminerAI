@@ -747,21 +747,82 @@ async function main() {
   }
 
   // ---------- 2. PsychEvidence — 7-dimension evidence for all students ----------
+  // VALUES MUST MATCH what PsychologicalTab.tsx expects (see valueMeanings in DIMENSIONS)
   console.log('   🔬 Psychology evidence (7 dimensions)...')
   const evidenceDimensions = [
-    { dim: 'calibration', values: ['overconfident', 'well-calibrated', 'underconfident'], texts: ['Student rates self 9/10 but scores 4/10 on quiz', 'Self-assessment closely matches actual performance', 'Rates self 4/10 but consistently scores 8/10'] },
-    { dim: 'explanatory_depth', values: ['step-by-step', 'surface-level', 'analogy-driven', 'avoidant'], texts: ['Breaks down problems into clear sequential steps', 'Gives one-line answers without justification', 'Uses analogies effectively to explain concepts', 'Often says "just because" or "I forget"'] },
-    { dim: 'gaming_pattern', values: ['genuine-effort', 'strategic-avoidance', 'help-seeking', 'rush-pattern'], texts: ['Shows genuine attempt on every question', 'Avoids difficult questions strategically', 'Asks for hints appropriately when stuck', 'Rushes through to finish first'] },
-    { dim: 'srl_phase', values: ['forethought', 'performance', 'self-reflection', 'planning'], texts: ['Sets goals before starting tasks', 'In active performance phase with steady output', 'Reflects on completed work thoughtfully', 'Plans next steps clearly'] },
-    { dim: 'fluency', values: ['fluent', 'hesitant', 'improving', 'blocked'], texts: ['Concepts flow naturally in explanations', 'Frequent pauses and "um" patterns', 'Fluency improving week over week', 'Mental blocks on specific topics'] },
-    { dim: 'attribution', values: ['effort-based', 'ability-based', 'external', 'mixed'], texts: ['Attributes success to practice and effort', 'Attributes failure to "not being smart enough"', 'Blames tools/environment for setbacks', 'Mixed attribution patterns'] },
-    { dim: 'cognitive_load', values: ['light', 'moderate', 'heavy', 'overloaded'], texts: ['Handles current workload with ease', 'Manageable load with occasional stretch', 'Heavy load; showing strain signals', 'Overloaded; needs intervention'] }
+    {
+      dim: 'calibration',
+      values: ['overconfident', 'well-calibrated', 'underconfident'],
+      texts: [
+        'Student rated themselves 9/10 but scored 4/10 on the daily test. They may not realize they don\'t understand the material.',
+        'Self-assessment closely matches actual performance. Healthy self-awareness.',
+        'Student rated themselves 3/10 but scored 8/10. They know more than they think — build confidence with specific praise.'
+      ]
+    },
+    {
+      dim: 'explanatory_depth',
+      values: ['detailed_reasoning', 'moderate_depth', 'surface_answers'],
+      texts: [
+        'Step-by-step explanations (over 300 characters). Strong signal — the student is connecting concepts, not just reciting.',
+        'Adequate explanations (50-300 characters). The student can explain but doesn\'t go deep without prompting.',
+        'Very short answers (under 50 characters). May indicate rushing, anxiety, or gaps. Probe with "Can you explain why?"'
+      ]
+    },
+    {
+      dim: 'gaming_pattern',
+      values: ['authentic_voice', 'voice_inconsistency', 'not_analyzed'],
+      texts: [
+        'Consistent voice across all answers. No signs of AI assistance. The student\'s work is their own.',
+        'Significant voice differences detected. Some answers may be AI-generated. Ask the student to explain verbally in a 1-on-1.',
+        'This test type doesn\'t run plagiarism analysis (practice tests). Weekly tests run the full analysis.'
+      ]
+    },
+    {
+      dim: 'attribution',
+      values: ['growth_mindset', 'fixed_mindset', 'avoidant', 'neutral'],
+      texts: [
+        'Student uses effort-based language ("I can learn this", "I need more practice"). Responds well to challenges.',
+        'Student uses ability-based language ("I\'m not good at this", "I can\'t do it"). May avoid challenges. Praise effort, not ability.',
+        'Multiple "I don\'t know" or "skip" answers. May indicate anxiety, lack of preparation, or fear of being wrong.',
+        'No strong mindset signals in this test. The student engaged normally.'
+      ]
+    },
+    {
+      dim: 'cognitive_load',
+      values: ['high_intrinsic', 'moderate_load', 'low_germane'],
+      texts: [
+        'Score below 40%. The material is too difficult right now. Break into smaller pieces, provide prerequisites, slow down.',
+        'Score 40-89%. The student is engaging with the material but hasn\'t mastered it yet. This is the sweet spot for learning.',
+        'Score 90%+. Material mastered, low cognitive load. The student is ready for advanced or applied work.'
+      ]
+    },
+    {
+      dim: 'srl_phase',
+      values: ['forethought', 'performance', 'reflection', 'performance_with_fatigue'],
+      texts: [
+        'Student is still building familiarity. Short, tentative answers. Provide clear instructions and examples before asking questions.',
+        'Student is actively working at a steady pace. Moderate-length answers. Let them work, provide feedback on process not just answers.',
+        'Student is deeply processing, connecting concepts. Long, detailed answers. Ask them to teach the concept to someone else.',
+        'Student started strong but shortened over time. May be tired or losing focus. Consider shorter sessions, check workload.'
+      ]
+    },
+    {
+      dim: 'fluency',
+      values: ['fluent', 'developing', 'fragmented', 'improving', 'declining'],
+      texts: [
+        'Score 75%+. Strong, stable recall. The student can retrieve and apply knowledge consistently.',
+        'Score 50-74%. Recall is improving but not yet stable. The student needs more practice to consolidate.',
+        'Score below 50%. Recall is inconsistent — the student may know pieces but can\'t connect them. Go back to fundamentals.',
+        'Later answers scored higher than earlier ones. Retrieval practice is working — the student is warming up. Good sign.',
+        'Later answers scored lower than earlier ones. May indicate fatigue, time pressure, or weak memory. Shorter sessions, check rest.'
+      ]
+    }
   ]
 
   for (let i = 0; i < students.length; i++) {
     const s = students[i]
-    // 3-5 evidence entries per student, across different dimensions
-    const evidenceCount = (i % 3) + 3
+    // 4-7 evidence entries per student, across different dimensions
+    const evidenceCount = (i % 4) + 4
     for (let e = 0; e < evidenceCount; e++) {
       const dim = evidenceDimensions[(i + e) % evidenceDimensions.length]
       const valueIdx = (i + e) % dim.values.length
@@ -775,6 +836,67 @@ async function main() {
           sourceType: pick(['weekly_test', 'interaction', 'check_in', 'manual'], e),
           week: rand(1, 12),
           createdAt: new Date(Date.now() - rand(1, 30) * 86400000)
+        }
+      }).catch(() => {})
+    }
+  }
+
+  // ---------- 2b. ConfidenceRatings for calibration scatter chart ----------
+  console.log('   📊 Confidence ratings (for calibration scatter chart)...')
+  for (let i = 0; i < students.length; i++) {
+    const s = students[i]
+    // 3-6 confidence ratings per student (self-rated vs actual score)
+    const ratingCount = (i % 4) + 3
+    for (let r = 0; r < ratingCount; r++) {
+      const selfRating = rand(1, 5)
+      // Create calibration patterns: some overconfident, some underconfident, some well-calibrated
+      const offset = (i + r) % 3 === 0 ? -20 : (i + r) % 3 === 1 ? 20 : 0
+      const actualScore = Math.max(0, Math.min(100, selfRating * 20 + offset + rand(-10, 10)))
+      await db.confidenceRating.create({
+        data: {
+          userId: s.id,
+          source: pick(['self', 'weekly_test', 'ai_observed'], r),
+          rating: selfRating,
+          actualScore,
+          context: pick(['Week 3 daily test — arrays', 'Week 5 practice — trees', 'Week 7 weekly test — graphs', 'Week 9 daily test — DP', 'Week 11 practice — sorting'], r),
+          week: rand(1, 12),
+          createdAt: new Date(Date.now() - rand(1, 30) * 86400000)
+        }
+      }).catch(() => {})
+    }
+  }
+
+  // ---------- 2c. AccessGrants for demo account → all students ----------
+  // CRITICAL: demo account has 'developer' role which needs an AccessGrant
+  // to view student portfolios. Without this, the teacher's student portfolio
+  // page fails to load with "You need an access grant to view this student".
+  console.log('   🔑 Access grants for demo account (so portfolio loads)...')
+  for (let i = 0; i < students.length; i++) {
+    const s = students[i]
+    await db.accessGrant.create({
+      data: {
+        granteeUserId: demoUser.id,
+        scopeType: 'student',
+        scopeId: s.id,
+        dataScope: 'full',
+        grantedByUserId: admin.id,
+        grantedAt: new Date(Date.now() - 30 * 86400000)
+      }
+    }).catch(() => {})
+  }
+  // Also grant the demo access to all students via the counsellor + mentor too
+  // (so when demo switches to Counsellor/Coordinator view, portfolio still works)
+  for (const staffUser of [counsellor, mentor]) {
+    for (let i = 0; i < students.length; i++) {
+      const s = students[i]
+      await db.accessGrant.create({
+        data: {
+          granteeUserId: staffUser.id,
+          scopeType: 'student',
+          scopeId: s.id,
+          dataScope: 'full',
+          grantedByUserId: admin.id,
+          grantedAt: new Date(Date.now() - 30 * 86400000)
         }
       }).catch(() => {})
     }
@@ -892,6 +1014,44 @@ async function main() {
           attempts: rand(3, 15),
           lastAssessed: new Date(Date.now() - rand(0, 14) * 86400000),
           weakSubTopics: JSON.stringify(pick([['time-complexity', 'space-complexity'], ['edge-cases'], ['recursion-depth'], ['null-handling'], []], i + c))
+        }
+      }).catch(() => {})
+    }
+  }
+
+  // ---------- 6b. SkillMastery for all students (Educational tab) ----------
+  console.log('   📈 Skill mastery (Educational tab)...')
+  const masteryTopics = [
+    { topic: 'arrays', pillar: 'Why Probe' },
+    { topic: 'linked-lists', pillar: 'Why Probe' },
+    { topic: 'stacks-queues', pillar: 'Break-It Scenario' },
+    { topic: 'hash-tables', pillar: 'Client Translation' },
+    { topic: 'trees', pillar: 'Why Probe' },
+    { topic: 'graphs', pillar: 'Edge Case Test' },
+    { topic: 'sorting', pillar: 'Break-It Scenario' },
+    { topic: 'dynamic-programming', pillar: 'Edge Case Test' },
+    { topic: 'greedy', pillar: 'Client Translation' },
+    { topic: 'motivation', pillar: 'Why Probe' },
+    { topic: 'leadership', pillar: 'Client Translation' },
+    { topic: 'case-study', pillar: 'Edge Case Test' },
+    { topic: 'planning', pillar: 'Why Probe' },
+    { topic: 'communication', pillar: 'Client Translation' }
+  ]
+  for (let i = 0; i < students.length; i++) {
+    const s = students[i]
+    // 3-5 skill mastery entries per student
+    const masteryCount = (i % 3) + 3
+    for (let m = 0; m < masteryCount; m++) {
+      const mt = pick(masteryTopics, i + m)
+      await db.skillMastery.create({
+        data: {
+          userId: s.id,
+          topic: mt.topic,
+          pillar: mt.pillar,
+          masteryLevel: pick(['not-started', 'developing', 'proficient', 'mastered'], i + m),
+          evidenceCount: rand(2, 12),
+          lastAssessedWeek: rand(1, 12),
+          trend: pick(['improving', 'stable', 'declining'], i + m)
         }
       }).catch(() => {})
     }
