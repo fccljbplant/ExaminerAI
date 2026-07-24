@@ -399,10 +399,11 @@ async function getPrincipalDashboard(institutionId: string) {
   const coursePerformance = []
   for (const c of allCourses) {
     const grades = await db.grade.findMany({
-      where: { assessment: { courseId: c.id } }
+      where: { assessment: { courseId: c.id } },
+      include: { assessment: true }
     })
     const avgPct = grades.length > 0
-      ? grades.reduce((s, g) => s + (g.marks / g.assessment?.maxMarks || 0) * 100, 0) / grades.length
+      ? grades.reduce((s, g) => s + (g.marks / (g.assessment?.maxMarks || 1)) * 100, 0) / grades.length
       : 0
     coursePerformance.push({
       id: c.id,
