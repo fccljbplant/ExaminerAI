@@ -75,11 +75,15 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
         }>("/api/stats?as=teacher", undefined, AI_TIMEOUT_MS),
         api.get<{ alerts: any[] }>("/api/students/alerts").catch(() => ({ alerts: [] })),
       ]);
-      setStats(statsRes.stats);
-      setStudents(statsRes.students);
-      setOpenAlertCount(alertsRes.alerts?.length || 0);
+      // Defensive guards — API might return unexpected shapes
+      setStats(statsRes?.stats || null);
+      setStudents(Array.isArray(statsRes?.students) ? statsRes.students : []);
+      setOpenAlertCount(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts.length : 0);
     } catch (e) {
       showError(e);
+      // Ensure we still render with empty state instead of crashing
+      setStudents([]);
+      setStats(null);
     } finally {
       setLoading(false);
       setRefreshing(false);

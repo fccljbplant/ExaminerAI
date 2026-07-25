@@ -51,10 +51,13 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(true);
 
+  // Defensive: ensure students is always an array
+  const safeStudents = Array.isArray(students) ? students : [];
+
   // Fetch open alerts
   useEffect(() => {
     api.get<{ alerts: any[] }>("/api/students/alerts")
-      .then((d) => setAlerts(d.alerts || []))
+      .then((d) => setAlerts(Array.isArray(d?.alerts) ? d.alerts : []))
       .catch(() => {})
       .finally(() => setLoadingAlerts(false));
   }, []);
@@ -64,7 +67,7 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
     const items: TriageItem[] = [];
 
     // 1. Students needing attention (from stats attentionScore)
-    students.filter(s => s.needsAttention).forEach(s => {
+    safeStudents.filter(s => s.needsAttention).forEach(s => {
       const hasHighUrgency = (s.attentionScore || 0) >= 40;
       items.push({
         id: `attention-${s.id}`,
@@ -81,7 +84,7 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
 
     // 2. Open alerts (from /api/students/alerts)
     alerts.forEach(a => {
-      const student = students.find(s => s.id === a.userId);
+      const student = safeStudents.find(s => s.id === a.userId);
       if (!student) return;
       const isCrisis = a.severity === "red";
       items.push({
@@ -99,7 +102,7 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
 
     // 3. Silent students (no activity in 3+ days, not already flagged)
     const threeDaysAgo = Date.now() - 3 * 86400000;
-    students.forEach(s => {
+    safeStudents.forEach(s => {
       if (s.needsAttention) return; // already in the queue
       if (!s.lastActive) return;
       const lastActive = new Date(s.lastActive).getTime();
@@ -128,15 +131,15 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
 
   // Batch health pulse — compute distribution
   const healthPulse = useMemo(() => {
-    const total = students.length || 1;
-    const needingAttention = students.filter(s => s.needsAttention).length;
+    const total = safeStudents.length || 1;
+    const needingAttention = safeStudents.filter(s => s.needsAttention).length;
     const onTrack = total - needingAttention;
-    const withProjects = students.filter(s => s.hasProject).length;
-    const activeToday = students.filter(s => {
+    const withProjects = safeStudents.filter(s => s.hasProject).length;
+    const activeToday = safeStudents.filter(s => {
       if (!s.lastActive) return false;
       return new Date(s.lastActive).getTime() > Date.now() - 86400000;
     }).length;
-    const avgScore = students.reduce((sum, s) => sum + (s.latestScore || 0), 0) / (students.filter(s => s.latestScore != null).length || 1);
+    const avgScore = safeStudents.reduce((sum, s) => sum + (s.latestScore || 0), 0) / (safeStudents.filter(s => s.latestScore != null).length || 1);
     return {
       total,
       onTrack,
@@ -147,11 +150,11 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
       activePct: Math.round((activeToday / total) * 100),
       avgScore: Math.round(avgScore),
     };
-  }, [students]);
+  }, [safeStudents]);
 
   // Wins — students with improving scores or high performance
   const wins = useMemo(() => {
-    return students
+    return safeStudents
       .filter(s => (s.latestScore || 0) >= 85 && !s.needsAttention)
       .slice(0, 5)
       .map(s => ({
@@ -159,7 +162,7 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
         title: `Scored ${s.latestScore}% on latest test`,
         description: "Top performer — consider for peer mentoring",
       }));
-  }, [students]);
+  }, [safeStudents]);
 
   const crisisItems = triageQueue.filter(i => i.type === "crisis");
   const alertItems = triageQueue.filter(i => i.type === "alert");
@@ -333,7 +336,7 @@ export function TodayView({ students, stats, onStudentClick, onViewChange }: Tod
               <QuickAction
                 icon={Users}
                 label="View All Students"
-                description={`${students.length} in batch`}
+                description={`${safeStudents.length} in batch`}
                 onClick={() => onViewChange("students")}
               />
               <QuickAction

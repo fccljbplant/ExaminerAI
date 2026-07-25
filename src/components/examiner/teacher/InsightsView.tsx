@@ -43,10 +43,13 @@ export function InsightsView({ students, stats, onStudentClick }: InsightsViewPr
   const [assistantAnswer, setAssistantAnswer] = useState<string | null>(null);
   const [assistantLoading, setAssistantLoading] = useState(false);
 
+  // Defensive: ensure students is always an array
+  const safeStudents = Array.isArray(students) ? students : [];
+
   // Batch distribution data
   const distribution = useMemo(() => {
-    const total = students.length || 1;
-    const needingAttention = students.filter(s => s.needsAttention).length;
+    const total = safeStudents.length || 1;
+    const needingAttention = safeStudents.filter(s => s?.needsAttention).length;
     const onTrack = total - needingAttention;
     return [
       { name: "On Track", value: onTrack, color: WELLBEING_COLORS.green },
@@ -64,7 +67,7 @@ export function InsightsView({ students, stats, onStudentClick }: InsightsViewPr
       { range: "80-89", count: 0, color: "#84cc16" },
       { range: "90-100", count: 0, color: "#10b981" },
     ];
-    students.forEach(s => {
+    safeStudents.forEach(s => {
       if (s.latestScore == null) return;
       const score = s.latestScore;
       if (score < 40) buckets[0].count++;
@@ -80,10 +83,10 @@ export function InsightsView({ students, stats, onStudentClick }: InsightsViewPr
   // Engagement distribution (last active buckets)
   const engagementDistribution = useMemo(() => {
     const now = Date.now();
-    const today = students.filter(s => s.lastActive && now - new Date(s.lastActive).getTime() < 86400000).length;
-    const thisWeek = students.filter(s => s.lastActive && now - new Date(s.lastActive).getTime() < 7 * 86400000).length - today;
-    const older = students.filter(s => s.lastActive && now - new Date(s.lastActive).getTime() >= 7 * 86400000).length;
-    const never = students.filter(s => !s.lastActive).length;
+    const today = safeStudents.filter(s => s.lastActive && now - new Date(s.lastActive).getTime() < 86400000).length;
+    const thisWeek = safeStudents.filter(s => s.lastActive && now - new Date(s.lastActive).getTime() < 7 * 86400000).length - today;
+    const older = safeStudents.filter(s => s.lastActive && now - new Date(s.lastActive).getTime() >= 7 * 86400000).length;
+    const never = safeStudents.filter(s => !s.lastActive).length;
     return [
       { name: "Active Today", value: today, color: "#10b981" },
       { name: "This Week", value: thisWeek, color: "#3b82f6" },
@@ -94,12 +97,12 @@ export function InsightsView({ students, stats, onStudentClick }: InsightsViewPr
 
   // Top performers + struggling students
   const topPerformers = useMemo(() =>
-    [...students].filter(s => s.latestScore != null).sort((a, b) => (b.latestScore || 0) - (a.latestScore || 0)).slice(0, 5),
-    [students]
+    [...safeStudents].filter(s => s?.latestScore != null).sort((a, b) => (b.latestScore || 0) - (a.latestScore || 0)).slice(0, 5),
+    [safeStudents]
   );
   const strugglingStudents = useMemo(() =>
-    [...students].filter(s => s.needsAttention).sort((a, b) => (b.attentionScore || 0) - (a.attentionScore || 0)).slice(0, 5),
-    [students]
+    [...safeStudents].filter(s => s?.needsAttention).sort((a, b) => (b.attentionScore || 0) - (a.attentionScore || 0)).slice(0, 5),
+    [safeStudents]
   );
 
   const handleAssistantAsk = async () => {
@@ -333,7 +336,7 @@ export function InsightsView({ students, stats, onStudentClick }: InsightsViewPr
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div className="p-3 rounded-lg bg-muted/50">
               <div className="text-xs text-muted-foreground">Total Students</div>
-              <div className="text-lg font-semibold mt-1">{stats?.totalStudents || students.length}</div>
+              <div className="text-lg font-semibold mt-1">{stats?.totalStudents || safeStudents.length}</div>
             </div>
             <div className="p-3 rounded-lg bg-muted/50">
               <div className="text-xs text-muted-foreground">Tests This Week</div>

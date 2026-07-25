@@ -44,13 +44,16 @@ export function MentorshipView({ students, onStudentClick }: MentorshipViewProps
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "alerts" | "followups" | "ongoing">("all");
 
+  // Defensive: ensure students is always an array
+  const safeStudents = Array.isArray(students) ? students : [];
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const [alertsRes] = await Promise.all([
         api.get<{ alerts: any[] }>("/api/students/alerts").catch(() => ({ alerts: [] })),
       ]);
-      setAlerts(alertsRes.alerts || []);
+      setAlerts(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts : []);
       // Touchpoints will be loaded per-student on demand; for the overview
       // we show alerts + follow-ups from the students data
     } catch {
@@ -71,7 +74,7 @@ export function MentorshipView({ students, onStudentClick }: MentorshipViewProps
       reason: string;
     }> = [];
 
-    students.forEach(s => {
+    safeStudents.forEach(s => {
       const studentAlerts = alerts.filter(a => a.userId === s.id);
       if (studentAlerts.length > 0 || s.needsAttention) {
         const crisisAlerts = studentAlerts.filter(a => a.severity === "red");
@@ -88,7 +91,7 @@ export function MentorshipView({ students, onStudentClick }: MentorshipViewProps
     });
 
     return queue.sort((a, b) => b.urgency - a.urgency);
-  }, [students, alerts]);
+  }, [safeStudents, alerts]);
 
   // Filtered list based on search + filter
   const filteredQueue = useMemo(() => {
@@ -129,7 +132,7 @@ export function MentorshipView({ students, onStudentClick }: MentorshipViewProps
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <VoiceTouchpointLogger students={students} onLogged={load} />
+          <VoiceTouchpointLogger students={safeStudents} onLogged={load} />
         </CardContent>
       </Card>
 
