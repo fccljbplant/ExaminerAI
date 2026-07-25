@@ -49,9 +49,13 @@ export const TOKEN_BUDGET = {
 const ZAI_MODEL = process.env.ZAI_MODEL || "glm-4.6";
 const ZAI_BASE_URL = process.env.ZAI_BASE_URL || "https://api.z.ai/api/paas/v4";
 
-// DeepSeek (fallback) — OpenAI-compatible API
+// DeepSeek (primary) — OpenAI-compatible API
+// User-specified base URL: https://api.deepseek.com/v1 (also works without /v1)
+// Available models (per DeepSeek API /models endpoint, July 2025):
+//   - deepseek-v4-flash (fast + cheap — DEFAULT)
+//   - deepseek-v4-pro   (more capable, but heavy reasoning — eats tokens)
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-v4-flash";
-const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
+const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com/v1";
 
 export const AI_TOKEN_QUOTA = Number(process.env.AI_TOKEN_QUOTA) || 2_000_000;
 const RATE_LIMIT_RPM = Number(process.env.AI_RPM_LIMIT) || 60;
@@ -323,9 +327,16 @@ export async function callAI(
           messages: apiMessages,
           temperature: temp,
           max_tokens: maxTokens,
-        });
+        }) as any; // any-typed: DeepSeek V4 returns `reasoning_content` not in OpenAI type
         trackDailyRequest();
-        const text = completion.choices[0]?.message?.content?.trim();
+        // DeepSeek V4 reasoning models sometimes return content in
+        // `reasoning_content` instead of `content` (especially when
+        // max_tokens is tight — all tokens get spent on reasoning).
+        // Prefer `content`; fall back to `reasoning_content` if empty.
+        const msg = completion.choices?.[0]?.message;
+        const rawText = (msg?.content ?? "").toString().trim();
+        const reasoningText = (msg?.reasoning_content ?? "").toString().trim();
+        const text = rawText || reasoningText;
         if (text) {
           const promptTokens = completion.usage?.prompt_tokens ?? estimateTokens(messages.map(m => m.content).join(""));
           const completionTokens = completion.usage?.completion_tokens ?? estimateTokens(text);
@@ -336,6 +347,12 @@ export async function callAI(
           }).catch(() => {});
           maybeCache(text, promptTokens, completionTokens, DEEPSEEK_MODEL);
           return { text, provider: "deepseek", fallback: false, promptTokens, completionTokens, model: DEEPSEEK_MODEL, durationMs: Date.now() - startedAt };
+        } else {
+          logger.warn("DeepSeek returned empty content AND reasoning_content", {
+            feature, model: DEEPSEEK_MODEL,
+            finish_reason: completion.choices?.[0]?.finish_reason,
+            usage: completion.usage,
+          });
         }
       } catch (e) {
         logger.error("DeepSeek API failed, trying Z.ai", { feature, error: e instanceof Error ? e.message : String(e) });

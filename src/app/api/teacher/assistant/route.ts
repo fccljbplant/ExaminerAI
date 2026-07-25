@@ -55,12 +55,17 @@ export async function POST(req: NextRequest) {
       error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
     });
     // Fallback: get basic student list — NO relations (safe for all schemas)
+    // For admin/principal/demo roles, getTeacherBatchIds returns null (all batches).
+    // We must NOT pass `batchId: { in: null || [] }` (= zero students).
     const { db } = await import("@/lib/db");
     const { getTeacherBatchIds } = await import("@/lib/batch-teachers");
     const batchIds = await getTeacherBatchIds(teacherId, auth.ctx.payload.role);
+    // null = admin role → see all students. [] = teacher with no batches → see nothing.
+    const batchFilter = batchIds === null ? {} : { batchId: { in: batchIds } };
     const students = await db.user.findMany({
-      where: { role: "student", batchId: { in: batchIds || [] }, blocked: false },
+      where: { role: "student", ...batchFilter, blocked: false },
       select: { id: true, name: true, currentWeek: true },
+      take: 200,
     });
     summary = {
       totalStudents: students.length,
