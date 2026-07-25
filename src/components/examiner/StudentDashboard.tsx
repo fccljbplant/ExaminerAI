@@ -109,7 +109,7 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
       {view === "home" && <HomeView stats={stats} onNavigate={setView} onReload={load} />}
       {view === "study" && <StudyView stats={stats} onReload={load} onNavigate={setView} />}
       {view === "project" && <GanttPanel stats={stats} onReload={load} onMode={() => setView("home")} />}
-      {view === "progress" && <ReportCardPanel reportCards={stats.reportCards} comments={stats.comments} />}
+      {view === "progress" && <ReportCardPanel reportCards={stats?.reportCards || []} comments={stats?.comments || []} />}
 
       <DailyTaskReminder onChanged={load} onNavigate={() => setView("study")} />
     </div>

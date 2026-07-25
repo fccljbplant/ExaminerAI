@@ -111,7 +111,7 @@ export function FinalResultPanel() {
               data.careerReadiness === "Almost Ready" ? "border-amber-500/40 text-amber-600 bg-amber-500/10" :
               "border-amber-500/40 text-amber-600 bg-amber-500/10"
             )}>
-              {data.careerReadiness}
+              {data.careerReadiness || "Pending"}
             </Badge>
           </div>
         )}
@@ -125,21 +125,21 @@ export function FinalResultPanel() {
           <p className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-1.5">
             <Brain className="h-3.5 w-3.5 text-violet-600" /> Your Learning Style
           </p>
-          <p className="text-sm text-foreground/80 leading-relaxed">{data.behavioralPattern}</p>
+          <p className="text-sm text-foreground/80 leading-relaxed">{data.behavioralPattern || "Not enough data yet."}</p>
         </div>
 
         {/* Overall Assessment */}
         <div className="rounded-md bg-primary/5 border border-primary/20 p-3">
           <p className="text-xs font-bold text-primary mb-1.5">Overall Assessment</p>
-          <p className="text-sm text-foreground/80 leading-relaxed">{data.overallAssessment}</p>
+          <p className="text-sm text-foreground/80 leading-relaxed">{data.overallAssessment || "Continue completing tests for a full assessment."}</p>
         </div>
 
         {/* Areas to Improve */}
-        {data.areasToImprove.length > 0 && (
+        {(data.areasToImprove || []).length > 0 && (
           <div className="rounded-md bg-amber-500/5 border border-amber-500/20 p-3">
             <p className="text-xs font-bold text-amber-600 mb-1.5">What to Try Next</p>
             <ul className="space-y-1">
-              {data.areasToImprove.map((area, i) => (
+              {(data.areasToImprove || []).map((area, i) => (
                 <li key={i} className="text-sm text-foreground/80 flex items-start gap-1.5">
                   <span className="text-amber-600 mt-0.5">→</span>
                   <span>{area}</span>
@@ -167,7 +167,7 @@ export function FinalResultPanel() {
                 </tr>
               </thead>
               <tbody>
-                {data.weekBreakdown.map((w) => (
+                {(data.weekBreakdown || []).map((w) => (
                   <tr key={w.week} className="border-b border-border/50 last:border-0">
                     <td className="py-1.5 px-2 font-medium text-foreground">W{w.week}</td>
                     <td className="py-1.5 px-2 text-muted-foreground text-[10px]">{w.phase.length > 25 ? w.phase.slice(0, 25) + "…" : w.phase}</td>
