@@ -49,7 +49,7 @@ const ZAI_MODEL = process.env.ZAI_MODEL || "glm-4.6";
 const ZAI_BASE_URL = process.env.ZAI_BASE_URL || "https://api.z.ai/api/paas/v4";
 
 // DeepSeek (fallback) — OpenAI-compatible API
-const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-v4-flash";
 const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
 
 export const AI_TOKEN_QUOTA = Number(process.env.AI_TOKEN_QUOTA) || 2_000_000;
