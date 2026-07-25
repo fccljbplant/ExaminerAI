@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { analyzeMessageForSafeguarding } from "@/lib/ai-assistant/safeguarding";
 
 /** GET /api/messages — list messages for current user. */
 export async function GET(req: NextRequest) {
@@ -59,5 +60,41 @@ export async function POST(req: NextRequest) {
     },
     include: { from: { select: { name: true, email: true } }, to: { select: { name: true, email: true } } },
   });
+
+  // Safeguarding: if a staff member sent this message to a student, scan for
+  // aggressive/inappropriate language. This is the teacher→student safeguarding
+  // pathway (Section 5 of the AI Assistant spec).
+  try {
+    const recipientUser = await db.user.findUnique({
+      where: { id: toId },
+      select: { role: true },
+    });
+    // Only scan staff→student messages (not student→teacher, not student→student)
+    if (recipientUser?.role === "student" && user.role !== "student") {
+      const signals = analyzeMessageForSafeguarding(text, msg.id);
+      if (signals.length > 0) {
+        for (const signal of signals) {
+          await db.studentAlert.create({
+            data: {
+              userId: toId,
+              type: "safeguarding",
+              severity: signal.severity,
+              reason: `${signal.category}: ${signal.matchedPatterns.join(", ")}`,
+              metric: "teacher_message",
+              metricValue: "1",
+              status: "open",
+              resolutionNote: JSON.stringify({
+                messageId: msg.id,
+                teacherId: user.id,
+                category: signal.category,
+                context: signal.context,
+              }),
+            },
+          }).catch(() => {}); // best-effort
+        }
+      }
+    }
+  } catch { /* safeguarding is best-effort, never blocks the message */ }
+
   return NextResponse.json({ message: msg });
 }

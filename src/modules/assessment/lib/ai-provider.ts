@@ -191,12 +191,20 @@ function trackDailyRequest() {
 }
 
 async function waitForSlot(timeoutMs: number): Promise<boolean> {
-  const now = Date.now();
+  // RPD (daily) limit check — enforced before RPM check
+  if (_dailyCount >= RATE_LIMIT_RPD) {
+    logger.warn("AI daily request limit reached (RPD)", { rpd: _dailyCount, limit: RATE_LIMIT_RPD });
+    return false;
+  }
+
+  let now = Date.now();
   _requestTimes = _requestTimes.filter(t => now - t < 60_000);
   if (_requestTimes.length >= RATE_LIMIT_RPM) {
     const wait = _requestTimes[0] + 60_000 - now;
     if (wait > timeoutMs) return false;
     await new Promise(r => setTimeout(r, Math.min(wait, timeoutMs)));
+    // Recompute `now` after sleep — the stale-timestamp bug was here
+    now = Date.now();
     _requestTimes = _requestTimes.filter(t => now - t < 60_000);
   }
   _requestTimes.push(now);
@@ -374,6 +382,8 @@ export async function callAI(
   // ---- 2. Try Z.ai API (fallback) ----
   const zaiClient = await getZAIClient();
   if (zaiClient) {
+    const gotSlot = await waitForSlot(10_000);
+    if (gotSlot) {
     try {
       const completion = await zaiClient.chat.completions.create({
         model: ZAI_MODEL,
@@ -398,6 +408,7 @@ export async function callAI(
     } catch (e) {
       logger.error("Z.ai failed, trying z-ai-sdk", { feature, error: e instanceof Error ? e.message : String(e) });
     }
+    } // end gotSlot
   }
 
   // ---- 3. Try z-ai-web-dev-sdk (sandbox fallback) ----

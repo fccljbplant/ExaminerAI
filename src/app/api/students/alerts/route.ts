@@ -1,25 +1,40 @@
-import { isStaffRole } from "@/lib/rbac";
+import { isStaffRole, ADMIN_ROLES, hasRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/students/alerts — returns open alerts for students in the teacher's batch.
  *  Also returns the StudentHealthSummary for each student with alerts.
- *  Staff-only. */
+ *  Staff-only. Safeguarding alerts (type="safeguarding") are principal-only. */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload || !isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const isPrincipal = hasRole(payload.role, ADMIN_ROLES);
   const url = new URL(req.url);
   const studentId = url.searchParams.get("userId");
 
   if (studentId) {
+    // IDOR protection: verify the caller can access this student
+    if (payload.sub !== studentId) {
+      try {
+        await assertCanAccessStudent(payload, studentId);
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+      }
+    }
+
     // Get alerts for a specific student
+    // Filter safeguarding alerts to principal-only
+    const alertWhere: any = { userId: studentId, status: "open" };
+    if (!isPrincipal) {
+      alertWhere.type = { not: "safeguarding" };
+    }
     const alerts = await db.studentAlert.findMany({
-      where: { userId: studentId, status: "open" },
+      where: alertWhere,
       orderBy: { createdAt: "desc" },
     });
     const summary = await db.studentHealthSummary.findUnique({
@@ -29,8 +44,13 @@ export async function GET(req: NextRequest) {
   }
 
   // Get all open alerts across all students (for teacher dashboard)
+  // Filter safeguarding alerts to principal-only
+  const alertWhere: any = { status: "open" };
+  if (!isPrincipal) {
+    alertWhere.type = { not: "safeguarding" };
+  }
   const alerts = await db.studentAlert.findMany({
-    where: { status: "open" },
+    where: alertWhere,
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {

@@ -40,6 +40,7 @@ import { QuestionPanel } from "@/components/examiner/student/PracticePanel";
 import { CheckInPanel } from "@/components/examiner/student/CheckInPanel";
 import { ReportCardPanel } from "@/components/examiner/student/ReportCardPanel";
 import { ComprehensiveReportView } from "@/components/examiner/student/ComprehensiveReportView";
+import { SelfPacedAdvanceButton } from "@/components/examiner/student/SelfPacedAdvanceButton";
 import { GanttPanel } from "@/components/examiner/student/GanttPanel";
 import { redirectToView } from "@/components/examiner/student/shared";
 import { DailyTestPanel } from "@/components/examiner/student/DailyTestPanel";
@@ -115,9 +116,14 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
         </div>
       )}
 
-      {view === "home" && <HomeView stats={stats} onNavigate={setView} onReload={load} />}
+      {view === "home" && (
+        <div className="space-y-4">
+          <SelfPacedAdvanceButton />
+          <HomeView stats={stats} onNavigate={setView} onReload={load} />
+        </div>
+      )}
       {view === "study" && <StudyView stats={stats} onReload={load} onNavigate={setView} />}
-      {view === "project" && <GanttPanel stats={stats} onReload={load} onMode={() => setView("home")} />}
+      {view === "project" && <GanttPanel stats={stats} onReload={load} onMode={() => setView("study")} />}
       {view === "progress" && (
         <div className="space-y-6">
           {userId && <ComprehensiveReportView studentId={userId} />}

@@ -73,9 +73,12 @@ export async function getSelfPacedStatus(userId: string): Promise<SelfPacedStatu
   const todayTasksCompleted = todayTasks.filter(t => t.status === "completed").length;
   const weekTasksCompleted = weekTasks.filter(t => t.status === "completed").length;
 
+  // Can advance day if: self-paced enabled + today's tasks all done (or no tasks for today)
+  // Day 5 → next week: allowed if all week's tasks are complete
+  const allWeekTasksDone = weekTasks.length > 0 && weekTasksCompleted === weekTasks.length;
   const canAdvanceDay = user.selfPacedEnabled &&
     (todayTasks.length === 0 || todayTasksCompleted === todayTasks.length) &&
-    user.currentDay < DAYS_PER_WEEK;
+    (user.currentDay < DAYS_PER_WEEK || (user.currentDay === DAYS_PER_WEEK && allWeekTasksDone));
 
   const canTakeWeeklyTestEarly = weekTasks.length > 0 && weekTasksCompleted === weekTasks.length;
 

@@ -76,7 +76,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "userId, type, and note required" }, { status: 400 });
   }
 
-  const VALID_TYPES = ["checkin", "alert_response", "escalation", "praise_note", "scheduled_followup"];
+  const VALID_TYPES = [
+    // Standard types
+    "checkin", "alert_response", "escalation", "praise_note", "scheduled_followup",
+    // GROW coaching model (Goal → Reality → Options → Will)
+    "goal_setting", "reality_check", "options_explore", "will_commit",
+    // Additional mentorship types
+    "psychological", "educational", "crisis_response", "teacher_load",
+  ];
   if (!VALID_TYPES.includes(type)) {
     return NextResponse.json({ error: "Invalid type" }, { status: 400 });
   }

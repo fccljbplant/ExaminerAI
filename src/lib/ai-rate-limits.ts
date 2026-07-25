@@ -47,19 +47,30 @@ const FEATURE_TO_CATEGORY: Record<string, AICategory> = {
   "practice-start": "test",
   "practice-reply": "test",
   "daily-test": "test",
+  "daily-test-reply": "test",
   "weekly-test": "test",
   "weekly-test-start": "test",
   "weekly-test-reply": "test",
   "weekly-test-final-analysis": "test",
   "final-analysis": "test",
+  "final-result": "test",
   "project-report": "test",
+  "project-report-analysis": "test",
   "project-tasks": "test",
+  "project-task-gen": "test",
+  "project-week-gen": "test",
+  "project-final-analysis": "test",
+  "project-summary-gen": "test",
   "course-gen": "test",
+  "course-gen-batch": "test",
+  "connection-test": "test",
   // Tutor category — student-facing AI Tutor only
   "ai-tutor": "tutor",
+  "teacher-tutor": "tutor", // teacher-facing tutor (uses same category)
   // Assistant category — staff-facing AI Assistant + student-detail tools
   "teacher_assistant": "assistant",
   "action-dialog": "assistant",
+  "action_dialog": "assistant", // legacy typo — still counted
   "escalation": "assistant",
   "debug-ping": "assistant",
   "daily-motivation": "assistant",
@@ -70,6 +81,10 @@ const FEATURE_TO_CATEGORY: Record<string, AICategory> = {
   "rehearse-reply": "assistant",
   "rehearse-start": "assistant",
   "comprehensive-report": "assistant",
+  // Mentorship AI tools
+  "case-review-anonymize": "assistant",
+  "touchpoint-parse": "assistant",
+  "topic-guidance": "assistant",
 };
 
 /** Get the category for a feature label. Returns "assistant" as fallback. */

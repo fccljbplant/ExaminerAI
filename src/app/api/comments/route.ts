@@ -1,15 +1,29 @@
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { analyzeMessageForSafeguarding } from "@/lib/ai-assistant/safeguarding";
 
-/** GET /api/comments?studentId=... — list teacher comments for a student. */
+/** GET /api/comments?studentId=... — list teacher comments for a student.
+ *  Staff can view comments for students they have access to.
+ *  Students can only view their OWN comments. */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const studentId = req.nextUrl.searchParams.get("studentId");
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
+
+  // RBAC + IDOR: students can only read their OWN comments; staff must have
+  // batch access (assertCanAccessStudent handles this).
+  if (payload.sub !== studentId) {
+    try {
+      await assertCanAccessStudent(payload, studentId);
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    }
+  }
+
   const comments = await db.comment.findMany({
     where: { studentId },
     orderBy: { createdAt: "desc" },
@@ -59,6 +73,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
+  // IDOR protection: verify the caller can access this student
+  try {
+    await assertCanAccessStudent(payload, studentId);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
+
   const comment = await db.comment.create({
     data: {
       interactionId: interactionId || null,
@@ -72,6 +93,39 @@ export async function POST(req: NextRequest) {
     },
     include: { teacher: { select: { name: true, email: true } } },
   });
+
+  // Safeguarding: scan the comment for aggressive/inappropriate language.
+  // This is a teacher→student communication — run the deterministic pre-filter.
+  // If signals are found, they're stored for the principal to review (2+
+  // corroborating signals required before a flag is created).
+  try {
+    const signals = analyzeMessageForSafeguarding(String(commentBody), comment.id);
+    if (signals.length > 0) {
+      // Store signals as StudentAlerts (type: safeguarding) for principal review.
+      // The safeguarding module will aggregate these and create a flag when 2+
+      // corroborating signals exist within a 14-day window.
+      for (const signal of signals) {
+        await db.studentAlert.create({
+          data: {
+            userId: studentId,
+            type: "safeguarding",
+            severity: signal.severity,
+            reason: `${signal.category}: ${signal.matchedPatterns.join(", ")}`,
+            metric: "teacher_comment",
+            metricValue: "1",
+            status: "open",
+            resolutionNote: JSON.stringify({
+              commentId: comment.id,
+              teacherId: payload.sub,
+              category: signal.category,
+              context: signal.context,
+            }),
+          },
+        }).catch(() => {}); // best-effort
+      }
+    }
+  } catch { /* safeguarding is best-effort, never blocks the comment */ }
+
   return NextResponse.json({ comment });
 }
 

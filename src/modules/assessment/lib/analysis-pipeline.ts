@@ -323,12 +323,24 @@ async function upsertSkillMastery(userId: string, topic: string, pillar: string,
     const newAvg = newScores.reduce((a, s) => a + s, 0) / newScores.length;
     const existingScoreMap: Record<string, number> = { "not-started": 25, "developing": 60, "proficient": 82, "mastered": 95 };
     const existingApprox = existingScoreMap[existing?.masteryLevel ?? "not-started"] ?? 50;
+
+    // Rolling average: blend the new score with the existing level's approximate
+    // score. This prevents a single bad test from erasing mastery — the new
+    // score is weighted at 40%, the existing level at 60% (for evidenceCount >= 3).
+    // For the first 2 tests, the new score dominates (80%) since we don't have
+    // enough history to trust the existing level.
+    const evidenceCount = existing?.evidenceCount ?? 0;
+    const newWeight = evidenceCount >= 3 ? 0.4 : 0.8;
+    const blendedAvg = existing ? (newAvg * newWeight) + (existingApprox * (1 - newWeight)) : newAvg;
+
     const trend = !existing ? "stable"
       : newAvg - existingApprox > 10 ? "improving"
       : newAvg - existingApprox < -10 ? "declining"
       : "stable";
 
-    const masteryLevel = newAvg >= 90 ? "mastered" : newAvg >= 75 ? "proficient" : newAvg >= 50 ? "developing" : "not-started";
+    // Use the blended average for the mastery level — this prevents a single
+    // bad day from erasing mastery.
+    const masteryLevel = blendedAvg >= 90 ? "mastered" : blendedAvg >= 75 ? "proficient" : blendedAvg >= 50 ? "developing" : "not-started";
 
     await db.skillMastery.upsert({
       where: { userId_topic: { userId, topic } },
@@ -354,7 +366,21 @@ async function recomputeWellbeingState(userId: string): Promise<void> {
       take: 50,
     });
 
-    if (evidence.length === 0) return;
+    // Decay: if no evidence in 14 days AND no open crisis flags, reset to green.
+    // This prevents stale red tiers from persisting indefinitely.
+    if (evidence.length === 0) {
+      const openFlags = await db.crisisFlag.count({ where: { userId, status: "open" } });
+      if (openFlags === 0) {
+        const existing = await db.wellbeingState.findUnique({ where: { userId } });
+        if (existing && existing.tier !== "green") {
+          await db.wellbeingState.update({
+            where: { userId },
+            data: { tier: "green", reasonsJson: JSON.stringify(["No concerning evidence in 14 days — tier decayed to green"]) },
+          });
+        }
+      }
+      return;
+    }
 
     // Count concerning signals
     const concerning = evidence.filter(e =>
