@@ -13,7 +13,8 @@ import {
   GitBranch, Lock, Database, Cpu, Eye, MessageCircle, Calendar,
   CheckSquare, Star, Activity, Layers, ScrollText, Scale, Gauge,
   Compass, ShieldAlert, Repeat, Workflow, Palette, Moon, Sun,
-  ChevronRight, Quote,
+  ChevronRight, Quote, Rocket, Flag, GanttChartSquare, KanbanSquare,
+  Code2, Briefcase, Presentation,
 } from "lucide-react";
 
 // ============================================================
@@ -28,12 +29,12 @@ const ROLES = [
     accent: "from-blue-500 to-cyan-500",
     chip: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
     screenshot: "/screenshots/dashboard-student.png",
-    tagline: "Learn by reasoning, not memorising.",
-    desc: "Socratic daily/weekly tests, AI Tutor that adapts to your language, project planning with AI-generated tasks, progress tracking, and verifiable certificates.",
+    tagline: "Build a real project. Learn by doing.",
+    desc: "Define a capstone project on day one. AI generates weekly tasks + milestones. Daily check-ins, Socratic tests, AI Tutor that teaches today's topic in your language. Gantt chart, weekly reports, certificates.",
     stats: [
-      { label: "Test types", value: "3" },
-      { label: "AI tutor languages", value: "∞" },
-      { label: "Project tasks", value: "AI-gen" },
+      { label: "Capstone", value: "Mandatory" },
+      { label: "AI tutor", value: "Multi-lang" },
+      { label: "Tasks/week", value: "5 AI-gen" },
     ],
   },
   {
@@ -195,32 +196,94 @@ const PLATFORM_FEATURES = [
 ];
 
 const STUDENT_FEATURES = [
-  { icon: Bot, title: "AI Tutor", desc: "Friendly chatbot that teaches today's topic, connects to the student's capstone project, and handles disengagement with empathy." },
-  { icon: ClipboardCheck, title: "Socratic Daily Test", desc: "3-question check-in with confidence self-rating. Per-question explanations revealed immediately, not at end-of-test." },
-  { icon: FileText, title: "Weekly Test", desc: "15-question Socratic exam with plagiarism analysis, per-question explanations, and full 7-dimension psychological assessment." },
+  { icon: GitBranch, title: "Capstone Project Planning", desc: "Define your project on day one. AI generates N weeks × 5 tasks/week with milestones, daily schedule, and time estimates. Gantt chart + per-week summaries + final capstone analysis." },
+  { icon: Bot, title: "AI Tutor", desc: "Friendly chatbot that teaches today's topic in your language, connects every concept to your capstone project, and handles disengagement with empathy." },
+  { icon: ClipboardCheck, title: "Socratic Daily Test", desc: "3-question check-in on today's topic with confidence self-rating. Per-question explanations revealed immediately, not at end-of-test." },
+  { icon: FileText, title: "Weekly Test + Project Report", desc: "15-question Socratic exam with plagiarism analysis + 7-dimension psychology. Plus weekly project report analyzed on 4 dimensions: understanding, depth, progress, clarity." },
   { icon: Lightbulb, title: "Per-Question Explanations", desc: "Correct answer, why it's correct, specific encouragement — immediately after every question. Learn from every question." },
-  { icon: GitBranch, title: "Project Planning", desc: "AI-generated tasks, Gantt chart, week plan, project reports with AI analysis. Full capstone tracking from day 1 to final review." },
-  { icon: Award, title: "Report Cards & Certificates", desc: "Auto-generated from test scores (80% weekly + 20% practice). Certificates are publicly verifiable via shareable URL." },
-  { icon: Calendar, title: "Daily Check-in", desc: "Confidence rating + learning reflection: what did you learn, what confused you, your next question for tomorrow." },
-  { icon: MessageCircle, title: "Ask My Teacher", desc: "Floating button for quick questions to the assigned teacher. Daily task reminder popup keeps students on track." },
+  { icon: GanttChartSquare, title: "Gantt + Milestones", desc: "Visual timeline of all project tasks. Milestones highlighted. Always know where you are vs. where you should be." },
+  { icon: Award, title: "Report Cards & Certificates", desc: "Auto-generated from test scores (80% weekly + 20% practice) + final capstone analysis. Certificates are publicly verifiable via shareable URL." },
+  { icon: Calendar, title: "Daily Check-in + Ask My Teacher", desc: "Confidence rating + learning reflection every day. Floating button for quick questions to your assigned teacher." },
 ];
 
 const TEACHER_FEATURES = [
-  { icon: Users, title: "Attention-Scored Triage", desc: "Students auto-ranked by who needs help most: inactivity, score drops, low confidence, blocked tasks, high cognitive load." },
-  { icon: Brain, title: "7-Dimension Psychology", desc: "Calibration, explanatory depth, gaming pattern, attribution, cognitive load, SRL phase, fluency — with concrete teacher actions." },
-  { icon: Target, title: "GROW Mentorship", desc: "Structured coaching: Goal, Reality, Options, Will. Alert-driven actions, outcome tracking, follow-up scheduling." },
-  { icon: Activity, title: "Student Health Summary", desc: "Mood score, engagement score, avg test score, engagement streak — color-coded with signal badges per student." },
-  { icon: Bell, title: "Automated Alerts", desc: "Psych / educational / mentorship alerts fire automatically when students cross thresholds. Action dialog with AI-drafted notes." },
-  { icon: Bot, title: "AI Assistant", desc: "Natural-language batch queries: 'Who's likely to drop off?' — answered from existing data with cited student evidence." },
+  { icon: GitBranch, title: "Project Progress Visibility", desc: "See every student's capstone progress at a glance. Tasks completed, milestones hit, blocked items, weekly report scores. No more 'are they on track?' guesswork." },
+  { icon: Users, title: "Attention-Scored Triage", desc: "Students auto-ranked by who needs help most: inactivity, score drops, low confidence, blocked tasks, high cognitive load. The batch tells you who to talk to today." },
+  { icon: Brain, title: "7-Dimension Psychology", desc: "Calibration, explanatory depth, gaming pattern, attribution, cognitive load, SRL phase, fluency — with concrete teacher actions per dimension." },
+  { icon: Target, title: "GROW Mentorship", desc: "Structured coaching: Goal, Reality, Options, Will. Alert-driven actions, outcome tracking, follow-up scheduling. AI-drafted check-in messages." },
+  { icon: Bot, title: "AI Assistant", desc: "Natural-language batch queries: 'Who's likely to drop off?' — answered from existing data with cited student evidence. Scope-aware: teachers only see their batch." },
+  { icon: Bell, title: "Automated Alerts", desc: "Psych / educational / mentorship alerts fire automatically when students cross thresholds. Action dialog with AI-drafted notes. 7-day amber timer + escalation engine." },
   { icon: BookOpen, title: "Course Planner", desc: "Course CRUD, batch assignment, AI course generation. Full curriculum control with weekly phase + daily topic structure." },
-  { icon: BarChart3, title: "Project Analysis", desc: "Comprehensive final project evaluation: execution, technical competence, quality, career readiness. AI-generated strengths and weaknesses." },
+  { icon: BarChart3, title: "Final Project Analysis", desc: "Trigger comprehensive AI capstone evaluation: execution, technical competence, quality, career readiness. Auto-generates strengths, weaknesses, recommendations." },
 ];
 
 const TRUST_STATS = [
-  { value: "44+", label: "Data models" },
   { value: "6", label: "Role dashboards" },
+  { value: "44+", label: "Data models" },
   { value: "7", label: "Psych dimensions" },
   { value: "7", label: "AI Assistant systems" },
+];
+
+// ============================================================
+// PROJECT-BASED LEARNING — the differentiator
+// Bootcamps teach by building. This is what an LMS can't do.
+// ============================================================
+const PROJECT_LOOP = [
+  {
+    num: "01",
+    icon: Briefcase,
+    title: "Day 1: Define the capstone",
+    desc: "Student describes their project — name, type (web app / mobile / data pipeline / research paper), scope, objectives, requirements, business case. The AI generates a project summary + key features.",
+    color: "from-amber-500/10 to-rose-500/10",
+    iconColor: "text-amber-600",
+  },
+  {
+    num: "02",
+    icon: Bot,
+    title: "AI generates the plan",
+    desc: "The AI reads the project definition and generates N weeks × 5 tasks/week — each with description, scheduled day (Mon-Fri), estimated time, and a `isMilestone` flag for key deliverables. Plus per-week titles + summaries + milestones.",
+    color: "from-blue-500/10 to-cyan-500/10",
+    iconColor: "text-blue-600",
+  },
+  {
+    num: "03",
+    icon: Calendar,
+    title: "Daily task execution",
+    desc: "Every day the student sees today's task alongside today's topic. They move tasks through planned → in-progress → completed | blocked. Status updates feed the teacher's attention-score algorithm.",
+    color: "from-emerald-500/10 to-teal-500/10",
+    iconColor: "text-emerald-600",
+  },
+  {
+    num: "04",
+    icon: GanttChartSquare,
+    title: "Gantt + milestones",
+    desc: "Visual timeline of all tasks across all weeks. Milestone tasks are highlighted. Students always see where they are vs. where they should be — no more 'am I on track?' anxiety.",
+    color: "from-purple-500/10 to-indigo-500/10",
+    iconColor: "text-purple-600",
+  },
+  {
+    num: "05",
+    icon: FileText,
+    title: "Weekly project reports",
+    desc: "Student submits a short weekly report: what they did, what blocked them, what's next. The AI analyzes it on 4 dimensions — project understanding, technical depth, progress, clarity — and returns score + strengths + weaknesses + feedback.",
+    color: "from-rose-500/10 to-pink-500/10",
+    iconColor: "text-rose-600",
+  },
+  {
+    num: "06",
+    icon: Award,
+    title: "Final capstone analysis",
+    desc: "At course end, the teacher triggers a comprehensive AI analysis: project execution, technical competence, project quality, career readiness. This becomes the basis for the certificate and the student's portfolio.",
+    color: "from-fuchsia-500/10 to-purple-500/10",
+    iconColor: "text-fuchsia-600",
+  },
+];
+
+const PROJECT_METRICS = [
+  { icon: KanbanSquare, label: "Tasks per project", value: "N × 5" },
+  { icon: Flag, label: "Milestone tracking", value: "Built-in" },
+  { icon: GanttChartSquare, label: "Visual timeline", value: "Gantt" },
+  { icon: Bot, label: "AI-analyzed reports", value: "Weekly" },
 ];
 
 const GROW_STEPS = [
@@ -305,16 +368,16 @@ export function ModernLanding() {
             </div>
             <div>
               <div className="text-base font-bold leading-tight tracking-tight">ExaminerAI</div>
-              <div className="text-[10px] text-muted-foreground leading-tight">Socratic Assessment &amp; Mentorship</div>
+              <div className="text-[10px] text-muted-foreground leading-tight">AI-Powered Bootcamp Management</div>
             </div>
           </a>
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="#big-idea" className="text-muted-foreground hover:text-foreground transition-colors">Why</a>
+            <a href="#projects" className="text-muted-foreground hover:text-foreground transition-colors">Projects</a>
             <a href="#dashboards" className="text-muted-foreground hover:text-foreground transition-colors">Roles</a>
             <a href="#ai-assistant" className="text-muted-foreground hover:text-foreground transition-colors">AI Assistant</a>
             <a href="#psychology" className="text-muted-foreground hover:text-foreground transition-colors">Psychology</a>
-            <a href="#themes" className="text-muted-foreground hover:text-foreground transition-colors">Themes</a>
             <a href="#tech" className="text-muted-foreground hover:text-foreground transition-colors">Platform</a>
           </nav>
 
@@ -336,6 +399,7 @@ export function ModernLanding() {
         {mobileNav && (
           <div className="md:hidden border-t bg-background px-4 py-3 space-y-2 text-sm">
             <a href="#big-idea" onClick={() => setMobileNav(false)} className="block py-1.5">Why</a>
+            <a href="#projects" onClick={() => setMobileNav(false)} className="block py-1.5">Projects</a>
             <a href="#dashboards" onClick={() => setMobileNav(false)} className="block py-1.5">Roles</a>
             <a href="#ai-assistant" onClick={() => setMobileNav(false)} className="block py-1.5">AI Assistant</a>
             <a href="#psychology" onClick={() => setMobileNav(false)} className="block py-1.5">Psychology</a>
@@ -367,19 +431,19 @@ export function ModernLanding() {
             <div ref={heroRef} className="lg:col-span-6 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur border border-white/20 text-xs mb-6">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Live demo available · No signup required
+                For software bootcamps &amp; short courses · Up to 6 months
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight mb-6">
-                Socratic assessment.
+                AI teaches.
                 <span className="block bg-gradient-to-r from-amber-300 via-rose-300 to-fuchsia-300 bg-clip-text text-transparent">
-                  AI mentorship.
+                  Students build.
                 </span>
-                <span className="block">Real insight.</span>
+                <span className="block">We track every milestone.</span>
               </h1>
 
               <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed">
-                ExaminerAI unifies Socratic testing, AI tutoring, 7-dimension psychology, GROW coaching, and automated safeguarding — built for bootcamps and vocational programs, not repurposed from a university LMS.
+                ExaminerAI is the bootcamp management platform that turns software training into project-based learning. Every student builds a real capstone project — the AI generates weekly tasks, tracks milestones on a Gantt chart, analyzes weekly reports, and gives teachers the signal they need to mentor at scale.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mb-10">
@@ -389,9 +453,9 @@ export function ModernLanding() {
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
-                <Link href="#big-idea">
+                <Link href="#projects">
                   <Button size="lg" variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white text-base h-12 px-6">
-                    See how it works
+                    See how projects work
                   </Button>
                 </Link>
               </div>
@@ -424,7 +488,7 @@ export function ModernLanding() {
                 </div>
                 {/* Floating AI badge */}
                 <div className="absolute -bottom-4 -left-4 hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-amber-400 text-amber-950 text-xs font-semibold shadow-xl">
-                  <Sparkles className="w-3.5 h-3.5" /> Powered by DeepSeek V4 Flash
+                  <Code2 className="w-3.5 h-3.5" /> AI teaches · Students build
                 </div>
               </div>
             </div>
@@ -461,7 +525,7 @@ export function ModernLanding() {
       <section className="border-b bg-muted/30 py-10">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-center md:text-left">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Deployed in production at</span>
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Running a software bootcamp at</span>
             <div className="flex items-center gap-3">
               <img
                 src="https://fccl.com.pk/eng/wp-content/uploads/2025/01/cropped-SITE-IDENTITY-ICON-270x270.webp"
@@ -470,7 +534,7 @@ export function ModernLanding() {
               />
               <div>
                 <div className="text-sm font-semibold">FCCL JB Plant Institute of Technology</div>
-                <div className="text-xs text-muted-foreground">Jhang Bahtar, Attock, Punjab · Fall 2025 cohort · 50+ active students</div>
+                <div className="text-xs text-muted-foreground">Jhang Bahtar, Attock, Punjab · 6-month software bootcamp · 50+ active students</div>
               </div>
             </div>
           </div>
@@ -478,18 +542,18 @@ export function ModernLanding() {
       </section>
 
       {/* ============================================ */}
-      {/* BIG IDEA — 3 pillars */}
+      {/* BIG IDEA — 3 convictions */}
       {/* ============================================ */}
       <section id="big-idea" className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mb-14">
-            <Badge variant="outline" className="mb-3">The big idea</Badge>
+            <Badge variant="outline" className="mb-3">Why ExaminerAI exists</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Most LMS platforms grade work.<br />
-              <span className="text-muted-foreground">ExaminerAI understands the worker.</span>
+              Software skills are learned by building.<br />
+              <span className="text-muted-foreground">Not by watching videos.</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Three systems work together to turn every interaction into mentorship-grade insight — without drowning teachers in data or flooding the database.
+              Three convictions define the platform. Together they let one teacher mentor 50–500+ students without burning out — and let bootcamp owners see exactly what's happening across every cohort, in real time.
             </p>
           </div>
 
@@ -497,27 +561,27 @@ export function ModernLanding() {
             {[
               {
                 num: "01",
-                icon: MessageSquare,
-                title: "Socratic by default",
-                desc: "Every test — practice, daily, weekly — uses the Socratic method. The AI doesn't grade answers; it probes reasoning. Per-question explanations land immediately, not at end-of-test, so students learn from every question.",
+                icon: Rocket,
+                title: "Build first. Always.",
+                desc: "Every student defines a capstone project on day one. The AI generates a custom week-by-week task plan with milestones, daily tasks, and a Gantt chart. No more 'watch this video, take this quiz'. Students learn software by building software — and we track every step.",
+                gradient: "from-amber-500/10 to-rose-500/10",
+                iconColor: "text-amber-600",
+              },
+              {
+                num: "02",
+                icon: Bot,
+                title: "AI is the teacher. Humans mentor.",
+                desc: "The AI Tutor teaches today's topic in the student's own language, connects every concept to their capstone project, and handles disengagement with empathy. Teachers don't deliver content — they triage, coach, and unblock. One teacher can now support cohorts that would have been impossible before.",
                 gradient: "from-blue-500/10 to-cyan-500/10",
                 iconColor: "text-blue-600",
               },
               {
-                num: "02",
-                icon: Brain,
-                title: "7-dimension psychology",
-                desc: "Every test completion runs a full analysis pipeline that writes 7 PsychEvidence rows — calibration, explanatory depth, gaming pattern, attribution, cognitive load, SRL phase, fluency. Teachers see trajectory, not snapshots.",
+                num: "03",
+                icon: LineChart,
+                title: "Institutions need signal, not noise.",
+                desc: "Six role-specific dashboards. Automated alerts that escalate intelligently. A natural-language AI Assistant that answers 'who's likely to drop off?' in seconds. Every role gets exactly the signal they need — without drowning in data or flooding the database.",
                 gradient: "from-fuchsia-500/10 to-purple-500/10",
                 iconColor: "text-fuchsia-600",
-              },
-              {
-                num: "03",
-                icon: Bot,
-                title: "AI that actually mentors",
-                desc: "The AI Assistant doesn't just answer questions — it scopes data per role, escalates amber flags after 7 days, drafts action notes, monitors teacher-to-student safeguarding, and teaches the teacher how to intervene.",
-                gradient: "from-amber-500/10 to-rose-500/10",
-                iconColor: "text-amber-600",
               },
             ].map(p => (
               <div key={p.num} className={`relative p-6 rounded-2xl bg-gradient-to-br ${p.gradient} border`}>
@@ -531,6 +595,81 @@ export function ModernLanding() {
                 <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* PROJECT-BASED LEARNING — the differentiator */}
+      {/* ============================================ */}
+      <section id="projects" className="py-20 lg:py-28 bg-slate-950 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-fuchsia-500/10 rounded-full blur-3xl" />
+        <div className="container mx-auto px-4 lg:px-8 relative">
+          <div className="grid lg:grid-cols-12 gap-10 items-start mb-14">
+            <div className="lg:col-span-6">
+              <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white"><Rocket className="w-3 h-3 mr-1" /> Project-Based Learning</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+                Every student ships a capstone.<br />
+                <span className="bg-gradient-to-r from-amber-300 to-fuchsia-300 bg-clip-text text-transparent">The AI tracks every milestone.</span>
+              </h2>
+              <p className="text-slate-300 text-lg leading-relaxed">
+                This is what an LMS can't do. Every student defines a real project on day one — the AI generates the full task plan, tracks milestones on a Gantt chart, analyzes weekly reports, and produces a final capstone evaluation. Teachers see exactly where each student is. Students always know what to build next.
+              </p>
+
+              {/* Quick metrics */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
+                {PROJECT_METRICS.map(m => (
+                  <div key={m.label} className="p-3 rounded-lg bg-white/5 border border-white/10">
+                    <m.icon className="w-4 h-4 text-amber-300 mb-1.5" />
+                    <div className="text-sm font-semibold">{m.value}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">{m.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="lg:col-span-6">
+              <BrowserFrame
+                src="/screenshots/student-project.png"
+                alt="Student project view with Gantt chart and milestones"
+                url="examiner.ai/app · student · project"
+                className="ring-1 ring-white/20"
+              />
+            </div>
+          </div>
+
+          {/* The 6-step project lifecycle */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {PROJECT_LOOP.map(step => (
+              <div key={step.num} className={`p-5 rounded-xl bg-gradient-to-br ${step.color} border border-white/10 hover:border-white/20 transition-all`}>
+                <div className="flex items-start gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-background ${step.iconColor}`}>
+                    <step.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">Step {step.num}</div>
+                    <h3 className="font-semibold text-sm text-white">{step.title}</h3>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Final analysis callout */}
+          <div className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-fuchsia-500/10 border border-white/10">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <Presentation className="w-6 h-6 text-amber-300" />
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wider text-amber-300 font-bold mb-1">Final capstone analysis</div>
+                <h3 className="text-lg font-semibold text-white mb-2">Career-ready portfolio piece, graded by AI.</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  At course end, the teacher triggers a comprehensive AI analysis across 4 dimensions: <span className="text-white font-medium">project execution, technical competence, project quality, career readiness</span>. The result becomes the basis for the student's auto-generated certificate and their portfolio — ready to show employers.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -695,16 +834,16 @@ export function ModernLanding() {
             <div>
               <Badge variant="outline" className="mb-3">For Students</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-                Learn by reasoning,<br />not memorising.
+                Build a capstone.<br />Get a certificate. Get a job.
               </h2>
               <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-                Every question uses the Socratic method. Per-question explanations reveal immediately — students learn from every question, not just at end-of-test. The AI Tutor adapts to their language and handles disengagement with empathy.
+                From day-one project definition to final capstone analysis, every student builds a real portfolio piece. The AI Tutor teaches today's topic in your language, Socratic tests probe reasoning, and per-question explanations land immediately. Milestones, Gantt chart, weekly reports — all auto-tracked.
               </p>
               <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="text-xs"><GitBranch className="w-3 h-3 mr-1" /> Capstone Project</Badge>
+                <Badge variant="secondary" className="text-xs"><GanttChartSquare className="w-3 h-3 mr-1" /> Gantt + Milestones</Badge>
                 <Badge variant="secondary" className="text-xs"><Bot className="w-3 h-3 mr-1" /> AI Tutor</Badge>
-                <Badge variant="secondary" className="text-xs"><ClipboardCheck className="w-3 h-3 mr-1" /> Socratic Tests</Badge>
-                <Badge variant="secondary" className="text-xs"><GitBranch className="w-3 h-3 mr-1" /> Project Planning</Badge>
-                <Badge variant="secondary" className="text-xs"><Award className="w-3 h-3 mr-1" /> Certificates</Badge>
+                <Badge variant="secondary" className="text-xs"><Award className="w-3 h-3 mr-1" /> Certificate</Badge>
               </div>
             </div>
             <div className="relative">
@@ -745,7 +884,7 @@ export function ModernLanding() {
                 <div className="absolute -inset-3 bg-gradient-to-r from-emerald-500/20 to-amber-500/20 rounded-2xl blur-xl" />
                 <BrowserFrame
                   src="/screenshots/student-portfolio.png"
-                  alt="Student portfolio with 7-dimension psychology"
+                  alt="Student portfolio with project progress + 7-dimension psychology"
                   url="examiner.ai/app · teacher · students/[id]"
                   className="relative"
                 />
@@ -754,15 +893,15 @@ export function ModernLanding() {
             <div className="order-1 lg:order-2">
               <Badge variant="outline" className="mb-3">For Teachers</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-                See every student.<br />Know what to do next.
+                See every capstone.<br />Know who to mentor today.
               </h2>
               <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-                Full batch visibility with attention-scored triage queue. Student portfolios with Psychological, Educational, and Mentorship tabs. GROW coaching tools, automated alerts, and a natural-language AI Assistant for batch queries — everything a teacher needs to actually mentor, not just grade.
+                The AI does the teaching. You do the mentoring. Attention-scored triage queue tells you who needs help most. Per-student portfolio shows project progress, 7-dimension psychology, GROW coaching history. AI Assistant answers batch questions in natural language. One teacher can now mentor 50–500+ students.
               </p>
               <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="text-xs"><GitBranch className="w-3 h-3 mr-1" /> Project Visibility</Badge>
                 <Badge variant="secondary" className="text-xs"><Brain className="w-3 h-3 mr-1" /> 7-Dimension Psychology</Badge>
                 <Badge variant="secondary" className="text-xs"><Target className="w-3 h-3 mr-1" /> GROW Coaching</Badge>
-                <Badge variant="secondary" className="text-xs"><Bell className="w-3 h-3 mr-1" /> Automated Alerts</Badge>
                 <Badge variant="secondary" className="text-xs"><Bot className="w-3 h-3 mr-1" /> AI Assistant</Badge>
               </div>
             </div>
@@ -1045,10 +1184,10 @@ export function ModernLanding() {
         }} />
         <div className="container mx-auto px-4 lg:px-8 text-center relative">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
-            Ready to see it in action?
+            Run your bootcamp on ExaminerAI.
           </h2>
           <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            One click. No signup. Explore every dashboard, every feature, every role. The demo account is read-only — try every action, nothing breaks.
+            One click. No signup. Watch the AI teach, students build, milestones track, and the teacher's dashboard light up with signal. The demo is read-only — try every role, nothing breaks.
           </p>
           <Link href="/app">
             <Button
@@ -1079,7 +1218,7 @@ export function ModernLanding() {
                 <span className="text-white font-bold">ExaminerAI</span>
               </div>
               <p className="text-sm max-w-md leading-relaxed">
-                Socratic assessment &amp; mentorship platform. Built for institutions that take student development seriously — not repurposed from a university LMS.
+                AI-powered bootcamp management for software training programmes up to 6 months. Students learn by building real capstone projects — the AI teaches, tracks milestones, and gives institutions the signal they need to mentor at scale.
               </p>
               <div className="flex flex-wrap gap-2 mt-4">
                 <Badge variant="outline" className="text-[10px] border-slate-700 text-slate-400">Next.js 16</Badge>
@@ -1093,6 +1232,7 @@ export function ModernLanding() {
               <div className="text-white font-semibold text-sm mb-3">Platform</div>
               <ul className="space-y-2 text-sm">
                 <li><a href="#big-idea" className="hover:text-white">Why</a></li>
+                <li><a href="#projects" className="hover:text-white">Projects</a></li>
                 <li><a href="#dashboards" className="hover:text-white">Roles</a></li>
                 <li><a href="#ai-assistant" className="hover:text-white">AI Assistant</a></li>
                 <li><a href="#psychology" className="hover:text-white">Psychology</a></li>
@@ -1120,7 +1260,7 @@ export function ModernLanding() {
             <div className="flex items-center gap-4">
               <span>v1.0.0</span>
               <span>·</span>
-              <span>Fall 2025 Semester</span>
+              <span>Bootcamp edition</span>
               <span>·</span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> All systems operational

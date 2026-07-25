@@ -1,5 +1,29 @@
 # ExaminerAI — System Documentation
 
+## What This Product Is
+
+ExaminerAI is an **AI-powered bootcamp and short-course management platform** for
+software training programmes (typically 8–24 weeks, up to 6 months). Students learn
+by building a real capstone project — the AI teaches today's topic, connects it to the
+student's project, generates week-by-week tasks with milestones, tracks progress on a
+Gantt chart, and analyzes weekly project reports. Teachers triage and mentor; they
+don't deliver content. The platform scales one teacher to 50–500+ students.
+
+**See `docs/POSITIONING.md` for the full product positioning, audience, learning loop,
+and differentiation vs. university LMS and AI course-builder tools.**
+
+Three convictions define the product:
+
+1. **Software skills are learned by building, not by watching.** Every student
+   defines a capstone project on day one. The AI generates a custom week-by-week
+   task plan, daily milestones, and progress reports tied to that specific project.
+2. **AI is the primary teacher — human staff mentor.** The AI Tutor teaches today's
+   topic in the student's own language, connects every concept to their capstone,
+   and handles disengagement with empathy. Teachers triage, coach, and unblock.
+3. **Institutions need signal, not noise.** Six role-specific dashboards, automated
+   alerts, and a natural-language AI Assistant surface the right signal to each role
+   in real time — without flooding the database or overwhelming the teacher.
+
 ## Architecture Overview
 
 ExaminerAI is a Next.js 16 platform with role-based dashboards for 6 distinct roles.
@@ -138,6 +162,52 @@ Light mode is default. Dark mode uses deep charcoal (#0a0a0f) with amber (#fbbf2
   Interaction, Competency, SkillMastery, ReportCard, PsychologyObs, PsychEvidence,
   WellbeingState, CrisisFlag, StudentAlert, MentorshipTouchpoint, ConfidenceRating,
   StudentHealthSummary, CaseReview, AuditLog, GrowthReport, Certificate, etc.
+
+## Project-Based Learning (the differentiator)
+
+Every student defines a capstone project on day one. The AI generates a custom
+week-by-week task plan tied to that specific project. Project tracking is mandatory
+(not optional like in a typical LMS).
+
+### Project lifecycle
+
+1. **Project definition** (week 1) — student sets: name, type (web app / mobile /
+   data pipeline / research paper), scope, objectives, requirements, business case.
+   The AI generates a project summary + key features.
+2. **AI task generation** — `POST /api/project/generate-tasks` reads the project
+   definition and produces N weeks × 5 tasks/week, each with:
+   - `description`, `week`, `day` (1-5 Mon-Fri), `estimatedMinutes`, `isMilestone`
+   - Also generates `ProjectWeek` rows: title, summary, milestones (JSON array)
+   - Token budget: 2000 (tasks) + 1500 (week summaries)
+   - Timeout scales: `max(60s, weeks × 8s)`
+   - Fallback: 6-phase generic project tasks if AI fails
+3. **Daily task updates** — students move tasks through: `planned → in-progress → completed | blocked`. Updates feed the attention-score algorithm.
+4. **Gantt chart** — visual timeline of all tasks across all weeks. Milestone tasks
+   are highlighted. The chart is the student's primary project view.
+5. **Weekly project reports** — `POST /api/project/reports` accepts a free-text
+   report. The AI analyzes it on 4 dimensions: `projectUnderstanding`,
+   `technicalDepth`, `progress`, `clarity`. Returns: score (0-100), strengths[],
+   weaknesses[], feedback. Token budget: 600.
+6. **Final capstone analysis** — `POST /api/students/[id]/generate-project-analysis`
+   (teacher-triggered at course end). Reads the project definition + all weekly
+   reports + task completion stats. Evaluates 4 dimensions: `projectExecution`,
+   `technicalCompetence`, `projectQuality`, `careerReadiness`. Returns: score,
+   summary, strengths[], weaknesses[], recommendations[]. Token budget: 800.
+7. **Auto-generated report cards** — final grade = 80% weekly test scores + 20%
+   practice test scores. Certificates are publicly verifiable via shareable URL.
+
+### Project data models
+
+- `User.projectName`, `projectDescription`, `projectType`, `projectScope`,
+  `projectObjectives`, `projectRequirements`, `projectBusinessCase`,
+  `projectSummary` (AI-generated), `projectKeyFeatures` (AI-generated),
+  `projectDurationWeeks`, `projectStartDate` (student-defined planning fields)
+- `ProjectTask` — `description`, `status`, `week`, `day`, `isMilestone`,
+  `estimatedMinutes`, `taskNotes`, `dueDate`
+- `ProjectWeek` — `weekNumber`, `title`, `summary`, `milestones` (JSON)
+- `ProjectReport` — `week`, `reportType` (weekly|final), `reportText`,
+  `aiAnalysis` (JSON: score, strengths[], weaknesses[], feedback, 4 dimensions)
+- `GroupTask` — for peer-assessment group assignments
 
 ## Key Calculations
 
