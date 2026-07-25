@@ -22,21 +22,30 @@ import { StatSquareCard, GanttChartIcon, GithubIcon, safeParse } from "@/compone
 import { FinalResultPanel } from "@/components/examiner/student/FinalResultPanel";
 import { ProjectReportPanel } from "@/components/examiner/student/ProjectReportPanel";
 
-// Certificate generation card — lets students generate their certificate
-// when they've completed their course.
+// Certificate generation card — student REQUESTS, teacher APPROVES
 function CertificateCard() {
   const [loading, setLoading] = useState(false);
   const [certificate, setCertificate] = useState<{
     id: string; courseName: string; studentName: string; grade: string;
     score: number; issuedAt: string; signedBy: string; verifyToken: string;
   } | null>(null);
+  const [requested, setRequested] = useState(false);
+  const [requestMessage, setRequestMessage] = useState("");
 
   const generate = async () => {
     setLoading(true);
     try {
-      const res = await api.post<{ certificate: any }>(`/api/certificates/generate`);
-      setCertificate(res.certificate);
-      showSuccess("Certificate generated!");
+      const res = await api.post<{ certificate?: any; requested?: boolean; message?: string; alreadyExisted?: boolean }>(`/api/certificates/generate`);
+      if (res.certificate) {
+        setCertificate(res.certificate);
+        showSuccess("Certificate approved and generated!");
+      } else if (res.requested) {
+        setRequested(true);
+        setRequestMessage(res.message || "Request submitted. Waiting for teacher approval.");
+        showSuccess("Certificate request submitted! Your teacher will review it.");
+      } else if (res.alreadyExisted && res.certificate) {
+        setCertificate(res.certificate);
+      }
     } catch (e) {
       showError(e instanceof Error ? e.message : "Not eligible yet — complete all weekly tests first.");
     } finally { setLoading(false); }
@@ -45,7 +54,14 @@ function CertificateCard() {
   const load = async () => {
     try {
       const res = await api.get<{ certificate: any }>(`/api/certificates/user`);
-      if (res.certificate) setCertificate(res.certificate);
+      if (res.certificate) {
+        if (res.certificate.grade === "PENDING") {
+          setRequested(true);
+          setRequestMessage("Certificate request submitted. Waiting for teacher approval.");
+        } else {
+          setCertificate(res.certificate);
+        }
+      }
     } catch { /* no certificate yet */ }
   };
 
@@ -88,17 +104,30 @@ function CertificateCard() {
     );
   }
 
+  if (requested) {
+    return (
+      <Card className="border-amber-500/40 bg-amber-500/5">
+        <CardContent className="p-6 text-center">
+          <Loader2 className="h-8 w-8 text-amber-500 mx-auto mb-2 animate-spin" style={{ animationDuration: "3s" }} />
+          <h3 className="text-sm font-semibold text-foreground mb-1">Certificate Requested</h3>
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto">{requestMessage}</p>
+          <p className="text-xs text-muted-foreground/70 mt-2">Your teacher will review your completion and approve it.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-border bg-card">
       <CardContent className="p-6 text-center">
         <Award className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
         <h3 className="text-sm font-semibold text-foreground mb-1">Certificate of Completion</h3>
         <p className="text-xs text-muted-foreground mb-3 max-w-xs mx-auto">
-          Complete all weekly tests to earn your certificate. It's publicly verifiable via a shareable URL.
+          Complete all weekly tests to request your certificate. Your teacher will review and approve it. It's publicly verifiable via a shareable URL.
         </p>
         <Button onClick={generate} disabled={loading} size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
           {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Award className="h-3 w-3" />}
-          Generate Certificate
+          Request Certificate
         </Button>
       </CardContent>
     </Card>

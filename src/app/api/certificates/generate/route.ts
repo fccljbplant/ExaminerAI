@@ -1,148 +1,236 @@
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
+import { logAudit, AuditAction } from "@/lib/audit-log";
 import crypto from "crypto";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** POST /api/certificates/generate — auto-generate a certificate for the
- *  student when they complete their course.
+/**
+ * POST /api/certificates/generate — certificate request + approval flow.
  *
- *  Phase 4.1 + 4.2.
+ * Flow:
+ *   1. Student POSTs (no userId param) → creates a certificate REQUEST
+ *      (status: "requested"). Returns { requested: true }.
+ *   2. Teacher/admin POSTs with ?userId=studentId → APPROVES the request,
+ *      generates the actual certificate with grade + score + verifyToken.
+ *      Returns { certificate, verifyUrl }.
+ *   3. Teacher/admin can also POST with ?userId=studentId&reject=true to
+ *      reject the request with a reason.
  *
- *  Completion criteria:
- *  - Student's currentWeek >= course duration (they've reached the final week)
- *  - All weekly tests completed (one per week)
+ * Completion criteria (checked at request time):
+ *   - Student's currentWeek >= course duration
+ *   - All weekly tests completed
  *
- *  The certificate is idempotent — if one already exists for this student,
- *  it returns the existing one instead of creating a duplicate.
- *
- *  Auth: the student themselves can trigger this (auto-called when they view
- *  their dashboard post-completion), or a teacher/admin can trigger it with
- *  ?userId=studentId.
- *
- *  Returns: { certificate: { id, courseName, studentName, grade, score, issuedAt, signedBy, verifyToken, verifyUrl } }
+ * The certificate is idempotent — if one already exists, returns it.
  */
-export async function POST(req: Request) {
-  const _demoBlock = await demoWriteBlock("generating certificates"); if (_demoBlock) return _demoBlock;
+
+export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing certificates"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const url = new URL(req.url);
   const userIdParam = url.searchParams.get("userId");
-  const targetUserId = (isStaffRole(payload.role)) && userIdParam
-    ? userIdParam
-    : payload.sub;
-  // IDOR protection: verify the caller can access this student's data
-  if (targetUserId !== payload.sub) {
-    try {
-      await assertCanAccessStudent(payload, targetUserId);
-    } catch (err: any) {
+  const reject = url.searchParams.get("reject") === "true";
+  const isStaff = isStaffRole(payload.role);
+
+  // Student requesting a certificate
+  if (!isStaff && !userIdParam) {
+    const targetUserId = payload.sub;
+
+    // Check if a certificate already exists
+    const existing = await db.certificate.findFirst({
+      where: { userId: targetUserId },
+      orderBy: { issuedAt: "desc" },
+    });
+    if (existing) {
+      return NextResponse.json({
+        certificate: existing,
+        verifyUrl: `/verify/${existing.verifyToken}`,
+        alreadyExisted: true,
+      });
+    }
+
+    // Check completion criteria
+    const [user, totalWeeks] = await Promise.all([
+      db.user.findUnique({ where: { id: targetUserId }, select: { currentWeek: true, role: true, name: true } }),
+      getCourseDurationWeeks(targetUserId),
+    ]);
+    if (!user || user.role !== "student") {
+      return NextResponse.json({ error: "Only students can request certificates" }, { status: 400 });
+    }
+
+    const completedTests = await db.weeklyTest.count({
+      where: { userId: targetUserId, status: "completed", score: { not: null } },
+    });
+
+    const reachedFinalWeek = user.currentWeek >= totalWeeks;
+    const allTestsCompleted = completedTests >= totalWeeks;
+
+    if (!reachedFinalWeek || !allTestsCompleted) {
+      return NextResponse.json({
+        error: "Course not yet complete",
+        details: {
+          currentWeek: user.currentWeek,
+          totalWeeks,
+          completedTests,
+          reachedFinalWeek,
+          allTestsCompleted,
+        },
+      }, { status: 403 });
+    }
+
+    // Check if a request already exists (grade = "PENDING" means it's a request, not an issued certificate)
+    const existingRequest = await db.certificate.findFirst({
+      where: { userId: targetUserId, grade: "PENDING" },
+    });
+    if (existingRequest) {
+      return NextResponse.json({
+        requested: true,
+        message: "Certificate request already submitted. Waiting for teacher approval.",
+        requestId: existingRequest.id,
+      });
+    }
+
+    // Create a certificate REQUEST (status: "requested", no grade/score yet)
+    const courseMeta = await getCourseMetadata(targetUserId);
+    const request = await db.certificate.create({
+      data: {
+        userId: targetUserId,
+        courseName: courseMeta?.name ?? "Course",
+        studentName: user.name,
+        grade: "PENDING",
+        score: 0,
+        signedBy: "PENDING",
+        verifyToken: crypto.randomBytes(32).toString("hex"),
+        // Use a convention: issuedAt is the request date; actual issue happens on approval
+      },
+    });
+
+    await logAudit({
+      actor: { id: payload.sub, name: payload.name, role: payload.role },
+      action: "certificate_requested",
+      target: { type: "user", id: targetUserId },
+      metadata: { requestId: request.id },
+      req,
+    }).catch(() => {});
+
+    return NextResponse.json({
+      requested: true,
+      message: "Certificate request submitted. Your teacher will review and approve it.",
+      requestId: request.id,
+    });
+  }
+
+  // Staff approving or rejecting a certificate request
+  if (isStaff && userIdParam) {
+    const targetUserId = userIdParam;
+
+    // IDOR protection
+    try { await assertCanAccessStudent(payload, targetUserId); } catch (err: any) {
       return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
     }
-  }
 
-  // Fetch the student + their completed tests + course metadata
-  const [user, totalWeeks, courseMeta] = await Promise.all([
-    db.user.findUnique({
-      where: { id: targetUserId },
-      select: { id: true, name: true, email: true, currentWeek: true, role: true },
-    }),
-    getCourseDurationWeeks(targetUserId),
-    getCourseMetadata(targetUserId),
-  ]);
-
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-  if (user.role !== "student") return NextResponse.json({ error: "Only students get certificates" }, { status: 400 });
-
-  // Check if a certificate already exists (idempotent)
-  const existing = await db.certificate.findFirst({
-    where: { userId: targetUserId },
-    orderBy: { issuedAt: "desc" },
-  });
-  if (existing) {
-    return NextResponse.json({
-      certificate: existing,
-      verifyUrl: `/verify/${existing.verifyToken}`,
-      alreadyExisted: true,
+    // Find the pending request
+    const request = await db.certificate.findFirst({
+      where: { userId: targetUserId, grade: "PENDING" },
+      orderBy: { issuedAt: "desc" },
     });
-  }
 
-  // Fetch completed weekly tests
-  const completedTests = await db.weeklyTest.findMany({
-    where: { userId: targetUserId, status: "completed", score: { not: null } },
-    select: { week: true, score: true },
-    orderBy: { week: "asc" },
-  });
-
-  // ---- Completion check ----
-  // Student must have reached the final week AND completed all weekly tests.
-  const reachedFinalWeek = user.currentWeek >= totalWeeks;
-  const allTestsCompleted = completedTests.length >= totalWeeks;
-
-  if (!reachedFinalWeek || !allTestsCompleted) {
-    return NextResponse.json({
-      error: "Course not yet complete",
-      details: {
-        currentWeek: user.currentWeek,
-        totalWeeks,
-        reachedFinalWeek,
-        completedTests: completedTests.length,
-        allTestsCompleted,
-      },
-    }, { status: 400 });
-  }
-
-  // ---- Compute final score ----
-  // Average of all weekly test scores. Same logic as final-result/route.ts
-  // but we recompute here to keep the certificate endpoint self-contained.
-  const scores = completedTests.map(t => t.score).filter((s): s is number => s !== null);
-  const avgScore = scores.length > 0
-    ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-    : 0;
-  const grade = scoreToGrade(avgScore);
-
-  // ---- Create the certificate ----
-  const verifyToken = crypto.randomBytes(32).toString("hex");
-  const courseName = courseMeta?.name ?? "Modern Web Dev & AI Bootcamp";
-  const signedBy = "AI Examiner"; // auto-signed; teacher can re-sign manually later
-
-  // Fetch the actual course ID via the student's batch (not the course name).
-  // Previously this stored courseMeta.name in the courseId foreign key field,
-  // breaking referential integrity.
-  let actualCourseId: string | null = null;
-  try {
-    const studentWithBatch = await db.user.findUnique({
-      where: { id: targetUserId },
-      select: { batchId: true },
-    });
-    if (studentWithBatch?.batchId) {
-      const batch = await db.batch.findUnique({
-        where: { id: studentWithBatch.batchId },
-        select: { courseId: true },
+    if (!request) {
+      // No pending request — check if already has a certificate
+      const existing = await db.certificate.findFirst({
+        where: { userId: targetUserId, grade: { not: "PENDING" } },
+        orderBy: { issuedAt: "desc" },
       });
-      actualCourseId = batch?.courseId ?? null;
+      if (existing) {
+        return NextResponse.json({
+          certificate: existing,
+          verifyUrl: `/verify/${existing.verifyToken}`,
+          alreadyExisted: true,
+        });
+      }
+      return NextResponse.json({ error: "No pending certificate request for this student" }, { status: 404 });
     }
-  } catch { /* best-effort — certificate still valid without courseId */ }
 
-  const certificate = await db.certificate.create({
-    data: {
-      userId: targetUserId,
-      courseId: actualCourseId, // actual Course.id (not the name)
-      courseName,
-      studentName: user.name,
-      grade,
-      score: avgScore,
-      signedBy,
-      verifyToken,
-    },
-  });
+    // Reject
+    if (reject) {
+      const body = await req.json().catch(() => ({}));
+      const reason = (body as any)?.reason || "Rejected by staff";
+      await db.certificate.delete({ where: { id: request.id } });
+      await logAudit({
+        actor: { id: payload.sub, name: payload.name, role: payload.role },
+        action: "certificate_rejected",
+        target: { type: "user", id: targetUserId },
+        metadata: { reason },
+        req,
+      }).catch(() => {});
+      return NextResponse.json({ rejected: true, reason });
+    }
 
-  return NextResponse.json({
-    certificate,
-    verifyUrl: `/verify/${verifyToken}`,
-    justIssued: true,
-  });
+    // Approve — generate the actual certificate with grade + score
+    const [user, totalWeeks, courseMeta] = await Promise.all([
+      db.user.findUnique({ where: { id: targetUserId }, select: { name: true, role: true } }),
+      getCourseDurationWeeks(targetUserId),
+      getCourseMetadata(targetUserId),
+    ]);
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    const completedTests = await db.weeklyTest.findMany({
+      where: { userId: targetUserId, status: "completed", score: { not: null } },
+      select: { week: true, score: true },
+      orderBy: { week: "asc" },
+    });
+
+    const scores = completedTests.map(t => t.score).filter((s): s is number => s !== null);
+    const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+    const grade = scoreToGrade(avgScore);
+
+    // Fetch actual course ID via batch
+    let actualCourseId: string | null = null;
+    try {
+      const studentWithBatch = await db.user.findUnique({
+        where: { id: targetUserId },
+        select: { batchId: true },
+      });
+      if (studentWithBatch?.batchId) {
+        const batch = await db.batch.findUnique({
+          where: { id: studentWithBatch.batchId },
+          select: { courseId: true },
+        });
+        actualCourseId = batch?.courseId ?? null;
+      }
+    } catch {}
+
+    const certificate = await db.certificate.update({
+      where: { id: request.id },
+      data: {
+        grade,
+        score: avgScore,
+        signedBy: payload.name,
+        courseId: actualCourseId,
+        courseName: courseMeta?.name ?? request.courseName,
+        studentName: user.name,
+      },
+    });
+
+    await logAudit({
+      actor: { id: payload.sub, name: payload.name, role: payload.role },
+      action: AuditAction.CERTIFICATE_GENERATED,
+      target: { type: "user", id: targetUserId },
+      after: { grade, score: avgScore, certificateId: certificate.id },
+      req,
+    }).catch(() => {});
+
+    return NextResponse.json({
+      certificate,
+      verifyUrl: `/verify/${certificate.verifyToken}`,
+      approved: true,
+    });
+  }
+
+  return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 }

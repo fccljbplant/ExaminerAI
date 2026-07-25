@@ -255,13 +255,15 @@ See Section 3 above.
 | Per-question explanations | ✅ | In all test endpoints |
 | Capstone project setup | ✅ Fixed | POST /api/project/setup + ProjectSettingsCard (renders inline when no project) |
 | AI task generation | ✅ | POST /api/project/generate-tasks |
+| AI project suggestions | ✅ New | GET /api/project/suggestions (AI suggests 5 projects based on course content) |
+| Auto weekly report from check-ins | ✅ New | POST /api/project/auto-report (AI generates report from daily check-ins) |
 | Gantt chart + milestones | ✅ | GanttPanel component |
 | Weekly project reports | ✅ | POST /api/project/reports |
 | Final capstone analysis | ✅ | POST /api/students/[id]/generate-project-analysis |
 | Daily check-in | ✅ | CheckInPanel component |
 | Self-paced day advancement | ✅ Fixed | POST /api/self-paced + SelfPacedAdvanceButton UI |
 | Comprehensive private report | ✅ | GET /api/students/[id]/comprehensive-report |
-| Certificate generation | ✅ Fixed | POST /api/certificates/generate + CertificateCard in ReportCardPanel |
+| Certificate generation | ✅ Fixed | POST /api/certificates/generate (student requests → teacher approves) |
 | Report cards | ✅ | ReportCardPanel component |
 | Change password | ❌ UI dead code | SettingsPanel unreachable |
 | Set security question | ❌ UI dead code | SettingsPanel unreachable |
@@ -308,6 +310,7 @@ See Section 3 above.
 | Feature | Status | Endpoint / Component |
 |---|---|---|
 | Child progress overview | ✅ | GuardianDashboard component |
+| Guardian account creation (by staff) | ✅ New | POST /api/guardian/create (staff creates on parent request) |
 | Report cards | ✅ | |
 | Wellbeing signal (sanitized) | ✅ | Tier only, no reasons |
 | Internal notes hidden | ✅ | |
