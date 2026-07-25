@@ -40,8 +40,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
 
   const loadHealth = useCallback(async () => {
     try {
-      const res = await fetch("/api/health");
-      const data = await res.json();
+      const data = await api.get<any>("/api/health");
       setHealth(data);
     } catch { /* ignore */ }
   }, []);
@@ -86,9 +85,9 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
     const results = await Promise.all(checks.map(async (c) => {
       const t0 = performance.now();
       try {
-        const res = await fetch(c.url, { credentials: "include" });
+        await api.get(c.url);
         const ms = Math.round(performance.now() - t0);
-        return { name: c.name, ok: res.ok, ms, error: res.ok ? undefined : `HTTP ${res.status}` } as { name: string; ok: boolean; ms: number; error?: string };
+        return { name: c.name, ok: true, ms } as { name: string; ok: boolean; ms: number; error?: string };
       } catch (e) {
         return { name: c.name, ok: false, ms: Math.round(performance.now() - t0), error: e instanceof Error ? e.message : "fetch failed" } as { name: string; ok: boolean; ms: number; error?: string };
       }

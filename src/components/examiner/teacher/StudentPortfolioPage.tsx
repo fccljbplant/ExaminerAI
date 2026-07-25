@@ -187,7 +187,7 @@ export function StudentPortfolioPage({
     if (!student) return;
     if (!confirm("Delete this comment? This cannot be undone.")) return;
     try {
-      await fetch(`/api/comments?id=${commentId}`, { method: "DELETE", credentials: "include" });
+      await api.del(`/api/comments?id=${commentId}`);
       await loadPortfolio(student.id);
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed to delete comment");
@@ -238,7 +238,7 @@ export function StudentPortfolioPage({
     if (!student) return;
     if (!confirm("Delete this comment? This cannot be undone.")) return;
     try {
-      await fetch(`/api/comments?id=${commentId}`, { method: "DELETE", credentials: "include" });
+      await api.del(`/api/comments?id=${commentId}`);
       await loadPortfolio(student.id);
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed to delete comment");
@@ -255,14 +255,8 @@ export function StudentPortfolioPage({
   const generateReportCard = async (studentId: string, week: number) => {
     setRcGenerating(true);
     try {
-      const res = await fetch(`/api/students/${studentId}/generate-report-card`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ week }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate report card");
+      const data = await api.post<{ reportCard?: any; error?: string }>(`/api/students/${studentId}/generate-report-card`, { week });
+      if (data.error) throw new Error(data.error);
       setRcDialogOpen(false);
       await loadPortfolio(studentId);
       // Switch to report cards tab so teacher sees the result
@@ -287,17 +281,12 @@ export function StudentPortfolioPage({
     if (!student || rcEditFor === null) return;
     setRcEditSaving(true);
     try {
-      await fetch("/api/report-cards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          userId: student.id,
-          week: rcEditFor,
-          grade: rcEditGrade,
-          score: Number(rcEditScore) || 0,
-          examinerObservations: rcEditExaminerObs,
-        }),
+      await api.post("/api/report-cards", {
+        userId: student.id,
+        week: rcEditFor,
+        grade: rcEditGrade,
+        score: Number(rcEditScore) || 0,
+        examinerObservations: rcEditExaminerObs,
       });
       setRcEditFor(null);
       await loadPortfolio(student.id);
@@ -349,12 +338,7 @@ export function StudentPortfolioPage({
       payload.psychAnalysis = wtEditPsych;
       payload.examinerComment = wtEditComment;
 
-      await fetch(`/api/students/${student.id}/edit-weekly-test`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
+      await api.patch(`/api/students/${student.id}/edit-weekly-test`, payload);
       setWtEditFor(null);
       await loadPortfolio(student.id);
     } catch (e) {
@@ -514,7 +498,7 @@ export function StudentPortfolioPage({
                           <MessageSquare className="h-3 w-3" />
                         </button>
                         <button
-                          onClick={() => { if (confirm("Delete this task?")) { fetch(`/api/tasks?id=${t.id}`, { method: "DELETE", credentials: "include" }).then(() => loadPortfolio(student.id)); } }}
+                          onClick={() => { if (confirm("Delete this task?")) { api.del(`/api/tasks?id=${t.id}`).then(() => loadPortfolio(student.id)); } }}
                           className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                           title="Delete this task"
                         >
@@ -565,7 +549,7 @@ export function StudentPortfolioPage({
                         <MessageSquare className="h-3 w-3" />
                       </button>
                       <button
-                        onClick={() => { if (confirm("Delete this check-in?")) { fetch(`/api/daily-logs/${log.id}`, { method: "DELETE", credentials: "include" }).then(() => loadPortfolio(student.id)); } }}
+                        onClick={() => { if (confirm("Delete this check-in?")) { api.del(`/api/daily-logs/${log.id}`).then(() => loadPortfolio(student.id)); } }}
                         className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                         title="Delete this check-in"
                       >
@@ -698,10 +682,9 @@ export function StudentPortfolioPage({
                               className="h-7 text-[10px] border-destructive/30 text-destructive hover:bg-destructive/10"
                               onClick={() => {
                                 if (confirm(`Revoke retake access for Week ${wt.week} test? The student will no longer be able to retake it.`)) {
-                                  fetch(`/api/students/${student.id}/allow-retake?week=${wt.week}`, { method: "DELETE", credentials: "include" })
-                                    .then((r) => r.json())
+                                  api.del(`/api/students/${student.id}/allow-retake?week=${wt.week}`)
                                     .then(() => loadPortfolio(student.id))
-                                    .catch((e) => showError(e?.message || "Failed to revoke retake"));
+                                    .catch((e: any) => showError(e?.message || "Failed to revoke retake"));
                                 }
                               }}
                             >
@@ -824,7 +807,7 @@ export function StudentPortfolioPage({
                           <MessageSquare className="h-3 w-3" />
                         </button>
                         <button
-                          onClick={() => { if (confirm("Delete this practice question?")) { fetch(`/api/interactions/${i.id}`, { method: "DELETE", credentials: "include" }).then(() => loadPortfolio(student.id)); } }}
+                          onClick={() => { if (confirm("Delete this practice question?")) { api.del(`/api/interactions/${i.id}`).then(() => loadPortfolio(student.id)); } }}
                           className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                           title="Delete this practice question"
                         >

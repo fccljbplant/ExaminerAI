@@ -69,14 +69,7 @@ export default function Messages() {
   const deleteMessage = async (id: string) => {
     if (!confirm("Delete this message? This cannot be undone.")) return;
     try {
-      const res = await fetch(`/api/messages/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Failed (${res.status})`);
-      }
+      await api.del(`/api/messages/${id}`);
       load();
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed to delete message");

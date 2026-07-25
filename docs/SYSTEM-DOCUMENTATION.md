@@ -541,7 +541,6 @@ See `docs/COMPREHENSIVE-AUDIT-2026-07-26.md` for the full audit report with 50 p
 
 ### Still Pending
 
-1. 13 raw fetch() calls bypass demo guard — P1
-2. Role checks use raw strings, not normalizeRole — P1
-3. Anti-cheat flags not persisted to DB — P1
-4. Dead code (~3,209 lines), pagination, accessibility — P2
+1. Role checks use raw strings, not normalizeRole — P1
+2. Anti-cheat flags not persisted to DB — P1
+3. Dead code (~3,209 lines), pagination, accessibility — P2
