@@ -2,13 +2,14 @@
  * AI provider abstraction layer — SINGLE entry point for all AI calls.
  *
  * Provider priority:
- *   1. Z.ai API (via ZAI_API_KEY env var or DB setting — OpenAI-compatible)
- *   2. DeepSeek (via DEEPSEEK_API_KEY env var or DB setting — fallback)
+ *   1. DeepSeek (via DEEPSEEK_API_KEY env var — primary, cost-effective)
+ *      Model: deepseek-v4-flash (fast + cheap)
+ *   2. Z.ai API (via ZAI_API_KEY env var or DB setting — OpenAI-compatible fallback)
  *   3. z-ai-web-dev-sdk (sandbox / dev fallback — only works in Z.ai sandbox)
  *   4. Heuristic empty response (caller handles fallback)
  *
- * Z.ai is the primary provider because it's the user's configured AI.
- * DeepSeek is kept as a fallback for backward compatibility.
+ * DeepSeek is the primary provider because it's the most cost-effective.
+ * Z.ai is kept as a fallback for when DeepSeek is not configured.
  *
  * Every successful call is logged to the `AIUsageLog` table so the admin
  * dashboard can show accurate token usage, quota remaining, and cost trends.
@@ -60,15 +61,15 @@ const RATE_LIMIT_RPD = Number(process.env.AI_RPD_LIMIT) || 10_000;
 
 /** Check if ANY AI provider is configured. */
 export function hasAI(): boolean {
-  return !!(process.env.ZAI_API_KEY || process.env.DEEPSEEK_API_KEY);
+  return !!(process.env.DEEPSEEK_API_KEY || process.env.ZAI_API_KEY);
 }
 
 /** Async check — true if any provider is configured via env or DB. */
 export async function isAIConfigured(): Promise<boolean> {
-  if (process.env.ZAI_API_KEY || process.env.DEEPSEEK_API_KEY) return true;
-  const zaiKey = await getAIKeyFromDB("zai_api_key");
+  if (process.env.DEEPSEEK_API_KEY || process.env.ZAI_API_KEY) return true;
   const dsKey = await getAIKeyFromDB("deepseek_api_key");
-  return !!(zaiKey || dsKey);
+  const zaiKey = await getAIKeyFromDB("zai_api_key");
+  return !!(dsKey || zaiKey);
 }
 
 /** Read an API key from the DB Setting table. */
@@ -311,14 +312,14 @@ export async function callAI(
     }
   };
 
-  // ---- 1. Try Z.ai API (primary) ----
-  const zaiClient = await getZAIClient();
-  if (zaiClient) {
+  // ---- 1. Try DeepSeek API (primary — cost-effective) ----
+  const dsClient = await getDeepSeekClient();
+  if (dsClient) {
     const gotSlot = await waitForSlot(10_000);
     if (gotSlot) {
       try {
-        const completion = await zaiClient.chat.completions.create({
-          model: ZAI_MODEL,
+        const completion = await dsClient.chat.completions.create({
+          model: DEEPSEEK_MODEL,
           messages: apiMessages,
           temperature: temp,
           max_tokens: maxTokens,
@@ -329,17 +330,17 @@ export async function callAI(
           const promptTokens = completion.usage?.prompt_tokens ?? estimateTokens(messages.map(m => m.content).join(""));
           const completionTokens = completion.usage?.completion_tokens ?? estimateTokens(text);
           logUsage({
-            provider: "zai", model: ZAI_MODEL, feature,
+            provider: "deepseek", model: DEEPSEEK_MODEL, feature,
             promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
             success: true, durationMs: Date.now() - startedAt,
           }).catch(() => {});
-          maybeCache(text, promptTokens, completionTokens, ZAI_MODEL);
-          return { text, provider: "zai", fallback: false, promptTokens, completionTokens, model: ZAI_MODEL, durationMs: Date.now() - startedAt };
+          maybeCache(text, promptTokens, completionTokens, DEEPSEEK_MODEL);
+          return { text, provider: "deepseek", fallback: false, promptTokens, completionTokens, model: DEEPSEEK_MODEL, durationMs: Date.now() - startedAt };
         }
       } catch (e) {
-        logger.error("Z.ai API failed, trying DeepSeek", { feature, error: e instanceof Error ? e.message : String(e) });
+        logger.error("DeepSeek API failed, trying Z.ai", { feature, error: e instanceof Error ? e.message : String(e) });
         logUsage({
-          provider: "zai", model: ZAI_MODEL, feature,
+          provider: "deepseek", model: DEEPSEEK_MODEL, feature,
           promptTokens: 0, completionTokens: 0, totalTokens: 0,
           success: false, durationMs: Date.now() - startedAt,
           errorMessage: e instanceof Error ? e.message : String(e),
@@ -348,12 +349,12 @@ export async function callAI(
     }
   }
 
-  // ---- 2. Try DeepSeek (fallback) ----
-  const dsClient = await getDeepSeekClient();
-  if (dsClient) {
+  // ---- 2. Try Z.ai API (fallback) ----
+  const zaiClient = await getZAIClient();
+  if (zaiClient) {
     try {
-      const completion = await dsClient.chat.completions.create({
-        model: DEEPSEEK_MODEL,
+      const completion = await zaiClient.chat.completions.create({
+        model: ZAI_MODEL,
         messages: apiMessages,
         temperature: temp,
         max_tokens: maxTokens,
@@ -364,15 +365,15 @@ export async function callAI(
         const promptTokens = completion.usage?.prompt_tokens ?? estimateTokens(messages.map(m => m.content).join(""));
         const completionTokens = completion.usage?.completion_tokens ?? estimateTokens(text);
         logUsage({
-          provider: "deepseek", model: DEEPSEEK_MODEL, feature,
+          provider: "zai", model: ZAI_MODEL, feature,
           promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
           success: true, durationMs: Date.now() - startedAt,
         }).catch(() => {});
-        maybeCache(text, promptTokens, completionTokens, DEEPSEEK_MODEL);
-        return { text, provider: "deepseek", fallback: false, promptTokens, completionTokens, model: DEEPSEEK_MODEL, durationMs: Date.now() - startedAt };
+        maybeCache(text, promptTokens, completionTokens, ZAI_MODEL);
+        return { text, provider: "zai", fallback: false, promptTokens, completionTokens, model: ZAI_MODEL, durationMs: Date.now() - startedAt };
       }
     } catch (e) {
-      logger.error("DeepSeek failed, trying z-ai-sdk", { feature, error: e instanceof Error ? e.message : String(e) });
+      logger.error("Z.ai failed, trying z-ai-sdk", { feature, error: e instanceof Error ? e.message : String(e) });
     }
   }
 
