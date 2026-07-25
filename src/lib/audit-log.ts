@@ -52,6 +52,10 @@ export const AuditAction = {
   AI_LIMITS_CHANGED: "ai_limits_changed",
   DEMO_AI_TOGGLED: "demo_ai_toggled",
   AI_RATE_LIMIT_REACHED: "ai_limit_reached",
+  // Self-paced + report actions
+  SELF_PACED_ADVANCE: "self_paced_advance",
+  COMPREHENSIVE_REPORT_VIEWED: "comprehensive_report_viewed",
+  CERTIFICATE_GENERATED: "certificate_generated",
 } as const;
 
 export async function logAudit(params: LogAuditParams): Promise<void> {

@@ -69,6 +69,7 @@ const FEATURE_TO_CATEGORY: Record<string, AICategory> = {
   "draft-checkin": "assistant",
   "rehearse-reply": "assistant",
   "rehearse-start": "assistant",
+  "comprehensive-report": "assistant",
 };
 
 /** Get the category for a feature label. Returns "assistant" as fallback. */

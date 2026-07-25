@@ -39,6 +39,7 @@ import { WeeklyTestPanel } from "@/components/examiner/student/WeeklyTestPanel";
 import { QuestionPanel } from "@/components/examiner/student/PracticePanel";
 import { CheckInPanel } from "@/components/examiner/student/CheckInPanel";
 import { ReportCardPanel } from "@/components/examiner/student/ReportCardPanel";
+import { ComprehensiveReportView } from "@/components/examiner/student/ComprehensiveReportView";
 import { GanttPanel } from "@/components/examiner/student/GanttPanel";
 import { redirectToView } from "@/components/examiner/student/shared";
 import { DailyTestPanel } from "@/components/examiner/student/DailyTestPanel";
@@ -54,6 +55,14 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [view, setView] = useState<StudentView>("home");
+  const [userId, setUserId] = useState<string>("");
+
+  // Fetch current user's ID (for comprehensive report)
+  useEffect(() => {
+    api.get<{ user: { id: string } | null }>("/api/auth/me").then(res => {
+      if (res.user?.id) setUserId(res.user.id);
+    }).catch(() => {/* silent */});
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -109,7 +118,12 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
       {view === "home" && <HomeView stats={stats} onNavigate={setView} onReload={load} />}
       {view === "study" && <StudyView stats={stats} onReload={load} onNavigate={setView} />}
       {view === "project" && <GanttPanel stats={stats} onReload={load} onMode={() => setView("home")} />}
-      {view === "progress" && <ReportCardPanel reportCards={stats?.reportCards || []} comments={stats?.comments || []} />}
+      {view === "progress" && (
+        <div className="space-y-6">
+          {userId && <ComprehensiveReportView studentId={userId} />}
+          <ReportCardPanel reportCards={stats?.reportCards || []} comments={stats?.comments || []} />
+        </div>
+      )}
 
       <DailyTaskReminder onChanged={load} onNavigate={() => setView("study")} />
     </div>
