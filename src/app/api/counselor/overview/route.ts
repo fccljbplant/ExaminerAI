@@ -31,7 +31,7 @@ export async function GET() {
 
   // Get all students (counselors have institution-wide access via AccessGrants)
   const students = await db.user.findMany({
-    where: { role: "student", isActive: true },
+    where: { role: "student", blocked: false },
     select: {
       id: true, name: true, email: true, currentWeek: true,
       batchId: true, lastLogin: true,
