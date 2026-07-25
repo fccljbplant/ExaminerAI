@@ -8,6 +8,7 @@ import TeacherDashboard from "./TeacherDashboard";
 import AdminDashboard from "./AdminDashboard";
 import GuardianDashboard from "./GuardianDashboard";
 import CounselorDashboard from "./CounselorDashboard";
+import PrincipalDashboard from "./PrincipalDashboard";
 import AITutor from "./AITutor";
 import TeacherAITutor from "./TeacherAITutor";
 import Messages from "./Messages";
@@ -40,6 +41,7 @@ import {
   HeartHandshake,
   BarChart3,
   Zap,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -66,6 +68,7 @@ export type ViewKey =
   | "batch-assignments"
   | "batch-insights"
   | "counselor-dashboard"
+  | "principal-dashboard"
   | "guardian-dashboard"
   | "guardian-progress"
   | "admin-dashboard"
@@ -86,7 +89,8 @@ interface NavItem {
 
 // All roles that see shared items (AI Tutor, Course, Messages, Settings)
 const ALL_ROLES_WITH_SHARED = ["student", "teacher", "course_coordinator", "counselor", "guardian", "admin", "principal", "administrator", "developer"];
-const ADMIN_NAV_ROLES = ["admin", "principal", "administrator", "developer"];
+const ADMIN_NAV_ROLES = ["admin", "administrator", "developer"];
+const PRINCIPAL_NAV_ROLES = ["principal"];
 // Staff-only roles — see the Teacher AI Assistant nav item. Excludes students,
 // guardians, and pending users. (teaching_assistant role removed — teachers
 // now handle all teaching duties directly.)
@@ -116,7 +120,10 @@ const ALL_NAV: NavItem[] = [
   { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
   { key: "guardian-progress", label: "Report Cards", icon: FileText, roles: ["guardian"] },
 
-  // ===== ADMIN (principal / administrator / developer / legacy admin) =====
+  // ===== PRINCIPAL (institution administrator — purpose-built dashboard) =====
+  { key: "principal-dashboard", label: "Institution", icon: Building2, roles: PRINCIPAL_NAV_ROLES },
+
+  // ===== ADMIN (system-level — user management, features, system health) =====
   { key: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ADMIN_NAV_ROLES },
   { key: "admin-users", label: "Users", icon: Users, roles: ADMIN_NAV_ROLES },
   { key: "admin-courses", label: "Courses", icon: BookOpen, roles: ADMIN_NAV_ROLES },
@@ -234,7 +241,7 @@ export default function AppShell() {
           }
         }
         const role = res.user.role;
-        const adminRoles = ["principal", "administrator", "developer", "admin", "institution_admin", "platform_admin"];
+        const adminRoles = ["administrator", "developer", "admin", "institution_admin", "platform_admin"];
         if (adminRoles.includes(role)) {
           // Demo developer defaults to teacher interface (user requested)
           if (res.user.email === "demo@examiner.ai") {
@@ -244,6 +251,8 @@ export default function AppShell() {
             setAdminAs("admin");
             setView("admin-dashboard");
           }
+        } else if (role === "principal") {
+          setView("principal-dashboard");
         } else if (role === "teacher" ) {
           setView("batch");
         } else if (role === "course_coordinator") {
@@ -379,9 +388,8 @@ export default function AppShell() {
   if (!user) {
     return <Login onLoggedIn={(u) => {
       setUser(u);
-      const adminRoles = ["principal", "administrator", "developer", "admin", "institution_admin", "platform_admin"];
+      const adminRoles = ["administrator", "developer", "admin", "institution_admin", "platform_admin"];
       if (adminRoles.includes(u.role)) {
-        // Demo developer defaults to teacher interface (user requested)
         if (u.email === "demo@examiner.ai") {
           setAdminAs("teacher");
           setView("batch");
@@ -390,6 +398,7 @@ export default function AppShell() {
           setView("admin-dashboard");
         }
       }
+      else if (u.role === "principal") setView("principal-dashboard");
       else if (u.role === "teacher") setView("batch");
       else if (u.role === "course_coordinator") setView("course-planner");
       else if (u.role === "counselor") setView("counselor-dashboard");
@@ -428,6 +437,7 @@ export default function AppShell() {
       case "batch-assignments": return wrap(<TeacherDashboard initialTab="assignments" />);
       case "batch-insights": return wrap(<TeacherDashboard initialTab="insights" />);
       case "counselor-dashboard": return wrap(<CounselorDashboard key={`counselor-${navClickCount}`} onNavigateToMessages={() => navigateTo("messages")} />);
+      case "principal-dashboard": return wrap(<PrincipalDashboard key={`principal-${navClickCount}`} />);
       case "ai-tutor": return wrap(<AITutor />);
       case "teacher-ai-tutor": return wrap(<TeacherAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
@@ -547,7 +557,7 @@ export default function AppShell() {
                 { role: "course_coordinator", label: "Coordinator", view: "course-planner" },
                 { role: "counselor", label: "Counselor", view: "counselor-dashboard" },
                 { role: "guardian", label: "Guardian", view: "guardian-dashboard" },
-                { role: "principal", label: "Principal", view: "admin-dashboard" },
+                { role: "principal", label: "Principal", view: "principal-dashboard" },
               ] as const).map((r) => (
                 <button
                   key={r.role}
