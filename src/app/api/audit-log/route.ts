@@ -8,8 +8,7 @@ import { logger } from "@/lib/logger";
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR,
-    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,
-  ]);
+    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;
 

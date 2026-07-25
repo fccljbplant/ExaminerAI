@@ -9,8 +9,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR,
-    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,
-  ]);
+    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;
 
@@ -37,7 +36,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/access-grants — create/update an access grant. Admin only. */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing access grants"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
+  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

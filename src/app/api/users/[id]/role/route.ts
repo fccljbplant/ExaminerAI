@@ -13,7 +13,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const _demoBlock = await demoWriteBlock("changing user roles"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
+  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
   if (!auth.ok) return auth.response;
 
   const { id } = await params;

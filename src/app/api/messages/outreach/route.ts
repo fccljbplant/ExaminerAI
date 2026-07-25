@@ -12,8 +12,7 @@ import { requireRole, UserRole } from "@/lib/rbac";
 export async function GET() {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT,
-    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,
-  ]);
+    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
   if (!auth.ok) return auth.response;
 
   // Fetch both messages AND touchpoints in parallel

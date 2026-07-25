@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/psych-evidence — write a new evidence row (staff only). */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing psychology evidence"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
+  const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
