@@ -84,7 +84,7 @@ export async function calculateTeacherLoad(
 
   // Get open alerts raised BY this teacher (indicates active caseload)
   const openAlerts = await db.studentAlert.count({
-    where: { fromUserId: teacherId, status: "open" },
+    where: { user: { batchId: { in: batchIds } }, status: "open" },
   }).catch(() => 0);
 
   // Get crisis flags for students in this teacher's batches
@@ -179,12 +179,11 @@ export async function getInstitutionTeacherLoadRoster(
       const prev7Days = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
 
       const recentAlerts = await db.studentAlert.count({
-        where: { fromUserId: load.teacherId, createdAt: { gt: last7Days } },
+        where: { createdAt: { gt: last7Days } },
       }).catch(() => 0);
 
       const previousAlerts = await db.studentAlert.count({
         where: {
-          fromUserId: load.teacherId,
           createdAt: { gt: prev7Days, lt: last7Days },
         },
       }).catch(() => 0);

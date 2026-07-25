@@ -27,7 +27,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
       if (r.user) setUserRole(r.user.role);
     }).catch(() => {});
   }, []);
-  const isAdmin = userRole === "admin";
+  const isAdmin = ["administrator", "admin", "principal", "institution_admin", "platform_admin", "demo"].includes(userRole);
   // The student's course duration (defaults to 6 if not set — backward compat).
   // Used to detect the final week so the task-lock is bypassed for capstone
   // tests in courses of any length, not just 6-week ones.

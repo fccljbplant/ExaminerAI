@@ -112,6 +112,28 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Notify counselors + principals via in-app messages (best-effort, non-blocking).
+    // The docs say "Crisis flag → Counsellor + Principal (immediate)" — this
+    // implements that notification without external email/SMS.
+    try {
+      const notifyRoles = ["counselor", "principal", "administrator"];
+      const recipients = await db.user.findMany({
+        where: { role: { in: notifyRoles }, blocked: false },
+        select: { id: true },
+      });
+      const crisisMsg = `CRISIS FLAG: Student ${student.name} has been flagged with ${category.replace(/_/g, " ")} (${severity}). Immediate review recommended. Flag ID: ${flag.id}`;
+      for (const recipient of recipients) {
+        await db.message.create({
+          data: {
+            fromId: auth.ctx.payload.sub,
+            toId: recipient.id,
+            subject: `Crisis Flag: ${student.name} — ${severity.toUpperCase()}`,
+            body: crisisMsg,
+          },
+        }).catch(() => {}); // best-effort per recipient
+      }
+    } catch { /* notification is best-effort, never blocks the flag creation */ }
+
     logger.info("Crisis flag created", {
       flagId: flag.id, userId, category, severity, by: auth.ctx.payload.sub,
     });

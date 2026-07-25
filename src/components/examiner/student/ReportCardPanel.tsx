@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { scoreToGrade, gradeColor, PILLARS } from "@/lib/constants";
+import { showError, showSuccess } from "@/lib/toast-helpers";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
   Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, Brain, AlertCircle, RefreshCw,
@@ -18,9 +22,95 @@ import { StatSquareCard, GanttChartIcon, GithubIcon, safeParse } from "@/compone
 import { FinalResultPanel } from "@/components/examiner/student/FinalResultPanel";
 import { ProjectReportPanel } from "@/components/examiner/student/ProjectReportPanel";
 
+// Certificate generation card — lets students generate their certificate
+// when they've completed their course.
+function CertificateCard() {
+  const [loading, setLoading] = useState(false);
+  const [certificate, setCertificate] = useState<{
+    id: string; courseName: string; studentName: string; grade: string;
+    score: number; issuedAt: string; signedBy: string; verifyToken: string;
+  } | null>(null);
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const res = await api.post<{ certificate: any }>(`/api/certificates/generate`);
+      setCertificate(res.certificate);
+      showSuccess("Certificate generated!");
+    } catch (e) {
+      showError(e instanceof Error ? e.message : "Not eligible yet — complete all weekly tests first.");
+    } finally { setLoading(false); }
+  };
+
+  const load = async () => {
+    try {
+      const res = await api.get<{ certificate: any }>(`/api/certificates/user`);
+      if (res.certificate) setCertificate(res.certificate);
+    } catch { /* no certificate yet */ }
+  };
+
+  // Load existing certificate on mount
+  useState(() => { load(); });
+
+  if (certificate) {
+    return (
+      <Card className="border-amber-500/40 bg-amber-500/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5 text-amber-600" /> Certificate of Completion
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <p className="text-sm font-bold text-foreground">{certificate.studentName}</p>
+              <p className="text-xs text-muted-foreground">{certificate.courseName}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-2xl font-bold p-2">
+                <span className={gradeColor(certificate.grade)}>{certificate.grade}</span>
+              </Badge>
+              <Badge variant="outline" className="text-sm">{certificate.score}%</Badge>
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Issued {new Date(certificate.issuedAt).toLocaleDateString()} · Signed by {certificate.signedBy}
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.open(`/verify/${certificate.verifyToken}`, "_blank")}
+          >
+            <ExternalLink className="h-3 w-3" /> View / Share Certificate
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-border bg-card">
+      <CardContent className="p-6 text-center">
+        <Award className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+        <h3 className="text-sm font-semibold text-foreground mb-1">Certificate of Completion</h3>
+        <p className="text-xs text-muted-foreground mb-3 max-w-xs mx-auto">
+          Complete all weekly tests to earn your certificate. It's publicly verifiable via a shareable URL.
+        </p>
+        <Button onClick={generate} disabled={loading} size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
+          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Award className="h-3 w-3" />}
+          Generate Certificate
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ReportCardPanel({ reportCards, comments }: { reportCards: ReportCardRow[]; comments: CommentRow[] }) {
   return (
     <div className="space-y-4">
+      {/* Certificate — students can generate when they complete the course */}
+      <CertificateCard />
+
       {/* SDT rebalance: Final Result only shown when the student has completed at least
           1 weekly test. Showing "Career Readiness: Not Ready" + "0/6 tests" to a Week-1
           student is demoralizing. Replace with an encouraging empty state. */}

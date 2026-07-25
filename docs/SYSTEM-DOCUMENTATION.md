@@ -253,7 +253,7 @@ See Section 3 above.
 | Socratic Daily Test | ✅ | POST /api/daily-test |
 | Socratic Weekly Test | ✅ | POST /api/ai/weekly-test |
 | Per-question explanations | ✅ | In all test endpoints |
-| Capstone project setup | ⚠️ UI dead code | POST /api/project/setup (JourneyWizard unreachable) |
+| Capstone project setup | ✅ Fixed | POST /api/project/setup + ProjectSettingsCard (renders inline when no project) |
 | AI task generation | ✅ | POST /api/project/generate-tasks |
 | Gantt chart + milestones | ✅ | GanttPanel component |
 | Weekly project reports | ✅ | POST /api/project/reports |
@@ -261,7 +261,7 @@ See Section 3 above.
 | Daily check-in | ✅ | CheckInPanel component |
 | Self-paced day advancement | ✅ Fixed | POST /api/self-paced + SelfPacedAdvanceButton UI |
 | Comprehensive private report | ✅ | GET /api/students/[id]/comprehensive-report |
-| Certificate generation | ⚠️ UI dead code | POST /api/certificates/generate (OverviewPanel unreachable) |
+| Certificate generation | ✅ Fixed | POST /api/certificates/generate + CertificateCard in ReportCardPanel |
 | Report cards | ✅ | ReportCardPanel component |
 | Change password | ❌ UI dead code | SettingsPanel unreachable |
 | Set security question | ❌ UI dead code | SettingsPanel unreachable |
@@ -478,7 +478,7 @@ Login → Today view (triage queue, attention-scored)
 Crisis flag created (manual or AI-detected)
 → WellbeingState forced to RED
 → Auto-touchpoint created (type: alert_response)
-→ [GAP: no notification to counselor/principal]
+→ In-app message sent to ALL counselors + principals + admins (immediate notification)
 → Counselor/principal reviews
 → Resolve or dismiss with required note
 ```
@@ -508,7 +508,7 @@ Gather data from 14 sources (psychEvidence, confidenceRatings, skillMastery, tou
 
 See `docs/COMPREHENSIVE-AUDIT-2026-07-26.md` for the full audit report with 50 prioritized issues.
 
-### Fixed Issues (commits fae90a3 + c5f7011)
+### Fixed Issues (commits fae90a3 + c5f7011 + batch 2)
 
 | # | Issue | Fix |
 |---|---|---|
@@ -526,18 +526,19 @@ See `docs/COMPREHENSIVE-AUDIT-2026-07-26.md` for the full audit report with 50 p
 | 12 | SkillMastery overwritten by single test | ✅ Rolling average (40% new + 60% existing for 3+ evidence) |
 | 13 | Wellbeing tier never decays | ✅ Decays to GREEN after 14 days no evidence + no crisis flags |
 | 14 | Escalation cron has no scheduler | ✅ Added vercel.json cron (daily at midnight UTC) |
+| 15 | Students can't create capstone projects | ✅ ProjectSettingsCard renders inline when no project exists |
+| 16 | Certificate generation UI is dead code | ✅ CertificateCard component added to ReportCardPanel (Progress tab) |
+| 17 | WeeklyTestPanel admin check uses wrong string | ✅ Now checks all admin role variants |
+| 18 | Certificate stores course name in courseId field | ✅ Now fetches actual Course.id via student's batch |
+| 19 | Crisis response doesn't notify counselor/principal | ✅ Crisis flag creation sends in-app messages to all counselors + principals + admins |
+| 20 | Teacher-load module uses non-existent fromUserId field | ✅ Replaced with correct batch-scoped StudentAlert queries |
+| 21 | Demo can't see Audit tab on student portfolios | ✅ Added 'demo' to isPrivilegedRole check |
+| 22 | Destructive actions missing confirmation dialogs | ✅ Added confirm() to changeRole + toggleBlock |
 
 ### Still Pending (next batch)
 
-1. Students can't create capstone projects (JourneyWizard dead code) — P0
-2. Certificate generation UI is dead code — P0
-3. 16 remaining IDOR vulnerabilities — P0
-4. 13 raw fetch() calls bypass demo guard — P1
-5. WeeklyTestPanel admin check uses wrong string — P1
-6. Role checks use raw strings, not normalizeRole — P1
-7. Certificate stores course name in courseId field — P1
-8. Teacher-load module uses non-existent schema field — P1
-9. Crisis response doesn't notify counselor/principal — P1
-10. Anti-cheat flags not persisted to DB — P1
-11. Destructive actions missing confirmation dialogs — P1
-12. Dead code (~3,209 lines), pagination, accessibility — P2
+1. 16 remaining IDOR vulnerabilities — P0
+2. 13 raw fetch() calls bypass demo guard — P1
+3. Role checks use raw strings, not normalizeRole — P1
+4. Anti-cheat flags not persisted to DB — P1
+5. Dead code (~3,209 lines), pagination, accessibility — P2

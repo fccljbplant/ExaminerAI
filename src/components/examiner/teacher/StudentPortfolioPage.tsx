@@ -50,7 +50,7 @@ export function StudentPortfolioPage({
   const [posting, setPosting] = useState(false);
   // Fetch current user's role for audit-tab visibility
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
-  const isPrivilegedRole = ["principal", "administrator", "admin", "institution_admin", "platform_admin"].includes(currentUserRole);
+  const isPrivilegedRole = ["principal", "administrator", "admin", "institution_admin", "platform_admin", "demo"].includes(currentUserRole);
 
   // --- Weekly Test Comment Dialog state ---
   const [wtCommentFor, setWtCommentFor] = useState<{ testId: string; week: number } | null>(null);

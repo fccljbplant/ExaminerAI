@@ -118,6 +118,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   useEffect(() => { setView(initialView); }, [initialView]);
 
   const changeRole = async (id: string, role: string) => {
+    if (!confirm(`Change this user's role to "${role}"? This affects their permissions immediately.`)) return;
     setBusy(id);
     try { await api.patch(`/api/users/${id}/role`, { role }); await load(); }
     catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
@@ -133,6 +134,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   };
 
   const toggleBlock = async (id: string, currentlyBlocked: boolean) => {
+    if (!confirm(`${currentlyBlocked ? "Unblock" : "Block"} this user? ${currentlyBlocked ? "They will be able to log in again." : "They will not be able to log in until unblocked."}`)) return;
     setBusy(id);
     try {
       await api.put(`/api/users/${id}/block`, { blocked: !currentlyBlocked });

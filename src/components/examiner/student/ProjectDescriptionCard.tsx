@@ -5,6 +5,7 @@ import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ProjectSettingsCard } from "@/components/examiner/student/ProjectSettingsCard";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
   Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, Brain, AlertCircle, RefreshCw,
@@ -82,29 +83,23 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
     );
   }
 
-  // If no project set, prompt the user to create one via My Journey
+  // If no project set, show the ProjectSettingsCard inline so the student
+  // can create their capstone project directly — no dead-end navigation.
   if (!project?.projectName) {
     return (
-      <Card className="border-amber-500/30 bg-amber-500/5">
-        <CardContent className="p-6 text-center">
-          <ClipboardList className="h-10 w-10 text-amber-500 mx-auto mb-2" />
-          <h3 className="text-base font-semibold text-foreground mb-1">No project yet</h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            Go to <strong>My Journey</strong> to define your capstone project. You&apos;ll set the scope, objectives, requirements, and duration — then add your own tasks below.
-          </p>
-          <Button
-            size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            onClick={() => onMode ? onMode("journey") : (() => {
-              const url = new URL(window.location.href);
-              url.searchParams.set("view", "journey");
-              window.location.href = url.toString();
-            })()}
-          >
-            <Sparkles className="h-3.5 w-3.5" /> Plan My Project
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="p-4 text-center">
+            <ClipboardList className="h-8 w-8 text-amber-500 mx-auto mb-2" />
+            <h3 className="text-base font-semibold text-foreground mb-1">Set up your capstone project</h3>
+            <p className="text-xs text-muted-foreground mb-2">
+              Define your project below — name, scope, objectives, requirements, and duration.
+              The AI will then generate weekly tasks + milestones for you.
+            </p>
+          </CardContent>
+        </Card>
+        <ProjectSettingsCard />
+      </div>
     );
   }
 

@@ -109,10 +109,28 @@ export async function POST(req: Request) {
   const courseName = courseMeta?.name ?? "Modern Web Dev & AI Bootcamp";
   const signedBy = "AI Examiner"; // auto-signed; teacher can re-sign manually later
 
+  // Fetch the actual course ID via the student's batch (not the course name).
+  // Previously this stored courseMeta.name in the courseId foreign key field,
+  // breaking referential integrity.
+  let actualCourseId: string | null = null;
+  try {
+    const studentWithBatch = await db.user.findUnique({
+      where: { id: targetUserId },
+      select: { batchId: true },
+    });
+    if (studentWithBatch?.batchId) {
+      const batch = await db.batch.findUnique({
+        where: { id: studentWithBatch.batchId },
+        select: { courseId: true },
+      });
+      actualCourseId = batch?.courseId ?? null;
+    }
+  } catch { /* best-effort — certificate still valid without courseId */ }
+
   const certificate = await db.certificate.create({
     data: {
       userId: targetUserId,
-      courseId: courseMeta?.name ?? null, // we don't have the course ID here; courseMeta doesn't return it
+      courseId: actualCourseId, // actual Course.id (not the name)
       courseName,
       studentName: user.name,
       grade,
