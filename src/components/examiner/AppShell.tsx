@@ -6,6 +6,7 @@ import Login, { type PublicUser } from "./Login";
 import StudentDashboard from "./StudentDashboard";
 import TeacherDashboard from "./TeacherDashboard";
 import AdminDashboard from "./AdminDashboard";
+import GuardianDashboard from "./GuardianDashboard";
 import AITutor from "./AITutor";
 import TeacherAITutor from "./TeacherAITutor";
 import Messages from "./Messages";
@@ -108,13 +109,9 @@ const ALL_NAV: NavItem[] = [
   // ===== TEACHER / COURSE COORDINATOR (batch + course planner) =====
   { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["teacher", "course_coordinator"] },
 
-  // ===== GUARDIAN (read-only student view for their child) =====
-  // Guardians see the student dashboard in read-only mode (action buttons hidden).
-  // Uses UNIQUE keys (guardian-dashboard, guardian-progress) so they don't
-  // collide with the student's "dashboard" + "report-card" keys — that
-  // collision was causing duplicated nav tabs when switching roles.
-  { key: "guardian-dashboard", label: "My Child", icon: LayoutDashboard, roles: ["guardian"] },
-  { key: "guardian-progress", label: "Progress", icon: FileText, roles: ["guardian"] },
+  // ===== GUARDIAN (purpose-built parent dashboard — NOT a student clone) =====
+  { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
+  { key: "guardian-progress", label: "Report Cards", icon: FileText, roles: ["guardian"] },
 
   // ===== ADMIN (principal / administrator / developer / legacy admin) =====
   { key: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ADMIN_NAV_ROLES },
@@ -407,8 +404,8 @@ export default function AppShell() {
       case "weekly-test": return wrap(<StudentDashboard key={`weekly-test-${navClickCount}`} initialMode="weekly-test" />);
       case "gantt": return wrap(<StudentDashboard key={`gantt-${navClickCount}`} initialMode="gantt" />);
       case "report-card": return wrap(<StudentDashboard key={`report-card-${navClickCount}`} initialMode="report-card" />);
-      case "guardian-dashboard": return wrap(<StudentDashboard key={`guardian-${navClickCount}`} />);
-      case "guardian-progress": return wrap(<StudentDashboard key={`guardian-progress-${navClickCount}`} initialMode="report-card" />);
+      case "guardian-dashboard": return wrap(<GuardianDashboard key={`guardian-${navClickCount}`} onMessage={() => navigateTo("messages")} />);
+      case "guardian-progress": return wrap(<GuardianDashboard key={`guardian-progress-${navClickCount}`} />);
       case "batch": return wrap(<TeacherDashboard initialTab="today" />);
       case "batch-students": return wrap(<TeacherDashboard initialTab="students" />);
       case "batch-mentorship": return wrap(<TeacherDashboard initialTab="mentorship" />);
