@@ -16,7 +16,7 @@ import {
   Award, AlertCircle, RefreshCw, FolderOpen, MessageSquare, ClipboardList,
   CalendarCheck, Bug as BugIcon, Send, Inbox, ArrowLeft, HelpCircle,
   Lock, KeyRound, Edit3, Save, Trash2, Brain, FileText, LayoutDashboard, Activity,
-  GraduationCap, HeartHandshake, Plus, Download,
+  GraduationCap, HeartHandshake, Plus, Download, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import type { StudentRow, PortfolioData } from "@/components/examiner/teacher/types";
 import { TeacherCourseProgressView } from "@/components/examiner/teacher/TeacherCourseProgressView";
@@ -30,10 +30,16 @@ export function StudentPortfolioPage({
   student,
   onBack,
   onMessage,
+  onNext,
+  onPrev,
+  studentPosition,
 }: {
   student: StudentRow;
   onBack: () => void;
   onMessage: (studentId: string) => void;
+  onNext?: () => void;
+  onPrev?: () => void;
+  studentPosition?: string;
 }) {
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -383,6 +389,19 @@ export function StudentPortfolioPage({
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
+          {onPrev && (
+            <Button onClick={onPrev} variant="outline" size="sm" className="border-border px-2" title="Previous student">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+          {studentPosition && (
+            <span className="text-xs text-muted-foreground whitespace-nowrap">{studentPosition}</span>
+          )}
+          {onNext && (
+            <Button onClick={onNext} variant="outline" size="sm" className="border-border px-2" title="Next student">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
           <Button onClick={() => openReportCardDialog(student.currentWeek)} variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10">
             <FileText className="h-3 w-3" /> Report Card
           </Button>

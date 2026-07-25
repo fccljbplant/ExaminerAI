@@ -34,11 +34,11 @@ import { TeacherRulesPanel } from "@/components/examiner/teacher/TeacherRulesPan
 
 interface MentorshipViewProps {
   students: StudentRow[];
+  alerts: any[];
   onStudentClick: (student: StudentRow) => void;
 }
 
-export function MentorshipView({ students, onStudentClick }: MentorshipViewProps) {
-  const [alerts, setAlerts] = useState<any[]>([]);
+export function MentorshipView({ students, alerts, onStudentClick }: MentorshipViewProps) {
   const [touchpoints, setTouchpoints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -46,14 +46,11 @@ export function MentorshipView({ students, onStudentClick }: MentorshipViewProps
 
   // Defensive: ensure students is always an array
   const safeStudents = Array.isArray(students) ? students : [];
+  const safeAlerts = Array.isArray(alerts) ? alerts : [];
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [alertsRes] = await Promise.all([
-        api.get<{ alerts: any[] }>("/api/students/alerts").catch(() => ({ alerts: [] })),
-      ]);
-      setAlerts(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts : []);
       // Touchpoints will be loaded per-student on demand; for the overview
       // we show alerts + follow-ups from the students data
     } catch {

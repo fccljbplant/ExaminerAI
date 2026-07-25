@@ -33,12 +33,13 @@ import type { StudentRow } from "@/components/examiner/teacher/types";
 interface InsightsViewProps {
   students: StudentRow[];
   stats: any;
+  alerts: any[];
   onStudentClick: (student: StudentRow) => void;
 }
 
 const WELLBEING_COLORS = { green: "#10b981", amber: "#f59e0b", red: "#ef4444" };
 
-export function InsightsView({ students, stats, onStudentClick }: InsightsViewProps) {
+export function InsightsView({ students, stats, alerts, onStudentClick }: InsightsViewProps) {
   const [assistantQuery, setAssistantQuery] = useState("");
   const [assistantAnswer, setAssistantAnswer] = useState<string | null>(null);
   const [assistantLoading, setAssistantLoading] = useState(false);

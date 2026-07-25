@@ -26,6 +26,7 @@ type FilterType = "all" | "struggling_academic" | "struggling_psych" | "overdue"
 
 interface StudentsRosterProps {
   students: StudentRow[];
+  stats?: any;
   onStudentClick: (student: StudentRow) => void;
 }
 
@@ -38,7 +39,7 @@ const FILTER_LABELS: Record<FilterType, string> = {
   ontrack: "On track",
 };
 
-export function StudentsRoster({ students, onStudentClick }: StudentsRosterProps) {
+export function StudentsRoster({ students, stats, onStudentClick }: StudentsRosterProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [page, setPage] = useState(0);

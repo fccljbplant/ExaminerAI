@@ -1,21 +1,20 @@
 "use client";
 
 /**
- * TeacherDashboard — redesigned for 50-100 student scale with AI assistance.
+ * TeacherDashboard — the massive powerful assistant for 100 students.
  *
- * Design principles:
- * 1. Triage-first — the dashboard's #1 job is "who needs me now"
- * 2. Glanceable — color, badges, aggregation (can't read 100 rows)
+ * ARCHITECTURE:
+ * - Sidebar is the PRIMARY navigation (5 items: Today/Students/Mentorship/Assignments/Insights)
+ * - NO inline tabs for messages/myload/settings (sidebar handles those)
+ * - Single data load: stats + alerts fetched ONCE, passed to all views
+ * - Pagination support: uses hasMore/page from API (no silent student loss)
+ *
+ * DESIGN PRINCIPLES:
+ * 1. Triage-first — every view answers "who needs me?"
+ * 2. Glanceable — color, badges, charts (can't read 100 rows)
  * 3. AI as teammate — surfaces what to look at, drafts responses
- * 4. One-click actions — every triage item has a clear next action
- * 5. Progressive disclosure — summary → detail → deep dive
- *
- * 5 purpose-driven views:
- * - Today: triage queue + batch health pulse (5-min morning scan)
- * - Students: searchable roster with attention flags
- * - Mentorship: GROW coaching queue + follow-ups due
- * - Assignments: group tasks + peer assessment + events
- * - Insights: batch-level analytics + AI Assistant (weekly review)
+ * 4. One-click actions — every item has a clear next action
+ * 5. No duplicates — each feature lives in exactly one place
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -27,8 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
 import {
   CalendarDays, Users, HeartHandshake, ClipboardList, BarChart3,
-  Mail, Activity, Settings as SettingsIcon, Loader2, RefreshCw,
-  AlertTriangle, Sparkles,
+  Loader2, RefreshCw, AlertTriangle, Sparkles, Activity,
 } from "lucide-react";
 import type { StudentRow } from "@/components/examiner/teacher/types";
 import { TodayView } from "@/components/examiner/teacher/TodayView";
@@ -39,27 +37,46 @@ import { InsightsView } from "@/components/examiner/teacher/InsightsView";
 import { StudentPortfolioPage } from "@/components/examiner/teacher/StudentPortfolioPage";
 import { AIAssistantBox } from "@/components/examiner/teacher/ai/AIAssistantBox";
 
-export type TeacherTab = "today" | "students" | "mentorship" | "assignments" | "insights" | "messages" | "myload" | "settings";
+export type TeacherTab = "today" | "students" | "mentorship" | "assignments" | "insights";
 
 interface TeacherStats {
   totalStudents: number;
   pendingApprovals: number;
+  totalTeachers: number;
   testsThisWeek: number;
   studentsWithProjects: number;
   studentsWithoutProjects: number;
   studentsNeedingAttention: number;
   totalWithTests: number;
   totalActiveToday: number;
+  page?: number;
+  pageSize?: number;
+  hasMore?: boolean;
+  loadedCount?: number;
+}
+
+interface AlertItem {
+  id: string;
+  userId: string;
+  type: string;
+  severity: string;
+  reason: string;
+  metric?: string;
+  metricValue?: string;
+  status: string;
+  createdAt: string;
+  user?: { id: string; name: string; email: string; batchId: string | null };
 }
 
 export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherTab } = {}) {
   const [tab, setTab] = useState<TeacherTab>(initialTab || "today");
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [stats, setStats] = useState<TeacherStats | null>(null);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
-  const [openAlertCount, setOpenAlertCount] = useState(0);
+  const [selectedStudentIndex, setSelectedStudentIndex] = useState<number>(-1);
 
   // Update tab when initialTab prop changes (from sidebar nav clicks)
   useEffect(() => {
@@ -73,15 +90,13 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
           stats: TeacherStats;
           students: StudentRow[];
         }>("/api/stats?as=teacher", undefined, AI_TIMEOUT_MS),
-        api.get<{ alerts: any[] }>("/api/students/alerts").catch(() => ({ alerts: [] })),
+        api.get<{ alerts: AlertItem[] }>("/api/students/alerts").catch(() => ({ alerts: [] as AlertItem[] })),
       ]);
-      // Defensive guards — API might return unexpected shapes
       setStats(statsRes?.stats || null);
       setStudents(Array.isArray(statsRes?.students) ? statsRes.students : []);
-      setOpenAlertCount(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts.length : 0);
+      setAlerts(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts : []);
     } catch (e) {
       showError(e);
-      // Ensure we still render with empty state instead of crashing
       setStudents([]);
       setStats(null);
     } finally {
@@ -92,21 +107,44 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
 
   useEffect(() => { load(); }, [load]);
 
-  // If a student is selected, show the portfolio page
+  // Student portfolio navigation
+  const handleStudentClick = (student: StudentRow) => {
+    const idx = students.findIndex(s => s.id === student.id);
+    setSelectedStudentIndex(idx);
+    setSelectedStudent(student);
+  };
+
+  const handleNextStudent = () => {
+    if (selectedStudentIndex < students.length - 1) {
+      const nextIdx = selectedStudentIndex + 1;
+      setSelectedStudentIndex(nextIdx);
+      setSelectedStudent(students[nextIdx]);
+    }
+  };
+
+  const handlePrevStudent = () => {
+    if (selectedStudentIndex > 0) {
+      const prevIdx = selectedStudentIndex - 1;
+      setSelectedStudentIndex(prevIdx);
+      setSelectedStudent(students[prevIdx]);
+    }
+  };
+
   if (selectedStudent) {
     return (
       <StudentPortfolioPage
         student={selectedStudent}
-        onBack={() => { setSelectedStudent(null); load(); }}
-        onMessage={(studentId) => { setSelectedStudent(null); setTab("messages"); }}
+        onBack={() => { setSelectedStudent(null); setSelectedStudentIndex(-1); load(); }}
+        onMessage={() => { setSelectedStudent(null); }}
+        onNext={selectedStudentIndex < students.length - 1 ? handleNextStudent : undefined}
+        onPrev={selectedStudentIndex > 0 ? handlePrevStudent : undefined}
+        studentPosition={selectedStudentIndex >= 0 ? `${selectedStudentIndex + 1} / ${students.length}` : undefined}
       />
     );
   }
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    load();
-  };
+  const openAlertCount = alerts.filter(a => a.status === "open").length;
+  const crisisCount = alerts.filter(a => a.severity === "red" && a.status === "open").length;
 
   if (loading) {
     return (
@@ -116,49 +154,68 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
     );
   }
 
-  const TABS: Array<{ key: TeacherTab; label: string; icon: any; badge?: number }> = [
-    { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined },
+  const TABS: Array<{ key: TeacherTab; label: string; icon: any; badge?: number; badgeColor?: "amber" | "red" }> = [
+    { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined, badgeColor: "amber" as const },
     { key: "students", label: "Students", icon: Users },
-    { key: "mentorship", label: "Mentorship", icon: HeartHandshake },
+    { key: "mentorship", label: "Mentorship", icon: HeartHandshake, badge: crisisCount || undefined, badgeColor: "red" as const },
     { key: "assignments", label: "Assignments", icon: ClipboardList },
     { key: "insights", label: "Insights", icon: BarChart3 },
-    { key: "messages", label: "Messages", icon: Mail },
-    { key: "myload", label: "My Load", icon: Activity },
-    { key: "settings", label: "Settings", icon: SettingsIcon },
   ];
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      {/* Header bar */}
+      {/* Header bar — with inline stat pills */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Teacher Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {stats ? `${stats.totalStudents} students · ${stats.studentsNeedingAttention} need attention · ${stats.testsThisWeek} tests this week` : "Loading..."}
-          </p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {stats && (
+              <>
+                <Badge variant="outline" className="text-xs">
+                  <Users className="w-3 h-3 mr-1" />
+                  {stats.totalStudents} students
+                </Badge>
+                {stats.studentsNeedingAttention > 0 && (
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    {stats.studentsNeedingAttention} need attention
+                  </Badge>
+                )}
+                {stats.pendingApprovals > 0 && (
+                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800">
+                    {stats.pendingApprovals} pending
+                  </Badge>
+                )}
+                {stats.testsThisWeek > 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    <ClipboardList className="w-3 h-3 mr-1" />
+                    {stats.testsThisWeek} tests this week
+                  </Badge>
+                )}
+                {stats.totalActiveToday > 0 && (
+                  <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800">
+                    <Activity className="w-3 h-3 mr-1" />
+                    {stats.totalActiveToday} active today
+                  </Badge>
+                )}
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {openAlertCount > 0 && (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800">
-              <AlertTriangle className="w-3 h-3 mr-1" />
-              {openAlertCount} open {openAlertCount === 1 ? "alert" : "alerts"}
-            </Badge>
-          )}
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", refreshing && "animate-spin")} />
-            Refresh
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); load(); }} disabled={refreshing}>
+          <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", refreshing && "animate-spin")} />
+          Refresh
+        </Button>
       </div>
 
-      {/* Sub-navigation tabs — prominent, theme-synced */}
+      {/* Inline tab nav — ONLY the 5 main views (no messages/myload/settings — sidebar handles those) */}
       <ProminentTabs
         tabs={TABS.map(item => ({
           key: item.key,
           label: item.label,
           icon: item.icon,
           badge: item.badge,
-          badgeColor: "amber" as const,
+          badgeColor: item.badgeColor,
         }))}
         active={tab}
         onChange={(key) => setTab(key as TeacherTab)}
@@ -166,143 +223,46 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
         size="md"
       />
 
-      {/* Tab content */}
+      {/* Tab content — each view receives students + stats + alerts as props (no refetching) */}
       {tab === "today" && (
         <div className="space-y-4">
           <TodayView
             students={students}
             stats={stats}
-            onStudentClick={(s) => setSelectedStudent(s)}
+            alerts={alerts}
+            onStudentClick={handleStudentClick}
             onViewChange={(v) => setTab(v as TeacherTab)}
           />
-          <AIAssistantBox students={students} onStudentClick={(s) => setSelectedStudent(s)} />
+          <AIAssistantBox students={students} onStudentClick={handleStudentClick} />
         </div>
       )}
 
       {tab === "students" && (
         <StudentsRoster
           students={students}
-          onStudentClick={(s) => setSelectedStudent(s)}
+          stats={stats}
+          onStudentClick={handleStudentClick}
         />
       )}
 
       {tab === "mentorship" && (
         <MentorshipView
           students={students}
-          onStudentClick={(s) => setSelectedStudent(s)}
+          alerts={alerts}
+          onStudentClick={handleStudentClick}
         />
       )}
 
-      {tab === "assignments" && <AssignmentsTab />}
+      {tab === "assignments" && <AssignmentsTab students={students} />}
 
       {tab === "insights" && (
         <InsightsView
           students={students}
           stats={stats}
-          onStudentClick={(s) => setSelectedStudent(s)}
+          alerts={alerts}
+          onStudentClick={handleStudentClick}
         />
       )}
-
-      {tab === "messages" && <MessagesTab onBack={() => setTab("today")} />}
-
-      {tab === "myload" && <MyLoadView />}
-
-      {tab === "settings" && <SettingsTab />}
-    </div>
-  );
-}
-
-// ============================================================
-// Messages tab (inline — simple compose)
-// ============================================================
-function MessagesTab({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="space-y-4">
-      <Button variant="ghost" size="sm" onClick={onBack}>
-        ← Back to Dashboard
-      </Button>
-      <div className="rounded-xl border bg-card p-8 text-center">
-        <Mail className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
-        <h3 className="text-base font-semibold mb-1">Messages</h3>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Use the Messages tab in the sidebar to view and send messages to students and staff.
-        </p>
-        <Button variant="outline" size="sm" className="mt-4" onClick={onBack}>
-          Back to Dashboard
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// My Load tab (inline — teacher's own wellbeing)
-// ============================================================
-function MyLoadView() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.get("/api/teacher/load").then((d: any) => setData(d)).catch(() => {}).finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <div className="py-10 text-center text-sm text-muted-foreground">Loading...</div>;
-  if (!data) return <div className="py-10 text-center text-sm text-muted-foreground">Unable to load.</div>;
-
-  const tierColor = data.tier === "green" ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30"
-    : data.tier === "amber" ? "text-amber-600 bg-amber-50 dark:bg-amber-950/30"
-    : "text-rose-600 bg-rose-50 dark:bg-rose-950/30";
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl border bg-card p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold">My Load & Wellbeing</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Only you can see this. Burnout prevention matters.</p>
-          </div>
-          <Badge className={tierColor}>Tier: {data.tier || "green"}</Badge>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3 rounded-lg bg-muted/50">
-            <div className="text-xs text-muted-foreground">Response Time</div>
-            <div className="text-lg font-semibold mt-1">{data.avgResponseHours?.toFixed(1) || "—"}h</div>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/50">
-            <div className="text-xs text-muted-foreground">Touchpoints (7d)</div>
-            <div className="text-lg font-semibold mt-1">{data.touchpointsThisWeek || 0}</div>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/50">
-            <div className="text-xs text-muted-foreground">Crisis Load</div>
-            <div className="text-lg font-semibold mt-1">{data.crisisLoad || 0}</div>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/50">
-            <div className="text-xs text-muted-foreground">Completion Rate</div>
-            <div className="text-lg font-semibold mt-1">{data.completionRate?.toFixed(0) || 0}%</div>
-          </div>
-        </div>
-        {data.reasons && data.reasons.length > 0 && (
-          <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-            <div className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">Signals</div>
-            <ul className="text-xs text-amber-600 dark:text-amber-400 space-y-1">
-              {data.reasons.map((r: string, i: number) => <li key={i}>• {r}</li>)}
-            </ul>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// Settings tab (inline — change password)
-// ============================================================
-function SettingsTab() {
-  return (
-    <div className="rounded-xl border bg-card p-6">
-      <h3 className="text-lg font-semibold mb-2">Settings</h3>
-      <p className="text-sm text-muted-foreground mb-4">Manage your account settings.</p>
-      <Button variant="outline" size="sm">Change Password</Button>
     </div>
   );
 }
