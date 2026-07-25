@@ -12,40 +12,40 @@
 
 ## Executive Summary
 
-### Fixes Applied (commits fae90a3 + c5f7011 + batch 2)
+### Fixes Applied (commits fae90a3 + c5f7011 + batch 2 + batch 3)
 
 The following P0 and P1 issues have been fixed:
 
 | # | Issue | Status | Fix |
 |---|---|---|---|
-| P0-1 | GROW coaching backend rejects GROW types | ✅ FIXED | Added goal_setting, reality_check, options_explore, will_commit + 4 more types to VALID_TYPES |
-| P0-2 | /api/comments GET lets students read other students' comments | ✅ FIXED | Added RBAC check (staff or self only) + assertCanAccessStudent IDOR check |
-| P0-3 | Safeguarding pipeline is dead code | ✅ FIXED | Wired analyzeMessageForSafeguarding into /api/messages POST (staff→student) and /api/comments POST |
-| P0-4 | /api/students/alerts leaks safeguarding flags to all staff | ✅ FIXED | Non-principal staff see type != 'safeguarding'. Added IDOR check |
-| P0-5 | Self-paced day-5 → week advance broken | ✅ FIXED | canAdvanceDay allows day 5 when all week's tasks complete |
-| P0-6 | Self-paced advancement has no UI | ✅ FIXED | New SelfPacedAdvanceButton on student Home view |
-| P0-7 | StudentDashboard onMode dead-end buttons | ✅ FIXED | GanttPanel onMode routes to 'study' instead of 'home' |
-| P0-8 | Students can't create capstone projects | ✅ FIXED | ProjectSettingsCard now renders inline when no project exists (no dead-end navigation) |
-| P0-9 | Certificate generation UI is dead code | ✅ FIXED | CertificateCard component added to ReportCardPanel (Progress tab) — students can generate + view + share |
+| P0-1 | GROW coaching backend rejects GROW types | ✅ FIXED | Added 8 new touchpoint types to VALID_TYPES |
+| P0-2 | /api/comments GET lets students read other students' comments | ✅ FIXED | RBAC + IDOR check |
+| P0-3 | Safeguarding pipeline is dead code | ✅ FIXED | Wired into messages + comments POST |
+| P0-4 | /api/students/alerts leaks safeguarding flags | ✅ FIXED | Principal-only filtering + IDOR |
+| P0-5 | Self-paced day-5 → week advance broken | ✅ FIXED | canAdvanceDay allows day 5 when all tasks done |
+| P0-6 | Self-paced advancement has no UI | ✅ FIXED | SelfPacedAdvanceButton on Home view |
+| P0-7 | StudentDashboard onMode dead-end buttons | ✅ FIXED | Fixed routing |
+| P0-8 | Students can't create capstone projects | ✅ FIXED | ProjectSettingsCard renders inline |
+| P0-9 | Certificate generation UI is dead code | ✅ FIXED | CertificateCard in ReportCardPanel |
+| P0-10 | 18 IDOR vulnerabilities | ✅ FIXED | Added assertCanAccessStudent to all 18 endpoints: crisis-flags, psych-evidence, interactions, skill-mastery, wellbeing-state, mentorship/touchpoints, report-cards, comments, students/alerts |
 | P1-1 | 14 AI feature keys missing from FEATURE_TO_CATEGORY | ✅ FIXED | All 14 orphan keys added |
-| P1-2 | Z.ai + z-ai-sdk skip rate limiter | ✅ FIXED | Z.ai fallback now calls waitForSlot() |
-| P1-3 | RPD limit never enforced | ✅ FIXED | waitForSlot checks _dailyCount >= RATE_LIMIT_RPD |
+| P1-2 | Z.ai + z-ai-sdk skip rate limiter | ✅ FIXED | Z.ai now calls waitForSlot() |
+| P1-3 | RPD limit never enforced | ✅ FIXED | waitForSlot checks RPD |
 | P1-4 | waitForSlot stale timestamp bug | ✅ FIXED | Recomputes 'now' after sleep |
-| P1-5 | SkillMastery overwritten by single test | ✅ FIXED | Rolling average: 40% new + 60% existing (3+ evidence) |
-| P1-6 | Wellbeing tier never decays | ✅ FIXED | Decays to GREEN after 14 days no evidence + no crisis flags |
-| P1-7 | Escalation cron has no scheduler | ✅ FIXED | Added vercel.json cron (daily at midnight UTC) |
-| P1-8 | WeeklyTestPanel admin check uses wrong string | ✅ FIXED | Now checks all admin role variants including 'administrator', 'principal', 'demo' |
-| P1-9 | Certificate stores course name in courseId field | ✅ FIXED | Now fetches actual Course.id via student's batch |
-| P1-10 | Crisis response doesn't notify counselor/principal | ✅ FIXED | Crisis flag creation now sends in-app messages to all counselors + principals + admins |
-| P1-11 | Teacher-load module uses non-existent fromUserId field | ✅ FIXED | Replaced with correct batch-scoped StudentAlert queries |
-| P1-12 | Demo can't see Audit tab on student portfolios | ✅ FIXED | Added 'demo' to isPrivilegedRole check in StudentPortfolioPage |
-| P1-13 | Destructive actions missing confirmation dialogs | ✅ FIXED | Added confirm() to changeRole + toggleBlock in AdminDashboard |
+| P1-5 | SkillMastery overwritten by single test | ✅ FIXED | Rolling average |
+| P1-6 | Wellbeing tier never decays | ✅ FIXED | Decays to GREEN after 14 days |
+| P1-7 | Escalation cron has no scheduler | ✅ FIXED | vercel.json cron added |
+| P1-8 | WeeklyTestPanel admin check uses wrong string | ✅ FIXED | Checks all admin variants |
+| P1-9 | Certificate stores course name in courseId | ✅ FIXED | Fetches actual Course.id via batch |
+| P1-10 | Crisis response doesn't notify | ✅ FIXED | Sends in-app messages to counselors + principals + admins |
+| P1-11 | Teacher-load module non-existent field | ✅ FIXED | Replaced fromUserId with batch-scoped queries |
+| P1-12 | Demo can't see Audit tab on portfolios | ✅ FIXED | Added 'demo' to isPrivilegedRole |
+| P1-13 | Destructive actions missing confirmation | ✅ FIXED | Added confirm() to changeRole + toggleBlock |
 
 ### Issues Still Pending
 
 | # | Issue | Priority | Status |
 |---|---|---|---|
-| P0-10 | 16 remaining IDOR vulnerabilities (crisis-flags, psych-evidence, interactions, etc.) | P0 | ❌ PENDING |
 | P1-14 | 13 raw fetch() calls in StudentPortfolioPage bypass demo guard | P1 | ❌ PENDING |
 | P1-15 | Role checks use raw strings, not normalizeRole (0 components import it) | P1 | ❌ PENDING |
 | P1-16 | Anti-cheat flags not persisted to DB | P1 | ❌ PENDING |

@@ -1,7 +1,7 @@
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, getAuthUser } from "@/lib/auth";
+import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/interactions?userId=...&week=... — list interactions.
@@ -17,6 +17,10 @@ export async function GET(req: NextRequest) {
   let targetUserId = payload.sub;
   if (userIdParam && (isStaffRole(payload.role))) {
     targetUserId = userIdParam;
+    // IDOR protection
+    try { await assertCanAccessStudent(payload, targetUserId); } catch (err: any) {
+      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    }
   }
   const interactions = await db.interaction.findMany({
     where: { userId: targetUserId, ...(week ? { week: Number(week) } : {}) },

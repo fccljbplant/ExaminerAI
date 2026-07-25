@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { logger } from "@/lib/logger";
+import { assertCanAccessStudent } from "@/lib/auth";
 
 /** GET /api/skill-mastery?userId=X — per-topic mastery for a student.
  *
@@ -33,6 +34,11 @@ export async function GET(req: NextRequest) {
 
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
 
   try {
     // 1. Try persisted SkillMastery rows first

@@ -4,9 +4,11 @@ import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
 import { logger } from "@/lib/logger";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { assertCanAccessStudent } from "@/lib/auth";
 
 /** GET /api/crisis-flags?userId=X — list crisis flags for a student.
- *  Sensitive — content not duplicated. Returns metadata only, never the evidence text. */
+ *  Sensitive — content not duplicated. Returns metadata only, never the evidence text.
+ *  IDOR protected: caller must have batch access to the student. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.COUNSELOR,
@@ -16,6 +18,11 @@ export async function GET(req: NextRequest) {
 
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
 
   const flags = await db.crisisFlag.findMany({
     where: { userId },
@@ -77,6 +84,11 @@ export async function POST(req: NextRequest) {
   });
   if (!student) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
+  }
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
   }
 
   try {

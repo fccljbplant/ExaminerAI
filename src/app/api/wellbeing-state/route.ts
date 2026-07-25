@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
+import { assertCanAccessStudent } from "@/lib/auth";
 
-/** GET /api/wellbeing-state?userId=X — current Green/Amber/Red tier for a student. */
+/** GET /api/wellbeing-state?userId=X — current Green/Amber/Red tier for a student.
+ *  IDOR protected: caller must have batch access to the student. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COUNSELOR,
@@ -12,6 +14,11 @@ export async function GET(req: NextRequest) {
 
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
 
   const state = await db.wellbeingState.findUnique({
     where: { userId },

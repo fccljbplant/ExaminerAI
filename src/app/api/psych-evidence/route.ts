@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, assertCanAccessStudent, getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/psych-evidence?userId=X — list psychological evidence for a student.
- *  Staff can query any student. Students can query their own (no userId needed). */
+ *  Staff can query students in their batch. Students can query their own. */
 export async function GET(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const payload = await getAuthUser();
+  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const requestedUserId = req.nextUrl.searchParams.get("userId");
-  // Students can only see their own evidence; staff can query anyone
-  const isStaff = ["teacher", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
-  const userId = isStaff ? (requestedUserId || user.id) : user.id;
+  // Students can only see their own evidence; staff can query students they have access to
+  const userId = requestedUserId || payload.sub;
+
+  // IDOR protection: if requesting another user's data, verify access
+  if (userId !== payload.sub) {
+    try { await assertCanAccessStudent(payload, userId); } catch (err: any) {
+      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    }
+  }
 
   const evidence = await db.psychEvidence.findMany({
     where: { userId },
@@ -37,6 +43,11 @@ export async function POST(req: NextRequest) {
   };
   if (!userId || !dimension || !value || !evidenceText) {
     return NextResponse.json({ error: "userId, dimension, value, evidenceText required" }, { status: 400 });
+  }
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
   }
 
   const ev = await db.psychEvidence.create({

@@ -1,7 +1,7 @@
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, getAuthUser } from "@/lib/auth";
+import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/report-cards?userId=... */
@@ -12,6 +12,10 @@ export async function GET(req: NextRequest) {
   let targetUserId = payload.sub;
   if (userIdParam && (isStaffRole(payload.role))) {
     targetUserId = userIdParam;
+    // IDOR protection
+    try { await assertCanAccessStudent(payload, targetUserId); } catch (err: any) {
+      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    }
   }
   const cards = await db.reportCard.findMany({
     where: { userId: targetUserId },
@@ -34,6 +38,10 @@ export async function POST(req: NextRequest) {
   } = body as Record<string, unknown>;
   if (!userId || !week) {
     return NextResponse.json({ error: "userId and week required" }, { status: 400 });
+  }
+  // IDOR protection
+  try { await assertCanAccessStudent(payload, String(userId)); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
   }
   // Input validation — prevent resource exhaustion
   const MAX_TEXT = 10_000;

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
 import { logger } from "@/lib/logger";
+import { assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/mentorship/touchpoints?userId=X — list touchpoints for a student.
@@ -21,6 +22,11 @@ export async function GET(req: NextRequest) {
 
   const userId = req.nextUrl.searchParams.get("userId");
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
 
   const touchpoints = await db.mentorshipTouchpoint.findMany({
     where: { userId },
@@ -74,6 +80,11 @@ export async function POST(req: NextRequest) {
 
   if (!userId || !type || !note?.trim()) {
     return NextResponse.json({ error: "userId, type, and note required" }, { status: 400 });
+  }
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
   }
 
   const VALID_TYPES = [
