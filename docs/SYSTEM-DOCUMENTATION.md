@@ -259,7 +259,7 @@ See Section 3 above.
 | Weekly project reports | ✅ | POST /api/project/reports |
 | Final capstone analysis | ✅ | POST /api/students/[id]/generate-project-analysis |
 | Daily check-in | ✅ | CheckInPanel component |
-| Self-paced day advancement | ⚠️ No UI | POST /api/self-paced (no button calls it) |
+| Self-paced day advancement | ✅ Fixed | POST /api/self-paced + SelfPacedAdvanceButton UI |
 | Comprehensive private report | ✅ | GET /api/students/[id]/comprehensive-report |
 | Certificate generation | ⚠️ UI dead code | POST /api/certificates/generate (OverviewPanel unreachable) |
 | Report cards | ✅ | ReportCardPanel component |
@@ -275,7 +275,7 @@ See Section 3 above.
 | Student portfolio (10 tabs) | ✅ | StudentPortfolioPage component |
 | 7-dimension psychology | ✅ | PsychologicalTab component |
 | Educational tab (skill mastery) | ✅ | EducationalTab component |
-| GROW mentorship | ❌ Backend rejects GROW types | MentorshipTabV2 (POST returns 400) |
+| GROW mentorship | ✅ Fixed | MentorshipTabV2 (GROW types now accepted by backend) |
 | AI Assistant (natural language) | ✅ | POST /api/teacher/assistant |
 | Draft check-in message | ✅ | POST /api/students/[id]/draft-checkin |
 | Rehearse conversation | ✅ | POST /api/students/[id]/rehearse |
@@ -319,7 +319,7 @@ See Section 3 above.
 | Academic performance | ✅ | |
 | Wellbeing distribution | ✅ | |
 | Audit log | ✅ | AuditView (hidden from demo) |
-| Safeguarding flags | ❌ Dead code | analyzeMessageForSafeguarding never called |
+| Safeguarding flags | ✅ Fixed | analyzeMessageForSafeguarding now wired into messages + comments POST |
 | Teacher load management | ❌ Dead code | teacher-load.ts uses non-existent field |
 | Co-teacher suggestion | ❌ Never called | suggestCoTeacher function unused |
 
@@ -442,24 +442,24 @@ Red: ≥ 100
 4. Plagiarism score >50 on recent weekly test
 5. Voice inconsistency analysis (vocabulary jumps, AI-typical phrasing)
 
-### Safeguarding (spec — currently dead code, see audit)
-1. Deterministic regex pre-filter (5 categories)
-2. AI explains candidates (cannot invent flags)
-3. 2+ corroborating signals required (never single message)
-4. Principal-only visibility
-5. Dismissed, not deleted
+### Safeguarding (now live — wired into messages + comments POST)
+1. Deterministic regex pre-filter (5 categories) — scans every staff→student message + comment
+2. AI explains candidates (cannot invent flags) — future enhancement
+3. 2+ corroborating signals required (never single message) — aggregation via StudentAlert
+4. Principal-only visibility — non-principal staff see type != 'safeguarding' alerts
+5. Dismissed, not deleted — alerts persist with status='dismissed'
 
 ## Process Flows
 
 ### Student Journey
 ```
 Sign up (pending) → Teacher approves → Login
-→ [DEAD END: JourneyWizard is dead code — can't create project]
+→ Self-paced advance button on Home (when today's tasks done)
 → Daily tasks (self-paced currentDay) → Practice/Daily/Weekly tests
-→ 7-dimension psych evidence per test → Wellbeing tier computed
-→ Mentorship touchpoints on tier transitions
+→ 7-dimension psych evidence per test → Wellbeing tier computed (decays if inactive 14d)
+→ Mentorship touchpoints on tier transitions (including GROW types)
 → Comprehensive report (Progress tab)
-→ [DEAD END: Certificate UI is dead code]
+→ Certificate generation (API works, UI still pending)
 ```
 
 ### Teacher Flow
@@ -467,9 +467,10 @@ Sign up (pending) → Teacher approves → Login
 Login → Today view (triage queue, attention-scored)
 → Click student → Portfolio (10 tabs)
 → AI Tools (explain, narrative, draft check-in, rehearse)
-→ GROW mentorship [BROKEN: backend rejects GROW types]
+→ GROW mentorship (now functional — all GROW types accepted)
 → AI Assistant (natural language batch queries)
 → Alerts → Action dialog → Mentorship touchpoint
+→ Safeguarding: messages + comments scanned automatically
 ```
 
 ### Crisis Response
@@ -485,11 +486,14 @@ Crisis flag created (manual or AI-detected)
 ### Self-Paced Advancement
 ```
 Student completes today's tasks
-→ canAdvanceDay = true (if currentDay < 5 AND all today's tasks done)
-→ [GAP: no UI button to call POST /api/self-paced]
-→ If currentDay === 5: [BROKEN: can't advance to next week]
-→ Weekly test unlocks when all week's tasks complete (already works)
+→ canAdvanceDay = true (if currentDay < 5 OR (currentDay === 5 AND all week's tasks done))
+→ SelfPacedAdvanceButton shows on Home view
+→ Student clicks "Advance to Day X" → POST /api/self-paced
+→ currentDay advances (or currentWeek+1 if day 5)
+→ Page reloads → daily-tasks endpoint shows next day's tasks
+→ Weekly test unlocks when all week's tasks complete
 → Weekly test completion auto-advances currentWeek
+→ Anti-cheat flags surfaced in the UI (informational, not blocking)
 ```
 
 ### Comprehensive Report Generation
@@ -504,30 +508,36 @@ Gather data from 14 sources (psychEvidence, confidenceRatings, skillMastery, tou
 
 See `docs/COMPREHENSIVE-AUDIT-2026-07-26.md` for the full audit report with 50 prioritized issues.
 
-### Critical (P0)
-1. Students can't create capstone projects (JourneyWizard dead code)
-2. GROW coaching backend rejects GROW touchpoint types
-3. Safeguarding pipeline is dead code (never invoked)
-4. Students can't generate certificates from UI (dead code)
-5. Self-paced advancement has no UI
-6. `/api/comments` GET lets students read other students' comments
-7. 18 IDOR vulnerabilities (cross-batch data access)
-8. `/api/students/alerts` leaks safeguarding flags to all staff
+### Fixed Issues (commits fae90a3 + c5f7011)
 
-### High (P1)
-9. 14 AI endpoints missing rate-limiting
-10. Teacher-load module uses non-existent schema field
-11. Certificate stores course name in courseId field
-12. SkillMastery overwritten by single test
-13. Wellbeing tier never decays
-14. Self-paced day-5 → week advance broken
-15. 13 raw fetch() calls bypass demo guard
-16. WeeklyTestPanel admin check uses wrong string
-17. Role checks use raw strings, not normalizeRole
-18. Z.ai + z-ai-sdk skip rate limiter
-19. RPD limit never enforced
-20. waitForSlot stale timestamp bug
-21. Crisis response doesn't notify counselor/principal
-22. Escalation cron has no scheduler
-23. Anti-cheat flags not persisted
-24. Destructive actions missing confirmation dialogs
+| # | Issue | Fix |
+|---|---|---|
+| 1 | GROW coaching backend rejects GROW types | ✅ Added 8 new touchpoint types to VALID_TYPES |
+| 2 | Safeguarding pipeline is dead code | ✅ Wired analyzeMessageForSafeguarding into messages + comments POST |
+| 3 | /api/comments GET lets students read other students' comments | ✅ Added RBAC + IDOR check |
+| 4 | /api/students/alerts leaks safeguarding flags to all staff | ✅ Filtered to principal-only + added IDOR check |
+| 5 | Self-paced day-5 → week advance broken | ✅ canAdvanceDay now allows day 5 when all week's tasks done |
+| 6 | Self-paced advancement has no UI | ✅ New SelfPacedAdvanceButton on student Home view |
+| 7 | StudentDashboard onMode dead-end buttons | ✅ Fixed routing (GanttPanel → study, not home) |
+| 8 | 14 AI feature keys missing from FEATURE_TO_CATEGORY map | ✅ All 14 orphan keys added |
+| 9 | Z.ai + z-ai-sdk skip rate limiter | ✅ Z.ai now calls waitForSlot() |
+| 10 | RPD limit never enforced | ✅ waitForSlot checks _dailyCount >= RATE_LIMIT_RPD |
+| 11 | waitForSlot stale timestamp bug | ✅ Recomputes 'now' after sleep |
+| 12 | SkillMastery overwritten by single test | ✅ Rolling average (40% new + 60% existing for 3+ evidence) |
+| 13 | Wellbeing tier never decays | ✅ Decays to GREEN after 14 days no evidence + no crisis flags |
+| 14 | Escalation cron has no scheduler | ✅ Added vercel.json cron (daily at midnight UTC) |
+
+### Still Pending (next batch)
+
+1. Students can't create capstone projects (JourneyWizard dead code) — P0
+2. Certificate generation UI is dead code — P0
+3. 16 remaining IDOR vulnerabilities — P0
+4. 13 raw fetch() calls bypass demo guard — P1
+5. WeeklyTestPanel admin check uses wrong string — P1
+6. Role checks use raw strings, not normalizeRole — P1
+7. Certificate stores course name in courseId field — P1
+8. Teacher-load module uses non-existent schema field — P1
+9. Crisis response doesn't notify counselor/principal — P1
+10. Anti-cheat flags not persisted to DB — P1
+11. Destructive actions missing confirmation dialogs — P1
+12. Dead code (~3,209 lines), pagination, accessibility — P2
