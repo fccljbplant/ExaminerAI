@@ -9,6 +9,7 @@ import {
   ensureAdminUser,
   getCookieOptions,
 } from "@/lib/auth";
+import { normalizeRole } from "@/lib/rbac";
 
 /** POST /api/auth/login — email/password login, sets JWT cookie. */
 export async function POST(req: NextRequest) {
@@ -67,15 +68,30 @@ export async function POST(req: NextRequest) {
     data: { lastLogin: new Date() },
   }).catch(err => console.error("Failed to update lastLogin:", err instanceof Error ? err.message : String(err)));
 
+  // Normalize the role — legacy aliases like 'admin' → 'administrator',
+  // 'institution_admin' → 'principal', 'platform_admin' → 'administrator'.
+  // This ensures the JWT and /api/auth/me always return canonical roles,
+  // so role checks throughout the app work correctly.
+  const canonicalRole = normalizeRole(user.role) || user.role;
+
+  // If the DB still has a legacy alias, fix it in the DB so future logins
+  // and direct DB queries see the canonical role. Best-effort, non-blocking.
+  if (canonicalRole !== user.role) {
+    db.user.update({
+      where: { id: user.id },
+      data: { role: canonicalRole },
+    }).catch(err => console.error("Failed to normalize user role:", err instanceof Error ? err.message : String(err)));
+  }
+
   const token = signToken({
     sub: user.id,
     email: user.email,
-    role: user.role,
+    role: canonicalRole,
     name: user.name,
   });
 
   const res = NextResponse.json({
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    user: { id: user.id, email: user.email, name: user.name, role: canonicalRole },
   });
   res.cookies.set(TOKEN_COOKIE, token, getCookieOptions());
   return res;

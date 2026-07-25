@@ -196,7 +196,7 @@ async function main() {
       email: 'admin@examiner.ai',
       name: 'Administrator',
       passwordHash: await hashPwd('helloworld'),
-      role: 'admin',
+      role: 'administrator',
       approvedAt: new Date(),
       institutionId: institution.id
     }

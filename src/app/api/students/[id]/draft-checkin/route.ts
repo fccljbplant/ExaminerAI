@@ -5,6 +5,7 @@ import { callAI } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 
 /** POST /api/students/[id]/draft-checkin — AI drafts a check-in message
  *  in the teacher's own voice, referencing the specific concern.
@@ -37,6 +38,26 @@ export async function POST(
     await assertCanAccessStudent(payload, id);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
+
+  // Demo AI enable/disable check (admin-configurable)
+  const isDemoUser = payload.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (assistant category — student-detail tools)
+  const category = categoryForFeature("draft-checkin");
+  const limit = await checkUserAILimit(payload.sub, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI Assistant limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -121,6 +142,7 @@ Draft the check-in message:`;
       feature: "draft-checkin",
       temperature: 0.5, // slightly higher — we want it to sound natural
       maxTokens: 200,
+      userId: payload.sub,
     });
 
     const draft = result.text?.trim() || "Hi {studentName}, I wanted to check in and see how things are going. Let me know if you'd like to talk.";

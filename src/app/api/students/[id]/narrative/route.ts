@@ -4,6 +4,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 import crypto from "crypto";
 
 /** GET /api/students/[id]/narrative — living-book narrative.
@@ -22,6 +23,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   try { await assertCanAccessStudent(payload, id); } catch (err: any) {
     return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
+
+  // Demo AI enable/disable check (admin-configurable)
+  const isDemoUser = payload.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (assistant category — student-detail tools)
+  const category = categoryForFeature("narrative-week");
+  const limit = await checkUserAILimit(payload.sub, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI Assistant limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
   }
 
   const [student, psychEvidence, interactions, touchpoints, weeklyTests] = await Promise.all([
@@ -84,7 +105,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       const result = await callAI([
         { role: "system", content: "Write one paragraph (2-3 sentences) about this student's week. Plain language. Note what changed. Note uncertainty. Never diagnose. Roman script." },
         { role: "user", content: `Student: ${student.name}, Week ${week}\nData: ${JSON.stringify(weekData)}\nParagraph:` },
-      ], { feature: "narrative-week", temperature: 0.4, maxTokens: 150 });
+      ], { feature: "narrative-week", temperature: 0.4, maxTokens: 150, userId: payload.sub });
 
       const text = result.text?.trim() || "No data for this week.";
       // Cache

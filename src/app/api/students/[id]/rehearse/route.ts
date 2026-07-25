@@ -4,6 +4,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 
 /** POST /api/students/[id]/rehearse — practice a hard conversation
  *  against an AI playing a plausible version of the student.
@@ -35,6 +36,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   try { await assertCanAccessStudent(payload, id); } catch (err: any) {
     return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
+
+  // Demo AI enable/disable check (admin-configurable)
+  const isDemoUser = payload.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (assistant category — student-detail tools)
+  const category = categoryForFeature("rehearse-reply");
+  const limit = await checkUserAILimit(payload.sub, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI Assistant limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -118,7 +139,7 @@ IMPORTANT: This is a SIMULATION for teacher practice. It is NOT a prediction of 
     }
 
     try {
-      const result = await callAI(aiMessages, { feature: "rehearse-reply", temperature: 0.6, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY });
+      const result = await callAI(aiMessages, { feature: "rehearse-reply", temperature: 0.6, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, userId: payload.sub });
       conv.push({ role: "student_sim", content: result.text?.trim() || "...", timestamp: new Date().toISOString() });
       return NextResponse.json({ conversation: conv, exchangeCount, maxExchanges: MAX_EXCHANGES, isComplete: false });
     } catch {

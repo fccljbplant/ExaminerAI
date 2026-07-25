@@ -44,21 +44,31 @@ const FEATURE_TO_CATEGORY: Record<string, AICategory> = {
   "question-gen": "test",
   "evaluate": "test",
   "practice": "test",
+  "practice-start": "test",
+  "practice-reply": "test",
   "daily-test": "test",
   "weekly-test": "test",
+  "weekly-test-start": "test",
   "weekly-test-reply": "test",
+  "weekly-test-final-analysis": "test",
   "final-analysis": "test",
   "project-report": "test",
   "project-tasks": "test",
   "course-gen": "test",
   // Tutor category — student-facing AI Tutor only
   "ai-tutor": "tutor",
-  // Assistant category — staff-facing AI Assistant
+  // Assistant category — staff-facing AI Assistant + student-detail tools
   "teacher_assistant": "assistant",
   "action-dialog": "assistant",
   "escalation": "assistant",
   "debug-ping": "assistant",
   "daily-motivation": "assistant",
+  // Student-detail AI tools (teacher viewing student portfolio)
+  "student-explain": "assistant",
+  "narrative-week": "assistant",
+  "draft-checkin": "assistant",
+  "rehearse-reply": "assistant",
+  "rehearse-start": "assistant",
 };
 
 /** Get the category for a feature label. Returns "assistant" as fallback. */
