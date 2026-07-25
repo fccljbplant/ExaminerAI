@@ -16,10 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ExaminerAI — Socratic Assessment & Mentorship Platform",
-  description: "AI-powered assessment, GROW mentorship, and 7-dimension psychology for institutions. 9 role dashboards, Socratic testing, AI tutor, and real-time alerts.",
-  keywords: ["ExaminerAI", "Socratic", "Assessment", "Mentorship", "AI Tutor", "LMS"],
-  authors: [{ name: "FCCL JB Plant IT" }],
+  title: "ExaminerAI — AI-Powered Bootcamp Management Platform",
+  description: "AI-powered bootcamp platform for software training (up to 6 months). Students build real capstone projects. Socratic test chatbots (never MCQs). 7-dimension psychological cycle. AI mentorship at scale.",
+  keywords: ["ExaminerAI", "bootcamp", "software training", "Socratic assessment", "AI tutor", "project-based learning", "capstone", "mentorship", "AI mentorship"],
+  authors: [{ name: "Inzet Enterprises" }],
   icons: {
     icon: "/logo.svg",
   },
