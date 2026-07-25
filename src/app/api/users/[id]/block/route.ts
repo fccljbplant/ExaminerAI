@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, isStaffRole, UserRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, invalidateAuthCache } from "@/lib/auth";
@@ -6,14 +6,20 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PUT /api/users/[id]/block — block or unblock a user.
  *  Body: { blocked: boolean }
- *  Teacher can block/unblock students. Admin can block/unblock anyone except other admins. */
+ *  Teacher can block/unblock students. Admin can block/unblock anyone except other admins.
+ *  Demo is read-only and cannot block/unblock anyone. */
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const _demoBlock = await demoWriteBlock("blocking users"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
+  if (!payload || payload.role === UserRole.DEMO) {
+    // Demo is read-only — cannot block/unblock anyone, even though it's a
+    // "staff" role for preview purposes.
+    return NextResponse.json({ error: "Demo accounts cannot modify users" }, { status: 403 });
+  }
+  if (!isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

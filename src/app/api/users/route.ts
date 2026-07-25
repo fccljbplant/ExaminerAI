@@ -1,10 +1,11 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, isStaffRole, UserRole } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** GET /api/users — list users. Teachers see students+pending only. Admins see all. */
+/** GET /api/users — list users. Teachers see students+pending only. Admins see all.
+ *  Demo (read-only) sees all users for preview purposes but cannot modify them. */
 export async function GET() {
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
@@ -12,8 +13,7 @@ export async function GET() {
   }
   // Teachers, TAs, course_coordinators, and counselors only see students and
   // pending users (not other teachers/admins). Admins (principal/administrator)
-  // see all users. Developer sees all (technical role — needs visibility for
-  // debugging, but cannot create/modify users via POST).
+  // and demo (read-only preview) see all users.
   const where = (payload.role === "teacher"  || payload.role === "course_coordinator" || payload.role === "counselor")
     ? { role: { in: ["student", "pending"] } }
     : {};
@@ -29,11 +29,17 @@ export async function GET() {
 }
 
 /** POST /api/users — admin/teacher creates a new user.
- *  Teachers can ONLY create student accounts. Only admins can create teachers/admins. */
+ *  Teachers can ONLY create student accounts. Only admins can create teachers/admins.
+ *  Demo is read-only and cannot create users at all. */
 export async function POST(req: Request) {
   const _demoBlock = await demoWriteBlock("creating users"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
+  if (!payload || payload.role === UserRole.DEMO) {
+    // Demo is read-only — cannot create users, even though it's a "staff"
+    // role for preview purposes.
+    return NextResponse.json({ error: "Demo accounts cannot create users" }, { status: 403 });
+  }
+  if (!isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const body = await req.json().catch(() => ({}));

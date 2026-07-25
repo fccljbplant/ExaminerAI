@@ -1,11 +1,13 @@
-import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, UserRole } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** DELETE /api/users/[id] — delete a user and ALL their data.
- *  Admin only. Explicitly deletes every related record in a transaction
+ *  Admin only (principal + administrator). Demo is read-only and
+ *  explicitly excluded — demo is just for demo, not administration.
+ *  Explicitly deletes every related record in a transaction
  *  to guarantee complete cleanup regardless of cascade state. */
 export async function DELETE(
   _req: Request,
@@ -13,7 +15,12 @@ export async function DELETE(
 ) {
   const _demoBlock = await demoWriteBlock("editing users"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+  if (!payload || payload.role === UserRole.DEMO) {
+    // Defense-in-depth: demoWriteBlock already blocks demo, but make the
+    // intent explicit — demo has no user-management authority.
+    return NextResponse.json({ error: "Demo accounts cannot modify users" }, { status: 403 });
+  }
+  if (!hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;

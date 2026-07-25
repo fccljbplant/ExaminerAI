@@ -7,13 +7,24 @@ import { invalidateAuthCache } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PATCH /api/users/[id]/role — change a user's role. Admin only.
- *  Phase RBAC+AUDIT: centralized RBAC + universal audit log. */
+ *  Phase RBAC+AUDIT: centralized RBAC + universal audit log.
+ *
+ *  Role-assignment policy (clarified 2026-07-25):
+ *  - administrator: full user-management authority. Can assign ANY role
+ *    including principal and demo. This is the administration role.
+ *  - principal: institution-head authority. Can assign any role except
+ *    demo (demo is a system-level preview account, not institution-scoped).
+ *  - demo: READ-ONLY. Cannot assign roles at all. Demo is just for demo.
+ *    Removed from requireRole so the endpoint refuses the call before
+ *    the elevation matrix is even consulted. */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const _demoBlock = await demoWriteBlock("changing user roles"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  // Demo is deliberately NOT in this list — demo is read-only and has no
+  // role-assignment authority whatsoever.
+  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 
   const { id } = await params;
@@ -43,22 +54,21 @@ export async function PATCH(
     return NextResponse.json({ error: "You cannot change your own role — ask another admin" }, { status: 400 });
   }
 
-  // Finding-1-fix: Elevation matrix — restrict which roles each actor
-  // can assign. Prevents an administrator from granting demo access
-  // to themselves or others (privilege escalation).
+  // Elevation matrix — restrict which roles each actor can assign.
+  // - administrator: full authority (can assign any role including demo
+  //   and principal). This is the administration role.
+  // - principal: institution-head authority. Can assign any role except
+  //   demo (demo is system-level, not institution-scoped).
+  // - demo: NOT in requireRole, so never reaches this matrix.
   const ELEVATION_MATRIX: Record<string, string[]> = {
-    // principal can assign any role except demo
+    administrator: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "principal", "administrator", "demo"],
     principal: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "principal", "administrator"],
-    // administrator can assign any role except demo + principal
-    administrator: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "administrator"],
-    // demo can assign any role (full trust)
-    demo: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "principal", "administrator", "demo"],
   };
   const callerRole = auth.ctx.payload.role;
   const allowedTargets = ELEVATION_MATRIX[callerRole] || [];
   if (!allowedTargets.includes(canonicalRole)) {
     return NextResponse.json({
-      error: `Your role (${callerRole}) cannot assign the ${canonicalRole} role. Only a demo can grant demo/principal access.`,
+      error: `Your role (${callerRole}) cannot assign the ${canonicalRole} role. Only an administrator can grant demo access.`,
     }, { status: 403 });
   }
 

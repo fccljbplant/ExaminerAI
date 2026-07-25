@@ -273,7 +273,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                       </td>
                       <td className="py-2 px-3 text-muted-foreground hidden sm:table-cell">{u.email}</td>
                       <td className="py-2 px-3">
-                        <Select value={u.role || "pending"} onValueChange={(r) => changeRole(u.id, r)} disabled={busy === u.id || u.email === "admin@examiner.ai"}>
+                        <Select value={u.role || "pending"} onValueChange={(r) => changeRole(u.id, r)} disabled={busy === u.id || u.email === "admin@examiner.ai" || currentUserRole === "demo"}>
                           <SelectTrigger className="bg-muted border-border h-7 text-xs w-36"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
@@ -284,7 +284,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                             <SelectItem value="guardian">Guardian</SelectItem>
                             <SelectItem value="principal">Principal</SelectItem>
                             <SelectItem value="administrator">Administrator</SelectItem>
-                            <SelectItem value="demo">Developer</SelectItem>
+                            <SelectItem value="demo">Demo (read-only)</SelectItem>
                           </SelectContent>
                         </Select>
                       </td>
@@ -292,7 +292,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                       <td className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "—"}</td>
                       <td className="py-2 px-3">
                         <div className="flex gap-1">
-                          {u.email !== "admin@examiner.ai" && (
+                          {u.email !== "admin@examiner.ai" && currentUserRole !== "demo" && (
                             <>
                               {u.role === "pending" && (
                                 <Button size="sm" variant="ghost" onClick={() => approve(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-emerald-600" title="Approve">
@@ -306,6 +306,9 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </>
+                          )}
+                          {currentUserRole === "demo" && (
+                            <span className="text-[10px] text-muted-foreground italic px-2">read-only</span>
                           )}
                         </div>
                       </td>

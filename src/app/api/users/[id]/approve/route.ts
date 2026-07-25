@@ -6,7 +6,8 @@ import { logAudit, AuditAction } from "@/lib/audit-log";
 import { getTeacherBatchIds } from "@/lib/batch-teachers";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** PUT /api/users/[id]/approve — approve a pending user. Teacher/admin only. */
+/** PUT /api/users/[id]/approve — approve a pending user. Teacher/admin only.
+ *  Demo is read-only and deliberately excluded from this list. */
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -14,7 +15,7 @@ export async function PUT(
   const _demoBlock = await demoWriteBlock("approving users"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT,
-    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 
   const { id } = await params;
