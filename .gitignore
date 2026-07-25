@@ -70,3 +70,7 @@ bun.lock
 worklog.md
 .zscripts/*.pid
 upload/*.docx
+
+# Never commit tokens
+*.env.local
+.tokens
