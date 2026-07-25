@@ -380,7 +380,16 @@ export default function AppShell() {
     return <Login onLoggedIn={(u) => {
       setUser(u);
       const adminRoles = ["principal", "administrator", "developer", "admin", "institution_admin", "platform_admin"];
-      if (adminRoles.includes(u.role)) { setAdminAs("admin"); setView("admin-dashboard"); }
+      if (adminRoles.includes(u.role)) {
+        // Demo developer defaults to teacher interface (user requested)
+        if (u.email === "demo@examiner.ai") {
+          setAdminAs("teacher");
+          setView("batch");
+        } else {
+          setAdminAs("admin");
+          setView("admin-dashboard");
+        }
+      }
       else if (u.role === "teacher") setView("batch");
       else if (u.role === "course_coordinator") setView("course-planner");
       else if (u.role === "counselor") setView("counselor-dashboard");
