@@ -74,3 +74,9 @@ upload/*.docx
 # Never commit tokens
 *.env.local
 .tokens
+
+# Screenshots — never commit these
+download/*.png
+download/*.jpg
+download/*.jpeg
+download/*.gif
