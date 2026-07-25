@@ -90,13 +90,11 @@ const ADMIN_NAV_ROLES = ["admin", "principal", "administrator", "developer"];
 const STAFF_NAV_ROLES = ["teacher", "course_coordinator", "counselor", "admin", "principal", "administrator", "developer"];
 
 const ALL_NAV: NavItem[] = [
-  // ===== STUDENT =====
-  { key: "dashboard", label: "Today", icon: LayoutDashboard, roles: ["student"] },
-  { key: "checkin", label: "Learning Hub", icon: ClipboardCheck, roles: ["student"] },
-  { key: "question", label: "Practice", icon: HelpCircle, roles: ["student"] },
-  { key: "weekly-test", label: "Weekly Test", icon: ClipboardList, roles: ["student"] },
-  { key: "gantt", label: "My Project", icon: GanttIcon, roles: ["student"] },
-  { key: "report-card", label: "My Progress", icon: FileText, roles: ["student"] },
+  // ===== STUDENT (4 clear views: Home, Study, Project, Progress) =====
+  { key: "dashboard", label: "Home", icon: LayoutDashboard, roles: ["student"] },
+  { key: "checkin", label: "Study", icon: BookOpen, roles: ["student"] },
+  { key: "gantt", label: "Project", icon: ClipboardList, roles: ["student"] },
+  { key: "report-card", label: "Progress", icon: FileText, roles: ["student"] },
 
   // ===== TEACHER / COUNSELOR (batch dashboard — 5 prominent views) =====
   // Counselors see the same batch view but with AccessGrant-scoped data.
@@ -128,9 +126,6 @@ const ALL_NAV: NavItem[] = [
   { key: "teacher-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
   { key: "course-outline", label: "Course", icon: BookOpen, roles: ALL_ROLES_WITH_SHARED },
   { key: "messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES_WITH_SHARED },
-
-  // ===== STUDENT + STAFF ACCOUNT =====
-  { key: "journey", label: "First Time?", icon: Sparkles, roles: ["student"] },
   { key: "settings", label: "Settings", icon: Settings, roles: ALL_ROLES_WITH_SHARED },
 ];
 
@@ -397,13 +392,13 @@ export default function AppShell() {
   const renderView = () => {
     const wrap = (el: React.ReactNode) => <ErrorBoundary key={view}>{el}</ErrorBoundary>;
     switch (view) {
-      case "dashboard": return wrap(<StudentDashboard key={`dashboard-${navClickCount}`} />);
-      case "journey": return wrap(<StudentDashboard key={`journey-${navClickCount}`} initialMode="journey" />);
-      case "checkin": return wrap(<StudentDashboard key={`checkin-${navClickCount}`} initialMode="checkin" />);
-      case "question": return wrap(<StudentDashboard key={`question-${navClickCount}`} initialMode="question" />);
-      case "weekly-test": return wrap(<StudentDashboard key={`weekly-test-${navClickCount}`} initialMode="weekly-test" />);
-      case "gantt": return wrap(<StudentDashboard key={`gantt-${navClickCount}`} initialMode="gantt" />);
-      case "report-card": return wrap(<StudentDashboard key={`report-card-${navClickCount}`} initialMode="report-card" />);
+      case "dashboard": return wrap(<StudentDashboard key={`home-${navClickCount}`} />);
+      case "journey": return wrap(<StudentDashboard key={`home-j-${navClickCount}`} />);
+      case "checkin": return wrap(<StudentDashboard key={`study-${navClickCount}`} initialMode="checkin" />);
+      case "question": return wrap(<StudentDashboard key={`study-q-${navClickCount}`} initialMode="question" />);
+      case "weekly-test": return wrap(<StudentDashboard key={`study-wt-${navClickCount}`} initialMode="weekly-test" />);
+      case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" />);
+      case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" />);
       case "guardian-dashboard": return wrap(<GuardianDashboard key={`guardian-${navClickCount}`} onMessage={() => navigateTo("messages")} />);
       case "guardian-progress": return wrap(<GuardianDashboard key={`guardian-progress-${navClickCount}`} />);
       case "batch": return wrap(<TeacherDashboard initialTab="today" />);
