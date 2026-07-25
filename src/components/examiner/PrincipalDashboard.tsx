@@ -62,6 +62,16 @@ export default function PrincipalDashboard() {
   const [data, setData] = useState<PrincipalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+
+  // Fetch current user's actual role (not the impersonated role) to hide
+  // the Audit Log tab from demo accounts. Demo is read-only and should
+  // not see the principal's system/audit settings.
+  useEffect(() => {
+    api.get<{ user: { role: string } | null }>("/api/auth/me").then(res => {
+      if (res.user?.role) setCurrentUserRole(res.user.role);
+    }).catch(() => {/* silent */});
+  }, []);
   const [tab, setTab] = useState<PrincipalTab>("overview");
 
   const load = useCallback(async () => {
@@ -98,11 +108,14 @@ export default function PrincipalDashboard() {
     );
   }
 
+  const isDemo = currentUserRole === "demo";
+
   const TABS: Array<{ key: PrincipalTab; label: string; icon: any; badge?: number; badgeColor?: "amber" | "red" }> = [
     { key: "overview", label: "Overview", icon: BarChart3, badge: data.overview.openAlerts || undefined, badgeColor: "amber" as const },
     { key: "academic", label: "Academic", icon: GraduationCap },
     { key: "wellbeing", label: "Wellbeing", icon: Heart, badge: data.overview.crisisFlags || undefined, badgeColor: "red" as const },
-    { key: "audit", label: "Audit Log", icon: ShieldCheck },
+    // Audit Log tab — hidden from demo (system settings are admin-only)
+    ...(isDemo ? [] : [{ key: "audit" as PrincipalTab, label: "Audit Log", icon: ShieldCheck }]),
   ];
 
   return (

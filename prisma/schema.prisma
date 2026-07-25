@@ -514,6 +514,7 @@ model AICache {
 // quota remaining, cost trends, and error rates per provider.
 model AIUsageLog {
   id               String   @id @default(cuid())
+  userId           String?  // null = system/admin call; set for per-user rate limiting
   provider         String   // gemini | z-ai | fallback
   model            String   // gemini-1.5-flash | z-ai-sdk | none
   feature          String   // question-gen | evaluate | weekly-test-reply | final-analysis
@@ -528,6 +529,7 @@ model AIUsageLog {
   @@index([provider, createdAt])
   @@index([feature, createdAt])
   @@index([createdAt])
+  @@index([userId, feature, createdAt]) // per-user daily rate-limit queries
 }
 
 model Message {
@@ -942,7 +944,7 @@ model PeerAssessment {
 // ============================================================
 model RoleNavConfig {
   id        String   @id @default(cuid())
-  role      String   @unique // "student" | "teaching_assistant" | "teacher" | "course_coordinator" | "counselor" | "guardian" | "principal" | "administrator" | "developer"
+  role      String   @unique // "student" | "teaching_assistant" | "teacher" | "course_coordinator" | "counselor" | "guardian" | "principal" | "administrator" | "demo"
   navItems  String   @default("[]") // JSON array of ViewKey strings the role can see
   updatedAt DateTime @updatedAt
 }

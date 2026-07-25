@@ -226,6 +226,7 @@ interface UsageLog {
   durationMs: number;
   retriesUsed?: number;
   errorMessage?: string;
+  userId?: string | null;
 }
 
 async function logUsage(log: UsageLog) {
@@ -233,6 +234,7 @@ async function logUsage(log: UsageLog) {
     const { db } = await import("@/lib/db");
     await db.aIUsageLog.create({
       data: {
+        userId: log.userId ?? null,
         provider: log.provider,
         model: log.model,
         feature: log.feature,
@@ -271,6 +273,7 @@ export async function callAI(
     feature?: string;
     cacheable?: boolean;
     cacheTtlMs?: number;
+    userId?: string; // for per-user daily rate limiting + usage attribution
   }
 ): Promise<AIResult> {
   const temp = options?.temperature ?? 0.5;
@@ -344,6 +347,7 @@ export async function callAI(
             provider: "deepseek", model: DEEPSEEK_MODEL, feature,
             promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
             success: true, durationMs: Date.now() - startedAt,
+            userId: options?.userId,
           }).catch(() => {});
           maybeCache(text, promptTokens, completionTokens, DEEPSEEK_MODEL);
           return { text, provider: "deepseek", fallback: false, promptTokens, completionTokens, model: DEEPSEEK_MODEL, durationMs: Date.now() - startedAt };
@@ -361,6 +365,7 @@ export async function callAI(
           promptTokens: 0, completionTokens: 0, totalTokens: 0,
           success: false, durationMs: Date.now() - startedAt,
           errorMessage: e instanceof Error ? e.message : String(e),
+          userId: options?.userId,
         }).catch(() => {});
       }
     }
@@ -385,6 +390,7 @@ export async function callAI(
           provider: "zai", model: ZAI_MODEL, feature,
           promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
           success: true, durationMs: Date.now() - startedAt,
+          userId: options?.userId,
         }).catch(() => {});
         maybeCache(text, promptTokens, completionTokens, ZAI_MODEL);
         return { text, provider: "zai", fallback: false, promptTokens, completionTokens, model: ZAI_MODEL, durationMs: Date.now() - startedAt };
@@ -411,6 +417,7 @@ export async function callAI(
         provider: "z-ai", model: "z-ai-sdk", feature,
         promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
         success: true, durationMs: Date.now() - startedAt,
+        userId: options?.userId,
       }).catch(() => {});
       maybeCache(reply, promptTokens, completionTokens, "z-ai-sdk");
       return { text: reply, provider: "z-ai", fallback: true, promptTokens, completionTokens, model: "z-ai-sdk", durationMs: Date.now() - startedAt };

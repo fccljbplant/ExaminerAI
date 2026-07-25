@@ -89,7 +89,11 @@ interface NavItem {
 
 // All roles that see shared items (AI Tutor, Course, Messages, Settings)
 const ALL_ROLES_WITH_SHARED = ["student", "teacher", "course_coordinator", "counselor", "guardian", "admin", "principal", "administrator", "demo"];
-const ADMIN_NAV_ROLES = ["admin", "administrator", "demo"];
+// Admin nav roles — administrator only. Demo is deliberately EXCLUDED:
+// demo is read-only and has no admin-panel authority. Demo can still
+// "view as" administrator via the role switcher, but the admin nav item
+// is hidden from demo's default nav.
+const ADMIN_NAV_ROLES = ["admin", "administrator"];
 const PRINCIPAL_NAV_ROLES = ["principal"];
 // Staff-only roles — see the Teacher AI Assistant nav item. Excludes students,
 // guardians, and pending users. (teaching_assistant role removed — teachers

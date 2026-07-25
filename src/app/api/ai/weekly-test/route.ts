@@ -129,6 +129,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Only students can take weekly tests" }, { status: 403 });
   }
 
+  // Demo AI enable/disable check (admin-configurable)
+  const { isDemoAIBlocked, checkUserAILimit, categoryForFeature } = await import("@/lib/ai-rate-limits");
+  const isDemoUser = user.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (admin-configurable, default 50/day for test category)
+  const category = categoryForFeature("weekly-test");
+  const limit = await checkUserAILimit(user.id, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI test limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
+  }
+
   // Load course-specific test config (or fall back to defaults)
   const courseTestConfig = await getTestConfig(user.id);
   const TOTAL_QUESTIONS = courseTestConfig.totalQuestions;
@@ -308,7 +329,7 @@ export async function POST(req: NextRequest) {
     const firstMsgRaw = await callAILocal([
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `${context}\n\nStart the test. You are on Question 1 of 10. Confirm the week's topics briefly (1 sentence), then ask your first beginner-level question about Day 1's topic: "${topics[0]}". Do NOT prefix with "Question 1:" — just ask the question directly.` },
-    ], "weekly-test-start");
+    ], "weekly-test-start", undefined, user.id);
     // Strip any "Question N:" prefix the AI might add
     const firstMsg = firstMsgRaw.replace(/^Question\s*\d+\s*:\s*/i, "").trim();
     conversation.push({ role: "examiner", content: firstMsg, timestamp: new Date().toISOString(), questionIndex: 0 });
@@ -409,7 +430,7 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
       });
     }
 
-    const examinerResponseRaw = await callAILocal(aiMessages, "weekly-test-reply");
+    const examinerResponseRaw = await callAILocal(aiMessages, "weekly-test-reply", undefined, user.id);
 
     // Detect [ADVANCE] marker — the AI uses this to signal it wants to
     // move to the next question even before 5 replies are used up.
@@ -481,7 +502,7 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
       if (isLastQuestion) {
         isComplete = true;
         const questionsAnswered = test.currentQuestion + 1;
-        const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics);
+        const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics, user.id);
         conversation.push({
           role: "examiner", content: examinerResponse,
           timestamp: new Date().toISOString(), questionIndex: test.currentQuestion,
@@ -636,7 +657,7 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
 
   // ---- ACTION: FINISH (early) ----
   if (action === "finish") {
-    const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics);
+    const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics, user.id);
     // TRANSACTION: same atomicity guarantee as the natural-completion path
     // above — see the comment there for why this matters.
     // Phase Plagiarism: apply score deduction BEFORE storing.
@@ -708,11 +729,11 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
 
 /** Call AI via shared ai-provider.ts — catches errors and returns a
  *  fallback prompt so a single AI failure doesn't crash the whole test. */
-async function callAILocal(messages: { role: string; content: string }[], feature: string, maxTokens?: number): Promise<string> {
+async function callAILocal(messages: { role: string; content: string }[], feature: string, maxTokens?: number, userId?: string): Promise<string> {
   try {
     const result = await callAI(
       messages.map(m => ({ role: m.role as "system" | "user" | "assistant", content: m.content })),
-      { temperature: 0.5, maxTokens: maxTokens ?? TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature }
+      { temperature: 0.5, maxTokens: maxTokens ?? TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature, userId }
     );
     if (result.text) return sanitizeExaminerText(result.text);
   } catch (err) {
@@ -763,7 +784,8 @@ async function generateFinalAnalysis(
   studentName: string,
   week: number,
   phase: string,
-  topics: string[]
+  topics: string[],
+  studentUserId?: string
 ): Promise<{
   psychAnalysis: string;
   examinerComment: string;
@@ -797,7 +819,7 @@ async function generateFinalAnalysis(
   try {
     const result = await callAI([
       { role: "user", content: finalAnalysisPrompt(studentName, transcript) },
-    ], { temperature: 0.3, maxTokens: TOKEN_BUDGET.FINAL_ANALYSIS, feature: "final-analysis" });
+    ], { temperature: 0.3, maxTokens: TOKEN_BUDGET.FINAL_ANALYSIS, feature: "final-analysis", userId: studentUserId });
     const raw = result.text || "{}";
     const match = raw.match(/\{[\s\S]*\}/);
     const parsed = match ? JSON.parse(match[0]) : {};

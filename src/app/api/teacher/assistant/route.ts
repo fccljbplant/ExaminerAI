@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger";
 import { buildTeacherBatchSummary } from "@/lib/teacher-batch-summary";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 
 /** POST /api/teacher/assistant — free-text question about the batch,
  *  answered from existing data (PsychEvidence, ConfidenceRating,
@@ -30,6 +31,26 @@ export async function POST(req: NextRequest) {
     UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
+
+  // Demo AI enable/disable check (admin-configurable)
+  const isDemoUser = auth.ctx.payload.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (admin-configurable, default 100/day for assistant)
+  const category = categoryForFeature("teacher_assistant");
+  const limit = await checkUserAILimit(auth.ctx.payload.sub, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI Assistant limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
+  }
 
   const body = await req.json().catch(() => ({}));
   const { question, batchScope } = body as { question?: string; batchScope?: string[] };
@@ -144,6 +165,7 @@ Answer:`;
       feature: "teacher_assistant",
       temperature: 0.3, // low temp — analytical, not creative
       maxTokens: 800,
+      userId: auth.ctx.payload.sub, // for per-user daily rate limiting
     });
 
     const answer = result.text?.trim() || "I wasn't able to generate an answer. Please try rephrasing your question.";

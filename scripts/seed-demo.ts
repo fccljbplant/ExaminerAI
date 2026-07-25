@@ -4,7 +4,7 @@
  * Creates:
  *  - 1 Institution (FCCL JB Plant IT)
  *  - 1 admin, 1 principal, 2 teachers, 1 counsellor, 1 mentor, 50 students
- *  - 1 Demo Developer account (auto-login target)
+ *  - 1 Demo account (auto-login target)
  *  - 2 Courses with full outlines (CS-301 DSA, MGT-205 Management)
  *  - 3 Batches (Section A, B, MGT-A)
  *  - StudentAlerts (with responses), MentorshipTouchpoints (GROW-style)
@@ -194,7 +194,7 @@ async function main() {
   const admin = await db.user.create({
     data: {
       email: 'admin@examiner.ai',
-      name: 'Developer Admin',
+      name: 'Administrator',
       passwordHash: await hashPwd('helloworld'),
       role: 'admin',
       approvedAt: new Date(),
@@ -285,7 +285,7 @@ async function main() {
   const demoUser = await db.user.create({
     data: {
       email: 'demo@examiner.ai',
-      name: 'Demo Developer',
+      name: 'Demo User',
       passwordHash: defaultPwd,
       role: 'demo',
       approvedAt: new Date(),

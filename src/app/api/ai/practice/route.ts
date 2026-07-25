@@ -53,6 +53,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Only students can use practice" }, { status: 403 });
   }
 
+  // Demo AI enable/disable check (admin-configurable)
+  const { isDemoAIBlocked, checkUserAILimit, categoryForFeature } = await import("@/lib/ai-rate-limits");
+  const isDemoUser = user.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (admin-configurable, default 50/day for test category)
+  const category = categoryForFeature("practice");
+  const limit = await checkUserAILimit(user.id, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI test limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
+  }
+
   const body = await req.json().catch(() => ({}));
   const action = body.action as string;
   const { topic, pillar, conversation: existingConversation, exchangeCount, week: requestedWeek } = body as {
@@ -98,7 +119,7 @@ export async function POST(req: NextRequest) {
       const result = await callAI([
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: prompt },
-      ], { temperature: 0.7, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature: "practice-start" });
+      ], { temperature: 0.7, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature: "practice-start", userId: user.id });
 
       const firstQuestion = result.text?.replace(/^Question\s*\d+\s*:\s*/i, "").trim() || "Can you explain what you know about " + practiceTopic + "?";
       const conversation: ChatMessage[] = [{
@@ -156,7 +177,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const result = await callAI(aiMessages, {
-        temperature: 0.5, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature: "practice-reply",
+        temperature: 0.5, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature: "practice-reply", userId: user.id,
       });
       const examinerResponse = result.text?.trim() || "Can you elaborate on that?";
 

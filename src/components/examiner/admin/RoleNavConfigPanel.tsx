@@ -55,7 +55,7 @@ export function RoleNavConfigPanel() {
     guardian: "Guardian (Parent)",
     principal: "Principal",
     administrator: "Administrator",
-    developer: "Developer",
+    demo: "Demo (read-only)",
     admin: "Admin (Legacy)",
   };
 

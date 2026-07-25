@@ -127,7 +127,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
                 className="w-full bg-amber-500 hover:bg-amber-600 text-white"
               >
                 <Sparkles className="w-4 h-4 mr-1.5" />
-                {busy ? "Signing in…" : "Launch Demo (Demo Developer)"}
+                {busy ? "Signing in…" : "Launch Demo"}
               </Button>
             </div>
 

@@ -10,6 +10,7 @@ import { AdminCoordinatorTab } from "@/components/examiner/admin/AdminCoordinato
 import { AdminPMTab } from "@/components/examiner/admin/AdminPMTab";
 import { AdminCoursesPanel } from "@/components/examiner/admin/AdminCoursesPanel";
 import { SystemPanel } from "@/components/examiner/admin/SystemPanel";
+import { AILimitsPanel } from "@/components/examiner/admin/AILimitsPanel";
 import { AuditLogPanel } from "@/components/examiner/admin/AuditLogPanel";
 import { AccessGrantsPanel } from "@/components/examiner/admin/AccessGrantsPanel";
 import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel";
@@ -31,15 +32,15 @@ import {
   Users, ShieldAlert, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
   Settings as SettingsIcon, Server, Send, BookOpen, Plus, Edit3, GraduationCap, ClipboardList,
-  ShieldCheck, Save,
+  ShieldCheck, Save, Gauge,
 } from "lucide-react";
 
 interface Props {
-  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior";
+  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits";
 }
 
 export default function AdminDashboard({ initialView = "overview" }: Props) {
-  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior">(
+  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits">(
     initialView === "users" ? "users" :
     initialView === "courses" ? "courses" :
     initialView === "features" ? "features" :
@@ -49,6 +50,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     initialView === "coordinator" ? "coordinator" :
     initialView === "pm" ? "pm" :
     initialView === "teacher-behavior" ? "teacher-behavior" :
+    initialView === "ai-limits" ? "ai-limits" :
     "overview"
   );
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -184,7 +186,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
         <Button onClick={() => setView("courses")} variant={view === "courses" ? "default" : "outline"} className={view === "courses" ? "bg-primary text-primary-foreground" : "border-border"}>
           <BookOpen className="h-4 w-4" /> Courses
         </Button>
-        {/* Features + Resets — admin only (not developer) */}
+        {/* Features + Resets — admin only (not demo) */}
         {isAdminRole && (
           <>
             <Button onClick={() => setView("features")} variant={view === "features" ? "default" : "outline"} className={view === "features" ? "bg-primary text-primary-foreground" : "border-border"}>
@@ -195,10 +197,18 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
             </Button>
           </>
         )}
-        {/* System & Dev tab — visible to developer + administrator */}
-        {isDevRole && (
+        {/* AI Limits tab — visible to administrator + principal + demo.
+            Demo only sees the demo-AI-enable toggle inside the panel. */}
+        {(isAdminRole || isPrincipalRole || isDevRole) && (
+          <Button onClick={() => setView("ai-limits")} variant={view === "ai-limits" ? "default" : "outline"} className={view === "ai-limits" ? "bg-primary text-primary-foreground" : "border-border"}>
+            <Gauge className="h-4 w-4" /> AI Limits
+          </Button>
+        )}
+        {/* System & Dev tab — visible to administrator only (NOT demo).
+            Demo is read-only and has no system-level authority. */}
+        {isAdminRole && (
           <Button onClick={() => setView("system")} variant={view === "system" ? "default" : "outline"} className={view === "system" ? "bg-primary text-primary-foreground" : "border-border"}>
-            <Server className="h-4 w-4" /> System &amp; Dev
+            <Server className="h-4 w-4" /> System
           </Button>
         )}
       </div>
@@ -327,7 +337,13 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       {/* Resets tab */}
       {view === "resets" && <PasswordResetPanel />}
 
-      {/* System & Dev tab — ALL dev stuff here, nowhere else */}
+      {/* AI Limits tab — per-user daily rate limits + demo AI toggle.
+          Demo only sees the demo-AI-enable toggle (the AILimitsPanel
+          component handles this by checking the current user's role). */}
+      {view === "ai-limits" && <AILimitsPanel />}
+
+      {/* System & Dev tab — ALL dev stuff here, nowhere else.
+          Admin-only (NOT demo) — the tab button is hidden from demo above. */}
       {view === "system" && <SystemPanel users={users} />}
     </div>
   );

@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
+import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 import {
   getCourseMetadata,
   getCourseWeekTopics,
@@ -41,6 +42,26 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "student") {
     return NextResponse.json({ error: "Only students can use the AI Tutor" }, { status: 403 });
+  }
+
+  // Demo AI enable/disable check (admin-configurable)
+  const isDemoUser = user.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (admin-configurable, default 150/day for tutor)
+  const category = categoryForFeature("ai-tutor");
+  const limit = await checkUserAILimit(user.id, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI Tutor limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -238,6 +259,7 @@ ${currentTopicText}
       temperature: 0.7,
       maxTokens: 600, // keep responses SHORT — chat, not essays. 600 tokens = ~5-8 sentences max.
       feature: "ai-tutor",
+      userId: user.id, // for per-user daily rate limiting
       // Token cache: the system prompt is identical for every student in the
       // same course + week. But the conversation history differs per session,
       // so the full message array is unique. We DON'T cache here — the
