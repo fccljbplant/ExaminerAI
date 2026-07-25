@@ -293,6 +293,26 @@ async function main() {
     }
   })
 
+  console.log('👨‍👩‍👧 Creating a guardian account (linked to first student)...')
+  const guardian = await db.user.create({
+    data: {
+      email: 'guardian@fccl.com.pk',
+      name: 'Mr. Khan (Parent)',
+      passwordHash: defaultPwd,
+      role: 'guardian',
+      approvedAt: new Date(),
+      institutionId: institution.id
+    }
+  })
+  // Link guardian to the first student (Aisha Khan)
+  await db.guardianLink.create({
+    data: {
+      guardianId: guardian.id,
+      studentId: students[0].id,
+      relationship: 'parent'
+    }
+  }).catch(() => {})
+
   // ---------- courses ----------
   console.log('📚 Creating 2 courses...')
   const course1 = await db.course.create({
