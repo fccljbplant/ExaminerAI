@@ -144,6 +144,13 @@ export async function PATCH(req: NextRequest) {
   if (isMilestone !== undefined) data.isMilestone = !!isMilestone;
   if (taskNotes !== undefined) data.taskNotes = taskNotes?.trim() || null;
 
+  // Self-paced: set completedAt when task is marked completed, clear it when un-completed
+  if (status === "completed") {
+    data.completedAt = new Date();
+  } else if (status && status !== "completed") {
+    data.completedAt = null;
+  }
+
   try {
     const task = await db.projectTask.update({
       where: { id, userId: user.id },

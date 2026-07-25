@@ -21,7 +21,12 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const currentWeek = user.currentWeek;
-  const todayDay = getBootcampDayNumber(new Date());
+  // Self-paced: use the user's currentDay (which advances when they complete tasks)
+  // instead of the calendar day. Falls back to calendar day if currentDay is 0 or
+  // self-paced is disabled.
+  const todayDay = (user.selfPacedEnabled && user.currentDay >= 1 && user.currentDay <= 5)
+    ? user.currentDay
+    : getBootcampDayNumber(new Date());
 
   // Pull this week's project tasks + recent daily logs + today's interactions + curriculum progress + today's daily test in parallel
   const [weekTasks, dailyLogs, todayInteractions, curriculumProgress, todaysDailyTest] = await Promise.all([

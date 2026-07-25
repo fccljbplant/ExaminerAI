@@ -183,6 +183,8 @@ model User {
   createdAt       DateTime  @default(now())
   lastLogin       DateTime?
   currentWeek     Int       @default(1)
+  currentDay      Int       @default(1) // 1-5 (Mon-Fri). Self-paced: student advances when today's tasks are done.
+  selfPacedEnabled Boolean   @default(true) // if true, student can advance to next day/week when tasks complete
   batchId        String?   // null = "default" batch (backward compat)
   projectName        String?   // the capstone project name
   projectDescription String?   // longer free-text description of the project (AI-generated or student-written)
@@ -314,6 +316,7 @@ model ProjectTask {
   day         Int?     // 1-5 (Mon-Fri) — optional, used to filter "today's" tasks. Null = unscheduled.
   dueDate     String?
   createdAt   DateTime @default(now())
+  completedAt DateTime? // when the task was marked completed (for teacher timeline + self-paced advancement)
   // Project task metadata — mentor-recommended fields
   estimatedMinutes Int? // how long the student thinks this will take
   isMilestone  Boolean @default(false) // key milestone tasks are highlighted in the Gantt chart

@@ -136,6 +136,8 @@ export async function GET(req: Request) {
         email: s.email,
         name: s.name,
         currentWeek: s.currentWeek,
+        currentDay: s.currentDay,
+        selfPacedEnabled: s.selfPacedEnabled,
         progress,
         latestScore: latestTest?.score ?? null,
         interactions: s._count.interactions,
