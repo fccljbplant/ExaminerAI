@@ -56,6 +56,7 @@ This way, if the environment resets, only the current line is lost — not hours
 
 - **GitHub:** https://github.com/fccljbplant/ExaminerAI
 - **Vercel:** examiner-ai-tau.vercel.app (stable URL)
+- **Operator:** Inzet Enterprises · inzet.enterprises@gmail.com
 - **Tech stack:** Next.js 16, Prisma, PostgreSQL (Neon on Vercel), shadcn/ui
 - **Demo login:** demo@examiner.ai / demo123 (developer role, read-only)
 - **Teacher login:** s.khan@fccl.com.pk / demo123

@@ -181,9 +181,9 @@ async function main() {
   console.log('🏛️  Creating institution...')
   const institution = await db.institution.create({
     data: {
-      name: 'FCCL JB Plant Institute of Technology',
-      logoUrl: 'https://fccl.com.pk/eng/wp-content/uploads/2025/01/cropped-SITE-IDENTITY-ICON-270x270.webp',
-      contactEmail: 'info@fccl.com.pk'
+      name: 'Inzet Enterprises Software Bootcamp',
+      logoUrl: '',
+      contactEmail: 'inzet.enterprises@gmail.com'
     }
   })
 

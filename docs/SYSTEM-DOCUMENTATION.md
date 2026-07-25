@@ -61,6 +61,14 @@ Messages, Settings).
 
 ## AI Assistant Implementation (Sections 1-7)
 
+> **Deep dive:** The full psychological analysis cycle (from student
+> interaction → 7-dimension evidence → wellbeing tier → escalation →
+> action dialog) is documented in `docs/PSYCHOLOGICAL-CYCLE.md`. The
+> mentorship and mental-health response pathways (GROW coaching,
+> crisis response, teacher load management, safeguarding) are
+> documented in `docs/MENTORSHIP-CYCLE.md`. Per-dimension reference
+> is in `docs/SEVEN-DIMENSIONS.md`.
+
 ### Section 1: Scope Resolver (`src/lib/ai-assistant/scope.ts`)
 The security foundation. `resolveAssistantScope(callerId, callerRole)` returns the
 exact set of entity IDs the caller can access. Called BEFORE any AI query — the AI

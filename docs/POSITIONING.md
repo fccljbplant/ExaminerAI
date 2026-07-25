@@ -133,7 +133,7 @@ The **Demo role** (read-only) can switch into any of the above for evaluation.
 | Project tracking | None | Mandatory capstone with milestones, Gantt, weekly AI reports |
 | Wellbeing | None | 7-dimension psychology + safeguarding + crisis response |
 | Multi-role | Single-tenant | 6 role dashboards + RBAC + AccessGrant scoping |
-| Production-ready | No | Yes — deployed at FCCL JB Plant IT with 50+ active students |
+| Production-ready | No | Yes — production deployment, Socratic assessment + AI mentorship live |
 
 ---
 
@@ -142,7 +142,7 @@ The **Demo role** (read-only) can switch into any of the above for evaluation.
 This is not a prototype. It is in production:
 
 - **Live deployment:** https://examiner-ai-tau.vercel.app
-- **Production user:** FCCL JB Plant Institute of Technology (Jhang Bahtar, Attock, Punjab) — Fall 2025 cohort
+- **Operator:** Inzet Enterprises (`inzet.enterprises@gmail.com`) — software bootcamp platform
 - **Stack:** Next.js 16, Prisma, PostgreSQL (Neon), DeepSeek V4 Flash (primary AI), Z.ai (fallback)
 - **Code:** https://github.com/fccljbplant/ExaminerAI
 - **Demo login:** `demo@examiner.ai` / `demo123` (read-only, can switch into any role)
