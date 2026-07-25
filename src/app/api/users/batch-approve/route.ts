@@ -8,7 +8,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 /** POST /api/users/batch-approve — approve multiple pending users at once. */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("batch-approving users"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
+  const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

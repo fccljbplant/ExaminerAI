@@ -13,7 +13,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const _demoBlock = await demoWriteBlock("changing user roles"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
+  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const { id } = await params;
@@ -23,7 +23,7 @@ export async function PATCH(
 
   const VALID_ROLES = [
     "pending", "student", "teacher", "course_coordinator",
-    "counselor", "guardian", "principal", "administrator", "developer",
+    "counselor", "guardian", "principal", "administrator", "demo",
     // Legacy aliases (normalized to canonical on read via normalizeRole)
     "institution_admin", "platform_admin", "admin",
   ];
@@ -44,21 +44,21 @@ export async function PATCH(
   }
 
   // Finding-1-fix: Elevation matrix — restrict which roles each actor
-  // can assign. Prevents an administrator from granting developer access
+  // can assign. Prevents an administrator from granting demo access
   // to themselves or others (privilege escalation).
   const ELEVATION_MATRIX: Record<string, string[]> = {
-    // principal can assign any role except developer
+    // principal can assign any role except demo
     principal: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "principal", "administrator"],
-    // administrator can assign any role except developer + principal
+    // administrator can assign any role except demo + principal
     administrator: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "administrator"],
-    // developer can assign any role (full trust)
-    developer: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "principal", "administrator", "developer"],
+    // demo can assign any role (full trust)
+    demo: ["pending", "student", "teacher", "course_coordinator", "counselor", "guardian", "principal", "administrator", "demo"],
   };
   const callerRole = auth.ctx.payload.role;
   const allowedTargets = ELEVATION_MATRIX[callerRole] || [];
   if (!allowedTargets.includes(canonicalRole)) {
     return NextResponse.json({
-      error: `Your role (${callerRole}) cannot assign the ${canonicalRole} role. Only a developer can grant developer/principal access.`,
+      error: `Your role (${callerRole}) cannot assign the ${canonicalRole} role. Only a demo can grant demo/principal access.`,
     }, { status: 403 });
   }
 

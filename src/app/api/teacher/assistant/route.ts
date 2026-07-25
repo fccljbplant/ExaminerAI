@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT,
     UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR,
-    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
+    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

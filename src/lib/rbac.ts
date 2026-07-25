@@ -4,7 +4,7 @@
  *
  * Role values (per user clarification 2026-07-20):
  *   pending | student | teaching_assistant | teacher | course_coordinator
- *   | counselor | guardian | principal | administrator | developer
+ *   | counselor | guardian | principal | administrator | demo
  *
  * Backward-compat aliases (normalized transparently):
  *   "institution_admin" → "principal"
@@ -17,8 +17,8 @@
  *   - administrator  — operational/admin: manages users, system config, but does
  *                      NOT default to seeing individual crisis content (operational
  *                      access, not pastoral access).
- *   - developer      — technical/operational: deploys, env vars, DB ops, debug.
- *                      Distinct from administrator — developer has more technical
+ *   - demo            — read-only preview: deploys, env vars, DB ops, debug.
+ *                      
  *                      scope (system health, AI provider config, logs) but less
  *                      people-management scope (cannot change roles, cannot see
  *                      crisis content). Split because deploy access and pastoral
@@ -40,24 +40,23 @@ export const UserRole = {
   GUARDIAN: "guardian",
   PRINCIPAL: "principal",
   ADMINISTRATOR: "administrator",
-  DEVELOPER: "developer",
+  DEMO: "demo",
 } as const;
 
 export type UserRoleValue = typeof UserRole[keyof typeof UserRole];
 
-/** Admin roles — principal + administrator + developer.
- *  Developer is included so the demo account (developer role) can preview
- *  all admin dashboards without getting 403 errors. */
+/** Admin roles — principal + administrator + demo.
+ *  Demo is included so the demo account can preview all admin dashboards
+ *  in read-only mode. Writes are blocked by demoWriteBlock(). */
 export const ADMIN_ROLES: UserRoleValue[] = [
   UserRole.PRINCIPAL,
   UserRole.ADMINISTRATOR,
-  UserRole.DEVELOPER,
+  UserRole.DEMO,
 ];
 
-/** Technical roles — developer + administrator. Both can see system health,
- *  AI usage, audit log. Developer CANNOT change user roles or see crisis content. */
+/** Technical roles — administrator only. Demo is NOT technical — it's a
+ *  read-only preview role with NO system-level capabilities. */
 export const TECHNICAL_ROLES: UserRoleValue[] = [
-  UserRole.DEVELOPER,
   UserRole.ADMINISTRATOR,
 ];
 
@@ -71,7 +70,7 @@ export const STAFF_ROLES: UserRoleValue[] = [
   UserRole.COUNSELOR,
   UserRole.PRINCIPAL,
   UserRole.ADMINISTRATOR,
-  UserRole.DEVELOPER,
+  UserRole.DEMO,
 ];
 
 /** Check if a role is staff (any non-student/pending/guardian role). */
@@ -99,7 +98,7 @@ export const ROLE_LABELS: Record<string, string> = {
   guardian: "Guardian",
   principal: "Principal",
   administrator: "Administrator",
-  developer: "Developer",
+  demo: "Demo (Read-Only)",
 };
 
 /** Normalize any role string (including legacy aliases) to canonical form. */
@@ -122,8 +121,9 @@ export function normalizeRole(role: string): UserRoleValue | null {
     case "platform administrator":
     case "admin":                   // legacy 4-role alias
       return UserRole.ADMINISTRATOR;
-    case "developer":
-      return UserRole.DEVELOPER;
+    case "demo":
+    case "demo":  // legacy alias
+      return UserRole.DEMO;
     default: return null;
   }
 }

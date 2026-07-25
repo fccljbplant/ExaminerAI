@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
   if (!groupTaskId) return NextResponse.json({ error: "groupTaskId required" }, { status: 400 });
 
   // Students see only their own submission; staff see all
-  const isStaff = ["teacher", "course_coordinator", "counselor", "principal", "administrator", "developer", "admin"].includes(user.role);
+  const isStaff = ["teacher", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
 
   const submissions = await db.groupTaskSubmission.findMany({
     where: { groupTaskId, ...(isStaff ? {} : { userId: user.id }) },

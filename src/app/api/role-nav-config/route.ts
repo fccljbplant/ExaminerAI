@@ -22,7 +22,7 @@ export const DEFAULT_NAV_PER_ROLE: Record<string, string[]> = {
   guardian: ["dashboard", "report-card", "course-outline", "messages", "settings"],
   principal: ["admin-dashboard", "admin-users", "admin-courses", "admin-system", "messages"],
   administrator: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
-  developer: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
+  demo: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
   admin: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
 };
 

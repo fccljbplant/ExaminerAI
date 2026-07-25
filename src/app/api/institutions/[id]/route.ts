@@ -5,7 +5,7 @@ import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PATCH /api/institutions/[id] — update institution (logo URL, name, contact).
- *  Admin/developer only.
+ *  Admin/demo only.
  *  Body: { name?, contactEmail?, logoUrl? } */
 export async function PATCH(
   req: NextRequest,

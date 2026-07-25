@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR,
-    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
+    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;
 
@@ -34,14 +34,20 @@ export async function GET(req: NextRequest) {
       db.auditLog.findMany({ where, orderBy: { createdAt: "desc" }, take: limit, skip: offset }),
       db.auditLog.count({ where }),
     ]);
-    const parsed = entries.map(e => ({
-      id: e.id, actorUserId: e.actorUserId, actorName: e.actorName, actorRole: e.actorRole,
-      action: e.action, targetType: e.targetType, targetId: e.targetId,
-      before: e.beforeJson ? JSON.parse(e.beforeJson) : null,
-      after: e.afterJson ? JSON.parse(e.afterJson) : null,
-      metadata: e.metadata ? JSON.parse(e.metadata) : null,
-      ipAddress: e.ipAddress, createdAt: e.createdAt.toISOString(),
-    }));
+    const parsed = entries.map(e => {
+      const safeParse = (s: string | null) => {
+        if (!s) return null;
+        try { return JSON.parse(s); } catch { return s; }
+      };
+      return {
+        id: e.id, actorUserId: e.actorUserId, actorName: e.actorName, actorRole: e.actorRole,
+        action: e.action, targetType: e.targetType, targetId: e.targetId,
+        before: safeParse(e.beforeJson),
+        after: safeParse(e.afterJson),
+        metadata: safeParse(e.metadata),
+        ipAddress: e.ipAddress, createdAt: e.createdAt.toISOString(),
+      };
+    });
     return NextResponse.json({ entries: parsed, total });
   } catch (err) {
     logger.error("Audit log query failed", { error: err instanceof Error ? err.message : String(err) });

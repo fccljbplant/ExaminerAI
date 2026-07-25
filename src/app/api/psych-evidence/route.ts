@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const requestedUserId = req.nextUrl.searchParams.get("userId");
   // Students can only see their own evidence; staff can query anyone
-  const isStaff = ["teacher", "course_coordinator", "counselor", "principal", "administrator", "developer", "admin"].includes(user.role);
+  const isStaff = ["teacher", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
   const userId = isStaff ? (requestedUserId || user.id) : user.id;
 
   const evidence = await db.psychEvidence.findMany({
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/psych-evidence — write a new evidence row (staff only). */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing psychology evidence"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
+  const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

@@ -190,7 +190,7 @@ async function main() {
   // ---------- create users ----------
   const defaultPwd = await hashPwd('demo123')
 
-  console.log('👤 Creating admin (developer)...')
+  console.log('👤 Creating admin...')
   const admin = await db.user.create({
     data: {
       email: 'admin@examiner.ai',
@@ -281,13 +281,13 @@ async function main() {
     students.push(s)
   }
 
-  console.log('🧪 Creating DEMO developer account...')
+  console.log('🧪 Creating DEMO account...')
   const demoUser = await db.user.create({
     data: {
       email: 'demo@examiner.ai',
       name: 'Demo Developer',
       passwordHash: defaultPwd,
-      role: 'developer',
+      role: 'demo',
       approvedAt: new Date(),
       institutionId: institution.id
     }
@@ -887,7 +887,7 @@ async function main() {
   }
 
   // ---------- 2c. AccessGrants for demo account → all students ----------
-  // CRITICAL: demo account has 'developer' role which needs an AccessGrant
+  // CRITICAL: demo account has 'demo' role which needs an AccessGrant
   // to view student portfolios. Without this, the teacher's student portfolio
   // page fails to load with "You need an access grant to view this student".
   console.log('   🔑 Access grants for demo account (so portfolio loads)...')
@@ -1271,7 +1271,7 @@ async function main() {
   console.log(`   - Student health summary: 1`)
   console.log(`\n🔑 DEMO LOGIN: demo@examiner.ai / demo123`)
   console.log(`   (or admin@examiner.ai / helloworld)`)
-  console.log(`   Demo account has 'developer' role — read-only, no writes.`)
+  console.log(`   Demo account has 'demo' role — read-only, no writes.`)
 }
 
 main()

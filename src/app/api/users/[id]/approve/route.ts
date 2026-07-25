@@ -14,7 +14,7 @@ export async function PUT(
   const _demoBlock = await demoWriteBlock("approving users"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
     UserRole.TEACHER, UserRole.TEACHING_ASSISTANT,
-    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEVELOPER]);
+    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const { id } = await params;

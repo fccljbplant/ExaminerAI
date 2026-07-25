@@ -5,7 +5,7 @@ import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/institutions — register a new institution.
- *  Admin/developer only for now (no public self-serve signup yet).
+ *  Admin/demo only for now (no public self-serve signup yet).
  *  Body: { name, contactEmail, logoUrl? } */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing institutions"); if (_demoBlock) return _demoBlock;

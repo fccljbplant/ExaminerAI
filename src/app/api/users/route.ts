@@ -47,11 +47,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
   }
   // Only ADMIN_ROLES (principal, administrator) can create non-student accounts.
-  // Everyone else (teacher, TA, coordinator, counselor, developer) can only
+  // Everyone else (teacher, TA, coordinator, counselor, demo) can only
   // create student accounts. This prevents privilege escalation via account
   // creation — e.g. a counselor creating an admin account for themselves.
   // Allowlist of valid roles — reject unknown roles instead of silent downgrade
-  const VALID_ROLES = ["student", "teacher", "course_coordinator", "counselor", "principal", "administrator", "developer"];
+  const VALID_ROLES = ["student", "teacher", "course_coordinator", "counselor", "principal", "administrator", "demo"];
   if (role && !VALID_ROLES.includes(role)) {
     return NextResponse.json({ error: `Invalid role: ${role}. Must be one of: ${VALID_ROLES.join(", ")}` }, { status: 400 });
   }

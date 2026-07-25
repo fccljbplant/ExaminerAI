@@ -6,7 +6,7 @@ export async function GET() {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const allowedRoles = ["principal", "administrator", "developer", "admin"];
+  const allowedRoles = ["principal", "administrator", "demo", "admin"];
   if (!allowedRoles.includes(payload.role)) {
     return NextResponse.json({ error: "Forbidden — principal access required" }, { status: 403 });
   }

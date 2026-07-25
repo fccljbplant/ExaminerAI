@@ -16,7 +16,7 @@ import { db } from "@/lib/db";
  *  (meaning "all batches" — no scoping needed). */
 export async function getTeacherBatchIds(userId: string, role: string): Promise<string[] | null> {
   // Admin roles — unrestricted access (no batch scoping)
-  const adminRoles = ["principal", "administrator", "developer", "admin"];
+  const adminRoles = ["principal", "administrator", "demo", "admin"];
   if (adminRoles.includes(role)) return null;
 
   const memberships = await db.batchTeacher.findMany({
@@ -29,7 +29,7 @@ export async function getTeacherBatchIds(userId: string, role: string): Promise<
 /** Check if a teacher has access to a specific batch.
  *  Admins always have access. Teachers need a BatchTeacher row. */
 export async function canAccessBatch(userId: string, role: string, batchId: string): Promise<boolean> {
-  const adminRoles = ["principal", "administrator", "developer", "admin"];
+  const adminRoles = ["principal", "administrator", "demo", "admin"];
   if (adminRoles.includes(role)) return true;
 
   const membership = await db.batchTeacher.findFirst({

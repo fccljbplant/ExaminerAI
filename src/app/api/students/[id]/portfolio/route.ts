@@ -32,7 +32,7 @@ export async function GET(
   // Phase 0.4 fix: IDOR protection. Teachers can only access students in
   // their own batch. Admins can access any student. This prevents a teacher
   // from reading another teacher's students' data.
-  // H3-security fix: counselor/coordinator/developer now need an AccessGrant
+  // H3-security fix: counselor/coordinator/demo now need an AccessGrant
   // — previously they fell through with no check at all.
   // N5-fix: legacy teachers (null batch) now also need an AccessGrant —
   // previously they could see all students institution-wide.
@@ -62,7 +62,7 @@ export async function GET(
       needsGrantCheck = true;
     }
   } else {
-    // counselor, course_coordinator, developer — need an AccessGrant
+    // counselor, course_coordinator, demo — need an AccessGrant
     needsGrantCheck = true;
   }
 

@@ -88,13 +88,13 @@ interface NavItem {
 }
 
 // All roles that see shared items (AI Tutor, Course, Messages, Settings)
-const ALL_ROLES_WITH_SHARED = ["student", "teacher", "course_coordinator", "counselor", "guardian", "admin", "principal", "administrator", "developer"];
-const ADMIN_NAV_ROLES = ["admin", "administrator", "developer"];
+const ALL_ROLES_WITH_SHARED = ["student", "teacher", "course_coordinator", "counselor", "guardian", "admin", "principal", "administrator", "demo"];
+const ADMIN_NAV_ROLES = ["admin", "administrator", "demo"];
 const PRINCIPAL_NAV_ROLES = ["principal"];
 // Staff-only roles — see the Teacher AI Assistant nav item. Excludes students,
 // guardians, and pending users. (teaching_assistant role removed — teachers
 // now handle all teaching duties directly.)
-const STAFF_NAV_ROLES = ["teacher", "course_coordinator", "counselor", "admin", "principal", "administrator", "developer"];
+const STAFF_NAV_ROLES = ["teacher", "course_coordinator", "counselor", "admin", "principal", "administrator", "demo"];
 
 const ALL_NAV: NavItem[] = [
   // ===== STUDENT (4 clear views: Home, Study, Project, Progress) =====
@@ -203,7 +203,7 @@ export default function AppShell() {
 
   // Map raw role (including legacy aliases) to canonical nav role.
   // This determines which nav items + dashboard the user sees.
-  const ADMIN_ROLES_RAW = ["principal", "administrator", "developer", "admin", "institution_admin", "platform_admin"];
+  const ADMIN_ROLES_RAW = ["principal", "administrator", "demo", "admin", "institution_admin", "platform_admin"];
   const rawRole = user?.role ?? "student";
   const isAdminEquivalent = ADMIN_ROLES_RAW.includes(rawRole);
 
@@ -241,7 +241,7 @@ export default function AppShell() {
           }
         }
         const role = res.user.role;
-        const adminRoles = ["administrator", "developer", "admin", "institution_admin", "platform_admin"];
+        const adminRoles = ["administrator", "demo", "admin", "institution_admin", "platform_admin"];
         if (adminRoles.includes(role)) {
           // Demo developer defaults to teacher interface (user requested)
           if (res.user.email === "demo@examiner.ai") {
@@ -322,7 +322,7 @@ export default function AppShell() {
   useEffect(() => {
     if (!user) return;
     // Only staff roles see alerts
-    const staffRoles = ["teacher", "course_coordinator", "counselor", "admin", "principal", "administrator", "developer"];
+    const staffRoles = ["teacher", "course_coordinator", "counselor", "admin", "principal", "administrator", "demo"];
     if (!staffRoles.includes(user.role) && user.role !== "admin") return;
     const checkAlerts = async () => {
       try {
@@ -388,7 +388,7 @@ export default function AppShell() {
   if (!user) {
     return <Login onLoggedIn={(u) => {
       setUser(u);
-      const adminRoles = ["administrator", "developer", "admin", "institution_admin", "platform_admin"];
+      const adminRoles = ["administrator", "demo", "admin", "institution_admin", "platform_admin"];
       if (adminRoles.includes(u.role)) {
         if (u.email === "demo@examiner.ai") {
           setAdminAs("teacher");

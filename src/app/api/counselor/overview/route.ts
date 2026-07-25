@@ -23,8 +23,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Counselors, principals, admins, developers can access
-  const allowedRoles = ["counselor", "principal", "administrator", "developer", "admin"];
+  // Counselors, principals, admins, demo can access
+  const allowedRoles = ["counselor", "principal", "administrator", "demo", "admin"];
   if (!allowedRoles.includes(payload.role)) {
     return NextResponse.json({ error: "Forbidden — counselor access required" }, { status: 403 });
   }

@@ -211,7 +211,7 @@ export async function ensureAdminUser(): Promise<void> {
  *  - Students can only access their own data (payload.sub === studentId)
  *  - Admins (principal, administrator) can access any student
  *  - Teachers/TAs can access students in their batch
- *  - Other staff (counselor, coordinator, developer) need an AccessGrant
+ *  - Other staff (counselor, coordinator, demo) need an AccessGrant
  *
  *  Returns true if access is allowed, throws an API-shaped error if not.
  *  Call this at the top of any route that takes a studentId/userId param. */
@@ -272,7 +272,7 @@ export async function assertCanAccessStudent(
     throw { status: 403, message: "You can only access your linked children's data" };
   }
 
-  // Other staff (counselor, coordinator, developer, legacy teachers)
+  // Other staff (counselor, coordinator, demo, legacy teachers)
   // — check AccessGrant
   const grant = await db.accessGrant.findFirst({
     where: {

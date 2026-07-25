@@ -66,7 +66,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   // P1.3: Role-based tab visibility — different admin roles see different tabs
   const isAdminRole = ["administrator", "admin", "platform_admin"].includes(currentUserRole);
   const isPrincipalRole = ["principal", "institution_admin"].includes(currentUserRole) || isAdminRole;
-  const isDevRole = ["developer"].includes(currentUserRole) || isAdminRole;
+  const isDevRole = ["demo"].includes(currentUserRole) || isAdminRole;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -284,7 +284,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                             <SelectItem value="guardian">Guardian</SelectItem>
                             <SelectItem value="principal">Principal</SelectItem>
                             <SelectItem value="administrator">Administrator</SelectItem>
-                            <SelectItem value="developer">Developer</SelectItem>
+                            <SelectItem value="demo">Developer</SelectItem>
                           </SelectContent>
                         </Select>
                       </td>
