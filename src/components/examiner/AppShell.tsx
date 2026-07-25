@@ -7,6 +7,7 @@ import StudentDashboard from "./StudentDashboard";
 import TeacherDashboard from "./TeacherDashboard";
 import AdminDashboard from "./AdminDashboard";
 import GuardianDashboard from "./GuardianDashboard";
+import CounselorDashboard from "./CounselorDashboard";
 import AITutor from "./AITutor";
 import TeacherAITutor from "./TeacherAITutor";
 import Messages from "./Messages";
@@ -38,6 +39,7 @@ import {
   ArrowLeft,
   HeartHandshake,
   BarChart3,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -63,6 +65,7 @@ export type ViewKey =
   | "batch-mentorship"
   | "batch-assignments"
   | "batch-insights"
+  | "counselor-dashboard"
   | "guardian-dashboard"
   | "guardian-progress"
   | "admin-dashboard"
@@ -96,13 +99,15 @@ const ALL_NAV: NavItem[] = [
   { key: "gantt", label: "Project", icon: ClipboardList, roles: ["student"] },
   { key: "report-card", label: "Progress", icon: FileText, roles: ["student"] },
 
-  // ===== TEACHER / COUNSELOR (batch dashboard — 5 prominent views) =====
-  // Counselors see the same batch view but with AccessGrant-scoped data.
-  { key: "batch", label: "Today", icon: LayoutDashboard, roles: ["teacher", "counselor"] },
-  { key: "batch-students", label: "Students", icon: Users, roles: ["teacher", "counselor"] },
-  { key: "batch-mentorship", label: "Mentorship", icon: HeartHandshake, roles: ["teacher", "counselor"] },
-  { key: "batch-assignments", label: "Assignments", icon: ClipboardList, roles: ["teacher", "counselor"] },
-  { key: "batch-insights", label: "Insights", icon: BarChart3, roles: ["teacher", "counselor"] },
+  // ===== TEACHER (5 prominent views) =====
+  { key: "batch", label: "Today", icon: LayoutDashboard, roles: ["teacher"] },
+  { key: "batch-students", label: "Students", icon: Users, roles: ["teacher"] },
+  { key: "batch-mentorship", label: "Mentorship", icon: HeartHandshake, roles: ["teacher"] },
+  { key: "batch-assignments", label: "Assignments", icon: ClipboardList, roles: ["teacher"] },
+  { key: "batch-insights", label: "Insights", icon: BarChart3, roles: ["teacher"] },
+
+  // ===== COUNSELOR (purpose-built wellbeing dashboard — NOT a teacher clone) =====
+  { key: "counselor-dashboard", label: "Command Center", icon: Zap, roles: ["counselor"] },
 
   // ===== TEACHER / COURSE COORDINATOR (batch + course planner) =====
   { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["teacher", "course_coordinator"] },
@@ -237,7 +242,7 @@ export default function AppShell() {
         } else if (role === "course_coordinator") {
           setView("course-planner");
         } else if (role === "counselor") {
-          setView("batch"); // counselors see the teacher dashboard (AccessGrant-scoped)
+          setView("counselor-dashboard"); // counselors see their own purpose-built dashboard
         } else if (role === "guardian") {
           setView("guardian-dashboard"); // guardians see a read-only student-like view
         } else {
@@ -371,7 +376,7 @@ export default function AppShell() {
       if (adminRoles.includes(u.role)) { setAdminAs("admin"); setView("admin-dashboard"); }
       else if (u.role === "teacher") setView("batch");
       else if (u.role === "course_coordinator") setView("course-planner");
-      else if (u.role === "counselor") setView("batch");
+      else if (u.role === "counselor") setView("counselor-dashboard");
       else if (u.role === "guardian") setView("guardian-dashboard");
       else setView("dashboard");
     }} />;
@@ -406,6 +411,7 @@ export default function AppShell() {
       case "batch-mentorship": return wrap(<TeacherDashboard initialTab="mentorship" />);
       case "batch-assignments": return wrap(<TeacherDashboard initialTab="assignments" />);
       case "batch-insights": return wrap(<TeacherDashboard initialTab="insights" />);
+      case "counselor-dashboard": return wrap(<CounselorDashboard key={`counselor-${navClickCount}`} onNavigateToMessages={() => navigateTo("messages")} />);
       case "ai-tutor": return wrap(<AITutor />);
       case "teacher-ai-tutor": return wrap(<TeacherAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
