@@ -125,9 +125,9 @@ const ALL_NAV: NavItem[] = [
   { key: "admin-system", label: "System", icon: ShieldAlert, roles: ADMIN_NAV_ROLES },
 
   // ===== SHARED (all authenticated roles) =====
-  { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ALL_ROLES_WITH_SHARED },
+  // AI Tutor — student-facing only (teachers/counselors use AI Assistant instead)
+  { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ["student", "guardian"] },
   // Teacher AI Assistant — staff-only (teachers, coordinators, counselors, admins).
-  // Behavioral signals logged to ChatSession + analysis pipeline, visible to admins/principals.
   { key: "teacher-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
   { key: "course-outline", label: "Course", icon: BookOpen, roles: ALL_ROLES_WITH_SHARED },
   { key: "messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES_WITH_SHARED },
@@ -190,7 +190,8 @@ export default function AppShell() {
     });
   };
   // Admin/Developer can impersonate ANY role to test dashboards.
-  const [adminAs, setAdminAs] = useState<string>("principal");
+  // Demo default: teacher interface (user requested)
+  const [adminAs, setAdminAs] = useState<string>("teacher");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Map raw role (including legacy aliases) to canonical nav role.
@@ -235,8 +236,14 @@ export default function AppShell() {
         const role = res.user.role;
         const adminRoles = ["principal", "administrator", "developer", "admin", "institution_admin", "platform_admin"];
         if (adminRoles.includes(role)) {
-          setAdminAs("admin");
-          setView("admin-dashboard");
+          // Demo developer defaults to teacher interface (user requested)
+          if (res.user.email === "demo@examiner.ai") {
+            setAdminAs("teacher");
+            setView("batch");
+          } else {
+            setAdminAs("admin");
+            setView("admin-dashboard");
+          }
         } else if (role === "teacher" ) {
           setView("batch");
         } else if (role === "course_coordinator") {
@@ -529,7 +536,7 @@ export default function AppShell() {
                 { role: "student", label: "Student", view: "dashboard" },
                 { role: "teacher", label: "Teacher", view: "batch" },
                 { role: "course_coordinator", label: "Coordinator", view: "course-planner" },
-                { role: "counselor", label: "Counselor", view: "batch" },
+                { role: "counselor", label: "Counselor", view: "counselor-dashboard" },
                 { role: "guardian", label: "Guardian", view: "guardian-dashboard" },
                 { role: "principal", label: "Principal", view: "admin-dashboard" },
               ] as const).map((r) => (
