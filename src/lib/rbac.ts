@@ -45,11 +45,13 @@ export const UserRole = {
 
 export type UserRoleValue = typeof UserRole[keyof typeof UserRole];
 
-/** Admin roles — principal + administrator. Both can manage users, but
- *  principal has pastoral/crisis access, administrator has operational access. */
+/** Admin roles — principal + administrator + developer.
+ *  Developer is included so the demo account (developer role) can preview
+ *  all admin dashboards without getting 403 errors. */
 export const ADMIN_ROLES: UserRoleValue[] = [
   UserRole.PRINCIPAL,
   UserRole.ADMINISTRATOR,
+  UserRole.DEVELOPER,
 ];
 
 /** Technical roles — developer + administrator. Both can see system health,

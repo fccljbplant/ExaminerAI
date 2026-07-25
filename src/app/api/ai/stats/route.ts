@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { hasRole, TECHNICAL_ROLES } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -17,7 +17,7 @@ import { AI_TOKEN_QUOTA, hasAI, isAIConfigured, getRateLimitStats } from "@/lib/
  */
 export async function GET() {
   const payload = await getAuthUser();
-  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+  if (!payload || !hasRole(payload.role, TECHNICAL_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
