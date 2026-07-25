@@ -240,3 +240,294 @@ See Section 6 above.
 
 ### Escalation Rules
 See Section 3 above.
+
+## Complete Feature Inventory
+
+### Student Features
+| Feature | Status | Endpoint / Component |
+|---|---|---|
+| Sign up (pending) | ✅ | POST /api/auth/login (PUT) |
+| Login | ✅ | POST /api/auth/login |
+| AI Tutor (multi-language) | ✅ | POST /api/ai/tutor |
+| Socratic Practice Test | ✅ | POST /api/ai/practice |
+| Socratic Daily Test | ✅ | POST /api/daily-test |
+| Socratic Weekly Test | ✅ | POST /api/ai/weekly-test |
+| Per-question explanations | ✅ | In all test endpoints |
+| Capstone project setup | ⚠️ UI dead code | POST /api/project/setup (JourneyWizard unreachable) |
+| AI task generation | ✅ | POST /api/project/generate-tasks |
+| Gantt chart + milestones | ✅ | GanttPanel component |
+| Weekly project reports | ✅ | POST /api/project/reports |
+| Final capstone analysis | ✅ | POST /api/students/[id]/generate-project-analysis |
+| Daily check-in | ✅ | CheckInPanel component |
+| Self-paced day advancement | ⚠️ No UI | POST /api/self-paced (no button calls it) |
+| Comprehensive private report | ✅ | GET /api/students/[id]/comprehensive-report |
+| Certificate generation | ⚠️ UI dead code | POST /api/certificates/generate (OverviewPanel unreachable) |
+| Report cards | ✅ | ReportCardPanel component |
+| Change password | ❌ UI dead code | SettingsPanel unreachable |
+| Set security question | ❌ UI dead code | SettingsPanel unreachable |
+| Theme switching | ✅ | ThemePresetProvider |
+| Ask my teacher | ✅ | AskMyTeacher component |
+
+### Teacher Features
+| Feature | Status | Endpoint / Component |
+|---|---|---|
+| Batch triage queue | ✅ | GET /api/stats?as=teacher |
+| Student portfolio (10 tabs) | ✅ | StudentPortfolioPage component |
+| 7-dimension psychology | ✅ | PsychologicalTab component |
+| Educational tab (skill mastery) | ✅ | EducationalTab component |
+| GROW mentorship | ❌ Backend rejects GROW types | MentorshipTabV2 (POST returns 400) |
+| AI Assistant (natural language) | ✅ | POST /api/teacher/assistant |
+| Draft check-in message | ✅ | POST /api/students/[id]/draft-checkin |
+| Rehearse conversation | ✅ | POST /api/students/[id]/rehearse |
+| Explain this student | ✅ | GET /api/students/[id]/explain |
+| Living-book narrative | ✅ | GET /api/students/[id]/narrative |
+| Comprehensive report | ✅ | GET /api/students/[id]/comprehensive-report |
+| Grade override | ✅ | POST /api/grades/override |
+| Allow retake | ✅ | POST /api/students/[id]/allow-retake |
+| Unlock test | ✅ | POST /api/students/[id]/unlock-test |
+| Generate report card | ✅ | POST /api/students/[id]/generate-report-card |
+| Course planner | ✅ | CoursePlanner component |
+| Batch students (search + filter) | ✅ | StudentsRoster component |
+| Assignments (group tasks) | ✅ | AssignmentsTab component |
+| Inline alert resolution | ❌ Not implemented | Must navigate into portfolio |
+| Batch broadcast | ❌ Not implemented | |
+| Plagiarism items in triage | ❌ Type exists, never populated | |
+
+### Counselor Features
+| Feature | Status | Endpoint / Component |
+|---|---|---|
+| Command center dashboard | ✅ | CounselorDashboard component |
+| Caseload view | ✅ | |
+| Crisis flag management | ⚠️ No IDOR check | POST /api/crisis-flags |
+| Mentorship touchpoints | ⚠️ No IDOR check | POST /api/mentorship/touchpoints |
+| Case reviews | ✅ | CaseReviewPanel component |
+| Pattern analysis | ✅ | |
+| AccessGrant scoping | ❌ Ignored | /api/counselor/overview returns all |
+
+### Guardian Features
+| Feature | Status | Endpoint / Component |
+|---|---|---|
+| Child progress overview | ✅ | GuardianDashboard component |
+| Report cards | ✅ | |
+| Wellbeing signal (sanitized) | ✅ | Tier only, no reasons |
+| Internal notes hidden | ✅ | |
+
+### Principal Features
+| Feature | Status | Endpoint / Component |
+|---|---|---|
+| Institution overview | ✅ | PrincipalDashboard component |
+| Academic performance | ✅ | |
+| Wellbeing distribution | ✅ | |
+| Audit log | ✅ | AuditView (hidden from demo) |
+| Safeguarding flags | ❌ Dead code | analyzeMessageForSafeguarding never called |
+| Teacher load management | ❌ Dead code | teacher-load.ts uses non-existent field |
+| Co-teacher suggestion | ❌ Never called | suggestCoTeacher function unused |
+
+### Administrator Features
+| Feature | Status | Endpoint / Component |
+|---|---|---|
+| User management (search + pagination) | ✅ | AdminDashboard component |
+| Role assignment (full authority) | ✅ | PATCH /api/users/[id]/role |
+| Course management | ✅ | AdminCoursesPanel component |
+| Feature flags | ✅ | FeaturesPanel component |
+| AI limits config | ✅ | AILimitsPanel component |
+| Demo AI toggle | ✅ | AILimitsPanel component |
+| System health | ✅ | SystemPanel component |
+| Audit log | ✅ | AuditLogPanel component |
+| User audit search | ✅ | UserAuditSearchPanel component |
+| Access grants (read-only) | ⚠️ No create/revoke UI | AccessGrantsPanel component |
+| Password resets | ✅ | PasswordResetPanel component |
+| Cache management | ✅ | SystemPanel component |
+
+### Demo Features
+| Feature | Status |
+|---|---|
+| View all dashboards | ✅ Via role switcher |
+| Read-only (writes blocked) | ✅ Server + client |
+| AI access (toggleable) | ✅ Admin can enable/disable |
+| Subject to rate limits | ✅ |
+| Admin panel hidden | ✅ |
+| Principal audit tab hidden | ✅ |
+| See audit tab on portfolios | ❌ Missing "demo" in privileged roles |
+| Bypass demo guard via raw fetch | ❌ 13 raw fetch() calls in StudentPortfolioPage |
+
+## AI Logic Reference
+
+### Provider Chain
+```
+1. DeepSeek V4 Flash (primary — cheap + fast)
+   - Model: deepseek-v4-flash
+   - Base URL: https://api.deepseek.com/v1
+   - Reads both content + reasoning_content (fallback for reasoning models)
+2. Z.ai GLM-4.6 (fallback — OpenAI-compatible)
+   - Base URL: https://api.z.ai/api/paas/v4
+3. z-ai-web-dev-sdk (sandbox — only works in Z.ai sandbox)
+4. Empty fallback (caller handles)
+```
+
+### Rate Limiting (per-user, per-day, UTC)
+| Category | Default | Features |
+|---|---|---|
+| test | 50/day | practice, daily-test, weekly-test, evaluate, question-gen |
+| tutor | 150/day | ai-tutor |
+| assistant | 100/day | teacher_assistant, action-dialog, student-explain, narrative-week, draft-checkin, rehearse, comprehensive-report |
+
+Admin-configurable via /api/settings/ai-limits. Demo AI can be disabled entirely.
+
+### Token Budgets
+| Feature | Budget |
+|---|---|
+| Question generation | 300 |
+| Evaluation | 500 |
+| Weekly test reply | 500 |
+| Final analysis | 4000 |
+| Connection test | 10 |
+| AI Tutor | 600 |
+| AI Assistant | 800 |
+| Comprehensive report | 2000 |
+| Course generation | 8000 (scales with weeks) |
+
+### Psychological Pipeline (7 dimensions, written every test)
+1. **Calibration** — confidence vs actual score (Dunning-Kruger)
+2. **Explanatory Depth** — average answer length (<50c surface, 50-300c moderate, >300c detailed)
+3. **Gaming Pattern** — plagiarism score >50 = voice_inconsistency
+4. **Attribution / Mindset** — growth/fixed/avoidant/neutral (keyword scan)
+5. **Cognitive Load** — score <40 high_intrinsic, 40-89 moderate, ≥90 low_germane (Sweller)
+6. **SRL Phase** — forethought/performance/reflection (Zimmerman, answer-length pattern)
+7. **Fluency / Retention** — improving/stable/declining recall (score trend across answers)
+
+### Wellbeing Tier Algorithm
+```
+14-day rolling window of PsychEvidence
+ratio = concerning_signals / total_signals
+  > 0.60 → RED
+  > 0.35 → AMBER
+  else   → GREEN
+Any open CrisisFlag → RED (override)
+```
+
+### Escalation Engine
+```
+Trigger 1 (duration): amber + 7+ days unresolved → RED
+Trigger 2 (repeat):
+  3rd+ occurrence → immediate RED
+  2nd occurrence → shortened 2-day timer → RED
+```
+
+### Attention Score (teacher triage)
+```
+Inactivity 3+ days: +30
+Inactivity 2+ days: +15
+Never checked in (with tasks): +20
+Latest test < 60: +25
+Score drop 15+ points: +20
+Sustained low confidence (2+ of last 5 ≤2): +20
+Blocked tasks: +10 each
+Sustained high cognitive load (2+ of last 3 = "high"): +15
+needsAttention = score ≥ 20
+```
+
+### Teacher Load Score (spec — actual implementation differs, see audit)
+```
+loadScore = students × 1 + batches × 15 + alerts × 5 + crisis × 25 + overdue × 3
+Green: < 50
+Amber: 50-99
+Red: ≥ 100
+```
+
+### Anti-Cheat Detection
+1. Tasks completed in <2 minutes (impossibly fast)
+2. 3+ days ahead of calendar schedule
+3. All week's tasks done by day 1 or 2 (unusual pace)
+4. Plagiarism score >50 on recent weekly test
+5. Voice inconsistency analysis (vocabulary jumps, AI-typical phrasing)
+
+### Safeguarding (spec — currently dead code, see audit)
+1. Deterministic regex pre-filter (5 categories)
+2. AI explains candidates (cannot invent flags)
+3. 2+ corroborating signals required (never single message)
+4. Principal-only visibility
+5. Dismissed, not deleted
+
+## Process Flows
+
+### Student Journey
+```
+Sign up (pending) → Teacher approves → Login
+→ [DEAD END: JourneyWizard is dead code — can't create project]
+→ Daily tasks (self-paced currentDay) → Practice/Daily/Weekly tests
+→ 7-dimension psych evidence per test → Wellbeing tier computed
+→ Mentorship touchpoints on tier transitions
+→ Comprehensive report (Progress tab)
+→ [DEAD END: Certificate UI is dead code]
+```
+
+### Teacher Flow
+```
+Login → Today view (triage queue, attention-scored)
+→ Click student → Portfolio (10 tabs)
+→ AI Tools (explain, narrative, draft check-in, rehearse)
+→ GROW mentorship [BROKEN: backend rejects GROW types]
+→ AI Assistant (natural language batch queries)
+→ Alerts → Action dialog → Mentorship touchpoint
+```
+
+### Crisis Response
+```
+Crisis flag created (manual or AI-detected)
+→ WellbeingState forced to RED
+→ Auto-touchpoint created (type: alert_response)
+→ [GAP: no notification to counselor/principal]
+→ Counselor/principal reviews
+→ Resolve or dismiss with required note
+```
+
+### Self-Paced Advancement
+```
+Student completes today's tasks
+→ canAdvanceDay = true (if currentDay < 5 AND all today's tasks done)
+→ [GAP: no UI button to call POST /api/self-paced]
+→ If currentDay === 5: [BROKEN: can't advance to next week]
+→ Weekly test unlocks when all week's tasks complete (already works)
+→ Weekly test completion auto-advances currentWeek
+```
+
+### Comprehensive Report Generation
+```
+Gather data from 14 sources (psychEvidence, confidenceRatings, skillMastery, touchpoints, interactions, weeklyTests, projectTasks, projectReports, wellbeing, crisisFlags, alerts, healthSummary, certificates)
+→ AI generates: accomplishments, areas to improve, management attitude, narrative
+→ Cache per-student (invalidated on new evidence)
+→ 7 sections: Educational, Psychological, Behavioral, Mentor, Accomplishments, Areas to Improve, Management Attitude
+```
+
+## Known Issues (from 2026-07-26 Deep Audit)
+
+See `docs/COMPREHENSIVE-AUDIT-2026-07-26.md` for the full audit report with 50 prioritized issues.
+
+### Critical (P0)
+1. Students can't create capstone projects (JourneyWizard dead code)
+2. GROW coaching backend rejects GROW touchpoint types
+3. Safeguarding pipeline is dead code (never invoked)
+4. Students can't generate certificates from UI (dead code)
+5. Self-paced advancement has no UI
+6. `/api/comments` GET lets students read other students' comments
+7. 18 IDOR vulnerabilities (cross-batch data access)
+8. `/api/students/alerts` leaks safeguarding flags to all staff
+
+### High (P1)
+9. 14 AI endpoints missing rate-limiting
+10. Teacher-load module uses non-existent schema field
+11. Certificate stores course name in courseId field
+12. SkillMastery overwritten by single test
+13. Wellbeing tier never decays
+14. Self-paced day-5 → week advance broken
+15. 13 raw fetch() calls bypass demo guard
+16. WeeklyTestPanel admin check uses wrong string
+17. Role checks use raw strings, not normalizeRole
+18. Z.ai + z-ai-sdk skip rate limiter
+19. RPD limit never enforced
+20. waitForSlot stale timestamp bug
+21. Crisis response doesn't notify counselor/principal
+22. Escalation cron has no scheduler
+23. Anti-cheat flags not persisted
+24. Destructive actions missing confirmation dialogs
