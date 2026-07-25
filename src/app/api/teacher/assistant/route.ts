@@ -54,16 +54,13 @@ export async function POST(req: NextRequest) {
       teacherId,
       error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
     });
-    // Fallback: get basic student list from stats
+    // Fallback: get basic student list — NO relations (safe for all schemas)
     const { db } = await import("@/lib/db");
     const { getTeacherBatchIds } = await import("@/lib/batch-teachers");
     const batchIds = await getTeacherBatchIds(teacherId, auth.ctx.payload.role);
     const students = await db.user.findMany({
       where: { role: "student", batchId: { in: batchIds || [] }, blocked: false },
-      select: {
-        id: true, name: true, currentWeek: true,
-        weeklyTests: { orderBy: { week: "desc" }, take: 1, select: { score: true } },
-      },
+      select: { id: true, name: true, currentWeek: true },
     });
     summary = {
       totalStudents: students.length,
@@ -76,7 +73,7 @@ export async function POST(req: NextRequest) {
         calibrationGap: 0,
         daysSinceTouchpoint: 0,
         openCrisisFlags: 0,
-        latestWeeklyTestScore: s.weeklyTests[0]?.score ?? null,
+        latestWeeklyTestScore: null,
         skillMastery: [],
         psychEvidence: [],
       })),
