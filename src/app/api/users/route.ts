@@ -1,31 +1,80 @@
 import { hasRole, ADMIN_ROLES, isStaffRole, UserRole } from "@/lib/rbac";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** GET /api/users — list users. Teachers see students+pending only. Admins see all.
- *  Demo (read-only) sees all users for preview purposes but cannot modify them. */
-export async function GET() {
+/** GET /api/users — list users with pagination + search.
+ *
+ *  Query params:
+ *    - q: search string (matches name OR email, case-insensitive)
+ *    - role: filter by role (e.g. 'student', 'teacher', 'pending')
+ *    - page: 1-indexed page number (default 1)
+ *    - pageSize: items per page (default 50, max 200)
+ *
+ *  Teachers see students+pending only. Admins see all.
+ *  Demo (read-only) sees all users for preview purposes but cannot modify them.
+ *
+ *  Returns: { users, pagination: { page, pageSize, total, totalPages } }
+ */
+export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  // Parse query params
+  const url = new URL(req.url);
+  const q = (url.searchParams.get("q") || "").trim();
+  const roleFilter = url.searchParams.get("role") || "";
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
+  const pageSize = Math.min(200, Math.max(1, parseInt(url.searchParams.get("pageSize") || "50", 10)));
+
+  // Build the where clause
   // Teachers, TAs, course_coordinators, and counselors only see students and
   // pending users (not other teachers/admins). Admins (principal/administrator)
   // and demo (read-only preview) see all users.
-  const where = (payload.role === "teacher"  || payload.role === "course_coordinator" || payload.role === "counselor")
+  const roleScope = (payload.role === "teacher" || payload.role === "course_coordinator" || payload.role === "counselor")
     ? { role: { in: ["student", "pending"] } }
     : {};
-  const users = await db.user.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true, email: true, name: true, role: true, blocked: true,
-      approvedAt: true, createdAt: true, lastLogin: true, currentWeek: true, projectName: true,
+
+  // Optional role filter (admin can filter by any role)
+  const roleFilterClause = roleFilter ? { role: roleFilter } : {};
+
+  // Search clause (name OR email contains q, case-insensitive)
+  const searchClause = q ? {
+    OR: [
+      { name: { contains: q, mode: "insensitive" as const } },
+      { email: { contains: q, mode: "insensitive" as const } },
+    ],
+  } : {};
+
+  const where = { ...roleScope, ...roleFilterClause, ...searchClause };
+
+  // Run count + fetch in parallel
+  const [total, users] = await Promise.all([
+    db.user.count({ where }),
+    db.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true, email: true, name: true, role: true, blocked: true,
+        approvedAt: true, createdAt: true, lastLogin: true, currentWeek: true, projectName: true,
+      },
+    }),
+  ]);
+
+  return NextResponse.json({
+    users,
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
     },
   });
-  return NextResponse.json({ users });
 }
 
 /** POST /api/users — admin/teacher creates a new user.

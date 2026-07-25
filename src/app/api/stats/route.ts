@@ -21,12 +21,20 @@ export async function GET(req: Request) {
     const page = Math.max(0, parseInt(url.searchParams.get("page") || "0", 10));
     const pageSize = Math.min(200, parseInt(url.searchParams.get("pageSize") || "100", 10));
     const skip = page * pageSize;
+    // Search — filter by name or email (case-insensitive)
+    const q = (url.searchParams.get("q") || "").trim();
 
     // For stats (total counts), we need the full count — but we can get it
     // without loading all records. The enriched student list is paginated.
     // Multi-teacher: scope students to the teacher's batches via BatchTeacher
     const batchFilter = await getBatchFilter(payload.sub, payload.role);
-    const studentWhere = { role: "student" as const, ...batchFilter };
+    const searchClause = q ? {
+      OR: [
+        { name: { contains: q, mode: "insensitive" as const } },
+        { email: { contains: q, mode: "insensitive" as const } },
+      ],
+    } : {};
+    const studentWhere = { role: "student" as const, ...batchFilter, ...searchClause };
 
     const [students, pending, teachers, totalStudents] = await Promise.all([
       db.user.findMany({

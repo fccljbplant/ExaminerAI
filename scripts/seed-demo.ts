@@ -130,6 +130,13 @@ Foundational course covering the four pillars of management — Planning, Organi
 // MAIN
 // ============================================================
 async function main() {
+  // Idempotent check: if --skip-if-populated was passed AND the DB already
+  // has users, exit early without wiping anything. This preserves existing
+  // users + data across re-deploys.
+  if (await shouldSkip()) {
+    return
+  }
+
   console.log('🧹 Cleaning DB...')
   // Comprehensive cleanup — all models that we'll seed
   await db.interaction.deleteMany()
@@ -1274,7 +1281,78 @@ async function main() {
   console.log(`   Demo account has 'demo' role — read-only, no writes.`)
 }
 
-main()
+/**
+ * ensureCoreAccounts — always runs, even when seed is skipped.
+ * Ensures the admin + demo accounts exist so login always works.
+ * If the accounts already exist, they're left untouched.
+ */
+async function ensureCoreAccounts() {
+  console.log('🔐 Ensuring core accounts exist (admin + demo)...')
+  const adminPwd = await hashPwd('helloworld')
+  const demoPwd = await hashPwd('demo123')
+
+  // Ensure admin account
+  await db.user.upsert({
+    where: { email: 'admin@examiner.ai' },
+    update: {}, // don't overwrite existing password/role
+    create: {
+      email: 'admin@examiner.ai',
+      name: 'Administrator',
+      passwordHash: adminPwd,
+      role: 'administrator',
+      approvedAt: new Date(),
+    },
+  }).catch(() => {})
+
+  // Ensure demo account
+  await db.user.upsert({
+    where: { email: 'demo@examiner.ai' },
+    update: {}, // don't overwrite existing password/role
+    create: {
+      email: 'demo@examiner.ai',
+      name: 'Demo User',
+      passwordHash: demoPwd,
+      role: 'demo',
+      approvedAt: new Date(),
+    },
+  }).catch(() => {})
+
+  console.log('✓ Core accounts verified.')
+}
+
+// Check for --skip-if-populated flag. When set, the seed checks if the
+// database already has users and skips seeding entirely if so. This makes
+// the build idempotent — re-deploys don't wipe existing users.
+const skipIfPopulated = process.argv.includes('--skip-if-populated')
+
+async function shouldSkip(): Promise<boolean> {
+  if (!skipIfPopulated) return false
+  try {
+    const userCount = await db.user.count()
+    if (userCount > 0) {
+      console.log(`⏭️  Database already has ${userCount} users — skipping seed (--skip-if-populated).`)
+      console.log('   Existing users and data are preserved.')
+      return true
+    }
+  } catch (err) {
+    // If the count fails (e.g. table doesn't exist yet), don't skip —
+    // the schema push should have created the tables.
+    console.log('⚠️  Could not check user count, proceeding with seed:', err instanceof Error ? err.message : String(err))
+  }
+  return false
+}
+
+async function run() {
+  // Always ensure core accounts (admin + demo) exist — even if seed is skipped.
+  // This guarantees login always works after a deploy.
+  await ensureCoreAccounts().catch(e =>
+    console.error('⚠️  ensureCoreAccounts failed (non-blocking):', e instanceof Error ? e.message : String(e))
+  )
+  // Run the full seed (which internally checks --skip-if-populated)
+  await main()
+}
+
+run()
   .catch(e => {
     console.error('❌ Seed failed:', e)
     process.exit(1)

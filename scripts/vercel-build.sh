@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Vercel build script for ExaminerAI (original project)
+# Vercel build script for ExaminerAI
 # - Uses prisma/schema.prod.prisma (Postgres) for Vercel
-# - Force-resets DB to apply schema cleanly
-# - Runs the comprehensive demo seed
+# - Pushes schema WITHOUT data loss (preserves existing users)
+# - Seeds demo data ONLY if the database is empty (idempotent)
 # - Builds Next.js
 set -e
 
@@ -13,13 +13,17 @@ echo "DATABASE_URL prefix: $(echo "$DATABASE_URL" | sed 's/\/\/.*/\/\/***REDACTE
 echo "🔧 Generating Prisma client (prod schema)..."
 bunx prisma generate --schema=prisma/schema.prod.prisma
 
-# Step 2: Force-reset DB and push schema (clean state for demo)
-echo "🗄️  Pushing schema to database (force-reset for clean demo state)..."
-bunx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --force-reset --skip-generate
+# Step 2: Push schema WITHOUT --force-reset (preserves existing data)
+# --accept-data-loss is still needed for column type changes, but
+# we NO LONGER use --force-reset which wipes the entire database.
+echo "🗄️  Pushing schema to database (preserving existing data)..."
+bunx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate
 
-# Step 3: Run demo seed
-echo "🌱 Seeding demo data (50 students, 2 courses, alerts, mentor sessions, etc.)..."
-bun run scripts/seed-demo.ts
+# Step 3: Seed demo data ONLY if the database is empty
+# This makes the build idempotent — re-deploys don't wipe users.
+# The seed script itself checks for existing data and skips if present.
+echo "🌱 Seeding demo data (only if database is empty)..."
+bun run scripts/seed-demo.ts --skip-if-populated
 
 # Step 4: Build Next.js
 echo "🏗️  Building Next.js..."

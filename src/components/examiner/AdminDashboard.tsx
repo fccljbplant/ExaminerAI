@@ -32,7 +32,7 @@ import {
   Users, ShieldAlert, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
   Settings as SettingsIcon, Server, Send, BookOpen, Plus, Edit3, GraduationCap, ClipboardList,
-  ShieldCheck, Save, Gauge,
+  ShieldCheck, Save, Gauge, Search, ChevronLeft, ChevronRight,
 } from "lucide-react";
 
 interface Props {
@@ -59,6 +59,13 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   const [seedMsg, setSeedMsg] = useState("");
   // P1.3: Fetch current user's role for role-based tab visibility
   const [currentUserRole, setCurrentUserRole] = useState<string>("admin");
+  // Search + pagination state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number }>({ page: 1, pageSize: 50, total: 0, totalPages: 0 });
+  const pageSize = 20;
+
   useEffect(() => {
     api.get<{ user: { role: string } | null }>("/api/auth/me").then(res => {
       if (res.user?.role) setCurrentUserRole(res.user.role);
@@ -70,17 +77,43 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   const isPrincipalRole = ["principal", "institution_admin"].includes(currentUserRole) || isAdminRole;
   const isDevRole = ["demo"].includes(currentUserRole) || isAdminRole;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (pageNum?: number) => {
     setLoading(true);
     try {
-      const res = await api.get<{ users: UserRow[] }>("/api/users");
+      // For the users tab, use pagination + search.
+      // For the overview tab, fetch ALL users (no pagination) to get accurate counts.
+      const isOverview = view === "overview";
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.set("q", searchQuery.trim());
+      if (roleFilter) params.set("role", roleFilter);
+      if (!isOverview) {
+        params.set("page", String(pageNum ?? page));
+        params.set("pageSize", String(pageSize));
+      } else {
+        params.set("pageSize", "200"); // fetch up to 200 for overview stats
+      }
+      const qs = params.toString();
+      const res = await api.get<{ users: UserRow[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/api/users${qs ? `?${qs}` : ""}`);
       setUsers(res.users);
+      if (res.pagination) setPagination(res.pagination);
     } catch { /* ignore */ }
     finally { setLoading(false); }
-  }, []);
+  }, [searchQuery, roleFilter, page, view]);
+
+  // Debounced search — reload page 1 when searchQuery or roleFilter changes
+  useEffect(() => {
+    const t = setTimeout(() => { setPage(1); load(1); }, 300);
+    return () => clearTimeout(t);
+     
+  }, [searchQuery, roleFilter]);
+
+  // Reload when page changes
+  useEffect(() => { load(); }, [page]);  
+
+  // Reload when view changes (overview needs all users, users tab needs pagination)
+  useEffect(() => { load(); }, [view]);  
 
   useEffect(() => { setView(initialView); }, [initialView]);
-  useEffect(() => { load(); }, [load]);
 
   const changeRole = async (id: string, role: string) => {
     setBusy(id);
@@ -240,9 +273,9 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       {view === "users" && (
         <Card className="border-border bg-card">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <CardTitle className="text-foreground">All Users ({users.length})</CardTitle>
+                <CardTitle className="text-foreground">All Users ({pagination.total})</CardTitle>
                 <CardDescription className="text-muted-foreground">Manage roles, approvals, blocks, and accounts</CardDescription>
               </div>
               <div className="flex gap-2">
@@ -251,15 +284,50 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                     {busy === "batch-approve" ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserCheck className="h-3 w-3" />} Approve All Pending ({pending.length})
                   </Button>
                 )}
-                <Button onClick={reseed} disabled={busy === "seed"} variant="outline" size="sm" className="border-border">
-                  {busy === "seed" ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Reseed
-                </Button>
-                <Button onClick={load} variant="outline" size="sm" className="border-border">
-                  <RefreshCw className="h-3 w-3" /> Refresh
+                <Button onClick={() => load()} disabled={loading} variant="outline" size="sm" className="border-border">
+                  {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Refresh
                 </Button>
               </div>
             </div>
             {seedMsg && <span className="text-xs text-primary">{seedMsg}</span>}
+            {/* Search + filter bar */}
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name or email..."
+                  className="w-full pl-7 pr-3 py-1.5 text-xs rounded-md bg-background border border-border focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="px-2 py-1.5 text-xs rounded-md bg-background border border-border focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">All roles</option>
+                <option value="pending">Pending</option>
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="course_coordinator">Course Coordinator</option>
+                <option value="counselor">Counselor</option>
+                <option value="guardian">Guardian</option>
+                <option value="principal">Principal</option>
+                <option value="administrator">Administrator</option>
+                <option value="demo">Demo</option>
+              </select>
+              {(searchQuery || roleFilter) && (
+                <Button
+                  onClick={() => { setSearchQuery(""); setRoleFilter(""); }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-7"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -327,6 +395,42 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                 </tbody>
               </table>
             </div>
+            {/* Pagination controls */}
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
+                <div className="text-xs text-muted-foreground">
+                  Showing {((pagination.page - 1) * pagination.pageSize) + 1}–{Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} users
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={pagination.page <= 1 || loading}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2 border-border"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </Button>
+                  <span className="text-xs text-muted-foreground px-2">
+                    Page {pagination.page} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                    disabled={pagination.page >= pagination.totalPages || loading}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2 border-border"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            {pagination.total === 0 && !loading && (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                No users found. {searchQuery || roleFilter ? "Try adjusting your search or filters." : "No users in the database."}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
