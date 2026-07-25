@@ -52,14 +52,19 @@ interface TeacherStats {
   totalActiveToday: number;
 }
 
-export default function TeacherDashboard() {
-  const [tab, setTab] = useState<TeacherTab>("today");
+export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherTab } = {}) {
+  const [tab, setTab] = useState<TeacherTab>(initialTab || "today");
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [stats, setStats] = useState<TeacherStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
   const [openAlertCount, setOpenAlertCount] = useState(0);
+
+  // Update tab when initialTab prop changes (from sidebar nav clicks)
+  useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab]);
 
   const load = useCallback(async () => {
     try {

@@ -35,6 +35,8 @@ import {
   Sparkles,
   RefreshCw,
   ArrowLeft,
+  HeartHandshake,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -56,6 +58,10 @@ export type ViewKey =
   | "messages"
   | "settings"
   | "batch"
+  | "batch-students"
+  | "batch-mentorship"
+  | "batch-assignments"
+  | "batch-insights"
   | "guardian-dashboard"
   | "guardian-progress"
   | "admin-dashboard"
@@ -91,9 +97,13 @@ const ALL_NAV: NavItem[] = [
   { key: "gantt", label: "My Project", icon: GanttIcon, roles: ["student"] },
   { key: "report-card", label: "My Progress", icon: FileText, roles: ["student"] },
 
-  // ===== TEACHER / COUNSELOR (batch dashboard) =====
+  // ===== TEACHER / COUNSELOR (batch dashboard — 5 prominent views) =====
   // Counselors see the same batch view but with AccessGrant-scoped data.
-  { key: "batch", label: "Dashboard", icon: LayoutDashboard, roles: ["teacher", "counselor"] },
+  { key: "batch", label: "Today", icon: LayoutDashboard, roles: ["teacher", "counselor"] },
+  { key: "batch-students", label: "Students", icon: Users, roles: ["teacher", "counselor"] },
+  { key: "batch-mentorship", label: "Mentorship", icon: HeartHandshake, roles: ["teacher", "counselor"] },
+  { key: "batch-assignments", label: "Assignments", icon: ClipboardList, roles: ["teacher", "counselor"] },
+  { key: "batch-insights", label: "Insights", icon: BarChart3, roles: ["teacher", "counselor"] },
 
   // ===== TEACHER / COURSE COORDINATOR (batch + course planner) =====
   { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["teacher", "course_coordinator"] },
@@ -399,7 +409,11 @@ export default function AppShell() {
       case "report-card": return wrap(<StudentDashboard key={`report-card-${navClickCount}`} initialMode="report-card" />);
       case "guardian-dashboard": return wrap(<StudentDashboard key={`guardian-${navClickCount}`} />);
       case "guardian-progress": return wrap(<StudentDashboard key={`guardian-progress-${navClickCount}`} initialMode="report-card" />);
-      case "batch": return wrap(<TeacherDashboard />);
+      case "batch": return wrap(<TeacherDashboard initialTab="today" />);
+      case "batch-students": return wrap(<TeacherDashboard initialTab="students" />);
+      case "batch-mentorship": return wrap(<TeacherDashboard initialTab="mentorship" />);
+      case "batch-assignments": return wrap(<TeacherDashboard initialTab="assignments" />);
+      case "batch-insights": return wrap(<TeacherDashboard initialTab="insights" />);
       case "ai-tutor": return wrap(<AITutor />);
       case "teacher-ai-tutor": return wrap(<TeacherAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
