@@ -10,6 +10,7 @@ import {
   getCookieOptions,
 } from "@/lib/auth";
 import { normalizeRole } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit-log";
 
 /** POST /api/auth/login — email/password login, sets JWT cookie. */
 export async function POST(req: NextRequest) {
@@ -89,6 +90,15 @@ export async function POST(req: NextRequest) {
     role: canonicalRole,
     name: user.name,
   });
+
+  // Audit log: user logged in
+  logAudit({
+    actor: { id: user.id, name: user.name, role: canonicalRole },
+    action: "user_logged_in",
+    target: { type: "user", id: user.id },
+    metadata: { email: user.email, ip: getClientIp(req) },
+    req,
+  }).catch(() => {});
 
   const res = NextResponse.json({
     user: { id: user.id, email: user.email, name: user.name, role: canonicalRole },

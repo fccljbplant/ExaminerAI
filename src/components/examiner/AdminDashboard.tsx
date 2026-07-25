@@ -11,6 +11,7 @@ import { AdminPMTab } from "@/components/examiner/admin/AdminPMTab";
 import { AdminCoursesPanel } from "@/components/examiner/admin/AdminCoursesPanel";
 import { SystemPanel } from "@/components/examiner/admin/SystemPanel";
 import { AILimitsPanel } from "@/components/examiner/admin/AILimitsPanel";
+import { UserAuditTab } from "@/components/examiner/teacher/UserAuditTab";
 import { AuditLogPanel } from "@/components/examiner/admin/AuditLogPanel";
 import { AccessGrantsPanel } from "@/components/examiner/admin/AccessGrantsPanel";
 import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel";
@@ -36,11 +37,11 @@ import {
 } from "lucide-react";
 
 interface Props {
-  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits";
+  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits" | "user-audit";
 }
 
 export default function AdminDashboard({ initialView = "overview" }: Props) {
-  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits">(
+  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits" | "user-audit">(
     initialView === "users" ? "users" :
     initialView === "courses" ? "courses" :
     initialView === "features" ? "features" :
@@ -51,6 +52,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     initialView === "pm" ? "pm" :
     initialView === "teacher-behavior" ? "teacher-behavior" :
     initialView === "ai-limits" ? "ai-limits" :
+    initialView === "user-audit" ? "user-audit" :
     "overview"
   );
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -235,6 +237,13 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
         {(isAdminRole || isPrincipalRole || isDevRole) && (
           <Button onClick={() => setView("ai-limits")} variant={view === "ai-limits" ? "default" : "outline"} className={view === "ai-limits" ? "bg-primary text-primary-foreground" : "border-border"}>
             <Gauge className="h-4 w-4" /> AI Limits
+          </Button>
+        )}
+        {/* User Audit tab — visible to administrator + principal (NOT demo).
+            Lets admins search for any user and view their full audit trail. */}
+        {(isAdminRole || isPrincipalRole) && (
+          <Button onClick={() => setView("user-audit")} variant={view === "user-audit" ? "default" : "outline"} className={view === "user-audit" ? "bg-primary text-primary-foreground" : "border-border"}>
+            <ShieldCheck className="h-4 w-4" /> User Audit
           </Button>
         )}
         {/* System & Dev tab — visible to administrator only (NOT demo).
@@ -446,10 +455,120 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
           component handles this by checking the current user's role). */}
       {view === "ai-limits" && <AILimitsPanel />}
 
+      {/* User Audit tab — search any user + view their full audit trail.
+          Admin/principal only. Lets admins audit teachers, counselors,
+          other admins — not just students. */}
+      {view === "user-audit" && <UserAuditSearchPanel />}
+
       {/* System & Dev tab — ALL dev stuff here, nowhere else.
           Admin-only (NOT demo) — the tab button is hidden from demo above. */}
       {view === "system" && <SystemPanel users={users} />}
     </div>
+  );
+}
+
+// ============================================================
+// User Audit Search Panel — lets admin search for any user
+// and view their full audit trail (actions BY + ABOUT them).
+// ============================================================
+function UserAuditSearchPanel() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<UserRow[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const search = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("q", searchQuery.trim());
+      params.set("pageSize", "20");
+      const res = await api.get<{ users: UserRow[] }>(`/api/users?${params.toString()}`);
+      setSearchResults(res.users || []);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    const t = setTimeout(search, 300);
+    return () => clearTimeout(t);
+     
+  }, [searchQuery]);
+
+  return (
+    <Card className="border-border bg-card">
+      <CardHeader>
+        <CardTitle className="text-base text-foreground flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-primary" /> User Audit Trail
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Search for any user (student, teacher, counselor, admin) to view their complete audit trail — all actions they performed and all actions taken about them.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setSelectedUserId(null); }}
+            placeholder="Search by name or email to find a user..."
+            className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-background border border-border focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          {loading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+        </div>
+
+        {/* Search results */}
+        {searchQuery.trim() && !selectedUserId && (
+          <div className="space-y-1 max-h-[300px] overflow-y-auto">
+            {searchResults.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No users found.</p>
+            ) : (
+              searchResults.map(u => (
+                <button
+                  key={u.id}
+                  onClick={() => setSelectedUserId(u.id)}
+                  className="w-full flex items-center justify-between p-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-left"
+                >
+                  <div>
+                    <div className="text-sm font-medium text-foreground">{u.name}</div>
+                    <div className="text-xs text-muted-foreground">{u.email}</div>
+                  </div>
+                  <Badge variant="outline" className="text-[9px]">{u.role}</Badge>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Selected user's audit trail */}
+        {selectedUserId && (
+          <div className="space-y-3">
+            <Button onClick={() => setSelectedUserId(null)} variant="outline" size="sm" className="border-border">
+              <ChevronLeft className="h-3 w-3" /> Back to search results
+            </Button>
+            <UserAuditTab userId={selectedUserId} />
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!searchQuery.trim() && !selectedUserId && (
+          <div className="text-center py-8">
+            <ShieldCheck className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Start typing to search for a user.</p>
+            <p className="text-xs text-muted-foreground mt-1">You can view the audit trail for any user — students, teachers, counselors, and admins.</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

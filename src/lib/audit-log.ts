@@ -35,6 +35,7 @@ export const AuditAction = {
   USER_BLOCKED: "user_blocked",
   USER_DELETED: "user_deleted",
   USER_CREATED: "user_created",
+  USER_LOGGED_IN: "user_logged_in",
   ACCESS_GRANT_CREATED: "access_grant_created",
   ACCESS_GRANT_REVOKED: "access_grant_revoked",
   GRADE_CHANGED: "grade_changed",
@@ -47,6 +48,10 @@ export const AuditAction = {
   FEATURE_FLAG_TOGGLED: "feature_flag_toggled",
   CRISIS_FLAG_VIEWED: "crisis_flag_viewed",
   WELLBEING_ALERT_VIEWED: "wellbeing_alert_viewed",
+  // AI governance actions
+  AI_LIMITS_CHANGED: "ai_limits_changed",
+  DEMO_AI_TOGGLED: "demo_ai_toggled",
+  AI_RATE_LIMIT_REACHED: "ai_limit_reached",
 } as const;
 
 export async function logAudit(params: LogAuditParams): Promise<void> {

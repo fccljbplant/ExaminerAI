@@ -23,6 +23,7 @@ import { TeacherCourseProgressView } from "@/components/examiner/teacher/Teacher
 import { PsychologicalTab } from "@/components/examiner/teacher/PsychologicalTab";
 import { EducationalTab } from "@/components/examiner/teacher/EducationalTab";
 import { MentorshipTabV2 } from "@/components/examiner/teacher/MentorshipTabV2";
+import { UserAuditTab } from "@/components/examiner/teacher/UserAuditTab";
 import { StudentAITools } from "@/components/examiner/teacher/ai/StudentAITools";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
 
@@ -43,10 +44,13 @@ export function StudentPortfolioPage({
 }) {
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"project" | "wizard" | "logs" | "assessments" | "report-cards" | "comments" | "psychological" | "educational" | "mentorship">("project");
+  const [tab, setTab] = useState<"project" | "wizard" | "logs" | "assessments" | "report-cards" | "comments" | "psychological" | "educational" | "mentorship" | "audit">("project");
   const [commentBody, setCommentBody] = useState("");
   const [commentTarget, setCommentTarget] = useState<string>("general");
   const [posting, setPosting] = useState(false);
+  // Fetch current user's role for audit-tab visibility
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+  const isPrivilegedRole = ["principal", "administrator", "admin", "institution_admin", "platform_admin"].includes(currentUserRole);
 
   // --- Weekly Test Comment Dialog state ---
   const [wtCommentFor, setWtCommentFor] = useState<{ testId: string; week: number } | null>(null);
@@ -102,6 +106,13 @@ export function StudentPortfolioPage({
     setCommentBody("");
     setCommentTarget("general");
   }, [student.id, loadPortfolio]);
+
+  // Fetch current user's role (for audit-tab visibility)
+  useEffect(() => {
+    api.get<{ user: { role: string } | null }>("/api/auth/me").then(res => {
+      if (res.user?.role) setCurrentUserRole(res.user.role);
+    }).catch(() => {/* silent */});
+  }, []);
 
   const submitComment = async () => {
     if (!student || !commentBody.trim()) return;
@@ -450,6 +461,9 @@ export function StudentPortfolioPage({
           { key: "educational", label: "Educational", icon: GraduationCap },
           { key: "mentorship", label: "Mentorship", icon: HeartHandshake },
           { key: "comments", label: `Comments (${portfolio.comments.length})`, icon: MessageSquare },
+          // Audit tab — visible to principal + administrator (full oversight).
+          // Also visible to the user themselves + teachers (limited to their batch).
+          ...(isPrivilegedRole ? [{ key: "audit" as const, label: "Audit", icon: ShieldCheck }] : []),
         ]}
         active={tab}
         onChange={(key) => setTab(key as typeof tab)}
@@ -1325,6 +1339,11 @@ export function StudentPortfolioPage({
               </Button>
             </div>
           </div>
+        )}
+
+        {/* Audit tab — full audit trail. Visible to principal + administrator. */}
+        {tab === "audit" && isPrivilegedRole && (
+          <UserAuditTab userId={student.id} />
         )}
       </div>
     </div>

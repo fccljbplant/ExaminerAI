@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logAudit } from "@/lib/audit-log";
 
 /**
  * GET /api/settings/ai-limits — returns the current AI rate-limit config
@@ -104,6 +105,16 @@ export async function POST(req: NextRequest) {
         })
       )
     );
+
+    // Audit log: admin changed AI limits or demo AI toggle
+    const isDemoToggle = "demo_ai_enabled" in updates;
+    logAudit({
+      actor: { id: payload.sub, name: payload.name, role: payload.role },
+      action: isDemoToggle ? "demo_ai_toggled" : "ai_limits_changed",
+      target: { type: "system", id: "ai-limits" },
+      after: updates,
+      req,
+    }).catch(() => {});
 
     return NextResponse.json({
       ok: true,
