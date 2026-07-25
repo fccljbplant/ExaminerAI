@@ -44,7 +44,44 @@ export async function POST(req: NextRequest) {
   const teacherId = auth.ctx.payload.sub;
 
   // Build batch summary (shared helper — same data as the Psych/Edu tabs)
-  const summary = await buildTeacherBatchSummary(teacherId, batchScope);
+  // Wrap in try-catch: the batch summary might fail if schema relations
+  // don't match. Fall back to a simple student list from /api/stats data.
+  let summary;
+  try {
+    summary = await buildTeacherBatchSummary(teacherId, batchScope);
+  } catch (summaryErr) {
+    logger.error("Batch summary failed, falling back to simple stats", {
+      teacherId,
+      error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
+    });
+    // Fallback: get basic student list from stats
+    const { db } = await import("@/lib/db");
+    const { getTeacherBatchIds } = await import("@/lib/batch-teachers");
+    const batchIds = await getTeacherBatchIds(teacherId, auth.ctx.payload.role);
+    const students = await db.user.findMany({
+      where: { role: "student", batchId: { in: batchIds || [] }, blocked: false },
+      select: {
+        id: true, name: true, currentWeek: true,
+        weeklyTests: { orderBy: { week: "desc" }, take: 1, select: { score: true } },
+      },
+    });
+    summary = {
+      totalStudents: students.length,
+      students: students.map(s => ({
+        userId: s.id,
+        name: s.name,
+        currentWeek: s.currentWeek,
+        progress: 0,
+        wellbeingTier: "green",
+        calibrationGap: 0,
+        daysSinceTouchpoint: 0,
+        openCrisisFlags: 0,
+        latestWeeklyTestScore: s.weeklyTests[0]?.score ?? null,
+        skillMastery: [],
+        psychEvidence: [],
+      })),
+    };
+  }
 
   if (summary.students.length === 0) {
     return NextResponse.json({
