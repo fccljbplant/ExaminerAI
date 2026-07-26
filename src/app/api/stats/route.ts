@@ -3,6 +3,7 @@ import { getBatchFilter } from "@/lib/batch-teachers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { getCourseProjectConfig } from "@/lib/course-db";
 
 /** GET /api/stats — aggregated stats for the dashboard.
  *  - For students: their own progress, streak, weakest topic, etc.
@@ -316,6 +317,10 @@ export async function GET(req: Request) {
   const latestTest = user.weeklyTests.filter((t) => t.status === "completed").slice(-1)[0];
   const latestScore = latestTest?.score ?? null;
 
+  // Project config from the user's assigned course — drives whether the
+  // student dashboard shows the Project nav, banners, and the duration limits.
+  const projectConfig = await getCourseProjectConfig(user.id);
+
   return NextResponse.json({
     role: "student",
     stats: {
@@ -342,5 +347,9 @@ export async function GET(req: Request) {
     tasks: user.tasks,
     bugs: [], // removed (Bug model deleted)
     comments: user.commentsRecv,
+    // Course + project configuration — used by the student dashboard to
+    // hide/show the Project nav + banners, and to enforce duration limits
+    // in the project setup form.
+    projectConfig,
   });
 }

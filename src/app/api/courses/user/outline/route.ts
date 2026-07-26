@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getCourseTopics, getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
+import { getCourseTopics, getCourseDurationWeeks, getCourseMetadata, getCourseProjectConfig } from "@/lib/course-db";
 
 /** GET /api/courses/user/outline
  *
@@ -40,11 +40,14 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Fetch the full course outline + metadata in parallel
+  // Fetch the full course outline + metadata + project config in parallel
   // M2-fix: fetch course once instead of 3 times
-  const weeks = await getCourseTopics(user.id);
+  const [weeks, courseMeta, projectConfig] = await Promise.all([
+    getCourseTopics(user.id),
+    getCourseMetadata(user.id),
+    getCourseProjectConfig(user.id),
+  ]);
   const totalWeeks = weeks.length;
-  const courseMeta = await getCourseMetadata(user.id);
 
   // Map to the response shape — parse JSON fields + flatten the DailyTopic
   // structure so the client doesn't have to deal with the raw DB shape.
@@ -83,6 +86,20 @@ export async function GET() {
     deliverableTypes: courseMeta?.deliverableTypes ?? [],
     totalWeeks,
     weeks: mappedWeeks,
+    // Project config — drives whether the student sees the Project nav, banners,
+    // and what default duration the project-setup form pre-selects.
+    project: {
+      courseAssigned: projectConfig.courseAssigned,
+      courseId: projectConfig.courseId,
+      courseName: projectConfig.courseName,
+      totalWeeks: projectConfig.totalWeeks,
+      projectEnabled: projectConfig.projectEnabled,
+      projectRequired: projectConfig.projectRequired,
+      projectDefaultDurationWeeks: projectConfig.projectDefaultDurationWeeks,
+      // Convenience: the max project duration the student can pick = courseWeeks - 1
+      maxProjectDurationWeeks: Math.max(2, projectConfig.totalWeeks - 1),
+      minProjectDurationWeeks: 2,
+    },
   });
 }
 

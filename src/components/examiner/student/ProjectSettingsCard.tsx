@@ -14,6 +14,17 @@ import {
   ChevronDown, ChevronRight, Bot, ShieldAlert, Award, ExternalLink,
 } from "lucide-react";
 
+/** Course project config — fetched from /api/courses/user/outline so the form
+ *  can enforce min/max duration limits and pre-select the course default. */
+interface CourseProjectConfig {
+  courseAssigned: boolean;
+  courseName: string | null;
+  totalWeeks: number;
+  projectEnabled: boolean;
+  projectRequired: boolean;
+  projectDefaultDurationWeeks: number;
+}
+
 export function ProjectSettingsCard({ onSaved }: { onSaved?: () => void }) {
   const [projectName, setProjectName] = useState<string | null>(null);
   const [projectScope, setProjectScope] = useState("");
@@ -29,31 +40,48 @@ export function ProjectSettingsCard({ onSaved }: { onSaved?: () => void }) {
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  // Course-level project config — drives the duration dropdown limits + default.
+  const [courseConfig, setCourseConfig] = useState<CourseProjectConfig | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const res = await api.get<{
-        projectName: string | null;
-        projectScope: string | null;
-        projectObjectives: string | null;
-        projectRequirements: string | null;
-        projectBusinessCase: string | null;
-        projectDurationWeeks: number | null;
-        projectStartDate: string | null;
-        projectNotes: string | null;
-        projectGithubUrl: string | null;
-        projectDeployUrl: string | null;
-      }>("/api/project/setup");
-      setProjectName(res.projectName);
-      setProjectScope(res.projectScope || "");
-      setProjectObjectives(res.projectObjectives || "");
-      setProjectRequirements(res.projectRequirements || "");
-      setProjectBusinessCase(res.projectBusinessCase || "");
-      setProjectDurationWeeks(String(res.projectDurationWeeks ?? 6));
-      setProjectStartDate(res.projectStartDate ? res.projectStartDate.slice(0, 10) : "");
-      setProjectNotes(res.projectNotes || "");
-      setProjectGithubUrl(res.projectGithubUrl || "");
-      setProjectDeployUrl(res.projectDeployUrl || "");
+      const [setupRes, outlineRes] = await Promise.all([
+        api.get<{
+          projectName: string | null;
+          projectScope: string | null;
+          projectObjectives: string | null;
+          projectRequirements: string | null;
+          projectBusinessCase: string | null;
+          projectDurationWeeks: number | null;
+          projectStartDate: string | null;
+          projectNotes: string | null;
+          projectGithubUrl: string | null;
+          projectDeployUrl: string | null;
+        }>("/api/project/setup"),
+        api.get<{ project?: CourseProjectConfig }>("/api/courses/user/outline").catch(() => ({ project: undefined })),
+      ]);
+      setProjectName(setupRes.projectName);
+      setProjectScope(setupRes.projectScope || "");
+      setProjectObjectives(setupRes.projectObjectives || "");
+      setProjectRequirements(setupRes.projectRequirements || "");
+      setProjectBusinessCase(setupRes.projectBusinessCase || "");
+      setProjectNotes(setupRes.projectNotes || "");
+      setProjectGithubUrl(setupRes.projectGithubUrl || "");
+      setProjectDeployUrl(setupRes.projectDeployUrl || "");
+      setProjectStartDate(setupRes.projectStartDate ? setupRes.projectStartDate.slice(0, 10) : "");
+
+      // Apply course config — drives both the default and the min/max bounds.
+      const cfg = outlineRes.project;
+      if (cfg) {
+        setCourseConfig(cfg);
+        const minW = 2;
+        const maxW = Math.max(2, cfg.totalWeeks - 1);
+        const current = setupRes.projectDurationWeeks ?? cfg.projectDefaultDurationWeeks ?? 4;
+        const clamped = String(Math.min(Math.max(current, minW), maxW));
+        setProjectDurationWeeks(clamped);
+      } else {
+        setProjectDurationWeeks(String(setupRes.projectDurationWeeks ?? 6));
+      }
     } catch { /* ignore */ }
   }, []);
 
@@ -167,15 +195,42 @@ export function ProjectSettingsCard({ onSaved }: { onSaved?: () => void }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-[10px] text-muted-foreground">Duration (weeks)</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={52}
-                  value={projectDurationWeeks}
-                  onChange={(e) => setProjectDurationWeeks(e.target.value)}
-                  className="bg-background border-border mt-1"
-                />
+                <Label className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  Duration (weeks)
+                  {courseConfig?.courseAssigned && (
+                    <span className="text-[9px] text-muted-foreground/70 font-normal">
+                      (2–{Math.max(2, courseConfig.totalWeeks - 1)} for this course)
+                    </span>
+                  )}
+                </Label>
+                {courseConfig?.courseAssigned ? (
+                  <select
+                    value={projectDurationWeeks}
+                    onChange={(e) => setProjectDurationWeeks(e.target.value)}
+                    className="bg-background border border-border rounded-md mt-1 h-9 px-3 text-sm w-full"
+                  >
+                    {Array.from(
+                      { length: Math.max(0, courseConfig.totalWeeks - 2) },
+                      (_, i) => i + 2
+                    ).map(w => (
+                      <option key={w} value={String(w)}>{w} week{w === 1 ? "" : "s"}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    type="number"
+                    min={1}
+                    max={52}
+                    value={projectDurationWeeks}
+                    onChange={(e) => setProjectDurationWeeks(e.target.value)}
+                    className="bg-background border-border mt-1"
+                  />
+                )}
+                {courseConfig?.courseAssigned && (
+                  <p className="text-[9px] text-muted-foreground mt-1 leading-snug">
+                    Your course is {courseConfig.totalWeeks} weeks long. Project duration must be between 2 and {Math.max(2, courseConfig.totalWeeks - 1)} weeks (course weeks − 1) so you can finish before the course ends.
+                  </p>
+                )}
               </div>
               <div>
                 <Label className="text-[10px] text-muted-foreground">Start Date</Label>

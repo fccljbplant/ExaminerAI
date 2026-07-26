@@ -76,6 +76,15 @@ export async function POST(req: NextRequest) {
   // Safeguarding: if a staff member sent this message to a student, scan for
   // aggressive/inappropriate language. This is the teacher→student safeguarding
   // pathway (Section 5 of the AI Assistant spec).
+  //
+  // C8 fix (audit 2026-07-26): the safeguarding flag must be attributed to
+  // the TEACHER (the one who used the language), not the student. The previous
+  // version stored it against `userId: toId` (the student), which meant:
+  //   - The student appeared in safeguarding reports (wrong — they did nothing wrong)
+  //   - The teacher's behavior was invisible in their own portfolio
+  //   - Principals reviewing safeguarding flags saw the wrong person attributed
+  // We now store the flag against `userId: user.id` (the teacher) and keep the
+  // student ID + message ID in the resolutionNote for context.
   try {
     const recipientUser = await db.user.findUnique({
       where: { id: toId },
@@ -88,7 +97,9 @@ export async function POST(req: NextRequest) {
         for (const signal of signals) {
           await db.studentAlert.create({
             data: {
-              userId: toId,
+              // C8 fix: attribute the flag to the TEACHER (the one who used the language),
+              // not the student. The student is the recipient, not the subject of the alert.
+              userId: user.id,
               type: "safeguarding",
               severity: signal.severity,
               reason: `${signal.category}: ${signal.matchedPatterns.join(", ")}`,
@@ -97,7 +108,8 @@ export async function POST(req: NextRequest) {
               status: "open",
               resolutionNote: JSON.stringify({
                 messageId: msg.id,
-                teacherId: user.id,
+                teacherId: user.id,        // The flagged staff member
+                studentId: toId,            // The student who received the message (context only)
                 category: signal.category,
                 context: signal.context,
               }),

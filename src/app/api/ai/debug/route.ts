@@ -36,12 +36,14 @@ export async function GET() {
     report.aiEnabled = `error: ${e instanceof Error ? e.message : String(e)}`;
   }
 
-  // 2. Env var presence (without exposing keys)
+  // 2. Env var presence (C9 fix: do NOT expose API key prefix/suffix — even
+  //    partial key leaks make it easier to brute-force the rest. Just report
+  //    "set" vs "NOT SET" and the key LENGTH for sanity-check, no characters.)
   report.envVars = {
-    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ? `set (${process.env.DEEPSEEK_API_KEY.slice(0, 8)}...${process.env.DEEPSEEK_API_KEY.slice(-4)})` : "NOT SET",
+    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ? `set (length: ${process.env.DEEPSEEK_API_KEY.length})` : "NOT SET",
     DEEPSEEK_MODEL: process.env.DEEPSEEK_MODEL || "(default: deepseek-v4-flash)",
     DEEPSEEK_BASE_URL: process.env.DEEPSEEK_BASE_URL || "(default: https://api.deepseek.com/v1)",
-    ZAI_API_KEY: process.env.ZAI_API_KEY ? `set (${process.env.ZAI_API_KEY.slice(0, 8)}...${process.env.ZAI_API_KEY.slice(-4)})` : "NOT SET",
+    ZAI_API_KEY: process.env.ZAI_API_KEY ? `set (length: ${process.env.ZAI_API_KEY.length})` : "NOT SET",
     ZAI_MODEL: process.env.ZAI_MODEL || "(default: glm-4.6)",
     ZAI_BASE_URL: process.env.ZAI_BASE_URL || "(default: https://api.z.ai/api/paas/v4)",
   };

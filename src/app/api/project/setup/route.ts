@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI } from "@/lib/ai-provider";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { getCourseProjectConfig } from "@/lib/course-db";
 
 /** Generate a concise project summary + key features from the project definition.
  *  Used by POST (create) and PATCH (edit) to keep the summary in sync.
@@ -106,6 +107,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "projectName is required" }, { status: 400 });
   }
 
+  // Enforce course-level project configuration:
+  // - If the student's course has projects DISABLED (or no course assigned), refuse.
+  // - Clamp projectDurationWeeks to [2, courseWeeks - 1].
+  //   Fallback for students with no course: keep the legacy [1, 52] range so
+  //   existing flows (demo, dev impersonation) don't break.
+  const projectConfig = await getCourseProjectConfig(user.id);
+  if (projectConfig.courseAssigned && !projectConfig.projectEnabled) {
+    return NextResponse.json(
+      {
+        error: `Projects are not enabled for your course "${projectConfig.courseName ?? ""}". Please contact your teacher or course coordinator.`,
+      },
+      { status: 403 }
+    );
+  }
+
+  let finalDurationWeeks: number;
+  if (projectConfig.courseAssigned) {
+    const minW = 2;
+    const maxW = Math.max(2, projectConfig.totalWeeks - 1);
+    const requested = Number(projectDurationWeeks);
+    if (!Number.isFinite(requested)) {
+      finalDurationWeeks = projectConfig.projectDefaultDurationWeeks;
+    } else {
+      finalDurationWeeks = Math.min(Math.max(Math.round(requested), minW), maxW);
+    }
+  } else {
+    // Legacy fallback: no course assigned (demo/dev impersonation)
+    finalDurationWeeks = projectDurationWeeks && projectDurationWeeks >= 1 && projectDurationWeeks <= 52
+      ? Math.round(projectDurationWeeks)
+      : 6;
+  }
+
   // Save the project details on the user.
   await db.user.update({
     where: { id: user.id },
@@ -115,8 +148,7 @@ export async function POST(req: NextRequest) {
       projectObjectives: projectObjectives?.trim() || null,
       projectRequirements: projectRequirements?.trim() || null,
       projectBusinessCase: projectBusinessCase?.trim() || null,
-      projectDurationWeeks: projectDurationWeeks && projectDurationWeeks >= 1 && projectDurationWeeks <= 52
-        ? Math.round(projectDurationWeeks) : 6,
+      projectDurationWeeks: finalDurationWeeks,
       projectStartDate: projectStartDate ? new Date(projectStartDate) : new Date(),
       projectNotes: projectNotes?.trim() || null,
       projectGithubUrl: projectGithubUrl?.trim() || null,
@@ -221,8 +253,19 @@ export async function PATCH(req: NextRequest) {
   if (body.projectGithubUrl !== undefined) data.projectGithubUrl = String(body.projectGithubUrl).trim() || null;
   if (body.projectDeployUrl !== undefined) data.projectDeployUrl = String(body.projectDeployUrl).trim() || null;
   if (body.projectDurationWeeks !== undefined) {
+    // Enforce course-level duration limits: [2, courseWeeks - 1] when course assigned.
+    // Fallback to legacy [1, 52] when no course (demo/dev impersonation).
+    const projectConfig = await getCourseProjectConfig(user.id);
     const w = Number(body.projectDurationWeeks);
-    if (!Number.isNaN(w) && w >= 1 && w <= 52) data.projectDurationWeeks = Math.round(w);
+    if (projectConfig.courseAssigned) {
+      const minW = 2;
+      const maxW = Math.max(2, projectConfig.totalWeeks - 1);
+      if (Number.isFinite(w)) {
+        data.projectDurationWeeks = Math.min(Math.max(Math.round(w), minW), maxW);
+      }
+    } else {
+      if (!Number.isNaN(w) && w >= 1 && w <= 52) data.projectDurationWeeks = Math.round(w);
+    }
   }
   if (body.projectStartDate !== undefined) {
     data.projectStartDate = body.projectStartDate ? new Date(body.projectStartDate) : null;

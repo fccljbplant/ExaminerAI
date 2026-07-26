@@ -108,6 +108,9 @@ export async function GET() {
     assessmentType: c.assessmentType,
     notebooklmUrl: c.notebooklmUrl,
     subjects: (() => { try { return JSON.parse(c.subjects || "[]"); } catch { return []; } })(),
+    projectEnabled: c.projectEnabled,
+    projectRequired: c.projectRequired,
+    projectDefaultDurationWeeks: c.projectDefaultDurationWeeks,
     weeks: c.weeks.map(w => ({
       id: w.id,
       weekNumber: w.weekNumber,
@@ -146,7 +149,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks: rawWeeks, domain, level, assessmentType, toolsUsed, deliverableTypes, notebooklmUrl, subjects } = body as {
+  const { name, description, weeks: rawWeeks, domain, level, assessmentType, toolsUsed, deliverableTypes, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
     name?: string;
     description?: string;
     weeks?: unknown;
@@ -157,6 +160,9 @@ export async function POST(req: NextRequest) {
     deliverableTypes?: string[];
     notebooklmUrl?: string;
     subjects?: string[];
+    projectEnabled?: boolean;
+    projectRequired?: boolean;
+    projectDefaultDurationWeeks?: number;
   };
 
   if (!name?.trim()) {
@@ -166,6 +172,25 @@ export async function POST(req: NextRequest) {
   if (!nameValidation.ok) {
     return NextResponse.json({ error: nameValidation.error || "Invalid course name" }, { status: 400 });
   }
+
+  // Project config validation:
+  // - projectEnabled can only be true if the course has >= 4 weeks.
+  // - projectDefaultDurationWeeks must be 2..(weeks-1) when set.
+  const normalizedWeeks = normalizeAiCourseData(rawWeeks);
+  const weekCount = normalizedWeeks?.length ?? 0;
+  const finalProjectEnabled = projectEnabled === true && weekCount >= 4;
+  if (projectEnabled === true && weekCount < 4) {
+    return NextResponse.json(
+      { error: `Projects cannot be enabled for courses shorter than 4 weeks (this course has ${weekCount} week${weekCount === 1 ? "" : "s"}).` },
+      { status: 400 }
+    );
+  }
+  const finalProjectDuration = (() => {
+    const w = Number(projectDefaultDurationWeeks);
+    if (!Number.isInteger(w)) return 4;
+    const maxAllowed = Math.max(2, weekCount - 1);
+    return Math.min(Math.max(w, 2), maxAllowed);
+  })();
 
   // Phase AI-Tutor Revert: normalize notebooklmUrl — trim, allow empty (→ null)
   const normalizedNotebooklmUrl = notebooklmUrl?.trim() || null;
@@ -182,7 +207,7 @@ export async function POST(req: NextRequest) {
   // and the user sees nothing (the error auto-dismissed after 4 seconds).
   // This function coerces types + fills in defaults so the AI output
   // always passes validation.
-  const weeks = normalizeAiCourseData(rawWeeks);
+  const weeks = normalizedWeeks;
 
   // Validate weeks/days structure if provided
   if (weeks !== undefined) {
@@ -209,6 +234,10 @@ export async function POST(req: NextRequest) {
       ...(normalizedNotebooklmUrl !== null ? { notebooklmUrl: normalizedNotebooklmUrl } : {}),
       // Scale Tier 2: persist subjects
       subjects: subjectsJson,
+      // Project config — validated above (weekCount >= 4 enforced for projectEnabled)
+      projectEnabled: finalProjectEnabled,
+      projectRequired: finalProjectEnabled && projectRequired === true,
+      projectDefaultDurationWeeks: finalProjectDuration,
       weeks: weeks?.length
         ? {
             create: (weeks as Array<{

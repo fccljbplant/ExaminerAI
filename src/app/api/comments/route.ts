@@ -104,10 +104,14 @@ export async function POST(req: NextRequest) {
       // Store signals as StudentAlerts (type: safeguarding) for principal review.
       // The safeguarding module will aggregate these and create a flag when 2+
       // corroborating signals exist within a 14-day window.
+      //
+      // C8 fix (audit 2026-07-26): attribute the flag to the TEACHER (the one
+      // who wrote the comment), not the student. The student is the recipient,
+      // not the subject of the alert. Same fix as the messages route.
       for (const signal of signals) {
         await db.studentAlert.create({
           data: {
-            userId: studentId,
+            userId: payload.sub, // C8 fix: the TEACHER's id, not the student's
             type: "safeguarding",
             severity: signal.severity,
             reason: `${signal.category}: ${signal.matchedPatterns.join(", ")}`,
@@ -116,7 +120,8 @@ export async function POST(req: NextRequest) {
             status: "open",
             resolutionNote: JSON.stringify({
               commentId: comment.id,
-              teacherId: payload.sub,
+              teacherId: payload.sub,  // The flagged staff member
+              studentId,                // The student who received the comment (context only)
               category: signal.category,
               context: signal.context,
             }),

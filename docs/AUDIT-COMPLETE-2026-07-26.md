@@ -18,24 +18,26 @@ However, the gap between **what's built** and **what's wired** is the platform's
 
 **What can safely wait?** Skeleton loaders, tab pattern consolidation, dead code cleanup — these are cosmetic. The P2 items that affect UX but not security (messages pagination for portfolios, ARIA tab semantics) can also wait.
 
+> **UPDATE 2026-07-26 (post-fix batch 1):** 7 of the 10 CRITICAL findings are now FIXED (C1, C2, C3, C7, C8, C9, C10). See `docs/COURSE-PROJECT-CONFIG-2026-07-26.md` for details. Remaining CRITICAL items: C4 (certificate approval UI), C5 (teacher create assignments), C6 (principal academic tab fake data). These are next-priority. HIGH/MEDIUM/LOW items still pending.
+
 ---
 
 ## Prioritized Findings
 
 ### CRITICAL (fix immediately — active security holes or completely broken flows)
 
-| # | Finding | Section | Source |
-|---|---------|---------|--------|
-| C1 | Null-institutionId bug in scope.ts — `institutionId ?? undefined` becomes "no filter" in Prisma → cross-institution data leak | 2 | scope.ts, data-efficiency.ts (10 sites) |
-| C2 | `/api/admin/cleanup-psych-data` runs `deleteMany({})` — any admin can wipe ALL psych data across ALL institutions | 2 | admin/cleanup-psych-data/route.ts |
-| C3 | `/api/tasks` DELETE wipes comments on ANY task (not scoped to userId) | 2 | tasks/route.ts |
-| C4 | Certificate approval has NO UI — students request, nobody can approve from the interface | 3, 4 | certificates/generate + all .tsx |
-| C5 | Teacher cannot create assignments — `createTask()` missing required `batchId` | 3 | AssignmentsTab.tsx |
-| C6 | Principal Academic tab shows entirely fake data (all zeros) | 3, 4 | principal/overview/route.ts |
-| C7 | Escalation cron silently 401s every night — `?secret=` in vercel.json vs `Authorization` header in route | 4 | vercel.json + escalation/run/route.ts |
-| C8 | Safeguarding flags stored against studentId instead of teacherId — spec violation, wrong person attributed | 4 | messages/route.ts, comments/route.ts |
-| C9 | `/api/ai/debug` leaks API key prefix (8 chars) + suffix (4 chars) | 2 | ai/debug/route.ts |
-| C10 | `RoleNavConfigPanel` missing 9 nav keys — saving config can brick any role's sidebar | 3 | role-nav-config/route.ts |
+| # | Finding | Section | Source | Status |
+|---|---------|---------|--------|--------|
+| C1 | Null-institutionId bug in scope.ts — `institutionId ?? undefined` becomes "no filter" in Prisma → cross-institution data leak | 2 | scope.ts, data-efficiency.ts (10 sites) | ✅ FIXED 2026-07-26 |
+| C2 | `/api/admin/cleanup-psych-data` runs `deleteMany({})` — any admin can wipe ALL psych data across ALL institutions | 2 | admin/cleanup-psych-data/route.ts | ✅ FIXED 2026-07-26 |
+| C3 | `/api/tasks` DELETE wipes comments on ANY task (not scoped to userId) | 2 | tasks/route.ts | ✅ FIXED 2026-07-26 |
+| C4 | Certificate approval has NO UI — students request, nobody can approve from the interface | 3, 4 | certificates/generate + all .tsx | ⚠️ PENDING |
+| C5 | Teacher cannot create assignments — `createTask()` missing required `batchId` | 3 | AssignmentsTab.tsx | ⚠️ PENDING |
+| C6 | Principal Academic tab shows entirely fake data (all zeros) | 3, 4 | principal/overview/route.ts | ⚠️ PENDING |
+| C7 | Escalation cron silently 401s every night — `?secret=` in vercel.json vs `Authorization` header in route | 4 | vercel.json + escalation/run/route.ts | ✅ FIXED 2026-07-26 |
+| C8 | Safeguarding flags stored against studentId instead of teacherId — spec violation, wrong person attributed | 4 | messages/route.ts, comments/route.ts | ✅ FIXED 2026-07-26 |
+| C9 | `/api/ai/debug` leaks API key prefix (8 chars) + suffix (4 chars) | 2 | ai/debug/route.ts | ✅ FIXED 2026-07-26 |
+| C10 | `RoleNavConfigPanel` missing 9 nav keys — saving config can brick any role's sidebar | 3 | role-nav-config/route.ts | ✅ FIXED 2026-07-26 |
 
 ### HIGH (fix soon — security gaps, broken features, spec violations)
 

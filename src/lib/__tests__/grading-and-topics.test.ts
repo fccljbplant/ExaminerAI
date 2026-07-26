@@ -78,7 +78,9 @@ describe("gradeColor", () => {
   });
 
   it("returns amber for grade C", () => {
-    expect(gradeColor("C")).toContain("warning");
+    // Note: the amber→warning rename was only for wellbeing tiers, NOT for
+    // grade colors. grade C still uses Tailwind's `text-amber-500` class.
+    expect(gradeColor("C")).toContain("amber");
   });
 
   it("returns orange for grade D", () => {

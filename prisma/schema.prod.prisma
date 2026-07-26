@@ -84,6 +84,10 @@ model Course {
   notebooklmUrl          String?
   // Scale Tier 2: Multiple subjects per course (JSON array of subject names)
   subjects               String   @default("[]")
+  // Project configuration — set by course coordinator. See schema.prisma for full docs.
+  projectEnabled              Boolean  @default(false)
+  projectRequired             Boolean  @default(false)
+  projectDefaultDurationWeeks Int      @default(4)
   institutionId          String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt

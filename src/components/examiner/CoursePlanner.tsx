@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Loader2, Plus, Trash2, Save, BookOpen, ChevronDown, ChevronRight,
   RefreshCw, GraduationCap, Edit3, X, Sparkles, Wand2, ExternalLink,
-  CheckCircle2, Circle, AlertCircle, Copy,
+  CheckCircle2, Circle, AlertCircle, Copy, ClipboardList,
 } from "lucide-react";
 
 interface CourseDay {
@@ -30,6 +30,10 @@ interface Course {
   weeks: CourseWeek[]; batches: { id: string; name: string }[];
   journeySteps?: unknown; projectTemplate?: unknown; aiPrompts?: unknown;
   testConfig?: unknown; reportCardTemplate?: unknown;
+  // Project configuration — set by the course coordinator.
+  projectEnabled?: boolean;
+  projectRequired?: boolean;
+  projectDefaultDurationWeeks?: number;
 }
 interface Batch { id: string; name: string; courseId: string | null; courseName: string | null; }
 
@@ -204,6 +208,11 @@ export default function CoursePlanner() {
         notebooklmUrl: selectedCourse.notebooklmUrl ?? null,
         // Scale Tier 2: persist subjects
         subjects: selectedCourse.subjects || [],
+        // Project config — pass through so course coordinators can enable/disable
+        // the capstone project for this course from the Course Planner UI.
+        projectEnabled: !!selectedCourse.projectEnabled,
+        projectRequired: !!selectedCourse.projectRequired,
+        projectDefaultDurationWeeks: Number(selectedCourse.projectDefaultDurationWeeks ?? 4),
       }, AI_TIMEOUT_MS);
       showMsg("success", "Course saved.");
       setEditing(false);
@@ -631,6 +640,139 @@ export default function CoursePlanner() {
           </Card>
         )}
 
+        {/* ============================================================
+            PROJECT CONFIGURATION CARD
+            Controls whether students in this course get the capstone
+            project feature at all, whether it's required, and the
+            default duration suggested to them.
+            - Project can only be enabled when the course has >= 4 weeks.
+            - Default duration is bounded [2, courseWeeks - 1].
+            ============================================================ */}
+        <Card className="border-border">
+          <CardHeader className="pb-2 pt-3 px-4">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-primary" /> Capstone Project
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Decide whether students in this course build a capstone project.
+              {selectedCourse.weeks.length < 4 ? (
+                <span className="block mt-1 text-amber-600">
+                  Projects require a minimum of 4 weeks. This course has {selectedCourse.weeks.length} week{selectedCourse.weeks.length === 1 ? "" : "s"} — add more weeks to enable.
+                </span>
+              ) : (
+                <span className="block mt-0.5">Available project duration: 2 to {Math.max(2, selectedCourse.weeks.length - 1)} weeks (course weeks − 1).</span>
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-3 space-y-3">
+            {/* Project enabled toggle */}
+            <div className="flex items-start justify-between gap-3 rounded-md border border-border bg-background/50 p-3">
+              <div className="flex-1">
+                <p className="text-xs font-medium text-foreground">Enable capstone project</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                  When ON, students see the Project tab, can define a capstone project, and get AI-generated weekly tasks.
+                  When OFF, the Project nav item, banners, and project forms are hidden entirely.
+                </p>
+              </div>
+              {editing ? (
+                <button
+                  type="button"
+                  disabled={selectedCourse.weeks.length < 4}
+                  onClick={() => setSelectedCourse({
+                    ...selectedCourse,
+                    projectEnabled: !selectedCourse.projectEnabled,
+                    // Auto-disable projectRequired when projectEnabled is turned off
+                    projectRequired: !selectedCourse.projectEnabled ? false : selectedCourse.projectRequired,
+                  })}
+                  className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
+                    selectedCourse.projectEnabled ? "bg-primary" : "bg-muted"
+                  } ${selectedCourse.weeks.length < 4 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                  aria-pressed={selectedCourse.projectEnabled}
+                  aria-label="Toggle capstone project"
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${selectedCourse.projectEnabled ? "translate-x-4" : "translate-x-1"}`} />
+                </button>
+              ) : (
+                <Badge variant={selectedCourse.projectEnabled ? "default" : "secondary"} className={selectedCourse.projectEnabled ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : ""}>
+                  {selectedCourse.projectEnabled ? "Enabled" : "Disabled"}
+                </Badge>
+              )}
+            </div>
+
+            {/* Project required toggle (only when enabled) */}
+            {selectedCourse.projectEnabled && (
+              <div className="flex items-start justify-between gap-3 rounded-md border border-border bg-background/50 p-3 animate-fade-in-up">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-foreground">Project is required</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                    When ON, students see a &quot;Required&quot; badge and the alert system treats missing project tasks as attention-worthy.
+                    When OFF, the project is optional and students won&apos;t be nudged about project inactivity.
+                  </p>
+                </div>
+                {editing ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCourse({ ...selectedCourse, projectRequired: !selectedCourse.projectRequired })}
+                    className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors cursor-pointer ${
+                      selectedCourse.projectRequired ? "bg-primary" : "bg-muted"
+                    }`}
+                    aria-pressed={selectedCourse.projectRequired}
+                    aria-label="Toggle project required"
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${selectedCourse.projectRequired ? "translate-x-4" : "translate-x-1"}`} />
+                  </button>
+                ) : (
+                  <Badge variant={selectedCourse.projectRequired ? "default" : "secondary"} className={selectedCourse.projectRequired ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : ""}>
+                    {selectedCourse.projectRequired ? "Required" : "Optional"}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Default project duration dropdown (only when enabled) */}
+            {selectedCourse.projectEnabled && (
+              <div className="rounded-md border border-border bg-background/50 p-3 space-y-2 animate-fade-in-up">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-foreground">Default project duration</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Pre-selected when a student sets up their project. Students can still pick any value from 2 to {Math.max(2, selectedCourse.weeks.length - 1)} weeks.
+                    </p>
+                  </div>
+                </div>
+                {editing ? (
+                  <select
+                    value={String(selectedCourse.projectDefaultDurationWeeks ?? 4)}
+                    onChange={(e) => setSelectedCourse({ ...selectedCourse, projectDefaultDurationWeeks: Number(e.target.value) })}
+                    className="bg-background border border-border rounded-md text-xs px-2 py-1.5 w-full"
+                  >
+                    {Array.from({ length: Math.max(0, selectedCourse.weeks.length - 2) }, (_, i) => i + 2).map(w => (
+                      <option key={w} value={String(w)}>{w} week{w === 1 ? "" : "s"}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Badge variant="outline" className="text-[10px]">
+                    {selectedCourse.projectDefaultDurationWeeks ?? 4} week{(selectedCourse.projectDefaultDurationWeeks ?? 4) === 1 ? "" : "s"}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Teacher / student instructions */}
+            {selectedCourse.projectEnabled && (
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-[10px] text-foreground/80 leading-relaxed">
+                <p className="font-semibold text-foreground mb-1">What students will see:</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li>A <strong>Project</strong> tab in their sidebar (between <em>Study</em> and <em>Progress</em>).</li>
+                  <li>A project setup form with name, scope, objectives, requirements, and duration (2 to {Math.max(2, selectedCourse.weeks.length - 1)} weeks).</li>
+                  <li>AI-generated weekly project tasks + milestones once they save their project definition.</li>
+                  <li>{selectedCourse.projectRequired ? "Project is <strong>required</strong> — the alert system will message students who don't set up a project." : "Project is <strong>optional</strong> — students won't be nudged about project inactivity."}</li>
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Weeks */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -830,7 +972,14 @@ export default function CoursePlanner() {
                     <CardTitle className="text-sm text-foreground">{c.name}</CardTitle>
                     {c.description && <CardDescription className="text-xs text-muted-foreground truncate">{c.description}</CardDescription>}
                   </div>
-                  <Badge variant="outline" className="text-[9px] ml-2">{(c.weeks?.length || 0)}w · {(c.weeks?.reduce((a, w) => a + (w.dayCount || w.days?.length || 0), 0) || 0)}d</Badge>
+                  <div className="flex flex-col gap-1 items-end ml-2">
+                    <Badge variant="outline" className="text-[9px]">{(c.weeks?.length || 0)}w · {(c.weeks?.reduce((a, w) => a + (w.dayCount || w.days?.length || 0), 0) || 0)}d</Badge>
+                    {c.projectEnabled && (
+                      <Badge variant="outline" className={`text-[8px] ${c.projectRequired ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}>
+                        {c.projectRequired ? "Project Required" : "Project Optional"}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0 px-4 pb-3">

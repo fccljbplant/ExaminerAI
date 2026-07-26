@@ -51,6 +51,14 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
     todayTopic: { title: string; objective: string; resources: { label: string; url: string }[] } | null;
   } | null>(null);
 
+  // Course + project config — drives whether the "Today's Curriculum" card
+  // shows (only when course assigned), and whether the check-in form mentions
+  // the project (only when project is enabled).
+  const projectConfig = stats.projectConfig;
+  const hasCourse = projectConfig?.courseAssigned ?? false;
+  const projectEnabled = projectConfig?.projectEnabled ?? false;
+  const projectRequired = projectConfig?.projectRequired ?? false;
+
   const c = useChartColors();
 
   // Fetch curriculum progress (separate from project tasks)
@@ -139,8 +147,29 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
 
   return (
     <div className="space-y-4">
+      {/* ===== NO-COURSE NOTICE =====
+          When the student has no course assigned (or the course has no weekly
+          outline yet), the "Today's Curriculum" card doesn't render — show a
+          friendly notice explaining what to do instead. The student can still
+          fill in the daily check-in form below. */}
+      {!hasCourse && (
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">No course assigned yet</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your daily curriculum (topics, objectives, and resources) will appear here once your teacher assigns you to a course. In the meantime, you can still log today&apos;s work in the check-in form below.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* ===== TOP: Today's Curriculum Topic ===== */}
-      {todayTopic && (
+      {hasCourse && todayTopic && (
         <Card className="border-primary/30 bg-gradient-to-br from-primary/10 via-background to-background">
           <CardHeader className="pb-2 pt-3 px-4">
             <div className="flex items-center justify-between">
@@ -217,7 +246,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
       )}
 
       {/* ===== LEARNING PROGRESS CHART ===== */}
-      {curriculum && (
+      {hasCourse && curriculum && (
         <Card className="border-border bg-card">
           <CardHeader className="pb-2 pt-3 px-4">
             <div className="flex items-center justify-between">
@@ -264,7 +293,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
           {toggleError}
         </div>
       )}
-      {currentWeekCurriculum && (
+      {hasCourse && currentWeekCurriculum && (
         <Card className="border-border bg-card">
           <CardHeader className="pb-2 pt-3 px-4">
             <CardTitle className="text-base text-foreground flex items-center gap-2">
@@ -317,6 +346,21 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             2-minute habit. Track what you did, blockers, and your confidence. Reflection questions are optional but recommended.
+            {projectEnabled && projectRequired && (
+              <span className="block mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+                Your course requires a capstone project — mention what you worked on for it today (if anything).
+              </span>
+            )}
+            {projectEnabled && !projectRequired && (
+              <span className="block mt-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+                Your course offers an optional capstone project — feel free to log project work here too.
+              </span>
+            )}
+            {!hasCourse && (
+              <span className="block mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+                You don&apos;t have a course assigned yet — log any learning you did today (reading, practice, side projects, etc.).
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>

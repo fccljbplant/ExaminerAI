@@ -183,5 +183,96 @@ export async function getCourseMetadata(userId: string): Promise<{
   }
 }
 
+/** Get the project configuration for a user's assigned course.
+ *  Returns null if the user has no course assigned.
+ *  Used by the student dashboard to decide whether to show the Project nav,
+ *  the project banners, and to validate projectDurationWeeks against courseWeeks. */
+export async function getCourseProjectConfig(userId: string): Promise<{
+  courseAssigned: boolean;
+  courseId: string | null;
+  courseName: string | null;
+  totalWeeks: number;
+  projectEnabled: boolean;
+  projectRequired: boolean;
+  projectDefaultDurationWeeks: number;
+}> {
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { batchId: true },
+    });
+    if (!user?.batchId) {
+      return {
+        courseAssigned: false,
+        courseId: null,
+        courseName: null,
+        totalWeeks: 0,
+        projectEnabled: false,
+        projectRequired: false,
+        projectDefaultDurationWeeks: 4,
+      };
+    }
+
+    const batch = await db.batch.findUnique({
+      where: { id: user.batchId },
+      select: { courseId: true },
+    });
+    if (!batch?.courseId) {
+      return {
+        courseAssigned: false,
+        courseId: null,
+        courseName: null,
+        totalWeeks: 0,
+        projectEnabled: false,
+        projectRequired: false,
+        projectDefaultDurationWeeks: 4,
+      };
+    }
+
+    const course = await db.course.findUnique({
+      where: { id: batch.courseId, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        projectEnabled: true,
+        projectRequired: true,
+        projectDefaultDurationWeeks: true,
+        weeks: { select: { weekNumber: true }, orderBy: { weekNumber: "asc" } },
+      },
+    });
+    if (!course) {
+      return {
+        courseAssigned: false,
+        courseId: null,
+        courseName: null,
+        totalWeeks: 0,
+        projectEnabled: false,
+        projectRequired: false,
+        projectDefaultDurationWeeks: 4,
+      };
+    }
+
+    return {
+      courseAssigned: true,
+      courseId: course.id,
+      courseName: course.name,
+      totalWeeks: course.weeks.length,
+      projectEnabled: course.projectEnabled && course.weeks.length >= 4,
+      projectRequired: course.projectRequired && course.projectEnabled && course.weeks.length >= 4,
+      projectDefaultDurationWeeks: course.projectDefaultDurationWeeks,
+    };
+  } catch {
+    return {
+      courseAssigned: false,
+      courseId: null,
+      courseName: null,
+      totalWeeks: 0,
+      projectEnabled: false,
+      projectRequired: false,
+      projectDefaultDurationWeeks: 4,
+    };
+  }
+}
+
 // Re-export the shared helper (no DB needed)
 export { getBootcampDayNumber } from "./course-topics";

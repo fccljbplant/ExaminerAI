@@ -102,6 +102,19 @@ export interface CommentRow {
   teacher: { name: string; email: string };
 }
 
+/** Project + course configuration returned by /api/stats?as=student.
+ *  Drives whether the student sees the Project nav item, the project banners,
+ *  and what min/max projectDurationWeeks the project setup form should enforce. */
+export interface ProjectConfig {
+  courseAssigned: boolean;
+  courseId: string | null;
+  courseName: string | null;
+  totalWeeks: number;
+  projectEnabled: boolean;
+  projectRequired: boolean;
+  projectDefaultDurationWeeks: number;
+}
+
 export interface StatsResponse {
   role: string;
   stats: Stats;
@@ -112,6 +125,8 @@ export interface StatsResponse {
   recentInteractions: Interaction[];
   tasks: Task[];
   comments: CommentRow[];
+  /** Optional — only present for student stats responses. */
+  projectConfig?: ProjectConfig;
 }
 
 export type Mode =

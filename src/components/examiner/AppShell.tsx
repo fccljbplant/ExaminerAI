@@ -168,6 +168,16 @@ export default function AppShell() {
   const [navClickCount, setNavClickCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [alertCount, setAlertCount] = useState(0);
+  // Project config — fetched once we know the user is a student. Drives whether
+  // the Project (gantt) nav item + project banners are shown. Project nav is
+  // only visible when the student's assigned course has projectEnabled=true AND
+  // the course is at least 4 weeks long (the same rule the API enforces).
+  const [projectConfig, setProjectConfig] = useState<{
+    courseAssigned: boolean;
+    projectEnabled: boolean;
+    projectRequired: boolean;
+    totalWeeks: number;
+  } | null>(null);
 
   // Fetch role nav config (admin-customizable) on mount. Falls back to
   // the hardcoded ALL_NAV roles if no DB config exists.
@@ -268,6 +278,24 @@ export default function AppShell() {
           setView("guardian-dashboard"); // guardians see a read-only student-like view
         } else {
           setView("dashboard"); // student
+        }
+
+        // Fetch project config for students/guardians (guardian sees the linked
+        // student's project config). Used to hide the Project nav item when the
+        // student's course has projects disabled or no course assigned.
+        if (role === "student" || role === "guardian") {
+          try {
+            const statsRes = await api.get<{ projectConfig?: {
+              courseAssigned: boolean;
+              projectEnabled: boolean;
+              projectRequired: boolean;
+              totalWeeks: number;
+            } }>("/api/stats" + (role === "guardian" ? "" : "?as=student"));
+            setProjectConfig(statsRes.projectConfig ?? null);
+          } catch {
+            // Silent — fall back to "show project nav" for backward compat
+            setProjectConfig(null);
+          }
         }
       }
     } catch {
@@ -417,10 +445,22 @@ export default function AppShell() {
   const visibleNav = ALL_NAV.filter((n) => {
     if (navConfig && navConfig[effectiveRole]) {
       // DB config exists — check if this nav key is in the allowed list
-      return navConfig[effectiveRole].includes(n.key);
+      if (!navConfig[effectiveRole].includes(n.key)) return false;
+    } else {
+      // No DB config — use hardcoded defaults
+      if (!n.roles.includes(effectiveRole)) return false;
     }
-    // No DB config — use hardcoded defaults
-    return n.roles.includes(effectiveRole);
+
+    // Project nav (gantt) — hide entirely when the student's course has no
+    // project enabled OR the student has no course assigned. Same rule the
+    // API enforces. We can't fetch projectConfig for non-student roles, so
+    // we only apply this filter to students + guardians.
+    if (n.key === "gantt" && (effectiveRole === "student" || effectiveRole === "guardian")) {
+      if (projectConfig && (!projectConfig.courseAssigned || !projectConfig.projectEnabled)) {
+        return false;
+      }
+    }
+    return true;
   });
   const currentNav = visibleNav.find((n) => n.key === view) ?? visibleNav[0];
 

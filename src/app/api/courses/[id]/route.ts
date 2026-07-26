@@ -53,6 +53,10 @@ export async function GET(
     aiPrompts: parseJSON(course.aiPromptsJson),
     testConfig: parseJSON(course.testConfigJson),
     reportCardTemplate: parseJSON(course.reportCardTemplateJson),
+    // Project config (plain booleans/int — already on the Course row, no JSON parsing needed)
+    projectEnabled: course.projectEnabled,
+    projectRequired: course.projectRequired,
+    projectDefaultDurationWeeks: course.projectDefaultDurationWeeks,
   };
 
   return NextResponse.json({ course: courseWithParsed });
@@ -73,7 +77,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, notebooklmUrl, subjects } = body as {
+  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
     name?: string;
     description?: string;
     weeks?: { weekNumber: number; phase: string; milestone?: string; days: { day: number; title: string; objective?: string; whyItMatters?: string; topicsCovered?: string[]; activity?: string; deliverable?: string; resources?: { label: string; url: string }[] }[] }[];
@@ -90,10 +94,16 @@ export async function PUT(
     assessmentConfig?: unknown;
     notebooklmUrl?: string | null;
     subjects?: string[];
+    projectEnabled?: boolean;
+    projectRequired?: boolean;
+    projectDefaultDurationWeeks?: number;
   };
 
   // Verify course exists
-  const existing = await db.course.findUnique({ where: { id } });
+  const existing = await db.course.findUnique({
+    where: { id },
+    include: { weeks: { select: { weekNumber: true } } },
+  });
   if (!existing) return NextResponse.json({ error: "Course not found" }, { status: 404 });
 
   // Validate weeks/days structure if weeks are being replaced
@@ -103,6 +113,28 @@ export async function PUT(
       return NextResponse.json({ error: v.error }, { status: 400 });
     }
   }
+
+  // Project config validation:
+  // - projectEnabled can only be true if the course has >= 4 weeks.
+  //   Use the NEW weeks array if provided, otherwise the existing week count.
+  // - projectDefaultDurationWeeks must be 2..(weekCount-1) when set.
+  const effectiveWeekCount = weeks?.length ?? existing.weeks.length;
+  if (projectEnabled === true && effectiveWeekCount < 4) {
+    return NextResponse.json(
+      { error: `Projects cannot be enabled for courses shorter than 4 weeks (this course has ${effectiveWeekCount} week${effectiveWeekCount === 1 ? "" : "s"}).` },
+      { status: 400 }
+    );
+  }
+  // Auto-disable projectRequired when projectEnabled is being turned off
+  const finalProjectEnabled = projectEnabled === true;
+  const finalProjectRequired = finalProjectEnabled && projectRequired === true;
+  const finalProjectDuration = (() => {
+    if (projectDefaultDurationWeeks === undefined) return undefined;
+    const w = Number(projectDefaultDurationWeeks);
+    if (!Number.isInteger(w)) return 4;
+    const maxAllowed = Math.max(2, effectiveWeekCount - 1);
+    return Math.min(Math.max(w, 2), maxAllowed);
+  })();
 
   // Build config + domain update data — only update fields that are provided
   const configData: Record<string, string | null> = {};
@@ -136,6 +168,10 @@ export async function PUT(
         ...(notebooklmUrl !== undefined ? { notebooklmUrl: notebooklmUrl?.trim() || null } : {}),
         // Scale Tier 2: subjects updatable
         ...(subjects !== undefined ? { subjects: JSON.stringify(subjects || []) } : {}),
+        // Project config — validated above
+        ...(projectEnabled !== undefined ? { projectEnabled: finalProjectEnabled } : {}),
+        ...(projectRequired !== undefined ? { projectRequired: finalProjectRequired } : {}),
+        ...(finalProjectDuration !== undefined ? { projectDefaultDurationWeeks: finalProjectDuration } : {}),
         ...configData,
       },
     });

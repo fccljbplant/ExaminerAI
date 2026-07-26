@@ -171,14 +171,40 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
-/** DELETE /api/tasks?id=... — delete a task + its comments (cascade). */
+/** DELETE /api/tasks?id=... — delete a task + its comments (cascade).
+ *
+ *  C3 fix (audit 2026-07-26): the previous version ran
+ *  `db.comment.deleteMany({ where: { taskId: id } })` BEFORE checking that
+ *  the task belongs to the caller. A malicious user could pass ANY task ID
+ *  and wipe ALL comments on that task — even tasks they don't own.
+ *  This version verifies ownership FIRST, then scopes the comment delete to
+ *  only comments on the verified task.
+ */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  // Cascade: delete all comments referencing this task first
+
+  // C3 fix: verify the task belongs to the caller BEFORE deleting comments.
+  // The `userId` guard on the projectTask delete below happened too late —
+  // the comments were already gone. By verifying first, we ensure a malicious
+  // caller can't wipe comments on tasks they don't own.
+  try {
+    const task = await db.projectTask.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+    if (!task || task.userId !== user.id) {
+      return NextResponse.json({ error: "Task not found or not owned by user" }, { status: 404 });
+    }
+  } catch (err) {
+    console.error("[DELETE /api/tasks] Verify failed:", err);
+    return NextResponse.json({ error: "Task lookup failed" }, { status: 500 });
+  }
+
+  // Now safe to cascade: delete comments ON THIS TASK, then the task itself.
   try {
     await db.comment.deleteMany({ where: { taskId: id } });
   } catch {

@@ -137,20 +137,31 @@ export async function getAggregateSummary(scope: ScopeResult): Promise<{
   avgEngagement: number;
   signalCounts: { frustration: number; avoidance: number; enthusiasm: number };
 }> {
-  const studentFilter = scope.isInstitutionWide
-    ? { role: "student" as const, institutionId: scope.institutionId ?? undefined, blocked: false }
-    : { id: { in: scope.studentIds }, blocked: false };
+  // C1 fix (audit 2026-07-26): when scope.institutionId is null, the previous
+  // version passed `institutionId: undefined` to Prisma, which Prisma interprets
+  // as "no filter" — leaking cross-institution data. The scope resolver now
+  // returns empty studentIds/teacherIds when institutionId is null, so we can
+  // safely use scope.studentIds/teacherIds here in BOTH branches.
+  // - Institution-wide: filter by id IN studentIds (which is already institution-scoped)
+  //   OR fall back to a guaranteed-empty filter when scope has no students.
+  // - Non-institution-wide: same — use the scoped studentIds list directly.
+  const studentFilter = scope.studentIds.length > 0
+    ? { id: { in: scope.studentIds }, blocked: false }
+    : { id: "nonexistent-id-to-force-zero-count" as const, blocked: false };
+  const teacherFilter = scope.teacherIds.length > 0
+    ? { id: { in: scope.teacherIds } }
+    : { id: "nonexistent-id-to-force-zero-count" as const };
 
   const [students, teachers, wellbeingStates, alerts, healthSummaries] = await Promise.all([
     db.user.count({ where: studentFilter }),
-    db.user.count({ where: { role: "teacher", institutionId: scope.institutionId ?? undefined } }),
+    db.user.count({ where: teacherFilter }),
     db.wellbeingState.findMany({
-      where: { userId: { in: scope.studentIds.length > 0 ? scope.studentIds : undefined } },
+      where: { userId: { in: scope.studentIds.length > 0 ? scope.studentIds : ["nonexistent-id"] } },
       select: { tier: true },
     }),
     db.studentAlert.findMany({
       where: {
-        user: { id: { in: scope.studentIds.length > 0 ? scope.studentIds : undefined } },
+        user: { id: { in: scope.studentIds.length > 0 ? scope.studentIds : ["nonexistent-id"] } },
         status: "open",
       },
       select: { severity: true, status: true },

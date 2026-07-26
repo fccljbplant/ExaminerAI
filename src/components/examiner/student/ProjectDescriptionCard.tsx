@@ -86,21 +86,13 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
     );
   }
 
-  // If no project set, show the ProjectSettingsCard inline + AI suggestions
+  // If no project set, show the ProjectSettingsCard inline + AI suggestions.
+  // No redundant "Set up your capstone project" banner — the ProjectSettingsCard
+  // header itself already says "Create Your Capstone Project" with full
+  // instructions, and the Home view's amber nudge already routes the student here.
   if (!project?.projectName) {
     return (
       <div className="space-y-4">
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardContent className="p-4 text-center">
-            <ClipboardList className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-            <h3 className="text-base font-semibold text-foreground mb-1">Set up your capstone project</h3>
-            <p className="text-xs text-muted-foreground mb-2">
-              Define your project below — name, scope, objectives, requirements, and duration.
-              The AI will then generate weekly tasks + milestones for you.
-            </p>
-          </CardContent>
-        </Card>
-
         {/* AI Project Suggestions */}
         <ProjectSuggestions />
 

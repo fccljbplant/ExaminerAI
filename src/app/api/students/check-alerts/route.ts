@@ -6,6 +6,7 @@ import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-
 import { getAuthUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { getCourseProjectConfig } from "@/lib/course-db";
 
 /** POST /api/students/check-alerts — scans all students for struggle signals
  *  and auto-creates Messages to nudge students + alert teachers.
@@ -59,12 +60,23 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
         where: { sentAt: { gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } },
         select: { subject: true, body: true, sentAt: true },
       },
+      // For project-required checks: load currentWeek + projectName + tasks count
+      // (projectName = null means the student hasn't created a project yet).
+      // We don't load all tasks — just a count — to avoid pulling huge task lists.
+      _count: { select: { tasks: true } },
     },
   });
 
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
   for (const student of students) {
+    // Fetch the student's course + project configuration. Used to:
+    // - Skip project-related alerts when the course has projects disabled.
+    // - Escalate project inactivity when the project is REQUIRED.
+    // - Skip inactivity nudges when the student has no course assigned
+    //   (their daily check-in is optional in that state).
+    const projectConfig = await getCourseProjectConfig(student.id);
+
     // ---- Phase 3.2: Check for inactivity (2+ days since last daily log) ----
     const lastLog = student.dailyLogs[0]?.date;
     let daysInactive = 0;
@@ -75,7 +87,10 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
       daysInactive = 999;
     }
 
-    if (daysInactive >= 2 && daysInactive !== 999) {
+    // Skip inactivity nudges for students with no course assigned — the daily
+    // check-in is most valuable when tied to a course's daily curriculum.
+    // (They can still log work, but we don't nag them about missing it.)
+    if (projectConfig.courseAssigned && daysInactive >= 2 && daysInactive !== 999) {
       // Check if we already sent a nudge in the last 3 days
       const alreadyNudged = student.messagesSent.some(
         m => m.subject === "Checking in — everything okay?" || m.body?.includes("noticed you haven't checked in")
@@ -159,6 +174,19 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
     const recentHighLoad = student.psychObs.slice(-3).filter(o => o.cognitiveLoad === "high").length;
     if (recentHighLoad >= 2) {
       struggleReasons.push("Sustained high cognitive load");
+    }
+
+    // 5. Project inactivity — ONLY when the course has projects enabled AND
+    //    the project is required. We don't nag students about project work
+    //    when the project is optional or disabled.
+    //    Trigger: student is past week 2 of their course, project is required,
+    //    and they haven't created any project tasks yet (tasks count is 0).
+    if (projectConfig.courseAssigned && projectConfig.projectRequired) {
+      const studentWeek = student.currentWeek ?? 1;
+      const taskCount = student._count?.tasks ?? 0;
+      if (studentWeek >= 2 && taskCount === 0) {
+        struggleReasons.push(`Has not started the required capstone project (week ${studentWeek})`);
+      }
     }
 
     // If we found struggle signals, alert the student's teacher (if they have one)

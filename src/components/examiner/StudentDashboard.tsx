@@ -119,8 +119,12 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
       {view === "home" && (
         <div className="space-y-4">
           <SelfPacedAdvanceButton />
-          {/* Prominent project setup banner when no project exists */}
-          {stats && stats.tasks.length === 0 && (
+          {/* Project setup nudge — only shown when the student's course has
+              projects enabled AND the student hasn't created any project tasks yet.
+              The Project nav item itself is conditionally rendered in AppShell
+              (hidden entirely when the course has projects disabled or no course
+              assigned), so we don't need a separate banner for those cases. */}
+          {stats && stats.tasks.length === 0 && stats.projectConfig?.projectEnabled && (
             <Card className="border-amber-500/40 bg-amber-500/5">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -128,8 +132,17 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
                     <Target className="h-5 w-5 text-amber-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-foreground">Start your capstone project</p>
-                    <p className="text-xs text-muted-foreground">Define your project to get AI-generated weekly tasks, milestones, and a Gantt chart.</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      Start your capstone project
+                      {stats.projectConfig.projectRequired && (
+                        <Badge variant="outline" className="ml-2 text-[9px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                          Required
+                        </Badge>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Define your project to get AI-generated weekly tasks, milestones, and a Gantt chart.
+                    </p>
                   </div>
                   <Button onClick={() => setView("project")} size="sm" className="bg-amber-500 hover:bg-amber-600 text-white flex-shrink-0">
                     Set Up Project <ArrowRight className="h-3 w-3 ml-1" />
@@ -203,13 +216,16 @@ function HomeView({ stats, onNavigate, onReload }: {
       action: () => onNavigate("study"),
       icon: ClipboardList,
     },
-    {
+    // Only show the "Project Tasks" action when the student's course has
+    // projects enabled. Hidden entirely when projects are disabled or no
+    // course is assigned — the Project nav item is also hidden in that case.
+    ...(stats.projectConfig?.projectEnabled ? [{
       label: "Project Tasks",
       description: hasProject ? `${completedToday}/${todayTasks.length} done this week` : "Set up your project",
       done: false,
       action: () => onNavigate("project"),
       icon: Target,
-    },
+    }] : []),
   ];
 
   return (
