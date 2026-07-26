@@ -447,7 +447,7 @@ export default function AppShell() {
       case "teacher-ai-tutor": return wrap(<TeacherAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
       case "messages": return wrap(<Messages />);
-      case "settings": return wrap(<StudentDashboard initialMode="settings" />);
+      case "settings": return wrap(<StudentDashboard initialMode="default" />);
       case "admin-dashboard": return wrap(<AdminDashboard initialView="overview" />);
       case "admin-users": return wrap(<AdminDashboard initialView="users" />);
       case "admin-courses": return wrap(<AdminDashboard initialView="courses" />);
