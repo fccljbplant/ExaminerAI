@@ -672,3 +672,494 @@ For completeness — these `.tsx` files have no API calls:
 - **Add `checkUserAILimit` + `isDemoAIBlocked` to the 16 under-guarded AI routes** in §4.2 — especially `courses/generate`, `project/generate-tasks`, `ai/teacher-tutor`.
 - **Decide on the 21 orphan routes**: implement UI, delete, or document as internal/admin-only.
 - **Verify `course-gen` rate-limit bypass** — the `/api/courses/generate` route uses the same feature label as the rate-limited `/api/courses/upload-outline` but skips the cap. Either rate-limit both, or use a distinct feature label.
+
+---
+
+## 7. Section 6 — Code Quality & Maintainability Audit
+
+> Lenses applied: senior coder, software engineer.
+> All findings are append-only — no consolidation with earlier sections.
+
+### 7.1 Large files (>800 lines) — flagged for future split
+
+| # | File | Lines | Notes |
+|---|------|-------|-------|
+| 1 | `src/components/landing/modern-landing.tsx` | **1614** | Single-file landing page. Mostly static JSX + icons. Lowest priority — it's a presentation-only file with no branching logic. |
+| 2 | `src/components/examiner/teacher/StudentPortfolioPage.tsx` | **1336** | Teacher's per-student view — three tabs (Educational / Psychological / Mentorship) all inlined. Prime candidate for splitting into one file per tab. |
+| 3 | `src/app/api/ai/weekly-test/route.ts` | **1166** | Entire weekly-test flow in one route handler — question gen, evaluation, grading, plagiarism, explanations, retake logic, audit log. Should be extracted into the `assessment` module (which already has `unified-grader.ts`, `unified-test-engine.ts`, `analysis-pipeline.ts` ready to receive the rest). |
+| 4 | `src/components/examiner/CoursePlanner.tsx` | **863** | Admin course CRUD + AI generation form + per-course notebooklmUrl editor. Could split form / list / detail into 3 components. |
+
+**Approaching the threshold (400-800 lines, watch list — 22 files):**
+
+| File | Lines |
+|------|-------|
+| `src/components/ui/sidebar.tsx` | 726 |
+| `src/components/examiner/AppShell.tsx` | 676 |
+| `src/modules/assessment/components/WeeklyTestPanel.tsx` | 654 |
+| `src/components/examiner/CounselorDashboard.tsx` | 647 |
+| `src/components/examiner/admin/SystemPanel.tsx` | 642 |
+| `src/components/examiner/AdminDashboard.tsx` | 629 |
+| `src/app/api/daily-test/route.ts` | 616 |
+| `src/modules/assessment/lib/ai-prompts.ts` | 592 |
+| `src/modules/assessment/lib/ai-provider.ts` | 540 |
+| `src/components/examiner/GuardianDashboard.tsx` | 538 |
+| `src/components/examiner/student/ProjectWeekPlan.tsx` | 521 |
+| `src/components/examiner/PrincipalDashboard.tsx` | 508 |
+| `src/components/examiner/DailyTaskReminder.tsx` | 504 |
+| `src/modules/assessment/lib/analysis-pipeline.ts` | 499 |
+| `src/components/examiner/admin/AdminPrincipalTab.tsx` | 482 |
+| `src/components/examiner/student/ComprehensiveReportView.tsx` | 461 |
+| `src/modules/comprehensive-report/index.ts` | 457 |
+| `src/components/examiner/teacher/MentorshipTabV2.tsx` | 441 |
+| `src/components/examiner/student/CheckInPanel.tsx` | 434 |
+| `src/components/examiner/teacher/PsychologicalTab.tsx` | 426 |
+| `src/components/examiner/teacher/AssignmentsTab.tsx` | 411 |
+| `src/components/examiner/teacher/TodayView.tsx` | 405 |
+
+**No file exceeds 800 lines under `src/lib/` or `src/modules/*/lib/`.** The largest lib files (`ai-prompts.ts` 592, `ai-provider.ts` 540, `analysis-pipeline.ts` 499) are within reasonable bounds for their domain.
+
+---
+
+### 7.2 Test coverage
+
+#### 7.2.1 Counts
+
+- **Total test files:** 9
+- **Total test cases (`it`/`test` blocks):** 147
+
+| Test file | Tests | What it covers |
+|-----------|-------|----------------|
+| `src/lib/__tests__/grading-and-topics.test.ts` | 51 | `scoreToGrade`, `gradeColor`, `getBootcampDayNumber`, `getBootcampDayLabel`, `isRestDay`, `getRestDayLabel`, `getWeekTopics`, `getWeekPhase`, `getWeekTopicTitles`, `WEEKLY_TOPICS` — pure calendar + grade functions |
+| `src/lib/__tests__/course-validation.test.ts` | 28 | `validateCourseName`, `validateCourseWeeks`, `COURSE_LIMITS` |
+| `src/lib/__tests__/course-normalization.test.ts` | 21 | Course JSON normalization helpers |
+| `src/lib/__tests__/ai-provider.test.ts` | 18 | `translateBehavioralSignals`, `getConfidenceMismatchLabel` — pure text analysis |
+| `src/lib/__tests__/behavioral-signals.test.ts` | 17 | Same behavioral signals (older duplicate file — overlaps with `ai-provider.test.ts`) |
+| `src/lib/__tests__/logger.test.ts` | 11 | Logger level filtering + redaction |
+| `src/lib/__tests__/auth.test.ts` | 10 | `signToken`, `verifyToken`, `hashPassword`, `comparePassword` — pure crypto only |
+| `src/lib/ai-assistant/escalation.test.ts` | 9 | `shouldEscalate` — pure flag-aging logic |
+| `src/lib/ai-assistant/scope.test.ts` | 6 | `resolveAssistantScope`, `assertStudentInScope` — **DB-dependent**, requires seeded DB |
+
+#### 7.2.2 Vitest config (`vitest.config.ts`)
+
+```ts
+coverage: {
+  provider: "v8",
+  include: ["src/lib/*.ts"],   // ← only top-level lib files
+  exclude: ["src/lib/**/*.test.ts", "src/lib/seed.ts"],
+},
+```
+
+**Coverage scope:** `src/lib/*.ts` only. Routes (`src/app/api/**`), components (`src/components/**`), and modules (`src/modules/**`) are **excluded from coverage**. The vitest `include` glob is `src/**/*.test.ts` — so any test file placed under `src/modules/` or `src/app/` would also run, but none exist there today.
+
+#### 7.2.3 Critical-path coverage matrix
+
+| Critical path | Has tests? | Test file | Notes |
+|---------------|------------|-----------|-------|
+| **Auth — JWT sign/verify** | ✅ | `auth.test.ts` | 10 tests. Covers round-trip, malformed token, tampered signature, role preservation. |
+| **Auth — password hash/compare** | ✅ | `auth.test.ts` | (Same file.) |
+| **Auth — login route (`POST /api/auth/login`)** | ❌ ZERO | — | No route-level test. Login rate-limit, blocked check, security-question flow untested. |
+| **Auth — `getAuthUser()` blocked-status re-check** | ❌ ZERO | — | The 60s cache, DB-outage fallback (`authCheckCache` last-known-state), and `invalidateAuthCache` are entirely untested. Comment at `auth.ts:124-143` describes a subtle security trade-off ("N3-fix") that has no regression test. |
+| **Auth — `assertCanAccessStudent` (IDOR guard)** | ❌ ZERO | — | Used in 25 routes (62 grep hits). Zero isolated tests. Only indirectly exercised by the DB-dependent `scope.test.ts`. |
+| **Scoring — `scoreToGrade` + `gradeColor`** | ✅ | `grading-and-topics.test.ts` | 51 tests. Solid coverage. |
+| **Scoring — wellbeing tier computation** | ❌ ZERO | — | Tier logic lives in `analysis-pipeline.ts:407-423` (ratio thresholds 0.35 / 0.6 + crisis-flag override) and `teacher-load.ts:116` (load tier). No tests. |
+| **Scoring — skill mastery** | ❌ ZERO | — | `computeMasteryFromInteractions` (in `src/components/examiner/teacher/computeMasteryFromInteractions.tsx`) and the on-the-fly computation in `/api/skill-mastery/route.ts` (thresholds 50/75/90 + trend -10/+10) have no tests. |
+| **AI Assistant — scope resolver** | ⚠️ Partial | `scope.test.ts` | 6 tests BUT **DB-dependent** — `beforeAll()` does `db.user.findFirst({ where: { role: "teacher" } })` etc. Will not run in CI without a seeded DB. Not a unit test. |
+| **AI Assistant — escalation engine** | ✅ | `escalation.test.ts` | 9 pure-function tests. Covers duration trigger, repeat-occurrence trigger, red-tier override, green-tier no-op. |
+| **AI Assistant — safeguarding analyzer** | ❌ ZERO | — | `analyzeMessageForSafeguarding` (pure text heuristic in `safeguarding.ts:93`) has no tests despite running on every message + comment. |
+| **Rate limiting — `checkRateLimit` (login brute-force)** | ❌ ZERO | — | In-memory Map rate limiter. Used in `/api/auth/login`, `/api/auth/forgot-password`, `/api/auth/reset-password`. No tests for window-expiry, count increment, cleanup-on-interval. |
+| **Rate limiting — `checkUserAILimit` (AI daily caps)** | ❌ ZERO | — | DB-counted daily limits per category. No tests for category mapping, UTC-day window, fail-open behavior on DB error. |
+| **Rate limiting — `isDemoAIBlocked`** | ❌ ZERO | — | Demo-account AI toggle. No tests. |
+| **AI provider — `callAI()` end-to-end** | ❌ ZERO | — | Provider fallback chain (DeepSeek → Z.ai → z-ai-web-dev-sdk → empty) is the most security/cost-sensitive function in the app. Zero tests for fallback ordering, empty-response handling, cache-hit short-circuit, usage-log write-on-success. |
+| **AI provider — behavioral signals** | ✅ | `ai-provider.test.ts` + `behavioral-signals.test.ts` | 35 tests across two files (some overlap). |
+| **Plagiarism scoring** | ❌ ZERO | — | `applyPlagiarismDeduction` has no tests. |
+| **Unified grader — `gradeTest`** | ❌ ZERO | — | The main grade-composition function (combines AI score + plagiarism deduction) has no tests. |
+| **Course validation** | ✅ | `course-validation.test.ts` | 28 tests. |
+| **Course normalization** | ✅ | `course-normalization.test.ts` | 21 tests. |
+| **Logger** | ✅ | `logger.test.ts` | 11 tests. |
+| **Self-paced advancement (`advanceDay`, `canAdvanceDay`)** | ❌ ZERO | — | The 202-line `src/modules/self-paced/index.ts` has no tests. |
+| **Comprehensive report generation** | ❌ ZERO | — | The 457-line `src/modules/comprehensive-report/index.ts` has no tests. |
+| **User audit trail (`getUserAuditProfile`)** | ❌ ZERO | — | The 266-line `src/modules/user-audit/index.ts` has no tests. |
+
+#### 7.2.4 Verdict
+
+- **~147 tests across 9 files** — thin for a codebase of this size (123 API routes + 75 components + 47 Prisma models).
+- **Pure functions only.** Every test file tests a pure helper. No route-level, no component-level, no DB-integration (except `scope.test.ts`, which is DB-dependent and won't run in CI without setup).
+- **The 4 most security-critical paths have ZERO coverage:** `getAuthUser()` blocked-status logic, `assertCanAccessStudent` IDOR guard, `checkRateLimit` brute-force limiter, `callAI()` provider fallback chain.
+- **The 3 most business-critical paths have ZERO coverage:** wellbeing tier computation, skill mastery computation, unified grader.
+
+---
+
+### 7.3 TODO / FIXME / HACK / XXX markers
+
+Searched all `src/**/*.ts` + `src/**/*.tsx` + `scripts/**` + `prisma/**`.
+
+| # | File:line | Marker | Text |
+|---|-----------|--------|------|
+| 1 | `src/lib/teacher-batch-summary.ts:8` | TODO | "Existing Psych/Educational tabs (migration TODO — they currently" — same data computed differently in different tabs. |
+| 2 | `src/modules/comprehensive-report/index.ts:404` | TODO | `trend: "stable", // TODO: compute trend from multiple evidence entries` — trend is hardcoded. |
+| 3 | `src/modules/comprehensive-report/index.ts:415` | TODO | `daysAheadOfSchedule: 0, // TODO: compute from self-paced status` — value hardcoded to 0. |
+| 4 | `src/app/api/courses/seed-default/route.ts:27` | TODO | "the next seed creates a duplicate. TODO: add isDefault flag to Course model." — schema change required. |
+| 5 | `src/app/api/growth-reports/[userId]/route.ts:190` | TODO | `courseId: null, // TODO: set from user's batch's course` — courseId always null in growth report. |
+
+**FIXME:** none.
+**HACK:** none.
+**XXX:** none (the grep hit on `src/app/api/certificates/verify/route.ts:4` is `?token=XXX` in a URL placeholder — not a marker).
+
+**Verdict:** 5 genuine TODOs. Two are functional shortcuts that affect report quality (#2 hardcoded trend, #3 hardcoded days-ahead-of-schedule). One (#4) is a schema gap that causes duplicate-row bugs on re-seed. One (#5) is a data-quality gap. One (#1) is a migration debt note.
+
+---
+
+### 7.4 Dead code
+
+#### 7.4.1 Dead Prisma models (zero `db.<model>` queries anywhere in `src/`)
+
+| # | Model | Schema location | Notes |
+|---|-------|-----------------|-------|
+| 1 | **`CaseReviewResponse`** | `prisma/schema.prisma:999` | Schema-only. No `db.caseReviewResponse.*` calls. `CaseReview` itself IS used (`/api/counselor/overview` does `db.caseReview.findMany`). The Response half of the relation was never implemented. |
+| 2 | **`DailyTestAnswer`** | `prisma/schema.prisma:812` | Schema-only. No `db.dailyTestAnswer.*` calls. Per-question answers are stored as JSON inside the `DailyTest` row instead. The table is created by migration but never written to. |
+| 3 | **`CourseWeek`** | `prisma/schema.prisma:136` | Schema-only. No `db.courseWeek.*` calls. The name `CourseWeek` appears in 2 components (`CoursePlanner.tsx`, `CourseOutline.tsx`) as a **TypeScript interface** — not a Prisma query. Weeks are stored as JSON inside `Course.weeksJson`. The `getCourseWeekTopics` / `getCourseWeekPhase` helper functions in `course-db.ts` are calendar helpers that don't query this table. |
+
+#### 7.4.2 Dead `src/lib/*` exports (exported, never imported outside their own definition file)
+
+**`src/lib/rbac.ts` (10 dead exports — biggest concentration of dead code in a single lib file):**
+
+| Export | Line | Notes |
+|--------|------|-------|
+| `TECHNICAL_ROLES` | 78 | Never imported. |
+| `USER_MANAGEMENT_ROLES` | 101 | Never imported. |
+| `normalizeSeverity` | 45 | Never imported. (`normalizeTier` IS used.) |
+| `requireRoleOrSelf` | 186 | Never imported. (Only `requireRole` is used.) |
+| `requireAccessGrant` | 231 | Never imported externally. |
+| `hasAccessGrant` | 213 | Only called internally by `requireAccessGrant` (itself unused). Transitively dead. |
+| `getVisibleStudentIds` | 257 | Never imported. |
+| `getRequestIp` | 278 | Never imported. (`getClientIp` in `rate-limiter.ts` is the live equivalent — `getRequestIp` is a duplicate.) |
+| `ScopeType` (type) | 210 | Only used in unused `requireAccessGrant` signature. |
+| `DataScope` (type) | 211 | Only used in unused `requireAccessGrant` signature. |
+
+**`src/lib/auth.ts`:**
+
+| Export | Line | Notes |
+|--------|------|-------|
+| `ADMIN_NAME` | 179 | Exported but only used internally in `ensureAdminUser()` (line 194). The `export` modifier is unnecessary — could be a `const`. |
+
+**`src/lib/api-response.ts`:**
+
+| Export | Line | Notes |
+|--------|------|-------|
+| `apiNotFound` | 53 | Never imported. Routes inline `NextResponse.json({ error: "Not found" }, { status: 404 })` instead. |
+| `apiServerError` | 58 | Never imported. Same — routes inline. |
+
+**`src/lib/rate-limiter.ts`:**
+
+| Export | Line | Notes |
+|--------|------|-------|
+| `getRemainingRequests` | 65 | Never imported. Was intended to populate `X-RateLimit-Remaining` headers; no route sets them. |
+
+**`src/lib/audit-log.ts`:**
+
+| Export | Line | Notes |
+|--------|------|-------|
+| `logAuditAsync` | 92 | Never imported. Fire-and-forget variant; routes use the awaited `logAudit` instead. |
+
+**`src/lib/ai-assistant/*.ts`** (re-exported through `src/modules/ai-assistant/index.ts` barrel, but the barrel is imported in only 1 file — `AppShell.tsx` — which uses just `TeacherAITutor`):
+
+| Export | File:line | Notes |
+|--------|-----------|-------|
+| `MAX_ENTITY_RECORDS_PER_CALL` | `data-efficiency.ts:23` | Re-exported but never consumed. |
+| `getCachedSummary` | `data-efficiency.ts:47` | Re-exported but never consumed. |
+| `isCacheCurrentWeek` | `data-efficiency.ts:104` | Re-exported but never consumed. |
+| `filterToScope` | `scope.ts:196` | Re-exported but never consumed. |
+| `countRepeatOccurrences` | `escalation.ts:118` | Re-exported but never consumed. (Used internally by `runEscalationEngine`, which IS called — but the export itself has no external consumer.) |
+| `checkOnWriteEscalation` | `escalation.ts:240` | Re-exported but never consumed. (Used internally by `safeguarding.ts`, but no external consumer.) |
+| `getInstitutionTeacherLoadRoster` | `teacher-load.ts:150` | Re-exported but never consumed. |
+| `suggestCoTeacher` | `teacher-load.ts:220` | Re-exported but never consumed. |
+| `buildGuidancePromptSection` | `teaching-guidance.ts:103` | Re-exported but never consumed. |
+| `FLAG_GUIDANCE_TEMPLATES` | `teaching-guidance.ts:23` | Re-exported but never consumed. |
+| `countTeacherSafeguardingSignals` | `safeguarding.ts:128` | Re-exported but never consumed. |
+| `assertTeacherCannotSeeOwnSafeguardingFlags` | `safeguarding.ts:269` | Re-exported but never consumed. |
+
+**`src/modules/ai-assistant/index.ts` inline exports:**
+
+| Export | Line | Notes |
+|--------|------|-------|
+| `AI_ASSISTANT_API` (const) | 78 | Never imported. Was intended as a route-path constant for callers; routes hardcode the paths instead. |
+| `isAIAssistantEnabled` (function) | 84 | Never imported. |
+
+**`src/modules/ai-tutor/index.ts` inline exports:**
+
+| Export | Line | Notes |
+|--------|------|-------|
+| `AI_TUTOR_API` (const) | 24 | Never imported. |
+| `isAITutorEnabled` (function) | 26 | Never imported. |
+
+#### 7.4.3 Dead UI components (never imported anywhere)
+
+| Component | Lines | Notes |
+|-----------|-------|-------|
+| `src/components/examiner/student/CourseOutlineRedirect.tsx` | 15 | Tiny redirect stub. Imports a `redirectToView` helper. Never rendered. |
+| `src/components/examiner/student/SecurityQuestionPanel.tsx` | 118 | Full security-question-set UI. Never rendered. (The `set-security-question` API route exists; the UI to drive it doesn't.) |
+| `src/components/examiner/student/ThemePreferenceControl.tsx` | 55 | 3-button theme switcher. Never rendered. (Superseded by `UnifiedThemeToggle` from the theme module.) |
+| `src/components/examiner/teacher/SpatialBatchMap.tsx` | 142 | Visual batch map. Never rendered. |
+| `src/components/examiner/teacher/StatCard.tsx` | 26 | Never rendered. **Note:** a *different* local `function StatCard` is defined inline in `src/components/examiner/StudentDashboard.tsx:370` — that one IS used (4 callsites in the same file). The standalone `teacher/StatCard.tsx` file is dead. |
+
+#### 7.4.4 Dead shadcn UI primitives (30 files — never imported anywhere)
+
+Standard `shadcn/ui` scaffold leftovers. These were generated by the shadcn CLI but no component uses them:
+
+```
+accordion, alert-dialog, aspect-ratio, breadcrumb, calendar, carousel,
+chart, checkbox, collapsible, command, context-menu, drawer, empty-state,
+form, hover-card, input-otp, menubar, navigation-menu, pagination,
+popover, radial-progress, radio-group, resizable, scroll-area, sidebar,
+slider, sonner, switch, table, toggle-group
+```
+
+**Used shadcn primitives (20 — for comparison):** alert, avatar, badge, button, card, dialog, dropdown-menu, input, label, progress, select, separator, sheet, skeleton, tabs, textarea, toast, toaster, toggle, tooltip.
+
+**Verdict:** ~60% of the shadcn scaffold is unused. Safe to delete the 30 dead files (they're regenerated on demand via `npx shadcn@latest add <name>`).
+
+#### 7.4.5 Dead `src/lib/*` backward-compat shims (NOT dead — still load-bearing)
+
+Ten one-line re-export shims exist in `src/lib/` that forward to `src/modules/*/lib/`:
+
+| Shim file | Imports via `@/lib/<name>` | Imports via `@/modules/<x>/lib/<name>` |
+|-----------|----------------------------|----------------------------------------|
+| `src/lib/ai-provider.ts` | **35** | 1 (the shim itself) |
+| `src/lib/ai-prompts.ts` | **5** | 1 |
+| `src/lib/analysis-pipeline.ts` | **4** | 1 |
+| `src/lib/plagiarism-scoring.ts` | **2** | 1 |
+| `src/lib/unified-grader.ts` | **3** | 1 |
+| `src/lib/course-db.ts` | **16** | 1 |
+| `src/lib/course-topics.ts` | **8** | 1 |
+| `src/lib/course-config.ts` | **5** | 1 |
+| `src/lib/course-defaults.ts` | **1** | 1 |
+| `src/lib/course-validation.ts` | **2** | 1 |
+
+**Status:** These shims are **load-bearing** — production code still imports via `@/lib/*`. The "1" in the right column is always the shim's own re-export. **No production code has actually migrated to the `@/modules/` path.** Removing these shims would break 81 imports across the codebase.
+
+**Action:** migrate the 81 imports to `@/modules/`, then delete the 10 shims. Until then, the shims stay.
+
+#### 7.4.6 "AICache before it was wired up" — RESOLVED
+
+Previous audit (`docs/AUDIT-AND-ROADMAP.md` item 5.9) said: *"Remove dead AICache model OR wire it up."*
+
+**Current state: WIRED UP.** AICache is load-bearing in 7 locations (18 total `db.aICache.*` query call-sites):
+
+| File | Operations |
+|------|------------|
+| `src/app/api/ai/stats/route.ts:26,54` | `findMany`, `aggregate` (admin dashboard cache stats) |
+| `src/app/api/students/[id]/explain/route.ts:111,114,153` | `findUnique`, `update` (increment hitCount), `upsert` |
+| `src/app/api/students/[id]/narrative/route.ts:83,89,112` | `findUnique` × 2, `upsert` |
+| `src/app/api/courses/generate/route.ts:117,120,237,347` | `findUnique`, `update`, `upsert` × 2 |
+| `src/modules/course/lib/course-generation.ts:51,65` | `findUnique`, `upsert` |
+| `src/modules/comprehensive-report/index.ts:219,447` | `findUnique`, `upsert` |
+| `src/lib/ai-assistant/data-efficiency.ts:53,81` | `findUnique`, `upsert` |
+
+**Note:** `src/modules/assessment/lib/token-cache.ts` is a SEPARATE in-memory token cache (used by `callAI({cacheable:true})`) for short-TTL repeated calls within a single process. AICache is the persistent DB-backed cache for cross-request reuse. Both are wired up.
+
+---
+
+### 7.5 External dependency inventory
+
+| # | Dependency | Type | Where called | Load-bearing? | Evidence of production use |
+|---|------------|------|--------------|---------------|----------------------------|
+| 1 | **DeepSeek API** | OpenAI-compatible HTTP API (`api.deepseek.com/v1`) | `src/modules/assessment/lib/ai-provider.ts:148-167, 322-377`; direct ping in `src/app/api/ai/debug/route.ts:60-95` | **YES — primary AI provider**. Documented priority 1 in file header (lines 5-9). Configured via `DEEPSEEK_API_KEY` env or `deepseek_api_key` DB Setting. Default model: `deepseek-v4-flash`. | Every successful DeepSeek call logs `provider:"deepseek"` to `AIUsageLog`. Run `SELECT COUNT(*) FROM "AIUsageLog" WHERE provider = 'deepseek'` against prod DB to confirm volume. |
+| 2 | **Z.ai API** (`ZAI_API_KEY`) | OpenAI-compatible HTTP API (`api.z.ai/api/paas/v4`) | `src/modules/assessment/lib/ai-provider.ts:121-145, 380-410`; direct ping in `src/app/api/ai/debug/route.ts:100-140` | **YES — secondary AI provider** (fallback when DeepSeek is unconfigured or fails). Configured via `ZAI_API_KEY` env or `zai_api_key` DB Setting. Default model: `glm-4.6`. | Logs `provider:"zai"` to `AIUsageLog`. |
+| 3 | **`z-ai-web-dev-sdk`** (npm package) | JS SDK (sandbox-only, no API key) | `src/modules/assessment/lib/ai-provider.ts:414-438` (dynamic `import("z-ai-web-dev-sdk")`) | **YES — third-tier sandbox fallback**. Fires only when DeepSeek + Z.ai both fail/unconfigured. On Vercel production (no Z.ai sandbox runtime available), `ZAI.create()` throws and the code catches + falls through to empty fallback. So in practice on Vercel prod, this path is unreachable — but the import + try/catch is still in the production bundle. | Logs `provider:"z-ai"` to `AIUsageLog`. **Run `SELECT COUNT(*) FROM "AIUsageLog" WHERE provider = 'z-ai'` against prod DB.** If count > 0, the sandbox fallback IS firing in production (which would only happen if the deployment is running on the Z.ai sandbox runtime, not on Vercel). If count = 0, the path is dead in prod but kept alive as a dev-sandbox convenience. |
+| 4 | **Google NotebookLM URL** | External notebook URL (Google-hosted) | `src/lib/constants.ts:3-5` (declared as a bare string literal — see note below) | **LEFTOVER (effectively dead)** — the constant declaration is **missing the `export const NOTEBOOKLM_URL =` prefix**. Line 5 is just `"https://notebooklm.google.com/notebook/f13b0673-42aa-40d1-a5e9-510f889b8bcd";` — a valid JS expression statement that evaluates to a string and is immediately discarded. No `NOTEBOOKLM_URL` symbol is exported. The URL is referenced in **comments only** (`AITutor.tsx:6` and `ai/tutor/route.ts:19`, both saying "Replaces the old NotebookLM iframe"). | Zero imports of `NOTEBOOKLM_URL` anywhere. The per-course `notebooklmUrl` field on the `Course` model IS used (CoursePlanner lets admins set per-course URLs), but the global fallback is broken. **This is a real bug** — any code path expecting `NOTEBOOKLM_URL` to be defined will get `undefined`. |
+| 5 | **`openai`** (npm package) | HTTP client library | `src/modules/assessment/lib/ai-provider.ts:18` | **YES** — wraps both DeepSeek and Z.ai as OpenAI-compatible clients (`new OpenAI({apiKey, baseURL})`). | Both client factories use it. |
+| 6 | **`@prisma/client`** | ORM | Everywhere | **YES** — primary DB layer. | 156 `db.user` calls + thousands more across all 47 models. |
+| 7 | **Vercel cron** (HTTP-triggered scheduled jobs) | Scheduled HTTP | `vercel.json:17-26` | **YES** — `/api/students/check-alerts?secret=${CRON_SECRET}` daily at 09:00 UTC; `/api/assistant/escalation/run?secret=${CRON_SECRET}` daily at 00:00 UTC. | Both routes have CRON_SECRET bypass logic (`students/check-alerts/route.ts:268`, `assistant/escalation/run/route.ts:10`). **Note:** the existing audit-inventory §5.1 lists `/api/assistant/escalation/run` as "orphan route" (zero UI callers) — but it IS called by Vercel cron, so it's not actually orphan. |
+
+#### 7.5.1 Documentation bug in `ai-provider.ts`
+
+The file-level header (lines 5-9) says:
+```
+* Provider priority:
+*   1. DeepSeek (via DEEPSEEK_API_KEY env var — primary, cost-effective)
+*   2. Z.ai API (via ZAI_API_KEY env var or DB setting — OpenAI-compatible fallback)
+*   3. z-ai-web-dev-sdk (sandbox / dev fallback — only works in Z.ai sandbox)
+```
+
+But the `callAI()` function-level JSDoc (line 263) says:
+```
+*  Priority: Z.ai → DeepSeek → z-ai-web-dev-sdk → empty fallback
+```
+
+**These two docstrings contradict each other.** The actual code (lines 322, 380, 416) calls DeepSeek first, then Z.ai, then z-ai-web-dev-sdk — matching the file header. **The function-level JSDoc is wrong** and should be corrected to "Priority: DeepSeek → Z.ai → z-ai-web-dev-sdk → empty fallback" to match the implementation.
+
+#### 7.5.2 External API inventory summary (non-AI)
+
+No other external HTTP APIs are called by `src/`. Specifically:
+- No Stripe / payment integration.
+- No email provider (SendGrid, Postmark, SES, etc.) — the `forgot-password` flow uses an in-app security-question reset, not email.
+- No SMS provider (Twilio, etc.).
+- No analytics (Segment, Mixpanel, PostHog) — only the internal `AuditLog` + `AIUsageLog` tables.
+- No error tracking (Sentry, Bugsnag) — only the internal `logger.ts`.
+- No file storage (S3, Cloudinary) — only in-DB JSON columns.
+- No OAuth providers (Google, GitHub, etc.) — only email/password + security question.
+
+The only outbound network calls are: DeepSeek API, Z.ai API, z-ai-web-dev-sdk (sandbox), and the NotebookLM iframe URL (which is broken — see §7.5 row 4).
+
+---
+
+### 7.6 Modularity review — `src/modules/`
+
+The `src/modules/` directory has 15 modules. They split into three categories:
+
+#### A. Genuine modules (real implementation extracted under the module dir, with real consumers) — 7
+
+| Module | Own `lib/`? | Own `types/`? | Own components? | External consumers |
+|--------|-------------|---------------|-----------------|--------------------|
+| `assessment/` | YES (8 lib files) | (no separate types) | YES (6 components) | 14 routes import `@/modules/assessment/lib/*`; 4 components import `@/modules/assessment/components/*`; plus 5 `@/lib/*` shims re-export to it. |
+| `course/` | YES (6 lib files) | YES (`types/index.ts`) | (no — components stay in `src/components/examiner/`) | 5 routes + 5 `@/lib/*` shims. |
+| `theme/` | YES (`theme-context.tsx`, `themes/presets.ts`, `unified-theme-toggle.tsx`) | (no) | YES (the toggle) | 3 imports (`AppShell.tsx`, `app/layout.tsx`, internal). |
+| `user-audit/` | (single 266-line `index.ts` with full implementation, no separate `lib/`) | (no) | (no) | 1 route (`/api/users/[id]/audit`). |
+| `comprehensive-report/` | (single 457-line `index.ts`) | (no) | (no) | 1 route (`/api/students/[id]/comprehensive-report`). |
+| `self-paced/` | (single 202-line `index.ts`) | (no) | (no) | 1 route (`/api/self-paced`). |
+| `project/` | YES (4 lib files: `project-setup`, `task-generator`, `project-reports`, `project-weeks`) | YES (`types/index.ts`) | (no) | **0 routes import it** — see "skeleton" below. The lib code exists but is unused. |
+
+#### B. Nominal modules (re-export barrels with no real implementation, but DO get imported) — 2
+
+| Module | What's in `index.ts` | External consumers |
+|--------|----------------------|--------------------|
+| `ai-assistant/` | Re-exports components (`TeacherAITutor`, `AIAssistantBox`, `ActionDialog`) + 30+ lib functions from `@/lib/ai-assistant/*` + 2 inline helpers (`AI_ASSISTANT_API` const, `isAIAssistantEnabled` function — both dead, see §7.4.2) | 1 import (`AppShell.tsx` pulls `TeacherAITutor` only). The 30+ lib re-exports are dead. |
+| `ai-tutor/` | Re-exports `AITutor` component + 2 inline constants (`AI_TUTOR_API` const, `isAITutorEnabled` function — both dead) | 1 import (`AppShell.tsx` pulls `AITutor` only). |
+
+#### C. Skeleton modules (declared "skeleton" in their own header comment, NEVER imported) — 7
+
+Every one of these opens with the comment: *"This module is a skeleton — the actual code still lives in src/lib/ and src/components/examiner/. The re-exports below provide a stable import path (@/modules/X) that other modules can use. Over time, the implementation files will be moved into this directory."*
+
+| Module | `index.ts` re-exports | External `@/modules/<x>` imports anywhere? |
+|--------|----------------------|---------------------------------------------|
+| `admin/` | `@/lib/audit-log`, `@/lib/seed` | **0** |
+| `auth/` | `@/lib/auth`, `@/lib/rbac` | **0** |
+| `communication/` | `Messages`, `AskMyTeacher` (components) | **0** |
+| `grading/` | `@/lib/csv-export` | **0** |
+| `shared/` | 8 lib re-exports (`db`, `logger`, `utils`, `api-client`, `api-response`, `feature-flags`, `constants`, `chart-theme`, `toast-helpers`) | **0** |
+| `student/` | (empty — just the comment block) | **0** |
+| `wellbeing/` | (empty — just the comment block) | **0** |
+| `project/` | 4 lib files + types — but project API routes ignore it and import `@/lib/*` directly (the route handlers have inline duplicates of the same logic) | **0** |
+
+#### 7.6.1 Module-level permissions / clear boundaries
+
+**No module has its own `permissions.ts` file.** Authorization is centralized in:
+- `src/lib/auth.ts` — `getAuthUser()`, `getCurrentUser()`, `assertCanAccessStudent()` (the IDOR guard)
+- `src/lib/rbac.ts` — `requireRole()`, `requireRoleOrSelf()`, `hasRole()`, role constants
+
+The documented design (see `src/modules/user-audit/index.ts:17-19`): *"Access control is handled by the CALLER (API route), not by this module. The module assumes the caller has already verified access."*
+
+This works, but means:
+1. Any new route that forgets to call `requireRole` or `assertCanAccessStudent` has **no module-level safety net** — the module will happily operate on whatever IDs it's given.
+2. There is no way to enforce "this module can only be called by these roles" at the module boundary.
+3. The IDOR-protection audit (Section 1, security audit) had to inspect every route individually because the protection is not centralized at the module level.
+
+#### 7.6.2 Verdict on modularity
+
+The migration to `src/modules/` is **half-finished**:
+
+- ✅ **Genuinely extracted:** `assessment/`, `course/`, `theme/`, `user-audit/`, `comprehensive-report/`, `self-paced/`. The lib code lives under the module dir and consumers import from it.
+- ⚠️ **Half-extracted:** `project/`. The lib code lives under `src/modules/project/lib/`, but **zero routes import it** — they have inline duplicates of the same logic. This is the worst case: dead-but-maintained code that will silently drift as the inline copies evolve.
+- ❌ **Pure re-export barrels:** `admin/`, `auth/`, `communication/`, `grading/`, `shared/`, `student/`, `wellbeing/`. They exist for "future migration" but the migration never happened. Since no consumer imports them, they're effectively dead weight in the directory tree.
+- ⚠️ **Component-only barrels:** `ai-assistant/`, `ai-tutor/`. Useful as import-path shortcuts but contain no actual logic. The inline helpers they DO define (`AI_ASSISTANT_API`, `isAIAssistantEnabled`, `AI_TUTOR_API`, `isAITutorEnabled`) are all dead.
+
+**Module count:** 15 directories. **Effective module count:** 6 (the genuine ones, minus `project/` which is dead-but-maintained). The other 9 are either nominal barrels or empty skeletons.
+
+---
+
+### 7.7 Schema sync re-verification (Prisma)
+
+**CONFIRMED: Schemas are structurally identical.** Re-verified model-by-model, field-by-field, index-by-index, constraint-by-constraint.
+
+- `prisma/schema.prisma` — 1176 lines, SQLite datasource, 47 models.
+- `prisma/schema.prod.prisma` — 987 lines, Postgres datasource, 47 models.
+
+#### 7.7.1 Identical (no drift)
+
+- **47 models** — same names, same fields, same types, same defaults, same relations, same `@@index`, same `@@unique`, same `@@id`.
+- **No enums declared** in either schema (all string-typed with inline `// "x" | "y" | "z"` comments).
+- **Same relations** (foreign keys, `onDelete` cascade rules, named relations like `"CommentAuthor"` / `"MsgSender"`).
+- **Same indexes** — every `@@index([...])` and `@@unique([...])` matches.
+
+#### 7.7.2 Cosmetic-only differences (no semantic effect)
+
+1. **Trailing-comment drift on PeerAssessment unique constraint** (already noted in `AUDIT-SECURITY-2026-07-26.md §3.3`):
+   - `schema.prisma:945`: `@@unique([groupTaskId, assessorId, assesseeId]) // one assessment per pair per task`
+   - `schema.prod.prisma:879`: `@@unique([groupTaskId, assessorId, assesseeId])` (no comment)
+
+2. **Field-ordering difference in `User` model** (NEW finding — not previously documented):
+   - `schema.prisma`: `chatSessions` appears before `healthSummary`; `eventsCreated` appears before `groupTasksTaught`.
+   - `schema.prod.prisma`: `chatSessions` appears after `studentAlerts`; `eventsCreated` appears after `studentGuardians`.
+   - **Semantically equivalent in Prisma** — field order in a model is not significant. No effect on queries, types, or migrations. (Cosmetic, but worth re-aligning to prevent future "is this drift?" false-positives.)
+
+3. **Inline comments throughout**: `schema.prisma` has extensive inline documentation comments (e.g., `// Phase Scale Tier 2: group tasks + events for this batch`, `// Multi-teacher: many-to-many between batches and teachers`); `schema.prod.prisma` strips most of them. No effect on schema.
+
+4. **Model declaration order**: `StudentAlert` and `ChatSession` are swapped between the two schemas — `StudentAlert` comes after `ChatSession` in `schema.prisma` (line 1124 vs 1090); before it in `schema.prod.prisma` (line 916 vs 937). No semantic effect.
+
+5. **Alignment whitespace**: `schema.prisma` uses aligned columns (e.g., `id            String   @id`); `schema.prod.prisma` uses tighter alignment (`id          String    @id`). No semantic effect.
+
+#### 7.7.3 Verdict
+
+**No structural drift. The prod schema is safe to deploy.** The differences are purely cosmetic (comments, whitespace, ordering). Recommendation: when convenient, re-align field order in the `User` model + copy the missing trailing comment on `PeerAssessment.@@unique` from dev to prod — but neither is required for correctness.
+
+---
+
+### 7.8 Summary of Section 6 findings
+
+#### Inventory counts
+
+| Category | Count |
+|----------|-------|
+| Files >800 lines (flag for split) | **4** |
+| Files 400-800 lines (watch list) | **22** |
+| Test files | **9** |
+| Total test cases | **147** |
+| Critical paths with ZERO tests | **7** (login route, blocked-status, IDOR guard, rate-limit, AI provider chain, wellbeing tier, skill mastery) |
+| TODO/FIXME/HACK/XXX markers | **5** (all TODO) |
+| Dead Prisma models | **3** (CaseReviewResponse, DailyTestAnswer, CourseWeek-as-Prisma) |
+| Dead `src/lib/*` exports | **22+** (10 in rbac.ts, 1 in auth.ts, 2 in api-response.ts, 1 in rate-limiter.ts, 1 in audit-log.ts, 12 in ai-assistant/* + module barrels) |
+| Dead UI components | **5** (CourseOutlineRedirect, SecurityQuestionPanel, ThemePreferenceControl, SpatialBatchMap, teacher/StatCard) |
+| Dead shadcn UI primitives | **30** |
+| Backward-compat `@/lib/*` shims still load-bearing | **10** (with 81 un-migrated consumers) |
+| External API dependencies | **7** (DeepSeek, Z.ai, z-ai-web-dev-sdk, NotebookLM URL (broken), openai npm, Prisma, Vercel cron) |
+| Genuine modules under `src/modules/` | **6 of 15** |
+| Skeleton / nominal-barrel modules | **9 of 15** |
+| Schema-sync drift between dev + prod | **0 structural** (cosmetic-only) |
+
+#### Key issues found
+
+1. **NotebookLM URL is broken in `src/lib/constants.ts:5`.** The line `"https://notebooklm.google.com/...";` is a bare string literal with no `export const NOTEBOOKLM_URL =` prefix. The symbol doesn't exist. Any code expecting it gets `undefined`. The constant is referenced only in comments now, but if anyone re-wires the global fallback they'll hit this bug.
+
+2. **AI provider docstring contradicts itself.** `ai-provider.ts:5-9` says priority is "DeepSeek → Z.ai → z-ai-web-dev-sdk" but `ai-provider.ts:263` says "Z.ai → DeepSeek → z-ai-web-dev-sdk". The code matches the file header (DeepSeek first). The function JSDoc is wrong.
+
+3. **`src/modules/project/` is dead-but-maintained.** Four lib files (410+ lines of implementation) exist under `src/modules/project/lib/` but zero routes import them. The project API routes (`/api/project/setup`, `/api/project/generate-tasks`, `/api/project/plan`, `/api/project/reports`, `/api/project/weeks`) all have inline duplicates of the same logic. **This is the highest-risk dead code in the codebase** — it will silently drift as the inline copies evolve and the module copies don't.
+
+4. **7 of 15 modules under `src/modules/` are pure skeleton barrels with zero consumers.** (`admin`, `auth`, `communication`, `grading`, `shared`, `student`, `wellbeing`). They re-export `@/lib/*` symbols that nobody imports via the module path. They should either be deleted or actually populated with extracted logic.
+
+5. **3 Prisma models have zero queries against them:** `CaseReviewResponse`, `DailyTestAnswer`, `CourseWeek` (as a Prisma model — the name is reused as a TS interface). They're created by migrations but never written to or read from.
+
+6. **The 4 most security-critical code paths have ZERO test coverage:** `getAuthUser()` blocked-status logic, `assertCanAccessStudent` IDOR guard, `checkRateLimit` brute-force limiter, `callAI()` provider fallback chain. Only pure crypto functions (`signToken`, `verifyToken`, `hashPassword`, `comparePassword`) are tested.
+
+7. **The 3 most business-critical scoring paths have ZERO test coverage:** wellbeing tier computation (`analysis-pipeline.ts:407-423`), skill mastery (`computeMasteryFromInteractions` + `/api/skill-mastery` route), unified grader (`gradeTest` — the main grade-composition function).
+
+8. **10 unused exports in `src/lib/rbac.ts` alone** — the file is the single largest concentration of dead code in the codebase. Includes a whole unused `requireAccessGrant` / `hasAccessGrant` / `ScopeType` / `DataScope` subsystem (RBAC access-grant feature was designed but never wired up).
+
+9. **2 hardcoded-value TODOs in `comprehensive-report/index.ts` affect report quality** — `trend` is always `"stable"` (line 404), `daysAheadOfSchedule` is always `0` (line 415). Both are documented as "TODO: compute" but shipped anyway.
+
+10. **`/api/courses/seed-default` re-seed duplication bug** (TODO at `seed-default/route.ts:27`) — without an `isDefault` flag on the `Course` model, every call to "seed defaults" creates duplicate Course rows. The TODO has been there long enough to ship to production.
+
+#### Suggested next actions (Section 6 — not consolidated with earlier sections)
+
+- **Fix `NOTEBOOKLM_URL` declaration** in `src/lib/constants.ts:5` — either restore the `export const NOTEBOOKLM_URL =` prefix or delete the bare string + comment entirely if the global fallback is no longer needed (per-course `notebooklmUrl` field on `Course` covers it).
+- **Fix the `callAI()` JSDoc** at `ai-provider.ts:263` to match the actual implementation order: "Priority: DeepSeek → Z.ai → z-ai-web-dev-sdk → empty fallback".
+- **Decide on `src/modules/project/`**: either migrate the 5 project API routes to import from `@/modules/project/lib/*` (deleting the inline duplicates), or delete the module-level lib files. **Leaving it half-extracted is the worst option.**
+- **Decide on the 7 skeleton modules** (`admin`, `auth`, `communication`, `grading`, `shared`, `student`, `wellbeing`): either populate them with extracted logic, or delete the empty barrels. They mislead readers into thinking the migration is done.
+- **Add tests for the 4 zero-coverage security paths** (blocked-status, IDOR, rate-limit, AI provider chain) — these are pure-function-friendly enough to test without a DB if the cache + DB calls are mocked.
+- **Add tests for the 3 zero-coverage scoring paths** (wellbeing tier, skill mastery, unified grader) — these are pure functions, no mocking needed.
+- **Delete the 3 dead Prisma models** (`CaseReviewResponse`, `DailyTestAnswer`, `CourseWeek`-as-Prisma) OR wire them up. `CourseWeek` is the trickiest because the name is reused as a TS interface — rename the interface first.
+- **Delete the 10 dead exports in `rbac.ts`** (the unused `requireAccessGrant` subsystem) OR wire them up if access-grant enforcement is still a planned feature.
+- **Delete the 5 dead UI components** (CourseOutlineRedirect, SecurityQuestionPanel, ThemePreferenceControl, SpatialBatchMap, teacher/StatCard) — they have zero consumers and confuse searches.
+- **Delete the 30 unused shadcn UI primitives** — they're regenerable on demand via `npx shadcn@latest add`.
+- **Migrate the 81 `@/lib/*` imports to `@/modules/*` paths**, then delete the 10 backward-compat shims.
+- **Re-align `User` model field order** between `schema.prisma` and `schema.prod.prisma` to prevent future false-positive drift reports.
+- **Resolve the 5 TODOs** — especially `comprehensive-report/index.ts:404,415` (hardcoded values affecting report quality) and `courses/seed-default/route.ts:27` (duplicate-row bug).
