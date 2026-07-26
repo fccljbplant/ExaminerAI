@@ -97,7 +97,7 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
       setStudents(Array.isArray(statsRes?.students) ? statsRes.students : []);
       setAlerts(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts : []);
     } catch (e) {
-      showError(e);
+      showError(e instanceof Error ? e.message : "Failed to load dashboard");
       setStudents([]);
       setStats(null);
     } finally {

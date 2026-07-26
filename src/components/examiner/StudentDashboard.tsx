@@ -352,7 +352,7 @@ function StudyView({ stats, onReload, onNavigate }: {
         <QuestionPanel currentWeek={stats.stats.currentWeek} onAnswered={onReload} stats={stats} />
       )}
       {studyMode === "daily-test" && (
-        <DailyTestPanel stats={stats} onReload={onReload} />
+        <DailyTestPanel />
       )}
       {studyMode === "weekly-test" && (
         <WeeklyTestPanel stats={stats} onReload={onReload} onMode={() => onNavigate("home")} />

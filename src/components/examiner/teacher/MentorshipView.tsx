@@ -129,7 +129,7 @@ export function MentorshipView({ students, alerts, onStudentClick }: MentorshipV
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <VoiceTouchpointLogger students={safeStudents} onLogged={load} />
+          <VoiceTouchpointLogger onLogged={load} />
         </CardContent>
       </Card>
 

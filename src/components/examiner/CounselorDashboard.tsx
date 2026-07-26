@@ -465,7 +465,7 @@ function SessionsView({ data, onNavigateToMessages }: { data: CounselorData; onN
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <VoiceTouchpointLogger students={[]} onLogged={() => {}} />
+          <VoiceTouchpointLogger onLogged={() => {}} />
         </CardContent>
       </Card>
 

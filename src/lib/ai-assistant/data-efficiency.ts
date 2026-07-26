@@ -276,6 +276,7 @@ export async function logAIUsage(params: {
   userId: string;
   feature: string;
   provider: string;
+  model?: string;
   promptTokens: number;
   completionTokens: number;
   latencyMs: number;
@@ -288,9 +289,11 @@ export async function logAIUsage(params: {
         userId: params.userId,
         feature: params.feature,
         provider: params.provider,
+        model: params.model || "unknown",
         promptTokens: params.promptTokens,
         completionTokens: params.completionTokens,
-        latencyMs: params.latencyMs,
+        totalTokens: (params.promptTokens || 0) + (params.completionTokens || 0),
+        durationMs: params.latencyMs || 0,
         success: params.success,
         errorMessage: params.errorMessage ?? null,
       },

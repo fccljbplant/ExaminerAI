@@ -229,7 +229,7 @@ export async function GET() {
     recentActivity.push({
       type: "comment",
       title: `Comment from ${c.teacher?.name || "Teacher"}`,
-      description: c.body.slice(0, 80),
+      description: (c.body || "").slice(0, 80),
       date: c.createdAt.toISOString(),
     });
   });
