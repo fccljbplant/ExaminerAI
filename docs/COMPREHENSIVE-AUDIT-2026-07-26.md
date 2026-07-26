@@ -46,10 +46,9 @@ The following P0 and P1 issues have been fixed:
 
 | # | Issue | Priority | Status |
 |---|---|---|---|
-| P2 | Dead code (~3,209 lines) | P2 | ✅ FIXED — 8 dead code files deleted |
-| P2 | Pagination, accessibility, UX polish | P2 | ❌ PENDING (lower priority) |
+| P2 | Pagination, accessibility, UX polish | P2 | ✅ PARTIALLY FIXED — Messages pagination + mark-all-read + skip-to-content + confirm dialogs added |
 
-**All P0 and P1 issues are now FIXED.**
+**All P0 and P1 issues are FIXED. P2 partially fixed (Messages pagination, accessibility skip-link, confirmation dialogs). Remaining P2 items are lower-priority UX polish.**
 
 ---
 

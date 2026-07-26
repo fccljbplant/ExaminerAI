@@ -111,6 +111,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   };
 
   const deleteEvent = async (eventId: string) => {
+    if (!confirm("Delete this event? This cannot be undone.")) return;
     await api.del("/api/events", { eventId });
     await load();
   };

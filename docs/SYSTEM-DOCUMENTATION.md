@@ -541,8 +541,8 @@ See `docs/COMPREHENSIVE-AUDIT-2026-07-26.md` for the full audit report with 50 p
 
 ### Still Pending
 
-1. Pagination on Messages/Portfolio/Assignments — P2 (lower priority)
-2. Accessibility (aria-labels, ARIA tab semantics, skip-to-content) — P2
-3. UX polish (skeleton loaders, consistent tab patterns) — P2
+1. Pagination on Portfolio/Assignments — P2 (lower priority, Messages done)
+2. Accessibility: aria-labels on icon buttons, ARIA tab semantics — P2 (skip-to-content added)
+3. UX polish: skeleton loaders, consistent tab patterns — P2
 
-**All P0 Critical and P1 High issues are now FIXED (28 of 28).**
+**All P0 Critical and P1 High issues are FIXED (28 of 28). P2 partially fixed.**

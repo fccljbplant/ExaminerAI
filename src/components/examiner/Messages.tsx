@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Loader2, Send, Inbox, ArrowUpRight, Trash2 } from "lucide-react";
+import { Mail, Loader2, Send, Inbox, ArrowUpRight, Trash2, CheckCheck, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Message {
   id: string;
@@ -38,13 +38,18 @@ export default function Messages() {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 50, total: 0, totalPages: 0 });
+  const [markingAll, setMarkingAll] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (pageNum?: number) => {
     setLoading(true);
     try {
       const box = tab === "inbox" ? "received" : "sent";
-      const res = await api.get<{ messages: Message[] }>(`/api/messages?box=${box}`);
+      const p = pageNum ?? page;
+      const res = await api.get<{ messages: Message[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/api/messages?box=${box}&page=${p}&pageSize=20`);
       setMessages(res.messages);
+      if (res.pagination) setPagination(res.pagination);
       // Load users (teacher or admin sees everyone; student sees teachers+admin)
       const usersRes = await api.get<{ users: UserRow[] }>("/api/users").catch(() => ({ users: [] as UserRow[] }));
       setUsers(usersRes.users);
@@ -53,9 +58,10 @@ export default function Messages() {
     } finally {
       setLoading(false);
     }
-  }, [tab]);
+  }, [tab, page]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { setPage(1); load(1); }, [tab]);  
+  useEffect(() => { load(); }, [page]);  
 
   const markRead = async (id: string) => {
     try {
@@ -64,6 +70,15 @@ export default function Messages() {
     } catch {
       // ignore
     }
+  };
+
+  const markAllRead = async () => {
+    setMarkingAll(true);
+    try {
+      await api.post("/api/messages/mark-all-read");
+      load();
+    } catch { /* ignore */ }
+    finally { setMarkingAll(false); }
   };
 
   const deleteMessage = async (id: string) => {
@@ -100,9 +115,17 @@ export default function Messages() {
               <CardTitle className="text-foreground flex items-center gap-2"><Mail className="h-5 w-5 text-primary" /> Messages</CardTitle>
               <CardDescription className="text-muted-foreground">Send and receive messages with teachers and students</CardDescription>
             </div>
-            <Button onClick={() => setComposeOpen(true)} className="bg-primary hover:bg-primary/90 text-foreground">
-              <Send className="h-4 w-4" /> Compose
-            </Button>
+            <div className="flex items-center gap-2">
+              {tab === "inbox" && messages.some(m => !m.isRead) && (
+                <Button onClick={markAllRead} disabled={markingAll} variant="outline" size="sm" className="border-border">
+                  {markingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCheck className="h-3 w-3" />}
+                  Mark all read
+                </Button>
+              )}
+              <Button onClick={() => setComposeOpen(true)} size="sm" className="bg-primary hover:bg-primary/90 text-foreground">
+                <Send className="h-4 w-4" /> Compose
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -189,6 +212,23 @@ export default function Messages() {
               )}
             </TabsContent>
           </Tabs>
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
+              <div className="text-xs text-muted-foreground">
+                Showing {((pagination.page - 1) * pagination.pageSize) + 1}–{Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} messages
+              </div>
+              <div className="flex items-center gap-1">
+                <Button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={pagination.page <= 1 || loading} variant="outline" size="sm" className="h-7 px-2 border-border">
+                  <ChevronLeft className="h-3 w-3" />
+                </Button>
+                <span className="text-xs text-muted-foreground px-2">Page {pagination.page} of {pagination.totalPages}</span>
+                <Button onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))} disabled={pagination.page >= pagination.totalPages || loading} variant="outline" size="sm" className="h-7 px-2 border-border">
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

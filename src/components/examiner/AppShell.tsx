@@ -471,6 +471,13 @@ export default function AppShell() {
           DEMO MODE — Read-only access. Write actions are blocked. Use the role switcher below to preview any dashboard.
         </div>
       )}
+      {/* Skip to content link for keyboard accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:text-sm"
+      >
+        Skip to content
+      </a>
       <div className="flex flex-1 min-h-0">
       {/* Mobile sidebar toggle */}
       <button
@@ -618,7 +625,7 @@ export default function AppShell() {
       )}
 
       {/* Main */}
-      <main className="flex-1 min-w-0 lg:ml-0 flex flex-col overflow-hidden">
+      <main id="main-content" className="flex-1 min-w-0 lg:ml-0 flex flex-col overflow-hidden">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-card/80 backdrop-blur px-4 sm:px-6">
           <div className="flex items-center gap-2 sm:gap-3 ml-12 lg:ml-0">
             {viewHistory.length > 0 && (

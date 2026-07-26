@@ -754,6 +754,7 @@ export function StudentPortfolioPage({
                     variant="outline"
                     className="h-6 text-[10px] px-2"
                     onClick={() => {
+                      if (!confirm(`Unlock Week ${w} test for this student?`)) return;
                       api.post(`/api/students/${student.id}/unlock-test`, { week: w })
                         .then(() => loadPortfolio(student.id))
                         .catch((e) => showError(e?.message || `Week ${w} test could not be unlocked (might already exist)`));

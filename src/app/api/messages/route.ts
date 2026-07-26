@@ -4,21 +4,33 @@ import { getCurrentUser, getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { analyzeMessageForSafeguarding } from "@/lib/ai-assistant/safeguarding";
 
-/** GET /api/messages — list messages for current user. */
+/** GET /api/messages — list messages for current user (with pagination).
+ *  Query params: box (all|sent|received), page (default 1), pageSize (default 50, max 200) */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const box = req.nextUrl.searchParams.get("box") ?? "all"; // all | sent | received
+  const box = req.nextUrl.searchParams.get("box") ?? "all";
+  const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") || "1", 10));
+  const pageSize = Math.min(200, Math.max(1, parseInt(req.nextUrl.searchParams.get("pageSize") || "50", 10)));
   const where =
     box === "sent" ? { fromId: payload.sub } :
     box === "received" ? { toId: payload.sub } :
     { OR: [{ fromId: payload.sub }, { toId: payload.sub }] };
-  const messages = await db.message.findMany({
-    where,
-    orderBy: { sentAt: "desc" },
-    include: { from: { select: { name: true, email: true } }, to: { select: { name: true, email: true } } },
+
+  const [total, messages] = await Promise.all([
+    db.message.count({ where }),
+    db.message.findMany({
+      where,
+      orderBy: { sentAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: { from: { select: { name: true, email: true } }, to: { select: { name: true, email: true } } },
+    }),
+  ]);
+  return NextResponse.json({
+    messages,
+    pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
   });
-  return NextResponse.json({ messages });
 }
 
 /** POST /api/messages — send a message. */
