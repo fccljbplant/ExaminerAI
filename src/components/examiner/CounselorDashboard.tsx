@@ -90,7 +90,7 @@ interface CounselorData {
 
 type CounselorTab = "command" | "caseload" | "sessions" | "patterns";
 
-export default function CounselorDashboard({ onNavigateToMessages }: { onNavigateToMessages?: () => void }) {
+export default function CounselorDashboard({ onNavigateToMessages, onStudentClick }: { onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void }) {
   const [data, setData] = useState<CounselorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -189,9 +189,9 @@ export default function CounselorDashboard({ onNavigateToMessages }: { onNavigat
       />
 
       {/* Tab content */}
-      {tab === "command" && <CommandCenter data={data} onNavigateToMessages={onNavigateToMessages} />}
-      {tab === "caseload" && <CaseloadView data={data} />}
-      {tab === "sessions" && <SessionsView data={data} onNavigateToMessages={onNavigateToMessages} />}
+      {tab === "command" && <CommandCenter data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} />}
+      {tab === "caseload" && <CaseloadView data={data} onStudentClick={onStudentClick} />}
+      {tab === "sessions" && <SessionsView data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} />}
       {tab === "patterns" && <PatternsView data={data} />}
     </div>
   );
@@ -200,7 +200,7 @@ export default function CounselorDashboard({ onNavigateToMessages }: { onNavigat
 // ============================================================
 // COMMAND CENTER — real-time triage
 // ============================================================
-function CommandCenter({ data, onNavigateToMessages }: { data: CounselorData; onNavigateToMessages?: () => void }) {
+function CommandCenter({ data, onNavigateToMessages, onStudentClick }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void }) {
   const { caseload } = data;
   const wellbeingData = [
     { name: "Green", value: caseload.greenCount, color: "#10b981" },
@@ -248,6 +248,11 @@ function CommandCenter({ data, onNavigateToMessages }: { data: CounselorData; on
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5">Tier: {item.wellbeingTier} · {timeAgo(item.createdAt)}</div>
                   </div>
+                  {onStudentClick && (
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-primary hover:bg-primary/10 flex-shrink-0" onClick={() => onStudentClick(item.studentId, item.studentName)}>
+                      Portfolio →
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -361,7 +366,7 @@ function CommandCenter({ data, onNavigateToMessages }: { data: CounselorData; on
 // ============================================================
 // CASELOAD — searchable roster with wellbeing tiers
 // ============================================================
-function CaseloadView({ data }: { data: CounselorData }) {
+function CaseloadView({ data, onStudentClick }: { data: CounselorData; onStudentClick?: (studentId: string, studentName: string) => void }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "red" | "warning" | "crisis" | "alerts">("all");
 
@@ -439,6 +444,19 @@ function CaseloadView({ data }: { data: CounselorData }) {
                     {s.frustrationCount > 0 && <Badge variant="outline" className="text-[9px] bg-orange-50 text-orange-700">{s.frustrationCount}F</Badge>}
                     {s.avoidanceCount > 0 && <Badge variant="outline" className="text-[9px] bg-rose-50 text-rose-700">{s.avoidanceCount}A</Badge>}
                     {s.enthusiasmCount > 0 && <Badge variant="outline" className="text-[9px] bg-emerald-50 text-emerald-700">{s.enthusiasmCount}E</Badge>}
+                    {/* H7 fix: counselors can now open the student's portfolio
+                        directly from the caseload — was locked into aggregate views. */}
+                    {onStudentClick && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 text-[10px] text-primary hover:bg-primary/10"
+                        onClick={() => onStudentClick(s.studentId, s.studentName)}
+                        title={`Open ${s.studentName}'s portfolio`}
+                      >
+                        Portfolio →
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -453,7 +471,7 @@ function CaseloadView({ data }: { data: CounselorData }) {
 // ============================================================
 // SESSIONS — GROW touchpoint history + logger + case reviews
 // ============================================================
-function SessionsView({ data, onNavigateToMessages }: { data: CounselorData; onNavigateToMessages?: () => void }) {
+function SessionsView({ data, onNavigateToMessages, onStudentClick }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void }) {
   return (
     <div className="space-y-4">
       {/* GROW Logger */}

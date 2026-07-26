@@ -48,6 +48,12 @@ export async function GET(req: Request) {
           psychObs: { select: { week: true, confidence: true, cognitiveLoad: true, engagement: true }, orderBy: { week: "asc" } },
           tasks: { select: { status: true, week: true } },
           _count: { select: { interactions: true } },
+          // H16 fix: include wellbeing state + crisis flags so the teacher
+          // Students tab can filter by wellbeing tier + flagged status.
+          // These were missing from the API response, so the filters always
+          // showed an empty list.
+          wellbeingState: { select: { tier: true } },
+          crisisFlags: { where: { status: "open" }, select: { id: true, severity: true }, take: 1 },
         },
       }),
       db.user.count({ where: { role: "pending" } }),
@@ -153,6 +159,11 @@ export async function GET(req: Request) {
         attentionScore,
         attentionReasons,
         needsAttention: attentionScore >= 20,
+        // H16 fix: wellbeing tier + crisis flag for the Students tab filters.
+        // These were missing from the API response, so the "Struggling (Psych)"
+        // and "Flagged" filters always showed an empty list.
+        wellbeingTier: s.wellbeingState?.tier ?? null,
+        hasFlag: s.crisisFlags.length > 0,
       };
     });
 

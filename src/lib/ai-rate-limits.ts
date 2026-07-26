@@ -179,3 +179,52 @@ export async function isDemoAIBlocked(isDemo: boolean): Promise<boolean> {
   const enabled = await isDemoAIEnabled();
   return !enabled;
 }
+
+/**
+ * H1 fix (audit 2026-07-26): unified rate-limit + demo-block check.
+ *
+ * Returns `null` if the call is allowed, or an error response object that
+ * the route can return directly. Usage:
+ *
+ *   const blocked = await enforceAIRateLimit(userId, feature, isDemo);
+ *   if (blocked) return blocked;
+ *
+ * This wraps the isDemoAIBlocked + checkUserAILimit pattern so the 16 AI
+ * routes that were missing rate limiting can add it in 3 lines instead of 15.
+ *
+ * @param userId  The user making the AI call (for per-user daily limit).
+ * @param feature The feature label (e.g. "daily-motivation", "course-gen").
+ *                Mapped to a category via categoryForFeature().
+ * @param isDemo  Whether the user is the demo account (demo can be blocked entirely).
+ * @returns null if allowed, or a NextResponse-shaped object if blocked.
+ */
+export async function enforceAIRateLimit(
+  userId: string,
+  feature: string,
+  isDemo: boolean = false,
+): Promise<{ status: number; body: Record<string, unknown> } | null> {
+  // 1. Demo block check
+  if (await isDemoAIBlocked(isDemo)) {
+    return {
+      status: 403,
+      body: { error: "AI access for demo accounts is currently disabled by the administrator." },
+    };
+  }
+  // 2. Per-user daily rate limit
+  const category = categoryForFeature(feature);
+  const limit = await checkUserAILimit(userId, category);
+  if (!limit.allowed) {
+    return {
+      status: 429,
+      body: {
+        error: `Daily AI limit reached for ${category} (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+        rateLimited: true,
+        category,
+        used: limit.used,
+        limit: limit.limit,
+        resetAt: limit.resetAt.toISOString(),
+      },
+    };
+  }
+  return null;
+}

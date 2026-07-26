@@ -2,6 +2,7 @@ import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db";
 import { createHash } from "crypto";
@@ -212,6 +213,11 @@ No markdown. No explanation. Just the JSON.`;
     const BATCH_SIZE = 8; // weeks per batch
     const needsBatching = weeks > BATCH_SIZE;
 
+    // H1 fix: enforce per-user daily AI rate limit + demo block (course-gen is expensive)
+    const isDemo = payload.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(payload.sub, "course-gen", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     if (!needsBatching) {
       // Single-call generation (original path, works for ≤ 8 weeks)
       const result = await callAI([
@@ -220,6 +226,7 @@ No markdown. No explanation. Just the JSON.`;
         temperature: 0.7,
         maxTokens: 8192, // DeepSeek max — was 8000, now full capacity
         feature: "course-gen",
+        userId: payload.sub, // H12 fix: attribute to the staff member generating the course
       });
 
       const raw = result.text || "{}";
@@ -304,6 +311,7 @@ No markdown. Just the JSON.`;
         temperature: 0.7,
         maxTokens: 8192,
         feature: "course-gen-batch",
+        userId: payload.sub, // H12 fix: attribute to the staff member generating the course
       });
 
       const batchRaw = batchResult.text || "{}";

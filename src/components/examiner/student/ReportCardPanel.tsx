@@ -21,6 +21,7 @@ import type {
 import { StatSquareCard, GanttChartIcon, GithubIcon, safeParse } from "@/components/examiner/student/shared";
 import { FinalResultPanel } from "@/components/examiner/student/FinalResultPanel";
 import { ProjectReportPanel } from "@/components/examiner/student/ProjectReportPanel";
+import { GrowthReportPanel } from "@/components/examiner/student/GrowthReportPanel";
 
 // Certificate generation card — student REQUESTS, teacher APPROVES
 function CertificateCard() {
@@ -134,11 +135,15 @@ function CertificateCard() {
   );
 }
 
-export function ReportCardPanel({ reportCards, comments }: { reportCards: ReportCardRow[]; comments: CommentRow[] }) {
+export function ReportCardPanel({ reportCards, comments, studentId }: { reportCards: ReportCardRow[]; comments: CommentRow[]; studentId?: string }) {
   return (
     <div className="space-y-4">
       {/* Certificate — students can generate when they complete the course */}
       <CertificateCard />
+
+      {/* H11 fix: Private Growth Report — was generated but never shown to anyone.
+          Now surfaced here so students can see their honest strengths + shortcomings. */}
+      {studentId && <GrowthReportPanel studentId={studentId} />}
 
       {/* SDT rebalance: Final Result only shown when the student has completed at least
           1 weekly test. Showing "Career Readiness: Not Ready" + "0/6 tests" to a Week-1

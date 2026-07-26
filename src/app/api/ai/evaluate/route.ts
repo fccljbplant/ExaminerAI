@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI, translateBehavioralSignals, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { evaluatePrompt } from "@/lib/ai-prompts";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
@@ -71,9 +72,14 @@ export async function POST(req: NextRequest) {
   };
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = user.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(user.id, "evaluate", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const result = await callAI([
       { role: "user", content: prompt },
-    ], { temperature: 0.3, maxTokens: TOKEN_BUDGET.EVALUATION, feature: "evaluate" });
+    ], { temperature: 0.3, maxTokens: TOKEN_BUDGET.EVALUATION, feature: "evaluate", userId: user.id });
     const raw = result.text || "{}";
     const match = raw.match(/\{[\s\S]*\}/);
     const parsed = match ? JSON.parse(match[0]) : {};

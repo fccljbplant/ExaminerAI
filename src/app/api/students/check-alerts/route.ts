@@ -191,22 +191,29 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
 
     // If we found struggle signals, alert the student's teacher (if they have one)
     if (struggleReasons.length > 0) {
-      // Find the student's teacher — for now, alert all teachers + admins.
-      // In the future when we have batch-assigned teachers, we can be more targeted.
-      const teachers = await db.user.findMany({
-        // M5-security: only notify teachers in the student's batch + admins
+      // H3 fix (audit 2026-07-26): the previous version only notified teachers +
+      // admins about struggle signals. Counselors were NOT notified unless a
+      // crisis flag was raised — so gradual wellbeing decline (sustained low
+      // confidence, declining scores, sustained high cognitive load) was invisible
+      // to the people whose job it is to monitor wellbeing. Now counselors in
+      // the student's institution are also notified.
+      const recipients = await db.user.findMany({
+        // M5-security: only notify teachers in the student's batch + admins + counselors
         where: {
           OR: [
             { role: { in: ["teacher"] }, blocked: false, batchId: student.batchId },
             { role: { in: ["administrator", "principal"] }, blocked: false },
+            // H3 fix: counselors in the student's institution get notified of
+            // gradual decline too (not just crisis flags).
+            { role: { in: ["counselor"] }, blocked: false, institutionId: student.institutionId ?? undefined },
           ],
         },
         select: { id: true, name: true },
       });
 
-      for (const teacher of teachers) {
+      for (const teacher of recipients) {
         // Don't alert the admin about themselves
-        if (teacher.id === senderId && teachers.length > 1) continue;
+        if (teacher.id === senderId && recipients.length > 1) continue;
 
         // Check if we already sent this alert recently
         const existingAlert = student.messagesSent.find(

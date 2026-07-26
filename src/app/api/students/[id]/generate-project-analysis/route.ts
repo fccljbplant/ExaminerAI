@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logger } from "@/lib/logger";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
@@ -99,6 +100,11 @@ export async function POST(
     : "No custom week summaries.";
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block (attributed to staff)
+    const isDemo = payload.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(payload.sub, "project-final-analysis", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const aiResult = await callAI([
       {
         role: "user",
@@ -138,7 +144,7 @@ Return ONLY a JSON object. No markdown.
 Example:
 {"score":78,"projectExecution":80,"technicalCompetence":70,"projectQuality":75,"careerReadiness":85,"summary":"Nauman built a restaurant website with online reservations...","strengths":["Strong UI/UX sense","Consistent daily check-ins","Good use of WordPress blocks"],"weaknesses":["Limited custom code","Could improve database skills"],"recommendations":["Build a second project with more custom code","Contribute to open source","Practice SQL queries weekly"]}`,
       },
-    ], { temperature: 0.4, maxTokens: 800, feature: "project-final-analysis" });
+    ], { temperature: 0.4, maxTokens: 800, feature: "project-final-analysis", userId: payload.sub });
 
     const raw = aiResult.text || "{}";
     const match = raw.match(/\{[\s\S]*\}/);

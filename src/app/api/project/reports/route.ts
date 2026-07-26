@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/project/reports — list all project reports for the current user. */
@@ -80,6 +81,11 @@ export async function POST(req: NextRequest) {
   const isFinal = type === "final";
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = user.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(user.id, "project-report-analysis", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const aiResult = await callAI([
       {
         role: "user",
@@ -109,7 +115,7 @@ Return ONLY a JSON object. No markdown.
 Example:
 {"score":75,"projectUnderstanding":80,"technicalDepth":65,"progress":75,"clarity":80,"strengths":["Clear explanation of database schema","Good progress on homepage"],"weaknesses":["Missing technical details about API integration"],"feedback":"Great progress on the visual design. Next week, focus on documenting the technical decisions you made — which tools, why, and what challenges you faced. Add code snippets or screenshots to support your explanations."}`,
       },
-    ], { temperature: 0.4, maxTokens: 600, feature: "project-report-analysis" });
+    ], { temperature: 0.4, maxTokens: 600, feature: "project-report-analysis", userId: user.id });
 
     const raw = aiResult.text || "{}";
     const match = raw.match(/\{[\s\S]*\}/);

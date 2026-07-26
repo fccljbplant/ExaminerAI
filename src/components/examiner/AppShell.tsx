@@ -483,7 +483,15 @@ export default function AppShell() {
       case "batch-mentorship": return wrap(<TeacherDashboard initialTab="mentorship" />);
       case "batch-assignments": return wrap(<TeacherDashboard initialTab="assignments" />);
       case "batch-insights": return wrap(<TeacherDashboard initialTab="insights" />);
-      case "counselor-dashboard": return wrap(<CounselorDashboard key={`counselor-${navClickCount}`} onNavigateToMessages={() => navigateTo("messages")} />);
+      case "counselor-dashboard": return wrap(<CounselorDashboard key={`counselor-${navClickCount}`} onNavigateToMessages={() => navigateTo("messages")} onStudentClick={(studentId, studentName) => {
+        // H7 fix: open the student's portfolio in a new tab so counselors can
+        // view full details without losing their place in the dashboard.
+        // The portfolio page is rendered via the teacher's StudentPortfolioPage
+        // component — we open it via URL with the studentId in the query string.
+        if (typeof window !== "undefined") {
+          window.open(`/?view=batch-students&studentId=${encodeURIComponent(studentId)}`, "_blank");
+        }
+      }} />);
       case "principal-dashboard": return wrap(<PrincipalDashboard key={`principal-${navClickCount}`} />);
       case "ai-tutor": return wrap(<AITutor />);
       case "teacher-ai-tutor": return wrap(<TeacherAITutor />);

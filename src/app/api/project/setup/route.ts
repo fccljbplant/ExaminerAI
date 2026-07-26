@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getCourseProjectConfig } from "@/lib/course-db";
 
@@ -14,6 +15,7 @@ async function generateProjectSummary(params: {
   projectObjectives?: string | null;
   projectRequirements?: string | null;
   projectBusinessCase?: string | null;
+  userId?: string; // H12 fix: for usage attribution
 }): Promise<{ summary: string; keyFeatures: string[] } | null> {
   const context = [
     `Project Name: ${params.projectName}`,
@@ -40,6 +42,7 @@ No markdown, no explanation.`,
       temperature: 0.4,
       maxTokens: 400,
       feature: "project-summary-gen",
+      userId: params.userId, // H12 fix: attribute to the student
       // Token cache: same project definition → same summary. If a student
       // edits then reverts their project, or multiple students submit the
       // same project template, the cache hits.
@@ -159,22 +162,28 @@ export async function POST(req: NextRequest) {
   // Generate AI summary + key features (non-blocking — if it fails, the project is still saved)
   let summaryGenerated = false;
   try {
-    const summary = await generateProjectSummary({
-      projectName: projectName.trim(),
-      projectScope: projectScope?.trim() || null,
-      projectObjectives: projectObjectives?.trim() || null,
-      projectRequirements: projectRequirements?.trim() || null,
-      projectBusinessCase: projectBusinessCase?.trim() || null,
-    });
-    if (summary) {
-      await db.user.update({
-        where: { id: user.id },
-        data: {
-          projectSummary: summary.summary,
-          projectKeyFeatures: JSON.stringify(summary.keyFeatures),
-        },
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = user.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(user.id, "project-summary-gen", isDemo);
+    if (!blocked) {
+      const summary = await generateProjectSummary({
+        projectName: projectName.trim(),
+        projectScope: projectScope?.trim() || null,
+        projectObjectives: projectObjectives?.trim() || null,
+        projectRequirements: projectRequirements?.trim() || null,
+        projectBusinessCase: projectBusinessCase?.trim() || null,
+        userId: user.id, // H12 fix
       });
-      summaryGenerated = true;
+      if (summary) {
+        await db.user.update({
+          where: { id: user.id },
+          data: {
+            projectSummary: summary.summary,
+            projectKeyFeatures: JSON.stringify(summary.keyFeatures),
+          },
+        });
+        summaryGenerated = true;
+      }
     }
   } catch {
     // non-fatal
@@ -292,21 +301,27 @@ export async function PATCH(req: NextRequest) {
     });
     if (fullUser?.projectName) {
       try {
-        const summary = await generateProjectSummary({
-          projectName: fullUser.projectName,
-          projectScope: fullUser.projectScope,
-          projectObjectives: fullUser.projectObjectives,
-          projectRequirements: fullUser.projectRequirements,
-          projectBusinessCase: fullUser.projectBusinessCase,
-        });
-        if (summary) {
-          await db.user.update({
-            where: { id: user.id },
-            data: {
-              projectSummary: summary.summary,
-              projectKeyFeatures: JSON.stringify(summary.keyFeatures),
-            },
+        // H1 fix: enforce per-user daily AI rate limit + demo block
+        const isDemo = user.email === "demo@examiner.ai";
+        const blocked = await enforceAIRateLimit(user.id, "project-summary-gen", isDemo);
+        if (!blocked) {
+          const summary = await generateProjectSummary({
+            projectName: fullUser.projectName,
+            projectScope: fullUser.projectScope,
+            projectObjectives: fullUser.projectObjectives,
+            projectRequirements: fullUser.projectRequirements,
+            projectBusinessCase: fullUser.projectBusinessCase,
+            userId: user.id, // H12 fix
           });
+          if (summary) {
+            await db.user.update({
+              where: { id: user.id },
+              data: {
+                projectSummary: summary.summary,
+                projectKeyFeatures: JSON.stringify(summary.keyFeatures),
+              },
+            });
+          }
         }
       } catch {
         // non-fatal

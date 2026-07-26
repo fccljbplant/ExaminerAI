@@ -18,6 +18,10 @@ export interface StudentRow {
   attentionScore?: number;
   attentionReasons?: string[];
   needsAttention?: boolean;
+  // H16 fix: wellbeing tier + crisis flag — now returned by /api/stats so the
+  // Students tab "Struggling (Psych)" and "Flagged" filters actually work.
+  wellbeingTier?: string | null;
+  hasFlag?: boolean;
 }
 
 export interface PortfolioData {

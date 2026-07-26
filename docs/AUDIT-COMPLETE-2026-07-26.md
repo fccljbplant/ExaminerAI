@@ -24,6 +24,8 @@ However, the gap between **what's built** and **what's wired** is the platform's
 
 > **UPDATE 2026-07-26 (post-fix batch 3):** 5 HIGH findings now FIXED (H6, H8, H13, H14, H15). Plus a new "default course selection" feature ensures newly-approved students automatically land in a course. See `docs/DEFAULT-COURSE-AND-AUDIT-BATCH3-2026-07-26.md` for details. 11 HIGH + 15 MEDIUM + 10 LOW items still pending.
 
+> **UPDATE 2026-07-26 (post-fix batch 4):** 8 more HIGH findings now FIXED (H1, H3, H5, H7, H10, H11, H12, H16). 13 of 16 HIGH items resolved. Only H2 (IDOR gaps), H4 (AI Assistant dead code), H9 (Action Dialog) remain. See `docs/AUDIT-FIXES-BATCH4-2026-07-26.md` for details. 3 HIGH + 15 MEDIUM + 10 LOW items still pending.
+
 ---
 
 ## Prioritized Findings
@@ -47,22 +49,22 @@ However, the gap between **what's built** and **what's wired** is the platform's
 
 | # | Finding | Section | Status |
 |---|---------|---------|--------|
-| H1 | 16 AI routes missing `checkUserAILimit` — monetary DoS possible | 1, 2 | ⚠️ PENDING |
+| H1 | 16 AI routes missing `checkUserAILimit` — monetary DoS possible | 1, 2 | ✅ FIXED 2026-07-26 (batch 4) |
 | H2 | 14+ IDOR gaps on routes accepting derived entity IDs (interactionId, dailyLogId, flagId, etc.) | 2 | ⚠️ PENDING |
-| H3 | Counselor NOT notified of gradual wellbeing decline (only crisis flags) | 4 | ⚠️ PENDING |
+| H3 | Counselor NOT notified of gradual wellbeing decline (only crisis flags) | 4 | ✅ FIXED 2026-07-26 (batch 4) |
 | H4 | AI Assistant 7-section spec: 5 of 7 sections are dead code (never imported) | 4 | ⚠️ PENDING |
-| H5 | `buildTeacherBatchSummary` uses legacy `batchId` instead of BatchTeacher — AI Assistant broken for multi-batch teachers | 4 | ⚠️ PENDING |
+| H5 | `buildTeacherBatchSummary` uses legacy `batchId` instead of BatchTeacher — AI Assistant broken for multi-batch teachers | 4 | ✅ FIXED 2026-07-26 (batch 4) |
 | H6 | No guardian creation UI — API exists but no staff can use it | 3, 4 | ✅ FIXED 2026-07-26 (batch 3) |
-| H7 | No student portfolio access from CounselorDashboard — locked into aggregate views | 3, 4 | ⚠️ PENDING |
+| H7 | No student portfolio access from CounselorDashboard — locked into aggregate views | 3, 4 | ✅ FIXED 2026-07-26 (batch 4) |
 | H8 | Messages compose broken for students + guardians — `/api/users` returns 403 | 3 | ✅ FIXED 2026-07-26 (batch 3) |
 | H9 | Action Dialog component never imported — 4th AI Assistant section completely unreachable | 4 | ⚠️ PENDING |
-| H10 | Teacher Load module completely disconnected — both spec and live route have no UI consumer | 4 | ⚠️ PENDING |
-| H11 | Growth report generated but never shown to anyone | 4 | ⚠️ PENDING |
-| H12 | `callAI()` called without `userId:` on 14 routes — AIUsageLog rows have null userId | 2 | ⚠️ PENDING |
+| H10 | Teacher Load module completely disconnected — both spec and live route have no UI consumer | 4 | ✅ FIXED 2026-07-26 (batch 4) |
+| H11 | Growth report generated but never shown to anyone | 4 | ✅ FIXED 2026-07-26 (batch 4) |
+| H12 | `callAI()` called without `userId:` on 14 routes — AIUsageLog rows have null userId | 2 | ✅ FIXED 2026-07-26 (batch 4) |
 | H13 | Settings nav item renders Home for all roles — no settings UI | 3 | ✅ FIXED 2026-07-26 (batch 3) |
 | H14 | Guardian "Report Cards" nav item renders identical Overview page | 3 | ✅ FIXED 2026-07-26 (batch 3) |
 | H15 | Teacher Mentorship tab `load()` is a no-op — no follow-up data shown | 3 | ✅ FIXED 2026-07-26 (batch 3) |
-| H16 | Teacher Students tab: wellbeing + flag filters always empty (fields not in API response) | 3 | ⚠️ PENDING |
+| H16 | Teacher Students tab: wellbeing + flag filters always empty (fields not in API response) | 3 | ✅ FIXED 2026-07-26 (batch 4) |
 
 ### MEDIUM (fix when capacity allows — UX issues, missing features)
 

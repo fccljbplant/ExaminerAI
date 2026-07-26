@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
@@ -38,8 +39,14 @@ Example: "Clarify the distinction between GET and POST with a concrete example (
 Guidance:`;
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = auth.ctx.payload.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(auth.ctx.payload.sub, "topic-guidance", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const result = await callAI([{ role: "user", content: prompt }], {
       feature: "topic-guidance", temperature: 0.3, maxTokens: 150,
+      userId: auth.ctx.payload.sub, // H12 fix: attribute to the teacher
     });
     return NextResponse.json({ guidance: result.text?.trim() || "" });
   } catch {

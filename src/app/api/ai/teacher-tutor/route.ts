@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { isStaffRole } from "@/lib/rbac";
@@ -113,6 +114,11 @@ ${teacherContext}
    This keeps the teacher aware of what you can and cannot do for them.`;
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = user.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(user.id, "teacher-tutor", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const aiMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
       { role: "system", content: systemPrompt },
       ...messages.map(m => ({

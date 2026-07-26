@@ -63,7 +63,9 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
         result = result.filter(s => (s.progress || 0) < 50);
         break;
       case "struggling_psych":
-        result = result.filter(s => (s as any).wellbeingTier === "warning" || (s as any).wellbeingTier === "red");
+        // H16 fix: use the typed wellbeingTier field (was (s as any).wellbeingTier —
+        // always undefined because the API didn't return it).
+        result = result.filter(s => s.wellbeingTier === "warning" || s.wellbeingTier === "red" || s.wellbeingTier === "amber");
         break;
       case "overdue":
         result = result.filter(s => {
@@ -73,7 +75,8 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
         });
         break;
       case "flagged":
-        result = result.filter(s => (s as any).hasFlag === true);
+        // H16 fix: use the typed hasFlag field (was (s as any).hasFlag — always undefined).
+        result = result.filter(s => s.hasFlag === true);
         break;
       case "ontrack":
         result = result.filter(s => (s.progress || 0) >= 50);

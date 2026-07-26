@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { weeklyTestSystemPrompt } from "@/lib/ai-prompts";
 import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { getBootcampDayNumber } from "@/lib/course-topics";
@@ -76,6 +77,11 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const action = body.action as string | undefined;
+
+  // H1 fix: enforce per-user daily AI rate limit + demo block
+  const isDemo = user.email === "demo@examiner.ai";
+  const blocked = await enforceAIRateLimit(user.id, action === "reply" ? "daily-test-reply" : "daily-test", isDemo);
+  if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 
   const totalWeeks = await getCourseDurationWeeks(user.id);
   const week = Math.min(user.currentWeek, totalWeeks);
@@ -201,7 +207,7 @@ DAILY TEST — SHORTER FORMAT:
     const firstMsgRaw = await callAILocal([
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `${context}\n\nStart the daily test. You are on Question 1 of ${TOTAL_QUESTIONS}. Ask ${QUESTION_TYPES[0]}. Do NOT prefix with "Question 1:" — just ask the question directly.` },
-    ], "daily-test-start");
+    ], "daily-test-start", user.id);
 
     const firstMsg = firstMsgRaw.replace(/^Question\s*\d+\s*:\s*/i, "").trim();
     const conversation: ChatMessage[] = [{
@@ -274,7 +280,7 @@ DAILY TEST — SHORTER FORMAT:
       })),
     ];
 
-    const examinerResponse = await callAILocal(aiMessages, "daily-test-reply");
+    const examinerResponse = await callAILocal(aiMessages, "daily-test-reply", user.id);
     const isLastReply = newReplyCount >= MAX_REPLIES_PER_QUESTION;
     const isLastQuestion = (test.currentQuestion ?? 0) >= TOTAL_QUESTIONS - 1;
 
@@ -455,9 +461,9 @@ DAILY TEST — SHORTER FORMAT:
 
 /** Call AI via shared provider — catches errors and returns a fallback
  *  prompt so a single AI failure doesn't crash the whole test. */
-async function callAILocal(messages: { role: "system" | "user" | "assistant"; content: string }[], feature: string): Promise<string> {
+async function callAILocal(messages: { role: "system" | "user" | "assistant"; content: string }[], feature: string, userId?: string): Promise<string> {
   try {
-    const result = await callAI(messages, { temperature: 0.5, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature });
+    const result = await callAI(messages, { temperature: 0.5, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature, userId });
     if (result.text) return sanitizeExaminerText(result.text);
   } catch (err) {
     logger.warn("Daily test AI call failed", { feature, error: err instanceof Error ? err.message : String(err) });

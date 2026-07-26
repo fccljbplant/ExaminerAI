@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { resolveAssistantScope } from "@/lib/ai-assistant/scope";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logger } from "@/lib/logger";
@@ -95,6 +96,11 @@ ${entityContext}${context ? `Additional context: ${context}` : ""}
 Generate the Action Dialog content as JSON.`;
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = payload.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(payload.sub, "action_dialog", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const result = await callAI([
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -102,6 +108,7 @@ Generate the Action Dialog content as JSON.`;
       feature: "action_dialog",
       temperature: 0.4,
       maxTokens: 600,
+      userId: payload.sub, // H12 fix: attribute to the staff member using the action dialog
     });
 
     const text = result.text?.trim() || "{}";

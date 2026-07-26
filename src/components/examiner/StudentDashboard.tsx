@@ -159,7 +159,7 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
       {view === "progress" && (
         <div className="space-y-6">
           {userId && <ComprehensiveReportView studentId={userId} />}
-          <ReportCardPanel reportCards={stats?.reportCards || []} comments={stats?.comments || []} />
+          <ReportCardPanel reportCards={stats?.reportCards || []} comments={stats?.comments || []} studentId={userId || undefined} />
         </div>
       )}
 

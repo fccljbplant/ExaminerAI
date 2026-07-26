@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole, STAFF_ROLES } from "@/lib/rbac";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
@@ -31,8 +32,14 @@ Original: "${rawDescription}"
 Return ONLY the anonymized version (2-4 sentences). Do not include any names, dates, or identifying details.`;
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = auth.ctx.payload.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(auth.ctx.payload.sub, "case-review-anonymize", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const result = await callAI([{ role: "user", content: prompt }], {
       feature: "case-review-anonymize", temperature: 0.2, maxTokens: 200,
+      userId: auth.ctx.payload.sub, // H12 fix: attribute to the staff member posting the case review
     });
     const anonymized = result.text?.trim() || rawDescription; // fallback to raw if AI fails
 

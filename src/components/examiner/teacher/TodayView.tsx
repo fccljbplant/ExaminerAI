@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StudentRow } from "@/components/examiner/teacher/types";
+import { TeacherLoadPanel } from "@/components/examiner/teacher/TeacherLoadPanel";
 
 interface TodayViewProps {
   students: StudentRow[];
@@ -177,6 +178,10 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
 
   return (
     <div className="space-y-4">
+      {/* H10 fix: Teacher Load + Wellbeing panel — was completely disconnected
+          (the /api/teacher/load endpoint existed but no UI consumed it). */}
+      <TeacherLoadPanel />
+
       {/* ============================================ */}
       {/* BATCH HEALTH PULSE */}
       {/* ============================================ */}

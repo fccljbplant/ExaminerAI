@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseWeekPhase, getCourseDurationWeeks } from "@/lib/course-db";
 
@@ -156,6 +157,11 @@ export async function GET(req: Request) {
     careerReadiness: string;
   } | null = null;
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = payload.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(targetUserId, "final-result", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const result = await callAI([
       {
         role: "user",
@@ -189,7 +195,7 @@ Return ONLY a JSON object:
   "careerReadiness": "<Ready / Almost Ready / Needs More Practice>"
 }`,
       },
-    ], { temperature: 0.3, maxTokens: 600, feature: "final-result" });
+    ], { temperature: 0.3, maxTokens: 600, feature: "final-result", userId: targetUserId });
 
     const raw = result.text || "{}";
     const match = raw.match(/\{[\s\S]*\}/);

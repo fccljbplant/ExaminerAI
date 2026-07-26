@@ -21,6 +21,7 @@
  */
 
 import { db } from "@/lib/db";
+import { getTeacherBatchIds } from "@/lib/batch-teachers";
 
 export interface StudentSummary {
   userId: string;
@@ -65,28 +66,39 @@ export interface BatchSummary {
  *  @param teacherId — the teacher's user ID
  *  @param studentIds — optional: limit to specific student IDs (for
  *    co-pilot queries scoped to a subset). If omitted, all students
- *    in the teacher's batch are included.
+ *    in the teacher's batches are included.
+ *
+ *  H5 fix (audit 2026-07-26): the previous version used `teacher.batchId`
+ *  (legacy single-batch field) to find the teacher's students. With the
+ *  multi-teacher BatchTeacher junction, a teacher can be assigned to
+ *  multiple batches — but this function only saw the legacy batchId, so
+ *  students in the teacher's OTHER batches were invisible. Now uses
+ *  `getTeacherBatchIds()` which checks BOTH the BatchTeacher junction AND
+ *  the legacy batchId for backward compat.
  */
 export async function buildTeacherBatchSummary(
   teacherId: string,
   studentIds?: string[],
 ): Promise<BatchSummary> {
-  // Get the teacher's batch
-  const teacher = await db.user.findUnique({
-    where: { id: teacherId },
-    select: { batchId: true },
-  });
+  // H5 fix: use getTeacherBatchIds() instead of teacher.batchId — supports
+  // multi-batch teachers via the BatchTeacher junction.
+  const teacherBatchIds = await getTeacherBatchIds(teacherId, "teacher");
 
-  if (!teacher) {
+  if (!teacherBatchIds || teacherBatchIds.length === 0) {
+    // No batches assigned — return empty summary
     return { teacherId, totalStudents: 0, students: [], generatedAt: new Date().toISOString() };
   }
 
-  // Get students in the teacher's batch (or the specified subset)
+  // Get students in ANY of the teacher's batches (or the specified subset)
   const students = await db.user.findMany({
     where: {
       role: "student",
       blocked: false,
-      ...(studentIds ? { id: { in: studentIds } } : teacher.batchId ? { batchId: teacher.batchId } : {}),
+      // If studentIds is provided, filter to those; otherwise filter to
+      // students in ANY of the teacher's batches.
+      ...(studentIds
+        ? { id: { in: studentIds } }
+        : { batchId: { in: teacherBatchIds } }),
     },
     select: {
       id: true, name: true, email: true, currentWeek: true,

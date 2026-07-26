@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 
 /** GET /api/daily-motivation — returns a single AI-generated motivational
  *  statement that renews once per day (UTC midnight). The SAME statement is
@@ -31,6 +32,11 @@ export async function GET() {
   // Generate a fresh statement via AI
   let statement = "";
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = user.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(user.id, "daily-motivation", isDemo);
+    if (blocked) return NextResponse.json({ error: blocked.body.error }, { status: blocked.status });
+
     const result = await callAI([
       {
         role: "user",
@@ -54,6 +60,8 @@ Return ONLY the statement text — nothing else, no explanation, no quotes aroun
       temperature: 0.8,
       maxTokens: TOKEN_BUDGET.CONNECTION_TEST + 20,
       feature: "daily-motivation",
+      // H12 fix: pass userId for per-user rate limiting + usage attribution
+      userId: user.id,
       // Token cache: the input is identical for every student on the same day.
       // If multiple serverless instances miss the DB cache simultaneously,
       // the in-memory cache prevents duplicate AI calls within the same instance.

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
 import { getAuthUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
@@ -49,8 +50,14 @@ Return ONLY this JSON:
 }`;
 
   try {
+    // H1 fix: enforce per-user daily AI rate limit + demo block
+    const isDemo = payload.email === "demo@examiner.ai";
+    const blocked = await enforceAIRateLimit(payload.sub, "touchpoint-parse", isDemo);
+    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+
     const result = await callAI([{ role: "user", content: prompt }], {
       feature: "touchpoint-parse", temperature: 0.2, maxTokens: 300,
+      userId: payload.sub, // H12 fix: attribute to the teacher who spoke the touchpoint
     });
     const match = result.text?.match(/\{[\s\S]*\}/);
     if (match) {
