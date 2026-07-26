@@ -124,13 +124,17 @@ export function FinalResultPanel() {
         <div className="rounded-md bg-muted/50 p-3">
           <p className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-1.5">
             <Brain className="h-3.5 w-3.5 text-violet-600" /> Your Engagement Pattern
+            <span className="ml-2 text-[9px] text-muted-foreground italic">(AI-generated)</span>
           </p>
           <p className="text-sm text-foreground/80 leading-relaxed">{data.behavioralPattern || "Not enough data yet."}</p>
         </div>
 
         {/* Overall Assessment */}
         <div className="rounded-md bg-primary/5 border border-primary/20 p-3">
-          <p className="text-xs font-bold text-primary mb-1.5">Overall Assessment</p>
+          <p className="text-xs font-bold text-primary mb-1.5 flex items-center gap-1.5">
+            Overall Assessment
+            <span className="text-[9px] text-muted-foreground italic font-normal">(AI-generated)</span>
+          </p>
           <p className="text-sm text-foreground/80 leading-relaxed">{data.overallAssessment || "Continue completing tests for a full assessment."}</p>
         </div>
 
@@ -152,7 +156,7 @@ export function FinalResultPanel() {
         {/* Per-week breakdown table */}
         <div className="rounded-md border border-border overflow-hidden">
           <div className="bg-muted/50 px-3 py-2 border-b border-border">
-            <p className="text-xs font-medium text-foreground">Per-Week Breakdown ({data.totalPossibleQuestions} questions total, 10 per week)</p>
+            <p className="text-xs font-medium text-foreground">Per-Week Breakdown ({data.totalPossibleQuestions} questions total)</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">

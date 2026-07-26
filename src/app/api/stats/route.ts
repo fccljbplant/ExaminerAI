@@ -346,24 +346,30 @@ export async function GET(req: Request) {
   // people to give up entirely. A rolling percentage is both more honest
   // (a 90%-consistent student IS different from a 10%-consistent one)
   // and more motivating (recoverable, not all-or-nothing).
+  // ME-10 fix: use UTC midnight instead of server-local midnight for date
+  // bucketing. The previous version used `today.setHours(0,0,0,0)` which
+  // uses the server's local timezone — daily logs submitted late in PST
+  // may be bucketed as the next UTC day, breaking the consistency calc.
   let streak = 0; // kept for backward compat in the UI
   let consistencyPercent = 0;
   let consistencyDays = 0; // how many of the last 14 days had activity
   if (user.dailyLogs.length > 0) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const seen = new Set(user.dailyLogs.map((l) => {
-      const d = new Date(l.date); d.setHours(0, 0, 0, 0); return d.toISOString();
+      const d = new Date(l.date);
+      const dUTC = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      return dUTC.toISOString();
     }));
-    // Calculate old streak (backward compat)
+    // Calculate old streak (backward compat) — ME-10 fix: use todayUTC
     for (let i = 0; i < 365; i++) {
-      const d = new Date(today); d.setDate(today.getDate() - i);
+      const d = new Date(todayUTC); d.setUTCDate(todayUTC.getUTCDate() - i);
       if (seen.has(d.toISOString())) streak++; else break;
     }
-    // Calculate rolling 14-day consistency
+    // Calculate rolling 14-day consistency — ME-10 fix: use todayUTC
     const ROLLING_DAYS = 14;
     for (let i = 0; i < ROLLING_DAYS; i++) {
-      const d = new Date(today); d.setDate(today.getDate() - i);
+      const d = new Date(todayUTC); d.setUTCDate(todayUTC.getUTCDate() - i);
       if (seen.has(d.toISOString())) consistencyDays++;
     }
     consistencyPercent = Math.round((consistencyDays / ROLLING_DAYS) * 100);

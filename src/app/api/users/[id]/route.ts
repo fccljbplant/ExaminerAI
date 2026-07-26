@@ -26,13 +26,23 @@ export async function DELETE(
   const { id } = await params;
 
   // Don't allow deleting the admin account
-  const target = await db.user.findUnique({ where: { id }, select: { email: true, role: true } });
+  // HI-10 fix: also fetch institutionId for cross-institution scoping check
+  const target = await db.user.findUnique({ where: { id }, select: { email: true, role: true, institutionId: true } });
   if (!target) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
   // Protect all admin accounts (administrator, principal, legacy admin)
   if (target.email === "admin@examiner.ai" || hasRole(target.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Cannot delete admin accounts" }, { status: 403 });
+  }
+
+  // HI-10 fix: principals can only delete users in their own institution.
+  // Administrators (platform-level) can delete any user.
+  if (payload.role === "principal") {
+    const caller = await db.user.findUnique({ where: { id: payload.sub }, select: { institutionId: true } });
+    if (caller?.institutionId && target.institutionId !== caller.institutionId) {
+      return NextResponse.json({ error: "You can only delete users in your own institution" }, { status: 403 });
+    }
   }
 
   try {
