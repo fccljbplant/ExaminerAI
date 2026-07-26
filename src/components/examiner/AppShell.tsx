@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
+import { ALL_ADMIN_ROLES } from "@/lib/client-rbac";
 import Login, { type PublicUser } from "./Login";
 import StudentDashboard from "./StudentDashboard";
 import TeacherDashboard from "./TeacherDashboard";
@@ -207,7 +208,7 @@ export default function AppShell() {
 
   // Map raw role (including legacy aliases) to canonical nav role.
   // This determines which nav items + dashboard the user sees.
-  const ADMIN_ROLES_RAW = ["principal", "administrator", "demo", "admin", "institution_admin", "platform_admin"];
+  const ADMIN_ROLES_RAW = [...ALL_ADMIN_ROLES, "principal"];
   const rawRole = user?.role ?? "student";
   const isAdminEquivalent = ADMIN_ROLES_RAW.includes(rawRole);
 
@@ -245,7 +246,7 @@ export default function AppShell() {
           }
         }
         const role = res.user.role;
-        const adminRoles = ["administrator", "demo", "admin", "institution_admin", "platform_admin"];
+        const adminRoles = [...ALL_ADMIN_ROLES];
         if (adminRoles.includes(role)) {
           // Demo developer defaults to teacher interface (user requested)
           if (res.user.email === "demo@examiner.ai") {
@@ -392,7 +393,7 @@ export default function AppShell() {
   if (!user) {
     return <Login onLoggedIn={(u) => {
       setUser(u);
-      const adminRoles = ["administrator", "demo", "admin", "institution_admin", "platform_admin"];
+      const adminRoles = [...ALL_ADMIN_ROLES];
       if (adminRoles.includes(u.role)) {
         if (u.email === "demo@examiner.ai") {
           setAdminAs("teacher");

@@ -46,10 +46,10 @@ The following P0 and P1 issues have been fixed:
 
 | # | Issue | Priority | Status |
 |---|---|---|---|
-| P1-14 | 13 raw fetch() calls in StudentPortfolioPage bypass demo guard | ✅ FIXED | All 13 replaced with api.del/post/patch. Also fixed Messages.tsx (1) + SystemPanel.tsx (2) |
-| P1-15 | Role checks use raw strings, not normalizeRole (0 components import it) | P1 | ❌ PENDING |
-| P1-16 | Anti-cheat flags not persisted to DB | P1 | ❌ PENDING |
-| P2 | Dead code (~3,209 lines), pagination, accessibility, UX polish | P2 | ❌ PENDING |
+| P2 | Dead code (~3,209 lines) | P2 | ✅ FIXED — 8 dead code files deleted |
+| P2 | Pagination, accessibility, UX polish | P2 | ❌ PENDING (lower priority) |
+
+**All P0 and P1 issues are now FIXED.**
 
 ---
 

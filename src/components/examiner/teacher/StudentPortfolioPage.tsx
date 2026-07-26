@@ -3,6 +3,7 @@
 import { showError } from "@/lib/toast-helpers";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
+import { canSeeAuditTab } from "@/lib/client-rbac";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +51,7 @@ export function StudentPortfolioPage({
   const [posting, setPosting] = useState(false);
   // Fetch current user's role for audit-tab visibility
   const [currentUserRole, setCurrentUserRole] = useState<string>("");
-  const isPrivilegedRole = ["principal", "administrator", "admin", "institution_admin", "platform_admin", "demo"].includes(currentUserRole);
+  const isPrivilegedRole = canSeeAuditTab(currentUserRole);
 
   // --- Weekly Test Comment Dialog state ---
   const [wtCommentFor, setWtCommentFor] = useState<{ testId: string; week: number } | null>(null);

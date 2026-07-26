@@ -10,6 +10,7 @@ import { AdminCoordinatorTab } from "@/components/examiner/admin/AdminCoordinato
 import { AdminPMTab } from "@/components/examiner/admin/AdminPMTab";
 import { AdminCoursesPanel } from "@/components/examiner/admin/AdminCoursesPanel";
 import { SystemPanel } from "@/components/examiner/admin/SystemPanel";
+import { hasAdminRole, hasPrincipalRole } from "@/lib/client-rbac";
 import { AILimitsPanel } from "@/components/examiner/admin/AILimitsPanel";
 import { UserAuditTab } from "@/components/examiner/teacher/UserAuditTab";
 import { AuditLogPanel } from "@/components/examiner/admin/AuditLogPanel";
@@ -75,9 +76,9 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   }, []);
 
   // P1.3: Role-based tab visibility — different admin roles see different tabs
-  const isAdminRole = ["administrator", "admin", "platform_admin"].includes(currentUserRole);
-  const isPrincipalRole = ["principal", "institution_admin"].includes(currentUserRole) || isAdminRole;
-  const isDevRole = ["demo"].includes(currentUserRole) || isAdminRole;
+  const isAdminRole = hasAdminRole(currentUserRole);
+  const isPrincipalRole = hasPrincipalRole(currentUserRole);
+  const isDevRole = currentUserRole === "demo" || isAdminRole;
 
   const load = useCallback(async (pageNum?: number) => {
     setLoading(true);
