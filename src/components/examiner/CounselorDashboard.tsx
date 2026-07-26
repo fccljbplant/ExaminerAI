@@ -92,7 +92,7 @@ interface CounselorData {
 
 type CounselorTab = "command" | "caseload" | "sessions" | "patterns";
 
-export default function CounselorDashboard({ onNavigateToMessages }: { onNavigateToMessages?: () => void }) {
+export default function CounselorDashboard({ onNavigateToMessages, onStudentClick }: { onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void }) {
   const [data, setData] = useState<CounselorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,10 +132,10 @@ export default function CounselorDashboard({ onNavigateToMessages }: { onNavigat
     );
   }
 
-  const TABS: Array<{ key: CounselorTab; label: string; icon: any; badge?: number; badgeColor?: "amber" | "red" }> = [
+  const TABS: Array<{ key: CounselorTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
     { key: "command", label: "Command Center", icon: Zap, badge: data.caseload.openCrisisCount || undefined, badgeColor: "red" as const },
     { key: "caseload", label: "Caseload", icon: Users },
-    { key: "sessions", label: "Sessions", icon: Heart, badge: data.caseload.followUpsDueCount || undefined, badgeColor: "amber" as const },
+    { key: "sessions", label: "Sessions", icon: Heart, badge: data.caseload.followUpsDueCount || undefined, badgeColor: "warning" as const },
     { key: "patterns", label: "Patterns", icon: Brain },
   ];
 
@@ -541,7 +541,7 @@ function CaseloadView({ data }: { data: CounselorData }) {
 // ============================================================
 // SESSIONS — GROW touchpoint history + logger + case reviews
 // ============================================================
-function SessionsView({ data, onNavigateToMessages }: { data: CounselorData; onNavigateToMessages?: () => void }) {
+function SessionsView({ data, onNavigateToMessages, onStudentClick, onReload }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void; onReload?: () => void }) {
   return (
     <div className="space-y-4">
       {/* GROW Logger */}
@@ -553,7 +553,7 @@ function SessionsView({ data, onNavigateToMessages }: { data: CounselorData; onN
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <VoiceTouchpointLogger students={[]} onLogged={() => {}} />
+          <VoiceTouchpointLogger onLogged={() => { onReload?.(); }} />
         </CardContent>
       </Card>
 
