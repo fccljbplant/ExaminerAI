@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { StudentRow } from "@/components/examiner/teacher/types";
 import { PeerAssessmentTeacherView } from "@/components/examiner/teacher/PeerAssessmentTeacherView";
+import { CertificateApprovals } from "@/components/examiner/teacher/CertificateApprovals";
 
 export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   const [groupTasks, setGroupTasks] = useState<any[]>([]);
@@ -28,6 +29,11 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
+  // C5 fix: fetch the teacher's batchId from /api/auth/me so we can pass it
+  // to POST /api/group-tasks (which requires it). Without this, teachers could
+  // never create assignments — the API returned 400 "batchId and title required".
+  const [batchId, setBatchId] = useState<string | null>(null);
+  const [batchError, setBatchError] = useState("");
 
   // Task form state
   const [taskTitle, setTaskTitle] = useState("");
@@ -45,17 +51,24 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   const [eventLocation, setEventLocation] = useState("");
   const [eventActivityType, setEventActivityType] = useState("");
 
-  const batchId = students[0]?.id ? null : null; // We'll get batchId from the API response
-
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [tasksRes, eventsRes] = await Promise.all([
+      // C5 fix: fetch the teacher's batchId in parallel with the task list.
+      // Without batchId, the create-task form is disabled.
+      const [tasksRes, eventsRes, meRes] = await Promise.all([
         api.get<{ tasks: any[] }>("/api/group-tasks"),
         api.get<{ events: any[] }>("/api/events"),
+        api.get<{ user: { batchId: string | null } | null }>("/api/auth/me").catch(() => ({ user: null })),
       ]);
       setGroupTasks(tasksRes.tasks || []);
       setEvents(eventsRes.events || []);
+      if (meRes.user?.batchId) {
+        setBatchId(meRes.user.batchId);
+        setBatchError("");
+      } else {
+        setBatchError("You don't have a batch assigned. Ask an administrator to assign you to a batch before you can create assignments.");
+      }
     } catch { /* silent */ }
     finally { setLoading(false); }
   }, []);
@@ -64,9 +77,14 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
 
   const createTask = async () => {
     if (!taskTitle.trim()) return;
+    if (!batchId) {
+      showError("Cannot create assignment — no batch assigned to your teacher account.");
+      return;
+    }
     setBusy(true);
     try {
       await api.post("/api/group-tasks", {
+        batchId,  // C5 fix: pass the batchId (required by the API)
         title: taskTitle.trim(),
         description: taskDesc.trim(),
         type: taskType,
@@ -76,7 +94,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
       setTaskTitle(""); setTaskDesc(""); setTaskType("assignment"); setTaskDue(""); setTaskMaxScore(100);
       setShowTaskForm(false);
       await load();
-    } catch { /* silent */ }
+    } catch (e) { showError(e instanceof Error ? e.message : "Failed to create assignment"); }
     finally { setBusy(false); }
   };
 
@@ -96,7 +114,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
       setEventTitle(""); setEventDesc(""); setEventType("deadline"); setEventStart(""); setEventEnd(""); setEventLocation(""); setEventActivityType("");
       setShowEventForm(false);
       await load();
-    } catch { /* silent */ }
+    } catch (e) { showError(e instanceof Error ? e.message : "Failed to create event"); }
     finally { setBusy(false); }
   };
 
@@ -171,12 +189,19 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
                 Assign tasks to your entire batch. Track submissions + grade in bulk.
               </CardDescription>
             </div>
-            <Button onClick={() => setShowTaskForm(!showTaskForm)} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button onClick={() => setShowTaskForm(!showTaskForm)} size="sm" disabled={!batchId} className="bg-primary hover:bg-primary/90 text-primary-foreground" title={batchId ? undefined : "No batch assigned"}>
               <Plus className="h-3 w-3" /> New Assignment
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
+          {/* C5 fix: show a clear error when the teacher has no batch assigned */}
+          {batchError && (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <p>{batchError}</p>
+            </div>
+          )}
           {/* Task creation form */}
           {showTaskForm && (
             <div className="rounded-md bg-muted/30 border border-border p-3 space-y-2">
@@ -196,7 +221,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
                 <Input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="bg-background border-border h-8 text-xs" />
                 <Input type="number" value={taskMaxScore} onChange={(e) => setTaskMaxScore(Number(e.target.value))} placeholder="Max score" className="bg-background border-border h-8 text-xs" />
                 <div className="flex gap-1">
-                  <Button onClick={createTask} disabled={busy || !taskTitle.trim()} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 flex-1">
+                  <Button onClick={createTask} disabled={busy || !taskTitle.trim() || !batchId} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 flex-1">
                     {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} Create
                   </Button>
                   <Button onClick={() => setShowTaskForm(false)} size="sm" variant="outline" className="border-border h-8">Cancel</Button>
@@ -406,6 +431,11 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
           )}
         </CardContent>
       </Card>
+
+      {/* C4 fix: Certificate approvals — staff can review + approve/reject
+          student certificate requests. Previously there was no UI for this,
+          so students could request but nobody could approve. */}
+      <CertificateApprovals />
     </div>
   );
 }

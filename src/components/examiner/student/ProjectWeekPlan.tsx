@@ -287,7 +287,11 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
             <Input type="date" value={taskDueDate} onChange={(e) => setTaskDueDate(e.target.value)} className="bg-background border-border h-8 text-xs" />
           </div>
         </div>
-        <Input value={taskNotes} onChange={(e) => setTaskNotes(e.target.value)} placeholder="Task notes (optional)..." className="bg-background border-border h-8 text-xs" />
+        <div>
+          <Label className="text-[10px] text-muted-foreground">Course topic link (optional)</Label>
+          <Input value={taskNotes} onChange={(e) => setTaskNotes(e.target.value)} placeholder="e.g. Builds on course topic: REST APIs" className="bg-background border-border h-8 text-xs" />
+          <p className="text-[9px] text-muted-foreground mt-0.5">Note how this task connects to a course daily topic. The AI generator fills this in automatically; you can edit it.</p>
+        </div>
         <div className="flex gap-2">
           <Button type="submit" disabled={busy} className="bg-primary hover:bg-primary/90 text-primary-foreground h-7 text-xs">
             {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
@@ -469,7 +473,9 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
                                 {t.description}
                               </p>
                               {t.taskNotes && (
-                                <p className="text-[10px] text-muted-foreground mt-0.5 italic leading-snug">{t.taskNotes}</p>
+                                <p className="text-[10px] text-primary mt-0.5 italic leading-snug flex items-center gap-1">
+                                  <span aria-hidden>🔗</span> {t.taskNotes}
+                                </p>
                               )}
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0">

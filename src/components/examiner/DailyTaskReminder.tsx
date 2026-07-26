@@ -23,6 +23,19 @@ interface DailyTaskItem {
   status: string;
   isMilestone?: boolean;
   estimatedMinutes?: number | null;
+  /** Course-aligned task link — the AI generator stores a short note here
+   *  explaining how this project task connects to today's course daily topic.
+   *  e.g. "Builds on course topic: REST APIs" */
+  courseTopicLink?: string | null;
+}
+interface ProjectConfig {
+  courseAssigned: boolean;
+  courseId: string | null;
+  courseName: string | null;
+  totalWeeks: number;
+  projectEnabled: boolean;
+  projectRequired: boolean;
+  projectDefaultDurationWeeks: number;
 }
 interface DailyTasksResponse {
   currentWeek: number;
@@ -42,6 +55,9 @@ interface DailyTasksResponse {
   weeklyTasksCompleted: number;
   pendingCount: number;
   allDone: boolean;
+  /** Course + project config — when projectEnabled is false, the UI hides
+   *  the entire project section (no point showing empty project tasks). */
+  projectConfig?: ProjectConfig;
 }
 
 interface DailyTaskReminderProps {
@@ -248,11 +264,16 @@ export function DailyTaskReminder({ onChanged, onNavigate }: DailyTaskReminderPr
                       You crushed it today!
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      All {data.todayProjectTasksTotal} project task{data.todayProjectTasksTotal === 1 ? "" : "s"} done, daily check-in complete, and {data.todayPracticeCount} practice question{data.todayPracticeCount === 1 ? "" : "s"} answered.
+                      {data.projectConfig?.projectEnabled && data.todayProjectTasksTotal > 0
+                        ? `All ${data.todayProjectTasksTotal} project task${data.todayProjectTasksTotal === 1 ? "" : "s"} done, `
+                        : ""}
+                      daily check-in complete, and {data.todayPracticeCount} practice question{data.todayPracticeCount === 1 ? "" : "s"} answered.
                     </p>
                   </div>
                   <div className="rounded-md bg-emerald-100 dark:bg-emerald-900/30 p-3 text-xs text-emerald-700 dark:text-emerald-300">
-                    <p className="font-medium">Week progress: {data.weeklyTasksCompleted}/{data.weeklyTasksTotal} tasks done</p>
+                    <p className="font-medium">
+                      Week {data.currentWeek} progress: {data.weeklyTasksCompleted}/{data.weeklyTasksTotal} tasks done
+                    </p>
                     <Progress
                       value={data.weeklyTasksTotal > 0 ? (data.weeklyTasksCompleted / data.weeklyTasksTotal) * 100 : 0}
                       className="h-1.5 mt-2"
@@ -323,12 +344,20 @@ export function DailyTaskReminder({ onChanged, onNavigate }: DailyTaskReminderPr
                     </div>
                   )}
 
-                  {/* Project tasks for today */}
+                  {/* Project tasks for today — only shown when the student's course
+                      has projects enabled. When project is disabled (or no course
+                      assigned), this entire section is hidden. */}
+                  {data.projectConfig?.projectEnabled && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
                         Today&apos;s Project Tasks
+                        {data.projectConfig.projectRequired && (
+                          <Badge variant="outline" className="text-[8px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 ml-1">
+                            Required
+                          </Badge>
+                        )}
                       </p>
                       <Badge variant="outline" className="text-[10px]">
                         {data.todayProjectTasksCompleted}/{data.todayProjectTasksTotal} done
@@ -352,8 +381,18 @@ export function DailyTaskReminder({ onChanged, onNavigate }: DailyTaskReminderPr
                             <Circle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="text-foreground text-xs leading-snug">{task.description}</p>
+                              {task.courseTopicLink && (
+                                <p className="text-[10px] text-primary mt-0.5 italic leading-snug">
+                                  🔗 {task.courseTopicLink}
+                                </p>
+                              )}
                               <div className="flex items-center gap-2 mt-1">
                                 <Badge variant="outline" className="text-[9px] capitalize">{task.status}</Badge>
+                                {task.isMilestone && (
+                                  <Badge variant="outline" className="text-[9px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                                    Milestone
+                                  </Badge>
+                                )}
                                 <button
                                   onClick={() => handleMarkTaskDone(task.id)}
                                   className="text-[10px] font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
@@ -380,6 +419,7 @@ export function DailyTaskReminder({ onChanged, onNavigate }: DailyTaskReminderPr
                       </Button>
                     )}
                   </div>
+                  )}
 
                   {/* Daily practice question reminder */}
                   <div className={`rounded-md p-3 border ${

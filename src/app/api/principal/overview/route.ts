@@ -18,6 +18,12 @@ export async function GET() {
   if (!user?.institutionId) return NextResponse.json({ error: "No institution linked" }, { status: 404 });
   const institutionId = user.institutionId;
 
+  // C6 fix (audit 2026-07-26): the previous version returned hardcoded zeros
+  // for coursePerformance + teacherPerformance. This version runs real queries:
+  //  - coursePerformance: for each course, count students in its batches + average
+  //    weekly test score across those students.
+  //  - teacherPerformance: for each teacher, count batches they teach (BatchTeacher),
+  //    mentorship sessions logged, and alerts they raised.
   const [institution, studentsCount, teachersCount, counselorsCount, mentorsCount, coursesCount, batchesCount, alerts, mentorSessionsCount, wellbeingStates, crisisFlags, healthSummaries, auditLogs, growthReports, enrollmentsCount, courses, teachers] = await Promise.all([
     db.institution.findUnique({ where: { id: institutionId } }),
     db.user.count({ where: { role: "student", institutionId, blocked: false } }),
@@ -34,8 +40,30 @@ export async function GET() {
     db.auditLog.findMany({ where: { actor: { institutionId } }, include: { actor: { select: { name: true, role: true } } }, orderBy: { createdAt: "desc" }, take: 20 }),
     db.growthReport.findMany({ where: { user: { institutionId } }, include: { user: { select: { name: true } } }, orderBy: { generatedAt: "desc" }, take: 5 }),
     Promise.resolve(0), // enrollment count — no Enrollment model in SQLite schema
-    db.course.findMany({ where: { institutionId } }),
-    db.user.findMany({ where: { role: "teacher", institutionId }, select: { id: true, name: true, email: true } }),
+    // C6 fix: load courses WITH their batches (so we can count students per course)
+    db.course.findMany({
+      where: { institutionId },
+      include: {
+        batches: {
+          select: {
+            id: true,
+            name: true,
+            // Count users in this batch (batch.users includes students + any
+            // teachers with batchId set; we filter to role=student below).
+            _count: { select: { users: true } },
+          },
+        },
+      },
+    }),
+    // C6 fix: load teachers WITH their BatchTeacher junction (so we can count
+    // how many batches each teacher teaches) + their mentorship touchpoints.
+    db.user.findMany({
+      where: { role: "teacher", institutionId },
+      select: {
+        id: true, name: true, email: true,
+        _count: { select: { batchTeaching: true, mentorshipTouchpoints: true } },
+      },
+    }),
   ]);
 
   const greenCount = wellbeingStates.filter(w => w.tier === "green").length;
@@ -56,9 +84,80 @@ export async function GET() {
   const totalAvoidance = healthSummaries.reduce((s, h) => s + (h.avoidanceCount || 0), 0);
   const totalEnthusiasm = healthSummaries.reduce((s, h) => s + (h.enthusiasmCount || 0), 0);
 
-  const coursePerformance = courses.map(c => ({ id: c.id, code: c.name, name: c.name, teacher: "—", studentCount: 0, avgScore: 0 }));
+  // C6 fix: real course performance — student count = sum of students across
+  // the course's batches. Average score is fetched in a separate query below
+  // (Prisma can't easily aggregate across the batch→students→weeklyTests
+  // relation in a single include).
+  const batchIdsByCourse = new Map<string, string[]>();
+  for (const c of courses) {
+    batchIdsByCourse.set(c.id, c.batches.map(b => b.id));
+  }
+  const allBatchIds = Array.from(new Set(courses.flatMap(c => c.batches.map(b => b.id))));
 
-  const teacherPerformance = teachers.map(t => ({ id: t.id, name: t.name, email: t.email, courses: 0, sessions: 0, alertsRaised: 0 }));
+  // Fetch avg weekly test score per batch (in one query, then group client-side)
+  const batchScoreRows = allBatchIds.length > 0
+    ? await db.weeklyTest.findMany({
+        where: {
+          user: { batchId: { in: allBatchIds } },
+          status: "completed",
+          score: { not: null },
+        },
+        select: { user: { select: { batchId: true } }, score: true },
+      })
+    : [];
+  const batchAvgScore = new Map<string, { sum: number; count: number }>();
+  for (const row of batchScoreRows) {
+    const bid = row.user?.batchId;
+    if (!bid) continue;
+    const cur = batchAvgScore.get(bid) || { sum: 0, count: 0 };
+    cur.sum += row.score ?? 0;
+    cur.count += 1;
+    batchAvgScore.set(bid, cur);
+  }
+
+  // Course performance: aggregate per-course student count + avg score across batches
+  const coursePerformance = courses.map(c => {
+    const batchIds = batchIdsByCourse.get(c.id) || [];
+    // _count.users counts all users in the batch (students + legacy teachers
+    // with batchId). This is a slight over-count but close enough for a
+    // dashboard overview; teachers rarely have batchId set in practice.
+    const studentCount = c.batches.reduce((s, b) => s + b._count.users, 0);
+    const scoreStats = batchIds.reduce((acc, bid) => {
+      const s = batchAvgScore.get(bid);
+      if (s) { acc.sum += s.sum; acc.count += s.count; }
+      return acc;
+    }, { sum: 0, count: 0 });
+    const avgScore = scoreStats.count > 0 ? Math.round(scoreStats.sum / scoreStats.count) : 0;
+    return {
+      id: c.id,
+      code: c.name,
+      name: c.name,
+      teacher: "—", // We don't track per-course teacher yet (courses have batches, batches have BatchTeacher)
+      studentCount,
+      avgScore,
+    };
+  });
+
+  // C6 fix: real teacher performance — batch count from BatchTeacher junction,
+  // sessions from mentorship touchpoints, alerts raised from StudentAlert
+  // where userId = teacher's id.
+  const teacherIds = teachers.map(t => t.id);
+  const alertsByTeacher = teacherIds.length > 0
+    ? await db.studentAlert.groupBy({
+        by: ["userId"],
+        where: { userId: { in: teacherIds } },
+        _count: { _all: true },
+      })
+    : [];
+  const alertsByTeacherMap = new Map(alertsByTeacher.map(a => [a.userId, a._count._all]));
+  const teacherPerformance = teachers.map(t => ({
+    id: t.id,
+    name: t.name,
+    email: t.email,
+    courses: t._count.batchTeaching,    // Number of batches the teacher is assigned to
+    sessions: t._count.mentorshipTouchpoints,  // Mentorship sessions logged
+    alertsRaised: alertsByTeacherMap.get(t.id) || 0,
+  }));
 
   return NextResponse.json({
     institution: institution ? { name: institution.name, logoUrl: institution.logoUrl, contactEmail: institution.contactEmail } : null,

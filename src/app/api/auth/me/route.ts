@@ -46,6 +46,10 @@ export async function GET() {
       hasSecurityQuestion: !!user.securityQuestion,
       courseId: courseInfo.courseId,
       courseName: courseInfo.courseName,
+      // C5 fix (audit 2026-07-26): expose batchId so the teacher AssignmentsTab
+      // can pass it to POST /api/group-tasks (which requires batchId). Without
+      // this, teachers could never create assignments (the API returned 400).
+      batchId: user.batchId,
       linkedStudentId,
     },
   });

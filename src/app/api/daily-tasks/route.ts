@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { getBootcampDayNumber, getBootcampDayLabel, isRestDay, getRestDayLabel } from "@/lib/course-topics";
-import { getCourseWeekTopicTitles, getCourseWeekPhase } from "@/lib/course-db";
+import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseProjectConfig } from "@/lib/course-db";
 
 /** GET /api/daily-tasks — today's pending daily tasks for the student.
  *
@@ -15,6 +15,17 @@ import { getCourseWeekTopicTitles, getCourseWeekPhase } from "@/lib/course-db";
  *  - hasCheckedInToday, hasPracticedToday: booleans
  *
  *  The "Today's day" is determined by the day of week via getBootcampDayNumber.
+ *
+ *  Course-aware: also returns `projectConfig` so the caller knows whether to
+ *  render the project section at all (only when projectEnabled is true AND the
+ *  student has a course assigned). When the project is disabled, projectTasks
+ *  is always an empty array.
+ *
+ *  Course-aligned tasks: the new generate-tasks endpoint stores a
+ *  `courseTopicLink` note on each ProjectTask (in the `taskNotes` column) so
+ *  the daily reminder + check-in panel can show "This task builds on today's
+ *  course topic: <X>". We surface that note here as `courseTopicLink` on each
+ *  task in the response.
  */
 export async function GET() {
   const user = await getCurrentUser();
@@ -28,8 +39,12 @@ export async function GET() {
     ? user.currentDay
     : getBootcampDayNumber(new Date());
 
+  // Fetch project config in parallel with everything else — drives whether the
+  // project section of the response is populated at all.
+  const projectConfigPromise = getCourseProjectConfig(user.id);
+
   // Pull this week's project tasks + recent daily logs + today's interactions + curriculum progress + today's daily test in parallel
-  const [weekTasks, dailyLogs, todayInteractions, curriculumProgress, todaysDailyTest] = await Promise.all([
+  const [weekTasks, dailyLogs, todayInteractions, curriculumProgress, todaysDailyTest, projectConfig] = await Promise.all([
     db.projectTask.findMany({
       where: { userId: user.id, week: currentWeek },
       orderBy: { createdAt: "asc" },
@@ -62,11 +77,15 @@ export async function GET() {
       },
       select: { id: true, status: true, score: true, topic: true },
     }),
+    projectConfigPromise,
   ]);
 
   // Project tasks for today: those with day === todayDay, OR those with day === null
   // (unscheduled tasks show up every day so the student doesn't lose track of them).
   // Exclude completed tasks from the "pending" list.
+  // When the course has projects DISABLED (or no course assigned), we still return
+  // any existing project tasks so the student can finish them — but the UI hides
+  // the project section entirely.
   const todayProjectTasks = weekTasks.filter(t => t.day === todayDay || t.day === null);
   const pendingProjectTasks = todayProjectTasks.filter(t => t.status !== "completed");
   const completedToday = todayProjectTasks.filter(t => t.status === "completed").length;
@@ -95,14 +114,17 @@ export async function GET() {
   const weeklyTasksCompleted = weekTasks.filter(t => t.status === "completed").length;
 
   // Pending count: project tasks for today + check-in + practice + curriculum day + daily test
-  const pendingCount = pendingProjectTasks.length
+  // When project is disabled, don't count project tasks toward the pending total
+  // (the student can't be expected to do project work that's not enabled).
+  const projectActive = projectConfig.courseAssigned && projectConfig.projectEnabled;
+  const pendingCount = (projectActive ? pendingProjectTasks.length : 0)
     + (hasCheckedInToday ? 0 : 1)
     + (hasPracticedToday ? 0 : 1)
     + (curriculumCompleted ? 0 : 1)
     + (hasCompletedDailyTestToday ? 0 : 1);
 
   // allDone: student has done everything possible today.
-  const allDone = pendingProjectTasks.length === 0
+  const allDone = (!projectActive || pendingProjectTasks.length === 0)
     && hasCheckedInToday
     && hasPracticedToday
     && curriculumCompleted
@@ -127,12 +149,15 @@ export async function GET() {
     curriculumCompletedCount,
     todayPracticeCount: todayInteractions.length,
     // PROJECT tasks (student's custom tasks for today — using the `day` column, not regex)
+    // Each task includes the courseTopicLink note (from the AI generator) so the UI
+    // can show how the task connects to today's course topic.
     projectTasks: pendingProjectTasks.map(t => ({
       id: t.id,
       description: t.description,
       status: t.status,
       isMilestone: t.isMilestone,
       estimatedMinutes: t.estimatedMinutes,
+      courseTopicLink: t.taskNotes || null,
     })),
     todayProjectTasksTotal: todayProjectTasks.length,
     todayProjectTasksCompleted: completedToday,
@@ -144,5 +169,7 @@ export async function GET() {
     // instead of pending tasks. Rest days don't count against the streak.
     isRestDay: isRestDay(),
     restDayLabel: getRestDayLabel(),
+    // Course + project config — drives whether the UI renders the project section
+    projectConfig,
   });
 }

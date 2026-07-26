@@ -15,7 +15,7 @@ import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
   Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, Brain, AlertCircle, RefreshCw,
   Sun, Moon, Monitor, Plus, Edit3, Save, Trash2, X, BookOpen, ArrowLeft, MessageSquare,
-  ChevronDown, ChevronRight, Bot, ShieldAlert, Award, ExternalLink,
+  ChevronDown, ChevronRight, Bot, ShieldAlert, Award, ExternalLink, Target,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -58,6 +58,52 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
   const hasCourse = projectConfig?.courseAssigned ?? false;
   const projectEnabled = projectConfig?.projectEnabled ?? false;
   const projectRequired = projectConfig?.projectRequired ?? false;
+
+  // Today's project task — fetched from /api/daily-tasks (same shape the
+  // DailyTaskReminder uses). Surfaces here so the student can see today's
+  // course daily topic + today's project task side-by-side, and mark either
+  // complete from the check-in flow.
+  const [todayProjectTasks, setTodayProjectTasks] = useState<{
+    id: string;
+    description: string;
+    status: string;
+    isMilestone?: boolean;
+    courseTopicLink?: string | null;
+  }[]>([]);
+  const [projectTaskError, setProjectTaskError] = useState("");
+  const loadTodayProjectTasks = useCallback(async () => {
+    if (!projectEnabled) {
+      setTodayProjectTasks([]);
+      return;
+    }
+    try {
+      const res = await api.get<{
+        projectTasks: {
+          id: string;
+          description: string;
+          status: string;
+          isMilestone?: boolean;
+          courseTopicLink?: string | null;
+        }[];
+      }>("/api/daily-tasks");
+      setTodayProjectTasks(res.projectTasks || []);
+    } catch {
+      // silent — non-critical
+    }
+  }, [projectEnabled]);
+
+  useEffect(() => { loadTodayProjectTasks(); }, [loadTodayProjectTasks]);
+
+  const markProjectTaskDone = async (taskId: string) => {
+    setProjectTaskError("");
+    try {
+      await api.patch("/api/tasks", { id: taskId, status: "completed" });
+      await loadTodayProjectTasks();
+      onSaved();
+    } catch (e) {
+      setProjectTaskError(e instanceof Error ? e.message : "Failed to mark task done — please retry");
+    }
+  };
 
   const c = useChartColors();
 
@@ -334,6 +380,92 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
                 </div>
               </button>
             ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ===== TODAY'S PROJECT TASK (course-aligned) =====
+          Only renders when the student's course has projects enabled.
+          Surfaces today's project task(s) — these are AI-generated and aligned
+          with today's course daily topic, so the student can see the bridge
+          between what they're learning and what they're building. */}
+      {projectEnabled && (
+        <Card className="border-violet-500/30 bg-gradient-to-br from-violet-500/5 via-background to-background">
+          <CardHeader className="pb-2 pt-3 px-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base text-foreground flex items-center gap-2">
+                  <Target className="h-4 w-4 text-violet-500" /> Today&apos;s Project Task
+                  {projectRequired && (
+                    <Badge variant="outline" className="text-[9px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 ml-1">
+                      Required
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription className="text-muted-foreground text-xs">
+                  Apply today&apos;s course concept to your capstone project
+                </CardDescription>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-violet-500/30 text-violet-600 dark:text-violet-300 hover:bg-violet-500/10 h-7 text-xs"
+                onClick={() => onMode ? onMode("gantt") : (() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("view", "gantt");
+                  window.location.href = url.toString();
+                })()}
+              >
+                Open Project →
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="px-4 pb-3 space-y-2">
+            {projectTaskError && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-[11px] text-destructive">
+                {projectTaskError}
+              </div>
+            )}
+            {todayProjectTasks.length === 0 ? (
+              <div className="rounded-md bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  No pending project tasks for today — you&apos;re all caught up, or no task is scheduled for today&apos;s day.
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-1.5">
+                {todayProjectTasks.map((task) => (
+                  <li key={task.id} className="rounded-md border border-border bg-background/70 p-3">
+                    <div className="flex items-start gap-2">
+                      <Circle className="h-4 w-4 text-violet-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-foreground font-medium leading-snug">{task.description}</p>
+                        {task.courseTopicLink && (
+                          <p className="text-[10px] text-primary mt-1 italic leading-snug">
+                            🔗 {task.courseTopicLink}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <Badge variant="outline" className="text-[9px] capitalize">{task.status}</Badge>
+                          {task.isMilestone && (
+                            <Badge variant="outline" className="text-[9px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                              Milestone
+                            </Badge>
+                          )}
+                          <button
+                            onClick={() => markProjectTaskDone(task.id)}
+                            className="text-[10px] font-medium text-emerald-600 hover:text-emerald-700 hover:underline ml-auto"
+                          >
+                            Mark done →
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       )}

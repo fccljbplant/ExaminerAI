@@ -189,9 +189,9 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
             <div className="flex items-start gap-2">
               <Sparkles className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-xs font-medium text-foreground">Generate your project task list with AI</p>
+                <p className="text-xs font-medium text-foreground">Generate your course-aligned project plan with AI</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
-                  The AI will read your project summary and create {duration} weeks of tailored tasks (5 per week, with milestones). You can edit, delete, or add more tasks anytime.
+                  The AI reads your project summary AND your course outline, then creates {duration} weeks of tailored tasks (one per course day) that build on each day&apos;s course topic. Each task is specific to <strong>{project.projectName}</strong> and bridges what you&apos;re learning with what you&apos;re building. You can edit, delete, or add more tasks anytime.
                 </p>
               </div>
             </div>
@@ -201,8 +201,8 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
           <div className="rounded-md border border-primary/30 bg-primary/5 p-3 flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
             <div>
-              <p className="text-xs font-medium text-foreground">Generating tasks with AI...</p>
-              <p className="text-[10px] text-muted-foreground">This takes ~10-15 seconds. The AI is reading your project definition and creating tailored tasks.</p>
+              <p className="text-xs font-medium text-foreground">Generating your course-aligned plan with AI...</p>
+              <p className="text-[10px] text-muted-foreground">This takes ~15-30 seconds. The AI is reading your project definition + course outline and creating per-day tasks that connect the two.</p>
             </div>
           </div>
         )}
