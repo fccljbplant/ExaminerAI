@@ -191,7 +191,7 @@ export default function CounselorDashboard({ onNavigateToMessages, onStudentClic
       {/* Tab content */}
       {tab === "command" && <CommandCenter data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} />}
       {tab === "caseload" && <CaseloadView data={data} onStudentClick={onStudentClick} />}
-      {tab === "sessions" && <SessionsView data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} />}
+      {tab === "sessions" && <SessionsView data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} onReload={load} />}
       {tab === "patterns" && <PatternsView data={data} />}
     </div>
   );
@@ -471,7 +471,7 @@ function CaseloadView({ data, onStudentClick }: { data: CounselorData; onStudent
 // ============================================================
 // SESSIONS — GROW touchpoint history + logger + case reviews
 // ============================================================
-function SessionsView({ data, onNavigateToMessages, onStudentClick }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void }) {
+function SessionsView({ data, onNavigateToMessages, onStudentClick, onReload }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void; onReload?: () => void }) {
   return (
     <div className="space-y-4">
       {/* GROW Logger */}
@@ -483,7 +483,9 @@ function SessionsView({ data, onNavigateToMessages, onStudentClick }: { data: Co
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <VoiceTouchpointLogger onLogged={() => {}} />
+          {/* L8 fix (audit 2026-07-26): pass onReload so the touchpoint list
+              refreshes after a new touchpoint is logged (was a no-op). */}
+          <VoiceTouchpointLogger onLogged={() => { onReload?.(); }} />
         </CardContent>
       </Card>
 

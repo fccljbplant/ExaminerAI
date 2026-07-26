@@ -28,6 +28,8 @@ However, the gap between **what's built** and **what's wired** is the platform's
 
 > **UPDATE 2026-07-26 (post-fix batch 5):** ALL 16 HIGH findings now FIXED. H2 (IDOR gaps on derived entity IDs), H4 (AI Assistant 7-section spec fully wired), H9 (Action Dialog wired into TodayView) resolved. See `docs/AUDIT-FIXES-BATCH5-2026-07-26.md` for details. Only 15 MEDIUM + 10 LOW items remain.
 
+> **UPDATE 2026-07-26 (post-fix batch 6):** 4 more items FIXED (M1, L1, L7, L8). Batch switcher for multi-batch teachers, growth report courseId, admin role switcher option, counselor sessions refresh. See `docs/AUDIT-FIXES-BATCH6-2026-07-26.md` for details. 14 MEDIUM + 7 LOW items remain.
+
 ---
 
 ## Prioritized Findings
@@ -70,38 +72,38 @@ However, the gap between **what's built** and **what's wired** is the platform's
 
 ### MEDIUM (fix when capacity allows — UX issues, missing features)
 
-| # | Finding | Section |
-|---|---------|---------|
-| M1 | No batch switcher for multi-batch teachers | 4 |
-| M2 | Principal can't reach course/batch/user management UI (admin-only nav) | 3, 4 |
-| M3 | Counselor dashboard has no action buttons (acknowledge/resolve/escalate) | 3, 4 |
-| M4 | Course Coordinator has no student visibility at all | 3 |
-| M5 | Two parallel teacher-load formulas that disagree | 5 |
-| M6 | Comprehensive reports cached without human review flag | 5 |
-| M7 | Psych evidence has no dispute mechanism | 5 |
-| M8 | Daily test scores have no override path | 5 |
-| M9 | 7 critical paths with ZERO test coverage (blocked-status, IDOR, rate-limit, AI provider, wellbeing tier, skill mastery, unified grader) | 6 |
-| M10 | `TEACHER_BOOTCAMP_PLAN` hardcoded 6-week web dev plan | 3 |
-| M11 | 4 files >800 lines (modern-landing 1614, StudentPortfolioPage 1336, weekly-test 1166, CoursePlanner 863) | 6 |
-| M12 | `src/modules/project/` half-extracted (410+ lines unused module code + inline route duplicates) | 6 |
-| M13 | "anxiety" keyword in psych-analyzer is diagnostic-sounding | 5 |
-| M14 | "learning style" question in ai-prompts is debunked (Pashler 2008) | 5 |
-| M15 | Demo can't preview admin dashboard despite banner claiming "any dashboard" | 3 |
+| # | Finding | Section | Status |
+|---|---------|---------|--------|
+| M1 | No batch switcher for multi-batch teachers | 4 | ✅ FIXED 2026-07-26 (batch 6) |
+| M2 | Principal can't reach course/batch/user management UI (admin-only nav) | 3, 4 | ⚠️ PENDING |
+| M3 | Counselor dashboard has no action buttons (acknowledge/resolve/escalate) | 3, 4 | ⚠️ PENDING |
+| M4 | Course Coordinator has no student visibility at all | 3 | ⚠️ PENDING |
+| M5 | Two parallel teacher-load formulas that disagree | 5 | ⚠️ PENDING |
+| M6 | Comprehensive reports cached without human review flag | 5 | ⚠️ PENDING |
+| M7 | Psych evidence has no dispute mechanism | 5 | ⚠️ PENDING |
+| M8 | Daily test scores have no override path | 5 | ⚠️ PENDING |
+| M9 | 7 critical paths with ZERO test coverage (blocked-status, IDOR, rate-limit, AI provider, wellbeing tier, skill mastery, unified grader) | 6 | ⚠️ PENDING |
+| M10 | `TEACHER_BOOTCAMP_PLAN` hardcoded 6-week web dev plan | 3 | ⚠️ PENDING |
+| M11 | 4 files >800 lines (modern-landing 1614, StudentPortfolioPage 1336, weekly-test 1166, CoursePlanner 863) | 6 | ⚠️ PENDING |
+| M12 | `src/modules/project/` half-extracted (410+ lines unused module code + inline route duplicates) | 6 | ⚠️ PENDING |
+| M13 | "anxiety" keyword in psych-analyzer is diagnostic-sounding | 5 | ⚠️ PENDING |
+| M14 | "learning style" question in ai-prompts is debunked (Pashler 2008) | 5 | ⚠️ PENDING |
+| M15 | Demo can't preview admin dashboard despite banner claiming "any dashboard" | 3 | ⚠️ PENDING |
 
 ### LOW (nice to have — cosmetic, polish, minor hardening)
 
-| # | Finding | Section |
-|---|---------|---------|
-| L1 | 5 real TODOs in code | 6 |
-| L2 | 3 dead Prisma models (CaseReviewResponse, DailyTestAnswer, CourseWeek-as-Prisma) | 6 |
-| L3 | 22+ dead lib exports (10 in rbac.ts alone) | 6 |
-| L4 | 5 dead UI components + 30 dead shadcn primitives | 6 |
-| L5 | z-ai-web-dev-sdk likely never fires on Vercel prod (sandbox-only) | 6 |
-| L6 | Growth reports title uses strengths text as title | 3 |
-| L7 | Admin role switcher missing "Admin" option | 3 |
-| L8 | Counselor Sessions tab no refresh after logging (onLogged is no-op) | 3 |
-| L9 | Guardian AI Tutor is student-facing practice chat (questionable fit) | 3 |
-| L10 | Attention score "recent" low-confidence logs are actually lifetime | 5 |
+| # | Finding | Section | Status |
+|---|---------|---------|--------|
+| L1 | 5 real TODOs in code | 6 | ✅ FIXED 2026-07-26 (batch 6) |
+| L2 | 3 dead Prisma models (CaseReviewResponse, DailyTestAnswer, CourseWeek-as-Prisma) | 6 | ⚠️ PENDING |
+| L3 | 22+ dead lib exports (10 in rbac.ts alone) | 6 | ⚠️ PENDING |
+| L4 | 5 dead UI components + 30 dead shadcn primitives | 6 | ⚠️ PENDING |
+| L5 | z-ai-web-dev-sdk likely never fires on Vercel prod (sandbox-only) | 6 | ⚠️ PENDING |
+| L6 | Growth reports title uses strengths text as title | 3 | ⚠️ PENDING |
+| L7 | Admin role switcher missing "Admin" option | 3 | ✅ FIXED 2026-07-26 (batch 6) |
+| L8 | Counselor Sessions tab no refresh after logging (onLogged is no-op) | 3 | ✅ FIXED 2026-07-26 (batch 6) |
+| L9 | Guardian AI Tutor is student-facing practice chat (questionable fit) | 3 | ⚠️ PENDING |
+| L10 | Attention score "recent" low-confidence logs are actually lifetime | 5 | ⚠️ PENDING |
 
 ---
 

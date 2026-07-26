@@ -620,6 +620,7 @@ export default function AppShell() {
                 { role: "counselor", label: "Counselor", view: "counselor-dashboard" },
                 { role: "guardian", label: "Guardian", view: "guardian-dashboard" },
                 { role: "principal", label: "Principal", view: "principal-dashboard" },
+                { role: "admin", label: "Admin", view: "admin-dashboard" },
               ] as const).map((r) => (
                 <button
                   key={r.role}

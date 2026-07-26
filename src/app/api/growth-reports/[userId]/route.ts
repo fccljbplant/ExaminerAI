@@ -183,11 +183,27 @@ async function generateGrowthReport(userId: string) {
     behavioralNotes = `${touchpoints.length} coaching touchpoints logged. ${touchpointSummary}`;
   }
 
+  // --- Fetch the student's course ID from their batch ---
+  // L1 fix (audit 2026-07-26): was hardcoded to null. Now fetches the actual
+  // course ID via the student's batch so the growth report is properly linked.
+  const studentWithBatch = await db.user.findUnique({
+    where: { id: userId },
+    select: { batchId: true },
+  });
+  let courseId: string | null = null;
+  if (studentWithBatch?.batchId) {
+    const batch = await db.batch.findUnique({
+      where: { id: studentWithBatch.batchId },
+      select: { courseId: true },
+    });
+    courseId = batch?.courseId ?? null;
+  }
+
   // --- Create the report ---
   const report = await db.growthReport.create({
     data: {
       userId,
-      courseId: null, // TODO: set from user's batch's course
+      courseId, // L1 fix: now set from the student's batch's course
       strengths: JSON.stringify(strengths.length > 0 ? strengths : ["Insufficient data for strengths assessment."]),
       growthAreas: JSON.stringify(growthAreas.length > 0 ? growthAreas : ["Insufficient data for growth areas assessment."]),
       dimensionSnapshot: JSON.stringify({

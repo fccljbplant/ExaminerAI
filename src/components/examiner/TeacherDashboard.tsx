@@ -77,6 +77,10 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
   const [selectedStudentIndex, setSelectedStudentIndex] = useState<number>(-1);
+  // M1 fix: batch switcher state — when the teacher has 2+ batches, a dropdown
+  // appears in the header to let them focus on one batch at a time.
+  const [teacherBatches, setTeacherBatches] = useState<Array<{ id: string; name: string; studentCount: number }>>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
 
   // Update tab when initialTab prop changes (from sidebar nav clicks)
   useEffect(() => {
@@ -85,17 +89,23 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
 
   const load = useCallback(async () => {
     try {
+      const batchParam = selectedBatchId ? `&batchId=${encodeURIComponent(selectedBatchId)}` : "";
       const [statsRes, alertsRes] = await Promise.all([
         api.get<{
           stats: TeacherStats;
           students: StudentRow[];
           hasMore?: boolean;
-        }>("/api/stats?as=teacher&page=0&pageSize=100", undefined, AI_TIMEOUT_MS),
+          teacherBatches?: Array<{ id: string; name: string; studentCount: number }>;
+        }>(`/api/stats?as=teacher&page=0&pageSize=100${batchParam}`, undefined, AI_TIMEOUT_MS),
         api.get<{ alerts: AlertItem[] }>("/api/students/alerts").catch(() => ({ alerts: [] as AlertItem[] })),
       ]);
       setStats(statsRes?.stats || null);
       setStudents(Array.isArray(statsRes?.students) ? statsRes.students : []);
       setAlerts(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts : []);
+      // M1 fix: populate the batch switcher options (only when no batch is selected)
+      if (statsRes?.teacherBatches) {
+        setTeacherBatches(statsRes.teacherBatches);
+      }
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed to load dashboard");
       setStudents([]);
@@ -104,7 +114,7 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedBatchId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -203,10 +213,27 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
             )}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); load(); }} disabled={refreshing}>
-          <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", refreshing && "animate-spin")} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* M1 fix: Batch switcher — only shows when the teacher has 2+ batches.
+              Lets them focus on one batch at a time instead of seeing all students mixed. */}
+          {teacherBatches.length > 1 && (
+            <select
+              value={selectedBatchId}
+              onChange={(e) => { setSelectedBatchId(e.target.value); setLoading(true); }}
+              className="text-xs border border-border rounded-md px-2 py-1.5 bg-background text-foreground h-8"
+              title="Filter students by batch"
+            >
+              <option value="">All Batches ({teacherBatches.reduce((a, b) => a + b.studentCount, 0)} students)</option>
+              {teacherBatches.map(b => (
+                <option key={b.id} value={b.id}>{b.name} ({b.studentCount})</option>
+              ))}
+            </select>
+          )}
+          <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); load(); }} disabled={refreshing}>
+            <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", refreshing && "animate-spin")} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Inline tab nav — ONLY the 5 main views (no messages/myload/settings — sidebar handles those) */}

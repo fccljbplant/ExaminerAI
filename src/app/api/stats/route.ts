@@ -1,5 +1,5 @@
 import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
-import { getBatchFilter } from "@/lib/batch-teachers";
+import { getBatchFilter, getTeacherBatchIds } from "@/lib/batch-teachers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -25,10 +25,28 @@ export async function GET(req: Request) {
     // Search — filter by name or email (case-insensitive)
     const q = (url.searchParams.get("q") || "").trim();
 
+    // M1 fix (audit 2026-07-26): optional batchId query param for the batch
+    // switcher. When provided, the teacher sees only students in that batch.
+    // When omitted, the teacher sees students in ALL their batches (default).
+    // Admins can pass any batchId; teachers can only filter to batches they
+    // can access (verified via canAccessBatch).
+    const requestedBatchId = url.searchParams.get("batchId") || "";
+
     // For stats (total counts), we need the full count — but we can get it
     // without loading all records. The enriched student list is paginated.
     // Multi-teacher: scope students to the teacher's batches via BatchTeacher
-    const batchFilter = await getBatchFilter(payload.sub, payload.role);
+    let batchFilter = await getBatchFilter(payload.sub, payload.role);
+
+    // M1 fix: if a specific batchId was requested, narrow the filter to just
+    // that batch (after verifying access).
+    if (requestedBatchId) {
+      const { canAccessBatch } = await import("@/lib/batch-teachers");
+      const hasAccess = await canAccessBatch(payload.sub, payload.role, requestedBatchId);
+      if (!hasAccess) {
+        return NextResponse.json({ error: "You don't have access to this batch" }, { status: 403 });
+      }
+      batchFilter = { batchId: requestedBatchId };
+    }
     const searchClause = q ? {
       OR: [
         { name: { contains: q, mode: "insensitive" as const } },
@@ -201,6 +219,29 @@ export async function GET(req: Request) {
     const studentsWithoutProjects = totalStudents - totalWithProjects;
     const studentsNeedingAttention = totalNeedingAttention;
 
+    // M1 fix: fetch the teacher's batch list for the batch switcher dropdown.
+    // Only fetches when no specific batchId is selected (otherwise the switcher
+    // would only show one option).
+    let teacherBatches: Array<{ id: string; name: string; studentCount: number }> = [];
+    if (!requestedBatchId) {
+      const teacherBatchIds = await getTeacherBatchIds(payload.sub, payload.role);
+      if (teacherBatchIds && teacherBatchIds.length > 1) {
+        // Only show the switcher when the teacher has 2+ batches
+        const batches = await db.batch.findMany({
+          where: { id: { in: teacherBatchIds } },
+          select: {
+            id: true, name: true,
+            _count: { select: { users: true } },
+          },
+        });
+        teacherBatches = batches.map(b => ({
+          id: b.id,
+          name: b.name,
+          studentCount: b._count.users,
+        }));
+      }
+    }
+
     return NextResponse.json({
       role: "teacher",
       stats: {
@@ -221,6 +262,9 @@ export async function GET(req: Request) {
         loadedCount: students.length,
       },
       students: enriched,
+      // M1 fix: batch list for the batch switcher (only populated when the
+      // teacher has 2+ batches and no specific batchId is selected).
+      teacherBatches,
     });
   }
 
