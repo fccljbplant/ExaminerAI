@@ -111,6 +111,7 @@ export async function GET() {
     projectEnabled: c.projectEnabled,
     projectRequired: c.projectRequired,
     projectDefaultDurationWeeks: c.projectDefaultDurationWeeks,
+    isDefault: c.isDefault,
     weeks: c.weeks.map(w => ({
       id: w.id,
       weekNumber: w.weekNumber,

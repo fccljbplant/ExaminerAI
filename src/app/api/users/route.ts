@@ -12,14 +12,28 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *    - page: 1-indexed page number (default 1)
  *    - pageSize: items per page (default 50, max 200)
  *
- *  Teachers see students+pending only. Admins see all.
- *  Demo (read-only) sees all users for preview purposes but cannot modify them.
+ *  Role-based scoping:
+ *    - Staff (teacher/coordinator/counselor): see students + pending only
+ *    - Admins (principal/administrator): see all users
+ *    - Demo (read-only): sees all users for preview
+ *    - Students: see only teachers in their batch + admins (H8 fix — was 403,
+ *      which broke the Messages compose recipient search)
+ *    - Guardians: see only the teachers of their linked student + admins (H8 fix)
  *
  *  Returns: { users, pagination: { page, pageSize, total, totalPages } }
  */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
+  if (!payload) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // H8 fix: students + guardians are now allowed to call this endpoint, but
+  // with a restricted scope (only teachers in their batch + admins). This
+  // makes the Messages compose recipient search work for them.
+  // Staff roles fall through to the existing logic below.
+  const isStudentOrGuardian = payload.role === "student" || payload.role === "guardian";
+  if (!isStaffRole(payload.role) && !isStudentOrGuardian) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -29,6 +43,83 @@ export async function GET(req: NextRequest) {
   const roleFilter = url.searchParams.get("role") || "";
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const pageSize = Math.min(200, Math.max(1, parseInt(url.searchParams.get("pageSize") || "50", 10)));
+
+  // H8 fix: for students + guardians, restrict to teachers in their batch + admins.
+  // This is the only scope they need (to message their teachers / their child's teachers).
+  if (isStudentOrGuardian) {
+    // Find the relevant batch: student's own batch, or guardian's linked student's batch
+    let batchId: string | null = null;
+    if (payload.role === "student") {
+      const student = await db.user.findUnique({
+        where: { id: payload.sub },
+        select: { batchId: true },
+      });
+      batchId = student?.batchId ?? null;
+    } else {
+      // Guardian — find linked student's batch
+      const link = await db.guardianLink.findFirst({
+        where: { guardianId: payload.sub },
+        select: { student: { select: { batchId: true } } },
+      });
+      batchId = link?.student?.batchId ?? null;
+    }
+
+    // Find teacher IDs: users with BatchTeacher rows for this batch, PLUS
+    // legacy teachers with batchId set, PLUS admins (principal/administrator).
+    const teacherIds = new Set<string>();
+    if (batchId) {
+      const batchTeachers = await db.batchTeacher.findMany({
+        where: { batchId },
+        select: { teacherId: true },
+      });
+      batchTeachers.forEach(bt => teacherIds.add(bt.teacherId));
+      // Legacy: teachers with batchId set directly
+      const legacyTeachers = await db.user.findMany({
+        where: { role: "teacher", batchId },
+        select: { id: true },
+      });
+      legacyTeachers.forEach(t => teacherIds.add(t.id));
+    }
+    // Always include admins (so students can message principal/administrator)
+    const admins = await db.user.findMany({
+      where: { role: { in: ["principal", "administrator"] }, blocked: false },
+      select: { id: true },
+    });
+    admins.forEach(a => teacherIds.add(a.id));
+
+    // Build the where clause for students/guardians
+    const searchClause = q ? {
+      OR: [
+        { name: { contains: q, mode: "insensitive" as const } },
+        { email: { contains: q, mode: "insensitive" as const } },
+      ],
+    } : {};
+    const where = {
+      id: { in: Array.from(teacherIds) },
+      blocked: false,
+      ...searchClause,
+    };
+
+    const [total, users] = await Promise.all([
+      db.user.count({ where }),
+      db.user.findMany({
+        where,
+        orderBy: { name: "asc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true, email: true, name: true, role: true, blocked: true,
+          approvedAt: true, createdAt: true, lastLogin: true, currentWeek: true, projectName: true,
+          batchId: true,
+        },
+      }),
+    ]);
+
+    return NextResponse.json({
+      users,
+      pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+    });
+  }
 
   // Build the where clause
   // Teachers, TAs, course_coordinators, and counselors only see students and

@@ -18,8 +18,16 @@ export interface PublicUser {
   name: string;
   role: string;
   currentWeek?: number;
+  /** Whether the user has set a security question (for self-service password reset). */
+  hasSecurityQuestion?: boolean;
   /** For guardians — the ID of the student they're linked to. */
   linkedStudentId?: string | null;
+  /** Teacher's batch ID (C5 fix: exposed so AssignmentsTab can pass it to group-tasks API). */
+  batchId?: string | null;
+  /** The course ID the user's batch is assigned to (for students/guardians). */
+  courseId?: string | null;
+  /** The course name (for students/guardians). */
+  courseName?: string | null;
 }
 
 export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => void }) {

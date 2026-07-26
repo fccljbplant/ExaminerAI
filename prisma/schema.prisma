@@ -137,6 +137,14 @@ model Course {
   projectRequired             Boolean  @default(false)
   projectDefaultDurationWeeks Int      @default(4)
 
+  // isDefault: marks this course as the default for new students. When a student
+  // is approved without a specific batch assignment, they're placed in the Default
+  // Batch, which is linked to whichever course has isDefault=true. Only ONE course
+  // can be the default at a time (enforced at the API level — setting isDefault=true
+  // on one course unsets it on all others). The CoursePlanner UI shows a "Default"
+  // badge + a "Set as default" button.
+  isDefault                   Boolean  @default(false)
+
   institutionId       String?
 
   createdAt   DateTime @default(now())

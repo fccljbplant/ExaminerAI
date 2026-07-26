@@ -51,8 +51,18 @@ export function MentorshipView({ students, alerts, onStudentClick }: MentorshipV
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // Touchpoints will be loaded per-student on demand; for the overview
-      // we show alerts + follow-ups from the students data
+      // H15 fix (audit 2026-07-26): the previous version of load() was a no-op
+      // (empty try block with only a comment). It never fetched anything, so
+      // the "follow-ups" filter showed an empty list even when students had
+      // upcoming follow-up dates logged via touchpoints.
+      //
+      // Now we fetch ALL recent touchpoints for the teacher's students in one
+      // request, then filter client-side for those with upcoming follow-ups.
+      // The /api/mentorship/touchpoints endpoint accepts a ?userId= filter,
+      // but we want ALL students' touchpoints — so we fetch without a userId
+      // (the endpoint returns touchpoints for all students the caller can access).
+      const res = await api.get<{ touchpoints: any[] }>("/api/mentorship/touchpoints").catch(() => ({ touchpoints: [] }));
+      setTouchpoints(res.touchpoints || []);
     } catch {
       // silent
     } finally {
@@ -63,38 +73,70 @@ export function MentorshipView({ students, alerts, onStudentClick }: MentorshipV
   useEffect(() => { load(); }, [load]);
 
   // Build the mentorship queue — students with alerts + follow-ups
+  // H15 fix: now also includes students with upcoming follow-up dates from
+  // touchpoints (was only showing students with alerts/attention flags).
   const mentorshipQueue = useMemo(() => {
     const queue: Array<{
       student: StudentRow;
       alerts: any[];
       urgency: number;
       reason: string;
+      followUpDate?: string | null;
     }> = [];
+
+    // Build a map of studentId → next follow-up date (from touchpoints)
+    const followUpByStudent = new Map<string, string | null>();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (const tp of touchpoints) {
+      if (tp.followUpDate) {
+        const fuDate = new Date(tp.followUpDate);
+        const existing = followUpByStudent.get(tp.userId);
+        // Keep the earliest upcoming follow-up date per student
+        if (!existing || fuDate < new Date(existing)) {
+          followUpByStudent.set(tp.userId, tp.followUpDate);
+        }
+      }
+    }
 
     safeStudents.forEach(s => {
       const studentAlerts = alerts.filter(a => a.userId === s.id);
-      if (studentAlerts.length > 0 || s.needsAttention) {
+      const followUp = followUpByStudent.get(s.id) || null;
+      const hasFollowUp = followUp && new Date(followUp) >= today;
+      // Include student if they have alerts, need attention, OR have an upcoming follow-up
+      if (studentAlerts.length > 0 || s.needsAttention || hasFollowUp) {
         const crisisAlerts = studentAlerts.filter(a => a.severity === "red");
-        const urgency = crisisAlerts.length > 0 ? 5 : studentAlerts.length > 0 ? 4 : (s.attentionScore || 0) >= 30 ? 3 : 2;
+        // Urgency: crisis=5, alerts=4, follow-up today/overdue=4, attention=3, follow-up upcoming=2
+        let urgency: number;
+        if (crisisAlerts.length > 0) urgency = 5;
+        else if (studentAlerts.length > 0) urgency = 4;
+        else if (followUp && new Date(followUp) <= today) urgency = 4; // overdue or due today
+        else if ((s.attentionScore || 0) >= 30) urgency = 3;
+        else urgency = 2;
         queue.push({
           student: s,
           alerts: studentAlerts,
           urgency,
           reason: studentAlerts.length > 0
             ? `${studentAlerts.length} alert${studentAlerts.length > 1 ? "s" : ""}: ${studentAlerts.map(a => a.type).join(", ")}`
+            : hasFollowUp
+            ? `Follow-up scheduled for ${new Date(followUp!).toLocaleDateString()}`
             : (s.attentionReasons || []).join("; ") || "Needs attention",
+          followUpDate: followUp,
         });
       }
     });
 
     return queue.sort((a, b) => b.urgency - a.urgency);
-  }, [safeStudents, alerts]);
+  }, [safeStudents, alerts, touchpoints]);
 
   // Filtered list based on search + filter
+  // H15 fix: "followups" filter now actually shows students with upcoming
+  // follow-up dates (was only showing students with needsAttention flag).
   const filteredQueue = useMemo(() => {
     let result = mentorshipQueue;
     if (filter === "alerts") result = result.filter(q => q.alerts.length > 0);
-    if (filter === "followups") result = result.filter(q => q.student.needsAttention);
+    if (filter === "followups") result = result.filter(q => q.followUpDate || q.student.needsAttention);
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(item => item.student.name.toLowerCase().includes(q) || item.student.email.toLowerCase().includes(q));

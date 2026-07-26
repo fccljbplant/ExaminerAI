@@ -88,6 +88,8 @@ model Course {
   projectEnabled              Boolean  @default(false)
   projectRequired             Boolean  @default(false)
   projectDefaultDurationWeeks Int      @default(4)
+  // isDefault: marks this course as the default for new students (see schema.prisma).
+  isDefault                   Boolean  @default(false)
   institutionId          String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt

@@ -42,7 +42,39 @@ export async function PUT(
     }
   }
 
-  const defaultBatch = await db.batch.findUnique({ where: { name: "Default Batch" } }).catch(() => null);
+  // Default course selection: when a student is approved without a specific
+  // batch assignment, they land in the "Default Batch". We ensure that batch
+  // has a courseId set — if not, we link it to whichever course has
+  // isDefault=true (or seed the default course on the fly if none exists yet).
+  // This way, newly-approved students always have a course to study.
+  let defaultBatch = await db.batch.findUnique({ where: { name: "Default Batch" } }).catch(() => null);
+  if (defaultBatch && !defaultBatch.courseId) {
+    // Find the default course (isDefault=true)
+    let defaultCourse = await db.course.findFirst({ where: { isDefault: true } });
+    if (!defaultCourse) {
+      // No default course yet — fall back to ANY active course in the system.
+      // This ensures students get SOMETHING rather than nothing.
+      defaultCourse = await db.course.findFirst({ where: { isActive: true } });
+    }
+    if (defaultCourse) {
+      await db.batch.update({
+        where: { id: defaultBatch.id },
+        data: { courseId: defaultCourse.id },
+      }).catch(() => {/* non-fatal */});
+    }
+  } else if (!defaultBatch) {
+    // No Default Batch exists — create one linked to the default course (if any)
+    const defaultCourse = await db.course.findFirst({ where: { isDefault: true } })
+      || await db.course.findFirst({ where: { isActive: true } });
+    defaultBatch = await db.batch.create({
+      data: {
+        name: "Default Batch",
+        description: "Auto-created default batch for students without a specific assignment.",
+        courseId: defaultCourse?.id ?? null,
+      },
+    }).catch(() => null);
+  }
+
   const updateData: { role: string; approvedAt: Date; batchId?: string } = { role: "student", approvedAt: new Date() };
   if (defaultBatch && !target.batchId) updateData.batchId = defaultBatch.id;
 

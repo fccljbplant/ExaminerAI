@@ -26,6 +26,7 @@ import { EducationalTab } from "@/components/examiner/teacher/EducationalTab";
 import { MentorshipTabV2 } from "@/components/examiner/teacher/MentorshipTabV2";
 import { UserAuditTab } from "@/components/examiner/teacher/UserAuditTab";
 import { StudentAITools } from "@/components/examiner/teacher/ai/StudentAITools";
+import { GuardianCreationPanel } from "@/components/examiner/teacher/GuardianCreationPanel";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
 
 export function StudentPortfolioPage({
@@ -412,6 +413,10 @@ export function StudentPortfolioPage({
         // Could wire to compose dialog — for now, copy to clipboard
         navigator.clipboard?.writeText(draft);
       }} />
+
+      {/* H6 fix: Guardian creation/management — staff can create a parent
+          account linked to this student, or remove an existing one. */}
+      <GuardianCreationPanel studentId={student.id} studentName={student.name} />
 
       {/* Summary stats — responsive grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

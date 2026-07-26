@@ -57,6 +57,8 @@ export async function GET(
     projectEnabled: course.projectEnabled,
     projectRequired: course.projectRequired,
     projectDefaultDurationWeeks: course.projectDefaultDurationWeeks,
+    // Default-course flag — marks this course as the default for new students
+    isDefault: course.isDefault,
   };
 
   return NextResponse.json({ course: courseWithParsed });

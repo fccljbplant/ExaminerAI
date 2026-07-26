@@ -15,6 +15,8 @@ import { TeacherAITutor } from "@/modules/ai-assistant";
 import Messages from "./Messages";
 import CourseOutline from "./CourseOutline";
 import CoursePlanner from "./CoursePlanner";
+import { SettingsPanel } from "./SettingsPanel";
+import GuardianReportCards from "./GuardianReportCards";
 import { AskMyTeacher } from "./AskMyTeacher";
 import ErrorBoundary from "./ErrorBoundary";
 import {
@@ -475,7 +477,7 @@ export default function AppShell() {
       case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" />);
       case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" />);
       case "guardian-dashboard": return wrap(<GuardianDashboard key={`guardian-${navClickCount}`} onMessage={() => navigateTo("messages")} />);
-      case "guardian-progress": return wrap(<GuardianDashboard key={`guardian-progress-${navClickCount}`} />);
+      case "guardian-progress": return wrap(<GuardianReportCards key={`guardian-progress-${navClickCount}`} />);
       case "batch": return wrap(<TeacherDashboard initialTab="today" />);
       case "batch-students": return wrap(<TeacherDashboard initialTab="students" />);
       case "batch-mentorship": return wrap(<TeacherDashboard initialTab="mentorship" />);
@@ -487,7 +489,7 @@ export default function AppShell() {
       case "teacher-ai-tutor": return wrap(<TeacherAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
       case "messages": return wrap(<Messages />);
-      case "settings": return wrap(<StudentDashboard initialMode="default" />);
+      case "settings": return wrap(<SettingsPanel user={user ? { id: user.id, name: user.name, email: user.email, role: user.role, hasSecurityQuestion: user.hasSecurityQuestion } : null} />);
       case "admin-dashboard": return wrap(<AdminDashboard initialView="overview" />);
       case "admin-users": return wrap(<AdminDashboard initialView="users" />);
       case "admin-courses": return wrap(<AdminDashboard initialView="courses" />);

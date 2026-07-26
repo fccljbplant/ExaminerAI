@@ -34,6 +34,8 @@ interface Course {
   projectEnabled?: boolean;
   projectRequired?: boolean;
   projectDefaultDurationWeeks?: number;
+  // Default-course flag — marks this course as the default for new students.
+  isDefault?: boolean;
 }
 interface Batch { id: string; name: string; courseId: string | null; courseName: string | null; }
 
@@ -499,13 +501,57 @@ export default function CoursePlanner() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button size="sm" variant="ghost" onClick={() => { setView("list"); setEditing(false); }} className="text-muted-foreground">
               <ArrowLeft /> Back
             </Button>
-            <h2 className="text-lg font-bold text-foreground">{editing ? "Edit Course" : selectedCourse.name}</h2>
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2 flex-wrap">
+              {editing ? "Edit Course" : selectedCourse.name}
+              {selectedCourse.isDefault && (
+                <Badge variant="outline" className="text-[9px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                  Default for new students
+                </Badge>
+              )}
+            </h2>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {/* Set as default / Unset default — only show when not editing */}
+            {!editing && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await api.post(`/api/courses/${selectedCourse.id}/set-default`, { isDefault: !selectedCourse.isDefault });
+                    showMsg("success", !selectedCourse.isDefault
+                      ? `Set "${selectedCourse.name}" as the default course for new students. The Default Batch is now linked to it.`
+                      : `"${selectedCourse.name}" is no longer the default course.`
+                    );
+                    await load();
+                    // Re-fetch the detail to refresh isDefault on selectedCourse
+                    const res = await api.get<{ course: Course }>(`/api/courses/${selectedCourse.id}`);
+                    setSelectedCourse(res.course);
+                  } catch (e) {
+                    showMsg("error", e instanceof Error ? e.message : "Failed to change default course");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                className={selectedCourse.isDefault
+                  ? "border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                  : "border-violet-500/40 text-violet-700 dark:text-violet-300 hover:bg-violet-500/10"
+                }
+                title={selectedCourse.isDefault
+                  ? "New students are currently being assigned to this course. Click to unset."
+                  : "Make this the course that new students get assigned to by default."
+                }
+              >
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                {selectedCourse.isDefault ? "Unset Default" : "Set as Default"}
+              </Button>
+            )}
             {editing ? (
               <>
                 <Button size="sm" onClick={saveCourse} disabled={busy} className="bg-primary hover:bg-primary/90 text-primary-foreground">
@@ -969,7 +1015,14 @@ export default function CoursePlanner() {
               <CardHeader className="pb-2" onClick={() => openCourseDetail(c.id)}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm text-foreground">{c.name}</CardTitle>
+                    <CardTitle className="text-sm text-foreground flex items-center gap-1.5 flex-wrap">
+                      {c.name}
+                      {c.isDefault && (
+                        <Badge variant="outline" className="text-[8px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                          Default
+                        </Badge>
+                      )}
+                    </CardTitle>
                     {c.description && <CardDescription className="text-xs text-muted-foreground truncate">{c.description}</CardDescription>}
                   </div>
                   <div className="flex flex-col gap-1 items-end ml-2">
