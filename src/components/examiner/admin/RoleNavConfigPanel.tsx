@@ -31,18 +31,34 @@ export function RoleNavConfigPanel() {
     "weekly-test": "Weekly Test",
     "gantt": "My Project (Gantt)",
     "report-card": "My Progress (Report Card)",
-    "batch": "Teacher Dashboard (Batch)",
+    "journey": "First Time? (Journey Wizard)",
+    // Teacher sub-tabs
+    "batch": "Teacher Dashboard (Today)",
+    "batch-students": "Students Roster",
+    "batch-mentorship": "Mentorship",
+    "batch-assignments": "Assignments",
+    "batch-insights": "Insights",
+    // Counselor
+    "counselor-dashboard": "Counselor Command Center",
+    // Course planner
     "course-planner": "Course Planner",
+    // Guardian
+    "guardian-dashboard": "Guardian Overview",
+    "guardian-progress": "Guardian Report Cards",
+    // Principal
+    "principal-dashboard": "Principal Institution Dashboard",
+    // Admin
     "admin-dashboard": "Admin Dashboard",
     "admin-users": "Users Management",
     "admin-courses": "Courses Management",
     "admin-features": "Feature Flags",
     "admin-resets": "Password Resets",
     "admin-system": "System & Dev",
+    // Shared
     "ai-tutor": "AI Tutor (NotebookLM)",
+    "teacher-ai-tutor": "Teacher AI Assistant",
     "course-outline": "Course Outline",
     "messages": "Messages",
-    "journey": "First Time? (Journey Wizard)",
     "settings": "Settings",
   };
 

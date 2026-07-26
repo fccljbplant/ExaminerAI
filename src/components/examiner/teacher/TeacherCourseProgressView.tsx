@@ -1,53 +1,72 @@
 "use client";
 
+/**
+ * TeacherCourseProgressView — dynamic per-week progress stepper + timeline.
+ *
+ * HI-8 fix (audit 2026-07-26 FINAL): the previous version hardcoded a 6-week
+ * web-dev bootcamp plan (TEACHER_BOOTCAMP_PLAN) with specific phase names like
+ * "Planning & Dev Environment" and "APIs, Automation & AI Agents". Every student
+ * portfolio opened with these wrong phase names for non-web-dev courses.
+ *
+ * Now the component derives the week list dynamically from the student's
+ * projectDurationWeeks (or the max week in their tasks, or a fallback of 6).
+ * Phase names are generic "Week N" since course-specific phases aren't
+ * available in the portfolio data. Accent colors cycle through a palette.
+ */
+
 import { Progress } from "@/components/ui/progress";
-import {
-  Users, Clock, CheckCircle2, Loader2, ShieldCheck, TrendingUp, Mail, UserCheck,
-  Award, AlertCircle, RefreshCw, FolderOpen, MessageSquare, ClipboardList,
-  CalendarCheck, Bug as BugIcon, Send, Inbox, ArrowLeft, HelpCircle,
-  Lock, KeyRound, Edit3, Save, Trash2, Brain, FileText, LayoutDashboard, Activity,
-  GraduationCap, HeartHandshake, Plus, Download,
-} from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import type { PortfolioData, StudentRow } from "@/components/examiner/teacher/types";
 
-const TEACHER_BOOTCAMP_PLAN = [
-  { week: 1, phase: "Planning & Dev Environment", accent: "emerald" as const },
-  { week: 2, phase: "Website & Database Fundamentals", accent: "cyan" as const },
-  { week: 3, phase: "APIs, Automation & AI Agents", accent: "warning" as const },
-  { week: 4, phase: "Prompt Engineering & AI", accent: "violet" as const },
-  { week: 5, phase: "Testing, Security & Deployment", accent: "rose" as const },
-  { week: 6, phase: "Career Prep & Capstone", accent: "sky" as const },
+/** Dynamic accent palette — cycles through these for any number of weeks. */
+const ACCENT_PALETTE = [
+  { text: "text-emerald-600", bg: "bg-emerald-500/10", bar: "bg-emerald-500" },
+  { text: "text-blue-600",    bg: "bg-blue-500/10",    bar: "bg-blue-500" },
+  { text: "text-amber-600",   bg: "bg-amber-500/10",   bar: "bg-amber-500" },
+  { text: "text-violet-600",  bg: "bg-violet-500/10",  bar: "bg-violet-500" },
+  { text: "text-rose-600",    bg: "bg-rose-500/10",    bar: "bg-rose-500" },
+  { text: "text-cyan-600",    bg: "bg-cyan-500/10",    bar: "bg-cyan-500" },
+  { text: "text-orange-600",  bg: "bg-orange-500/10",  bar: "bg-orange-500" },
+  { text: "text-teal-600",    bg: "bg-teal-500/10",    bar: "bg-teal-500" },
 ];
 
-const TEACHER_PHASE_ACCENTS: Record<string, { text: string; bg: string; bar: string }> = {
-  emerald: { text: "text-emerald-600", bg: "bg-emerald-500/10", bar: "bg-emerald-500" },
-  cyan:    { text: "text-blue-600",    bg: "bg-blue-500/10",    bar: "bg-blue-500" },
-  amber:   { text: "text-amber-600",   bg: "bg-amber-500/10",   bar: "bg-amber-500" },
-  violet:  { text: "text-violet-600",  bg: "bg-violet-500/10",  bar: "bg-violet-500" },
-  rose:    { text: "text-rose-600",    bg: "bg-rose-500/10",    bar: "bg-rose-500" },
-  sky:     { text: "text-cyan-600",    bg: "bg-cyan-500/10",    bar: "bg-cyan-500" },
-};
-
 export function TeacherCourseProgressView({ portfolio, student }: { portfolio: PortfolioData; student: StudentRow }) {
+  // Group tasks by week
   const tasksByWeek = new Map<number, typeof portfolio.tasks>();
   for (const t of portfolio.tasks) {
     if (!tasksByWeek.has(t.week)) tasksByWeek.set(t.week, []);
     tasksByWeek.get(t.week)!.push(t);
   }
+
   const currentWeek = student.currentWeek;
+
+  // HI-8 fix: derive total weeks dynamically — no hardcoded 6
+  const maxTaskWeek = portfolio.tasks.length > 0
+    ? Math.max(...portfolio.tasks.map(t => t.week))
+    : 0;
+  const totalWeeks = portfolio.student.projectDurationWeeks
+    || maxTaskWeek
+    || 6; // fallback only when no data exists — not a hardcoded assumption
+
+  // Build the week list dynamically
+  const weeks = Array.from({ length: totalWeeks }, (_, i) => ({
+    week: i + 1,
+    phase: `Week ${i + 1}`,
+    accent: ACCENT_PALETTE[i % ACCENT_PALETTE.length],
+  }));
 
   return (
     <div className="space-y-4">
-      {/* 6-week stepper */}
+      {/* Week stepper — dynamic count */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-        {TEACHER_BOOTCAMP_PLAN.map((plan) => {
+        {weeks.map((plan) => {
           const weekTasks = tasksByWeek.get(plan.week) ?? [];
           const completed = weekTasks.filter(t => t.status === "completed").length;
           const total = weekTasks.length;
           const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
           const isCurrent = plan.week === currentWeek;
           const isPast = plan.week < currentWeek;
-          const acc = TEACHER_PHASE_ACCENTS[plan.accent];
+          const acc = plan.accent;
           return (
             <div
               key={plan.week}
@@ -72,17 +91,17 @@ export function TeacherCourseProgressView({ portfolio, student }: { portfolio: P
         })}
       </div>
 
-      {/* Compact Gantt — visual progress per week */}
+      {/* Compact timeline — visual progress per week */}
       <div className="rounded-md border border-border p-3 space-y-1.5">
-        <p className="text-xs font-medium text-foreground mb-2">Timeline</p>
-        {TEACHER_BOOTCAMP_PLAN.map((plan) => {
+        <p className="text-xs font-medium text-foreground mb-2">Timeline ({totalWeeks} weeks)</p>
+        {weeks.map((plan) => {
           const weekTasks = tasksByWeek.get(plan.week) ?? [];
           const completed = weekTasks.filter(t => t.status === "completed").length;
           const inProgress = weekTasks.filter(t => t.status === "in-progress").length;
           const total = Math.max(weekTasks.length, 1);
           const completedWidth = (completed / total) * 100;
           const inProgressWidth = (inProgress / total) * 100;
-          const acc = TEACHER_PHASE_ACCENTS[plan.accent];
+          const acc = plan.accent;
           const isCurrent = plan.week === currentWeek;
           return (
             <div key={plan.week} className="grid grid-cols-[120px_1fr] sm:grid-cols-[180px_1fr] gap-2 items-center">
@@ -106,7 +125,7 @@ export function TeacherCourseProgressView({ portfolio, student }: { portfolio: P
       {/* Empty state */}
       {portfolio.tasks.length === 0 && (
         <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-3 text-xs text-amber-700">
-          This student hasn&apos;t added any project tasks yet. Consider messaging them to start with the Course Wizard in the Project Plan tab.
+          This student hasn&apos;t added any project tasks yet. Consider messaging them to start with the Project Plan tab.
         </div>
       )}
     </div>

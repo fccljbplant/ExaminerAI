@@ -233,12 +233,14 @@ export async function assertCanAccessStudent(
     return true;
   }
 
-  // Teachers/TAs — check batch membership
-  if (payload.role === "teacher" ) {
-    const teacher = await db.user.findUnique({
-      where: { id: payload.sub },
-      select: { batchId: true },
-    });
+  // Teachers/TAs — check batch membership via BatchTeacher junction
+  // CR-5 fix (audit 2026-07-26 FINAL): the previous version checked the legacy
+  // `teacher.batchId` field, NOT the BatchTeacher junction. A teacher assigned
+  // to batch X via BatchTeacher (the new pattern) but with legacy batchId=null
+  // fell through to AccessGrant. A teacher with legacy batchId=Y couldn't access
+  // students in batch X even when BatchTeacher said they should. Now uses
+  // canAccessBatch() which checks BOTH the BatchTeacher junction AND legacy batchId.
+  if (payload.role === "teacher") {
     const student = await db.user.findUnique({
       where: { id: studentId },
       select: { batchId: true, role: true },
@@ -246,18 +248,13 @@ export async function assertCanAccessStudent(
     if (!student || student.role !== "student") {
       throw { status: 404, message: "Student not found" };
     }
-    // N5-fix: legacy teachers (null batch) must NOT get institution-wide
-    // access — that was a security hole. Instead, they get the same
-    // treatment as other staff: they need an AccessGrant.
-    // This is stricter than the portfolio route's legacy behavior, but
-    // safer. The portfolio route will be updated to match.
-    if (!teacher?.batchId) {
-      // Legacy teacher with no batch — fall through to AccessGrant check
-    } else if (student.batchId === teacher.batchId) {
-      return true;
-    } else {
-      throw { status: 403, message: "You can only access students in your batch" };
+    // CR-5 fix: use canAccessBatch() which checks BatchTeacher junction + legacy batchId
+    const { canAccessBatch } = await import("@/lib/batch-teachers");
+    if (student.batchId) {
+      const hasAccess = await canAccessBatch(payload.sub, payload.role, student.batchId);
+      if (hasAccess) return true;
     }
+    // Fall through to AccessGrant check for teachers without batch access
   }
 
   // Guardians — check GuardianLink (they can see their linked children)
