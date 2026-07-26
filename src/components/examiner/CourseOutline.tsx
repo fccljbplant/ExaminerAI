@@ -131,20 +131,9 @@ export default function CourseOutline() {
                 </CardDescription>
               )}
             </div>
-            {/* Legacy HTML outline link — kept for the currently-enrolled
-                student who is using the hardcoded 6-week web dev course.
-                Can be removed once that course ends (~1 month). The new
-                DB-driven view above is the primary outline for all future
-                courses. */}
-            <a
-              href="/course-plan.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline flex-shrink-0 mt-1"
-            >
-              <ExternalLink className="h-3 w-3" /> <span className="hidden sm:inline">Classic HTML view</span>
-              <span className="sm:hidden">HTML</span>
-            </a>
+            {/* LO-4 fix: removed stale "Classic HTML view" link — the DB-driven
+                outline above is the primary view for all courses. The legacy
+                /course-plan.html was a leftover from the pre-DB era. */}
           </div>
           {/* Course metadata badges */}
           <div className="flex flex-wrap gap-1.5 mt-2">

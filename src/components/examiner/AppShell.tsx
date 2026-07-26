@@ -699,7 +699,7 @@ export default function AppShell() {
             )}
           </div>
           <div className="text-xs text-muted-foreground hidden sm:block">
-            AI Examiner · Modern Web Dev &amp; AI Bootcamp
+            AI Examiner · Learning Platform
           </div>
         </header>
 

@@ -18,7 +18,7 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { api } from "@/lib/api-client";
+import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { showError, showSuccess } from "@/lib/toast-helpers";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ActionDialog, type ActionDialogData } from "@/components/shared/action-dialog";
 import {
   AlertCircle, Heart, Activity, TrendingUp, TrendingDown, Clock,
   CheckCircle2, AlertTriangle, Brain, Users, RefreshCw, Loader2,
@@ -203,6 +204,59 @@ export default function CounselorDashboard({ onNavigateToMessages }: { onNavigat
 // ============================================================
 function CommandCenter({ data, onNavigateToMessages, onStudentClick, onReload }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void; onReload?: () => void }) {
   const { caseload } = data;
+  // HI-4 fix: Action Dialog state for counselor — same pattern as TodayView
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [actionDialogData, setActionDialogData] = useState<ActionDialogData | null>(null);
+  const [actionDialogBusy, setActionDialogBusy] = useState(false);
+  const [actionDialogLoading, setActionDialogLoading] = useState(false);
+  const [actionDialogCtx, setActionDialogCtx] = useState<{ studentId: string; studentName: string } | null>(null);
+
+  const openActionDialog = async (studentId: string, studentName: string, category?: string, severity?: string) => {
+    setActionDialogLoading(true);
+    setActionDialogCtx({ studentId, studentName });
+    try {
+      const res = await api.post<ActionDialogData>("/api/assistant/action-dialog", {
+        flagType: category || "crisis",
+        studentId,
+        trigger: `crisis:${category || "unknown"}:${severity || "warning"}`,
+        context: `Crisis flag for ${studentName}`,
+      }, AI_TIMEOUT_MS);
+      setActionDialogData(res);
+      setActionDialogOpen(true);
+    } catch {
+      setActionDialogData({
+        headline: severity === "red" ? "Crisis Flag" : "Student Needs Attention",
+        tier: severity === "red" ? "red" : "warning",
+        why: `Crisis flag: ${category || "unknown"} for ${studentName}`,
+        suggestedAction: `Reach out to ${studentName} to check in and provide support.`,
+        notePresets: ["Had a conversation — student is stable", "Scheduled a follow-up", "Referred to external support"],
+      });
+      setActionDialogOpen(true);
+    } finally {
+      setActionDialogLoading(false);
+    }
+  };
+
+  const handleActionConfirm = async (note: string, editedAction: string) => {
+    if (!actionDialogCtx) return;
+    setActionDialogBusy(true);
+    try {
+      await api.post("/api/messages", {
+        toId: actionDialogCtx.studentId,
+        subject: "Checking in",
+        text: editedAction,
+      });
+      setActionDialogOpen(false);
+      setActionDialogData(null);
+      setActionDialogCtx(null);
+      onReload?.();
+    } catch {
+      setActionDialogOpen(false);
+    } finally {
+      setActionDialogBusy(false);
+    }
+  };
+
   const wellbeingData = [
     { name: "Green", value: caseload.greenCount, color: "#10b981" },
     { name: "Amber", value: caseload.amberCount, color: "#f59e0b" },
@@ -250,6 +304,10 @@ function CommandCenter({ data, onNavigateToMessages, onStudentClick, onReload }:
                     <div className="text-xs text-muted-foreground mt-0.5">Tier: {item.wellbeingTier} · {timeAgo(item.createdAt)}</div>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* HI-4 fix: Act button — opens AI ActionDialog with drafted message */}
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-violet-600 hover:bg-violet-500/10" disabled={actionDialogLoading} onClick={() => openActionDialog(item.studentId, item.studentName, item.category, item.severity)}>
+                      {actionDialogLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} Act
+                    </Button>
                     {/* M3 + HI-3 fix: Acknowledge, Escalate to Principal, and Resolve buttons */}
                     <Button size="sm" variant="ghost" className="h-6 text-[10px] text-amber-600 hover:bg-amber-500/10" onClick={async () => {
                       try { await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "acknowledged" }); showSuccess("Crisis flag acknowledged."); onReload?.(); } catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
@@ -372,6 +430,17 @@ function CommandCenter({ data, onNavigateToMessages, onStudentClick, onReload }:
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* HI-4 fix: AI Action Dialog for counselors — same as teacher TodayView */}
+      {actionDialogData && (
+        <ActionDialog
+          open={actionDialogOpen}
+          onOpenChange={setActionDialogOpen}
+          data={actionDialogData}
+          onConfirm={handleActionConfirm}
+          busy={actionDialogBusy}
+        />
       )}
     </div>
   );
