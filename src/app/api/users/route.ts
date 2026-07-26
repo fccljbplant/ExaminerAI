@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true, email: true, name: true, role: true, blocked: true,
         approvedAt: true, createdAt: true, lastLogin: true, currentWeek: true, projectName: true,
+        batchId: true,
       },
     }),
   ]);

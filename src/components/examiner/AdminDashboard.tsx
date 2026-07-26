@@ -57,6 +57,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     "overview"
   );
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [batches, setBatches] = useState<Array<{ id: string; name: string; courseId: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [seedMsg, setSeedMsg] = useState("");
@@ -83,22 +84,27 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   const load = useCallback(async (pageNum?: number) => {
     setLoading(true);
     try {
-      // For the users tab, use pagination + search.
-      // For the overview tab, fetch ALL users (no pagination) to get accurate counts.
-      const isOverview = view === "overview";
-      const params = new URLSearchParams();
-      if (searchQuery.trim()) params.set("q", searchQuery.trim());
-      if (roleFilter) params.set("role", roleFilter);
-      if (!isOverview) {
-        params.set("page", String(pageNum ?? page));
-        params.set("pageSize", String(pageSize));
-      } else {
-        params.set("pageSize", "200"); // fetch up to 200 for overview stats
-      }
-      const qs = params.toString();
-      const res = await api.get<{ users: UserRow[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/api/users${qs ? `?${qs}` : ""}`);
-      setUsers(res.users);
-      if (res.pagination) setPagination(res.pagination);
+      // Fetch batches in parallel with users (for batch assignment dropdown)
+      const [usersRes, batchRes] = await Promise.all([
+        (async () => {
+          const isOverview = view === "overview";
+          const params = new URLSearchParams();
+          if (searchQuery.trim()) params.set("q", searchQuery.trim());
+          if (roleFilter) params.set("role", roleFilter);
+          if (!isOverview) {
+            params.set("page", String(pageNum ?? page));
+            params.set("pageSize", String(pageSize));
+          } else {
+            params.set("pageSize", "200");
+          }
+          const qs = params.toString();
+          return api.get<{ users: UserRow[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/api/users${qs ? `?${qs}` : ""}`);
+        })(),
+        api.get<{ batches: Array<{ id: string; name: string; courseId: string | null }> }>("/api/batches").catch(() => ({ batches: [] })),
+      ]);
+      setUsers(usersRes.users);
+      if (usersRes.pagination) setPagination(usersRes.pagination);
+      setBatches(batchRes.batches || []);
     } catch { /* ignore */ }
     finally { setLoading(false); }
   }, [searchQuery, roleFilter, page, view]);
@@ -122,6 +128,13 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     if (!confirm(`Change this user's role to "${role}"? This affects their permissions immediately.`)) return;
     setBusy(id);
     try { await api.patch(`/api/users/${id}/role`, { role }); await load(); }
+    catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
+    finally { setBusy(null); }
+  };
+
+  const assignBatch = async (userId: string, batchId: string) => {
+    setBusy(userId);
+    try { await api.patch(`/api/users/${userId}/batch`, { batchId }); await load(); showSuccess("Batch assigned."); }
     catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
     finally { setBusy(null); }
   };
@@ -349,6 +362,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                     <th className="text-left py-2 px-3">Name</th>
                     <th className="text-left py-2 px-3 hidden sm:table-cell">Email</th>
                     <th className="text-left py-2 px-3">Role</th>
+                    <th className="text-left py-2 px-3 hidden lg:table-cell">Batch</th>
                     <th className="text-left py-2 px-3 hidden md:table-cell">Project</th>
                     <th className="text-left py-2 px-3 hidden md:table-cell">Last Login</th>
                     <th className="text-left py-2 px-3">Actions</th>
@@ -377,6 +391,24 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                             <SelectItem value="demo">Demo (read-only)</SelectItem>
                           </SelectContent>
                         </Select>
+                      </td>
+                      <td className="py-2 px-3 hidden lg:table-cell">
+                        {u.role === "student" && isAdminRole && batches.length > 0 ? (
+                          <Select
+                            value={(u as any).batchId || ""}
+                            onValueChange={(bid) => assignBatch(u.id, bid)}
+                            disabled={busy === u.id}
+                          >
+                            <SelectTrigger className="bg-muted border-border h-7 text-xs w-32"><SelectValue placeholder="No batch" /></SelectTrigger>
+                            <SelectContent>
+                              {batches.map(b => (
+                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </td>
                       <td className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.projectName || "—"}</td>
                       <td className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "—"}</td>
