@@ -77,10 +77,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid severity — must be 'amber' or 'red'" }, { status: 400 });
   }
 
-  // Verify the target student exists
+  // Verify the target student exists (HI-1 fix: also fetch institutionId for scoping)
   const student = await db.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, institutionId: true },
   });
   if (!student) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
@@ -125,12 +125,19 @@ export async function POST(req: NextRequest) {
     });
 
     // Notify counselors + principals via in-app messages (best-effort, non-blocking).
-    // The docs say "Crisis flag → Counsellor + Principal (immediate)" — this
-    // implements that notification without external email/SMS.
+    // HI-1 fix: scope notification to the student's institution — was sending to
+    // ALL counselors/principals/admins globally, leaking cross-institution data.
     try {
       const notifyRoles = ["counselor", "principal", "administrator"];
       const recipients = await db.user.findMany({
-        where: { role: { in: notifyRoles }, blocked: false },
+        where: {
+          role: { in: notifyRoles },
+          blocked: false,
+          // HI-1 fix: only notify staff in the SAME institution as the student.
+          // Use a guaranteed-non-match when student has no institution (same
+          // pattern as CR-3 fix — never pass undefined to Prisma).
+          institutionId: student.institutionId || "__no_institution__",
+        },
         select: { id: true },
       });
       const crisisMsg = `CRISIS FLAG: Student ${student.name} has been flagged with ${category.replace(/_/g, " ")} (${severity}). Immediate review recommended. Flag ID: ${flag.id}`;

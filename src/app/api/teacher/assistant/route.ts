@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
   // don't match. Fall back to a simple student list from /api/stats data.
   let summary;
   try {
-    summary = await buildTeacherBatchSummary(teacherId, batchScope);
+    summary = await buildTeacherBatchSummary(teacherId, batchScope, auth.ctx.payload.role);
   } catch (summaryErr) {
     logger.error("Batch summary failed, falling back to simple stats", {
       teacherId,

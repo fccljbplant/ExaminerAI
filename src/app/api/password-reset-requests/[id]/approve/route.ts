@@ -60,7 +60,11 @@ export async function POST(
       where: { id },
       data: {
         status: "resolved",
-        tempPassword, // stored so admin can share it with the student
+        // HI-11 fix: don't store the plaintext temp password — store a marker
+        // indicating a temp password was set. The actual temp password is
+        // returned in the response so the admin can share it immediately.
+        // If the admin forgets, they reset the password again (new request).
+        tempPassword: "[SET — not stored for security]",
         adminNote,
         resolvedAt: new Date(),
       },

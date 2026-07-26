@@ -84,7 +84,11 @@ export function PasswordResetPanel() {
               <div key={r.id} className="flex items-center justify-between rounded-md bg-muted p-2 text-xs">
                 <span className="text-foreground">{r.user.name} ({r.user.email})</span>
                 <Badge variant="outline" className="capitalize">{r.status}</Badge>
-                {r.tempPassword && <span className="font-mono text-muted-foreground">temp: {r.tempPassword}</span>}
+                {/* HI-11 fix: temp password is no longer stored in plaintext —
+                    the admin sees it only in the approve response, not here. */}
+                {r.tempPassword && r.tempPassword !== "[SET — not stored for security]" && (
+                  <span className="font-mono text-muted-foreground">temp: {r.tempPassword}</span>
+                )}
                 <span className="text-muted-foreground">{r.resolvedAt ? new Date(r.resolvedAt).toLocaleDateString() : ""}</span>
               </div>
             ))}

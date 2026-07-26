@@ -79,26 +79,39 @@ export interface BatchSummary {
 export async function buildTeacherBatchSummary(
   teacherId: string,
   studentIds?: string[],
+  role?: string,
 ): Promise<BatchSummary> {
   // H5 fix: use getTeacherBatchIds() instead of teacher.batchId — supports
   // multi-batch teachers via the BatchTeacher junction.
-  const teacherBatchIds = await getTeacherBatchIds(teacherId, "teacher");
+  // HI-7 fix: accept the caller's role — was hardcoded to "teacher", so
+  // counselors/principals/admins calling /api/teacher/assistant got empty
+  // results because getTeacherBatchIds returns null for admin roles (meaning
+  // "unrestricted"), but the null check returned empty.
+  const callerRole = role || "teacher";
+  const teacherBatchIds = await getTeacherBatchIds(teacherId, callerRole);
 
-  if (!teacherBatchIds || teacherBatchIds.length === 0) {
-    // No batches assigned — return empty summary
+  // HI-7 fix: null means admin/principal (unrestricted access) — don't return
+  // empty, use getBatchFilter instead to get all institution students.
+  if (teacherBatchIds !== null && teacherBatchIds.length === 0) {
+    // Non-admin with no batches — return empty summary
     return { teacherId, totalStudents: 0, students: [], generatedAt: new Date().toISOString() };
   }
 
   // Get students in ANY of the teacher's batches (or the specified subset)
+  // HI-7 fix: when teacherBatchIds is null (admin), use getBatchFilter for institution scoping
+  const { getBatchFilter } = await import("@/lib/batch-teachers");
+  const batchFilter = teacherBatchIds === null
+    ? await getBatchFilter(teacherId, callerRole)
+    : { batchId: { in: teacherBatchIds } };
+
   const students = await db.user.findMany({
     where: {
       role: "student",
       blocked: false,
-      // If studentIds is provided, filter to those; otherwise filter to
-      // students in ANY of the teacher's batches.
+      // If studentIds is provided, filter to those; otherwise use batch filter
       ...(studentIds
         ? { id: { in: studentIds } }
-        : { batchId: { in: teacherBatchIds } }),
+        : batchFilter),
     },
     select: {
       id: true, name: true, email: true, currentWeek: true,

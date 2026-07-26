@@ -44,8 +44,18 @@ export async function GET(req: NextRequest) {
   }
 
   // Get all open alerts across all students (for teacher dashboard)
-  // Filter safeguarding alerts to principal-only
-  const alertWhere: any = { status: "open" };
+  // HI-2 fix: scope to the caller's batch(es) — was returning ALL alerts
+  // institution-wide with no scoping, leaking cross-batch/cross-institution data.
+  const { getBatchFilter } = await import("@/lib/batch-teachers");
+  const batchFilter = isPrincipal ? {} : await getBatchFilter(payload.sub, payload.role);
+  const alertWhere: any = {
+    status: "open",
+    user: {
+      role: "student",
+      blocked: false,
+      ...batchFilter,
+    },
+  };
   if (!isPrincipal) {
     alertWhere.type = { not: "safeguarding" };
   }
