@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { getCurrentUser, assertCanAccessStudent, getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logAudit, AuditAction } from "@/lib/audit-log";
 
 /** GET /api/psych-evidence?userId=X — list psychological evidence for a student.
  *  Staff can query students in their batch. Students can query their own. */
@@ -97,6 +98,15 @@ export async function PATCH(req: NextRequest) {
       disputedAt: disputed ? new Date() : null,
     },
   });
+
+  // LO-5 fix: audit log for psych evidence dispute
+  await logAudit({
+    actor: { id: auth.ctx.payload.sub, name: auth.ctx.payload.name, role: auth.ctx.payload.role },
+    action: AuditAction.PSYCH_EVIDENCE_DISPUTED,
+    target: { type: "psychEvidence", id: evidenceId },
+    after: { disputed, disputeNote: disputeNote?.trim() || null },
+    metadata: { studentId: existing.userId },
+  }).catch(() => {});
 
   return NextResponse.json({ evidence: updated });
 }

@@ -55,7 +55,15 @@ export const AuditAction = {
   // Self-paced + report actions
   SELF_PACED_ADVANCE: "self_paced_advance",
   COMPREHENSIVE_REPORT_VIEWED: "comprehensive_report_viewed",
+  COMPREHENSIVE_REPORT_REVIEWED: "comprehensive_report_reviewed",
   CERTIFICATE_GENERATED: "certificate_generated",
+  // LO-5 fix: 6 missing event types for AI-driven state changes
+  PSYCH_EVIDENCE_WRITTEN: "psych_evidence_written",
+  PSYCH_EVIDENCE_DISPUTED: "psych_evidence_disputed",
+  STUDENT_ALERT_AUTO_CREATED: "student_alert_auto_created",
+  WELLBEING_STATE_CHANGED: "wellbeing_state_changed",
+  REPORT_CARD_GENERATED: "report_card_generated",
+  FINAL_RESULT_GENERATED: "final_result_generated",
 } as const;
 
 export async function logAudit(params: LogAuditParams): Promise<void> {

@@ -5,6 +5,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logAudit, AuditAction } from "@/lib/audit-log";
 
 /** POST /api/students/[id]/generate-report-card — teacher/admin auto-generates
  *  a report card for a student based on their accumulated data (weekly tests,
@@ -160,6 +161,15 @@ export async function POST(
       examinerObservations,
     },
   });
+
+  // LO-5 fix: audit log for AI-driven report card generation
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name, role: payload.role },
+    action: AuditAction.REPORT_CARD_GENERATED,
+    target: { type: "user", id },
+    after: { week, score: overallScore, grade },
+    req,
+  }).catch(() => {});
 
   return NextResponse.json({
     ok: true,

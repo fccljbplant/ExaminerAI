@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
+import { logAudit, AuditAction } from "@/lib/audit-log";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseWeekPhase, getCourseDurationWeeks } from "@/lib/course-db";
 
@@ -237,6 +238,14 @@ Return ONLY a JSON object:
   const completedTasks = user.tasks.filter(t => t.status === "completed").length;
   const milestones = user.tasks.filter(t => t.isMilestone).length;
   const completedMilestones = user.tasks.filter(t => t.isMilestone && t.status === "completed").length;
+
+  // LO-5 fix: audit log for AI-driven final result generation
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name, role: payload.role },
+    action: AuditAction.FINAL_RESULT_GENERATED,
+    target: { type: "user", id: targetUserId },
+    after: { performanceScore, performanceGrade, careerReadiness: aiAnalysis?.careerReadiness },
+  }).catch(() => {});
 
   return NextResponse.json({
     studentName: user.name,
