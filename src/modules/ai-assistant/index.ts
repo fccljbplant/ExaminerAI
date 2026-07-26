@@ -30,17 +30,6 @@ export {
 } from "@/lib/ai-assistant/scope";
 
 export {
-  getCachedSummary,
-  setCachedSummary,
-  isCacheCurrentWeek,
-  getAggregateSummary,
-  getNarrowedEntityData,
-  checkQueryBudget,
-  logAIUsage,
-  MAX_ENTITY_RECORDS_PER_CALL,
-} from "@/lib/ai-assistant/data-efficiency";
-
-export {
   shouldEscalate,
   countRepeatOccurrences,
   escalateFlag,
@@ -60,18 +49,14 @@ export {
   type SafeguardingSignal,
 } from "@/lib/ai-assistant/safeguarding";
 
-export {
-  calculateTeacherLoad,
-  getInstitutionTeacherLoadRoster,
-  suggestCoTeacher,
-  type TeacherLoadResult,
-} from "@/lib/ai-assistant/teacher-load";
-
-export {
-  getGuidanceForFlagType,
-  buildGuidancePromptSection,
-  type FlagGuidance,
-} from "@/lib/ai-assistant/teaching-guidance";
+// HI-5 fix: teacher-load.ts removed — was dead code with a different formula
+// than /api/teacher/load/route.ts. The route is the single source of truth.
+// HI-6 fix: teaching-guidance.ts removed — was dead code. The action-dialog
+// route generates guidance inline via the AI prompt.
+// HI-6 fix: data-efficiency.ts exports removed from barrel — the functions
+// are dead code (never imported by any route). The file itself is kept because
+// it contains the CR-4 security fix (null-scope guard) which would be needed
+// if the functions are wired up in the future.
 
 /** API route paths for the AI Assistant */
 export const AI_ASSISTANT_API = {
