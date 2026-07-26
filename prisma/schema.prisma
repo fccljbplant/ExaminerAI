@@ -753,6 +753,13 @@ model PsychEvidence {
   sourceType      String   // "weekly_test" | "interaction" | "check_in" | "manual"
   sourceId        String?  // the interaction/test/log id
   week            Int?
+  // ME-6 fix: disputed flag — teachers can contest AI-derived psych labels.
+  // When true, the evidence is still visible but marked as "Disputed" in the UI,
+  // and the disputeNote explains why the teacher disagrees.
+  disputed        Boolean  @default(false)
+  disputeNote     String?  // teacher's explanation for the dispute
+  disputedBy      String?  // teacher user ID who disputed
+  disputedAt      DateTime?
   createdAt       DateTime @default(now())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, dimension])

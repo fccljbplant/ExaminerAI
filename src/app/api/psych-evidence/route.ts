@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     where: { userId },
     orderBy: { createdAt: "desc" },
     take: 200,
-    select: { id: true, dimension: true, value: true, evidenceText: true, sourceType: true, sourceId: true, week: true, createdAt: true },
+    select: { id: true, dimension: true, value: true, evidenceText: true, sourceType: true, sourceId: true, week: true, createdAt: true, disputed: true, disputeNote: true, disputedBy: true, disputedAt: true },
   });
   return NextResponse.json({ evidence });
 }
@@ -54,4 +54,49 @@ export async function POST(req: NextRequest) {
     data: { userId, dimension, value, evidenceText, sourceType: sourceType || "manual", sourceId, week },
   });
   return NextResponse.json({ evidence: ev });
+}
+
+/** PATCH /api/psych-evidence — dispute or undispute an evidence row.
+ *  ME-6 fix: teachers can contest AI-derived psych labels. When disputed,
+ *  the evidence is still visible but marked as "Disputed" in the UI.
+ *  Body: { evidenceId, disputed: boolean, disputeNote?: string } */
+export async function PATCH(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("managing psychology evidence"); if (_demoBlock) return _demoBlock;
+  const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  if (!auth.ok) return auth.response;
+
+  const body = await req.json().catch(() => ({}));
+  const { evidenceId, disputed, disputeNote } = body as {
+    evidenceId?: string; disputed?: boolean; disputeNote?: string;
+  };
+
+  if (!evidenceId || disputed === undefined) {
+    return NextResponse.json({ error: "evidenceId and disputed (boolean) required" }, { status: 400 });
+  }
+
+  // Verify the evidence exists and get the userId for IDOR check
+  const existing = await db.psychEvidence.findUnique({
+    where: { id: evidenceId },
+    select: { userId: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "Evidence not found" }, { status: 404 });
+  }
+
+  // IDOR protection
+  try { await assertCanAccessStudent(auth.ctx.payload, existing.userId); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
+
+  const updated = await db.psychEvidence.update({
+    where: { id: evidenceId },
+    data: {
+      disputed,
+      disputeNote: disputeNote?.trim() || null,
+      disputedBy: disputed ? auth.ctx.payload.sub : null,
+      disputedAt: disputed ? new Date() : null,
+    },
+  });
+
+  return NextResponse.json({ evidence: updated });
 }

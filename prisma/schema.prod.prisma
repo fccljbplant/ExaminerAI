@@ -647,6 +647,10 @@ model PsychEvidence {
   sourceType   String
   sourceId     String?
   week         Int?
+  disputed     Boolean  @default(false)
+  disputeNote  String?
+  disputedBy   String?
+  disputedAt   DateTime?
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

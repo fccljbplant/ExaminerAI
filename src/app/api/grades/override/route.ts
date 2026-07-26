@@ -69,8 +69,27 @@ export async function POST(req: NextRequest) {
         metadata: { studentId: test.userId, reason: reason ?? null }, req,
       });
       return NextResponse.json({ ok: true, oldScore, newScore: score });
+    } else if (type === "dailyTest") {
+      // ME-7 fix: add daily test score override path — was missing entirely.
+      const test = await db.dailyTest.findUnique({ where: { id }, select: { userId: true, score: true, week: true, topic: true } });
+      if (!test) return NextResponse.json({ error: "Not found" }, { status: 404 });
+      const oldScore = test.score;
+      try {
+        await assertCanAccessStudent(ctx.payload, test.userId);
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+      }
+      await db.dailyTest.update({ where: { id }, data: { score } });
+      await logAudit({
+        actor: { id: ctx.payload.sub, name: ctx.payload.name, role: ctx.payload.role },
+        action: AuditAction.GRADE_CHANGED, target: { type: "dailyTest", id },
+        before: { score: oldScore, week: test.week },
+        after: { score, week: test.week },
+        metadata: { studentId: test.userId, reason: reason ?? null }, req,
+      });
+      return NextResponse.json({ ok: true, oldScore, newScore: score });
     }
-    return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid type — must be 'interaction', 'weeklyTest', or 'dailyTest'" }, { status: 400 });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 500 });
   }
