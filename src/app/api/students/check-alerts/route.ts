@@ -208,7 +208,9 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
             { role: { in: ["administrator", "principal"] }, blocked: false },
             // H3 fix: counselors in the student's institution get notified of
             // gradual decline too (not just crisis flags).
-            { role: { in: ["counselor"] }, blocked: false, institutionId: student.institutionId ?? undefined },
+            // CR-3 fix: when student has no institutionId, use a guaranteed-
+            // non-match filter instead of undefined (which means "no filter").
+            { role: { in: ["counselor"] }, blocked: false, institutionId: student.institutionId || "__no_institution__" },
           ],
         },
         select: { id: true, name: true },

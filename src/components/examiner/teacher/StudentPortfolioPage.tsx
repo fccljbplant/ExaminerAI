@@ -422,7 +422,9 @@ export function StudentPortfolioPage({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="rounded-md bg-muted p-2">
           <p className="text-[10px] text-muted-foreground">Week</p>
-          <p className="text-sm font-bold text-foreground">{portfolio.student.currentWeek} / 6</p>
+          {/* HI-9 fix: was hardcoded "/ 6" — now uses projectDurationWeeks or
+              falls back to a generic label */}
+          <p className="text-sm font-bold text-foreground">{portfolio.student.currentWeek} / {portfolio.student.projectDurationWeeks || "—"}</p>
         </div>
         <div className="rounded-md bg-muted p-2">
           <p className="text-[10px] text-muted-foreground">Progress</p>

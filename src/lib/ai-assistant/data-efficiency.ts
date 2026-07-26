@@ -167,7 +167,9 @@ export async function getAggregateSummary(scope: ScopeResult): Promise<{
       select: { severity: true, status: true },
     }),
     db.studentHealthSummary.findMany({
-      where: { userId: { in: scope.studentIds.length > 0 ? scope.studentIds : undefined } },
+      // CR-4 fix: never pass undefined to Prisma — it means "no filter" and leaks
+      // ALL student data. Use a guaranteed-non-match array when scope is empty.
+      where: { userId: { in: scope.studentIds.length > 0 ? scope.studentIds : ["__empty_scope__"] } },
       select: { moodScore: true, engagementScore: true, frustrationCount: true, avoidanceCount: true, enthusiasmCount: true },
     }),
   ]);

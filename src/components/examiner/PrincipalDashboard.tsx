@@ -26,7 +26,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Users, GraduationCap, BookOpen, AlertTriangle, Heart, Activity,
-  TrendingUp, TrendingDown, ShieldCheck, FileText, BarChart3, Brain,
+  TrendingUp, TrendingDown, ShieldCheck, ShieldAlert, FileText, BarChart3, Brain,
   RefreshCw, Loader2, AlertCircle, CheckCircle2, Clock, Building2,
   Zap, Award, ChevronRight, Brain as BrainIcon,
 } from "lucide-react";
@@ -52,11 +52,13 @@ interface PrincipalData {
   };
   coursePerformance: Array<{ id: string; code: string; name: string; teacher: string; studentCount: number; avgScore: number }>;
   teacherPerformance: Array<{ id: string; name: string; email: string; courses: number; sessions: number; alertsRaised: number }>;
+  // CR-2 fix: safeguarding flags for principal review
+  safeguardingFlags?: Array<{ id: string; teacherId: string; teacherName: string; reason: string; severity: string; status: string; createdAt: string }>;
   auditLogs: Array<{ id: string; actorName: string; actorRole: string; action: string; targetType: string; metadata: string | null; createdAt: string }>;
   growthReports: Array<{ id: string; title: string; userName: string; generatedAt: string }>;
 }
 
-type PrincipalTab = "overview" | "academic" | "wellbeing" | "audit";
+type PrincipalTab = "overview" | "academic" | "wellbeing" | "safeguarding" | "audit";
 
 export default function PrincipalDashboard() {
   const [data, setData] = useState<PrincipalData | null>(null);
@@ -114,6 +116,8 @@ export default function PrincipalDashboard() {
     { key: "overview", label: "Overview", icon: BarChart3, badge: data.overview.openAlerts || undefined, badgeColor: "warning" as const },
     { key: "academic", label: "Academic", icon: GraduationCap },
     { key: "wellbeing", label: "Wellbeing", icon: Heart, badge: data.overview.crisisFlags || undefined, badgeColor: "red" as const },
+    // CR-2 fix: Safeguarding tab — shows safeguarding flags for principal review
+    { key: "safeguarding", label: "Safeguarding", icon: ShieldAlert, badge: (data.safeguardingFlags?.filter(f => f.status === "open").length) || undefined, badgeColor: "red" as const },
     // Audit Log tab — hidden from demo (system settings are admin-only)
     ...(isDemo ? [] : [{ key: "audit" as PrincipalTab, label: "Audit Log", icon: ShieldCheck }]),
   ];
@@ -162,6 +166,7 @@ export default function PrincipalDashboard() {
       {tab === "overview" && <OverviewView data={data} />}
       {tab === "academic" && <AcademicView data={data} />}
       {tab === "wellbeing" && <WellbeingView data={data} />}
+      {tab === "safeguarding" && <SafeguardingView data={data} />}
       {tab === "audit" && <AuditView data={data} />}
     </div>
   );
@@ -504,5 +509,92 @@ function StatCard({ icon: Icon, label, value, color }: { icon: any; label: strin
         <div className={cn("text-xl font-bold", color)}>{value}</div>
       </CardContent>
     </Card>
+  );
+}
+
+// ============================================================
+// CR-2 fix: SAFEGUARDING VIEW — shows safeguarding flags for principal review
+// ============================================================
+function SafeguardingView({ data }: { data: PrincipalData }) {
+  const flags = data.safeguardingFlags || [];
+  const openFlags = flags.filter(f => f.status === "open");
+  const resolvedFlags = flags.filter(f => f.status !== "open");
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-rose-500" /> Safeguarding Review
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Flags triggered by the safeguarding scanner when staff→student messages or comments match concerning-language patterns. Each flag requires 2+ corroborating signals within 14 days. Only principals and administrators can see these.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* Summary stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-3 text-center">
+              <p className="text-2xl font-bold text-rose-600">{openFlags.length}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Open Flags</p>
+            </div>
+            <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-center">
+              <p className="text-2xl font-bold text-emerald-600">{resolvedFlags.length}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Resolved / Dismissed</p>
+            </div>
+          </div>
+
+          {/* Open flags */}
+          {openFlags.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-foreground uppercase tracking-wider">Open — Need Review</p>
+              {openFlags.map(flag => (
+                <div key={flag.id} className={cn("flex items-start gap-3 p-3 rounded-lg border",
+                  flag.severity === "red" ? "border-rose-300 bg-rose-50 dark:bg-rose-950/20" : "border-amber-300 bg-amber-50 dark:bg-amber-950/20"
+                )}>
+                  <AlertCircle className={cn("w-5 h-5 flex-shrink-0 mt-0.5", flag.severity === "red" ? "text-rose-600" : "text-amber-600")} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium truncate">{flag.teacherName}</span>
+                      <Badge variant="outline" className={cn("text-[9px]", flag.severity === "red" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700")}>{flag.severity}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{flag.reason}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Flagged {new Date(flag.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Resolved flags */}
+          {resolvedFlags.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Resolved</p>
+              {resolvedFlags.slice(0, 10).map(flag => (
+                <div key={flag.id} className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium truncate">{flag.teacherName}</span>
+                      <Badge variant="outline" className="text-[9px] capitalize">{flag.status}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{flag.reason}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {flags.length === 0 && (
+            <div className="text-center py-8">
+              <ShieldCheck className="h-10 w-10 text-emerald-500/40 mx-auto mb-2" />
+              <p className="text-sm font-medium text-foreground">No safeguarding flags</p>
+              <p className="text-xs text-muted-foreground mt-1">No concerning-language patterns have been detected in staff→student communications.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

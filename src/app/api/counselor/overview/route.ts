@@ -29,9 +29,20 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden — counselor access required" }, { status: 403 });
   }
 
-  // Get all students (counselors have institution-wide access via AccessGrants)
+  // CR-6 fix (audit 2026-07-26 FINAL): add institutionId filter — was loading
+  // ALL students globally with no scoping, leaking cross-institution data.
+  const counselor = await db.user.findUnique({
+    where: { id: payload.sub },
+    select: { institutionId: true },
+  });
+  if (!counselor?.institutionId) {
+    return NextResponse.json({ error: "No institution assigned to your account." }, { status: 403 });
+  }
+  const institutionId = counselor.institutionId;
+
+  // Get students scoped to the counselor's institution
   const students = await db.user.findMany({
-    where: { role: "student", blocked: false },
+    where: { role: "student", blocked: false, institutionId },
     select: {
       id: true, name: true, email: true, currentWeek: true,
       batchId: true, lastLogin: true,

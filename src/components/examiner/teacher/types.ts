@@ -25,7 +25,7 @@ export interface StudentRow {
 }
 
 export interface PortfolioData {
-  student: { id: string; name: string; email: string; currentWeek: number; createdAt: string; lastLogin: string | null };
+  student: { id: string; name: string; email: string; currentWeek: number; createdAt: string; lastLogin: string | null; projectDurationWeeks?: number | null };
   hasProject: boolean;
   progress: number;
   // All collection/trend fields are guaranteed present by the API (empty array

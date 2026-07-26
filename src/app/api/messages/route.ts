@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { analyzeMessageForSafeguarding } from "@/lib/ai-assistant/safeguarding";
+import { analyzeMessageForSafeguarding, createSafeguardingFlag } from "@/lib/ai-assistant/safeguarding";
 
 /** GET /api/messages — list messages for current user (with pagination).
  *  Query params: box (all|sent|received), page (default 1), pageSize (default 50, max 200) */
@@ -77,14 +77,11 @@ export async function POST(req: NextRequest) {
   // aggressive/inappropriate language. This is the teacher→student safeguarding
   // pathway (Section 5 of the AI Assistant spec).
   //
-  // C8 fix (audit 2026-07-26): the safeguarding flag must be attributed to
-  // the TEACHER (the one who used the language), not the student. The previous
-  // version stored it against `userId: toId` (the student), which meant:
-  //   - The student appeared in safeguarding reports (wrong — they did nothing wrong)
-  //   - The teacher's behavior was invisible in their own portfolio
-  //   - Principals reviewing safeguarding flags saw the wrong person attributed
-  // We now store the flag against `userId: user.id` (the teacher) and keep the
-  // student ID + message ID in the resolutionNote for context.
+  // CR-1 fix (audit 2026-07-26 FINAL): the previous version created one
+  // StudentAlert per regex match, bypassing createSafeguardingFlag() which
+  // enforces the 2+ corroboration rule (2+ signals within 14 days). Now we
+  // count total recent signals from this teacher and call createSafeguardingFlag()
+  // which only creates a flag when corroboration is met.
   try {
     const recipientUser = await db.user.findUnique({
       where: { id: toId },
@@ -94,28 +91,30 @@ export async function POST(req: NextRequest) {
     if (recipientUser?.role === "student" && user.role !== "student") {
       const signals = analyzeMessageForSafeguarding(text, msg.id);
       if (signals.length > 0) {
-        for (const signal of signals) {
-          await db.studentAlert.create({
-            data: {
-              // C8 fix: attribute the flag to the TEACHER (the one who used the language),
-              // not the student. The student is the recipient, not the subject of the alert.
-              userId: user.id,
-              type: "safeguarding",
-              severity: signal.severity,
-              reason: `${signal.category}: ${signal.matchedPatterns.join(", ")}`,
-              metric: "teacher_message",
-              metricValue: "1",
-              status: "open",
-              resolutionNote: JSON.stringify({
-                messageId: msg.id,
-                teacherId: user.id,        // The flagged staff member
-                studentId: toId,            // The student who received the message (context only)
-                category: signal.category,
-                context: signal.context,
-              }),
-            },
-          }).catch(() => {}); // best-effort
-        }
+        // Count existing safeguarding signals from this teacher in the last 14 days
+        const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+        const recentSignals = await db.studentAlert.count({
+          where: {
+            userId: user.id,
+            type: "safeguarding",
+            createdAt: { gte: fourteenDaysAgo },
+          },
+        });
+
+        // Total signal count = existing + new signals from this message
+        const totalSignalCount = recentSignals + signals.length;
+        const categories = signals.map(s => s.category);
+        const contextSummary = signals.map(s => `${s.category}: ${s.matchedPatterns.join(", ")}`).join("; ");
+
+        // CR-1 fix: use createSafeguardingFlag() which enforces the 2+ corroboration rule
+        await createSafeguardingFlag({
+          teacherId: user.id,
+          studentId: toId,
+          signalCount: totalSignalCount,
+          messageIds: [msg.id],
+          categories: categories as any,
+          contextSummary,
+        }).catch(() => {}); // best-effort
       }
     }
   } catch { /* safeguarding is best-effort, never blocks the message */ }

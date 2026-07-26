@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { analyzeMessageForSafeguarding } from "@/lib/ai-assistant/safeguarding";
+import { analyzeMessageForSafeguarding, createSafeguardingFlag } from "@/lib/ai-assistant/safeguarding";
 
 /** GET /api/comments?studentId=... — list teacher comments for a student.
  *  Staff can view comments for students they have access to.
@@ -98,36 +98,35 @@ export async function POST(req: NextRequest) {
   // This is a teacher→student communication — run the deterministic pre-filter.
   // If signals are found, they're stored for the principal to review (2+
   // corroborating signals required before a flag is created).
+  //
+  // CR-1 fix (audit 2026-07-26 FINAL): use createSafeguardingFlag() which
+  // enforces the 2+ corroboration rule instead of creating one alert per signal.
   try {
     const signals = analyzeMessageForSafeguarding(String(commentBody), comment.id);
     if (signals.length > 0) {
-      // Store signals as StudentAlerts (type: safeguarding) for principal review.
-      // The safeguarding module will aggregate these and create a flag when 2+
-      // corroborating signals exist within a 14-day window.
-      //
-      // C8 fix (audit 2026-07-26): attribute the flag to the TEACHER (the one
-      // who wrote the comment), not the student. The student is the recipient,
-      // not the subject of the alert. Same fix as the messages route.
-      for (const signal of signals) {
-        await db.studentAlert.create({
-          data: {
-            userId: payload.sub, // C8 fix: the TEACHER's id, not the student's
-            type: "safeguarding",
-            severity: signal.severity,
-            reason: `${signal.category}: ${signal.matchedPatterns.join(", ")}`,
-            metric: "teacher_comment",
-            metricValue: "1",
-            status: "open",
-            resolutionNote: JSON.stringify({
-              commentId: comment.id,
-              teacherId: payload.sub,  // The flagged staff member
-              studentId,                // The student who received the comment (context only)
-              category: signal.category,
-              context: signal.context,
-            }),
-          },
-        }).catch(() => {}); // best-effort
-      }
+      // Count existing safeguarding signals from this teacher in the last 14 days
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      const recentSignals = await db.studentAlert.count({
+        where: {
+          userId: payload.sub,
+          type: "safeguarding",
+          createdAt: { gte: fourteenDaysAgo },
+        },
+      });
+
+      const totalSignalCount = recentSignals + signals.length;
+      const categories = signals.map(s => s.category);
+      const contextSummary = signals.map(s => `${s.category}: ${s.matchedPatterns.join(", ")}`).join("; ");
+
+      // CR-1 fix: use createSafeguardingFlag() which enforces the 2+ corroboration rule
+      await createSafeguardingFlag({
+        teacherId: payload.sub,
+        studentId,
+        signalCount: totalSignalCount,
+        messageIds: [comment.id],
+        categories: categories as any,
+        contextSummary,
+      }).catch(() => {}); // best-effort
     }
   } catch { /* safeguarding is best-effort, never blocks the comment */ }
 

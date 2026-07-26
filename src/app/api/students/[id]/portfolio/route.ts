@@ -95,6 +95,9 @@ export async function GET(
       currentWeek: true,
       createdAt: true,
       lastLogin: true,
+      // HI-9 fix: include projectDurationWeeks so the portfolio header can show
+      // "Week X / N" instead of the hardcoded "Week X / 6".
+      projectDurationWeeks: true,
     },
   });
 

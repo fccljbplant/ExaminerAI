@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { getSafeguardingFlagsForPrincipal } from "@/lib/ai-assistant/safeguarding";
 
 export async function GET() {
   const payload = await getAuthUser();
@@ -159,6 +160,10 @@ export async function GET() {
     alertsRaised: alertsByTeacherMap.get(t.id) || 0,
   }));
 
+  // CR-2 fix (audit 2026-07-26 FINAL): fetch safeguarding flags for principal review.
+  // These were previously dead code — getSafeguardingFlagsForPrincipal was never called.
+  const safeguardingFlags = institutionId ? await getSafeguardingFlagsForPrincipal(institutionId) : [];
+
   return NextResponse.json({
     institution: institution ? { name: institution.name, logoUrl: institution.logoUrl, contactEmail: institution.contactEmail } : null,
     overview: { totalStudents: studentsCount, totalTeachers: teachersCount, totalCounselors: counselorsCount, totalMentors: mentorsCount, totalCourses: coursesCount, totalBatches: batchesCount, totalEnrollments: enrollmentsCount, totalAlerts: alerts.length, openAlerts: openAlerts.length, crisisFlags: crisisFlags.length, mentorSessions: mentorSessionsCount, avgMood, avgEngagement, totalFrustration, totalAvoidance, totalEnthusiasm },
@@ -166,6 +171,8 @@ export async function GET() {
     alerts: { open: openAlerts.length, acknowledged: acknowledgedAlerts.length, resolved: resolvedAlerts.length, crisis: crisisAlerts.length, high: highAlerts.length, byType: { psychological: alerts.filter(a => a.type === "psychological").length, educational: alerts.filter(a => a.type === "educational").length, mentorship: alerts.filter(a => a.type === "mentorship").length } },
     coursePerformance,
     teacherPerformance,
+    // CR-2 fix: safeguarding flags for principal review
+    safeguardingFlags,
     auditLogs: auditLogs.map(log => ({ id: log.id, actorName: log.actorName, actorRole: log.actorRole, action: log.action, targetType: log.targetType, metadata: log.metadata, createdAt: log.createdAt })),
     // L6 fix (audit 2026-07-26): was using strengths text as the title (awkward +
     // misleading). Now uses a proper descriptive title with the student's name.
