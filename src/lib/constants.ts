@@ -1,9 +1,5 @@
 /** Public, browser-safe constants for the ExaminerAI app. */
 
-/** AI Tutor URL (NotebookLM notebook with bootcamp curriculum).
- *  Used as the fallback when a course doesn't have its own notebooklmUrl set. */
-  "https://notebooklm.google.com/notebook/f13b0673-42aa-40d1-a5e9-510f889b8bcd";
-
 /** The 4 Socratic assessment pillars. Each weekly test question targets one. */
 export const PILLARS = [
   "Why Probe",

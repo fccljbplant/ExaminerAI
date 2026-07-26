@@ -260,7 +260,7 @@ async function logUsage(log: UsageLog) {
 // === Main entry point ===
 
 /** Call AI with the best available provider.
- *  Priority: Z.ai → DeepSeek → z-ai-web-dev-sdk → empty fallback
+ *  Priority: DeepSeek (primary, cost-effective) → Z.ai (fallback) → z-ai-web-dev-sdk (sandbox) → empty fallback
  *
  *  Options:
  *  - temperature: 0-2 (default 0.5)
