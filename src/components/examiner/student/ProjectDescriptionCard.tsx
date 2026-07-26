@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProjectSettingsCard } from "@/components/examiner/student/ProjectSettingsCard";
+import { ProjectSuggestions } from "@/components/examiner/student/ProjectSuggestions";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
   Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, Brain, AlertCircle, RefreshCw,
@@ -83,11 +84,10 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
     );
   }
 
-  // If no project set, show the ProjectSettingsCard inline so the student
-  // can create their capstone project directly — no dead-end navigation.
+  // If no project set, show the ProjectSettingsCard inline + AI suggestions
   if (!project?.projectName) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-4 text-center">
             <ClipboardList className="h-8 w-8 text-amber-500 mx-auto mb-2" />
@@ -98,6 +98,10 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
             </p>
           </CardContent>
         </Card>
+
+        {/* AI Project Suggestions */}
+        <ProjectSuggestions />
+
         <ProjectSettingsCard />
       </div>
     );
