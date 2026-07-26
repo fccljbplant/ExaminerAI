@@ -180,7 +180,9 @@ export function checkAlertThresholds(summary: {
     alerts.push({
       type: "psychological",
       severity: "warning",
-      reason: `Student showed ${summary.avoidanceCount} avoidance responses ("I don't know" / "skip") this week. May indicate anxiety or lack of confidence.`,
+      // M13 fix (audit 2026-07-26): "anxiety" is diagnostic-sounding — replaced
+      // with "uncertainty or lack of confidence" which is descriptive, not clinical.
+      reason: `Student showed ${summary.avoidanceCount} avoidance responses ("I don't know" / "skip") this week. May indicate uncertainty or lack of confidence.`,
       metric: "avoidanceCount",
       metricValue: String(summary.avoidanceCount),
     });

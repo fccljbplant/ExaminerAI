@@ -142,9 +142,12 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
         if (completedCount >= 3) strengthSignals.push(`Completed ${completedCount} tests — showing persistence`);
       }
     }
-    if (student.dailyLogs.length >= 5) strengthSignals.push(`${student.dailyLogs.length} check-ins total — has built a check-in habit`);
+    // L10 fix (audit 2026-07-26): dailyLogs is loaded with take:5, so length is
+    // at most 5. Don't say "X check-ins total" when we only have 5. Instead, say
+    // "5+ recent check-ins" (the take:5 means we know they have AT LEAST 5).
+    if (student.dailyLogs.length >= 5) strengthSignals.push(`5+ recent check-ins — has built a check-in habit`);
     const highConfidenceLogs = student.dailyLogs.filter(l => l.confidence >= 4).length;
-    if (highConfidenceLogs > 0) strengthSignals.push(`${highConfidenceLogs} high-confidence check-ins — has moments of clarity`);
+    if (highConfidenceLogs > 0) strengthSignals.push(`${highConfidenceLogs} recent high-confidence check-ins — has moments of clarity`);
 
     // 1. Declining test scores (dropped 15+ points between last 2 tests)
     if (student.weeklyTests.length >= 2) {

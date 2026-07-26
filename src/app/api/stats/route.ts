@@ -16,7 +16,9 @@ export async function GET(req: Request) {
   const asRole = url.searchParams.get("as"); // student | teacher — for admin impersonation
   const role = asRole === "student" || asRole === "teacher" ? asRole : payload.role;
 
-  if (role === "teacher" || (role === "admin" && asRole === "teacher")) {
+  // M4 fix (audit 2026-07-26): course_coordinator now has access to teacher
+  // stats so they can see students in their institution's courses.
+  if (role === "teacher" || role === "course_coordinator" || (role === "admin" && asRole === "teacher")) {
     // Scale: server-side pagination — don't load ALL students at once.
     // Default page size 100 (renders 4 pages of 25 in the UI). Max 200.
     const page = Math.max(0, parseInt(url.searchParams.get("page") || "0", 10));

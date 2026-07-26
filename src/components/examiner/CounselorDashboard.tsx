@@ -19,6 +19,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
+import { showError, showSuccess } from "@/lib/toast-helpers";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -189,7 +190,7 @@ export default function CounselorDashboard({ onNavigateToMessages, onStudentClic
       />
 
       {/* Tab content */}
-      {tab === "command" && <CommandCenter data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} />}
+      {tab === "command" && <CommandCenter data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} onReload={load} />}
       {tab === "caseload" && <CaseloadView data={data} onStudentClick={onStudentClick} />}
       {tab === "sessions" && <SessionsView data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} onReload={load} />}
       {tab === "patterns" && <PatternsView data={data} />}
@@ -200,7 +201,7 @@ export default function CounselorDashboard({ onNavigateToMessages, onStudentClic
 // ============================================================
 // COMMAND CENTER — real-time triage
 // ============================================================
-function CommandCenter({ data, onNavigateToMessages, onStudentClick }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void }) {
+function CommandCenter({ data, onNavigateToMessages, onStudentClick, onReload }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void; onReload?: () => void }) {
   const { caseload } = data;
   const wellbeingData = [
     { name: "Green", value: caseload.greenCount, color: "#10b981" },
@@ -248,11 +249,47 @@ function CommandCenter({ data, onNavigateToMessages, onStudentClick }: { data: C
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5">Tier: {item.wellbeingTier} · {timeAgo(item.createdAt)}</div>
                   </div>
-                  {onStudentClick && (
-                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-primary hover:bg-primary/10 flex-shrink-0" onClick={() => onStudentClick(item.studentId, item.studentName)}>
-                      Portfolio →
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* M3 fix (audit 2026-07-26): action buttons for crisis flags —
+                        acknowledge (mark as reviewed) + resolve (close the flag). */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-[10px] text-amber-600 hover:bg-amber-500/10"
+                      onClick={async () => {
+                        try {
+                          await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "acknowledged" });
+                          showSuccess("Crisis flag acknowledged.");
+                          onReload?.();
+                        } catch (e) {
+                          showError(e instanceof Error ? e.message : "Failed to acknowledge");
+                        }
+                      }}
+                    >
+                      Acknowledge
                     </Button>
-                  )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-[10px] text-emerald-600 hover:bg-emerald-500/10"
+                      onClick={async () => {
+                        try {
+                          await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "resolved" });
+                          showSuccess("Crisis flag resolved.");
+                          onReload?.();
+                        } catch (e) {
+                          showError(e instanceof Error ? e.message : "Failed to resolve");
+                        }
+                      }}
+                    >
+                      Resolve
+                    </Button>
+                    {onStudentClick && (
+                      <Button size="sm" variant="ghost" className="h-6 text-[10px] text-primary hover:bg-primary/10" onClick={() => onStudentClick(item.studentId, item.studentName)}>
+                        Portfolio →
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

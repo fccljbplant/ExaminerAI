@@ -30,6 +30,8 @@ However, the gap between **what's built** and **what's wired** is the platform's
 
 > **UPDATE 2026-07-26 (post-fix batch 6):** 4 more items FIXED (M1, L1, L7, L8). Batch switcher for multi-batch teachers, growth report courseId, admin role switcher option, counselor sessions refresh. See `docs/AUDIT-FIXES-BATCH6-2026-07-26.md` for details. 14 MEDIUM + 7 LOW items remain.
 
+> **UPDATE 2026-07-26 (post-fix batch 7):** 8 more items FIXED (M2, M3, M4, M13, M14, M15, L6, L10). Principal admin nav, counselor action buttons, coordinator student visibility, psych-analyzer wording, AI prompt learning style, growth report title, check-in count accuracy. See `docs/AUDIT-FIXES-BATCH7-2026-07-26.md` for details. 9 MEDIUM + 4 LOW items remain. 38 of 51 total items FIXED.
+
 ---
 
 ## Prioritized Findings
@@ -75,9 +77,9 @@ However, the gap between **what's built** and **what's wired** is the platform's
 | # | Finding | Section | Status |
 |---|---------|---------|--------|
 | M1 | No batch switcher for multi-batch teachers | 4 | ✅ FIXED 2026-07-26 (batch 6) |
-| M2 | Principal can't reach course/batch/user management UI (admin-only nav) | 3, 4 | ⚠️ PENDING |
-| M3 | Counselor dashboard has no action buttons (acknowledge/resolve/escalate) | 3, 4 | ⚠️ PENDING |
-| M4 | Course Coordinator has no student visibility at all | 3 | ⚠️ PENDING |
+| M2 | Principal can't reach course/batch/user management UI (admin-only nav) | 3, 4 | ✅ FIXED 2026-07-26 (batch 7) |
+| M3 | Counselor dashboard has no action buttons (acknowledge/resolve/escalate) | 3, 4 | ✅ FIXED 2026-07-26 (batch 7) |
+| M4 | Course Coordinator has no student visibility at all | 3 | ✅ FIXED 2026-07-26 (batch 7) |
 | M5 | Two parallel teacher-load formulas that disagree | 5 | ⚠️ PENDING |
 | M6 | Comprehensive reports cached without human review flag | 5 | ⚠️ PENDING |
 | M7 | Psych evidence has no dispute mechanism | 5 | ⚠️ PENDING |
@@ -86,9 +88,9 @@ However, the gap between **what's built** and **what's wired** is the platform's
 | M10 | `TEACHER_BOOTCAMP_PLAN` hardcoded 6-week web dev plan | 3 | ⚠️ PENDING |
 | M11 | 4 files >800 lines (modern-landing 1614, StudentPortfolioPage 1336, weekly-test 1166, CoursePlanner 863) | 6 | ⚠️ PENDING |
 | M12 | `src/modules/project/` half-extracted (410+ lines unused module code + inline route duplicates) | 6 | ⚠️ PENDING |
-| M13 | "anxiety" keyword in psych-analyzer is diagnostic-sounding | 5 | ⚠️ PENDING |
-| M14 | "learning style" question in ai-prompts is debunked (Pashler 2008) | 5 | ⚠️ PENDING |
-| M15 | Demo can't preview admin dashboard despite banner claiming "any dashboard" | 3 | ⚠️ PENDING |
+| M13 | "anxiety" keyword in psych-analyzer is diagnostic-sounding | 5 | ✅ FIXED 2026-07-26 (batch 7) |
+| M14 | "learning style" question in ai-prompts is debunked (Pashler 2008) | 5 | ✅ FIXED 2026-07-26 (batch 7) |
+| M15 | Demo can't preview admin dashboard despite banner claiming "any dashboard" | 3 | ✅ FIXED 2026-07-26 (batch 7, via L7 fix) |
 
 ### LOW (nice to have — cosmetic, polish, minor hardening)
 
@@ -99,11 +101,11 @@ However, the gap between **what's built** and **what's wired** is the platform's
 | L3 | 22+ dead lib exports (10 in rbac.ts alone) | 6 | ⚠️ PENDING |
 | L4 | 5 dead UI components + 30 dead shadcn primitives | 6 | ⚠️ PENDING |
 | L5 | z-ai-web-dev-sdk likely never fires on Vercel prod (sandbox-only) | 6 | ⚠️ PENDING |
-| L6 | Growth reports title uses strengths text as title | 3 | ⚠️ PENDING |
+| L6 | Growth reports title uses strengths text as title | 3 | ✅ FIXED 2026-07-26 (batch 7) |
 | L7 | Admin role switcher missing "Admin" option | 3 | ✅ FIXED 2026-07-26 (batch 6) |
 | L8 | Counselor Sessions tab no refresh after logging (onLogged is no-op) | 3 | ✅ FIXED 2026-07-26 (batch 6) |
 | L9 | Guardian AI Tutor is student-facing practice chat (questionable fit) | 3 | ⚠️ PENDING |
-| L10 | Attention score "recent" low-confidence logs are actually lifetime | 5 | ⚠️ PENDING |
+| L10 | Attention score "recent" low-confidence logs are actually lifetime | 5 | ✅ FIXED 2026-07-26 (batch 7) |
 
 ---
 

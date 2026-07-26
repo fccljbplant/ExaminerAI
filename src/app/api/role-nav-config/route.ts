@@ -44,10 +44,10 @@ export const ALL_NAV_KEYS = [
 export const DEFAULT_NAV_PER_ROLE: Record<string, string[]> = {
   student: ["dashboard", "checkin", "gantt", "report-card", "ai-tutor", "course-outline", "messages", "settings"],
   teacher: ["batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights", "course-planner", "teacher-ai-tutor", "course-outline", "messages", "settings"],
-  course_coordinator: ["course-planner", "teacher-ai-tutor", "course-outline", "messages", "settings"],
+  course_coordinator: ["course-planner", "batch-students", "teacher-ai-tutor", "course-outline", "messages", "settings"],
   counselor: ["counselor-dashboard", "messages", "settings"],
   guardian: ["guardian-dashboard", "guardian-progress", "ai-tutor", "course-outline", "messages", "settings"],
-  principal: ["principal-dashboard", "admin-users", "admin-courses", "messages", "settings"],
+  principal: ["principal-dashboard", "admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "settings"],
   administrator: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
   demo: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "teacher-ai-tutor"],
   admin: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],

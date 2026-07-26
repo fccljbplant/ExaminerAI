@@ -167,6 +167,8 @@ export async function GET() {
     coursePerformance,
     teacherPerformance,
     auditLogs: auditLogs.map(log => ({ id: log.id, actorName: log.actorName, actorRole: log.actorRole, action: log.action, targetType: log.targetType, metadata: log.metadata, createdAt: log.createdAt })),
-    growthReports: growthReports.map(r => ({ id: r.id, title: r.strengths.slice(0, 60), userName: r.user?.name, generatedAt: r.generatedAt })),
+    // L6 fix (audit 2026-07-26): was using strengths text as the title (awkward +
+    // misleading). Now uses a proper descriptive title with the student's name.
+    growthReports: growthReports.map(r => ({ id: r.id, title: `Growth Report — ${r.user?.name || "Student"}`, userName: r.user?.name, generatedAt: r.generatedAt })),
   });
 }

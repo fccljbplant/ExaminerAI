@@ -92,11 +92,14 @@ interface NavItem {
 
 // All roles that see shared items (AI Tutor, Course, Messages, Settings)
 const ALL_ROLES_WITH_SHARED = ["student", "teacher", "course_coordinator", "counselor", "guardian", "admin", "principal", "administrator", "demo"];
-// Admin nav roles — administrator only. Demo is deliberately EXCLUDED:
+// Admin nav roles — administrator + principal. Demo is deliberately EXCLUDED:
 // demo is read-only and has no admin-panel authority. Demo can still
-// "view as" administrator via the role switcher, but the admin nav item
-// is hidden from demo's default nav.
-const ADMIN_NAV_ROLES = ["admin", "administrator"];
+// "view as" administrator via the role switcher, but the admin nav items
+// are hidden from demo's default nav.
+// M2 fix (audit 2026-07-26): principal now has access to admin-users, admin-courses,
+// admin-features, admin-resets, admin-system — was admin-only, so principals couldn't
+// manage users/courses/features even though they're institution-level administrators.
+const ADMIN_NAV_ROLES = ["admin", "administrator", "principal"];
 const PRINCIPAL_NAV_ROLES = ["principal"];
 // Staff-only roles — see the Teacher AI Assistant nav item. Excludes students,
 // guardians, and pending users. (teaching_assistant role removed — teachers
@@ -122,6 +125,10 @@ const ALL_NAV: NavItem[] = [
 
   // ===== TEACHER / COURSE COORDINATOR (batch + course planner) =====
   { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["teacher", "course_coordinator"] },
+  // M4 fix (audit 2026-07-26): course coordinators now have access to the
+  // batch-students view so they can see the students in their institution's
+  // courses (was admin/teacher-only, so coordinators had zero student visibility).
+  { key: "batch-students", label: "Students", icon: Users, roles: ["course_coordinator"] },
 
   // ===== GUARDIAN (purpose-built parent dashboard — NOT a student clone) =====
   { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
