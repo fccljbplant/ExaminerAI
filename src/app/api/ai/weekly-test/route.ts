@@ -597,6 +597,39 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
           },
         }).catch(() => {/* Non-blocking — best-effort logging */});
 
+        // FIX: Create an Interaction record so the student's activity today
+        // is tracked by the daily-tasks tracker. The weekly test is tracked
+        // separately via the WeeklyTest table, but creating an Interaction
+        // also makes it show up in the practice history + portfolio.
+        const studentMsgs = conversation.filter(m => m.role === "student");
+        const examinerMsgs = conversation.filter(m => m.role === "examiner");
+        if (studentMsgs.length > 0 && examinerMsgs.length > 0) {
+          const lastStudentMsg = studentMsgs[studentMsgs.length - 1];
+          const lastExaminerMsg = examinerMsgs[examinerMsgs.length - 1];
+          db.interaction.create({
+            data: {
+              userId: user.id,
+              week,
+              pillar: "weekly_test",
+              topic: phase || `Week ${week}`,
+              question: lastExaminerMsg.content.slice(0, 500),
+              projectContext: "",
+              studentAnswer: lastStudentMsg.content.slice(0, 2000),
+              timeTakenSeconds: 0,
+              answerLength: lastStudentMsg.content.split(/\s+/).length,
+              correctness: plagiarismResult.finalScore,
+              feedback: analysis.feedback?.modelAnswer?.slice(0, 500) || "",
+              level: plagiarismResult.finalScore >= 70 ? "advanced" : plagiarismResult.finalScore >= 40 ? "intermediate" : "beginner",
+              gaps: JSON.stringify(analysis.feedback?.missedPoints?.slice(0, 5) || []),
+              followUp: analysis.feedback?.nextTime?.slice(0, 500) || "",
+              cognitiveLoad: "moderate",
+              confidence: "moderate",
+              metacognitive: "moderate",
+              plagiarismScore: analysis.plagiarismScore || 0,
+            },
+          }).catch(() => {/* non-blocking */});
+        }
+
         return NextResponse.json({
           conversation, currentQuestion: test.currentQuestion, replyCount: newReplyCount,
           totalQuestions: TOTAL_QUESTIONS, maxReplies: MAX_MESSAGES_PER_QUESTION,

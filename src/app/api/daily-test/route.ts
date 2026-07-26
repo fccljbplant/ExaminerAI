@@ -377,6 +377,40 @@ DAILY TEST — SHORTER FORMAT:
         },
       }).catch(() => {/* Non-blocking — best-effort logging */});
 
+      // FIX: Create an Interaction record so the daily-tasks tracker can
+      // detect that the student was active today. The daily test itself is
+      // tracked via the DailyTest table (hasCompletedDailyTestToday), but
+      // creating an Interaction also makes it show up in the student's
+      // practice history + portfolio interactions list.
+      const studentMsgs = conversation.filter(m => m.role === "student");
+      const examinerMsgs = conversation.filter(m => m.role === "examiner");
+      if (studentMsgs.length > 0 && examinerMsgs.length > 0) {
+        const lastStudentMsg = studentMsgs[studentMsgs.length - 1];
+        const lastExaminerMsg = examinerMsgs[examinerMsgs.length - 1];
+        db.interaction.create({
+          data: {
+            userId: user.id,
+            week: test.week,
+            pillar: "daily_test",
+            topic: test.topic || `Week ${test.week}`,
+            question: lastExaminerMsg.content.slice(0, 500),
+            projectContext: "",
+            studentAnswer: lastStudentMsg.content.slice(0, 2000),
+            timeTakenSeconds: 0,
+            answerLength: lastStudentMsg.content.split(/\s+/).length,
+            correctness: plagiarismResult.finalScore,
+            feedback: grade.feedback.modelAnswer.slice(0, 500),
+            level: plagiarismResult.finalScore >= 70 ? "advanced" : plagiarismResult.finalScore >= 40 ? "intermediate" : "beginner",
+            gaps: JSON.stringify(grade.feedback.missedPoints.slice(0, 5)),
+            followUp: grade.feedback.nextTime.slice(0, 500),
+            cognitiveLoad: "moderate",
+            confidence: "moderate",
+            metacognitive: "moderate",
+            plagiarismScore,
+          },
+        }).catch(() => {/* non-blocking */});
+      }
+
       return NextResponse.json({
         conversation, isComplete: true,
         score: plagiarismResult.finalScore, // DEDUCTED score
