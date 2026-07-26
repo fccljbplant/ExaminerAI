@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
@@ -146,7 +147,7 @@ ${teacherContext}
     }
 
     return NextResponse.json({
-      reply: result.text || "I'm having trouble responding right now. Please try again.",
+      reply: sanitizeExaminerText(result.text || "") || "I'm having trouble responding right now. Please try again.",
     });
   } catch (err) {
     logger.error("Teacher AI Assistant failed", { feature: "teacher-tutor", error: err instanceof Error ? err.message : String(err) });

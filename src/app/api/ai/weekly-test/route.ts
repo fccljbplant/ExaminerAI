@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
 import { weeklyTestSystemPrompt, finalAnalysisPrompt } from "@/lib/ai-prompts";
 import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { getTestConfig, getAIPrompts } from "@/lib/course-config";
@@ -740,39 +741,6 @@ async function callAILocal(messages: { role: string; content: string }[], featur
     logger.warn("Weekly test AI call failed", { feature, error: err instanceof Error ? err.message : String(err) });
   }
   return "Can you elaborate on that? Walk me through your reasoning.";
-}
-
-/** Strip ALL markdown from examiner responses — plain text only. */
-function sanitizeExaminerText(text: string): string {
-  return text
-    // Bold: **text** or __text__
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    // Italic: *text* or _text_
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/_([^_]+)_/g, "$1")
-    // Headers: ### text, ## text, # text
-    .replace(/^#{1,6}\s+/gm, "")
-    // Horizontal rules: ---, ***, ___
-    .replace(/^[\-\*_]{3,}\s*$/gm, "")
-    // Numbered lists: "1. " "2. " etc → just the text
-    .replace(/^\d+\.\s+/gm, "")
-    // Bullet points: "- " or "* " at start of line
-    .replace(/^[\-\*]\s+/gm, "")
-    // Code blocks: ```...``` → just the content
-    .replace(/```[\s\S]*?```/g, (m) => m.replace(/```\w*\n?/g, "").replace(/```$/g, ""))
-    // Inline code: `text` → text
-    .replace(/`([^`]+)`/g, "$1")
-    // Links: [text](url) → text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    // Blockquotes: > text → text
-    .replace(/^>\s+/gm, "")
-    // Emojis
-    .replace(/[\u{1F300}-\u{1F9FF}]/gu, "")
-    .replace(/[\u{2600}-\u{27BF}]/gu, "")
-    // Multiple blank lines → single blank line
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
 }
 
 /** Generate final analysis — uses course-aligned context.

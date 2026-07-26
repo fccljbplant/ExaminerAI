@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
 import { weeklyTestSystemPrompt } from "@/lib/ai-prompts";
 import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseMetadata, getCourseDurationWeeks } from "@/lib/course-db";
 import { getBootcampDayNumber } from "@/lib/course-topics";
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
         { role: "user", content: prompt },
       ], { temperature: 0.7, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature: "practice-start", userId: user.id });
 
-      const firstQuestion = result.text?.replace(/^Question\s*\d+\s*:\s*/i, "").trim() || "Can you explain what you know about " + practiceTopic + "?";
+      const firstQuestion = sanitizeExaminerText(result.text || "") || "Can you explain what you know about " + practiceTopic + "?";
       const conversation: ChatMessage[] = [{
         role: "examiner", content: firstQuestion,
         timestamp: new Date().toISOString(),
@@ -179,7 +180,7 @@ export async function POST(req: NextRequest) {
       const result = await callAI(aiMessages, {
         temperature: 0.5, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature: "practice-reply", userId: user.id,
       });
-      const examinerResponse = result.text?.trim() || "Can you elaborate on that?";
+      const examinerResponse = sanitizeExaminerText(result.text || "") || "Can you elaborate on that?";
 
       // Per-question explanation: on the LAST exchange, grade the practice
       // conversation and attach the explanation to the examiner's final reply.

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
+import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
 import { weeklyTestSystemPrompt } from "@/lib/ai-prompts";
 import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { getBootcampDayNumber } from "@/lib/course-topics";
@@ -460,7 +461,9 @@ DAILY TEST — SHORTER FORMAT:
 }
 
 /** Call AI via shared provider — catches errors and returns a fallback
- *  prompt so a single AI failure doesn't crash the whole test. */
+ *  prompt so a single AI failure doesn't crash the whole test.
+ *  Uses shared sanitizeExaminerText from @/lib/examiner-sanitizer for
+ *  comprehensive filtering of markdown, meta-commentary, and instruction echoes. */
 async function callAILocal(messages: { role: "system" | "user" | "assistant"; content: string }[], feature: string, userId?: string): Promise<string> {
   try {
     const result = await callAI(messages, { temperature: 0.5, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature, userId });
@@ -469,21 +472,6 @@ async function callAILocal(messages: { role: "system" | "user" | "assistant"; co
     logger.warn("Daily test AI call failed", { feature, error: err instanceof Error ? err.message : String(err) });
   }
   return "Can you elaborate on that? Walk me through your reasoning.";
-}
-
-/** Strip markdown from examiner responses — plain text only. */
-function sanitizeExaminerText(text: string): string {
-  return text
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/_([^_]+)_/g, "$1")
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/^[\-\*_]{3,}\s*$/gm, "")
-    .replace(/^\d+\.\s+/gm, "")
-    .replace(/^[\-\*]\s+/gm, "")
-    .replace(/```[\s\S]*?```/g, (m) => m.replace(/```\w*\n?/g, "").replace(/```$/g, ""))
-    .trim();
 }
 
 /** Grade the daily test conversation using the UNIFIED grader

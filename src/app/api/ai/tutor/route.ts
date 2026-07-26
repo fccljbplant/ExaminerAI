@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
+import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
@@ -281,7 +282,7 @@ ${currentTopicText}
     }
 
     return NextResponse.json({
-      reply: result.text || "I'm having trouble responding right now. Please try again.",
+      reply: sanitizeExaminerText(result.text || "") || "I'm having trouble responding right now. Please try again.",
     });
   } catch (err) {
     logger.error("AI Tutor failed", { feature: "ai-tutor", error: err instanceof Error ? err.message : String(err) });
