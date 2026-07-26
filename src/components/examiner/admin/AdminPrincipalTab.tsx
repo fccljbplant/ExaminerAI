@@ -259,9 +259,11 @@ export function AdminPrincipalTab({ users, students, teachers, pending, blocked 
               ) : (
                 <div className="space-y-2">
                   {(() => {
+                    // LO-2 fix: was hardcoded 6 weeks — now uses dynamic max week from student data
+                    const maxWeek = Math.max(...students.map(s => s.currentWeek || 1), 6);
                     const weekBuckets: Record<string, number> = {};
                     for (const s of students) {
-                      const third = Math.ceil((s.currentWeek || 1) / Math.max(Math.ceil(6 / 3), 1));
+                      const third = Math.ceil((s.currentWeek || 1) / Math.max(Math.ceil(maxWeek / 3), 1));
                       const bucket = third <= 1 ? "Early (Onboarding)" : third === 2 ? "Mid-course" : "Late (Final stretch)";
                       weekBuckets[bucket] = (weekBuckets[bucket] || 0) + 1;
                     }

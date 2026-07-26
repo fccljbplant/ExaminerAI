@@ -108,6 +108,11 @@ export interface ComprehensiveReport {
   // Cache metadata
   cached: boolean;
   cacheKey: string;
+  // ME-5 fix: 'reviewed' flag — AI-generated judgments (managerReadiness,
+  // leadershipPotential, etc.) should be reviewed by a human before being
+  // used in formal decisions. When false, the UI should show a warning that
+  // the report is AI-generated and not yet reviewed.
+  reviewed: boolean;
 }
 
 /** Gather all the data needed for the comprehensive report. */
@@ -220,7 +225,7 @@ export async function generateComprehensiveReport(
     if (cached) {
       try {
         const parsed = JSON.parse(cached.response);
-        return { ...parsed, cached: true, cacheKey };
+        return { ...parsed, cached: true, cacheKey, reviewed: parsed.reviewed ?? false };
       } catch { /* fall through to regenerate */ }
     }
   }
@@ -440,6 +445,7 @@ Generate the comprehensive report JSON:`;
     narrative: aiAnalysis.narrative || "",
     cached: false,
     cacheKey,
+    reviewed: false, // ME-5 fix: new reports start as unreviewed
   };
 
   // Cache the report

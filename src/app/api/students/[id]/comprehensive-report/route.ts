@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
-import { ADMIN_ROLES, hasRole } from "@/lib/rbac";
+import { ADMIN_ROLES, hasRole, isStaffRole } from "@/lib/rbac";
 import { generateComprehensiveReport } from "@/modules/comprehensive-report";
 import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 import { logAudit } from "@/lib/audit-log";
+import { db } from "@/lib/db";
+import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * GET /api/students/[id]/comprehensive-report — generates (or returns cached)
@@ -76,4 +78,61 @@ export async function GET(
   }
 
   return NextResponse.json({ report });
+}
+
+/** PATCH /api/students/[id]/comprehensive-report — mark report as reviewed.
+ *  ME-5 fix: allows staff to mark an AI-generated comprehensive report as
+ *  reviewed, so the UI can show whether a human has verified the AI's
+ *  judgments (managerReadiness, leadershipPotential, etc.). */
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const _demoBlock = await demoWriteBlock("reviewing reports"); if (_demoBlock) return _demoBlock;
+  const payload = await getAuthUser();
+  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isStaffRole(payload.role)) {
+    return NextResponse.json({ error: "Forbidden — staff only" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const body = await req.json().catch(() => ({}));
+  const { reviewed } = body as { reviewed?: boolean };
+
+  if (reviewed === undefined) {
+    return NextResponse.json({ error: "reviewed (boolean) required" }, { status: 400 });
+  }
+
+  // IDOR check
+  try { await assertCanAccessStudent(payload, id); } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  }
+
+  // Update the cache entry's 'reviewed' field
+  const cacheKey = `comprehensive_report:${id}`;
+  const existing = await db.aICache.findUnique({ where: { cacheKey } });
+  if (!existing) {
+    return NextResponse.json({ error: "No cached report found" }, { status: 404 });
+  }
+
+  try {
+    const parsed = JSON.parse(existing.response);
+    parsed.reviewed = reviewed;
+    await db.aICache.update({
+      where: { cacheKey },
+      data: { response: JSON.stringify(parsed) },
+    });
+
+    await logAudit({
+      actor: { id: payload.sub, name: payload.name, role: payload.role },
+      action: "comprehensive_report_reviewed",
+      target: { type: "user", id },
+      metadata: { reviewed },
+      req,
+    }).catch(() => {});
+
+    return NextResponse.json({ ok: true, reviewed });
+  } catch {
+    return NextResponse.json({ error: "Failed to update report" }, { status: 500 });
+  }
 }
