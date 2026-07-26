@@ -36,7 +36,7 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
   const [genMsgType, setGenMsgType] = useState<"success" | "error">("success");
   const [showGenConfirm, setShowGenConfirm] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     api.get<{
       projectName: string | null;
       projectSummary: string | null;
@@ -51,6 +51,8 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const generateTasks = async (replace: boolean) => {
     setGenerating(true);
@@ -102,7 +104,7 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
         {/* AI Project Suggestions */}
         <ProjectSuggestions />
 
-        <ProjectSettingsCard />
+        <ProjectSettingsCard onSaved={() => { load(); onTasksGenerated?.(); }} />
       </div>
     );
   }

@@ -14,11 +14,12 @@ import {
   ChevronDown, ChevronRight, Bot, ShieldAlert, Award, ExternalLink,
 } from "lucide-react";
 
-export function ProjectSettingsCard() {
+export function ProjectSettingsCard({ onSaved }: { onSaved?: () => void }) {
   const [projectName, setProjectName] = useState<string | null>(null);
   const [projectScope, setProjectScope] = useState("");
   const [projectObjectives, setProjectObjectives] = useState("");
   const [projectRequirements, setProjectRequirements] = useState("");
+  const [generatingTasks, setGeneratingTasks] = useState(false);
   const [projectBusinessCase, setProjectBusinessCase] = useState("");
   const [projectDurationWeeks, setProjectDurationWeeks] = useState("6");
   const [projectStartDate, setProjectStartDate] = useState("");
@@ -78,11 +79,27 @@ export function ProjectSettingsCard() {
         projectDeployUrl: projectDeployUrl.trim(),
       });
       setEditing(false);
-      setMsg("Project details updated");
-      setTimeout(() => setMsg(""), 3000);
+      setMsg("Project details saved! Generate tasks next.");
+      setTimeout(() => setMsg(""), 5000);
+      // Notify parent so it can re-fetch and show the "has project" view
+      onSaved?.();
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Failed");
     } finally { setBusy(false); }
+  };
+
+  const generateTasksNow = async () => {
+    setGeneratingTasks(true); setMsg("");
+    try {
+      const res = await api.post<{ ok: boolean; tasksCreated: number; message: string }>(
+        "/api/project/generate-tasks", { replace: false }, AI_TIMEOUT_MS
+      );
+      setMsg(res.message || `Generated ${res.tasksCreated} tasks!`);
+      onSaved?.();
+      setTimeout(() => setMsg(""), 5000);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Failed to generate tasks");
+    } finally { setGeneratingTasks(false); }
   };
 
   const deleteProject = async () => {
@@ -123,7 +140,11 @@ export function ProjectSettingsCard() {
                     {projectStartDate && ` · starts ${new Date(projectStartDate).toLocaleDateString()}`}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <Button onClick={generateTasksNow} disabled={generatingTasks || busy} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                    {generatingTasks ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    {generatingTasks ? "Generating..." : "Generate Tasks"}
+                  </Button>
                   <Button onClick={() => setEditing(true)} size="sm" variant="outline" className="border-border">
                     <Edit3 className="h-3 w-3" /> Edit Project
                   </Button>
