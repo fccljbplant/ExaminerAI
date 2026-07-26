@@ -178,7 +178,7 @@ async function writePsychEvidence(input: PipelineInput): Promise<void> {
     } else if (fixedCount > 0 && fixedCount >= growthCount) {
       evidenceRows.push({ dimension: "attribution", value: "fixed_mindset", evidenceText: `Fixed-mindset language detected (${fixedCount} signals): uses "can't", "not good at". May attribute difficulty to innate ability.`, sourceType: input.testType, sourceId: input.testId, week: input.week });
     } else if (avoidanceCount > 1) {
-      evidenceRows.push({ dimension: "attribution", value: "avoidant", evidenceText: `${avoidanceCount} avoidance answers ("I don't know" / "skip") — may indicate anxiety or fixed-mindset response.`, sourceType: input.testType, sourceId: input.testId, week: input.week });
+      evidenceRows.push({ dimension: "attribution", value: "avoidant", evidenceText: `${avoidanceCount} avoidance answers ("I don't know" / "skip") — may indicate uncertainty or fixed-mindset response.`, sourceType: input.testType, sourceId: input.testId, week: input.week });
     } else {
       evidenceRows.push({ dimension: "attribution", value: "neutral", evidenceText: `No strong growth or fixed mindset signals in this ${input.testType}. Student engaged neutrally with questions.`, sourceType: input.testType, sourceId: input.testId, week: input.week });
     }

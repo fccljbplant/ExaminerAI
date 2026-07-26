@@ -31,7 +31,7 @@ export const FLAG_GUIDANCE_TEMPLATES: Record<string, FlagGuidance> = {
   },
 
   educational: {
-    whatItMeans: "An educational flag means the student's scores or engagement have dropped below expected thresholds. This could indicate gaps in understanding, test anxiety, or external factors affecting study time.",
+    whatItMeans: "An educational flag means the student's scores or engagement have dropped below expected thresholds. This could indicate gaps in understanding, uncertainty during tests, or external factors affecting study time.",
     principles: [
       "Focus on the process, not the outcome — 'What's getting in the way when you sit down to study?' rather than 'Why did you score low?'",
       "GROW-stage: If they're in forethought (planning), help them structure. If in performance, help them execute. If in reflection, help them learn from it.",

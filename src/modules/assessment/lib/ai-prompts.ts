@@ -192,8 +192,7 @@ Give a full weekly result in simple English — OR in the student's language if 
 3. Concepts they need to work on, with simple guidance
 4. PSYCHOLOGICAL ASSESSMENT (based on the ENTIRE conversation): How do they think?
    Do they reason logically or guess? Are they overconfident? Do they give up?
-   Are they engaged? What's their preferred way of engaging with the material?
-   Be honest but KIND.
+   Are they engaged? What's their preferred way of engaging with the material? Be honest but KIND.
 5. One specific, simple thing to focus on next week
 
 Keep the summary to 4-6 sentences total. Simple language. Encouraging but honest.`;

@@ -180,12 +180,44 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "flagId and status required" }, { status: 400 });
   }
 
-  const VALID_STATUSES = ["open", "acknowledged", "resolved"];
+  // HI-3 fix: add "escalated" as a valid status for counselor → principal escalation
+  const VALID_STATUSES = ["open", "acknowledged", "resolved", "escalated"];
   if (!VALID_STATUSES.includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
   try {
+    // HI-3 fix: when escalating, notify all principals in the student's institution
+    if (status === "escalated") {
+      const flag = await db.crisisFlag.findUnique({
+        where: { id: flagId },
+        select: { userId: true, category: true, severity: true },
+      });
+      if (flag) {
+        const student = await db.user.findUnique({
+          where: { id: flag.userId },
+          select: { name: true, institutionId: true },
+        });
+        if (student?.institutionId) {
+          const principals = await db.user.findMany({
+            where: { role: { in: ["principal", "administrator"] }, blocked: false, institutionId: student.institutionId },
+            select: { id: true },
+          });
+          const escalateMsg = `ESCALATED CRISIS FLAG: Student ${student.name} — ${flag.category.replace(/_/g, " ")} (${flag.severity}). A counselor has escalated this flag for principal review. Flag ID: ${flagId}`;
+          for (const p of principals) {
+            await db.message.create({
+              data: {
+                fromId: auth.ctx.payload.sub,
+                toId: p.id,
+                subject: `ESCALATED: ${student.name} — ${flag.severity.toUpperCase()}`,
+                body: escalateMsg,
+              },
+            }).catch(() => {}); // best-effort
+          }
+        }
+      }
+    }
+
     const flag = await db.crisisFlag.update({
       where: { id: flagId },
       data: {

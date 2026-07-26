@@ -76,7 +76,7 @@ export function PsychologicalTab({ portfolio }: { portfolio: PortfolioData }) {
       hint: "How deeply does the student explain their reasoning?",
       explanation: "Measures answer detail from average character length in the conversation. Not about being verbose — about showing reasoning.",
       valueMeanings: {
-        "surface_answers": "Very short answers (under 50 characters). May indicate rushing, anxiety, or gaps. Action: probe with 'Can you explain why?'",
+        "surface_answers": "Very short answers (under 50 characters). May indicate rushing, uncertainty, or gaps. Action: probe with 'Can you explain why?'",
         "moderate_depth": "Adequate explanations (50-300 characters). The student can explain but doesn't go deep without prompting. Action: ask follow-up questions to push deeper.",
         "detailed_reasoning": "Step-by-step explanations (over 300 characters). Strong signal — the student is connecting concepts, not just reciting. Action: introduce advanced applications.",
       }
@@ -100,7 +100,7 @@ export function PsychologicalTab({ portfolio }: { portfolio: PortfolioData }) {
       valueMeanings: {
         "growth_mindset": "Student uses effort-based language ('I can learn this', 'I need more practice'). Responds well to challenges. Action: give them harder problems.",
         "fixed_mindset": "Student uses ability-based language ('I'm not good at this', 'I can't do it'). May avoid challenges. Action: praise effort, not ability. Say 'you worked hard on this' not 'you're smart'.",
-        "avoidant": "Multiple 'I don't know' or 'skip' answers. May indicate anxiety, lack of preparation, or fear of being wrong. Action: create a safe space for wrong answers, ask easier questions first.",
+        "avoidant": "Multiple 'I don't know' or 'skip' answers. May indicate uncertainty, lack of preparation, or fear of being wrong. Action: create a safe space for wrong answers, ask easier questions first.",
         "neutral": "No strong mindset signals in this test. The student engaged normally.",
       }
     },

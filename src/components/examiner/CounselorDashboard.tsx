@@ -91,7 +91,7 @@ interface CounselorData {
 
 type CounselorTab = "command" | "caseload" | "sessions" | "patterns";
 
-export default function CounselorDashboard({ onNavigateToMessages, onStudentClick }: { onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void }) {
+export default function CounselorDashboard({ onNavigateToMessages }: { onNavigateToMessages?: () => void }) {
   const [data, setData] = useState<CounselorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -131,10 +131,10 @@ export default function CounselorDashboard({ onNavigateToMessages, onStudentClic
     );
   }
 
-  const TABS: Array<{ key: CounselorTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
+  const TABS: Array<{ key: CounselorTab; label: string; icon: any; badge?: number; badgeColor?: "amber" | "red" }> = [
     { key: "command", label: "Command Center", icon: Zap, badge: data.caseload.openCrisisCount || undefined, badgeColor: "red" as const },
     { key: "caseload", label: "Caseload", icon: Users },
-    { key: "sessions", label: "Sessions", icon: Heart, badge: data.caseload.followUpsDueCount || undefined, badgeColor: "warning" as const },
+    { key: "sessions", label: "Sessions", icon: Heart, badge: data.caseload.followUpsDueCount || undefined, badgeColor: "amber" as const },
     { key: "patterns", label: "Patterns", icon: Brain },
   ];
 
@@ -190,9 +190,9 @@ export default function CounselorDashboard({ onNavigateToMessages, onStudentClic
       />
 
       {/* Tab content */}
-      {tab === "command" && <CommandCenter data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} onReload={load} />}
-      {tab === "caseload" && <CaseloadView data={data} onStudentClick={onStudentClick} />}
-      {tab === "sessions" && <SessionsView data={data} onNavigateToMessages={onNavigateToMessages} onStudentClick={onStudentClick} onReload={load} />}
+      {tab === "command" && <CommandCenter data={data} onNavigateToMessages={onNavigateToMessages} />}
+      {tab === "caseload" && <CaseloadView data={data} />}
+      {tab === "sessions" && <SessionsView data={data} onNavigateToMessages={onNavigateToMessages} />}
       {tab === "patterns" && <PatternsView data={data} />}
     </div>
   );
@@ -205,7 +205,7 @@ function CommandCenter({ data, onNavigateToMessages, onStudentClick, onReload }:
   const { caseload } = data;
   const wellbeingData = [
     { name: "Green", value: caseload.greenCount, color: "#10b981" },
-    { name: "Warning", value: caseload.amberCount, color: "#f59e0b" },
+    { name: "Amber", value: caseload.amberCount, color: "#f59e0b" },
     { name: "Red", value: caseload.redCount, color: "#ef4444" },
   ].filter(d => d.value > 0);
 
@@ -250,40 +250,17 @@ function CommandCenter({ data, onNavigateToMessages, onStudentClick, onReload }:
                     <div className="text-xs text-muted-foreground mt-0.5">Tier: {item.wellbeingTier} · {timeAgo(item.createdAt)}</div>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    {/* M3 fix (audit 2026-07-26): action buttons for crisis flags —
-                        acknowledge (mark as reviewed) + resolve (close the flag). */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 text-[10px] text-amber-600 hover:bg-amber-500/10"
-                      onClick={async () => {
-                        try {
-                          await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "acknowledged" });
-                          showSuccess("Crisis flag acknowledged.");
-                          onReload?.();
-                        } catch (e) {
-                          showError(e instanceof Error ? e.message : "Failed to acknowledge");
-                        }
-                      }}
-                    >
-                      Acknowledge
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 text-[10px] text-emerald-600 hover:bg-emerald-500/10"
-                      onClick={async () => {
-                        try {
-                          await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "resolved" });
-                          showSuccess("Crisis flag resolved.");
-                          onReload?.();
-                        } catch (e) {
-                          showError(e instanceof Error ? e.message : "Failed to resolve");
-                        }
-                      }}
-                    >
-                      Resolve
-                    </Button>
+                    {/* M3 + HI-3 fix: Acknowledge, Escalate to Principal, and Resolve buttons */}
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-amber-600 hover:bg-amber-500/10" onClick={async () => {
+                      try { await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "acknowledged" }); showSuccess("Crisis flag acknowledged."); onReload?.(); } catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
+                    }}>Acknowledge</Button>
+                    {/* HI-3 fix: Escalate to Principal — sends in-app message to all principals in the student's institution */}
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-rose-600 hover:bg-rose-500/10" onClick={async () => {
+                      try { await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "escalated" }); showSuccess("Crisis flag escalated to principal."); onReload?.(); } catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
+                    }}>Escalate</Button>
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-emerald-600 hover:bg-emerald-500/10" onClick={async () => {
+                      try { await api.patch("/api/crisis-flags", { flagId: item.flagId, status: "resolved" }); showSuccess("Crisis flag resolved."); onReload?.(); } catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
+                    }}>Resolve</Button>
                     {onStudentClick && (
                       <Button size="sm" variant="ghost" className="h-6 text-[10px] text-primary hover:bg-primary/10" onClick={() => onStudentClick(item.studentId, item.studentName)}>
                         Portfolio →
@@ -403,14 +380,14 @@ function CommandCenter({ data, onNavigateToMessages, onStudentClick, onReload }:
 // ============================================================
 // CASELOAD — searchable roster with wellbeing tiers
 // ============================================================
-function CaseloadView({ data, onStudentClick }: { data: CounselorData; onStudentClick?: (studentId: string, studentName: string) => void }) {
+function CaseloadView({ data }: { data: CounselorData }) {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "red" | "warning" | "crisis" | "alerts">("all");
+  const [filter, setFilter] = useState<"all" | "red" | "amber" | "crisis" | "alerts">("all");
 
   const filtered = data.topConcerns.filter(s => {
     if (search && !s.studentName.toLowerCase().includes(search.toLowerCase()) && !s.studentEmail.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter === "red" && s.wellbeingTier !== "red") return false;
-    if (filter === "warning" && s.wellbeingTier !== "warning") return false;
+    if (filter === "amber" && s.wellbeingTier !== "amber") return false;
     if (filter === "crisis" && !s.hasCrisisFlag) return false;
     if (filter === "alerts" && s.alertCount === 0) return false;
     return true;
@@ -424,7 +401,7 @@ function CaseloadView({ data, onStudentClick }: { data: CounselorData; onStudent
           {([
             { key: "all", label: "All" },
             { key: "red", label: "Red" },
-            { key: "warning", label: "Warning" },
+            { key: "amber", label: "Amber" },
             { key: "crisis", label: "Crisis" },
             { key: "alerts", label: "Alerts" },
           ] as const).map(f => (
@@ -462,7 +439,7 @@ function CaseloadView({ data, onStudentClick }: { data: CounselorData; onStudent
                 <div key={s.studentId} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                   <div className={cn("w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold",
                     s.wellbeingTier === "red" ? "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" :
-                    s.wellbeingTier === "warning" ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" :
+                    s.wellbeingTier === "amber" ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" :
                     "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
                   )}>
                     {s.studentName.charAt(0)}
@@ -481,19 +458,6 @@ function CaseloadView({ data, onStudentClick }: { data: CounselorData; onStudent
                     {s.frustrationCount > 0 && <Badge variant="outline" className="text-[9px] bg-orange-50 text-orange-700">{s.frustrationCount}F</Badge>}
                     {s.avoidanceCount > 0 && <Badge variant="outline" className="text-[9px] bg-rose-50 text-rose-700">{s.avoidanceCount}A</Badge>}
                     {s.enthusiasmCount > 0 && <Badge variant="outline" className="text-[9px] bg-emerald-50 text-emerald-700">{s.enthusiasmCount}E</Badge>}
-                    {/* H7 fix: counselors can now open the student's portfolio
-                        directly from the caseload — was locked into aggregate views. */}
-                    {onStudentClick && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 text-[10px] text-primary hover:bg-primary/10"
-                        onClick={() => onStudentClick(s.studentId, s.studentName)}
-                        title={`Open ${s.studentName}'s portfolio`}
-                      >
-                        Portfolio →
-                      </Button>
-                    )}
                   </div>
                 </div>
               ))}
@@ -508,7 +472,7 @@ function CaseloadView({ data, onStudentClick }: { data: CounselorData; onStudent
 // ============================================================
 // SESSIONS — GROW touchpoint history + logger + case reviews
 // ============================================================
-function SessionsView({ data, onNavigateToMessages, onStudentClick, onReload }: { data: CounselorData; onNavigateToMessages?: () => void; onStudentClick?: (studentId: string, studentName: string) => void; onReload?: () => void }) {
+function SessionsView({ data, onNavigateToMessages }: { data: CounselorData; onNavigateToMessages?: () => void }) {
   return (
     <div className="space-y-4">
       {/* GROW Logger */}
@@ -520,9 +484,7 @@ function SessionsView({ data, onNavigateToMessages, onStudentClick, onReload }: 
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          {/* L8 fix (audit 2026-07-26): pass onReload so the touchpoint list
-              refreshes after a new touchpoint is logged (was a no-op). */}
-          <VoiceTouchpointLogger onLogged={() => { onReload?.(); }} />
+          <VoiceTouchpointLogger students={[]} onLogged={() => {}} />
         </CardContent>
       </Card>
 

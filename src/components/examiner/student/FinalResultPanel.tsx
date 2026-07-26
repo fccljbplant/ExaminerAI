@@ -123,7 +123,7 @@ export function FinalResultPanel() {
         {/* Behavioral Pattern Analysis */}
         <div className="rounded-md bg-muted/50 p-3">
           <p className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-1.5">
-            <Brain className="h-3.5 w-3.5 text-violet-600" /> Your Learning Style
+            <Brain className="h-3.5 w-3.5 text-violet-600" /> Your Engagement Pattern
           </p>
           <p className="text-sm text-foreground/80 leading-relaxed">{data.behavioralPattern || "Not enough data yet."}</p>
         </div>

@@ -156,7 +156,7 @@ async function generateGrowthReport(userId: string) {
     growthAreas.push("Used fixed-mindset language (\"can't\", \"not good at\"). Benefit from effort-based praise and reframing challenges as growth opportunities.");
   }
   if (dimensions.attribution?.value === "avoidant") {
-    growthAreas.push("Multiple avoidance responses (\"I don't know\", \"skip\"). May indicate anxiety or lack of preparation. Create safe spaces for wrong answers.");
+    growthAreas.push("Multiple avoidance responses (\"I don't know\", \"skip\"). May indicate uncertainty or lack of preparation. Create safe spaces for wrong answers.");
   }
   if (dimensions.cognitive_load?.value === "high_intrinsic") {
     growthAreas.push("Material was consistently too difficult (scores below 40%). Benefit from breaking concepts into smaller pieces and reviewing prerequisites.");

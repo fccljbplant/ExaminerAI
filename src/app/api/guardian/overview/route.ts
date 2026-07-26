@@ -171,7 +171,7 @@ export async function GET() {
     concerns.push("Increased frustration signals detected in recent AI Tutor sessions.");
   }
   if (healthSummary && healthSummary.avoidanceCount > 2) {
-    concerns.push("Your child has been avoiding some practice questions — may indicate anxiety or gaps.");
+    concerns.push("Your child has been avoiding some practice questions — may indicate uncertainty or gaps.");
   }
 
   // ---- Build wins list (plain English) ----
