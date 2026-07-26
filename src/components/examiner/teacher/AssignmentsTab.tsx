@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
+import { showError } from "@/lib/toast-helpers";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,20 +101,27 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   };
 
   const closeTask = async (taskId: string) => {
-    await api.patch("/api/group-tasks", { taskId, status: "closed" });
-    await load();
+    if (!confirm("Close this task? Students will no longer be able to submit.")) return;
+    try {
+      await api.patch("/api/group-tasks", { taskId, status: "closed" });
+      await load();
+    } catch (e) { showError(e instanceof Error ? e.message : "Failed to close task"); }
   };
 
   const deleteTask = async (taskId: string) => {
     if (!confirm("Delete this task and all submissions?")) return;
-    await api.del("/api/group-tasks", { taskId });
-    await load();
+    try {
+      await api.del("/api/group-tasks", { taskId });
+      await load();
+    } catch (e) { showError(e instanceof Error ? e.message : "Failed to delete task"); }
   };
 
   const deleteEvent = async (eventId: string) => {
     if (!confirm("Delete this event? This cannot be undone.")) return;
-    await api.del("/api/events", { eventId });
-    await load();
+    try {
+      await api.del("/api/events", { eventId });
+      await load();
+    } catch (e) { showError(e instanceof Error ? e.message : "Failed to delete event"); }
   };
 
   const viewSubmissions = async (task: any) => {
@@ -125,12 +133,14 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   };
 
   const gradeSubmission = async (submissionId: string, score: number) => {
-    await api.patch("/api/group-tasks/submit", { submissionId, score });
-    // Refresh submissions
-    if (selectedTask) {
-      const res = await api.get<{ submissions: any[] }>(`/api/group-tasks/submit?groupTaskId=${selectedTask.id}`);
-      setSubmissions(res.submissions || []);
-    }
+    try {
+      await api.patch("/api/group-tasks/submit", { submissionId, score });
+      // Refresh submissions
+      if (selectedTask) {
+        const res = await api.get<{ submissions: any[] }>(`/api/group-tasks/submit?groupTaskId=${selectedTask.id}`);
+        setSubmissions(res.submissions || []);
+      }
+    } catch (e) { showError(e instanceof Error ? e.message : "Failed to grade submission"); }
   };
 
   const eventTypeColor = (type: string) =>

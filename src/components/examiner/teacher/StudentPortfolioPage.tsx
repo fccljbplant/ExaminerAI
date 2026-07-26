@@ -386,7 +386,7 @@ export function StudentPortfolioPage({
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {onPrev && (
-            <Button onClick={onPrev} variant="outline" size="sm" className="border-border px-2" title="Previous student">
+            <Button onClick={onPrev} variant="outline" size="sm" className="border-border px-2" title="Previous student" aria-label="Previous student">
               <ChevronLeft className="h-4 w-4" />
             </Button>
           )}
@@ -394,7 +394,7 @@ export function StudentPortfolioPage({
             <span className="text-xs text-muted-foreground whitespace-nowrap">{studentPosition}</span>
           )}
           {onNext && (
-            <Button onClick={onNext} variant="outline" size="sm" className="border-border px-2" title="Next student">
+            <Button onClick={onNext} variant="outline" size="sm" className="border-border px-2" title="Next student" aria-label="Next student">
               <ChevronRight className="h-4 w-4" />
             </Button>
           )}
@@ -494,14 +494,14 @@ export function StudentPortfolioPage({
                         <button
                           onClick={() => openEntityComment("task", t.id, `Task: ${t.description.slice(0, 30)}`)}
                           className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                          title="Comment on this task"
+                          title="Comment on this task" aria-label="Comment on this task"
                         >
                           <MessageSquare className="h-3 w-3" />
                         </button>
                         <button
                           onClick={() => { if (confirm("Delete this task?")) { api.del(`/api/tasks?id=${t.id}`).then(() => loadPortfolio(student.id)); } }}
                           className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                          title="Delete this task"
+                          title="Delete this task" aria-label="Delete this task"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -545,14 +545,14 @@ export function StudentPortfolioPage({
                       <button
                         onClick={() => openEntityComment("dailyLog", log.id)}
                         className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                        title="Comment on this check-in"
+                        title="Comment on this check-in" aria-label="Comment on this check-in"
                       >
                         <MessageSquare className="h-3 w-3" />
                       </button>
                       <button
                         onClick={() => { if (confirm("Delete this check-in?")) { api.del(`/api/daily-logs/${log.id}`).then(() => loadPortfolio(student.id)); } }}
                         className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                        title="Delete this check-in"
+                        title="Delete this check-in" aria-label="Delete this check-in"
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -735,7 +735,7 @@ export function StudentPortfolioPage({
                           <div className="flex items-center gap-1">
                             {c.marksOverride !== null && <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">Score: {c.marksOverride}%</Badge>}
                             <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
-                            <button onClick={() => deleteComment(c.id)} className="text-destructive hover:text-destructive/80" title="Delete"><Trash2 className="h-2.5 w-2.5" /></button>
+                            <button onClick={() => deleteComment(c.id)} className="text-destructive hover:text-destructive/80" title="Delete" aria-label="Delete comment"><Trash2 className="h-2.5 w-2.5" /></button>
                           </div>
                         </div>
                         {c.body && <p className="text-foreground/80 break-words">{c.body}</p>}
@@ -804,14 +804,14 @@ export function StudentPortfolioPage({
                         <button
                           onClick={() => openEntityComment("interaction", i.id, `Practice: ${i.topic.slice(0, 30)}`)}
                           className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                          title="Comment on this practice question"
+                          title="Comment on this practice question" aria-label="Comment on this practice question"
                         >
                           <MessageSquare className="h-3 w-3" />
                         </button>
                         <button
                           onClick={() => { if (confirm("Delete this practice question?")) { api.del(`/api/interactions/${i.id}`).then(() => loadPortfolio(student.id)); } }}
                           className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                          title="Delete this practice question"
+                          title="Delete this practice question" aria-label="Delete this practice question"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -879,7 +879,7 @@ export function StudentPortfolioPage({
                             <button
                               onClick={() => deleteWtComment(c.id)}
                               className="text-[10px] text-destructive hover:text-destructive/80 hover:underline"
-                              title="Delete this comment"
+                              title="Delete this comment" aria-label="Delete this comment"
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
@@ -1025,7 +1025,7 @@ export function StudentPortfolioPage({
                             <span className="font-medium text-foreground">{c.teacher.name}</span>
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
-                              <button onClick={() => deleteComment(c.id)} className="text-destructive hover:text-destructive/80" title="Delete"><Trash2 className="h-3 w-3" /></button>
+                              <button onClick={() => deleteComment(c.id)} className="text-destructive hover:text-destructive/80" title="Delete" aria-label="Delete comment"><Trash2 className="h-3 w-3" /></button>
                             </div>
                           </div>
                           {c.body && <p className="text-foreground/80 break-words">{c.body}</p>}
@@ -1180,10 +1180,10 @@ export function StudentPortfolioPage({
                       <span className={`text-lg font-bold ${gradeColor(rc.grade)}`}>{rc.score}%</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openRcEdit(rc.week, rc.grade, rc.score, rc.examinerObservations)} className="rounded p-1 text-muted-foreground hover:text-violet-600 hover:bg-violet-500/10 transition-colors" title="Edit report card">
+                      <button onClick={() => openRcEdit(rc.week, rc.grade, rc.score, rc.examinerObservations)} className="rounded p-1 text-muted-foreground hover:text-violet-600 hover:bg-violet-500/10 transition-colors" title="Edit report card" aria-label="Edit report card">
                         <Edit3 className="h-3 w-3" />
                       </button>
-                      <button onClick={() => setRcCommentFor(rc.week)} className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Comment on this report card">
+                      <button onClick={() => setRcCommentFor(rc.week)} className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Comment on this report card" aria-label="Comment on this report card">
                         <MessageSquare className="h-3 w-3" />
                       </button>
                     </div>
