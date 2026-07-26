@@ -451,10 +451,13 @@ export default function CoursePlanner() {
                 <Label className="text-xs font-medium">AI Provider (for AI features in the course)</Label>
                 <Input value={genForm.aiProvider} onChange={(e) => setGenForm({ ...genForm, aiProvider: e.target.value })} placeholder="e.g. Gemini API (free for students), OpenAI API" className="bg-background border-border" />
               </div>
-              {/* Phase AI-Tutor Revert: per-course NotebookLM URL — optional, falls back to global default */}
+              {/* LO-7: NotebookLM URL is currently DEAD CONFIG — collected + persisted
+                  but never rendered for students. The AI Tutor is a chatbot, not an iframe.
+                  Kept for potential future use. The "global default" referenced below
+                  no longer exists in constants.ts. */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium flex items-center gap-1">
-                  NotebookLM URL <span className="text-[10px] text-muted-foreground font-normal">(optional — leaves global default if empty)</span>
+                  NotebookLM URL <span className="text-[10px] text-muted-foreground font-normal">(currently unused — AI Tutor is chatbot-based)</span>
                 </Label>
                 <Input
                   value={genForm.notebooklmUrl}
@@ -464,7 +467,7 @@ export default function CoursePlanner() {
                   type="url"
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  The AI Tutor tab loads this NotebookLM notebook in an iframe for students in this course.
+                  Note: This field is collected but not currently rendered to students. The AI Tutor uses a chat-based interface instead of a NotebookLM iframe.
                   Leave empty to use the default bootcamp notebook. You can change this later in the course detail view.
                 </p>
               </div>

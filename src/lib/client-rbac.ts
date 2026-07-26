@@ -28,7 +28,6 @@ export const PRINCIPAL_ROLES = ["principal", "institution_admin"] as const;
 
 // Staff roles (must match rbac.ts STAFF_ROLES)
 export const STAFF_ROLES = [
-  "teaching_assistant",
   "teacher",
   "course_coordinator",
   "counselor",

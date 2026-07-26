@@ -147,7 +147,11 @@ const ALL_NAV: NavItem[] = [
 
   // ===== SHARED (all authenticated roles) =====
   // AI Tutor — student-facing only (teachers/counselors use AI Assistant instead)
-  { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ["student", "guardian"] },
+  // LO-9 fix: removed "guardian" from AI Tutor roles — the AI Tutor is a
+  // student-facing practice chatbot. Guardians view their child's progress,
+  // they don't practice questions. The guardian dashboard already surfaces
+  // relevant information without needing a practice chat interface.
+  { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ["student"] },
   // Teacher AI Assistant — staff-only (teachers, coordinators, counselors, admins).
   { key: "teacher-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
   { key: "course-outline", label: "Course", icon: BookOpen, roles: ALL_ROLES_WITH_SHARED },

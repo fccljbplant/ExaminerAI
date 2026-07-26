@@ -28,7 +28,6 @@ const CACHE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 /** Per-role soft query budget (per 24h) — flags, doesn't block */
 const ROLE_QUERY_BUDGETS: Record<string, number> = {
   teacher: 50,
-  teaching_assistant: 30,
   counselor: 80,
   course_coordinator: 40,
   principal: 200,

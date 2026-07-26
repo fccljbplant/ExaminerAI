@@ -35,7 +35,7 @@ export async function POST(
     select: { id: true, name: true, email: true, role: true },
   });
   if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
-  const staffRoles = ["teacher", "course_coordinator", "counselor", "teaching_assistant"];
+  const staffRoles = ["teacher", "course_coordinator", "counselor"];
   if (!staffRoles.includes(teacher.role) && !hasRole(teacher.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "User is not a staff member" }, { status: 400 });
   }

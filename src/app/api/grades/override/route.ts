@@ -9,7 +9,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *  Phase RBAC+AUDIT: centralized RBAC + universal audit log. */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("overriding grades"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;
 

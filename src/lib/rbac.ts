@@ -83,7 +83,6 @@ export const TECHNICAL_ROLES: UserRoleValue[] = [
  *  Used for API routes that should be accessible to all staff (teachers,
  *  TAs, coordinators, counselors, admins) but NOT students. */
 export const STAFF_ROLES: UserRoleValue[] = [
-  UserRole.TEACHING_ASSISTANT,
   UserRole.TEACHER,
   UserRole.COURSE_COORDINATOR,
   UserRole.COUNSELOR,
@@ -259,7 +258,7 @@ export async function getVisibleStudentIds(userId: string, userRole: string): Pr
     const allStudents = await db.user.findMany({ where: { role: "student" }, select: { id: true } });
     return allStudents.map(u => u.id);
   }
-  if (userRole === UserRole.TEACHER || userRole === UserRole.TEACHING_ASSISTANT) {
+  if (userRole === UserRole.TEACHER ) {
     const teacher = await db.user.findUnique({ where: { id: userId }, select: { batchId: true } });
     if (!teacher?.batchId) return [];
     const batchStudents = await db.user.findMany({ where: { role: "student", batchId: teacher.batchId }, select: { id: true } });

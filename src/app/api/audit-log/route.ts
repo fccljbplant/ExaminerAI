@@ -7,7 +7,7 @@ import { logger } from "@/lib/logger";
  *  Admins see all. Staff see only their own. Students/pending: 403. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR,
+    UserRole.TEACHER, UserRole.COURSE_COORDINATOR,
     UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;

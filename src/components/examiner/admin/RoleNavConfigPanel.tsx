@@ -64,7 +64,6 @@ export function RoleNavConfigPanel() {
 
   const ROLE_LABELS: Record<string, string> = {
     student: "Student",
-    teaching_assistant: "Teaching Assistant",
     teacher: "Teacher / Mentor",
     course_coordinator: "Course Coordinator",
     counselor: "Counselor",
