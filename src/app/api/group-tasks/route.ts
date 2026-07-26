@@ -93,7 +93,32 @@ export async function POST(req: NextRequest) {
 /**
  * PATCH /api/group-tasks — update a group task (close/grade/edit).
  * Body: { taskId, status?, title?, description?, dueDate? }
+ *
+ * H2 fix (audit 2026-07-26): teachers can only modify tasks they own (or in
+ * batches they can access). Admins can modify any task.
  */
+async function verifyGroupTaskOwnership(payload: { sub: string; role: string }, taskId: string) {
+  // Admins can access any task
+  const { hasRole, ADMIN_ROLES } = await import("@/lib/rbac");
+  if (hasRole(payload.role, ADMIN_ROLES)) return { ok: true as const };
+
+  const task = await db.groupTask.findUnique({
+    where: { id: taskId },
+    select: { teacherId: true, batchId: true },
+  });
+  if (!task) {
+    return { ok: false as const, error: NextResponse.json({ error: "Task not found" }, { status: 404 }) };
+  }
+  // Teacher must be the task creator OR have access to the task's batch
+  if (task.teacherId === payload.sub) return { ok: true as const };
+  const { canAccessBatch } = await import("@/lib/batch-teachers");
+  const canAccess = await canAccessBatch(payload.sub, payload.role, task.batchId);
+  if (!canAccess) {
+    return { ok: false as const, error: NextResponse.json({ error: "You can only modify tasks in batches you are assigned to" }, { status: 403 }) };
+  }
+  return { ok: true as const };
+}
+
 export async function PATCH(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
@@ -105,6 +130,10 @@ export async function PATCH(req: NextRequest) {
   };
 
   if (!taskId) return NextResponse.json({ error: "taskId required" }, { status: 400 });
+
+  // H2 fix: verify ownership before updating
+  const ownership = await verifyGroupTaskOwnership(auth.ctx.payload, taskId);
+  if (!ownership.ok) return ownership.error;
 
   const updateData: Record<string, unknown> = {};
   if (status) updateData.status = status;
@@ -123,6 +152,9 @@ export async function PATCH(req: NextRequest) {
 /**
  * DELETE /api/group-tasks — delete a group task.
  * Body: { taskId }
+ *
+ * H2 fix (audit 2026-07-26): teachers can only delete tasks they own (or in
+ * batches they can access). Admins can delete any task.
  */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
@@ -132,6 +164,10 @@ export async function DELETE(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const { taskId } = body as { taskId?: string };
   if (!taskId) return NextResponse.json({ error: "taskId required" }, { status: 400 });
+
+  // H2 fix: verify ownership before deleting
+  const ownership = await verifyGroupTaskOwnership(auth.ctx.payload, taskId);
+  if (!ownership.ok) return ownership.error;
 
   await db.groupTask.delete({ where: { id: taskId } });
   return NextResponse.json({ ok: true });

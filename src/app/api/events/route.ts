@@ -76,6 +76,9 @@ export async function POST(req: NextRequest) {
 /**
  * DELETE /api/events — delete an event.
  * Body: { eventId }
+ *
+ * H2 fix (audit 2026-07-26): teachers can only delete events in batches they
+ * can access. Admins can delete any event.
  */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("creating events"); if (_demoBlock) return _demoBlock;
@@ -85,6 +88,24 @@ export async function DELETE(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const { eventId } = body as { eventId?: string };
   if (!eventId) return NextResponse.json({ error: "eventId required" }, { status: 400 });
+
+  // H2 fix: verify the event belongs to a batch the caller can access
+  const { hasRole, ADMIN_ROLES } = await import("@/lib/rbac");
+  if (!hasRole(auth.ctx.payload.role, ADMIN_ROLES)) {
+    const event = await db.event.findUnique({
+      where: { id: eventId },
+      select: { batchId: true, createdById: true },
+    });
+    if (!event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    // Teacher can delete if they created it OR if it's in a batch they can access
+    if (event.createdById !== auth.ctx.payload.sub && event.batchId) {
+      const { canAccessBatch } = await import("@/lib/batch-teachers");
+      const canAccess = await canAccessBatch(auth.ctx.payload.sub, auth.ctx.payload.role, event.batchId);
+      if (!canAccess) {
+        return NextResponse.json({ error: "You can only delete events in batches you are assigned to" }, { status: 403 });
+      }
+    }
+  }
 
   await db.event.delete({ where: { id: eventId } });
   return NextResponse.json({ ok: true });

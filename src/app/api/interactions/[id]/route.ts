@@ -1,8 +1,26 @@
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+
+/** H2 fix (audit 2026-07-26): verify the interaction belongs to a student the
+ *  caller can access BEFORE modifying/deleting it. */
+async function verifyInteractionOwnership(payload: { sub: string; role: string; email: string; name: string }, interactionId: string) {
+  const interaction = await db.interaction.findUnique({
+    where: { id: interactionId },
+    select: { userId: true },
+  });
+  if (!interaction) {
+    return { error: NextResponse.json({ error: "Interaction not found" }, { status: 404 }) };
+  }
+  try {
+    await assertCanAccessStudent(payload, interaction.userId);
+  } catch (err: any) {
+    return { error: NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 }) };
+  }
+  return { userId: interaction.userId };
+}
 
 /** PATCH /api/interactions/[id] — teacher/admin edits a practice question record.
  *
@@ -19,6 +37,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+
+  // H2 fix: verify ownership before updating
+  const ownership = await verifyInteractionOwnership(payload, id);
+  if ("error" in ownership) return ownership.error;
+
   const body = await req.json().catch(() => ({}));
   const data: Record<string, unknown> = {};
   if (body.correctness !== undefined) {
@@ -47,6 +70,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
+
+  // H2 fix: verify ownership before deleting
+  const ownership = await verifyInteractionOwnership(payload, id);
+  if ("error" in ownership) return ownership.error;
+
   // Cascade: delete all comments referencing this interaction first
   await db.$transaction(async (tx) => {
     await tx.comment.deleteMany({ where: { interactionId: id } });

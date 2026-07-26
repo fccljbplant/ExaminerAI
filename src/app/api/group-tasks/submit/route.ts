@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
@@ -101,6 +101,23 @@ export async function PATCH(req: NextRequest) {
 
   if (!submissionId || score === undefined) {
     return NextResponse.json({ error: "submissionId and score required" }, { status: 400 });
+  }
+
+  // H2 fix (audit 2026-07-26): verify the submission belongs to a student the
+  // teacher can access BEFORE grading. The previous version accepted ANY
+  // submission ID — a teacher could grade submissions for students in batches
+  // they don't teach.
+  const existingSubmission = await db.groupTaskSubmission.findUnique({
+    where: { id: submissionId },
+    select: { userId: true },
+  });
+  if (!existingSubmission) {
+    return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+  }
+  try {
+    await assertCanAccessStudent({ sub: user.id, role: user.role, name: user.name, email: user.email }, existingSubmission.userId);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
   }
 
   const submission = await db.groupTaskSubmission.update({
