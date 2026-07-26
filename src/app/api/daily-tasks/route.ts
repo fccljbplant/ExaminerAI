@@ -50,7 +50,15 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
     }),
     db.dailyLog.findMany({
-      where: { userId: user.id, week: currentWeek },
+      // FIX: query today's logs by date range (not just by week) so the
+      // "hasCheckedInToday" check works even if the week number is wrong.
+      where: {
+        userId: user.id,
+        OR: [
+          { week: currentWeek },
+          { date: { gte: new Date(new Date().toISOString().slice(0, 10)) } },
+        ],
+      },
       orderBy: { date: "desc" },
     }),
     db.interaction.findMany({
@@ -91,8 +99,18 @@ export async function GET() {
   const completedToday = todayProjectTasks.filter(t => t.status === "completed").length;
 
   // Has the student checked in today?
+  // FIX: use UTC date consistently for "today" comparison. Previously used
+  // toISOString().slice(0,10) which IS UTC, but the dailyLogs query used
+  // `week: currentWeek` without a date filter — so it returned ALL logs for
+  // the week, and the today check compared UTC dates. This was correct but
+  // fragile. Now we also query today's logs explicitly by date range.
   const todayStr = new Date().toISOString().slice(0, 10);
-  const hasCheckedInToday = dailyLogs.some(l => new Date(l.date).toISOString().slice(0, 10) === todayStr);
+  const todayStart = new Date(todayStr + "T00:00:00.000Z");
+  const todayEnd = new Date(todayStr + "T23:59:59.999Z");
+  const hasCheckedInToday = dailyLogs.some(l => {
+    const logDate = new Date(l.date);
+    return logDate >= todayStart && logDate <= todayEnd;
+  });
 
   // Has the student practiced (answered ≥1 practice question) today?
   const hasPracticedToday = todayInteractions.length > 0;

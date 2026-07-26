@@ -231,6 +231,37 @@ export async function POST(req: NextRequest) {
         }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
         void trackTestCompletion({ userId: user.id, score: grade.score, testType: "practice" });
 
+        // FIX: Create an Interaction record so the daily-tasks tracker
+        // (which checks the Interaction table) correctly detects that the
+        // student practiced today. Without this, hasPracticedToday is always
+        // false even after completing a practice session.
+        const lastStudentMsg = studentMsgs[studentMsgs.length - 1];
+        const lastExaminerMsg = examinerMsgs[examinerMsgs.length - 1];
+        if (lastStudentMsg && lastExaminerMsg) {
+          db.interaction.create({
+            data: {
+              userId: user.id,
+              week,
+              pillar: "concept",
+              topic: practiceTopic,
+              question: lastExaminerMsg.content.slice(0, 500),
+              projectContext: "",
+              studentAnswer: lastStudentMsg.content.slice(0, 2000),
+              timeTakenSeconds: 0,
+              answerLength: lastStudentMsg.content.split(/\s+/).length,
+              correctness: grade.score,
+              feedback: grade.feedback.modelAnswer.slice(0, 500),
+              level: grade.score >= 70 ? "advanced" : grade.score >= 40 ? "intermediate" : "beginner",
+              gaps: JSON.stringify(grade.feedback.missedPoints.slice(0, 5)),
+              followUp: grade.feedback.nextTime.slice(0, 500),
+              cognitiveLoad: "moderate",
+              confidence: "moderate",
+              metacognitive: "moderate",
+              plagiarismScore: 0,
+            },
+          }).catch(() => {/* non-blocking */});
+        }
+
         // Write a unified ChatSession row (chatbotType="practice") so all
         // chatbot sessions live in one model for cross-chatbot analysis.
         // Non-blocking — best-effort.
@@ -290,6 +321,36 @@ export async function POST(req: NextRequest) {
       conversation: conversation.map(m => ({ role: m.role, content: m.content, questionIndex: 0 })),
     }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
     void trackTestCompletion({ userId: user.id, score: grade.score, testType: "practice" });
+
+    // FIX: Create an Interaction record for the "finish" path too
+    const studentMsgs = conversation.filter(m => m.role === "student");
+    const examinerMsgs = conversation.filter(m => m.role === "examiner");
+    const lastStudentMsg = studentMsgs[studentMsgs.length - 1];
+    const lastExaminerMsg = examinerMsgs[examinerMsgs.length - 1];
+    if (lastStudentMsg && lastExaminerMsg) {
+      db.interaction.create({
+        data: {
+          userId: user.id,
+          week,
+          pillar: "concept",
+          topic: practiceTopic,
+          question: lastExaminerMsg.content.slice(0, 500),
+          projectContext: "",
+          studentAnswer: lastStudentMsg.content.slice(0, 2000),
+          timeTakenSeconds: 0,
+          answerLength: lastStudentMsg.content.split(/\s+/).length,
+          correctness: grade.score,
+          feedback: grade.feedback.modelAnswer.slice(0, 500),
+          level: grade.score >= 70 ? "advanced" : grade.score >= 40 ? "intermediate" : "beginner",
+          gaps: JSON.stringify(grade.feedback.missedPoints.slice(0, 5)),
+          followUp: grade.feedback.nextTime.slice(0, 500),
+          cognitiveLoad: "moderate",
+          confidence: "moderate",
+          metacognitive: "moderate",
+          plagiarismScore: 0,
+        },
+      }).catch(() => {/* non-blocking */});
+    }
 
     return NextResponse.json({
       conversation,
