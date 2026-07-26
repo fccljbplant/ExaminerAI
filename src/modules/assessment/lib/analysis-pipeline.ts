@@ -454,25 +454,45 @@ async function autoCreateTouchpointOnTierTransition(input: PipelineInput): Promi
     });
     if (recentTouchpoint) return; // Already created
 
-    if (wellbeing.tier === "red") {
-      // Find teachers for this student's batch
+    if (wellbeing.tier === "red" || wellbeing.tier === "warning") {
+      // Find teachers for this student's batch — use BatchTeacher junction
+      // (multi-teacher support) + legacy User.batchId for backward compat
       const student = await db.user.findUnique({ where: { id: input.userId }, select: { batchId: true } });
+      const teacherIds = new Set<string>();
+
       if (student?.batchId) {
-        const teachers = await db.user.findMany({
+        // Legacy: teachers with batchId on User
+        const legacyTeachers = await db.user.findMany({
           where: { role: { in: ["teacher"] }, batchId: student.batchId, blocked: false },
           select: { id: true },
         });
-        for (const teacher of teachers) {
-          await db.mentorshipTouchpoint.create({
-            data: {
-              userId: input.userId,
-              actorUserId: teacher.id,
-              type: "alert_response",
-              note: `Auto-created: student wellbeing dropped to RED after ${input.testType} (score ${input.score}%). Review recommended.`,
-              outcome: "ongoing",
-            },
+        legacyTeachers.forEach(t => teacherIds.add(t.id));
+
+        // Multi-teacher: teachers assigned via BatchTeacher junction
+        const batchTeachers = await db.batchTeacher.findMany({
+          where: { batchId: student.batchId },
+          select: { teacherId: true },
+        });
+        // Verify these teachers aren't blocked
+        if (batchTeachers.length > 0) {
+          const activeTeachers = await db.user.findMany({
+            where: { id: { in: batchTeachers.map(bt => bt.teacherId) }, blocked: false },
+            select: { id: true },
           });
+          activeTeachers.forEach(t => teacherIds.add(t.id));
         }
+      }
+
+      for (const teacherId of teacherIds) {
+        await db.mentorshipTouchpoint.create({
+          data: {
+            userId: input.userId,
+            actorUserId: teacherId,
+            type: "alert_response",
+            note: `Auto-created: student wellbeing dropped to RED after ${input.testType} (score ${input.score}%). Review recommended.`,
+            outcome: "ongoing",
+          },
+        });
       }
     }
   } catch { /* best-effort */ }

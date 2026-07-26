@@ -159,7 +159,7 @@ export default function Messages() {
                           <button
                             onClick={() => deleteMessage(m.id)}
                             className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                            title="Delete this message"
+                            title="Delete this message" aria-label="Delete message"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -198,7 +198,7 @@ export default function Messages() {
                           <button
                             onClick={() => deleteMessage(m.id)}
                             className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                            title="Delete this message"
+                            title="Delete this message" aria-label="Delete message"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>

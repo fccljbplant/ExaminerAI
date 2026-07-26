@@ -53,7 +53,8 @@ export function AccessGrantsPanel() {
           ) : grants.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-8">
               <ShieldCheck className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-              No active access grants. Use the API to create one: <code className="text-primary">POST /api/access-grants</code>
+              No active access grants yet. Grants allow counselors to access specific students'
+              wellbeing data. Ask an administrator to create one when needed.
             </div>
           ) : (
             <div className="overflow-x-auto">

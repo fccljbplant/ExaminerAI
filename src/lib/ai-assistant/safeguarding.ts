@@ -71,11 +71,18 @@ const DISMISSIVE_PATTERNS = [
   /\b(you're\s+(?:overreacting|being\s+dramatic))\b/i,
 ];
 
+const INAPPROPRIATE_TONE_PATTERNS = [
+  /\b(you're\s+(?:too\s+)?sensitive|grow\s+up|act\s+your\s+age)\b/i,
+  /\b(cry\s+me\s+a\s+river|boo\s+hoo|wah\s+wah)\b/i,
+  /\b(get\s+over\s+it|move\s+on|not\s+my\s+problem)\b/i,
+  /\b(stop\s+being\s+(?:so|such)\s+(?:emotional|dramatic|weak))\b/i,
+];
+
 const PATTERN_MAP: Record<SafeguardingCategory, RegExp[]> = {
   aggressive_language: AGGRESSIVE_PATTERNS,
   trauma_inducing: TRAUMA_PATTERNS,
   neglect_of_distressed_student: NEGLECT_PATTERNS,
-  inappropriate_tone: DISMISSIVE_PATTERNS,
+  inappropriate_tone: INAPPROPRIATE_TONE_PATTERNS,
   dismissive_of_distress: DISMISSIVE_PATTERNS,
 };
 

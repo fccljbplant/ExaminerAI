@@ -89,7 +89,8 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
         api.get<{
           stats: TeacherStats;
           students: StudentRow[];
-        }>("/api/stats?as=teacher", undefined, AI_TIMEOUT_MS),
+          hasMore?: boolean;
+        }>("/api/stats?as=teacher&page=0&pageSize=100", undefined, AI_TIMEOUT_MS),
         api.get<{ alerts: AlertItem[] }>("/api/students/alerts").catch(() => ({ alerts: [] as AlertItem[] })),
       ]);
       setStats(statsRes?.stats || null);

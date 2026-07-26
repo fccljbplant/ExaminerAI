@@ -385,14 +385,14 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                           {u.email !== "admin@examiner.ai" && currentUserRole !== "demo" && (
                             <>
                               {u.role === "pending" && (
-                                <Button size="sm" variant="ghost" onClick={() => approve(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-emerald-600" title="Approve">
+                                <Button size="sm" variant="ghost" onClick={() => approve(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-emerald-600" title="Approve" aria-label="Approve user">
                                   {busy === u.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserCheck className="h-3 w-3" />}
                                 </Button>
                               )}
                               <Button size="sm" variant="ghost" onClick={() => toggleBlock(u.id, u.blocked)} disabled={busy === u.id} className={`h-7 w-7 p-0 ${u.blocked ? "text-emerald-600" : "text-amber-600"}`} title={u.blocked ? "Unblock" : "Block"}>
                                 <Ban className="h-3 w-3" />
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={() => remove(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Delete">
+                              <Button size="sm" variant="ghost" onClick={() => remove(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Delete" aria-label="Delete user">
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </>

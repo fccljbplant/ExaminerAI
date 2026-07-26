@@ -26,7 +26,7 @@ export interface AIMessage {
 
 export interface AIResult {
   text: string;
-  provider: "zai" | "deepseek" | "z-ai" | "fallback";
+  provider: "zai" | "deepseek" | "z-ai" | "fallback" | "cache";
   fallback: boolean;
   promptTokens: number;
   completionTokens: number;
@@ -303,7 +303,7 @@ export async function callAI(
       // bill anything). Mark as fallback:false (real response, just cached).
       return {
         text: cached.text,
-        provider: "zai", // doesn't matter — we didn't call the provider
+        provider: "cache", // cached response — no provider was called
         fallback: false,
         promptTokens: cached.promptTokens,
         completionTokens: cached.completionTokens,

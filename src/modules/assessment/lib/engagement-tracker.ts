@@ -27,8 +27,23 @@ function detectLanguage(text: string): string {
   const lower = text.toLowerCase();
   // Check for common Roman Urdu/Hindi signals
   const urduSignals = ["hai", "hoon", "nahin", "nahi", "kya", "tum", "main", "hum", "ye", "woh", "karna", "karta", "hone", "accha", "theek", "zaroori", "samajh", "pata", "aap", "kyun", "kyunki", "agar", "toh", "bhi", "bahut", "thora"];
-  const hasUrdu = urduSignals.some(w => new RegExp(`\\b${w}\\b`, "i").test(lower));
-  if (hasUrdu) return "roman_urdu";
+  // Arabic transliterated
+  const arabicSignals = ["inshallah", "mashallah", "alhamdulillah", "assalam", "salam", "jazak", "halal", "haram", "bismillah", "subhan", "astaghfirullah"];
+  // Punjabi transliterated
+  const punjabiSignals = ["kiven", "kidhr", "kitt", "hunda", "karde", "nahio", "haan", "nahi", "bhot", "thoda"];
+  // Bengali transliterated
+  const bengaliSignals = ["ache", "kemon", "tumi", "amra", "kichu", "korbo", "bhalo", "kharap", "hobe", "na"];
+  // Spanish signals
+  const spanishSignals = ["hola", "gracias", "por favor", "no se", "como", "que", "muy", "bien", "mal", "puedo"];
+  // Common abbreviation patterns that suggest non-English
+  const smsPatterns = ["u ", "ur ", "r ", "n ", "bcoz", "wht", "pls", "plz", "thnx", "okk", "yep", "nope"];
+
+  if (urduSignals.some(w => new RegExp(`\\b${w}\\b`, "i").test(lower))) return "roman_urdu";
+  if (arabicSignals.some(w => lower.includes(w))) return "arabic_roman";
+  if (punjabiSignals.some(w => new RegExp(`\\b${w}\\b`, "i").test(lower))) return "punjabi_roman";
+  if (bengaliSignals.some(w => new RegExp(`\\b${w}\\b`, "i").test(lower))) return "bengali_roman";
+  if (spanishSignals.some(w => lower.includes(w))) return "spanish";
+  if (smsPatterns.some(w => lower.includes(w))) return "sms_english";
   return "english";
 }
 
@@ -110,9 +125,12 @@ export async function trackTutorEngagement(args: {
     const newEngagementScore = Math.round(currentEngagement * 0.7 + psych.engagementScore * 0.3);
 
     // Increment psych counters (with rollover if needed)
-    const newFrustrationCount = rollover ? (psych.frustrationSignal ? 1 : 0) : (existing?.frustrationCount ?? 0) + (psych.frustrationSignal ? 1 : 0);
-    const newAvoidanceCount = rollover ? (psych.avoidanceSignal ? 1 : 0) : (existing?.avoidanceCount ?? 0) + (psych.avoidanceSignal ? 1 : 0);
-    const newEnthusiasmCount = rollover ? (psych.enthusiasmSignal ? 1 : 0) : (existing?.enthusiasmCount ?? 0) + (psych.enthusiasmSignal ? 1 : 0);
+    // Use conditional increment to avoid race condition: instead of reading
+    // the count + writing the absolute new value (which loses concurrent
+    // increments), we use Prisma's `increment` with a conditional value.
+    const frustrationInc = psych.frustrationSignal ? 1 : 0;
+    const avoidanceInc = psych.avoidanceSignal ? 1 : 0;
+    const enthusiasmInc = psych.enthusiasmSignal ? 1 : 0;
 
     await db.studentHealthSummary.upsert({
       where: { userId },
@@ -149,9 +167,9 @@ export async function trackTutorEngagement(args: {
             }
           : {
               tutorMessagesThisWeek: { increment: 1 },
-              frustrationCount: newFrustrationCount,
-              avoidanceCount: newAvoidanceCount,
-              enthusiasmCount: newEnthusiasmCount,
+              frustrationCount: { increment: frustrationInc },
+              avoidanceCount: { increment: avoidanceInc },
+              enthusiasmCount: { increment: enthusiasmInc },
             }
         ),
         tutorMessagesTotal: { increment: 1 },
