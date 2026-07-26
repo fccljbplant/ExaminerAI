@@ -5,8 +5,7 @@
  *   1. DeepSeek (via DEEPSEEK_API_KEY env var — primary, cost-effective)
  *      Model: deepseek-v4-flash (fast + cheap)
  *   2. Z.ai API (via ZAI_API_KEY env var or DB setting — OpenAI-compatible fallback)
- *   3. z-ai-web-dev-sdk (sandbox / dev fallback — only works in Z.ai sandbox)
- *   4. Heuristic empty response (caller handles fallback)
+ *   3. Heuristic empty response (caller handles fallback)
  *
  * DeepSeek is the primary provider because it's the most cost-effective.
  * Z.ai is kept as a fallback for when DeepSeek is not configured.
@@ -260,7 +259,7 @@ async function logUsage(log: UsageLog) {
 // === Main entry point ===
 
 /** Call AI with the best available provider.
- *  Priority: DeepSeek (primary, cost-effective) → Z.ai (fallback) → z-ai-web-dev-sdk (sandbox) → empty fallback
+ *  Priority: DeepSeek (primary, cost-effective) → Z.ai (fallback) → empty fallback
  *
  *  Options:
  *  - temperature: 0-2 (default 0.5)
@@ -406,38 +405,12 @@ export async function callAI(
         return { text, provider: "zai", fallback: false, promptTokens, completionTokens, model: ZAI_MODEL, durationMs: Date.now() - startedAt };
       }
     } catch (e) {
-      logger.error("Z.ai failed, trying z-ai-sdk", { feature, error: e instanceof Error ? e.message : String(e) });
+      logger.error("Z.ai failed, returning empty fallback", { feature, error: e instanceof Error ? e.message : String(e) });
     }
     } // end gotSlot
   }
 
-  // ---- 3. Try z-ai-web-dev-sdk (sandbox fallback) ----
-  try {
-    const ZAI = (await import("z-ai-web-dev-sdk")).default;
-    const zai = await ZAI.create();
-    const completion = await zai.chat.completions.create({
-      messages: apiMessages as any,
-      temperature: temp,
-      max_tokens: maxTokens,
-    });
-    const reply = completion.choices[0]?.message?.content?.trim();
-    if (reply) {
-      const promptTokens = completion.usage?.prompt_tokens ?? estimateTokens(messages.map(m => m.content).join(""));
-      const completionTokens = completion.usage?.completion_tokens ?? estimateTokens(reply);
-      logUsage({
-        provider: "z-ai", model: "z-ai-sdk", feature,
-        promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
-        success: true, durationMs: Date.now() - startedAt,
-        userId: options?.userId,
-      }).catch(() => {});
-      maybeCache(reply, promptTokens, completionTokens, "z-ai-sdk");
-      return { text: reply, provider: "z-ai", fallback: true, promptTokens, completionTokens, model: "z-ai-sdk", durationMs: Date.now() - startedAt };
-    }
-  } catch (e) {
-    logger.error("z-ai-web-dev-sdk failed", { feature, error: e instanceof Error ? e.message : String(e) });
-  }
-
-  // ---- 4. Empty fallback ----
+  // ---- 3. Empty fallback ----
   logger.warn("All AI providers failed — returning empty", { feature });
   return {
     text: "",

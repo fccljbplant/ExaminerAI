@@ -55,6 +55,7 @@ function colorsToCssVars(colors: ThemeColors): string {
     accent: "--accent",
     accentForeground: "--accent-foreground",
     destructive: "--destructive",
+    destructiveForeground: "--destructive-foreground",
     border: "--border",
     input: "--input",
     ring: "--ring",

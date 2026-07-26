@@ -272,7 +272,7 @@ const THEMES = [
 ];
 
 const PLATFORM_FEATURES = [
-  { icon: Bot, title: "Multi-Provider AI", desc: "DeepSeek V4 Flash (primary, cheap + fast), Z.ai (fallback), z-ai-web-dev-sdk (sandbox). Automatic failover. Token cache for repeat calls." },
+  { icon: Bot, title: "Multi-Provider AI", desc: "DeepSeek V4 Flash (primary, cheap + fast), Z.ai (fallback). Automatic failover. Token cache for repeat calls." },
   { icon: ShieldCheck, title: "7-Role RBAC", desc: "Granular permissions with IDOR protection, AccessGrant scoping (full / wellbeing_only / crisis_only / content_only), and rate limiting per role." },
   { icon: Database, title: "Lightweight Telemetry", desc: "1 DB upsert per AI Tutor message (not 15-20). Scales to 10,000+ students without DB flooding. Best-effort pipelines never block UX." },
   { icon: Bell, title: "Automated Alert Engine", desc: "Psychological, educational, and mentorship alerts fire automatically on threshold crossings. 7-day warning timer + repeat-occurrence escalation." },

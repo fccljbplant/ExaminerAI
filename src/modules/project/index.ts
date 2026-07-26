@@ -11,7 +11,7 @@
  *   │   └── index.ts          ← shared types (ProjectTask, ProjectWeek, etc.)
  *   ├── lib/
  *   │   ├── project-setup.ts  ← project initialization + config
- *   │   ├── task-generator.ts ← AI-powered task generation
+ *   │   ├── course-aligned-planner.ts ← AI-powered course-aligned task generation
  *   │   ├── project-reports.ts← project report management
  *   │   └── project-weeks.ts  ← weekly plan management
  *   └── components/
@@ -47,12 +47,6 @@ export {
   getProjectPlan,
   updateProjectPlan,
 } from "./lib/project-setup";
-
-// === Task Generation (AI) ===
-export {
-  generateTasks,
-  generateWeekPlan,
-} from "./lib/task-generator";
 
 // === Project Reports ===
 export {

@@ -14,9 +14,9 @@
  *   │   ├── course-config.ts  ← config loaders (getAIPrompts, getTestConfig, etc.)
  *   │   ├── course-defaults.ts← default values (DEFAULT_AI_PROMPTS, etc.)
  *   │   ├── course-topics.ts  ← calendar helpers + WEEKLY_TOPICS
- *   │   ├── course-validation.ts ← validation (validateCourseName, validateCourseWeeks)
- *   │   └── course-generation.ts ← AI course generation
+ *   │   └── course-validation.ts ← validation (validateCourseName, validateCourseWeeks)
  *   └── (UI components stay in src/components/examiner/ — see CoursePlanner.tsx, CourseOutline.tsx)
+ *   Note: AI course generation lives inline in src/app/api/courses/generate/route.ts.
  *
  * API routes (thin HTTP wrappers, stay under src/app/api/):
  *   - POST/GET/PUT/DELETE /api/courses
@@ -94,13 +94,6 @@ export {
   validateCourseWeeks,
   COURSE_LIMITS,
 } from "./lib/course-validation";
-
-// === AI Course Generation ===
-export {
-  generateCourse,
-  normalizeAiCourseData,
-  computeFormHash,
-} from "./lib/course-generation";
 
 // === UI Components (re-exported from src/components/examiner/ for convenience) ===
 // CoursePlanner and CourseOutline still live in src/components/examiner/ — they

@@ -24,6 +24,7 @@ export interface ThemeColors {
   accent: string;
   accentForeground: string;
   destructive: string;
+  destructiveForeground: string;
   border: string;
   input: string;
   ring: string;
@@ -78,6 +79,7 @@ const modern: ThemePreset = {
     accent: "#fef3c7",
     accentForeground: "#92400e",
     destructive: "#dc2626",
+    destructiveForeground: "#ffffff",
     border: "#e2e8f0",
     input: "#e2e8f0",
     ring: "#f59e0b",
@@ -111,6 +113,7 @@ const modern: ThemePreset = {
     accent: "#3d2e0e",
     accentForeground: "#fbbf24",
     destructive: "#f87171",
+    destructiveForeground: "#0a0a0f",
     border: "#2a2a3a",
     input: "#2a2a3a",
     ring: "#fbbf24",
@@ -154,6 +157,7 @@ const ocean: ThemePreset = {
     accent: "#e8f0fe",
     accentForeground: "#1967d2",
     destructive: "#d93025",
+    destructiveForeground: "#ffffff",
     border: "#dadce0",
     input: "#dadce0",
     ring: "#1a73e8",
@@ -187,6 +191,7 @@ const ocean: ThemePreset = {
     accent: "#3c4043",
     accentForeground: "#8ab4f8",
     destructive: "#f28b82",
+    destructiveForeground: "#1e1f20",
     border: "#5f6368",
     input: "#5f6368",
     ring: "#8ab4f8",
@@ -230,6 +235,7 @@ const forest: ThemePreset = {
     accent: "#fbe8c4",
     accentForeground: "#6b4a14",
     destructive: "#c0392b",
+    destructiveForeground: "#ffffff",
     border: "#d4dccd",
     input: "#d4dccd",
     ring: "#5b8a72",
@@ -263,6 +269,7 @@ const forest: ThemePreset = {
     accent: "#3d2e0e",
     accentForeground: "#fbbf24",
     destructive: "#f87171",
+    destructiveForeground: "#1a2e22",
     border: "#3d5240",
     input: "#3d5240",
     ring: "#7ab896",
@@ -306,6 +313,7 @@ const sunset: ThemePreset = {
     accent: "#fef3c7",
     accentForeground: "#92400e",
     destructive: "#dc2626",
+    destructiveForeground: "#ffffff",
     border: "#fecdd3",
     input: "#fecdd3",
     ring: "#e11d48",
@@ -339,6 +347,7 @@ const sunset: ThemePreset = {
     accent: "#422006",
     accentForeground: "#fbbf24",
     destructive: "#f87171",
+    destructiveForeground: "#1a0f12",
     border: "#4d2d3a",
     input: "#4d2d3a",
     ring: "#fb7185",
