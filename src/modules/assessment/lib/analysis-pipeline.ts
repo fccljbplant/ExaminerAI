@@ -411,7 +411,7 @@ async function recomputeWellbeingState(userId: string): Promise<void> {
       tier = "red";
       reasons.push(`${concerning.length} concerning signals in last 14 days (out of ${evidence.length})`);
     } else if (ratio > 0.35) {
-      tier = "amber";
+      tier = "warning";
       reasons.push(`${concerning.length} concerning signals in last 14 days`);
     } else {
       reasons.push(`${positive.length} positive signals, ${concerning.length} concerning`);

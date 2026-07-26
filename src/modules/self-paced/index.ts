@@ -171,7 +171,7 @@ export async function advanceDay(userId: string): Promise<{ week: number; day: n
           data: {
             userId,
             type: "self_paced_cheat",
-            severity: status.daysAheadOfSchedule >= 5 ? "red" : "amber",
+            severity: status.daysAheadOfSchedule >= 5 ? "red" : "warning",
             reason: `Self-paced anti-cheat: ${status.antiCheatFlags.join("; ")}`,
             metric: "daysAheadOfSchedule",
             metricValue: String(status.daysAheadOfSchedule),

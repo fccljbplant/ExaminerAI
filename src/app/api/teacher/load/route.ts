@@ -128,16 +128,16 @@ export async function GET(req: NextRequest) {
 
   // 4. Compute tier (explainable thresholds)
   const reasons: string[] = [];
-  let tier: "green" | "amber" | "red" = "green";
+  let tier: "green" | "warning" | "red" = "green";
 
   // Amber if: response time >2x rolling average OR >5 overdue students OR >2 open crisis flags
   if (avgResponseTimeHours > 0 && thisWeekResponseTimeHours > avgResponseTimeHours * 2) {
     reasons.push(`Response time this week (${Math.round(thisWeekResponseTimeHours)}h) is more than 2x your rolling average (${Math.round(avgResponseTimeHours)}h)`);
-    tier = "amber";
+    tier = "warning";
   }
   if (overdueStudents.length > 5) {
     reasons.push(`${overdueStudents.length} students overdue for contact (threshold: 5)`);
-    tier = "amber";
+    tier = "warning";
   }
   if (openCrisisFlags > 2) {
     reasons.push(`${openCrisisFlags} open crisis flags across your students (threshold: 2)`);

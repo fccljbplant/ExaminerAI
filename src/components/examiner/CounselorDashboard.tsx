@@ -130,10 +130,10 @@ export default function CounselorDashboard({ onNavigateToMessages }: { onNavigat
     );
   }
 
-  const TABS: Array<{ key: CounselorTab; label: string; icon: any; badge?: number; badgeColor?: "amber" | "red" }> = [
+  const TABS: Array<{ key: CounselorTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
     { key: "command", label: "Command Center", icon: Zap, badge: data.caseload.openCrisisCount || undefined, badgeColor: "red" as const },
     { key: "caseload", label: "Caseload", icon: Users },
-    { key: "sessions", label: "Sessions", icon: Heart, badge: data.caseload.followUpsDueCount || undefined, badgeColor: "amber" as const },
+    { key: "sessions", label: "Sessions", icon: Heart, badge: data.caseload.followUpsDueCount || undefined, badgeColor: "warning" as const },
     { key: "patterns", label: "Patterns", icon: Brain },
   ];
 
@@ -204,7 +204,7 @@ function CommandCenter({ data, onNavigateToMessages }: { data: CounselorData; on
   const { caseload } = data;
   const wellbeingData = [
     { name: "Green", value: caseload.greenCount, color: "#10b981" },
-    { name: "Amber", value: caseload.amberCount, color: "#f59e0b" },
+    { name: "Warning", value: caseload.amberCount, color: "#f59e0b" },
     { name: "Red", value: caseload.redCount, color: "#ef4444" },
   ].filter(d => d.value > 0);
 
@@ -363,12 +363,12 @@ function CommandCenter({ data, onNavigateToMessages }: { data: CounselorData; on
 // ============================================================
 function CaseloadView({ data }: { data: CounselorData }) {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "red" | "amber" | "crisis" | "alerts">("all");
+  const [filter, setFilter] = useState<"all" | "red" | "warning" | "crisis" | "alerts">("all");
 
   const filtered = data.topConcerns.filter(s => {
     if (search && !s.studentName.toLowerCase().includes(search.toLowerCase()) && !s.studentEmail.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter === "red" && s.wellbeingTier !== "red") return false;
-    if (filter === "amber" && s.wellbeingTier !== "amber") return false;
+    if (filter === "warning" && s.wellbeingTier !== "warning") return false;
     if (filter === "crisis" && !s.hasCrisisFlag) return false;
     if (filter === "alerts" && s.alertCount === 0) return false;
     return true;
@@ -382,7 +382,7 @@ function CaseloadView({ data }: { data: CounselorData }) {
           {([
             { key: "all", label: "All" },
             { key: "red", label: "Red" },
-            { key: "amber", label: "Amber" },
+            { key: "warning", label: "Warning" },
             { key: "crisis", label: "Crisis" },
             { key: "alerts", label: "Alerts" },
           ] as const).map(f => (
@@ -420,7 +420,7 @@ function CaseloadView({ data }: { data: CounselorData }) {
                 <div key={s.studentId} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                   <div className={cn("w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold",
                     s.wellbeingTier === "red" ? "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" :
-                    s.wellbeingTier === "amber" ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" :
+                    s.wellbeingTier === "warning" ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" :
                     "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
                   )}>
                     {s.studentName.charAt(0)}

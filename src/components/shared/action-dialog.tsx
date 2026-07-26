@@ -37,7 +37,7 @@ export interface ActionDialogData {
   /** Plain-language headline (Section 0.5 — words first, color second) */
   headline: string;
   /** The tier for color: green / amber / red */
-  tier: "green" | "amber" | "red";
+  tier: "green" | "warning" | "red";
   /** "Why" — the specific data/threshold that triggered this */
   why: string;
   /** AI-drafted suggested action (editable) */

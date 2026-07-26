@@ -63,7 +63,7 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
         result = result.filter(s => (s.progress || 0) < 50);
         break;
       case "struggling_psych":
-        result = result.filter(s => (s as any).wellbeingTier === "amber" || (s as any).wellbeingTier === "red");
+        result = result.filter(s => (s as any).wellbeingTier === "warning" || (s as any).wellbeingTier === "red");
         break;
       case "overdue":
         result = result.filter(s => {
@@ -88,7 +88,7 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
 
   const tierColor = (tier?: string) => {
     if (tier === "green") return "bg-emerald-500/10 text-emerald-600 border-emerald-500/30";
-    if (tier === "amber") return "bg-amber-500/10 text-amber-600 border-amber-500/30";
+    if (tier === "warning") return "bg-amber-500/10 text-amber-600 border-amber-500/30";
     if (tier === "red") return "bg-red-500/10 text-red-600 border-red-500/30";
     return "bg-muted text-muted-foreground border-border";
   };

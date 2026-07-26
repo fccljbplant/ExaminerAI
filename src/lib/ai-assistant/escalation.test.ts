@@ -8,7 +8,7 @@ import { shouldEscalate, type EscalatableFlag } from "@/lib/ai-assistant/escalat
 function makeFlag(overrides: Partial<EscalatableFlag> = {}): EscalatableFlag {
   return {
     id: "test-flag-id",
-    tier: "amber",
+    tier: "warning",
     type: "psychological",
     userId: "test-user-id",
     status: "open",

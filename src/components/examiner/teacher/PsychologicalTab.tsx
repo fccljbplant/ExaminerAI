@@ -29,7 +29,7 @@ export function PsychologicalTab({ portfolio }: { portfolio: PortfolioData }) {
   // P1.1: Crisis flag creation state
   const [showFlagForm, setShowFlagForm] = useState(false);
   const [flagCategory, setFlagCategory] = useState("behavioral_concern");
-  const [flagSeverity, setFlagSeverity] = useState<"amber" | "red">("amber");
+  const [flagSeverity, setFlagSeverity] = useState<"warning" | "red">("warning");
   const [flagBusy, setFlagBusy] = useState(false);
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export function PsychologicalTab({ portfolio }: { portfolio: PortfolioData }) {
 
   const tierColor = (tier: string) =>
     tier === "green" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
-    : tier === "amber" ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+    : tier === "warning" ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
     : tier === "red" ? "bg-red-500/10 text-red-600 border-red-500/30"
     : "bg-muted text-muted-foreground";
 
@@ -276,10 +276,10 @@ export function PsychologicalTab({ portfolio }: { portfolio: PortfolioData }) {
                 </div>
                 <div>
                   <Label className="text-[10px] text-muted-foreground">Severity</Label>
-                  <Select value={flagSeverity} onValueChange={(v) => setFlagSeverity(v as "amber" | "red")}>
+                  <Select value={flagSeverity} onValueChange={(v) => setFlagSeverity(v as "warning" | "red")}>
                     <SelectTrigger className="bg-muted border-border h-8 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="amber">Amber — needs follow-up</SelectItem>
+                      <SelectItem value="warning">Warning — needs follow-up</SelectItem>
                       <SelectItem value="red">Red — urgent</SelectItem>
                     </SelectContent>
                   </Select>

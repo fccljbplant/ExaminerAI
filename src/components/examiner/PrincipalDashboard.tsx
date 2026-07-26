@@ -110,8 +110,8 @@ export default function PrincipalDashboard() {
 
   const isDemo = currentUserRole === "demo";
 
-  const TABS: Array<{ key: PrincipalTab; label: string; icon: any; badge?: number; badgeColor?: "amber" | "red" }> = [
-    { key: "overview", label: "Overview", icon: BarChart3, badge: data.overview.openAlerts || undefined, badgeColor: "amber" as const },
+  const TABS: Array<{ key: PrincipalTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
+    { key: "overview", label: "Overview", icon: BarChart3, badge: data.overview.openAlerts || undefined, badgeColor: "warning" as const },
     { key: "academic", label: "Academic", icon: GraduationCap },
     { key: "wellbeing", label: "Wellbeing", icon: Heart, badge: data.overview.crisisFlags || undefined, badgeColor: "red" as const },
     // Audit Log tab — hidden from demo (system settings are admin-only)

@@ -38,7 +38,7 @@ export interface TeacherLoadResult {
   crisisFlags: number;
   overdueTouchpoints: number;
   loadScore: number;
-  tier: "green" | "amber" | "red";
+  tier: "green" | "warning" | "red";
   reasons: string[];
 }
 
@@ -113,9 +113,9 @@ export async function calculateTeacherLoad(
     overdueTouchpoints * WEIGHTS.overdueTouchpoints;
 
   // Determine tier
-  const tier: "green" | "amber" | "red" =
+  const tier: "green" | "warning" | "red" =
     loadScore >= TIER_THRESHOLDS.red ? "red" :
-    loadScore >= TIER_THRESHOLDS.amber ? "amber" :
+    loadScore >= TIER_THRESHOLDS.amber ? "warning" :
     "green";
 
   // Build reasons (Section 0.5: words first, color second)
@@ -206,7 +206,7 @@ export async function getInstitutionTeacherLoadRoster(
     summary: {
       total: results.length,
       green: results.filter(r => r.tier === "green").length,
-      amber: results.filter(r => r.tier === "amber").length,
+      amber: results.filter(r => r.tier === "warning").length,
       red: results.filter(r => r.tier === "red").length,
     },
   };

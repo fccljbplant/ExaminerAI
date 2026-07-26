@@ -10,7 +10,7 @@
  *
  * Color is chosen by semantic intent, not by raw value:
  *   - "sage"   → growth / on-track      (default)
- *   - "amber"  → attention / mid-progress
+ *   - "warning"  → attention / mid-progress
  *   - "coral"  → needs-care / low
  *
  * Usage:
@@ -30,7 +30,7 @@ export interface RadialProgressProps {
   /** Optional sublabel (e.g. "of 14 days"). */
   sublabel?: string;
   /** Semantic color tone — default "sage". */
-  tone?: "sage" | "amber" | "coral";
+  tone?: "sage" | "warning" | "coral";
   /** Visual size. */
   size?: "sm" | "md" | "lg";
   /** Override the auto-selected tone with a fixed one based on value. */
@@ -39,7 +39,7 @@ export interface RadialProgressProps {
 
 const TONE_COLORS: Record<NonNullable<RadialProgressProps["tone"]>, { stroke: string; soft: string; text: string }> = {
   sage:  { stroke: "var(--growth-sage)",           soft: "var(--growth-sage-soft)",        text: "var(--growth-sage-foreground)" },
-  amber: { stroke: "var(--growth-amber)",          soft: "var(--growth-amber-soft)",       text: "var(--growth-amber-foreground)" },
+  warning: { stroke: "var(--growth-amber)",          soft: "var(--growth-amber-soft)",       text: "var(--growth-amber-foreground)" }, // keeps amber CSS vars
   coral: { stroke: "var(--growth-coral)",          soft: "var(--growth-coral-soft)",       text: "var(--growth-coral-foreground)" },
 };
 
@@ -62,7 +62,7 @@ export function RadialProgress({
   // Auto-tone: pick color by value thresholds (only if no explicit tone + autoTone)
   const effectiveTone: NonNullable<RadialProgressProps["tone"]> = tone ?? (
     autoTone
-      ? clamped >= 70 ? "sage" : clamped >= 40 ? "amber" : "coral"
+      ? clamped >= 70 ? "sage" : clamped >= 40 ? "warning" : "coral"
       : "sage"
   );
   const colors = TONE_COLORS[effectiveTone];

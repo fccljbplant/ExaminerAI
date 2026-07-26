@@ -8,10 +8,10 @@
  * a crisis-severity situation is red, distinguished by its LABEL TEXT
  * ("Student in crisis — needs immediate attention"), not a different color.
  *
- * TRIGGER 1 (duration): IF flag.tier == "amber" AND flag.daysSinceRaised >= 7
+ * TRIGGER 1 (duration): IF flag.tier == "warning" AND flag.daysSinceRaised >= 7
  *   → escalate to "red"
  *
- * TRIGGER 2 (repeat): IF flag.tier == "amber" AND this is a repeat occurrence
+ * TRIGGER 2 (repeat): IF flag.tier == "warning" AND this is a repeat occurrence
  *   of the same issue type for the same person within a short window:
  *   → escalate on shortened timer (2 days), or immediately on 3rd+ recurrence
  *
@@ -26,7 +26,7 @@ const AMBER_DURATION_DAYS = 7;       // amber → red after 7 days unresolved
 const REPEAT_SHORTENED_DAYS = 2;     // repeat amber → red after 2 days
 const REPEAT_IMMEDIATE_THRESHOLD = 3; // 3rd+ recurrence → red immediately
 
-export type FlagTier = "green" | "amber" | "red";
+export type FlagTier = "green" | "warning" | "red";
 
 export interface EscalatableFlag {
   id: string;
@@ -56,7 +56,7 @@ export function shouldEscalate(
   repeatCount: number
 ): EscalationResult {
   // Only escalate amber flags that are still open/acknowledged
-  if (flag.tier !== "amber") {
+  if (flag.tier !== "warning") {
     return { flagId: flag.id, escalated: false, fromTier: flag.tier, toTier: flag.tier, reason: "Not amber", trigger: "none" };
   }
   if (flag.status === "resolved" || flag.status === "dismissed") {
@@ -70,7 +70,7 @@ export function shouldEscalate(
     return {
       flagId: flag.id,
       escalated: true,
-      fromTier: "amber",
+      fromTier: "warning",
       toTier: "red",
       reason: `Immediate escalation: ${repeatCount}rd+ repeat occurrence of ${flag.type}`,
       trigger: "repeat",
@@ -82,7 +82,7 @@ export function shouldEscalate(
     return {
       flagId: flag.id,
       escalated: true,
-      fromTier: "amber",
+      fromTier: "warning",
       toTier: "red",
       reason: `Shortened escalation: repeat occurrence (${repeatCount}x) of ${flag.type} after ${daysSinceRaised} days`,
       trigger: "repeat",
@@ -94,7 +94,7 @@ export function shouldEscalate(
     return {
       flagId: flag.id,
       escalated: true,
-      fromTier: "amber",
+      fromTier: "warning",
       toTier: "red",
       reason: `Duration escalation: ${flag.type} unresolved for ${daysSinceRaised} days`,
       trigger: "duration",
@@ -104,8 +104,8 @@ export function shouldEscalate(
   return {
     flagId: flag.id,
     escalated: false,
-    fromTier: "amber",
-    toTier: "amber",
+    fromTier: "warning",
+    toTier: "warning",
     reason: `Amber for ${daysSinceRaised} days, ${repeatCount} occurrences — not yet triggered`,
     trigger: "none",
   };
@@ -187,7 +187,7 @@ export async function runEscalationEngine(): Promise<{
   // Get all open/acknowledged amber flags
   const amberFlags = await db.studentAlert.findMany({
     where: {
-      severity: "amber",
+      severity: "warning",
       status: { in: ["open", "acknowledged"] },
     },
     select: {
@@ -209,7 +209,7 @@ export async function runEscalationEngine(): Promise<{
 
     // Check if should escalate
     const result = shouldEscalate(
-      { ...flag, tier: "amber" } as EscalatableFlag,
+      { ...flag, tier: "warning" } as EscalatableFlag,
       repeatCount
     );
 
@@ -248,7 +248,7 @@ export async function checkOnWriteEscalation(
     const result: EscalationResult = {
       flagId,
       escalated: true,
-      fromTier: "amber",
+      fromTier: "warning",
       toTier: "red",
       reason: `Immediate escalation on write: ${repeatCount}rd+ repeat occurrence of ${flagType}`,
       trigger: "repeat",

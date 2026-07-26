@@ -37,7 +37,7 @@ export interface EmptyStateProps {
   /** Optional CTA button / link. */
   action?: React.ReactNode;
   /** Semantic tone — controls the soft background tint of the circle. */
-  tone?: "sage" | "amber" | "coral" | "muted";
+  tone?: "sage" | "warning" | "coral" | "muted";
   /** Size of the illustration circle. */
   size?: "sm" | "md" | "lg";
   /** Disable the float animation (for non-empty "all caught up" states). */
@@ -46,7 +46,7 @@ export interface EmptyStateProps {
 
 const TONE_CLASSES: Record<NonNullable<EmptyStateProps["tone"]>, { circle: string; icon: string }> = {
   sage:  { circle: "bg-growth-sage-soft",  icon: "text-growth-sage" },
-  amber: { circle: "bg-growth-amber-soft", icon: "text-growth-amber" },
+  warning: { circle: "bg-growth-amber-soft", icon: "text-growth-amber" }, // keeps amber CSS vars
   coral: { circle: "bg-growth-coral-soft", icon: "text-growth-coral" },
   muted: { circle: "bg-muted",             icon: "text-muted-foreground" },
 };

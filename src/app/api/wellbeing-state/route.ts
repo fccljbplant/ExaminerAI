@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole, UserRole } from "@/lib/rbac";
+import { requireRole, UserRole, normalizeTier } from "@/lib/rbac";
 import { assertCanAccessStudent } from "@/lib/auth";
 
 /** GET /api/wellbeing-state?userId=X — current Green/Amber/Red tier for a student.
@@ -24,5 +24,9 @@ export async function GET(req: NextRequest) {
     where: { userId },
     select: { id: true, tier: true, reasonsJson: true, updatedAt: true },
   });
+  // Normalize legacy "amber" → "warning" for backward compat
+  if (state) {
+    state.tier = normalizeTier(state.tier) as any;
+  }
   return NextResponse.json({ state });
 }

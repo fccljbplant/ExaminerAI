@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
  *
  *  Phase 5.1: Extracted from StudentDashboard.tsx.
  */
-export function StatSquareCard({ label, value, icon, accent }: { label: string; value: string; icon: React.ReactNode; accent: "emerald" | "cyan" | "amber" | "rose" | "violet"; }) {
+export function StatSquareCard({ label, value, icon, accent }: { label: string; value: string; icon: React.ReactNode; accent: "emerald" | "cyan" | "warning" | "rose" | "violet"; }) {
   const accents = {
     emerald: "from-primary/15 to-primary/5 border-primary/30",
     cyan: "from-secondary/20 to-secondary/5 border-secondary-foreground/30",

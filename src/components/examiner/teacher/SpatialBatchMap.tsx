@@ -51,7 +51,7 @@ export function SpatialBatchMap({ students, onStudentClick }: SpatialBatchMapPro
     return students.map(s => ({
       x: s.progress || 0,
        
-      y: (s as any).wellbeingTier === "red" ? 3 : (s as any).wellbeingTier === "amber" ? 2 : 1,
+      y: (s as any).wellbeingTier === "red" ? 3 : (s as any).wellbeingTier === "warning" ? 2 : 1,
        
       z: ((s as any).openCrisisFlags || 0) + 1, // size = flags + 1 (min size)
       name: s.name,
@@ -95,7 +95,7 @@ export function SpatialBatchMap({ students, onStudentClick }: SpatialBatchMapPro
                   name="Wellbeing"
                   domain={[0, 4]}
                   ticks={[1, 2, 3]}
-                  tickFormatter={(v) => v === 1 ? "Green" : v === 2 ? "Amber" : v === 3 ? "Red" : ""}
+                  tickFormatter={(v) => v === 1 ? "Green" : v === 2 ? "Warning" : v === 3 ? "Red" : ""}
                   tick={{ fontSize: 10, fill: "currentColor" }}
                 />
                 <ZAxis type="number" dataKey="z" range={[40, 400]} name="Attention" />

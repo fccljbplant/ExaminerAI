@@ -60,7 +60,7 @@ const ROLES = [
     chip: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
     screenshot: "/screenshots/dashboard-counselor.png",
     tagline: "A command center for wellbeing.",
-    desc: "Institution-wide caseload with green/amber/red wellbeing tiers, crisis flag management, mentorship touchpoints, case reviews, and scoped access (wellbeing only, no curriculum leak).",
+    desc: "Institution-wide caseload with green/warning/red wellbeing tiers, crisis flag management, mentorship touchpoints, case reviews, and scoped access (wellbeing only, no curriculum leak).",
     stats: [
       { label: "Wellbeing tiers", value: "3" },
       { label: "Crisis response", value: "Now" },
@@ -157,7 +157,7 @@ const AI_SECTIONS = [
     num: "06",
     icon: Scale,
     title: "Teacher Load",
-    desc: "loadScore = students × 1 + batches × 15 + alerts × 5 + crisis × 25 + overdue × 3. Green < 50, amber 50-99, red ≥ 100. Co-teacher suggestions NEVER propose amber/red candidates.",
+    desc: "loadScore = students × 1 + batches × 15 + alerts × 5 + crisis × 25 + overdue × 3. Green < 50, warning 50-99, red ≥ 100. Co-teacher suggestions NEVER propose warning/red candidates.",
     color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30",
   },
   {
@@ -197,7 +197,7 @@ const PSYCH_CYCLE_STAGES = [
     num: "3",
     icon: Activity,
     title: "Tier",
-    short: "Green / amber / red",
+    short: "Green / Warning / Red",
     desc: "14-day rolling window of evidence is reduced to a single wellbeing tier. >60% concerning signals = red. Any open crisis flag = red. Trajectory, not snapshot — a single bad day doesn't trigger anything.",
     color: "from-amber-500/10 to-rose-500/10",
     iconColor: "text-amber-600",
@@ -215,8 +215,8 @@ const PSYCH_CYCLE_STAGES = [
     num: "5",
     icon: TrendingUp,
     title: "Escalate",
-    short: "Amber → red, intelligently",
-    desc: "One engine, two triggers: amber unresolved 7+ days → red. 3rd repeat occurrence → immediate red. 2nd repeat → shortened 2-day timer. Applies to wellbeing, safeguarding, teacher load — all flag sources.",
+    short: "Warning → red, intelligently",
+    desc: "One engine, two triggers: warning unresolved 7+ days → red. 3rd repeat occurrence → immediate red. 2nd repeat → shortened 2-day timer. Applies to wellbeing, safeguarding, teacher load — all flag sources.",
     color: "from-purple-500/10 to-indigo-500/10",
     iconColor: "text-purple-600",
   },
@@ -275,7 +275,7 @@ const PLATFORM_FEATURES = [
   { icon: Bot, title: "Multi-Provider AI", desc: "DeepSeek V4 Flash (primary, cheap + fast), Z.ai (fallback), z-ai-web-dev-sdk (sandbox). Automatic failover. Token cache for repeat calls." },
   { icon: ShieldCheck, title: "7-Role RBAC", desc: "Granular permissions with IDOR protection, AccessGrant scoping (full / wellbeing_only / crisis_only / content_only), and rate limiting per role." },
   { icon: Database, title: "Lightweight Telemetry", desc: "1 DB upsert per AI Tutor message (not 15-20). Scales to 10,000+ students without DB flooding. Best-effort pipelines never block UX." },
-  { icon: Bell, title: "Automated Alert Engine", desc: "Psychological, educational, and mentorship alerts fire automatically on threshold crossings. 7-day amber timer + repeat-occurrence escalation." },
+  { icon: Bell, title: "Automated Alert Engine", desc: "Psychological, educational, and mentorship alerts fire automatically on threshold crossings. 7-day warning timer + repeat-occurrence escalation." },
   { icon: ScrollText, title: "Audit & Compliance", desc: "Every sensitive action logged: role changes, approvals, blocks, grants, AI key changes. Full audit trail for institutional compliance." },
   { icon: Palette, title: "Live Theme System", desc: "4 preset themes switchable from the sidebar — applied instantly via CSS variables. Modern Slate, Ocean Blue, Forest Sage, Sunset Rose." },
 ];
@@ -297,7 +297,7 @@ const TEACHER_FEATURES = [
   { icon: Brain, title: "7-Dimension Psychology", desc: "Calibration, explanatory depth, gaming pattern, attribution, cognitive load, SRL phase, fluency — with concrete teacher actions per dimension." },
   { icon: Target, title: "GROW Mentorship", desc: "Structured coaching: Goal, Reality, Options, Will. Alert-driven actions, outcome tracking, follow-up scheduling. AI-drafted check-in messages." },
   { icon: Bot, title: "AI Assistant", desc: "Natural-language batch queries: 'Who's likely to drop off?' — answered from existing data with cited student evidence. Scope-aware: teachers only see their batch." },
-  { icon: Bell, title: "Automated Alerts", desc: "Psych / educational / mentorship alerts fire automatically when students cross thresholds. Action dialog with AI-drafted notes. 7-day amber timer + escalation engine." },
+  { icon: Bell, title: "Automated Alerts", desc: "Psych / educational / mentorship alerts fire automatically when students cross thresholds. Action dialog with AI-drafted notes. 7-day warning timer + escalation engine." },
   { icon: BookOpen, title: "Course Planner", desc: "Course CRUD, batch assignment, AI course generation. Full curriculum control with weekly phase + daily topic structure." },
   { icon: BarChart3, title: "Final Project Analysis", desc: "Trigger comprehensive AI capstone evaluation: execution, technical competence, quality, career readiness. Auto-generates strengths, weaknesses, recommendations." },
 ];
@@ -1076,7 +1076,7 @@ export function ModernLanding() {
                 Teacher is the first responder. Counsellor escalates for psychological concerns. Principal oversees institution-wide. Guardian sees a sanitized view — never the mentorship notes.
               </p>
               <ul className="space-y-2 text-xs text-muted-foreground">
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Wellbeing tier (green/amber/red) auto-computed from 14-day evidence window</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Wellbeing tier (green/warning/red) auto-computed from 14-day evidence window</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Attention-scored triage queue ranks who needs help today</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> GROW coaching sessions: Goal → Reality → Options → Will</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Crisis flag bypasses tier system — immediate counsellor + principal alert</li>
@@ -1100,7 +1100,7 @@ export function ModernLanding() {
               <ul className="space-y-2 text-xs text-muted-foreground">
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Teacher sees their own load tier — full transparency</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Principal sees staff load distribution + can reassign</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> AI suggests co-teachers — never proposes amber/red candidates</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> AI suggests co-teachers — never proposes warning/red candidates</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Wellbeing touchpoints for staff, separate from student notes</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Red-tier load auto-escalates — no 7-day timer</li>
               </ul>
@@ -1301,10 +1301,10 @@ export function ModernLanding() {
               <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">Psychological Tab</Badge>
               <h3 className="text-2xl font-bold mb-3">Trajectory, evidence, calibration — all in one view.</h3>
               <p className="text-slate-300 mb-6 leading-relaxed">
-                Teachers see per-week trajectory (improving/stable/declining), every evidence entry with source, a calibration scatter chart (self-rated vs actual score), crisis flags, and the student's current wellbeing tier (green/amber/red).
+                Teachers see per-week trajectory (improving/stable/declining), every evidence entry with source, a calibration scatter chart (self-rated vs actual score), crisis flags, and the student's current wellbeing tier (green/warning/red).
               </p>
               <div className="space-y-2">
-                {["Confidence ratings scatter chart", "Crisis flag management", "Wellbeing state (green/amber/red)", "Attention flags with reasons", "Per-week trajectory analysis"].map(item => (
+                {["Confidence ratings scatter chart", "Crisis flag management", "Wellbeing state (green/warning/red)", "Attention flags with reasons", "Per-week trajectory analysis"].map(item => (
                   <div key={item} className="flex items-center gap-2 text-sm text-slate-300">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                     {item}

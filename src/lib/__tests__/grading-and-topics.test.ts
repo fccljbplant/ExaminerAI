@@ -78,7 +78,7 @@ describe("gradeColor", () => {
   });
 
   it("returns amber for grade C", () => {
-    expect(gradeColor("C")).toContain("amber");
+    expect(gradeColor("C")).toContain("warning");
   });
 
   it("returns orange for grade D", () => {

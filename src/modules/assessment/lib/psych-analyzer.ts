@@ -144,14 +144,14 @@ export function checkAlertThresholds(summary: {
   lastActiveDate: Date | null;
 }): Array<{
   type: "psychological" | "educational" | "mentorship";
-  severity: "amber" | "red";
+  severity: "warning" | "red";
   reason: string;
   metric: string;
   metricValue: string;
 }> {
   const alerts: Array<{
     type: "psychological" | "educational" | "mentorship";
-    severity: "amber" | "red";
+    severity: "warning" | "red";
     reason: string;
     metric: string;
     metricValue: string;
@@ -169,7 +169,7 @@ export function checkAlertThresholds(summary: {
   } else if (summary.moodScore < 45 && summary.frustrationCount > 3) {
     alerts.push({
       type: "psychological",
-      severity: "amber",
+      severity: "warning",
       reason: `Student mood is below average (${summary.moodScore}/100) with ${summary.frustrationCount} frustration signals this week. A gentle check-in may help.`,
       metric: "moodScore",
       metricValue: String(summary.moodScore),
@@ -179,7 +179,7 @@ export function checkAlertThresholds(summary: {
   if (summary.avoidanceCount > 5) {
     alerts.push({
       type: "psychological",
-      severity: "amber",
+      severity: "warning",
       reason: `Student showed ${summary.avoidanceCount} avoidance responses ("I don't know" / "skip") this week. May indicate anxiety or lack of confidence.`,
       metric: "avoidanceCount",
       metricValue: String(summary.avoidanceCount),
@@ -200,7 +200,7 @@ export function checkAlertThresholds(summary: {
     if (drop > 15) {
       alerts.push({
         type: "educational",
-        severity: "amber",
+        severity: "warning",
         reason: `Test score dropped ${drop.toFixed(0)} points (from ${summary.avgScoreLastWeek.toFixed(0)}% to ${summary.avgScoreThisWeek.toFixed(0)}%). The student may be struggling with new concepts.`,
         metric: "scoreDrop",
         metricValue: drop.toFixed(1),
@@ -212,7 +212,7 @@ export function checkAlertThresholds(summary: {
   if (summary.engagementStreak === 0) {
     alerts.push({
       type: "mentorship",
-      severity: "amber",
+      severity: "warning",
       reason: `Student's engagement streak is broken — they haven't been active recently. A mentorship check-in could re-engage them.`,
       metric: "engagementStreak",
       metricValue: "0",
@@ -224,7 +224,7 @@ export function checkAlertThresholds(summary: {
     if (daysSinceActive >= 3) {
       alerts.push({
         type: "mentorship",
-        severity: daysSinceActive >= 7 ? "red" : "amber",
+        severity: daysSinceActive >= 7 ? "red" : "warning",
         reason: `Student hasn't been active for ${daysSinceActive} days. Consider reaching out with a personalized message.`,
         metric: "daysInactive",
         metricValue: String(daysSinceActive),
@@ -235,7 +235,7 @@ export function checkAlertThresholds(summary: {
   if (summary.engagementScore < 30) {
     alerts.push({
       type: "mentorship",
-      severity: "amber",
+      severity: "warning",
       reason: `Engagement score is very low (${summary.engagementScore}/100). The student may be losing interest. A mentorship conversation about goals could help.`,
       metric: "engagementScore",
       metricValue: String(summary.engagementScore),

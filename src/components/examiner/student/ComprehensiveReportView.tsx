@@ -80,7 +80,7 @@ interface Report {
 
 const tierColor = (tier: string) => {
   if (tier === "green") return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30";
-  if (tier === "amber") return "text-amber-600 bg-amber-50 dark:bg-amber-950/30";
+  if (tier === "warning") return "text-amber-600 bg-amber-50 dark:bg-amber-950/30";
   if (tier === "red") return "text-rose-600 bg-rose-50 dark:bg-rose-950/30";
   return "text-muted-foreground bg-muted";
 };

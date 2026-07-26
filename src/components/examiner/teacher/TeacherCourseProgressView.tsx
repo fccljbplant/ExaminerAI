@@ -13,7 +13,7 @@ import type { PortfolioData, StudentRow } from "@/components/examiner/teacher/ty
 const TEACHER_BOOTCAMP_PLAN = [
   { week: 1, phase: "Planning & Dev Environment", accent: "emerald" as const },
   { week: 2, phase: "Website & Database Fundamentals", accent: "cyan" as const },
-  { week: 3, phase: "APIs, Automation & AI Agents", accent: "amber" as const },
+  { week: 3, phase: "APIs, Automation & AI Agents", accent: "warning" as const },
   { week: 4, phase: "Prompt Engineering & AI", accent: "violet" as const },
   { week: 5, phase: "Testing, Security & Deployment", accent: "rose" as const },
   { week: 6, phase: "Career Prep & Capstone", accent: "sky" as const },

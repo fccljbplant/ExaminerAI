@@ -123,13 +123,13 @@ export default function GuardianDashboard({ onMessage }: GuardianDashboardProps 
 
   const tierColor = data.snapshot.wellbeingTier === "green"
     ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30"
-    : data.snapshot.wellbeingTier === "amber"
+    : data.snapshot.wellbeingTier === "warning"
     ? "text-amber-600 bg-amber-50 dark:bg-amber-950/30"
     : "text-rose-600 bg-rose-50 dark:bg-rose-950/30";
 
   const tierLabel = data.snapshot.wellbeingTier === "green"
     ? "Doing Well"
-    : data.snapshot.wellbeingTier === "amber"
+    : data.snapshot.wellbeingTier === "warning"
     ? "Needs Attention"
     : "Concern";
 
@@ -162,7 +162,7 @@ export default function GuardianDashboard({ onMessage }: GuardianDashboardProps 
       {/* ============================================ */}
       {/* WELLBEING BANNER — the #1 thing a parent wants to know */}
       {/* ============================================ */}
-      <Card className={cn("border-2", data.snapshot.wellbeingTier === "green" ? "border-emerald-300 dark:border-emerald-800" : data.snapshot.wellbeingTier === "amber" ? "border-amber-300 dark:border-amber-800" : "border-rose-300 dark:border-rose-800")}>
+      <Card className={cn("border-2", data.snapshot.wellbeingTier === "green" ? "border-emerald-300 dark:border-emerald-800" : data.snapshot.wellbeingTier === "warning" ? "border-amber-300 dark:border-amber-800" : "border-rose-300 dark:border-rose-800")}>
         <CardContent className="pt-5 pb-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

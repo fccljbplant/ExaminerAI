@@ -33,7 +33,7 @@ export type SafeguardingCategory =
 /** Deterministic signal detection results */
 export interface SafeguardingSignal {
   category: SafeguardingCategory;
-  severity: "amber" | "red";
+  severity: "warning" | "red";
   messageId: string;
   matchedPatterns: string[];
   context: string; // 50 chars before + after the match, NOT the full message
@@ -102,7 +102,7 @@ export function analyzeMessageForSafeguarding(
 
         signals.push({
           category: category as SafeguardingCategory,
-          severity: category === "trauma_inducing" ? "red" : "amber",
+          severity: category === "trauma_inducing" ? "red" : "warning",
           messageId,
           matchedPatterns: [match[0]],
           context: `...${context}...`,
@@ -175,7 +175,7 @@ export async function createSafeguardingFlag(params: {
     data: {
       userId: params.teacherId, // Flag is ABOUT the teacher
       type: "safeguarding",
-      severity: "amber", // Escalation engine may promote to red
+      severity: "warning", // Escalation engine may promote to red
       reason,
       metric: "safeguarding_signal_count",
       metricValue: String(params.signalCount),

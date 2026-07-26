@@ -169,7 +169,7 @@ export async function getAggregateSummary(scope: ScopeResult): Promise<{
     totalTeachers: teachers,
     wellbeingDistribution: {
       green: wellbeingStates.filter(w => w.tier === "green").length,
-      amber: wellbeingStates.filter(w => w.tier === "amber").length,
+      amber: wellbeingStates.filter(w => w.tier === "warning").length,
       red: wellbeingStates.filter(w => w.tier === "red").length,
     },
     alertStats: {

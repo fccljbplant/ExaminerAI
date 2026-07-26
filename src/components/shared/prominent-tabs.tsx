@@ -31,7 +31,7 @@ export interface ProminentTab {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   badge?: number;
-  badgeColor?: "amber" | "red" | "blue" | "green";
+  badgeColor?: "warning" | "red" | "blue" | "green";
 }
 
 interface ProminentTabsProps {
@@ -43,8 +43,9 @@ interface ProminentTabsProps {
   size?: "sm" | "md" | "lg";
 }
 
-const BADGE_COLORS = {
-  amber: "bg-amber-500 text-white",
+const BADGE_COLORS: Record<string, string> = {
+  amber: "bg-amber-500 text-white", // legacy alias
+  warning: "bg-amber-500 text-white",
   red: "bg-rose-500 text-white",
   blue: "bg-blue-500 text-white",
   green: "bg-emerald-500 text-white",
@@ -98,7 +99,7 @@ export function ProminentTabs({
                   className={cn(
                     "ml-1 inline-flex items-center justify-center font-bold rounded-full",
                     sizes.badge,
-                    BADGE_COLORS[tab.badgeColor || "amber"]
+                    BADGE_COLORS[tab.badgeColor || "warning"]
                   )}
                 >
                   {tab.badge}
@@ -143,7 +144,7 @@ export function ProminentTabs({
                   sizes.badge,
                   isActive
                     ? "bg-white/20 text-white"
-                    : BADGE_COLORS[tab.badgeColor || "amber"]
+                    : BADGE_COLORS[tab.badgeColor || "warning"]
                 )}
               >
                 {tab.badge}

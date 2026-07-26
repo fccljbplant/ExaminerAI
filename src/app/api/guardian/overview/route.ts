@@ -12,7 +12,7 @@ import { getAuthUser } from "@/lib/auth";
  * {
  *   student: { id, name, email, currentWeek, projectName },
  *   snapshot: {
- *     wellbeingTier: "green" | "amber" | "red",
+ *     wellbeingTier: "green" | "warning" | "red",
  *     latestGrade: "A" | "B" | ... | null,
  *     latestScore: number | null,
  *     avgScore: number | null,
@@ -155,7 +155,7 @@ export async function GET() {
   const concerns: string[] = [];
   if (wellbeing?.tier === "red") {
     concerns.push("Your child's wellbeing indicators show significant concern. The school counsellor has been notified.");
-  } else if (wellbeing?.tier === "amber") {
+  } else if (wellbeing?.tier === "warning") {
     concerns.push("Your child is showing some warning signs. Teachers are monitoring closely.");
   }
   if (alerts.length > 0) {

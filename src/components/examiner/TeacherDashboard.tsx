@@ -154,8 +154,8 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
     );
   }
 
-  const TABS: Array<{ key: TeacherTab; label: string; icon: any; badge?: number; badgeColor?: "amber" | "red" }> = [
-    { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined, badgeColor: "amber" as const },
+  const TABS: Array<{ key: TeacherTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
+    { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined, badgeColor: "warning" as const },
     { key: "students", label: "Students", icon: Users },
     { key: "mentorship", label: "Mentorship", icon: HeartHandshake, badge: crisisCount || undefined, badgeColor: "red" as const },
     { key: "assignments", label: "Assignments", icon: ClipboardList },

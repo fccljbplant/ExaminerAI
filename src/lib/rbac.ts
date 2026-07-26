@@ -28,6 +28,25 @@
 import { getAuthUser, getCurrentUser } from "./auth";
 import { db } from "./db";
 import { NextResponse } from "next/server";
+
+// ============================================================
+// Wellbeing tier normalization — "warning" (legacy) → "warning" (canonical)
+// ============================================================
+
+/** Normalize wellbeing tier: "warning" → "warning". Other values pass through.
+ *  This ensures old DB records with "warning" work with new code that uses "warning". */
+export function normalizeTier(tier: string | null | undefined): string {
+  if (!tier) return "green";
+  if (tier === "warning") return "warning";
+  return tier;
+}
+
+/** Normalize severity: "warning" → "warning". Other values pass through. */
+export function normalizeSeverity(severity: string | null | undefined): string {
+  if (!severity) return "warning";
+  if (severity === "warning") return "warning";
+  return severity;
+}
 import type { NextRequest } from "next/server";
 
 export const UserRole = {

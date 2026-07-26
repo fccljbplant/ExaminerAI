@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export function StatCard({ label, value, sub, icon, accent }: { label: string; value: number; sub?: string; icon: React.ReactNode; accent: "emerald" | "cyan" | "amber" | "violet" | "red"; }) {
+export function StatCard({ label, value, sub, icon, accent }: { label: string; value: number; sub?: string; icon: React.ReactNode; accent: "emerald" | "cyan" | "warning" | "violet" | "red"; }) {
   const accents = {
     emerald: "from-primary/15 to-primary/5 text-primary border-primary/30",
     cyan: "from-secondary/20 to-secondary/5 text-secondary-foreground border-secondary-foreground/30",

@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
  *
  *  Body: { userId, category, severity, evidenceRef? }
  *  - category: "self_harm_risk" | "severe_distress" | "disclosure" | "academic_crisis" | "behavioral_concern" | "other"
- *  - severity: "amber" | "red"
+ *  - severity: "warning" | "red"
  *  - evidenceRef: optional JSON pointer to source (interaction ID, test ID, etc.)
  *
  *  CRITICAL: Never store the sensitive content of what was said — only the
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   }
 
   const VALID_CATEGORIES = ["self_harm_risk", "severe_distress", "disclosure", "academic_crisis", "behavioral_concern", "other"];
-  const VALID_SEVERITIES = ["amber", "red"];
+  const VALID_SEVERITIES = ["warning", "red"];
 
   if (!VALID_CATEGORIES.includes(category)) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });

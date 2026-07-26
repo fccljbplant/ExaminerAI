@@ -127,11 +127,11 @@ Generate the Action Dialog content as JSON.`;
     }
 
     // Determine tier from flag type + trigger
-    const tier: "green" | "amber" | "red" = flagType === "safeguarding" || trigger.toLowerCase().includes("crisis")
+    const tier: "green" | "warning" | "red" = flagType === "safeguarding" || trigger.toLowerCase().includes("crisis")
       ? "red"
       : flagType === "psychological" || trigger.toLowerCase().includes("urgent")
-      ? "amber"
-      : "amber";
+      ? "warning"
+      : "warning";
 
     return NextResponse.json({
       headline: parsed.headline || `${flagType} flag`,
@@ -148,7 +148,7 @@ Generate the Action Dialog content as JSON.`;
     logger.error("Action dialog generation failed", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({
       headline: `${flagType} flag — needs attention`,
-      tier: "amber" as const,
+      tier: "warning" as const,
       why: trigger,
       suggestedAction: `Review the ${flagType} flag and consider reaching out to ${entityName}.`,
       notePresets: ["Reviewed and monitoring", "Will follow up this week", "Need more information"],

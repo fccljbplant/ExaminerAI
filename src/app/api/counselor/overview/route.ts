@@ -115,7 +115,7 @@ export async function GET() {
 
   // ---- Compute caseload stats ----
   const greenCount = wellbeingStates.filter(w => w.tier === "green").length;
-  const amberCount = wellbeingStates.filter(w => w.tier === "amber").length;
+  const amberCount = wellbeingStates.filter(w => w.tier === "warning").length;
   const redCount = wellbeingStates.filter(w => w.tier === "red").length;
   const openCrisisCount = crisisFlags.filter(c => c.status === "open").length;
   const openAlertCount = studentAlerts.length;

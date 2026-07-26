@@ -39,13 +39,13 @@ export async function GET() {
   ]);
 
   const greenCount = wellbeingStates.filter(w => w.tier === "green").length;
-  const amberCount = wellbeingStates.filter(w => w.tier === "amber").length;
+  const amberCount = wellbeingStates.filter(w => w.tier === "warning").length;
   const redCount = wellbeingStates.filter(w => w.tier === "red").length;
   const openAlerts = alerts.filter(a => a.status === "open");
   const acknowledgedAlerts = alerts.filter(a => a.status === "acknowledged");
   const resolvedAlerts = alerts.filter(a => a.status === "resolved");
   const crisisAlerts = alerts.filter(a => a.severity === "red");
-  const highAlerts = alerts.filter(a => a.severity === "amber");
+  const highAlerts = alerts.filter(a => a.severity === "warning");
 
   const moodScores = healthSummaries.map(h => h.moodScore).filter(m => m != null) as number[];
   const avgMood = moodScores.length > 0 ? Math.round(moodScores.reduce((a, b) => a + b, 0) / moodScores.length) : 0;
