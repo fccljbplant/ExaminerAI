@@ -216,3 +216,84 @@ export function isAdvanceSignal(examinerReply: string): boolean {
 export function stripAdvanceMarker(examinerReply: string): string {
   return examinerReply.replace(/\[ADVANCE\]/gi, "").trim();
 }
+
+/** Delimiter the AI uses to separate feedback from the next question when
+ *  advancing. Instructed in SHARED_EXAMINER_RULES (sections 4 and 5).
+ *
+ *  Example AI response when advancing:
+ *    "Good attempt — you got the why right. The gap is the how.\n|||NEXT|||\nWhy does WordPress need both a database and files?"
+ *
+ *  The server splits on |||NEXT||| to produce TWO chat bubbles:
+ *    (1) feedback for the question that just ended (with questionExplanation card)
+ *    (2) the next question (standalone)
+ *
+ *  Why two bubbles: when the chat auto-scrolls to the bottom, the student
+ *  lands on the new question. The feedback/correction is one bubble up —
+ *  visible without scrolling — instead of being buried inside one long
+ *  combined message that the student has to scroll up through. */
+export const ADVANCE_SPLIT_DELIMITER = "|||NEXT|||";
+
+export interface SplitAdvanceResult {
+  /** True when the delimiter was found AND both sides are non-empty.
+   *  Caller should push two messages (feedback + nextQuestion).
+   *  False when no delimiter — caller should push the full cleaned
+   *  response as a single message (backward-compatible fallback). */
+  split: boolean;
+  /** Feedback portion (for the question that just ended).
+   *  Empty when split === false. */
+  feedback: string;
+  /** Next-question portion.
+   *  Empty when split === false. */
+  nextQuestion: string;
+  /** The full cleaned response (delimiter + [ADVANCE] markers stripped).
+   *  Use this as the single message body when split === false. */
+  full: string;
+}
+
+/** Parse an examiner reply that may contain the [ADVANCE] marker AND the
+ *  |||NEXT||| split delimiter. Always strips both markers (case-insensitive,
+ *  whitespace-tolerant). Returns the split result so the caller can decide
+ *  whether to push one or two chat bubbles.
+ *
+ *  Safe to call on any examiner reply — probing replies (no delimiter)
+ *  return split=false with full=cleaned response. */
+export function splitAdvanceResponse(rawExaminerReply: string): SplitAdvanceResult {
+  // Strip [ADVANCE] marker (case-insensitive, whitespace-tolerant) and
+  // any stray [NEXT] bracket marker (defensive — the AI should use |||NEXT|||,
+  // but if it accidentally writes [NEXT] we still clean it up).
+  // Also collapse any double-spaces left behind by the strip so the
+  // student never sees weird spacing artifacts.
+  let cleaned = rawExaminerReply
+    .replace(/\[\s*ADVANCE\s*\]/gi, "")
+    .replace(/\[\s*NEXT\s*\]/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  // Look for the delimiter with whitespace tolerance:
+  // matches "|||NEXT|||", "||| NEXT |||", "|||next|||", etc.
+  const delimRegex = /\|\|\|\s*NEXT\s*\|\|\|/i;
+  const match = cleaned.match(delimRegex);
+  if (!match || match.index === undefined) {
+    // No delimiter — return the cleaned response as a single message.
+    return { split: false, feedback: "", nextQuestion: "", full: cleaned };
+  }
+
+  const idx = match.index;
+  const feedback = cleaned.slice(0, idx).trim();
+  const nextQuestion = cleaned.slice(idx + match[0].length).trim();
+
+  // Always strip the delimiter from `cleaned` so the fallback `full` value
+  // never leaks the delimiter to the student. We do this regardless of
+  // whether we end up splitting — defensive cleanup.
+  // Also collapse any double-spaces left behind by the strip.
+  cleaned = cleaned.replace(delimRegex, " ").replace(/\s{2,}/g, " ").trim();
+
+  // Defensive: if either side is empty, the AI misused the delimiter.
+  // Fall back to single-message behavior so the student still sees the
+  // full response (with the delimiter stripped).
+  if (!feedback || !nextQuestion) {
+    return { split: false, feedback: "", nextQuestion: "", full: cleaned };
+  }
+
+  return { split: true, feedback, nextQuestion, full: cleaned };
+}

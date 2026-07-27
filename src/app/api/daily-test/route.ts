@@ -13,7 +13,7 @@ import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
 import { trackTestCompletion } from "@/modules/assessment/lib/engagement-tracker";
 import { applyPlagiarismDeduction } from "@/lib/plagiarism-scoring";
 import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/unified-grader";
-import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
+import { gradeOneQuestion, splitAdvanceResponse } from "@/modules/assessment/lib/unified-test-engine";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
@@ -323,11 +323,56 @@ DAILY TEST — SHORTER FORMAT:
       }
     }
 
-    conversation.push({
-      role: "examiner", content: examinerResponse,
-      timestamp: new Date().toISOString(), questionIndex: nextQuestion,
-      questionExplanation,
-    });
+    // SPLIT ADVANCING RESPONSE INTO TWO CHAT BUBBLES:
+    // When the examiner advances (isLastReply && !isComplete) and used the
+    // |||NEXT||| delimiter (per SHARED_EXAMINER_RULES section 4), split the
+    // response into:
+    //   Bubble 1: feedback for the question that just ended (with the
+    //             questionExplanation teaching card attached)
+    //   Bubble 2: the next question (standalone, no explanation card)
+    // The chat auto-scrolls to bubble 2 (the new question), so the student
+    // lands on the question they need to answer. Their feedback / corrected
+    // answer is one bubble up — visible without scrolling — instead of
+    // being buried inside one long combined message they have to scroll
+    // back up through to read.
+    //
+    // We only split when actually advancing (not on probing replies —
+    // isLastReply === false — and not on the final grading message —
+    // isComplete === true). When the AI didn't use the delimiter, fall
+    // back to single-message behavior (backward-compatible).
+    const splitResult = splitAdvanceResponse(examinerResponse);
+    const shouldSplitAdvance = splitResult.split && isLastReply && !isComplete;
+    if (shouldSplitAdvance) {
+      // Bubble 1: feedback (tagged with the question that just ended, so
+      // the Q badge shows the right number on this bubble).
+      conversation.push({
+        role: "examiner",
+        content: splitResult.feedback,
+        timestamp: new Date().toISOString(),
+        questionIndex: test.currentQuestion ?? 0, // the question that just ended
+        questionExplanation,
+      });
+      // Bubble 2: the next question (tagged with the NEW question index).
+      conversation.push({
+        role: "examiner",
+        content: splitResult.nextQuestion,
+        timestamp: new Date().toISOString(),
+        questionIndex: nextQuestion, // the new question
+      });
+    } else {
+      // Fallback: single message (current behavior) — used for:
+      //   - probing replies (isLastReply === false, no delimiter)
+      //   - the final grading message (isComplete === true)
+      //   - AI didn't follow the delimiter format (defensive)
+      // Note: splitResult.full strips [ADVANCE] and |||NEXT||| markers
+      // defensively — daily-test didn't previously strip [ADVANCE], so this
+      // is a small bonus cleanup that prevents marker leakage.
+      conversation.push({
+        role: "examiner", content: splitResult.full,
+        timestamp: new Date().toISOString(), questionIndex: nextQuestion,
+        questionExplanation,
+      });
+    }
 
     if (isComplete) {
       // Grade the test

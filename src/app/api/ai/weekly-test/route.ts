@@ -11,7 +11,7 @@ import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
 import { applyPlagiarismDeduction } from "@/lib/plagiarism-scoring";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { fallbackGrade, parseQuestionExplanations, type TeachingFeedback, type QuestionExplanation } from "@/lib/unified-grader";
-import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
+import { gradeOneQuestion, splitAdvanceResponse } from "@/modules/assessment/lib/unified-test-engine";
 import { trackTestCompletion } from "@/modules/assessment/lib/engagement-tracker";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
@@ -504,8 +504,13 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
         isComplete = true;
         const questionsAnswered = test.currentQuestion + 1;
         const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics, user.id);
+        // Defensive: strip any stray |||NEXT||| delimiter from the final
+        // summary. The AI is instructed NOT to use the delimiter when giving
+        // the final summary (only when advancing), but defensive cleanup
+        // prevents marker leakage if the AI misbehaves.
+        const summaryContent = examinerResponse.replace(/\|\|\|\s*NEXT\s*\|\|\|/gi, "").trim();
         conversation.push({
-          role: "examiner", content: examinerResponse,
+          role: "examiner", content: summaryContent,
           timestamp: new Date().toISOString(), questionIndex: test.currentQuestion,
           questionExplanation: perQuestionExplanation,
         });
@@ -652,11 +657,52 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
     // per-question explanation here — the last-question branch already
     // attached it inside its own push above.
     const msgQuestionIndex = nextQuestion;
-    conversation.push({
-      role: "examiner", content: examinerResponse,
-      timestamp: new Date().toISOString(), questionIndex: msgQuestionIndex,
-      ...(perQuestionExplanation && !isComplete ? { questionExplanation: perQuestionExplanation } : {}),
-    });
+
+    // SPLIT ADVANCING RESPONSE INTO TWO CHAT BUBBLES:
+    // When the examiner advances and used the |||NEXT||| delimiter (per
+    // SHARED_EXAMINER_RULES section 4), split the response into:
+    //   Bubble 1: feedback for the question that just ended (with the
+    //             questionExplanation teaching card attached)
+    //   Bubble 2: the next question (standalone, no explanation card)
+    // The chat auto-scrolls to bubble 2 (the new question), so the student
+    // lands on the question they need to answer. Their feedback / corrected
+    // answer is one bubble up — visible without scrolling — instead of
+    // being buried inside one long combined message they have to scroll
+    // back up through to read.
+    //
+    // We only split when actually advancing (not on probing replies and
+    // not on the final summary). When the AI didn't use the delimiter,
+    // fall back to single-message behavior (backward-compatible).
+    const splitResult = splitAdvanceResponse(examinerResponse);
+    const shouldSplitAdvance = splitResult.split && shouldAdvance && !isComplete;
+    if (shouldSplitAdvance) {
+      // Bubble 1: feedback (tagged with the question that just ended, so
+      // the Q badge shows the right number on this bubble).
+      conversation.push({
+        role: "examiner",
+        content: splitResult.feedback,
+        timestamp: new Date().toISOString(),
+        questionIndex: test.currentQuestion, // the question that just ended
+        ...(perQuestionExplanation ? { questionExplanation: perQuestionExplanation } : {}),
+      });
+      // Bubble 2: the next question (tagged with the NEW question index).
+      conversation.push({
+        role: "examiner",
+        content: splitResult.nextQuestion,
+        timestamp: new Date().toISOString(),
+        questionIndex: msgQuestionIndex, // the new question
+      });
+    } else {
+      // Fallback: single message (current behavior) — used for:
+      //   - probing replies (same-question follow-up, no delimiter)
+      //   - the final summary (no next question to split out)
+      //   - AI didn't follow the delimiter format (defensive)
+      conversation.push({
+        role: "examiner", content: splitResult.full,
+        timestamp: new Date().toISOString(), questionIndex: msgQuestionIndex,
+        ...(perQuestionExplanation && !isComplete ? { questionExplanation: perQuestionExplanation } : {}),
+      });
+    }
 
     // C2-fix: pass expected values for optimistic locking
     // C2-R1-fix: check the return value — if false, the optimistic lock
