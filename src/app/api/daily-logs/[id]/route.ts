@@ -1,4 +1,3 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
@@ -24,7 +23,10 @@ async function verifyDailyLogOwnership(payload: { sub: string; role: string; ema
   return { userId: log.userId };
 }
 
-/** PATCH /api/daily-logs/[id] — teacher/admin edits a student's daily check-in.
+/** PATCH /api/daily-logs/[id] — edit a daily check-in.
+ *
+ *  Students can edit their OWN check-ins. Staff (teachers/admins) can edit
+ *  check-ins for students they have access to (via assertCanAccessStudent).
  *
  *  Body (all optional):
  *    - whatDidYouDo, anyErrors, confidence, gitCommit, week
@@ -35,12 +37,15 @@ export async function PATCH(
 ) {
   const _demoBlock = await demoWriteBlock("managing daily logs"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!payload) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
 
-  // H2 fix: verify ownership before updating
+  // H2 fix: verify ownership before updating.
+  // Students can edit their own logs; staff can edit logs for students they
+  // have access to. verifyDailyLogOwnership calls assertCanAccessStudent which
+  // handles both cases (students = self-only, staff = scoped access).
   const ownership = await verifyDailyLogOwnership(payload, id);
   if ("error" in ownership) return ownership.error;
 
@@ -59,19 +64,25 @@ export async function PATCH(
   return NextResponse.json({ log });
 }
 
-/** DELETE /api/daily-logs/[id] — teacher/admin deletes a daily check-in + its comments (cascade). */
+/** DELETE /api/daily-logs/[id] — delete a daily check-in + its comments (cascade).
+ *
+ *  Students can delete their OWN check-ins. Staff can delete check-ins for
+ *  students they have access to.
+ */
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const _demoBlock = await demoWriteBlock("managing daily logs"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!payload) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
 
-  // H2 fix: verify ownership before deleting
+  // H2 fix: verify ownership before deleting.
+  // Students can delete their own logs; staff can delete logs for students
+  // they have access to.
   const ownership = await verifyDailyLogOwnership(payload, id);
   if ("error" in ownership) return ownership.error;
 

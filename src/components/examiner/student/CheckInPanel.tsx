@@ -38,6 +38,8 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [showReflection, setShowReflection] = useState(false);
+  // Editing state — when set, the form PATCHes instead of POSTs
+  const [editingLogId, setEditingLogId] = useState<string | null>(null);
 
   // Curriculum state (separate from project tasks)
   const [curriculum, setCurriculum] = useState<{
@@ -131,17 +133,34 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
     if (!what.trim()) return;
     setBusy(true);
     try {
-      await api.post("/api/daily-logs", {
-        whatDidYouDo: what,
-        anyErrors: errors,
-        confidence: Number(confidence),
-        gitCommit: git,
-        week: currentWeek,
-        learningReflection: showReflection ? learningReflection : undefined,
-        confusionNotes: showReflection ? confusionNotes : undefined,
-        nextQuestion: showReflection ? nextQuestion : undefined,
-      });
-      setMsg("✓ Check-in saved — consistency building!");
+      if (editingLogId) {
+        // Editing an existing check-in — PATCH instead of POST
+        await api.patch(`/api/daily-logs/${editingLogId}`, {
+          whatDidYouDo: what,
+          anyErrors: errors,
+          confidence: Number(confidence),
+          gitCommit: git,
+          week: currentWeek,
+          learningReflection: showReflection ? learningReflection : undefined,
+          confusionNotes: showReflection ? confusionNotes : undefined,
+          nextQuestion: showReflection ? nextQuestion : undefined,
+        });
+        setMsg("✓ Check-in updated!");
+        setEditingLogId(null);
+      } else {
+        // Creating a new check-in
+        await api.post("/api/daily-logs", {
+          whatDidYouDo: what,
+          anyErrors: errors,
+          confidence: Number(confidence),
+          gitCommit: git,
+          week: currentWeek,
+          learningReflection: showReflection ? learningReflection : undefined,
+          confusionNotes: showReflection ? confusionNotes : undefined,
+          nextQuestion: showReflection ? nextQuestion : undefined,
+        });
+        setMsg("✓ Check-in saved — consistency building!");
+      }
       setWhat(""); setErrors(""); setConfidence("3"); setGit("");
       setLearningReflection(""); setConfusionNotes(""); setNextQuestion("");
       onSaved();
@@ -151,6 +170,48 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
     } finally {
       setBusy(false);
     }
+  };
+
+  /** Load a log into the form for editing. Scrolls to the form so the student
+   *  can see + modify the fields. */
+  const handleEditLog = (log: { id: string; whatDidYouDo: string; anyErrors?: string | null; confidence: number; gitCommit?: string | null; learningReflection?: string | null; confusionNotes?: string | null; nextQuestion?: string | null }) => {
+    setEditingLogId(log.id);
+    setWhat(log.whatDidYouDo);
+    setErrors(log.anyErrors || "");
+    setConfidence(String(log.confidence));
+    setGit(log.gitCommit || "");
+    setLearningReflection(log.learningReflection || "");
+    setConfusionNotes(log.confusionNotes || "");
+    setNextQuestion(log.nextQuestion || "");
+    if (log.learningReflection || log.confusionNotes || log.nextQuestion) {
+      setShowReflection(true);
+    }
+    setMsg("Editing check-in — make your changes and save.");
+    // Scroll to the form
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  /** Delete a check-in with confirmation. Calls DELETE /api/daily-logs/[id]. */
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm("Delete this check-in? This cannot be undone.")) return;
+    try {
+      await api.del(`/api/daily-logs/${logId}`);
+      setMsg("✓ Check-in deleted.");
+      onSaved();
+      setTimeout(() => setMsg(""), 2500);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Failed to delete");
+    }
+  };
+
+  /** Cancel editing — clears the form + exits edit mode. */
+  const cancelEdit = () => {
+    setEditingLogId(null);
+    setWhat(""); setErrors(""); setConfidence("3"); setGit("");
+    setLearningReflection(""); setConfusionNotes(""); setNextQuestion("");
+    setMsg("");
   };
 
   // Toggle a curriculum day's completion
@@ -558,10 +619,17 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
             </div>
 
             {msg && <p className="text-sm text-primary">{msg}</p>}
-            <Button type="submit" disabled={busy} className="bg-gradient-to-r from-primary to-secondary-foreground text-primary-foreground">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Save Check-In
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={busy} className="bg-gradient-to-r from-primary to-secondary-foreground text-primary-foreground">
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {editingLogId ? "Update Check-In" : "Save Check-In"}
+              </Button>
+              {editingLogId && (
+                <Button type="button" variant="outline" onClick={cancelEdit} disabled={busy}>
+                  <X className="h-4 w-4" /> Cancel
+                </Button>
+              )}
+            </div>
           </form>
         </CardContent>
       </Card>
@@ -585,7 +653,28 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
                     <span className="text-xs text-muted-foreground">{new Date(log.date).toLocaleDateString()}</span>
                     <Badge variant="outline" className="text-[9px] text-muted-foreground">W{log.week}</Badge>
                   </div>
-                  <Badge variant="outline" className="text-[10px]">Confidence {log.confidence}/5</Badge>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="outline" className="text-[10px]">Confidence {log.confidence}/5</Badge>
+                    {/* Edit/delete buttons — students can edit their own check-ins.
+                        Calls PATCH/DELETE /api/daily-logs/[id] which now allows
+                        student self-service (was staff-only before). */}
+                    <button
+                      onClick={() => handleEditLog(log)}
+                      className="text-[9px] text-muted-foreground hover:text-primary px-1"
+                      title="Edit this check-in"
+                      aria-label="Edit check-in"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLog(log.id)}
+                      className="text-[9px] text-muted-foreground hover:text-destructive px-1"
+                      title="Delete this check-in"
+                      aria-label="Delete check-in"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-foreground"><strong>What I did:</strong> {log.whatDidYouDo}</p>
                 {log.anyErrors && <p className="text-xs text-destructive mt-1"><strong>Errors:</strong> ⚠️ {log.anyErrors}</p>}
