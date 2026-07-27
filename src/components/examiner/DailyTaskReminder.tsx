@@ -37,6 +37,28 @@ interface ProjectConfig {
   projectRequired: boolean;
   projectDefaultDurationWeeks: number;
 }
+
+// Course-plan-centric: a single pending task in priority order.
+type PendingTaskType =
+  | "curriculum"
+  | "assignment"
+  | "project"
+  | "checkin"
+  | "daily-test"
+  | "practice"
+  | "weekly-test";
+interface PendingTask {
+  id: string;
+  type: PendingTaskType;
+  title: string;
+  description: string;
+  completed: boolean;
+  canCompleteFromList: boolean;
+  action: "checkin" | "question" | "gantt" | "daily-test" | "weekly-test" | "course-outline";
+  courseTopicLink?: string | null;
+  countsTowardAlert: boolean;
+}
+
 interface DailyTasksResponse {
   currentWeek: number;
   todayDay: number;
@@ -48,6 +70,8 @@ interface DailyTasksResponse {
   curriculumCompleted: boolean;
   curriculumCompletedCount: number;
   todayPracticeCount: number;
+  hasCompletedDailyTestToday?: boolean;
+  hasCompletedWeeklyTestThisWeek?: boolean;
   projectTasks: DailyTaskItem[];
   todayProjectTasksTotal: number;
   todayProjectTasksCompleted: number;
@@ -58,6 +82,8 @@ interface DailyTasksResponse {
   /** Course + project config — when projectEnabled is false, the UI hides
    *  the entire project section (no point showing empty project tasks). */
   projectConfig?: ProjectConfig;
+  /** Course-plan-centric: priority-ordered pending tasks. */
+  pendingTasks?: PendingTask[];
 }
 
 interface DailyTaskReminderProps {
@@ -286,8 +312,86 @@ export function DailyTaskReminder({ onChanged, onNavigate }: DailyTaskReminderPr
               ) : (
                 /* PENDING STATE — show what's left */
                 <>
+                  {/* ============================================================
+                      COURSE-PLAN-CENTRIC: priority-ordered pending tasks list.
+                      Renders the new `pendingTasks` array (Curriculum → Project →
+                      Check-in → Daily Test → Practice → Weekly Test). Each item
+                      shows a "Start" button (for tests) or "Mark done" button
+                      (for things that can be checked off from the list).
+                      ============================================================ */}
+                  {data.pendingTasks && data.pendingTasks.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Today&apos;s Plan
+                      </p>
+                      <ul className="space-y-1.5">
+                        {data.pendingTasks.map((task) => {
+                          const isPractice = task.type === "practice";
+                          const isTest = task.type === "daily-test" || task.type === "weekly-test";
+                          return (
+                            <li
+                              key={task.id}
+                              className={`flex items-start gap-2 rounded-md p-2 text-sm border ${
+                                task.completed
+                                  ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500/30"
+                                  : isPractice
+                                  ? "bg-muted/40 border-border/60 opacity-75"
+                                  : "bg-muted border-border"
+                              }`}
+                            >
+                              {task.completed ? (
+                                <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                              ) : isPractice ? (
+                                <Circle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                              ) : (
+                                <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p className={`text-xs font-medium leading-snug ${task.completed ? "text-emerald-700 dark:text-emerald-300 line-through" : "text-foreground"}`}>
+                                    {task.title}
+                                  </p>
+                                  <Badge variant="outline" className={`text-[8px] capitalize ${
+                                    task.type === "curriculum" ? "border-primary/30 bg-primary/10 text-primary" :
+                                    task.type === "project" ? "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300" :
+                                    task.type === "checkin" ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300" :
+                                    task.type === "daily-test" || task.type === "weekly-test" ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300" :
+                                    "border-border"
+                                  }`}>
+                                    {task.type.replace("-", " ")}
+                                  </Badge>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{task.description}</p>
+                                {task.courseTopicLink && (
+                                  <p className="text-[10px] text-primary mt-0.5 italic leading-snug">
+                                    🔗 {task.courseTopicLink}
+                                  </p>
+                                )}
+                                {!task.completed && (
+                                  <button
+                                    onClick={() => {
+                                      onNavigate?.(task.action as "gantt" | "checkin" | "question");
+                                      setPopupOpen(false);
+                                    }}
+                                    className={`text-[10px] font-medium mt-1 hover:underline ${
+                                      isTest ? "text-rose-600 hover:text-rose-700" :
+                                      task.type === "curriculum" ? "text-primary" :
+                                      "text-emerald-600 hover:text-emerald-700"
+                                    }`}
+                                  >
+                                    {isTest ? "Start test →" : task.type === "curriculum" ? "Open →" : "Open →"}
+                                  </button>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
                   {/* Today's Learning Topic — at the very top */}
-                  {data.todayTopic && (
+                  {data.todayTopic && !data.pendingTasks && (
                     <div className="rounded-md bg-primary/10 border border-primary/30 p-3">
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">

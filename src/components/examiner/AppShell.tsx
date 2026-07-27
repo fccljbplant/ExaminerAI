@@ -33,6 +33,7 @@ import {
   Settings,
   Users,
   MessageSquare,
+  MessageCircle,
   ShieldAlert,
   Key,
   LogOut,
@@ -64,6 +65,7 @@ export type ViewKey =
   | "ai-tutor"
   | "teacher-ai-tutor"
   | "messages"
+  | "ask-teacher"
   | "settings"
   | "batch"
   | "batch-students"
@@ -156,6 +158,9 @@ const ALL_NAV: NavItem[] = [
   { key: "teacher-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
   { key: "course-outline", label: "Course", icon: BookOpen, roles: ALL_ROLES_WITH_SHARED },
   { key: "messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES_WITH_SHARED },
+  // Course-plan-centric: "Ask My Teacher" is now a top-level nav item
+  // (was a floating FAB). Student-only — guardians don't have a teacher.
+  { key: "ask-teacher", label: "Ask My Teacher", icon: MessageCircle, roles: ["student"] },
   { key: "settings", label: "Settings", icon: Settings, roles: ALL_ROLES_WITH_SHARED },
 ];
 
@@ -191,6 +196,20 @@ export default function AppShell() {
     projectRequired: boolean;
     totalWeeks: number;
   } | null>(null);
+  // Course-plan-centric: full course plan for the student. When null OR
+  // courseAssigned=false, the student sees the "Course Assignment Pending"
+  // state and the nav hides everything except Dashboard, Settings, Ask My Teacher.
+  const [coursePlan, setCoursePlan] = useState<{
+    courseAssigned: boolean;
+    courseName: string | null;
+    courseSummary: string | null;
+    courseKeyFeatures: string[];
+    hasProject: boolean;
+    teacher: { id: string; name: string; email: string } | null;
+  } | null>(null);
+  // Course-plan-centric: when the student has no course assigned, render the
+  // AskMyTeacher component inside the dashboard view (instead of as a FAB).
+  const [askTeacherOpen, setAskTeacherOpen] = useState(false);
 
   // Fetch role nav config (admin-customizable) on mount. Falls back to
   // the hardcoded ALL_NAV roles if no DB config exists.
@@ -298,16 +317,28 @@ export default function AppShell() {
         // student's course has projects disabled or no course assigned.
         if (role === "student" || role === "guardian") {
           try {
-            const statsRes = await api.get<{ projectConfig?: {
-              courseAssigned: boolean;
-              projectEnabled: boolean;
-              projectRequired: boolean;
-              totalWeeks: number;
-            } }>("/api/stats" + (role === "guardian" ? "" : "?as=student"));
+            const statsRes = await api.get<{
+              projectConfig?: {
+                courseAssigned: boolean;
+                projectEnabled: boolean;
+                projectRequired: boolean;
+                totalWeeks: number;
+              };
+              coursePlan?: {
+                courseAssigned: boolean;
+                courseName: string | null;
+                courseSummary: string | null;
+                courseKeyFeatures: string[];
+                hasProject: boolean;
+                teacher: { id: string; name: string; email: string } | null;
+              } | null;
+            }>("/api/stats" + (role === "guardian" ? "" : "?as=student"));
             setProjectConfig(statsRes.projectConfig ?? null);
+            setCoursePlan(statsRes.coursePlan ?? null);
           } catch {
             // Silent — fall back to "show project nav" for backward compat
             setProjectConfig(null);
+            setCoursePlan(null);
           }
         }
       }
@@ -473,6 +504,15 @@ export default function AppShell() {
         return false;
       }
     }
+
+    // Course-plan-centric: when a student has NO course assigned, hide
+    // everything except Dashboard, Ask My Teacher, Messages, Settings.
+    // The student dashboard renders a "Course Assignment Pending" state
+    // that explains what's happening + how to get help.
+    if (effectiveRole === "student" && coursePlan && !coursePlan.courseAssigned) {
+      const allowedWhenUnassigned: ViewKey[] = ["dashboard", "ask-teacher", "messages", "settings"];
+      if (!allowedWhenUnassigned.includes(n.key)) return false;
+    }
     return true;
   });
   const currentNav = visibleNav.find((n) => n.key === view) ?? visibleNav[0];
@@ -508,6 +548,11 @@ export default function AppShell() {
       case "teacher-ai-tutor": return wrap(<TeacherAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
       case "messages": return wrap(<Messages />);
+      case "ask-teacher": return wrap(
+        <div className="max-w-2xl mx-auto py-6">
+          <AskMyTeacher embedded currentView={view} />
+        </div>
+      );
       case "settings": return wrap(<SettingsPanel user={user ? { id: user.id, name: user.name, email: user.email, role: user.role, hasSecurityQuestion: user.hasSecurityQuestion } : null} />);
       case "admin-dashboard": return wrap(<AdminDashboard initialView="overview" />);
       case "admin-users": return wrap(<AdminDashboard initialView="users" />);
@@ -727,11 +772,6 @@ export default function AppShell() {
           {renderView()}
         </div>
       </main>
-
-      {/* Phase E.1: Ask My Teacher floating button */}
-      {effectiveRole === "student" && view !== "messages" && (
-        <AskMyTeacher currentView={view} />
-      )}
       </div>
     </div>
   );

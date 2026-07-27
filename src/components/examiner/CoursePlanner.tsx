@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Loader2, Plus, Trash2, Save, BookOpen, ChevronDown, ChevronRight,
   RefreshCw, GraduationCap, Edit3, X, Sparkles, Wand2, ExternalLink,
-  CheckCircle2, Circle, AlertCircle, Copy, ClipboardList,
+  CheckCircle2, Circle, AlertCircle, Copy, ClipboardList, Upload,
+  UserCircle, Globe, Lock, Unlock,
 } from "lucide-react";
 
 interface CourseDay {
@@ -22,6 +23,7 @@ interface CourseDay {
 interface CourseWeek {
   id?: string; weekNumber: number; phase: string; milestone: string; days: CourseDay[]; dayCount?: number;
 }
+interface TeacherInfo { id: string; name: string; email: string; }
 interface Course {
   id: string; name: string; description: string; isActive: boolean;
   domain?: string; level?: string; assessmentType?: string;
@@ -36,6 +38,13 @@ interface Course {
   projectDefaultDurationWeeks?: number;
   // Default-course flag — marks this course as the default for new students.
   isDefault?: boolean;
+  // Course-plan-centric overhaul fields
+  status?: "draft" | "published";
+  summary?: string | null;
+  keyFeatures?: string[];
+  contentText?: string | null;
+  teacherId?: string | null;
+  teacher?: TeacherInfo | null;
 }
 interface Batch { id: string; name: string; courseId: string | null; courseName: string | null; }
 
@@ -44,6 +53,7 @@ type View = "list" | "generate" | "detail";
 export default function CoursePlanner() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
+  const [teachers, setTeachers] = useState<TeacherInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("list");
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -53,10 +63,14 @@ export default function CoursePlanner() {
   const [msgType, setMsgType] = useState<"success" | "error">("success");
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
 
-  // AI generation form state
+  // AI generation form state — course-plan-centric overhaul.
+  // contentText is the primary source: paste text or extract from uploaded file.
+  // The AI uses it (when provided) to drive the summary, keyFeatures, subjects,
+  // and weekly plan.
   const [genForm, setGenForm] = useState({
-    courseName: "", description: "", durationWeeks: 6, daysPerWeek: 5,
-    targetAudience: "complete beginners", tools: "", aiProvider: "Gemini API (free for students)",
+    courseName: "", description: "", contentText: "",
+    durationWeeks: 6, daysPerWeek: 5,
+    targetAudience: "complete beginners", tools: "",
     // Phase AI-Tutor Revert: per-course NotebookLM URL (optional — falls back to global default if empty)
     notebooklmUrl: "",
     // Scale Tier 2: multiple subjects (comma-separated, parsed to array)
@@ -73,12 +87,14 @@ export default function CoursePlanner() {
 
   const load = useCallback(async () => {
     try {
-      const [courseRes, batchRes] = await Promise.all([
+      const [courseRes, batchRes, teacherRes] = await Promise.all([
         api.get<{ courses: Course[] }>("/api/courses"),
         api.get<{ batches: Batch[] }>("/api/batches"),
+        api.get<{ teachers: TeacherInfo[] }>("/api/courses/teachers").catch(() => ({ teachers: [] as TeacherInfo[] })),
       ]);
       setCourses(courseRes.courses || []);
       setBatches(batchRes.batches || []);
+      setTeachers(teacherRes.teachers || []);
     } catch (e) {
       // Phase fix: show the error instead of silently swallowing it.
       // The old `catch { /* ignore */ }` meant if GET /api/courses failed
@@ -145,6 +161,9 @@ export default function CoursePlanner() {
     try {
       const res = await api.post<{
         course: {
+          summary?: string;
+          keyFeatures?: string[];
+          subjects?: string[];
           weeks: CourseWeek[];
           domain?: string;
           level?: string;
@@ -159,13 +178,19 @@ export default function CoursePlanner() {
       );
 
       // Create the course with the AI-generated weeks + domain metadata.
-      // Pass through ALL fields the AI returned (domain, level, tools, etc.)
-      // so the course row in the DB matches what the AI generated.
+      // Pass through ALL fields the AI returned (summary, keyFeatures, subjects,
+      // domain, level, tools, etc.) so the course row in the DB matches what
+      // the AI generated.
       setGenStatus("Creating course in database...");
       const aiCourse = res.course;
       const createRes = await api.post<{ course: Course }>("/api/courses", {
         name: genForm.courseName.trim(),
         description: genForm.description.trim(),
+        // Course-plan-centric overhaul: pass through AI-generated metadata
+        summary: aiCourse.summary,
+        keyFeatures: aiCourse.keyFeatures,
+        subjects: aiCourse.subjects || (genForm.subjects.trim() ? genForm.subjects.split(",").map(s => s.trim()).filter(Boolean) : undefined),
+        contentText: genForm.contentText.trim() || undefined,
         weeks: aiCourse.weeks,
         domain: aiCourse.domain,
         level: aiCourse.level,
@@ -174,8 +199,6 @@ export default function CoursePlanner() {
         deliverableTypes: aiCourse.deliverableTypes,
         // Phase AI-Tutor Revert: pass through per-course NotebookLM URL (empty = use global default)
         notebooklmUrl: genForm.notebooklmUrl.trim() || undefined,
-        // Scale Tier 2: parse comma-separated subjects into array
-        subjects: genForm.subjects.trim() ? genForm.subjects.split(",").map(s => s.trim()).filter(Boolean) : undefined,
       });
 
       if (genIntervalRef.current) clearInterval(genIntervalRef.current); clearInterval(statusInterval);
@@ -215,12 +238,70 @@ export default function CoursePlanner() {
         projectEnabled: !!selectedCourse.projectEnabled,
         projectRequired: !!selectedCourse.projectRequired,
         projectDefaultDurationWeeks: Number(selectedCourse.projectDefaultDurationWeeks ?? 4),
+        // Course-plan-centric overhaul: persist AI-generated metadata + teacher
+        summary: selectedCourse.summary ?? null,
+        keyFeatures: selectedCourse.keyFeatures || [],
+        contentText: selectedCourse.contentText ?? null,
+        teacherId: selectedCourse.teacherId ?? null,
       }, AI_TIMEOUT_MS);
       showMsg("success", "Course saved.");
       setEditing(false);
       await load();
     } catch (e) { showMsg("error", e instanceof Error ? e.message : "Failed"); }
     finally { setBusy(false); }
+  };
+
+  // Course-plan-centric: assign or unassign a teacher for the selected course.
+  // Calls the dedicated /assign-teacher endpoint (validates role=teacher).
+  const assignTeacher = async (teacherId: string | null) => {
+    if (!selectedCourse) return;
+    setBusy(true); setMsg("");
+    try {
+      const res = await api.post<{ ok: boolean; teacher: TeacherInfo | null }>(
+        `/api/courses/${selectedCourse.id}/assign-teacher`,
+        { teacherId },
+      );
+      setSelectedCourse({
+        ...selectedCourse,
+        teacherId: res.teacher?.id ?? null,
+        teacher: res.teacher,
+      });
+      showMsg("success", res.teacher
+        ? `Assigned ${res.teacher.name} as the course teacher.`
+        : "Teacher unassigned. Students cannot be enrolled until a teacher is set."
+      );
+    } catch (e) {
+      showMsg("error", e instanceof Error ? e.message : "Failed to assign teacher");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Course-plan-centric: publish or unpublish the course plan.
+  // Published status locks AI regeneration (enforced on the generate route
+  // via the status check). Pre-publish validation requires a teacher + ≥1 week.
+  const togglePublish = async () => {
+    if (!selectedCourse) return;
+    const willPublish = selectedCourse.status !== "published";
+    if (willPublish && !confirm(
+      "Publishing locks AI regeneration. You can still edit the plan manually.\n\nContinue?"
+    )) return;
+    setBusy(true); setMsg("");
+    try {
+      const res = await api.post<{ ok: boolean; status: "draft" | "published" }>(
+        `/api/courses/${selectedCourse.id}/publish`,
+        { published: willPublish },
+      );
+      setSelectedCourse({ ...selectedCourse, status: res.status });
+      showMsg("success", res.status === "published"
+        ? "Course plan published. AI regeneration is now locked. Students can be enrolled."
+        : "Course plan reverted to draft. AI regeneration is re-enabled."
+      );
+    } catch (e) {
+      showMsg("error", e instanceof Error ? e.message : "Failed to change publish state");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const deleteCourse = async (id: string) => {
@@ -418,7 +499,10 @@ export default function CoursePlanner() {
           <Card className="border-border">
             <CardHeader>
               <CardTitle className="text-base">Create a Course with AI</CardTitle>
-              <CardDescription className="text-xs">Describe your course and the AI will generate a complete structured outline with daily objectives, project activities, GitHub commits, and resource links.</CardDescription>
+              <CardDescription className="text-xs">
+                Paste your course content (or upload a file). The AI generates a complete plan with
+                summary, key features, weekly phases, daily objectives, hands-on activities, and resource links.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
@@ -426,8 +510,55 @@ export default function CoursePlanner() {
                 <Input value={genForm.courseName} onChange={(e) => setGenForm({ ...genForm, courseName: e.target.value })} placeholder="e.g. Python for Data Science, Mobile App Development, UI/UX Design Fundamentals" className="bg-background border-border" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Description</Label>
-                <Textarea value={genForm.description} onChange={(e) => setGenForm({ ...genForm, description: e.target.value })} placeholder="What is this course about? What will students build?" className="bg-background border-border min-h-16 text-xs" />
+                <Label className="text-xs font-medium">Short Description</Label>
+                <Textarea value={genForm.description} onChange={(e) => setGenForm({ ...genForm, description: e.target.value })} placeholder="What is this course about? What will students build?" className="bg-background border-border min-h-12 text-xs" />
+              </div>
+              {/* Content source — paste-or-upload workflow. The AI uses this as
+                  the primary source material. When provided, it drives summary,
+                  keyFeatures, subjects, and weekly plan. */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium flex items-center gap-1">
+                    Content Source
+                    <span className="text-[10px] text-muted-foreground font-normal">(paste text or upload .txt / .md — optional but recommended)</span>
+                  </Label>
+                  <label className="cursor-pointer inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium hover:bg-accent">
+                    <Upload className="h-3 w-3" /> Upload file
+                    <input
+                      type="file"
+                      accept=".txt,.md,.text,.markdown"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 500_000) {
+                          showMsg("error", "File too large (max 500 KB). Paste a smaller excerpt instead.");
+                          return;
+                        }
+                        try {
+                          const text = await file.text();
+                          setGenForm({ ...genForm, contentText: text });
+                          showMsg("success", `Loaded ${text.length.toLocaleString()} chars from ${file.name}`);
+                        } catch {
+                          showMsg("error", "Failed to read file. Try pasting the content directly.");
+                        }
+                        // Reset input so the same file can be re-selected
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+                <Textarea
+                  value={genForm.contentText}
+                  onChange={(e) => setGenForm({ ...genForm, contentText: e.target.value })}
+                  placeholder="Paste the course source material here: syllabus, textbook chapter, training manual, blog post — anything. The AI will design a structured course around this content. Leave empty to let the AI generate from scratch using the course name + description."
+                  className="bg-background border-border min-h-32 text-xs font-mono"
+                />
+                {genForm.contentText && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {genForm.contentText.length.toLocaleString()} chars · The AI will use this as the primary source.
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -447,34 +578,10 @@ export default function CoursePlanner() {
                 <Label className="text-xs font-medium">Tools & Technologies</Label>
                 <Input value={genForm.tools} onChange={(e) => setGenForm({ ...genForm, tools: e.target.value })} placeholder="e.g. Python, Jupyter, Pandas, VS Code, Git" className="bg-background border-border" />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium">AI Provider (for AI features in the course)</Label>
-                <Input value={genForm.aiProvider} onChange={(e) => setGenForm({ ...genForm, aiProvider: e.target.value })} placeholder="e.g. Gemini API (free for students), OpenAI API" className="bg-background border-border" />
-              </div>
-              {/* LO-7: NotebookLM URL is currently DEAD CONFIG — collected + persisted
-                  but never rendered for students. The AI Tutor is a chatbot, not an iframe.
-                  Kept for potential future use. The "global default" referenced below
-                  no longer exists in constants.ts. */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium flex items-center gap-1">
-                  NotebookLM URL <span className="text-[10px] text-muted-foreground font-normal">(currently unused — AI Tutor is chatbot-based)</span>
-                </Label>
-                <Input
-                  value={genForm.notebooklmUrl}
-                  onChange={(e) => setGenForm({ ...genForm, notebooklmUrl: e.target.value })}
-                  placeholder="https://notebooklm.google.com/notebook/..."
-                  className="bg-background border-border"
-                  type="url"
-                />
-                <p className="text-[10px] text-muted-foreground">
-                  Note: This field is collected but not currently rendered to students. The AI Tutor uses a chat-based interface instead of a NotebookLM iframe.
-                  Leave empty to use the default bootcamp notebook. You can change this later in the course detail view.
-                </p>
-              </div>
               {/* Scale Tier 2: Multiple subjects per course */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium flex items-center gap-1">
-                  Subjects <span className="text-[10px] text-muted-foreground font-normal">(comma-separated, optional — for multi-subject courses)</span>
+                  Subjects <span className="text-[10px] text-muted-foreground font-normal">(comma-separated, optional — leave empty to let AI infer)</span>
                 </Label>
                 <Input
                   value={genForm.subjects}
@@ -482,16 +589,16 @@ export default function CoursePlanner() {
                   placeholder="e.g. Frontend Development, Backend Development, Soft Skills"
                   className="bg-background border-border"
                 />
-                <p className="text-[10px] text-muted-foreground">
-                  For multi-subject courses (e.g. a bootcamp with frontend + backend + soft skills running in parallel).
-                  Leave empty for single-subject courses.
-                </p>
               </div>
               {msg && <p className={`text-xs ${msgType === "error" ? "text-destructive" : "text-primary"}`}>{msg}</p>}
               <Button onClick={generateCourse} disabled={!genForm.courseName.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full" size="lg">
                 <Sparkles className="h-5 w-5" /> Generate {genForm.durationWeeks * genForm.daysPerWeek} Lessons with AI
               </Button>
-              <p className="text-[10px] text-muted-foreground text-center">The AI generates: weekly phases, daily topics, learning objectives, why-it-matters, project activities, GitHub commits, and resource links. This takes 15-60 seconds.</p>
+              <p className="text-[10px] text-muted-foreground text-center">
+                The AI generates: course summary, key features, subjects, weekly phases, daily topics,
+                learning objectives, why-it-matters, hands-on activities, deliverables, and resource links.
+                Takes 15-60 seconds.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -504,73 +611,251 @@ export default function CoursePlanner() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button size="sm" variant="ghost" onClick={() => { setView("list"); setEditing(false); }} className="text-muted-foreground">
-              <ArrowLeft /> Back
-            </Button>
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2 flex-wrap">
-              {editing ? "Edit Course" : selectedCourse.name}
-              {selectedCourse.isDefault && (
-                <Badge variant="outline" className="text-[9px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
-                  Default for new students
-                </Badge>
-              )}
-            </h2>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {/* Set as default / Unset default — only show when not editing */}
-            {!editing && (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true);
-                  try {
-                    await api.post(`/api/courses/${selectedCourse.id}/set-default`, { isDefault: !selectedCourse.isDefault });
-                    showMsg("success", !selectedCourse.isDefault
-                      ? `Set "${selectedCourse.name}" as the default course for new students. The Default Batch is now linked to it.`
-                      : `"${selectedCourse.name}" is no longer the default course.`
-                    );
-                    await load();
-                    // Re-fetch the detail to refresh isDefault on selectedCourse
-                    const res = await api.get<{ course: Course }>(`/api/courses/${selectedCourse.id}`);
-                    setSelectedCourse(res.course);
-                  } catch (e) {
-                    showMsg("error", e instanceof Error ? e.message : "Failed to change default course");
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-                className={selectedCourse.isDefault
-                  ? "border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
-                  : "border-violet-500/40 text-violet-700 dark:text-violet-300 hover:bg-violet-500/10"
-                }
-                title={selectedCourse.isDefault
-                  ? "New students are currently being assigned to this course. Click to unset."
-                  : "Make this the course that new students get assigned to by default."
-                }
-              >
-                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                {selectedCourse.isDefault ? "Unset Default" : "Set as Default"}
-              </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button size="sm" variant="ghost" onClick={() => { setView("list"); setEditing(false); }} className="text-muted-foreground">
+            <ArrowLeft /> Back
+          </Button>
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2 flex-wrap">
+            {editing ? "Edit Course" : selectedCourse.name}
+            {selectedCourse.isDefault && (
+              <Badge variant="outline" className="text-[9px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                Default for new students
+              </Badge>
             )}
-            {editing ? (
-              <>
-                <Button size="sm" onClick={saveCourse} disabled={busy} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => { setEditing(false); load(); }}>Cancel</Button>
-              </>
+            {selectedCourse.status === "published" ? (
+              <Badge variant="outline" className="text-[9px] border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                <Lock className="h-2.5 w-2.5" /> Published
+              </Badge>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="border-border">
-                <Edit3 className="h-3.5 w-3.5" /> Edit
-              </Button>
+              <Badge variant="outline" className="text-[9px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                <Unlock className="h-2.5 w-2.5" /> Draft
+              </Badge>
             )}
-          </div>
+          </h2>
         </div>
+        <div className="flex gap-2 flex-wrap">
+          {/* Set as default / Unset default — only show when not editing */}
+          {!editing && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await api.post(`/api/courses/${selectedCourse.id}/set-default`, { isDefault: !selectedCourse.isDefault });
+                  showMsg("success", !selectedCourse.isDefault
+                    ? `Set "${selectedCourse.name}" as the default course for new students. The Default Batch is now linked to it.`
+                    : `"${selectedCourse.name}" is no longer the default course.`
+                  );
+                  await load();
+                  // Re-fetch the detail to refresh isDefault on selectedCourse
+                  const res = await api.get<{ course: Course }>(`/api/courses/${selectedCourse.id}`);
+                  setSelectedCourse(res.course);
+                } catch (e) {
+                  showMsg("error", e instanceof Error ? e.message : "Failed to change default course");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              className={selectedCourse.isDefault
+                ? "border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                : "border-violet-500/40 text-violet-700 dark:text-violet-300 hover:bg-violet-500/10"
+              }
+              title={selectedCourse.isDefault
+                ? "New students are currently being assigned to this course. Click to unset."
+                : "Make this the course that new students get assigned to by default."
+              }
+            >
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+              {selectedCourse.isDefault ? "Unset Default" : "Set as Default"}
+            </Button>
+          )}
+          {/* Publish / Unpublish toggle — locks or unlocks AI regeneration.
+              Only show when not in edit mode (avoid clutter while editing weeks). */}
+          {!editing && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={togglePublish}
+              className={selectedCourse.status === "published"
+                ? "border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                : "border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+              }
+              title={selectedCourse.status === "published"
+                ? "Revert to draft. Re-enables AI regeneration."
+                : "Publish this course plan. Locks AI regeneration. Students can be enrolled once a teacher is assigned."
+              }
+            >
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : selectedCourse.status === "published"
+                ? <Unlock className="h-3.5 w-3.5" />
+                : <Lock className="h-3.5 w-3.5" />
+              }
+              {selectedCourse.status === "published" ? "Unpublish" : "Publish"}
+            </Button>
+          )}
+          {editing ? (
+            <>
+              <Button size="sm" onClick={saveCourse} disabled={busy} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => { setEditing(false); load(); }}>Cancel</Button>
+            </>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="border-border">
+              <Edit3 className="h-3.5 w-3.5" /> Edit
+            </Button>
+          )}
+        </div>
+      </div>
 
         {msg && <p className={`text-xs ${msgType === "error" ? "text-destructive" : "text-primary"}`}>{msg}</p>}
+
+        {/* ============================================================
+            TEACHER ASSIGNMENT CARD — Course-plan-centric overhaul.
+            A teacher MUST be assigned before any student can be enrolled
+            (enforced at the API level via assertCourseHasTeacher).
+            ============================================================ */}
+        <Card className={`border-border ${!selectedCourse.teacherId ? "border-amber-500/40 bg-amber-500/5" : ""}`}>
+          <CardHeader className="pb-2 pt-3 px-4">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
+              <UserCircle className="h-4 w-4 text-primary" /> Course Teacher
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              A teacher must be assigned before students can be enrolled in this course.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-3 space-y-3">
+            {selectedCourse.teacher ? (
+              <div className="flex items-center justify-between gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {selectedCourse.teacher.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{selectedCourse.teacher.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{selectedCourse.teacher.email}</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => assignTeacher(null)}
+                  className="border-border text-muted-foreground hover:text-destructive hover:border-destructive/30 flex-shrink-0"
+                >
+                  Unassign
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
+                <p className="font-medium flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5" /> No teacher assigned yet
+                </p>
+                <p className="mt-1 leading-snug">
+                  Students cannot be enrolled in this course until a teacher is assigned. Pick one below.
+                </p>
+              </div>
+            )}
+            {/* Teacher selector — only show when editing OR when no teacher is assigned.
+                Allows quick assignment without entering edit mode. */}
+            {(editing || !selectedCourse.teacherId) && (
+              <div className="space-y-1.5">
+                <Label className="text-[10px] text-muted-foreground">Assign a teacher</Label>
+                <div className="flex gap-2">
+                  <select
+                    id="teacher-select"
+                    defaultValue=""
+                    className="flex-1 bg-background border border-border rounded-md text-xs px-2 py-1.5"
+                  >
+                    <option value="" disabled>Select a teacher...</option>
+                    {teachers.map(t => (
+                      <option key={t.id} value={t.id}>{t.name} · {t.email}</option>
+                    ))}
+                  </select>
+                  <Button
+                    size="sm"
+                    disabled={busy || teachers.length === 0}
+                    onClick={() => {
+                      const sel = document.getElementById("teacher-select") as HTMLSelectElement | null;
+                      const tid = sel?.value || null;
+                      if (tid) assignTeacher(tid);
+                    }}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserCircle className="h-3 w-3" />} Assign
+                  </Button>
+                </div>
+                {teachers.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground">
+                    No teachers found. Create a user with role=teacher first (Admin → Users).
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ============================================================
+            AI-GENERATED COURSE METADATA — summary + key features.
+            These come from the AI generate endpoint and surface on the
+            student dashboard to give students a mental map of their journey.
+            ============================================================ */}
+        <Card className="border-border">
+          <CardHeader className="pb-2 pt-3 px-4">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" /> Course Overview
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              AI-generated summary + key features. Shown to students on their dashboard.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-3 space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] text-muted-foreground">Summary</Label>
+              {editing ? (
+                <Textarea
+                  value={selectedCourse.summary || ""}
+                  onChange={(e) => setSelectedCourse({ ...selectedCourse, summary: e.target.value })}
+                  placeholder="2-3 sentence course overview. What students will learn + why it matters."
+                  className="bg-background border-border text-xs min-h-16"
+                />
+              ) : (
+                <p className="text-xs text-foreground leading-relaxed">
+                  {selectedCourse.summary || <span className="text-muted-foreground italic">No summary yet — generate with AI or add manually.</span>}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] text-muted-foreground">Key Features</Label>
+              {editing ? (
+                <>
+                  <Textarea
+                    value={(selectedCourse.keyFeatures || []).join("\n")}
+                    onChange={(e) => setSelectedCourse({
+                      ...selectedCourse,
+                      keyFeatures: e.target.value.split("\n").map(s => s.trim()).filter(Boolean),
+                    })}
+                    placeholder={"One feature per line:\nHands-on lab every day\nReal-world case studies\nCapstone project in week 6"}
+                    className="bg-background border-border text-xs min-h-20 font-mono"
+                  />
+                  <p className="text-[10px] text-muted-foreground">One feature per line. Each will display as a tag.</p>
+                </>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {(selectedCourse.keyFeatures || []).length > 0 ? (
+                    (selectedCourse.keyFeatures || []).map((f, i) => (
+                      <Badge key={i} variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">{f}</Badge>
+                    ))
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">No key features yet.</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Course metadata */}
         <Card className="border-border">
@@ -1025,8 +1310,21 @@ export default function CoursePlanner() {
                           Default
                         </Badge>
                       )}
+                      {c.status === "published" ? (
+                        <Badge variant="outline" className="text-[8px] border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                          Published
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[8px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                          Draft
+                        </Badge>
+                      )}
                     </CardTitle>
-                    {c.description && <CardDescription className="text-xs text-muted-foreground truncate">{c.description}</CardDescription>}
+                    {c.summary ? (
+                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2 leading-snug">{c.summary}</p>
+                    ) : c.description ? (
+                      <CardDescription className="text-xs text-muted-foreground truncate">{c.description}</CardDescription>
+                    ) : null}
                   </div>
                   <div className="flex flex-col gap-1 items-end ml-2">
                     <Badge variant="outline" className="text-[9px]">{(c.weeks?.length || 0)}w · {(c.weeks?.reduce((a, w) => a + (w.dayCount || w.days?.length || 0), 0) || 0)}d</Badge>
@@ -1036,6 +1334,18 @@ export default function CoursePlanner() {
                       </Badge>
                     )}
                   </div>
+                </div>
+                {/* Teacher info row — shows "No teacher" warning in amber */}
+                <div className="flex items-center gap-1.5 mt-1.5 text-[10px]">
+                  {c.teacher ? (
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <UserCircle className="h-3 w-3" /> {c.teacher.name}
+                    </span>
+                  ) : (
+                    <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
+                      <AlertCircle className="h-3 w-3" /> No teacher assigned
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="pt-0 px-4 pb-3">
