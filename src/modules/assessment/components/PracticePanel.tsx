@@ -104,10 +104,6 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
     setInput("");
     setBusy(true);
 
-    // Optimistic add
-    const studentMsg = { role: "student" as const, content: msg, timestamp: new Date().toISOString() };
-    setConversation(prev => [...prev, studentMsg]);
-
     try {
       const res = await api.post<{
         conversation: Array<{ role: "student" | "examiner"; content: string; timestamp: string }>;
@@ -117,7 +113,7 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
         action: "reply",
         topic,
         week: selectedWeek,
-        conversation: [...conversation, studentMsg],
+        conversation,
         exchangeCount,
         studentReply: msg,
       }, AI_TIMEOUT_MS);
@@ -131,7 +127,6 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
       }
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed");
-      setConversation(prev => prev.filter(m => m !== studentMsg));
     } finally { setBusy(false); }
   };
 
