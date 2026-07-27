@@ -15,9 +15,9 @@ interface AskMyTeacherProps { currentView?: string; }
 interface TeacherInfo { id: string; name: string; email: string; }
 
 const VIEW_LABELS: Record<string, string> = {
-  "dashboard": "Today", "journey": "My Journey", "checkin": "Today's Check-in",
-  "question": "Practice", "weekly-test": "Weekly Test", "gantt": "My Project",
-  "report-card": "My Progress", "ai-tutor": "AI Tutor", "course-outline": "Course",
+  "dashboard": "Home", "checkin": "Study",
+  "gantt": "Project", "report-card": "Progress",
+  "ai-tutor": "AI Tutor", "course-outline": "Course",
   "messages": "Messages", "settings": "Settings",
 };
 

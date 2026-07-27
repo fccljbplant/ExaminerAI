@@ -231,9 +231,9 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
                 size="sm"
                 variant="outline"
                 className="border-primary/30 text-primary hover:bg-primary/10 h-7 text-xs"
-                onClick={() => onMode ? onMode("question") : (() => {
+                onClick={() => onMode ? onMode("checkin") : (() => {
                   const url = new URL(window.location.href);
-                  url.searchParams.set("view", "question");
+                  url.searchParams.set("view", "checkin");
                   window.location.href = url.toString();
                 })()}
               >

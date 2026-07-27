@@ -65,7 +65,7 @@ interface DailyTaskReminderProps {
    *  parent dashboard refresh its data too. */
   onChanged?: () => void;
   /** Called when user wants to navigate to the project plan / check-in / practice. */
-  onNavigate?: (mode: "gantt" | "checkin" | "question") => void;
+  onNavigate?: (mode: "gantt" | "checkin" | "study") => void;
 }
 
 /** Auto-popup interval — every 10 minutes when there are pending tasks. */
@@ -326,7 +326,7 @@ export function DailyTaskReminder({ onChanged, onNavigate }: DailyTaskReminderPr
                             size="sm"
                             className="h-7 text-[11px] border-primary/30 text-primary hover:bg-primary/10"
                             onClick={() => {
-                              onNavigate?.("question");
+                              onNavigate?.("study");
                               setPopupOpen(false);
                             }}
                           >
@@ -452,7 +452,7 @@ export function DailyTaskReminder({ onChanged, onNavigate }: DailyTaskReminderPr
                             size="sm"
                             className="mt-2 h-7 text-[11px] border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
                             onClick={() => {
-                              onNavigate?.("question");
+                              onNavigate?.("study");
                               setPopupOpen(false);
                             }}
                           >

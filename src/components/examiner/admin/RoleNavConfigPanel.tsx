@@ -25,15 +25,13 @@ export function RoleNavConfigPanel() {
   const [msg, setMsg] = useState("");
 
   const NAV_LABELS: Record<string, string> = {
-    "dashboard": "Today (Student Dashboard)",
-    "checkin": "Learning Hub (Check-in)",
-    "question": "Practice Questions",
-    "weekly-test": "Weekly Test",
-    "gantt": "My Project (Gantt)",
-    "report-card": "My Progress (Report Card)",
-    "journey": "First Time? (Journey Wizard)",
+    // Student (4-view model)
+    "dashboard": "Home (Student Dashboard)",
+    "checkin": "Study (Practice + Tests + Check-in)",
+    "gantt": "Project (Gantt + Tasks)",
+    "report-card": "Progress (Reports + Certificates)",
     // Teacher sub-tabs
-    "batch": "Teacher Dashboard (Today)",
+    "batch": "Today (Teacher Dashboard)",
     "batch-students": "Students Roster",
     "batch-mentorship": "Mentorship",
     "batch-assignments": "Assignments",
@@ -55,7 +53,7 @@ export function RoleNavConfigPanel() {
     "admin-resets": "Password Resets",
     "admin-system": "System & Dev",
     // Shared
-    "ai-tutor": "AI Tutor (NotebookLM)",
+    "ai-tutor": "AI Tutor (Student Practice)",
     "teacher-ai-tutor": "Teacher AI Assistant",
     "course-outline": "Course Outline",
     "messages": "Messages",
@@ -222,7 +220,7 @@ export function RoleNavConfigPanel() {
           {[
             { role: "guardian", label: "Guardian — Progress overview only", items: ["guardian-dashboard", "guardian-progress", "course-outline", "messages", "settings"], desc: "Sees student dashboard (read-only overview) + report card + course outline + messages." },
             { role: "counselor", label: "Counselor — Wellbeing focus", items: ["batch", "messages", "settings"], desc: "Sees teacher dashboard (for psychological/mentorship tabs) + messages. No course planner, no educational detail." },
-            { role: "course_coordinator", label: "Coordinator — Course management", items: ["course-planner", "ai-tutor", "course-outline", "messages", "settings"], desc: "Sees course planner + shared resources. No student data, no user management." },
+            { role: "course_coordinator", label: "Coordinator — Course management", items: ["course-planner", "batch-students", "teacher-ai-tutor", "course-outline", "messages", "settings"], desc: "Sees course planner + student roster + shared resources. No user management." },
           ].map(preset => (
             <div key={preset.role} className="flex items-center justify-between rounded-md border border-border p-2.5">
               <div className="flex-1 min-w-0">

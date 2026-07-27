@@ -21,9 +21,9 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *  sidebar until an admin reset the config. This version includes ALL keys.
  */
 export const ALL_NAV_KEYS = [
-  // Student
-  "dashboard", "checkin", "question", "weekly-test", "gantt", "report-card", "journey",
-  // Teacher
+  // Student (4-view model: Home, Study, Project, Progress)
+  "dashboard", "checkin", "gantt", "report-card",
+  // Teacher (5 prominent views)
   "batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights",
   // Counselor
   "counselor-dashboard",

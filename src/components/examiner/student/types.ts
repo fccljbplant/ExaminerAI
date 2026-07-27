@@ -131,18 +131,16 @@ export interface StatsResponse {
 
 export type Mode =
   | "default"
-  | "journey"
   | "checkin"
-  | "question"
-  | "weekly-test"
   | "report-card"
   | "gantt"
   | "settings"
   | "ai-tutor"
   | "course-outline";
 
-/** Journey step shape — used by the JourneyWizard + the DB-backed journey
- *  steps fetched from /api/course/config. */
+/** Journey step shape — used by the (now-removed) JourneyWizard. Kept for
+ *  backward-compat with any DB rows that still reference journey steps,
+ *  but no UI renders this anymore. Safe to remove in a future cleanup. */
 export interface JourneyStep {
   id: string;
   week: number;

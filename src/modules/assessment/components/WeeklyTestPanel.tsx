@@ -77,6 +77,10 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
   // the WeeklyTest row, surfaced to the student after completion.
   const [feedback, setFeedback] = useState<TeachingFeedback | null>(null);
   const [chatLoaded, setChatLoaded] = useState(false);
+  // Course-configured test length (read from API response — was hardcoded to
+  // 15 questions / 5 replies, which ignored course-level test config).
+  const [totalQuestions, setTotalQuestions] = useState(15);
+  const [maxReplies, setMaxReplies] = useState(5);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -97,6 +101,8 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
           currentQuestion: number;
           replyCount: number;
           isComplete: boolean;
+          totalQuestions?: number;
+          maxReplies?: number;
           test: {
             psychAnalysis: string | null;
             examinerComment: string | null;
@@ -128,6 +134,9 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         setCurrentQuestion(res.currentQuestion || 0);
         setReplyCount(res.replyCount || 0);
         setIsComplete(res.isComplete);
+        // Read course-configured test length from the API response (was hardcoded)
+        if (res.totalQuestions) setTotalQuestions(res.totalQuestions);
+        if (res.maxReplies) setMaxReplies(res.maxReplies);
         if (res.test) {
           setPsychAnalysis(res.test.psychAnalysis);
           setExaminerComment(res.test.examinerComment);
@@ -166,11 +175,16 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         currentQuestion: number;
         replyCount: number;
         isComplete: boolean;
+        totalQuestions?: number;
+        maxReplies?: number;
       }>('/api/ai/weekly-test', { week: selectedWeek, action: 'start' }, AI_TIMEOUT_MS);
       setConversation(res.conversation);
       setCurrentQuestion(res.currentQuestion);
       setReplyCount(res.replyCount);
       setIsComplete(false);
+      // Read course-configured test length from the API response
+      if (res.totalQuestions) setTotalQuestions(res.totalQuestions);
+      if (res.maxReplies) setMaxReplies(res.maxReplies);
       setPsychAnalysis(null);
       setExaminerComment(null);
       setScore(null);
@@ -294,8 +308,6 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
     }
   };
 
-  const totalQuestions = 15;
-  const maxReplies = 5;
   const hasStarted = conversation.length > 0;
 
   return (

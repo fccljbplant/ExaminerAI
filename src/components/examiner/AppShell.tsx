@@ -54,10 +54,7 @@ import { UnifiedThemeToggle } from "@/modules/theme";
 
 export type ViewKey =
   | "dashboard"
-  | "journey"
   | "checkin"
-  | "question"
-  | "weekly-test"
   | "gantt"
   | "report-card"
   | "course-outline"
@@ -128,7 +125,10 @@ const ALL_NAV: NavItem[] = [
   // M4 fix (audit 2026-07-26): course coordinators now have access to the
   // batch-students view so they can see the students in their institution's
   // courses (was admin/teacher-only, so coordinators had zero student visibility).
-  { key: "batch-students", label: "Students", icon: Users, roles: ["course_coordinator"] },
+  // De-duplicated: was declared twice (once for teacher, once for course_coordinator)
+  // which caused "Students" to appear twice in the sidebar for any role whose
+  // DB nav config included "batch-students".
+  { key: "batch-students", label: "Students", icon: Users, roles: ["teacher", "course_coordinator"] },
 
   // ===== GUARDIAN (purpose-built parent dashboard — NOT a student clone) =====
   { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
@@ -481,10 +481,7 @@ export default function AppShell() {
     const wrap = (el: React.ReactNode) => <ErrorBoundary key={view}>{el}</ErrorBoundary>;
     switch (view) {
       case "dashboard": return wrap(<StudentDashboard key={`home-${navClickCount}`} />);
-      case "journey": return wrap(<StudentDashboard key={`home-j-${navClickCount}`} />);
       case "checkin": return wrap(<StudentDashboard key={`study-${navClickCount}`} initialMode="checkin" />);
-      case "question": return wrap(<StudentDashboard key={`study-q-${navClickCount}`} initialMode="question" />);
-      case "weekly-test": return wrap(<StudentDashboard key={`study-wt-${navClickCount}`} initialMode="weekly-test" />);
       case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" />);
       case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" />);
       case "guardian-dashboard": return wrap(<GuardianDashboard key={`guardian-${navClickCount}`} onMessage={() => navigateTo("messages")} />);
@@ -569,13 +566,13 @@ export default function AppShell() {
             const Icon = item.icon;
             const active = currentNav?.key === item.key;
 
-            // Phase B: Add section dividers between nav groups.
-            // Student groups: Daily Work | Assessment | Project & Progress | Resources | Account
+            // Section dividers between nav groups.
+            // Student groups (4-view model): Home | Study | Project & Progress | Resources | Account
+            // Dividers fire BEFORE the first item of each new group.
             const dividerBefore = effectiveRole === "student" && (
-              (item.key === "weekly-test") ||  // before Assessment
-              (item.key === "gantt") ||        // before Project & Progress
-              (item.key === "ai-tutor") ||     // before Resources
-              (item.key === "journey")         // before Account
+              (item.key === "gantt") ||        // before Project & Progress (Project + Progress)
+              (item.key === "ai-tutor") ||     // before Resources (AI Tutor + Course)
+              (item.key === "settings")        // before Account (Settings)
             );
 
             return (
