@@ -18,17 +18,24 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *  all form inputs. Cache is stored in the AICache table with a
  *  `course-gen:` prefix on the cacheKey.
  *
+ *  Course-plan-centric overhaul: when `contentText` is provided, the AI uses
+ *  it as the primary source material (paste-or-upload workflow). The AI now
+ *  also produces a `summary` (2-3 sentence overview) + `keyFeatures` array
+ *  (3-7 highlights) + `subjects` array — these power the student dashboard's
+ *  course-plan header and the unassigned → assigned state transition.
+ *
  *  Body: {
- *    courseName: string,           // e.g. "Mechanical Engineering Fundamentals"
+ *    courseName: string,
  *    description?: string,
- *    domain?: string,              // technology | engineering | business | humanities | science | arts | healthcare | law | other
- *    level?: string,               // beginner | intermediate | advanced | mixed
- *    durationWeeks?: number,       // default 6
- *    daysPerWeek?: number,         // default 5
- *    targetAudience?: string,     // e.g. "first-year engineering students"
- *    tools?: string,               // e.g. "AutoCAD, MATLAB, 3D printer" or "Excel, PowerPoint, case studies"
- *    deliverableTypes?: string,    // e.g. "lab reports, CAD drawings, problem sets" or "presentations, essays, case studies"
- *    assessmentType?: string,      // socratic | quiz | case-study | practical | oral | written | portfolio | mixed
+ *    contentText?: string,        // paste-or-upload source — when set, takes priority over description
+ *    domain?: string,
+ *    level?: string,
+ *    durationWeeks?: number,
+ *    daysPerWeek?: number,
+ *    targetAudience?: string,
+ *    tools?: string,
+ *    deliverableTypes?: string,
+ *    assessmentType?: string,
  *  }
  */
 
@@ -36,6 +43,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 function computeFormHash(params: {
   courseName: string;
   description: string;
+  contentText: string;
   domain: string;
   level: string;
   weeks: number;
@@ -50,6 +58,7 @@ function computeFormHash(params: {
   const normalized = JSON.stringify({
     courseName: params.courseName.trim().toLowerCase(),
     description: params.description.trim().toLowerCase(),
+    contentText: params.contentText.trim().toLowerCase(),
     domain: params.domain.trim().toLowerCase(),
     level: params.level.trim().toLowerCase(),
     weeks: params.weeks,
@@ -74,12 +83,13 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const {
-    courseName, description, domain, level,
+    courseName, description, contentText, domain, level,
     durationWeeks, daysPerWeek, targetAudience,
     tools, deliverableTypes, assessmentType,
   } = body as {
     courseName?: string;
     description?: string;
+    contentText?: string;
     domain?: string;
     level?: string;
     durationWeeks?: number;
@@ -102,6 +112,10 @@ export async function POST(req: NextRequest) {
   const courseDomain = domain?.trim() || "technology";
   const courseLevel = level?.trim() || "beginner";
   const assessment = assessmentType?.trim() || "socratic";
+  // contentText: when provided, takes priority over description as the AI source.
+  // Trim to 50k chars to keep prompts reasonable.
+  const sourceContent = (contentText?.trim() || "").slice(0, 50000);
+  const courseDescription = description?.trim() || "A practical, applied course";
 
   // ============================================================
   // Phase D.2: Cache lookup — if the same form was submitted in
@@ -109,7 +123,8 @@ export async function POST(req: NextRequest) {
   // output tokens + ~1500 input tokens per hit.
   // ============================================================
   const formHash = computeFormHash({
-    courseName, description: description || "", domain: courseDomain, level: courseLevel,
+    courseName, description: courseDescription, contentText: sourceContent,
+    domain: courseDomain, level: courseLevel,
     weeks, days, audience, toolList, deliverables, assessment,
   });
   const cacheKey = `course-gen:${formHash}`;
@@ -139,7 +154,8 @@ export async function POST(req: NextRequest) {
   const prompt = `You are a senior curriculum designer creating a professional course outline. This course can be in ANY domain — technology, engineering, business, humanities, science, arts, healthcare, law, or anything else. Design it appropriately for the subject matter.
 
 COURSE: ${courseName.trim()}
-DESCRIPTION: ${description?.trim() || "A practical, applied course"}
+DESCRIPTION: ${courseDescription}
+${sourceContent ? `\nSOURCE CONTENT (use this as the PRIMARY source material — design the course to cover this content):\n"""\n${sourceContent}\n"""` : ""}
 DOMAIN: ${courseDomain}
 LEVEL: ${courseLevel}
 DURATION: ${weeks} weeks, ${days} days per week
@@ -147,6 +163,11 @@ TARGET AUDIENCE: ${audience}
 TOOLS: ${toolList}
 DELIVERABLES: ${deliverables}
 ASSESSMENT STYLE: ${assessment}
+
+FIRST, produce course-level metadata:
+- summary: 2-3 sentence course overview — what students will learn + why it matters. Concrete, no fluff.
+- keyFeatures: array of 3-7 short phrases highlighting what makes this course distinctive (e.g. "Hands-on lab every day", "Real-world case studies", "Capstone project in week 6"). Each phrase ≤ 8 words.
+- subjects: array of 1-5 subject names this course covers (e.g. ["Frontend Development"], or ["Thermodynamics", "Fluid Mechanics", "Heat Transfer"]).
 
 For EACH week, provide:
 - weekNumber: 1 to ${weeks}
@@ -173,9 +194,12 @@ DESIGN PRINCIPLES:
 - Make it practical and applied — students learn by DOING, not just reading
 - Resources must be REAL URLs (official docs, textbook publishers, well-known tutorials, professional organizations)
 - Adapt the tone and terminology to the domain — don't use software jargon for an HR course, don't use business jargon for an engineering course
-
+${sourceContent ? "- The course MUST cover the source content above. Map each section of the source to the appropriate week/day. If the source is shorter than the course, expand with related advanced topics. If longer, prioritize the most important content.\n" : ""}
 Return ONLY a JSON object:
 {
+  "summary": "...",
+  "keyFeatures": ["...", "..."],
+  "subjects": ["..."],
   "domain": "${courseDomain}",
   "level": "${courseLevel}",
   "toolsUsed": ["tool1", "tool2"],

@@ -276,3 +276,107 @@ export async function getCourseProjectConfig(userId: string): Promise<{
 
 // Re-export the shared helper (no DB needed)
 export { getBootcampDayNumber } from "./course-topics";
+
+// ============================================================
+// COURSE-PLAN-CENTRIC OVERHAUL
+// Helpers for the new fields added to the Course model.
+// ============================================================
+
+/** Get the full course plan for a student — includes summary, keyFeatures,
+ *  subjects, teacher info, status, and weeks/days. Returns null if the
+ *  student has no course assigned.
+ *
+ *  Used by:
+ *  - `/api/stats` → drives the student dashboard's unassigned state + nav
+ *  - `/api/courses/user/outline` → drives the Course Outline view
+ *  - Student dashboard "Today" panel — surfaces summary + teacher
+ */
+export async function getStudentCoursePlan(userId: string): Promise<{
+  courseAssigned: boolean;
+  courseId: string | null;
+  courseName: string | null;
+  courseSummary: string | null;
+  courseKeyFeatures: string[];
+  courseSubjects: string[];
+  courseStatus: "draft" | "published";
+  hasProject: boolean;
+  projectRequired: boolean;
+  projectDefaultDurationWeeks: number;
+  totalWeeks: number;
+  teacher: { id: string; name: string; email: string } | null;
+} | null> {
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { batchId: true },
+    });
+    if (!user?.batchId) return null;
+
+    const batch = await db.batch.findUnique({
+      where: { id: user.batchId },
+      select: { courseId: true },
+    });
+    if (!batch?.courseId) return null;
+
+    const course = await db.course.findUnique({
+      where: { id: batch.courseId, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        summary: true,
+        keyFeatures: true,
+        subjects: true,
+        status: true,
+        projectEnabled: true,
+        projectRequired: true,
+        projectDefaultDurationWeeks: true,
+        weeks: { select: { weekNumber: true }, orderBy: { weekNumber: "asc" } },
+        teacher: { select: { id: true, name: true, email: true } },
+      },
+    });
+    if (!course) return null;
+
+    const parseJSON = <T,>(str: string | null, fallback: T): T => {
+      try { return str ? JSON.parse(str) as T : fallback; } catch { return fallback; }
+    };
+
+    return {
+      courseAssigned: true,
+      courseId: course.id,
+      courseName: course.name,
+      courseSummary: course.summary,
+      courseKeyFeatures: parseJSON<string[]>(course.keyFeatures, []),
+      courseSubjects: parseJSON<string[]>(course.subjects, []),
+      courseStatus: course.status === "published" ? "published" : "draft",
+      hasProject: course.projectEnabled && course.weeks.length >= 4,
+      projectRequired: course.projectRequired && course.projectEnabled && course.weeks.length >= 4,
+      projectDefaultDurationWeeks: course.projectDefaultDurationWeeks,
+      totalWeeks: course.weeks.length,
+      teacher: course.teacher ? {
+        id: course.teacher.id,
+        name: course.teacher.name,
+        email: course.teacher.email,
+      } : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Assert that the given course has a teacher assigned. Throws if not.
+ *  Used by student-assignment routes to enforce the rule:
+ *  "No student can be assigned to a course without a teacher." */
+export async function assertCourseHasTeacher(courseId: string): Promise<{ ok: boolean; error?: string }> {
+  const course = await db.course.findUnique({
+    where: { id: courseId },
+    select: { teacherId: true, name: true },
+  });
+  if (!course) return { ok: false, error: "Course not found" };
+  if (!course.teacherId) {
+    return {
+      ok: false,
+      error: `Assign a teacher to "${course.name}" before enrolling students.`,
+    };
+  }
+  return { ok: true };
+}

@@ -25,6 +25,7 @@ export async function GET(
         include: { days: { orderBy: { day: "asc" } } },
       },
       batches: { select: { id: true, name: true } },
+      teacher: { select: { id: true, name: true, email: true } },
     },
   });
 
@@ -59,6 +60,13 @@ export async function GET(
     projectDefaultDurationWeeks: course.projectDefaultDurationWeeks,
     // Default-course flag — marks this course as the default for new students
     isDefault: course.isDefault,
+    // Course-plan-centric overhaul fields
+    status: course.status,
+    summary: course.summary,
+    keyFeatures: parseJSON(course.keyFeatures, []),
+    contentText: course.contentText,
+    teacherId: course.teacherId,
+    teacher: course.teacher ? { id: course.teacher.id, name: course.teacher.name, email: course.teacher.email } : null,
   };
 
   return NextResponse.json({ course: courseWithParsed });
@@ -79,7 +87,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
+  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks, summary, keyFeatures, contentText, teacherId } = body as {
     name?: string;
     description?: string;
     weeks?: { weekNumber: number; phase: string; milestone?: string; days: { day: number; title: string; objective?: string; whyItMatters?: string; topicsCovered?: string[]; activity?: string; deliverable?: string; resources?: { label: string; url: string }[] }[] }[];
@@ -99,6 +107,10 @@ export async function PUT(
     projectEnabled?: boolean;
     projectRequired?: boolean;
     projectDefaultDurationWeeks?: number;
+    summary?: string;
+    keyFeatures?: string[];
+    contentText?: string;
+    teacherId?: string | null;
   };
 
   // Verify course exists
@@ -174,6 +186,14 @@ export async function PUT(
         ...(projectEnabled !== undefined ? { projectEnabled: finalProjectEnabled } : {}),
         ...(projectRequired !== undefined ? { projectRequired: finalProjectRequired } : {}),
         ...(finalProjectDuration !== undefined ? { projectDefaultDurationWeeks: finalProjectDuration } : {}),
+        // Course-plan-centric overhaul fields
+        ...(summary !== undefined ? { summary: summary.trim() || null } : {}),
+        ...(keyFeatures !== undefined ? { keyFeatures: JSON.stringify(Array.isArray(keyFeatures) ? keyFeatures.filter(k => typeof k === "string" && k.trim()) : []) } : {}),
+        ...(contentText !== undefined ? { contentText: contentText || null } : {}),
+        // teacherId: null clears the teacher, string sets it. Validation
+        // (must be a real teacher user) happens at the assign-teacher endpoint,
+        // but we also accept direct PUT for flexibility.
+        ...(teacherId !== undefined ? { teacherId: teacherId || null } : {}),
         ...configData,
       },
     });
@@ -218,6 +238,7 @@ export async function PUT(
     where: { id },
     include: {
       weeks: { orderBy: { weekNumber: "asc" }, include: { days: { orderBy: { day: "asc" } } } },
+      teacher: { select: { id: true, name: true, email: true } },
     },
   });
 

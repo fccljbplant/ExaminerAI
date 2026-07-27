@@ -115,6 +115,24 @@ export interface ProjectConfig {
   projectDefaultDurationWeeks: number;
 }
 
+/** Course-plan-centric: full course plan for a student.
+ *  Returned by /api/stats?as=student. Drives the unassigned state, nav
+ *  filtering, and the dashboard header. */
+export interface StudentCoursePlan {
+  courseAssigned: boolean;
+  courseId: string | null;
+  courseName: string | null;
+  courseSummary: string | null;
+  courseKeyFeatures: string[];
+  courseSubjects: string[];
+  courseStatus: "draft" | "published";
+  hasProject: boolean;
+  projectRequired: boolean;
+  projectDefaultDurationWeeks: number;
+  totalWeeks: number;
+  teacher: { id: string; name: string; email: string } | null;
+}
+
 export interface StatsResponse {
   role: string;
   stats: Stats;
@@ -127,6 +145,8 @@ export interface StatsResponse {
   comments: CommentRow[];
   /** Optional — only present for student stats responses. */
   projectConfig?: ProjectConfig;
+  /** Course-plan-centric: full course plan for the student dashboard. */
+  coursePlan?: StudentCoursePlan | null;
 }
 
 export type Mode =

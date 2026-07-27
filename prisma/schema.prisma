@@ -122,6 +122,39 @@ model Course {
   // When empty/null, the course is single-subject (backward compatible).
   subjects            String    @default("[]")
 
+  // ============================================================
+  // COURSE-PLAN-CENTRIC OVERHAUL
+  // The Course Plan is the single source of truth for student progress.
+  // ============================================================
+
+  // status: lifecycle state of the course plan.
+  //   draft     — AI regeneration allowed. All fields editable.
+  //   published — Locked. Only manual edits via UI. AI regeneration blocked.
+  // Stored as String (not enum) for SQLite migration friction — values
+  // normalized at the application layer.
+  status              String    @default("draft")
+
+  // summary: AI-generated 2-3 sentence course overview. Surfaced on the
+  // student dashboard so students get a mental map of their journey.
+  summary             String?
+
+  // keyFeatures: AI-generated array of key course features (3-7 items).
+  // Stored as JSON string (SQLite-compatible). Displayed as tags on the
+  // course plan + student dashboard.
+  keyFeatures         String    @default("[]")
+
+  // contentText: raw text input used as source for AI generation. Either
+  // pasted text or extracted from an uploaded file (.txt/.md/.docx).
+  // Preserved so the course can be regenerated with the same source later.
+  contentText         String?
+
+  // teacherId: FK to the User (role=teacher) who owns this course plan.
+  // MUST be non-null before any student can be assigned to this course
+  // (enforced at the API level). The teacher provides social presence and
+  // is the human contact for students in this course.
+  teacherId           String?
+  teacher             User?     @relation("CourseTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+
   // Project configuration — set by the course coordinator in the Course Planner.
   // projectEnabled: whether the capstone project feature is available for this course at all.
   //   - Courses with < 4 weeks cannot enable projects (too short for a meaningful capstone).
@@ -269,6 +302,8 @@ model User {
   healthSummary      StudentHealthSummary?
   // Multi-teacher: this user's batch memberships (as a teacher)
   batchTeaching      BatchTeacher[]
+  // Course-plan-centric: courses this teacher owns (Course.teacherId FK)
+  coursesTaught      Course[]    @relation("CourseTeacher")
   // Institution membership
   institutionId      String?
   institution        Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)

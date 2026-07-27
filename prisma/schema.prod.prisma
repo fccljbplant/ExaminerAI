@@ -84,6 +84,22 @@ model Course {
   notebooklmUrl          String?
   // Scale Tier 2: Multiple subjects per course (JSON array of subject names)
   subjects               String   @default("[]")
+
+  // ============================================================
+  // COURSE-PLAN-CENTRIC OVERHAUL
+  // ============================================================
+  // status: draft | published — published locks AI regeneration
+  status                 String   @default("draft")
+  // summary: AI-generated 2-3 sentence course overview
+  summary                String?
+  // keyFeatures: AI-generated JSON array of key course features
+  keyFeatures            String   @default("[]")
+  // contentText: raw text source for AI generation (pasted or file upload)
+  contentText            String?
+  // teacherId: FK to User (role=teacher) who owns this course plan
+  teacherId              String?
+  teacher                User?    @relation("CourseTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+
   // Project configuration — set by course coordinator. See schema.prisma for full docs.
   projectEnabled              Boolean  @default(false)
   projectRequired             Boolean  @default(false)
@@ -204,6 +220,8 @@ model User {
   // Lightweight health summary
   healthSummary           StudentHealthSummary?
   batchTeaching           BatchTeacher[]
+  // Course-plan-centric: courses this teacher owns (Course.teacherId FK)
+  coursesTaught           Course[]    @relation("CourseTeacher")
   institutionId           String?
   institution             Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   growthReport            GrowthReport?

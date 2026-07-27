@@ -32,8 +32,9 @@ import {
   CalendarCheck, TrendingUp, Loader2, RefreshCw, Sparkles,
   Bot, ClipboardList, FileText, BookOpen, ArrowRight, CheckCircle2,
   AlertCircle, Award, ChevronRight, Activity, Target, Clock,
+  HelpCircle, UserCircle,
 } from "lucide-react";
-import type { StatsResponse, Mode } from "@/components/examiner/student/types";
+import type { StatsResponse, Mode, StudentCoursePlan } from "@/components/examiner/student/types";
 import { DailyTaskReminder } from "@/components/examiner/DailyTaskReminder";
 import { WeeklyTestPanel } from "@/components/examiner/student/WeeklyTestPanel";
 import { QuestionPanel } from "@/components/examiner/student/PracticePanel";
@@ -108,8 +109,27 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
     );
   }
 
+  // ============================================================
+  // COURSE-PLAN-CENTRIC: Unassigned state.
+  // When the student has no course assigned (coursePlan is null OR
+  // coursePlan.courseAssigned is false), render the "Course Assignment
+  // Pending" panel. Only Dashboard + Ask My Teacher + Messages + Settings
+  // nav are visible (filtered in AppShell).
+  // ============================================================
+  const coursePlan = stats.coursePlan;
+  const isAssigned = !!coursePlan && coursePlan.courseAssigned;
+  if (!isAssigned) {
+    return <UnassignedStudentView coursePlan={coursePlan} />;
+  }
+
   return (
     <div className="space-y-4">
+      {/* Course plan header — summary + key features + teacher.
+          Gives the student a mental map of their journey + social presence. */}
+      {coursePlan && (
+        <CoursePlanHeader coursePlan={coursePlan} />
+      )}
+
       {loading && (
         <div className="flex items-center justify-center py-2 text-xs text-muted-foreground">
           <Loader2 className="h-3 w-3 animate-spin mr-2" /> Refreshing…
@@ -165,6 +185,121 @@ export default function StudentDashboard({ initialMode = "default" }: { initialM
 
       <DailyTaskReminder onChanged={load} onNavigate={() => setView("study")} />
     </div>
+  );
+}
+
+// ============================================================
+// UNASSIGNED STUDENT VIEW — "Course Assignment Pending"
+// Rendered when the student has no course assigned yet.
+// Psychological design: acknowledge the state without blame, provide
+// a timeline anchor, offer agency (Contact Support / View Profile).
+// ============================================================
+function UnassignedStudentView({ coursePlan }: { coursePlan: StudentCoursePlan | null | undefined }) {
+  return (
+    <div className="max-w-2xl mx-auto py-6">
+      <Card className="border-primary/20 bg-card">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+            <BookOpen className="h-7 w-7 text-primary" />
+          </div>
+          <CardTitle className="text-lg text-foreground">Welcome to ExaminerAI</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
+            Your learning journey is being prepared.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-center">
+            <p className="text-sm font-semibold text-foreground flex items-center justify-center gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              Course Assignment Pending
+            </p>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+              Your learning journey hasn&apos;t been configured yet. Your instructor is preparing
+              your personalized course plan. You&apos;ll receive a notification as soon as it&apos;s ready.
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/30 p-4 text-xs text-muted-foreground leading-relaxed">
+            <p className="font-medium text-foreground mb-1.5">What happens next?</p>
+            <ol className="list-decimal pl-4 space-y-1">
+              <li>Your instructor assigns a course plan to your batch.</li>
+              <li>You&apos;ll see today&apos;s curriculum topic, daily tasks, and tests appear here.</li>
+              <li>The AI Tutor + practice questions become available immediately.</li>
+            </ol>
+          </div>
+          <div className="flex gap-2 justify-center pt-2">
+            <Button variant="outline" size="sm" onClick={() => redirectToView("ask-teacher")}>
+              <HelpCircle className="h-3.5 w-3.5" /> Contact Your Teacher
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => redirectToView("settings")}>
+              <UserCircle className="h-3.5 w-3.5" /> View Profile
+            </Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center pt-1">
+            Need help right away? Reach out to your institution&apos;s administration team via the Messages tab.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================
+// COURSE PLAN HEADER — summary + key features + teacher card.
+// Shown at the top of the student dashboard when a course is assigned.
+// Gives the student a mental map of their journey (summary, features)
+// and a social presence anchor (teacher name + email).
+// ============================================================
+function CoursePlanHeader({ coursePlan }: { coursePlan: StudentCoursePlan }) {
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h2 className="text-base font-bold text-foreground">{coursePlan.courseName || "Your Course"}</h2>
+              {coursePlan.courseStatus === "published" ? (
+                <Badge variant="outline" className="text-[9px] border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                  Published
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[9px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                  Draft
+                </Badge>
+              )}
+              {coursePlan.hasProject && (
+                <Badge variant="outline" className={`text-[9px] ${coursePlan.projectRequired ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300"}`}>
+                  Capstone {coursePlan.projectRequired ? "Required" : "Optional"}
+                </Badge>
+              )}
+            </div>
+            {coursePlan.courseSummary && (
+              <p className="text-xs text-foreground/80 leading-relaxed">{coursePlan.courseSummary}</p>
+            )}
+            {coursePlan.courseKeyFeatures.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {coursePlan.courseKeyFeatures.map((f, i) => (
+                  <Badge key={i} variant="outline" className="text-[10px] bg-background/60 text-foreground border-border">
+                    <Sparkles className="h-2.5 w-2.5 mr-0.5 text-primary" /> {f}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          {coursePlan.teacher && (
+            <div className="rounded-md border border-border bg-background p-2.5 flex items-center gap-2 flex-shrink-0 max-w-xs">
+              <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold flex-shrink-0">
+                {coursePlan.teacher.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Your Teacher</p>
+                <p className="text-xs font-medium text-foreground truncate">{coursePlan.teacher.name}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{coursePlan.teacher.email}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

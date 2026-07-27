@@ -94,6 +94,7 @@ export async function GET() {
         select: { id: true, weekNumber: true, phase: true, milestone: true, _count: { select: { days: true } } },
       },
       batches: { select: { id: true, name: true } },
+      teacher: { select: { id: true, name: true, email: true } },
     },
   });
 
@@ -102,6 +103,12 @@ export async function GET() {
     id: c.id,
     name: c.name,
     description: c.description,
+    summary: c.summary,
+    keyFeatures: (() => { try { return JSON.parse(c.keyFeatures || "[]"); } catch { return []; } })(),
+    contentText: c.contentText,
+    status: c.status,
+    teacherId: c.teacherId,
+    teacher: c.teacher ? { id: c.teacher.id, name: c.teacher.name, email: c.teacher.email } : null,
     isActive: c.isActive,
     domain: c.domain,
     level: c.level,
@@ -150,7 +157,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks: rawWeeks, domain, level, assessmentType, toolsUsed, deliverableTypes, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
+  const { name, description, weeks: rawWeeks, domain, level, assessmentType, toolsUsed, deliverableTypes, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks, summary, keyFeatures, contentText, teacherId, status } = body as {
     name?: string;
     description?: string;
     weeks?: unknown;
@@ -164,6 +171,11 @@ export async function POST(req: NextRequest) {
     projectEnabled?: boolean;
     projectRequired?: boolean;
     projectDefaultDurationWeeks?: number;
+    summary?: string;
+    keyFeatures?: string[];
+    contentText?: string;
+    teacherId?: string;
+    status?: string;
   };
 
   if (!name?.trim()) {
@@ -239,6 +251,15 @@ export async function POST(req: NextRequest) {
       projectEnabled: finalProjectEnabled,
       projectRequired: finalProjectEnabled && projectRequired === true,
       projectDefaultDurationWeeks: finalProjectDuration,
+      // Course-plan-centric overhaul fields
+      summary: summary?.trim() || null,
+      keyFeatures: Array.isArray(keyFeatures) ? JSON.stringify(keyFeatures.filter(k => typeof k === "string" && k.trim())) : "[]",
+      contentText: contentText || null,
+      // status: default to draft — caller can publish later via /publish endpoint
+      status: status === "published" ? "published" : "draft",
+      // teacherId: optional at create time, but required before student enrollment
+      // (enforced by assertCourseHasTeacher on the assignment route).
+      ...(teacherId ? { teacherId } : {}),
       weeks: weeks?.length
         ? {
             create: (weeks as Array<{
@@ -269,7 +290,7 @@ export async function POST(req: NextRequest) {
           }
         : undefined,
     },
-    include: { weeks: { include: { days: true } }, batches: { select: { id: true, name: true } } },
+    include: { weeks: { include: { days: true } }, batches: { select: { id: true, name: true } }, teacher: { select: { id: true, name: true, email: true } } },
   });
 
   return NextResponse.json({ course });

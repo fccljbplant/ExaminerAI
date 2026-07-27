@@ -3,7 +3,7 @@ import { getBatchFilter, getTeacherBatchIds } from "@/lib/batch-teachers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
-import { getCourseProjectConfig } from "@/lib/course-db";
+import { getCourseProjectConfig, getStudentCoursePlan } from "@/lib/course-db";
 
 /** GET /api/stats — aggregated stats for the dashboard.
  *  - For students: their own progress, streak, weakest topic, etc.
@@ -383,6 +383,9 @@ export async function GET(req: Request) {
   // Project config from the user's assigned course — drives whether the
   // student dashboard shows the Project nav, banners, and the duration limits.
   const projectConfig = await getCourseProjectConfig(user.id);
+  // Course-plan-centric: full course plan (summary, keyFeatures, teacher, status)
+  // — drives the unassigned state, nav filtering, and dashboard header.
+  const coursePlan = await getStudentCoursePlan(user.id);
 
   return NextResponse.json({
     role: "student",
@@ -414,5 +417,10 @@ export async function GET(req: Request) {
     // hide/show the Project nav + banners, and to enforce duration limits
     // in the project setup form.
     projectConfig,
+    // Course-plan-centric: full course plan for the student dashboard.
+    // When coursePlan is null OR coursePlan.courseAssigned is false, the
+    // dashboard renders the "Course Assignment Pending" state and the nav
+    // hides everything except Dashboard + Settings.
+    coursePlan,
   });
 }
