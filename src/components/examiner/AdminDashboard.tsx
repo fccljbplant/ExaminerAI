@@ -134,7 +134,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
 
   const assignBatch = async (userId: string, batchId: string) => {
     setBusy(userId);
-    try { await api.patch(`/api/users/${userId}/batch`, { batchId }); await load(); showSuccess("Batch assigned."); }
+    try { await api.patch(`/api/users/${userId}/batch`, { batchId }); await load(); showSuccess("Course assigned."); }
     catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
     finally { setBusy(null); }
   };
@@ -176,7 +176,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       const skippedCount = res.skipped?.length ?? 0;
       showSuccess(`Approved ${res.approved.length} user${res.approved.length === 1 ? "" : "s"}${skippedCount > 0 ? `, ${skippedCount} skipped` : ""}.`);
       await load();
-    } catch (e) { showError(e instanceof Error ? e.message : "Batch approve failed"); }
+    } catch (e) { showError(e instanceof Error ? e.message : "Bulk approve failed"); }
     finally { setBusy(null); }
   };
 
@@ -399,7 +399,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                             onValueChange={(bid) => assignBatch(u.id, bid)}
                             disabled={busy === u.id}
                           >
-                            <SelectTrigger className="bg-muted border-border h-7 text-xs w-32"><SelectValue placeholder="No batch" /></SelectTrigger>
+                            <SelectTrigger className="bg-muted border-border h-7 text-xs w-32"><SelectValue placeholder="No class" /></SelectTrigger>
                             <SelectContent>
                               {batches.map(b => (
                                 <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>

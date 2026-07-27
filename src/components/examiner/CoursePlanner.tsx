@@ -248,7 +248,7 @@ export default function CoursePlanner() {
             await api.del(`/api/courses/${id}?force=true`);
             if (selectedCourse?.id === id) { setSelectedCourse(null); setView("list"); }
             await load();
-            showMsg("success", "Course deleted (batches unassigned).");
+            showMsg("success", "Course deleted (classes unassigned).");
           } catch (e2) {
             showMsg("error", e2 instanceof Error ? e2.message : "Failed to force-delete");
           }
@@ -338,10 +338,10 @@ export default function CoursePlanner() {
       // PATCH /api/batches/[id] endpoint (was calling /api/batches which doesn't
       // have a PATCH handler — the route is at /api/batches/[id]).
       await api.patch(`/api/batches/${batchId}`, { courseId });
-      showMsg("success", courseId ? "Course assigned to batch. Students will now see it." : "Course unassigned from batch.");
+      showMsg("success", courseId ? "Course assigned to class. Students will now see it." : "Course unassigned from class.");
       await load();
     } catch (e) {
-      showMsg("error", e instanceof Error ? e.message : "Failed to assign batch");
+      showMsg("error", e instanceof Error ? e.message : "Failed to assign class");
     }
   };
 

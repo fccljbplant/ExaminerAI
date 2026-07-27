@@ -97,7 +97,7 @@ export function AccessGrantsPanel() {
         <CardContent className="text-xs text-muted-foreground space-y-1.5">
           <p>• A role defines <em>what kind</em> of access is possible. An AccessGrant defines <em>whose data</em> a user actually sees.</p>
           <p>• A counselor with no explicit grant rows sees nothing.</p>
-          <p>• Scope types: <code className="text-primary">batch</code> | <code className="text-primary">student</code> | <code className="text-primary">course</code> | <code className="text-primary">institution</code></p>
+          <p>• Scope types: | <code className="text-primary">student</code> | <code className="text-primary">course</code> | <code className="text-primary">institution</code></p>
           <p>• Data scopes: <code className="text-primary">full</code> | <code className="text-primary">wellbeing_only</code> | <code className="text-primary">crisis_only</code> | <code className="text-primary">content_only</code></p>
         </CardContent>
       </Card>

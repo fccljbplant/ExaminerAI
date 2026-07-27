@@ -67,7 +67,7 @@ export function AdminCoursesPanel() {
         const names = (Array.isArray(err.assignedBatches) ? err.assignedBatches.map((c: { name: string }) => c.name).join(", ") : "");
         if (confirm(`Cannot delete: ${err.assignedBatches.length} batch(s) using this course (${names}). Force delete?`)) {
           await api.del(`/api/courses/${id}?force=true`);
-          showMsg("Course deleted (batches unassigned).");
+          showMsg("Course deleted (classes unassigned).");
           await load();
         }
       } else {
