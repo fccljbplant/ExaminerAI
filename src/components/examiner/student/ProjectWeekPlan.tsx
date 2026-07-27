@@ -243,7 +243,9 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
             <Select value={taskWeek} onValueChange={setTaskWeek}>
               <SelectTrigger className="bg-background border-border h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 26 }, (_, i) => i + 1).map(w => <SelectItem key={w} value={String(w)}>W{w}</SelectItem>)}
+                {/* Clamp to course duration (was hardcoded to 26 weeks —
+                    a 6-week course showed 20 unreachable week options). */}
+                {Array.from({ length: stats.projectConfig?.totalWeeks || 26 }, (_, i) => i + 1).map(w => <SelectItem key={w} value={String(w)}>W{w}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

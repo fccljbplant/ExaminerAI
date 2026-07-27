@@ -32,7 +32,7 @@ import { Brain, TrendingUp, TrendingDown, Sparkles, CheckCircle2, Lightbulb } fr
 
 interface ReflectionData {
   score: number;
-  testType: "daily_test" | "weekly_test";
+  testType: "practice" | "daily_test" | "weekly_test";
   reflections: Array<{
     type: "strength" | "growth" | "calibration" | "habit";
     title: string;
@@ -41,7 +41,7 @@ interface ReflectionData {
   studyTip: string;
 }
 
-export function PostTestReflection({ score, testType }: { score: number; testType: "daily_test" | "weekly_test" }) {
+export function PostTestReflection({ score, testType }: { score: number; testType: "practice" | "daily_test" | "weekly_test" }) {
   const [data, setData] = useState<ReflectionData | null>(null);
   const [loading, setLoading] = useState(true);
 

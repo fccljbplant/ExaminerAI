@@ -70,16 +70,37 @@ export function FinalResultPanel() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    // Empty state — students with no weekly tests see an encouraging message
+    // instead of a blank panel. Previously this returned null which was
+    // confusing ("why is there nothing here?").
+    return (
+      <Card className="border-border bg-card">
+        <CardContent className="p-6 text-center">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+          <p className="text-sm font-medium text-foreground mb-1">
+            Your final result will appear here
+          </p>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto">
+            Once you complete your first weekly test, your performance grade,
+            participation rate, and week-by-week breakdown will show up here.
+            Keep practicing — every test contributes to your final result!
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-primary/40 bg-gradient-to-br from-primary/10 to-background">
       <CardHeader>
         <CardTitle className="text-foreground flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" /> Final Bootcamp Result - {data.studentName}
+          <Sparkles className="h-5 w-5 text-primary" /> Final Result — {data.studentName}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Based on {data.weeklyTestsCompleted}/{Math.ceil(data.totalPossibleQuestions / 10)} weekly tests + {data.totalPracticeQuestions} practice questions. Auto-updates after every test.
+          Based on {data.weeklyTestsCompleted} weekly test{data.weeklyTestsCompleted === 1 ? "" : "s"} + {data.totalPracticeQuestions} practice question{data.totalPracticeQuestions === 1 ? "" : "s"}. Auto-updates after every test.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

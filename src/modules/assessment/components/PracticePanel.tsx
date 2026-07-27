@@ -250,7 +250,7 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
                   </div>
                 ))}
               </div>
-              {score !== null && <PostTestReflection score={score} testType="daily_test" />}
+              {score !== null && <PostTestReflection score={score} testType="practice" />}
               <TeachingFeedbackCard feedback={feedback} />
               <Button onClick={reset} variant="outline" size="sm" className="border-border">New practice</Button>
             </>

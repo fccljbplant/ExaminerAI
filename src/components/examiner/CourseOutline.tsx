@@ -51,23 +51,36 @@ interface CourseOutlineData {
 
 export default function CourseOutline() {
   const [data, setData] = useState<CourseOutlineData | null>(null);
+  const [currentWeek, setCurrentWeek] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    api.get<CourseOutlineData>("/api/courses/user/outline")
-      .then((res) => {
-        setData(res);
-        // Expand the first week by default so the student sees something
-        if (res.weeks.length > 0) {
-          setExpandedWeeks(new Set([res.weeks[0].week]));
+    Promise.all([
+      api.get<CourseOutlineData>("/api/courses/user/outline"),
+      api.get<{ user: { currentWeek: number } | null }>("/api/auth/me").catch(() => ({ user: null })),
+    ]).then(([res, meRes]) => {
+      setData(res);
+      const userWeek = meRes.user?.currentWeek ?? 1;
+      setCurrentWeek(userWeek);
+      // Expand the CURRENT week by default (was expanding Week 1 regardless
+      // of the student's progress — a Week 4 student saw Week 1 expanded).
+      const weeksToExpand = new Set<number>();
+      if (res.weeks.length > 0) {
+        // Find the week matching the user's current week; fall back to the last week
+        const currentWeekData = res.weeks.find(w => w.week === userWeek);
+        if (currentWeekData) {
+          weeksToExpand.add(currentWeekData.week);
+        } else {
+          // User's currentWeek is beyond the course length — expand the last week
+          weeksToExpand.add(res.weeks[res.weeks.length - 1].week);
         }
-      })
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Failed to load course outline");
-      })
-      .finally(() => setLoading(false));
+      }
+      setExpandedWeeks(weeksToExpand);
+    }).catch((e) => {
+      setError(e instanceof Error ? e.message : "Failed to load course outline");
+    }).finally(() => setLoading(false));
   }, []);
 
   const toggleWeek = (week: number) => {
@@ -160,8 +173,17 @@ export default function CourseOutline() {
       <div className="space-y-2">
         {data.weeks.map((week) => {
           const isExpanded = expandedWeeks.has(week.week);
+          const isCurrentWeek = week.week === currentWeek;
           return (
-            <Card key={week.week} className="border-border bg-card overflow-hidden">
+            <Card
+              key={week.week}
+              className={cn(
+                "bg-card overflow-hidden transition-colors",
+                isCurrentWeek
+                  ? "border-primary/50 ring-1 ring-primary/20"
+                  : "border-border"
+              )}
+            >
               {/* Week header — clickable to expand/collapse */}
               <button
                 onClick={() => toggleWeek(week.week)}
@@ -172,12 +194,25 @@ export default function CourseOutline() {
                 ) : (
                   <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 )}
-                <Badge variant="outline" className="text-[10px] border-primary/30 text-primary flex-shrink-0">
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-[10px] flex-shrink-0",
+                    isCurrentWeek
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-primary/30 text-primary"
+                  )}
+                >
                   Week {week.week}
                 </Badge>
                 <span className="text-sm font-medium text-foreground flex-1 truncate">
                   {week.phase}
                 </span>
+                {isCurrentWeek && (
+                  <Badge className="text-[9px] bg-primary text-primary-foreground flex-shrink-0">
+                    You are here
+                  </Badge>
+                )}
                 <Badge variant="outline" className="text-[10px] text-muted-foreground flex-shrink-0">
                   {week.days.length} day{week.days.length === 1 ? "" : "s"}
                 </Badge>
