@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useChartColors, tooltipStyle } from "@/lib/chart-theme";
+import { CollapsibleCard } from "@/components/shared/collapsible-card";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
   Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, Brain, AlertCircle, RefreshCw,
@@ -354,44 +355,34 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
 
       {/* ===== LEARNING PROGRESS CHART ===== */}
       {hasCourse && curriculum && (
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2 pt-3 px-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base text-foreground flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" /> Learning Progress
-                </CardTitle>
-                <CardDescription className="text-muted-foreground text-xs">
-                  Curriculum completion by week — {curriculum.overallCompletion.completed} of {curriculum.overallCompletion.total} days done ({curriculum.overallCompletion.percent}%)
-                </CardDescription>
-              </div>
-              <Badge variant="secondary" className="bg-primary/15 text-primary text-[10px]">
-                {curriculum.overallCompletion.percent}%
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="px-4 pb-3">
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={curriculumChartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={c.grid} vertical={false} />
-                <XAxis dataKey="week" stroke={c.axis} style={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis stroke={c.axis} style={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} domain={[0, 5]} />
-                <Tooltip
-                  contentStyle={tooltipStyle(c)}
-                  formatter={(value: unknown, name: unknown) => {
-                    if (name === "completed") return [`${value} days`, "Completed"];
-                    return [String(value), String(name)];
-                  }}
-                  labelFormatter={(label) => {
-                    const item = curriculumChartData.find(d => d.week === String(label));
-                    return item ? `${label} — ${item.completed}/${item.total} days (${item.percent}%)` : String(label);
-                  }}
-                />
-                <Bar dataKey="completed" name="completed" fill={c.chart2} radius={[3, 3, 0, 0]} maxBarSize={32} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <CollapsibleCard
+          title="Learning Progress"
+          description={`Curriculum completion by week — ${curriculum.overallCompletion.completed} of ${curriculum.overallCompletion.total} days done (${curriculum.overallCompletion.percent}%)`}
+          icon={TrendingUp}
+          badge={`${curriculum.overallCompletion.percent}%`}
+          storageKey="student-checkin-learning-progress"
+          defaultOpen={false}
+        >
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={curriculumChartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={c.grid} vertical={false} />
+              <XAxis dataKey="week" stroke={c.axis} style={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+              <YAxis stroke={c.axis} style={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} domain={[0, 5]} />
+              <Tooltip
+                contentStyle={tooltipStyle(c)}
+                formatter={(value: unknown, name: unknown) => {
+                  if (name === "completed") return [`${value} days`, "Completed"];
+                  return [String(value), String(name)];
+                }}
+                labelFormatter={(label) => {
+                  const item = curriculumChartData.find(d => d.week === String(label));
+                  return item ? `${label} — ${item.completed}/${item.total} days (${item.percent}%)` : String(label);
+                }}
+              />
+              <Bar dataKey="completed" name="completed" fill={c.chart2} radius={[3, 3, 0, 0]} maxBarSize={32} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CollapsibleCard>
       )}
 
       {/* ===== WEEKLY CURRICULUM OVERVIEW ===== */}
@@ -634,16 +625,16 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
         </CardContent>
       </Card>
 
-      {/* ===== RECENT CHECK-INS (with reflections) ===== */}
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-2 pt-3 px-3">
-          <CardTitle className="text-base text-foreground">Recent Check-Ins</CardTitle>
-          <CardDescription className="text-muted-foreground">
-            {recentLogs.length > 0 ? `${recentLogs.length} check-in${recentLogs.length === 1 ? "" : "s"}` : "No check-ins yet"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-1.5 px-3 pb-3">
-          {recentLogs.length === 0 ? (
+      {/* ===== RECENT CHECK-INS (with reflections) — collapsible ===== */}
+      <CollapsibleCard
+        title="Recent Check-Ins"
+        description={recentLogs.length > 0 ? `${recentLogs.length} check-in${recentLogs.length === 1 ? "" : "s"}` : "No check-ins yet"}
+        icon={FileText}
+        badge={recentLogs.length > 0 ? `${recentLogs.length}` : undefined}
+        storageKey="student-checkin-recent-logs"
+        defaultOpen={false}
+      >
+        {recentLogs.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-4">Your check-ins will appear here after you save one above.</p>
           ) : (
             recentLogs.map((log) => (
@@ -692,8 +683,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentW
               </div>
             ))
           )}
-        </CardContent>
-      </Card>
+      </CollapsibleCard>
     </div>
   );
 }
