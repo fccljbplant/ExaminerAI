@@ -23,6 +23,7 @@ import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
 import {
   CalendarDays, Users, HeartHandshake, ClipboardList, BarChart3,
@@ -165,6 +166,32 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
     );
   }
 
+  // Empty state — teacher with no students assigned
+  if (!loading && students.length === 0 && !stats) {
+    return (
+      <div className="max-w-2xl mx-auto pt-8">
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-card">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">No students assigned yet</h2>
+            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+              You don&apos;t have any students in your classes yet. Once an administrator
+ assigns students to your courses, they&apos;ll appear here with their progress,
+ wellbeing indicators, and action items.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <Button variant="outline" size="sm" onClick={() => { load(); }}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const TABS: Array<{ key: TeacherTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
     { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined, badgeColor: "warning" as const },
     { key: "students", label: "Students", icon: Users },
@@ -221,9 +248,9 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
               value={selectedBatchId}
               onChange={(e) => { setSelectedBatchId(e.target.value); setLoading(true); }}
               className="text-xs border border-border rounded-md px-2 py-1.5 bg-background text-foreground h-8"
-              title="Filter students by batch"
+              title="Filter students by class"
             >
-              <option value="">All Batches ({teacherBatches.reduce((a, b) => a + b.studentCount, 0)} students)</option>
+              <option value="">All Classes ({teacherBatches.reduce((a, b) => a + b.studentCount, 0)} students)</option>
               {teacherBatches.map(b => (
                 <option key={b.id} value={b.id}>{b.name} ({b.studentCount})</option>
               ))}
@@ -281,7 +308,7 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
         />
       )}
 
-      {tab === "assignments" && <AssignmentsTab students={students} />}
+      {tab === "assignments" && <AssignmentsTab students={students} batchId={selectedBatchId || teacherBatches[0]?.id} />}
 
       {tab === "insights" && (
         <InsightsView

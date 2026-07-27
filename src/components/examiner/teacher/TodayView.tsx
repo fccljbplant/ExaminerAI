@@ -176,7 +176,15 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
           description: "No recent activity. Consider a check-in.",
           timestamp: s.lastActive,
           actionLabel: "Message",
-          action: () => onViewChange("messages"),
+          action: () => {
+            // Navigate to Messages via URL (the tab system doesn't include "messages"
+            // — it's a sidebar nav item handled by AppShell).
+            if (typeof window !== "undefined") {
+              const url = new URL(window.location.href);
+              url.searchParams.set("view", "messages");
+              window.location.href = url.toString();
+            }
+          },
         });
       }
     });
@@ -277,7 +285,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
           icon={AlertTriangle}
           label="Need Attention"
           value={healthPulse.needingAttention}
-          subtitle={`${healthPulse.attentionPct}% of batch`}
+          subtitle={`${healthPulse.attentionPct}% of class`}
           color={healthPulse.needingAttention > 10 ? "text-rose-600" : "text-amber-600"}
           progress={healthPulse.attentionPct}
           progressColor={healthPulse.needingAttention > 10 ? "bg-rose-500" : "bg-amber-500"}

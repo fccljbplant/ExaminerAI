@@ -73,7 +73,7 @@ export function AIAssistantBox({ students, onStudentClick }: AIAssistantBoxProps
           AI Assistant
         </CardTitle>
         <CardDescription className="text-xs">
-          Ask a question about your batch. The AI analyzes your student data and cites specific evidence.
+          Ask a question about your class. The AI analyzes your student data and cites specific evidence.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -82,7 +82,7 @@ export function AIAssistantBox({ students, onStudentClick }: AIAssistantBoxProps
             value={question}
             onChange={e => setQuestion(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
-            placeholder="Ask about your batch..."
+            placeholder="Ask about your class..."
             disabled={loading}
             className="bg-background border-border"
           />
@@ -112,7 +112,7 @@ export function AIAssistantBox({ students, onStudentClick }: AIAssistantBoxProps
         {loading && (
           <div className="flex items-center gap-2 py-4">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span className="text-xs text-muted-foreground">Analyzing your batch...</span>
+            <span className="text-xs text-muted-foreground">Analyzing your class...</span>
           </div>
         )}
 

@@ -20,7 +20,7 @@ import type { StudentRow } from "@/components/examiner/teacher/types";
 import { PeerAssessmentTeacherView } from "@/components/examiner/teacher/PeerAssessmentTeacherView";
 import { CertificateApprovals } from "@/components/examiner/teacher/CertificateApprovals";
 
-export function AssignmentsTab({ students }: { students: StudentRow[] }) {
+export function AssignmentsTab({ students, batchId: propBatchId }: { students: StudentRow[]; batchId?: string }) {
   const [groupTasks, setGroupTasks] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,9 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   // C5 fix: fetch the teacher's batchId from /api/auth/me so we can pass it
   // to POST /api/group-tasks (which requires it). Without this, teachers could
   // never create assignments — the API returned 400 "batchId and title required".
-  const [batchId, setBatchId] = useState<string | null>(null);
+  // If a batchId prop is passed from the dashboard's batch switcher, prefer that.
+  const [fetchedBatchId, setFetchedBatchId] = useState<string | null>(null);
+  const batchId = propBatchId || fetchedBatchId;
   const [batchError, setBatchError] = useState("");
 
   // Task form state
@@ -64,10 +66,10 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
       setGroupTasks(tasksRes.tasks || []);
       setEvents(eventsRes.events || []);
       if (meRes.user?.batchId) {
-        setBatchId(meRes.user.batchId);
+        setFetchedBatchId(meRes.user.batchId);
         setBatchError("");
       } else {
-        setBatchError("You don't have a batch assigned. Ask an administrator to assign you to a batch before you can create assignments.");
+        setBatchError("You don't have a class assigned. Ask an administrator to assign you to a course before you can create assignments.");
       }
     } catch { /* silent */ }
     finally { setLoading(false); }
@@ -78,7 +80,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
   const createTask = async () => {
     if (!taskTitle.trim()) return;
     if (!batchId) {
-      showError("Cannot create assignment — no batch assigned to your teacher account.");
+      showError("Cannot create assignment — no class assigned to your teacher account.");
       return;
     }
     setBusy(true);
@@ -186,7 +188,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
                 <ClipboardList className="h-4 w-4 text-primary" /> Group Assignments
               </CardTitle>
               <CardDescription className="text-muted-foreground">
-                Assign tasks to your entire batch. Track submissions + grade in bulk.
+                Assign tasks to your entire class. Track submissions + grade in bulk.
               </CardDescription>
             </div>
             <Button onClick={() => setShowTaskForm(!showTaskForm)} size="sm" disabled={!batchId} className="bg-primary hover:bg-primary/90 text-primary-foreground" title={batchId ? undefined : "No batch assigned"}>
@@ -232,7 +234,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
 
           {/* Task list */}
           {groupTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No assignments yet. Click "New Assignment" to create one for your batch.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">No assignments yet. Click "New Assignment" to create one for your class.</p>
           ) : (
             groupTasks.map(task => (
               <div key={task.id} className="rounded-md border border-border p-3 hover:bg-muted/30 transition-colors">
@@ -334,7 +336,7 @@ export function AssignmentsTab({ students }: { students: StudentRow[] }) {
                 <CalendarCheck className="h-4 w-4 text-primary" /> Events & Calendar
               </CardTitle>
               <CardDescription className="text-muted-foreground">
-                Schedule deadlines, exams, meetings, and activities for your batch.
+                Schedule deadlines, exams, meetings, and activities for your class.
               </CardDescription>
             </div>
             <Button onClick={() => setShowEventForm(!showEventForm)} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">

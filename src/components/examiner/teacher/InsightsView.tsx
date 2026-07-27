@@ -129,7 +129,7 @@ export function InsightsView({ students, stats, alerts, onStudentClick }: Insigh
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Brain className="w-4 h-4 text-primary" />
-            AI Assistant — Ask about your batch
+            AI Assistant — Ask about your class
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
@@ -180,7 +180,7 @@ export function InsightsView({ students, stats, alerts, onStudentClick }: Insigh
         {/* Wellbeing distribution */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Batch Health</CardTitle>
+            <CardTitle className="text-sm">Class Health</CardTitle>
           </CardHeader>
           <CardContent>
             {distribution.length > 0 ? (
@@ -331,7 +331,7 @@ export function InsightsView({ students, stats, alerts, onStudentClick }: Insigh
       {/* ============================================ */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Batch Summary</CardTitle>
+          <CardTitle className="text-sm">Class Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">

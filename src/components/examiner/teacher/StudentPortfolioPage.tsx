@@ -383,6 +383,16 @@ export function StudentPortfolioPage({
           <div className="min-w-0 overflow-hidden">
             <p className="text-sm font-medium text-foreground truncate">{student.name}</p>
             <p className="text-xs text-muted-foreground truncate">{student.email}</p>
+            {/* Joined + last login dates — teachers need this context to gauge
+                how long the student has been in the course + when they last engaged. */}
+            {portfolio?.student && (
+              <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                Joined: {new Date(portfolio.student.createdAt).toLocaleDateString()}
+                {portfolio.student.lastLogin && (
+                  <> · Last login: {new Date(portfolio.student.lastLogin).toLocaleDateString()}</>
+                )}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
