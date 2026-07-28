@@ -89,7 +89,7 @@ export default function TeacherAITutor() {
             <div className="flex-1">
               <CardTitle className="text-lg text-foreground">AI Assistant</CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Your teaching assistant — lesson prep, case review, rubrics, parent communications.
+                Your instructor assistant — lesson prep, case review, rubrics, parent communications.
               </CardDescription>
             </div>
             {messages.length > 0 && (

@@ -13,7 +13,7 @@ import { writeFileSync } from "fs";
 const db = new PrismaClient();
 
 const NEW_ROLES = new Set([
-  "pending", "student", "teaching_assistant", "teacher", "course_coordinator",
+  "pending", "student", "teacher", "course_coordinator",
   "counselor", "guardian", "institution_admin", "platform_admin",
 ]);
 

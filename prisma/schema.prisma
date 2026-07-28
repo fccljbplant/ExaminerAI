@@ -24,13 +24,13 @@ datasource db {
 // A user can be enrolled in multiple courses in different roles.
 // For students: role = "student"
 // For instructors: role = "instructor"
-// For TAs: role = "teaching_assistant"
+// For TAs: role = "instructor"
 // This replaces the old Batch model + User.batchId + BatchTeacher.
 model CourseEnrollment {
   id         String   @id @default(cuid())
   userId     String
   courseId   String
-  role       String   // "student" | "instructor" | "teaching_assistant"
+  role       String   // "student" | "instructor"
   enrolledAt DateTime @default(now())
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -140,7 +140,7 @@ model User {
   name            String
   passwordHash    String
   // Role values:
-  //   pending | student | teaching_assistant | instructor | course_coordinator
+  //   pending | student | instructor | course_coordinator
   //   | counselor | guardian | institution_admin | platform_admin
   role            String    @default("pending")
   blocked         Boolean   @default(false)

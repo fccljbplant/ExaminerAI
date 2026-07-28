@@ -51,7 +51,7 @@ function buildInstitutionFilter(institutionId: string | null): { institutionId: 
  * Resolve the caller's accessible entities based on their role.
  *
  * Per role:
- * - TEACHER / TEACHING_ASSISTANT: students in batches where BatchTeacher(callerId) exists
+ * - TEACHER / INSTRUCTOR: students in courses where CourseEnrollment(callerId, "instructor") exists
  * - COUNSELOR: teachers + students within their institution (behavior/wellbeing access)
  * - COURSE_COORDINATOR: course/batch structure within institution (not individual behavioral data)
  * - PRINCIPAL / ADMINISTRATOR / DEMO: entire institution
@@ -198,7 +198,7 @@ export async function resolveAssistantScope(
     };
   }
 
-  // TEACHER / TEACHING_ASSISTANT — students in their courses only
+  // TEACHER / INSTRUCTOR — students in their courses only
   // (Teachers don't need an institutionId — they're scoped by CourseEnrollment.)
   const instructorCourses = await db.courseEnrollment.findMany({
     where: { userId: callerId, role: "instructor" },

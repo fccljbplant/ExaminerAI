@@ -67,6 +67,6 @@ export const AI_ASSISTANT_API = {
 
 /** Whether the AI Assistant is enabled for a given role */
 export function isAIAssistantEnabled(role: string): boolean {
-  const staffRoles = ["teacher", "instructor", "teaching_assistant", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"];
+  const staffRoles = ["teacher", "instructor", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"];
   return staffRoles.includes(role);
 }

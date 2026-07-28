@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   }
 
   const auth = await requireRole([
-    UserRole.INSTRUCTOR, UserRole.TEACHING_ASSISTANT,
+    UserRole.INSTRUCTOR,
     UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;

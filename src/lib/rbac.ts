@@ -3,13 +3,14 @@
  * This is the SINGLE PLACE in the codebase where role checks happen.
  *
  * Role values (course-centric architecture):
- *   pending | student | teaching_assistant | instructor | course_coordinator
+ *   pending | student | instructor | course_coordinator
  *   | counselor | guardian | principal | administrator | demo
  *
  * Backward-compat aliases (normalized transparently):
  *   "institution_admin" → "principal"
  *   "platform_admin"    → "administrator"
  *   "teacher"           → "instructor" (legacy pre-July 2026)
+ *   "teaching_assistant" → "instructor" (legacy pre-July 2026)
  *   "admin"             → "administrator" (legacy 4-role model)
  *
  * Course-Centric Architecture:
@@ -39,7 +40,6 @@ import type { NextRequest } from "next/server";
 export const UserRole = {
   PENDING: "pending",
   STUDENT: "student",
-  TEACHING_ASSISTANT: "teaching_assistant",
   INSTRUCTOR: "instructor",
   COURSE_COORDINATOR: "course_coordinator",
   COUNSELOR: "counselor",
@@ -85,7 +85,6 @@ export { getAuthUser, getCurrentUser };
 export const ROLE_LABELS: Record<string, string> = {
   pending: "Pending",
   student: "Student",
-  teaching_assistant: "Teaching Assistant",
   instructor: "Instructor / Mentor",
   course_coordinator: "Course Coordinator",
   counselor: "Counselor",
@@ -100,9 +99,10 @@ export function normalizeRole(role: string): UserRoleValue | null {
   switch (r) {
     case "pending": return UserRole.PENDING;
     case "student": return UserRole.STUDENT;
-    case "teaching_assistant": return UserRole.TEACHING_ASSISTANT;
-    case "instructor": return UserRole.INSTRUCTOR;
-    case "teacher": return UserRole.INSTRUCTOR;  // legacy alias
+    case "instructor":
+    case "teaching_assistant": // legacy alias
+    case "teacher": // legacy alias
+      return UserRole.INSTRUCTOR;
     case "course_coordinator": return UserRole.COURSE_COORDINATOR;
     case "counselor": return UserRole.COUNSELOR;
     case "guardian": return UserRole.GUARDIAN;
