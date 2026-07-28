@@ -171,7 +171,7 @@ export async function getCourseMetadata(userId: string): Promise<{
  *  Returns null if the user has no course assigned.
  *  Used by the student dashboard to decide whether to show the Project nav,
  *  the project banners, and to validate projectDurationWeeks against courseWeeks. */
-export async function getCourseProjectConfig(userId: string): Promise<{
+export async function getCourseProjectConfig(userId: string, courseId?: string): Promise<{
   courseAssigned: boolean;
   courseId: string | null;
   courseName: string | null;
@@ -181,24 +181,28 @@ export async function getCourseProjectConfig(userId: string): Promise<{
   projectDefaultDurationWeeks: number;
 }> {
   try {
-    const enrollment = await db.courseEnrollment.findFirst({
-      where: { userId, role: "student" },
-      select: { courseId: true },
-    });
-    if (!enrollment) {
-      return {
-        courseAssigned: false,
-        courseId: null,
-        courseName: null,
-        totalWeeks: 0,
-        projectEnabled: false,
-        projectRequired: false,
-        projectDefaultDurationWeeks: 4,
-      };
+    let targetCourseId = courseId;
+    if (!targetCourseId) {
+      const enrollment = await db.courseEnrollment.findFirst({
+        where: { userId, role: "student" },
+        select: { courseId: true },
+      });
+      if (!enrollment) {
+        return {
+          courseAssigned: false,
+          courseId: null,
+          courseName: null,
+          totalWeeks: 0,
+          projectEnabled: false,
+          projectRequired: false,
+          projectDefaultDurationWeeks: 4,
+        };
+      }
+      targetCourseId = enrollment.courseId;
     }
 
     const course = await db.course.findUnique({
-      where: { id: enrollment.courseId, isActive: true },
+      where: { id: targetCourseId, isActive: true },
       select: {
         id: true,
         name: true,

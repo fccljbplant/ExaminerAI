@@ -1,4 +1,5 @@
 import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -8,7 +9,7 @@ import { getCourseProjectConfig } from "@/lib/course-db";
  *  - For students: their own progress, streak, weakest topic, etc.
  *  - For instructors/admins: course overview + counts.
  *  - For admin impersonating (via ?as=student|teacher|instructor): returns that role's stats. */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const url = new URL(req.url);
@@ -263,23 +264,52 @@ export async function GET(req: Request) {
     }
     targetUserId = link.studentId;
   }
-  const user = await db.user.findUnique({
-    where: { id: targetUserId },
-    include: {
-      dailyLogs: { orderBy: { date: "asc" }, take: 100 },
-      tasks: { take: 200 },
-      weeklyTests: { orderBy: { week: "asc" }, take: 50 },
-      competencies: { orderBy: { score: "asc" }, take: 100 },
-      reportCards: { orderBy: { week: "asc" }, take: 50 },
-      interactions: { orderBy: { date: "desc" }, take: 500 },
-      commentsRecv: {
-        orderBy: { createdAt: "desc" },
-        take: 100,
-        include: { instructor: { select: { name: true, email: true } } },
+  const courseId = req.nextUrl.searchParams.get("courseId") || undefined;
+  if (courseId) {
+    const enrollment = await db.courseEnrollment.findUnique({
+      where: { userId_courseId_role: { userId: targetUserId, courseId, role: "student" } },
+    });
+    if (!enrollment) {
+      return NextResponse.json({ error: "You are not enrolled in this course" }, { status: 403 });
+    }
+  }
+  let statsData;
+  if (courseId) {
+    const [dailyLogs, tasks, projectWeeks, projectReports, interactions, weeklyTests, competencies, reportCards, comments] = await Promise.all([
+      db.dailyLog.findMany({ where: { userId: targetUserId, courseId }, orderBy: { date: "asc" }, take: 100 }),
+      db.projectTask.findMany({ where: { userId: targetUserId, courseId }, take: 200 }),
+      db.projectWeek.findMany({ where: { userId: targetUserId, courseId }, take: 50 }),
+      db.projectReport.findMany({ where: { userId: targetUserId, courseId }, take: 50 }),
+      db.interaction.findMany({ where: { userId: targetUserId, courseId }, orderBy: { date: "desc" }, take: 500 }),
+      db.weeklyTest.findMany({ where: { userId: targetUserId, courseId }, orderBy: { week: "asc" }, take: 50 }),
+      db.competency.findMany({ where: { userId: targetUserId }, orderBy: { score: "asc" }, take: 100 }),
+      db.reportCard.findMany({ where: { userId: targetUserId, courseId }, orderBy: { week: "asc" }, take: 50 }),
+      db.comment.findMany({ where: { studentId: targetUserId }, orderBy: { createdAt: "desc" }, take: 100, include: { instructor: { select: { name: true, email: true } } } }),
+    ]);
+    const user = await db.user.findUnique({ where: { id: targetUserId } });
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    statsData = { ...user, dailyLogs, tasks, projectWeeks, projectReports, interactions, weeklyTests, competencies, reportCards, commentsRecv: comments };
+  } else {
+    const user = await db.user.findUnique({
+      where: { id: targetUserId },
+      include: {
+        dailyLogs: { orderBy: { date: "asc" }, take: 100 },
+        tasks: { take: 200 },
+        weeklyTests: { orderBy: { week: "asc" }, take: 50 },
+        competencies: { orderBy: { score: "asc" }, take: 100 },
+        reportCards: { orderBy: { week: "asc" }, take: 50 },
+        interactions: { orderBy: { date: "desc" }, take: 500 },
+        commentsRecv: {
+          orderBy: { createdAt: "desc" },
+          take: 100,
+          include: { instructor: { select: { name: true, email: true } } },
+        },
       },
-    },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    });
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    statsData = user;
+  }
+  const user = statsData;
 
   // ---- Self-healing: fix stale weekly test statuses ----
   // Some tests were completed by the AI (score + psychAnalysis were set) but
@@ -353,10 +383,11 @@ export async function GET(req: Request) {
 
   // Project config from the user's assigned course — drives whether the
   // student dashboard shows the Project nav, banners, and the duration limits.
-  const projectConfig = await getCourseProjectConfig(user.id);
+  const projectConfig = await getCourseProjectConfig(user.id, courseId);
 
   return NextResponse.json({
     role: "student",
+    courseId: courseId ?? null,
     stats: {
       currentWeek,
       progress,

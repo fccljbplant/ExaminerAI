@@ -61,6 +61,15 @@ model Course {
   institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   events      Event[]
   groupTasks  GroupTask[]
+  dailyLogs   DailyLog[]
+  projectTasks ProjectTask[]
+  projectWeeks ProjectWeek[]
+  projectReports ProjectReport[]
+  interactions Interaction[]
+  weeklyTests  WeeklyTest[]
+  reportCards  ReportCard[]
+  dailyTests   DailyTest[]
+  curriculumProgress CurriculumProgress[]
 }
 
 model CourseWeek {
@@ -198,11 +207,14 @@ model DailyLog {
   gitCommit          String?
   learningReflection String   @default("")
   confusionNotes     String   @default("")
-  nextQuestion       String   @default("")
+  nextQuestion       String @default("")
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
+  @@index([courseId])
 }
 
 model ProjectTask {
@@ -218,12 +230,15 @@ model ProjectTask {
   estimatedMinutes Int?
   isMilestone      Boolean  @default(false)
   taskNotes        String?
-  timeEstimate     String?
+  timeEstimate String?
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
   @@index([userId, week, day])
+  @@index([courseId])
 }
 
 model ProjectWeek {
@@ -235,11 +250,14 @@ model ProjectWeek {
   milestones String   @default("[]")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, weekNumber])
   @@index([userId])
+  @@index([courseId])
 }
 
 model ProjectReport {
@@ -251,10 +269,13 @@ model ProjectReport {
   aiAnalysis  String?
   submittedAt DateTime  @default(now())
   analyzedAt  DateTime?
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
+  @@index([courseId])
 }
 
 model CurriculumProgress {
@@ -263,11 +284,14 @@ model CurriculumProgress {
   week        Int
   day         Int
   completedAt DateTime @default(now())
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, week, day])
   @@index([userId, week])
+  @@index([courseId])
 }
 
 model Interaction {
@@ -291,10 +315,13 @@ model Interaction {
   confidence       String   @default("moderate")
   metacognitive    String   @default("moderate")
   plagiarismScore  Int?
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
+  @@index([courseId])
 }
 
 model WeeklyTest {
@@ -317,10 +344,13 @@ model WeeklyTest {
   examinerComment String?
   plagiarismScore Int?
   retakeAllowed Boolean @default(false)
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, week])
+  @@index([courseId])
 }
 
 model Competency {
@@ -351,10 +381,13 @@ model ReportCard {
   progress             String
   nextSteps            String   @default("[]")
   examinerObservations String
+  courseId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, week])
+  @@index([courseId])
 }
 
 model PsychologyObs {
@@ -627,12 +660,15 @@ model DailyTest {
   replyCount             Int               @default(0)
   conversation           String            @default("[]")
   createdAt              DateTime          @default(now())
+  courseId String?
   user                   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course                 Course?           @relation(fields: [courseId], references: [id], onDelete: SetNull)
   answers                DailyTestAnswer[]
 
   @@unique([userId, date])
   @@index([userId, date])
   @@index([userId, status])
+  @@index([courseId])
 }
 
 model DailyTestAnswer {

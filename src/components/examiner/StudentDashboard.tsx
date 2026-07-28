@@ -75,14 +75,15 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
     setLoading(true);
     setError("");
     try {
-      const res = await api.get<StatsResponse>("/api/stats?as=student");
+      const courseParam = activeCourseId ? `&courseId=${encodeURIComponent(activeCourseId)}` : "";
+      const res = await api.get<StatsResponse>(`/api/stats?as=student${courseParam}`);
       setStats(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load stats");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeCourseId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -182,9 +183,62 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
 
 // ============================================================
 // ============================================================
-// Shared components — first-class onboarding screen
-// Shown when the student has no course assigned yet (courseAssigned === false).
-// Replaces the old "empty dashboard" that showed blank stat cards.
+// ============================================================
+// StudyView — study mode tabs (Practice, Daily Test, Weekly Test, Check-in)
+// ============================================================
+function StudyView({ stats, onReload, onNavigate }: {
+  stats: StatsResponse | null;
+  onReload: () => void;
+  onNavigate: (v: any) => void;
+}) {
+  const [studyMode, setStudyMode] = useState<string>("checkin");
+  const studyTabs = [
+    { key: "checkin", label: "Daily Check-in", icon: CalendarCheck },
+    { key: "practice", label: "Practice", icon: Bot },
+    { key: "daily-test", label: "Daily Test", icon: ClipboardCheck },
+    { key: "weekly-test", label: "Weekly Test", icon: ClipboardList },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-1 flex-wrap p-1 bg-muted/50 rounded-xl border border-border/50">
+        {studyTabs.map(tab => {
+          const Icon = tab.icon;
+          const isActive = studyMode === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setStudyMode(tab.key)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {studyMode === "practice" && (
+        <QuestionPanel currentWeek={stats?.stats.currentWeek ?? 1} onAnswered={onReload} stats={stats} />
+      )}
+      {studyMode === "daily-test" && <DailyTestPanel />}
+      {studyMode === "weekly-test" && (
+        <WeeklyTestPanel stats={stats} onReload={onReload} onMode={() => onNavigate("home")} />
+      )}
+      {studyMode === "checkin" && (
+        <CheckInPanel currentWeek={stats?.stats.currentWeek ?? 1} onSaved={onReload} stats={stats} onMode={() => onNavigate("home")} />
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// Shared components
 // ============================================================
 function StatCard({ icon: Icon, label, value, color }: {
   icon: any;
