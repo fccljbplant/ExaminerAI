@@ -210,7 +210,7 @@ export async function ensureAdminUser(): Promise<void> {
  *  Rules:
  *  - Students can only access their own data (payload.sub === studentId)
  *  - Admins (principal, administrator) can access any student
- *  - Teachers/TAs can access students in their batch
+ *  - Instructors can access students in their courses (via CourseEnrollment)
  *  - Other staff (counselor, coordinator, demo) need an AccessGrant
  *
  *  Returns true if access is allowed, throws an API-shaped error if not.
@@ -233,31 +233,41 @@ export async function assertCanAccessStudent(
     return true;
   }
 
-  // Teachers/TAs — check batch membership via BatchTeacher junction
-  // CR-5 fix (audit 2026-07-26 FINAL): the previous version checked the legacy
-  // `teacher.batchId` field, NOT the BatchTeacher junction. A teacher assigned
-  // to batch X via BatchTeacher (the new pattern) but with legacy batchId=null
-  // fell through to AccessGrant. A teacher with legacy batchId=Y couldn't access
-  // students in batch X even when BatchTeacher said they should. Now uses
-  // canAccessBatch() which checks BOTH the BatchTeacher junction AND legacy batchId.
-  if (payload.role === "teacher") {
+  // Instructor — check course enrollment via CourseEnrollment
+  // Instructors can access students enrolled in the same courses they teach.
+  if (payload.role === "instructor" || payload.role === "teacher") {
     const student = await db.user.findUnique({
       where: { id: studentId },
-      select: { batchId: true, role: true },
+      select: { role: true },
     });
     if (!student || student.role !== "student") {
       throw { status: 404, message: "Student not found" };
     }
-    // CR-5 fix: use canAccessBatch() which checks BatchTeacher junction + legacy batchId
-    const { canAccessBatch } = await import("@/lib/batch-teachers");
-    if (student.batchId) {
-      const hasAccess = await canAccessBatch(payload.sub, payload.role, student.batchId);
-      if (hasAccess) return true;
+
+    // Get courses the instructor teaches
+    const instructorEnrollments = await db.courseEnrollment.findMany({
+      where: { userId: payload.sub, role: "instructor" },
+      select: { courseId: true },
+    });
+    const instructorCourseIds = instructorEnrollments.map(e => e.courseId);
+    if (instructorCourseIds.length === 0) {
+      throw { status: 403, message: "You are not assigned to any courses" };
     }
-    // Fall through to AccessGrant check for teachers without batch access
+
+    // Check if student is enrolled in any of those courses
+    const studentEnrollment = await db.courseEnrollment.findFirst({
+      where: {
+        userId: studentId,
+        courseId: { in: instructorCourseIds },
+        role: "student",
+      },
+    });
+    if (studentEnrollment) return true;
+
+    // Fall through to AccessGrant check
   }
 
-  // Guardians — check GuardianLink (they can see their linked children)
+  // Guardians — check GuardianLink
   if (payload.role === "guardian") {
     const link = await db.guardianLink.findFirst({
       where: {
@@ -269,7 +279,7 @@ export async function assertCanAccessStudent(
     throw { status: 403, message: "You can only access your linked children's data" };
   }
 
-  // Other staff (counselor, coordinator, demo, legacy teachers)
+  // Other staff (counselor, coordinator, demo)
   // — check AccessGrant
   const grant = await db.accessGrant.findFirst({
     where: {

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
-import { requireRole, UserRole } from "@/lib/rbac";
+import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 
 /** GET /api/teacher/load — teacher wellbeing/load view.
  *
@@ -21,7 +20,7 @@ import { requireRole, UserRole } from "@/lib/rbac";
 
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.TEACHING_ASSISTANT,
+    UserRole.INSTRUCTOR, UserRole.TEACHING_ASSISTANT,
     UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
@@ -31,26 +30,33 @@ export async function GET(req: NextRequest) {
   const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  // Get teacher's batch
-  const teacher = await db.user.findUnique({
-    where: { id: teacherId },
-    select: { batchId: true },
-  });
-
-  if (!teacher) {
-    return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+  // Get students assigned to this instructor via CourseEnrollment
+  const isAdmin = hasRole(auth.ctx.payload.role, ADMIN_ROLES);
+  let studentIds: string[] = [];
+  if (!isAdmin) {
+    const instructorCourses = await db.courseEnrollment.findMany({
+      where: { userId: teacherId, role: "instructor" },
+      select: { courseId: true },
+    });
+    const courseIds = instructorCourses.map(c => c.courseId);
+    if (courseIds.length > 0) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { courseId: { in: courseIds }, role: "student" },
+        select: { userId: true },
+      });
+      studentIds = enrollments.map(e => e.userId);
+    }
   }
 
-  // Get assigned students
+  const studentFilter = isAdmin ? {} : { id: { in: studentIds } };
   const students = await db.user.findMany({
     where: {
       role: "student",
       blocked: false,
-      ...(await getBatchFilter(auth.ctx.payload.sub, auth.ctx.payload.role)),
+      ...studentFilter,
     },
     select: { id: true },
   });
-  const studentIds = students.map(s => s.id);
   const studentCount = students.length;
 
   // 1. Response time trend: time between student messages and teacher replies

@@ -17,8 +17,7 @@ import {
  *  Idempotent — if a course with the same name exists, returns it.
  *
  *  The seeded course is marked isDefault=true (unsetting isDefault on any other
- *  course) AND linked to the "Default Batch" so newly-approved students get
- *  this course automatically. */
+ *  course). */
 export async function POST() {
   const _demoBlock = await demoWriteBlock("seeding courses"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
@@ -33,8 +32,8 @@ export async function POST() {
 
   if (existing) {
     // Idempotent: if it exists but isn't already the default, mark it as default
-    // and link to Default Batch. This way, calling seed-default on an existing
-    // installation brings it up to date with the isDefault + Default Batch linking.
+    // and link to the course. This way, calling seed-default on an existing
+    // installation brings it up to date with the isDefault marking.
     if (!existing.isDefault) {
       await db.$transaction(async (tx) => {
         // Unset isDefault on all other courses
@@ -51,11 +50,9 @@ export async function POST() {
       return NextResponse.json({ error: "Course disappeared during seed" }, { status: 500 });
     }
 
-    // Link to Default Batch
-    const batchMsg = await linkToDefaultBatch(course.id);
     return NextResponse.json({
       course,
-      message: `Default course already exists. Marked as default.${batchMsg}`,
+      message: "Default course already exists. Marked as default.",
     });
   }
 
@@ -100,42 +97,10 @@ export async function POST() {
     data: { isDefault: false },
   });
 
-  // Link the default course to the Default Batch
-  const defaultBatchMessage = await linkToDefaultBatch(course.id);
-
   return NextResponse.json({
     course,
-    message: `Default course created with ${course.weeks.length} weeks, ${course.weeks.reduce((acc, w) => acc + w.days.length, 0)} days, and ALL configs (journey steps, project template, AI prompts, test config, report card template). Marked as default.${defaultBatchMessage}`,
+    message: `Default course created with ${course.weeks.length} weeks, ${course.weeks.reduce((acc, w) => acc + w.days.length, 0)} days, and ALL configs (journey steps, project template, AI prompts, test config, report card template). Marked as default.`,
   });
 }
 
-/** Helper: link a course to the Default Batch (creating the batch if it doesn't exist).
- *  Returns a status message string. */
-async function linkToDefaultBatch(courseId: string): Promise<string> {
-  try {
-    const defaultBatch = await db.batch.findUnique({ where: { name: "Default Batch" } });
-    if (defaultBatch) {
-      if (defaultBatch.courseId !== courseId) {
-        await db.batch.update({
-          where: { id: defaultBatch.id },
-          data: { courseId },
-        });
-        return " Linked to Default Batch.";
-      }
-      return ""; // already linked
-    } else {
-      // Create the Default Batch with this course linked
-      await db.batch.create({
-        data: {
-          name: "Default Batch",
-          description: "Auto-created default batch for students without a specific assignment.",
-          courseId,
-        },
-      });
-      return " Created Default Batch linked to this course.";
-    }
-  } catch {
-    // Non-fatal — the course is still seeded
-    return "";
-  }
-}
+

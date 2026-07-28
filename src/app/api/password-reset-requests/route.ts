@@ -1,7 +1,6 @@
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
 import { getAuthUser } from "@/lib/auth";
 
 /**
@@ -19,24 +18,28 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const status = url.searchParams.get("status") ?? "pending";
 
-  // M2-security: teachers/TAs only see reset requests for their batch.
+  // M2-security: teachers/TAs only see reset requests for their students.
   // Admins see all requests.
-  let batchFilter: Record<string, unknown> = {};
+  let userFilter: Record<string, unknown> = {};
   if (!hasRole(payload.role, ADMIN_ROLES)) {
-    const teacher = await db.user.findUnique({
-      where: { id: payload.sub },
-      select: { batchId: true },
+    const instructorCourses = await db.courseEnrollment.findMany({
+      where: { userId: payload.sub, role: "instructor" },
+      select: { courseId: true },
     });
-    const teacherBatchIds = await getTeacherBatchIds(payload.sub, payload.role);
-    if (teacherBatchIds !== null && teacherBatchIds.length > 0) {
-      batchFilter = { user: { batchId: { in: teacherBatchIds } } };
-    } else if (teacherBatchIds !== null) {
-      batchFilter = { user: { batchId: null } }; // no batches = sees nothing
+    const courseIds = instructorCourses.map(c => c.courseId);
+    let studentIds: string[] = [];
+    if (courseIds.length > 0) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { courseId: { in: courseIds }, role: "student" },
+        select: { userId: true },
+      });
+      studentIds = enrollments.map(e => e.userId);
     }
+    userFilter = { user: { id: { in: studentIds.length > 0 ? studentIds : ["none"] } } };
   }
 
   const requests = await db.passwordResetRequest.findMany({
-    where: { ...(status === "all" ? {} : { status }), ...batchFilter },
+    where: { ...(status === "all" ? {} : { status }), ...userFilter },
     take: 100,
     include: {
       user: {

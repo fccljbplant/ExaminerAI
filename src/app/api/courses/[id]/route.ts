@@ -24,7 +24,6 @@ export async function GET(
         orderBy: { weekNumber: "asc" },
         include: { days: { orderBy: { day: "asc" } } },
       },
-      batches: { select: { id: true, name: true } },
     },
   });
 
@@ -231,13 +230,10 @@ export async function PUT(
 
 /** DELETE /api/courses/[id] — delete a course (cascade deletes weeks + days).
  *
- *  By default, REFUSES to delete if any batches are still assigned to the
- *  course — this protects students mid-bootcamp from losing their curriculum
- *  because an admin fat-fingered the delete button. The error response lists
- *  the affected batches so the admin knows what to unassign first.
+ *  By default, REFUSES to delete if any students are still enrolled in the
+ *  course — this protects students from losing their curriculum.
  *
- *  Pass `?force=true` to override: this unassigns the course from all
- *  batches first, then deletes. Use with caution.
+ *  Pass `?force=true` to override. Use with caution.
  */
 export async function DELETE(
   req: NextRequest,
@@ -253,9 +249,9 @@ export async function DELETE(
 
   // Permission: only ADMIN_ROLES (principal, administrator) can delete a course.
   // No other role — including course_coordinator, counselor, teacher,
-  // teaching_assistant, demo, or the course's own batch-owning teacher —
+  // teaching_assistant, demo, or the course's own instructor —
   // may delete a course. Course deletion is a high-impact admin action that
-  // can wipe curriculum for an entire batch mid-bootcamp.
+  // can wipe curriculum for an entire course mid-bootcamp.
   if (!hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Only administrators can delete a course" }, { status: 403 });
   }
@@ -269,38 +265,29 @@ export async function DELETE(
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
 
-  // Check for batches currently using this course
-  const assignedBatches = await db.batch.findMany({
-    where: { courseId: id },
-    select: { id: true, name: true },
+  // Check for students currently enrolled in this course
+  const enrolledStudents = await db.courseEnrollment.count({
+    where: { courseId: id, role: "student" },
   });
 
   const force = new URL(req.url).searchParams.get("force") === "true";
 
-  if (assignedBatches.length > 0 && !force) {
+  if (enrolledStudents > 0 && !force) {
     return NextResponse.json(
       {
-        error: `Cannot delete: ${assignedBatches.length} batch(s) are still using this course. Unassign them first, or pass ?force=true to unassign + delete in one step.`,
-        assignedBatches: assignedBatches.map(c => ({ id: c.id, name: c.name })),
+        error: `Cannot delete: ${enrolledStudents} student(s) are still enrolled in this course. Unenroll them first, or pass ?force=true to delete anyway.`,
+        enrolledStudents,
       },
       { status: 409 }
     );
   }
 
-  // If force=true (or no batches are assigned), unassign + delete
-  if (assignedBatches.length > 0) {
-    await db.batch.updateMany({ where: { courseId: id }, data: { courseId: null } });
+  try {
+    await db.course.delete({ where: { id } });
+  } catch (err) {
+    logger.error("Failed to delete course", { id, error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ error: "Failed to delete course — it may still have dependent records" }, { status: 500 });
   }
 
-  try {
-      await db.course.delete({ where: { id } });
-    } catch (err) {
-      logger.error("Failed to delete course", { id, error: err instanceof Error ? err.message : String(err) });
-      return NextResponse.json({ error: "Failed to delete course — it may still have dependent records" }, { status: 500 });
-    }
-
-  return NextResponse.json({
-    ok: true,
-    unassignedBatches: assignedBatches.length,
-  });
+  return NextResponse.json({ ok: true });
 }

@@ -227,7 +227,7 @@ async function main() {
       email: 's.khan@fccl.com.pk',
       name: 'Sir Saeed Khan',
       passwordHash: defaultPwd,
-      role: 'teacher',
+      role: 'instructor',
       approvedAt: new Date(),
       institutionId: institution.id
     }
@@ -237,7 +237,7 @@ async function main() {
       email: 'r.ahmed@fccl.com.pk',
       name: 'Maam Rabia Ahmed',
       passwordHash: defaultPwd,
-      role: 'teacher',
+      role: 'instructor',
       approvedAt: new Date(),
       institutionId: institution.id
     }
@@ -598,8 +598,8 @@ async function main() {
   console.log('📋 Creating audit logs...')
   const userMap: Record<string, { name: string; role: string }> = {
     [admin.id]: { name: admin.name, role: 'admin' },
-    [teacher1.id]: { name: teacher1.name, role: 'teacher' },
-    [teacher2.id]: { name: teacher2.name, role: 'teacher' },
+    [teacher1.id]: { name: teacher1.name, role: 'instructor' },
+    [teacher2.id]: { name: teacher2.name, role: 'instructor' },
     [counsellor.id]: { name: counsellor.name, role: 'counselor' },
     [mentor.id]: { name: mentor.name, role: 'course_coordinator' },
     [principal.id]: { name: principal.name, role: 'principal' }

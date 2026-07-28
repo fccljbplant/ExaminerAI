@@ -559,7 +559,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Total users</p><p className="text-lg font-bold text-foreground">{users.length}</p></div>
                 <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Students</p><p className="text-lg font-bold text-primary">{users.filter(u => u.role === "student").length}</p></div>
-                <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Teachers</p><p className="text-lg font-bold text-blue-500">{users.filter(u => u.role === "teacher").length}</p></div>
+                <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Teachers</p><p className="text-lg font-bold text-blue-500">{users.filter(u => u.role === "instructor" || u.role === "teacher").length}</p></div>
                 <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Blocked</p><p className="text-lg font-bold text-red-500">{users.filter(u => u.blocked).length}</p></div>
               </div>
             </CardContent>

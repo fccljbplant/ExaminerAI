@@ -33,7 +33,7 @@ export async function POST() {
     // failures don't abort" goal.
     const deletes = [
       () => db.comment.deleteMany({ where: { studentId: adminId } }),
-      () => db.comment.deleteMany({ where: { teacherId: adminId, interactionId: { not: null } } }),
+      () => db.comment.deleteMany({ where: { instructorId: adminId, interactionId: { not: null } } }),
       () => db.psychologyObs.deleteMany({ where: { userId: adminId } }),
       () => db.reportCard.deleteMany({ where: { userId: adminId } }),
       () => db.competency.deleteMany({ where: { userId: adminId } }),

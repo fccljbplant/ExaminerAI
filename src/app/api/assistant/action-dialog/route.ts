@@ -22,7 +22,7 @@ interface RequestBody {
   flagId?: string;
   flagType: string;       // "psychological" | "educational" | "mentorship" | "safeguarding" | "teacher_load"
   studentId?: string;
-  teacherId?: string;
+  instructorId?: string;
   trigger: string;        // The specific trigger data (e.g. "mood score 25/100")
   context?: string;       // Additional context from the caller
 }
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => ({})) as RequestBody;
-  const { flagType, studentId, teacherId, trigger, context } = body;
+  const { flagType, studentId, instructorId, trigger, context } = body;
 
   if (!flagType || !trigger) {
     return NextResponse.json({ error: "flagType and trigger required" }, { status: 400 });
@@ -64,9 +64,9 @@ export async function POST(req: NextRequest) {
     });
     entityName = student?.name || "a student";
     entityContext = `Student: ${entityName}, Week ${student?.currentWeek || "?"}. `;
-  } else if (teacherId) {
+  } else if (instructorId) {
     const teacher = await db.user.findUnique({
-      where: { id: teacherId },
+      where: { id: instructorId },
       select: { name: true },
     });
     entityName = teacher?.name || "a teacher";

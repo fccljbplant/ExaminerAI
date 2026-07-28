@@ -2,7 +2,7 @@ import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
-import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
+
 import { getAuthUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { demoWriteBlock } from "@/lib/demo-guard";
@@ -41,7 +41,6 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
   const students = await db.user.findMany({
     where: { role: "student", blocked: false },
     include: {
-      batch: { select: { id: true, name: true } },
       dailyLogs: {
         select: { date: true, confidence: true },
         orderBy: { date: "desc" },
@@ -200,11 +199,25 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
       // confidence, declining scores, sustained high cognitive load) was invisible
       // to the people whose job it is to monitor wellbeing. Now counselors in
       // the student's institution are also notified.
+      // Find instructors via CourseEnrollment for the student's courses
+      const studentEnrollments = await db.courseEnrollment.findMany({
+        where: { userId: student.id, role: "student" },
+        select: { courseId: true },
+      });
+      const instructorCourseIds = studentEnrollments.map(e => e.courseId);
+      let instructorIds: string[] = [];
+      if (instructorCourseIds.length > 0) {
+        const instructorEnrollments = await db.courseEnrollment.findMany({
+          where: { courseId: { in: instructorCourseIds }, role: "instructor" },
+          select: { userId: true },
+        });
+        instructorIds = [...new Set(instructorEnrollments.map(e => e.userId))];
+      }
       const recipients = await db.user.findMany({
-        // M5-security: only notify teachers in the student's batch + admins + counselors
+        // M5-security: only notify instructors in the student's courses + admins + counselors
         where: {
           OR: [
-            { role: { in: ["teacher"] }, blocked: false, batchId: student.batchId },
+            ...(instructorIds.length > 0 ? [{ id: { in: instructorIds }, blocked: false }] : []),
             { role: { in: ["administrator", "principal"] }, blocked: false },
             // H3 fix: counselors in the student's institution get notified of
             // gradual decline too (not just crisis flags).

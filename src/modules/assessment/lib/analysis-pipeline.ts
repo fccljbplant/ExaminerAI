@@ -455,39 +455,34 @@ async function autoCreateTouchpointOnTierTransition(input: PipelineInput): Promi
     if (recentTouchpoint) return; // Already created
 
     if (wellbeing.tier === "red" || wellbeing.tier === "warning") {
-      // Find teachers for this student's batch — use BatchTeacher junction
-      // (multi-teacher support) + legacy User.batchId for backward compat
-      const student = await db.user.findUnique({ where: { id: input.userId }, select: { batchId: true } });
-      const teacherIds = new Set<string>();
+      // Find instructors for this student via CourseEnrollment
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { userId: input.userId, role: "student" },
+        select: { courseId: true },
+      });
+      const instructorIds = new Set<string>();
 
-      if (student?.batchId) {
-        // Legacy: teachers with batchId on User
-        const legacyTeachers = await db.user.findMany({
-          where: { role: { in: ["teacher"] }, batchId: student.batchId, blocked: false },
-          select: { id: true },
+      if (enrollments.length > 0) {
+        const courseIds = enrollments.map(e => e.courseId);
+        const instructors = await db.courseEnrollment.findMany({
+          where: { courseId: { in: courseIds }, role: { in: ["instructor"] } },
+          select: { userId: true },
         });
-        legacyTeachers.forEach(t => teacherIds.add(t.id));
-
-        // Multi-teacher: teachers assigned via BatchTeacher junction
-        const batchTeachers = await db.batchTeacher.findMany({
-          where: { batchId: student.batchId },
-          select: { teacherId: true },
-        });
-        // Verify these teachers aren't blocked
-        if (batchTeachers.length > 0) {
-          const activeTeachers = await db.user.findMany({
-            where: { id: { in: batchTeachers.map(bt => bt.teacherId) }, blocked: false },
+        // Verify these instructors aren't blocked
+        if (instructors.length > 0) {
+          const activeInstructors = await db.user.findMany({
+            where: { id: { in: instructors.map(i => i.userId) }, blocked: false },
             select: { id: true },
           });
-          activeTeachers.forEach(t => teacherIds.add(t.id));
+          activeInstructors.forEach(i => instructorIds.add(i.id));
         }
       }
 
-      for (const teacherId of teacherIds) {
+      for (const instructorId of instructorIds) {
         await db.mentorshipTouchpoint.create({
           data: {
             userId: input.userId,
-            actorUserId: teacherId,
+            actorUserId: instructorId,
             type: "alert_response",
             note: `Auto-created: student wellbeing dropped to RED after ${input.testType} (score ${input.score}%). Review recommended.`,
             outcome: "ongoing",

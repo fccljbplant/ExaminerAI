@@ -189,20 +189,14 @@ export async function POST(req: NextRequest) {
     const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
     const grade = scoreToGrade(avgScore);
 
-    // Fetch actual course ID via batch
+    // Fetch actual course ID via enrollment
     let actualCourseId: string | null = null;
     try {
-      const studentWithBatch = await db.user.findUnique({
-        where: { id: targetUserId },
-        select: { batchId: true },
+      const enrollment = await db.courseEnrollment.findFirst({
+        where: { userId: targetUserId, role: "student" },
+        select: { courseId: true },
       });
-      if (studentWithBatch?.batchId) {
-        const batch = await db.batch.findUnique({
-          where: { id: studentWithBatch.batchId },
-          select: { courseId: true },
-        });
-        actualCourseId = batch?.courseId ?? null;
-      }
+      actualCourseId = enrollment?.courseId ?? null;
     } catch {}
 
     const certificate = await db.certificate.update({

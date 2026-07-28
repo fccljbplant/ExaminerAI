@@ -1,7 +1,6 @@
 import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
 import { getAuthUser } from "@/lib/auth";
 
 /** GET /api/students/[id]/portfolio — full student portfolio for teachers/admins.
@@ -40,25 +39,29 @@ export async function GET(
 
   if (hasRole(payload.role, ADMIN_ROLES)) {
     // Admins — full access, no check needed
-  } else if (payload.role === "teacher" ) {
-    const teacher = await db.user.findUnique({
-      where: { id: payload.sub },
-      select: { batchId: true },
-    });
+  } else if (payload.role === "instructor" || payload.role === "teacher") {
     const studentCheck = await db.user.findUnique({
       where: { id },
-      select: { batchId: true, role: true },
+      select: { role: true },
     });
     if (!studentCheck || studentCheck.role !== "student") {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
-    const teacherBatchIds = await getTeacherBatchIds(payload.sub, payload.role);
-    if (teacherBatchIds !== null) {
-      if (teacherBatchIds.length === 0 || (studentCheck.batchId && !teacherBatchIds.includes(studentCheck.batchId))) {
-        return NextResponse.json({ error: "This student is not in your batch" }, { status: 403 });
-      }
-    } else {
-      // Legacy teacher with no batch — needs an AccessGrant (N5-fix)
+    // Verify the instructor teaches a course the student is enrolled in
+    const [instructorCourses, studentCourses] = await Promise.all([
+      db.courseEnrollment.findMany({
+        where: { userId: payload.sub, role: "instructor" },
+        select: { courseId: true },
+      }),
+      db.courseEnrollment.findMany({
+        where: { userId: id, role: "student" },
+        select: { courseId: true },
+      }),
+    ]);
+    const instructorCourseIds = instructorCourses.map(e => e.courseId);
+    const studentCourseIds = studentCourses.map(e => e.courseId);
+    const sharedCourseIds = instructorCourseIds.filter(cid => studentCourseIds.includes(cid));
+    if (sharedCourseIds.length === 0) {
       needsGrantCheck = true;
     }
   } else {

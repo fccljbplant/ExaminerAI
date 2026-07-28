@@ -44,7 +44,7 @@ const ROLE_QUERY_BUDGETS: Record<string, number> = {
  * Returns null if no cache or cache is stale.
  */
 export async function getCachedSummary(
-  entityType: "student" | "teacher" | "batch" | "institution",
+  entityType: "student" | "teacher" | "instructor" | "batch" | "institution",
   entityId: string
 ): Promise<string | null> {
   const cacheKey = `assistant-summary:${entityType}:${entityId}`;
@@ -69,7 +69,7 @@ export async function getCachedSummary(
  * Store an entity summary in the cache (upsert).
  */
 export async function setCachedSummary(
-  entityType: "student" | "teacher" | "batch" | "institution",
+  entityType: "student" | "teacher" | "instructor" | "batch" | "institution",
   entityId: string,
   summary: string,
   provider: string = "system",

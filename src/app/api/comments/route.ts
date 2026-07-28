@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, isStaffRole, UserRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const comments = await db.comment.findMany({
     where: { studentId },
     orderBy: { createdAt: "desc" },
-    include: { teacher: { select: { name: true, email: true } } },
+    include: { instructor: { select: { name: true, email: true } } },
   });
   return NextResponse.json({ comments });
 }
@@ -87,11 +87,11 @@ export async function POST(req: NextRequest) {
       weeklyTestId: weeklyTestId || null,
       dailyLogId: dailyLogId || null,
       studentId,
-      teacherId: payload.sub,
+      instructorId: payload.sub,
       body: String(commentBody).trim(),
       marksOverride: marksOverride ?? null,
     },
-    include: { teacher: { select: { name: true, email: true } } },
+    include: { instructor: { select: { name: true, email: true } } },
   });
 
   // Safeguarding: scan the comment for aggressive/inappropriate language.
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
 
       // CR-1 fix: use createSafeguardingFlag() which enforces the 2+ corroboration rule
       await createSafeguardingFlag({
-        teacherId: payload.sub,
+instructorId: payload.sub,
         studentId,
         signalCount: totalSignalCount,
         messageIds: [comment.id],
@@ -150,7 +150,7 @@ export async function PATCH(req: NextRequest) {
 
   const existing = await db.comment.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (existing.teacherId !== payload.sub && !hasRole(payload.role, ADMIN_ROLES)) {
+  if (existing.instructorId !== payload.sub && !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Can only edit your own comments" }, { status: 403 });
   }
 
@@ -166,7 +166,7 @@ export async function PATCH(req: NextRequest) {
   const updated = await db.comment.update({
     where: { id },
     data,
-    include: { teacher: { select: { name: true, email: true } } },
+    include: { instructor: { select: { name: true, email: true } } },
   });
   return NextResponse.json({ comment: updated });
 }
@@ -183,7 +183,7 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const comment = await db.comment.findUnique({ where: { id } });
   if (!comment) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (comment.teacherId !== payload.sub && !hasRole(payload.role, ADMIN_ROLES)) {
+  if (comment.instructorId !== payload.sub && !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Can only delete your own comments" }, { status: 403 });
   }
   await db.comment.delete({ where: { id } });

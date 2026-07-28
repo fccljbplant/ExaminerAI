@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
 import { getAuthUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
@@ -29,9 +28,28 @@ export async function POST(req: NextRequest) {
   if (transcript.length > 2000) return NextResponse.json({ error: "Transcript too long (max 2000 chars)" }, { status: 400 });
 
   // Get teacher's students for name resolution
-  const teacher = await db.user.findUnique({ where: { id: payload.sub }, select: { batchId: true } });
+  const instructorCourses = await db.courseEnrollment.findMany({
+    where: { userId: payload.sub, role: "instructor" },
+    select: { courseId: true },
+  });
+  const courseIds = instructorCourses.map(c => c.courseId);
+  let studentFilter: Record<string, unknown> = {};
+  if (courseIds.length > 0) {
+    const enrollments = await db.courseEnrollment.findMany({
+      where: { courseId: { in: courseIds }, role: "student" },
+      select: { userId: true },
+    });
+    const studentIds = enrollments.map(e => e.userId);
+    if (studentIds.length > 0) {
+      studentFilter = { id: { in: studentIds } };
+    } else {
+      studentFilter = { id: "none" };
+    }
+  } else {
+    studentFilter = { id: "none" };
+  }
   const students = await db.user.findMany({
-    where: { role: "student", blocked: false, ...(await getBatchFilter(payload.sub, payload.role)) },
+    where: { role: "student", blocked: false, ...studentFilter },
     select: { id: true, name: true },
   });
 

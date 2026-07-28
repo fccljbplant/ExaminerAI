@@ -20,7 +20,7 @@ import type { StudentRow } from "@/components/examiner/teacher/types";
 import { PeerAssessmentTeacherView } from "@/components/examiner/teacher/PeerAssessmentTeacherView";
 import { CertificateApprovals } from "@/components/examiner/teacher/CertificateApprovals";
 
-export function AssignmentsTab({ students, batchId: propBatchId }: { students: StudentRow[]; batchId?: string }) {
+export function AssignmentsTab({ students, courseId: propCourseId }: { students: StudentRow[]; courseId?: string }) {
   const [groupTasks, setGroupTasks] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,13 +29,13 @@ export function AssignmentsTab({ students, batchId: propBatchId }: { students: S
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
-  // C5 fix: fetch the teacher's batchId from /api/auth/me so we can pass it
+  // C5 fix: fetch the teacher's courseId from /api/auth/me so we can pass it
   // to POST /api/group-tasks (which requires it). Without this, teachers could
   // never create assignments — the API returned 400 "batchId and title required".
-  // If a batchId prop is passed from the dashboard's batch switcher, prefer that.
-  const [fetchedBatchId, setFetchedBatchId] = useState<string | null>(null);
-  const batchId = propBatchId || fetchedBatchId;
-  const [batchError, setBatchError] = useState("");
+  // If a courseId prop is passed from the dashboard's course switcher, prefer that.
+  const [fetchedCourseId, setFetchedCourseId] = useState<string | null>(null);
+  const courseId = propCourseId || fetchedCourseId;
+  const [courseError, setCourseError] = useState("");
 
   // Task form state
   const [taskTitle, setTaskTitle] = useState("");
@@ -56,20 +56,20 @@ export function AssignmentsTab({ students, batchId: propBatchId }: { students: S
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // C5 fix: fetch the teacher's batchId in parallel with the task list.
-      // Without batchId, the create-task form is disabled.
+      // C5 fix: fetch the teacher's courseId in parallel with the task list.
+      // Without courseId, the create-task form is disabled.
       const [tasksRes, eventsRes, meRes] = await Promise.all([
         api.get<{ tasks: any[] }>("/api/group-tasks"),
         api.get<{ events: any[] }>("/api/events"),
-        api.get<{ user: { batchId: string | null } | null }>("/api/auth/me").catch(() => ({ user: null })),
+        api.get<{ user: { courseId: string | null } | null }>("/api/auth/me").catch(() => ({ user: null })),
       ]);
       setGroupTasks(tasksRes.tasks || []);
       setEvents(eventsRes.events || []);
-      if (meRes.user?.batchId) {
-        setFetchedBatchId(meRes.user.batchId);
-        setBatchError("");
+      if (meRes.user?.courseId) {
+        setFetchedCourseId(meRes.user.courseId);
+        setCourseError("");
       } else {
-        setBatchError("You don't have a class assigned. Ask an administrator to assign you to a course before you can create assignments.");
+        setCourseError("You don't have a class assigned. Ask an administrator to assign you to a course before you can create assignments.");
       }
     } catch { /* silent */ }
     finally { setLoading(false); }
@@ -79,14 +79,14 @@ export function AssignmentsTab({ students, batchId: propBatchId }: { students: S
 
   const createTask = async () => {
     if (!taskTitle.trim()) return;
-    if (!batchId) {
-      showError("Cannot create assignment — no class assigned to your teacher account.");
+    if (!courseId) {
+      showError("Cannot create assignment — no course assigned to your teacher account.");
       return;
     }
     setBusy(true);
     try {
       await api.post("/api/group-tasks", {
-        batchId,  // C5 fix: pass the batchId (required by the API)
+        courseId,
         title: taskTitle.trim(),
         description: taskDesc.trim(),
         type: taskType,
@@ -191,17 +191,17 @@ export function AssignmentsTab({ students, batchId: propBatchId }: { students: S
                 Assign tasks to your entire class. Track submissions + grade in bulk.
               </CardDescription>
             </div>
-            <Button onClick={() => setShowTaskForm(!showTaskForm)} size="sm" disabled={!batchId} className="bg-primary hover:bg-primary/90 text-primary-foreground" title={batchId ? undefined : "No batch assigned"}>
-              <Plus className="h-3 w-3" /> New Assignment
+<Button onClick={() => setShowTaskForm(!showTaskForm)} size="sm" disabled={!courseId} className="bg-primary hover:bg-primary/90 text-primary-foreground" title={courseId ? undefined : "No course assigned"}>
+               <Plus className="h-3 w-3" /> New Assignment
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {/* C5 fix: show a clear error when the teacher has no batch assigned */}
-          {batchError && (
+          {/* C5 fix: show a clear error when the teacher has no course assigned */}
+          {courseError && (
             <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-              <p>{batchError}</p>
+              <p>{courseError}</p>
             </div>
           )}
           {/* Task creation form */}
@@ -223,7 +223,7 @@ export function AssignmentsTab({ students, batchId: propBatchId }: { students: S
                 <Input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="bg-background border-border h-8 text-xs" />
                 <Input type="number" value={taskMaxScore} onChange={(e) => setTaskMaxScore(Number(e.target.value))} placeholder="Max score" className="bg-background border-border h-8 text-xs" />
                 <div className="flex gap-1">
-                  <Button onClick={createTask} disabled={busy || !taskTitle.trim() || !batchId} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 flex-1">
+                  <Button onClick={createTask} disabled={busy || !taskTitle.trim() || !courseId} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 flex-1">
                     {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} Create
                   </Button>
                   <Button onClick={() => setShowTaskForm(false)} size="sm" variant="outline" className="border-border h-8">Cancel</Button>

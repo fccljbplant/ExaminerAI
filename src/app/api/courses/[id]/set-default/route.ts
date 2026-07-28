@@ -4,13 +4,11 @@ import { getAuthUser } from "@/lib/auth";
 import { isStaffRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { logger } from "@/lib/logger";
 
 /** POST /api/courses/[id]/set-default — mark a course as the default for new students.
  *
  *  Sets isDefault=true on the specified course and isDefault=false on all other
- *  courses (only one default at a time). Also links the course to the Default Batch
- *  so newly-approved students automatically see this course.
+ *  courses (only one default at a time).
  *
  *  Body: { isDefault: boolean } — pass false to unset the default.
  *
@@ -43,34 +41,6 @@ export async function POST(
       await tx.course.update({ where: { id }, data: { isDefault: true } });
     });
 
-    // Link this course to the Default Batch (so newly-approved students get it)
-    try {
-      const defaultBatch = await db.batch.findUnique({ where: { name: "Default Batch" } });
-      if (defaultBatch) {
-        if (defaultBatch.courseId !== id) {
-          await db.batch.update({
-            where: { id: defaultBatch.id },
-            data: { courseId: id },
-          });
-        }
-      } else {
-        // Create the Default Batch linked to this course
-        await db.batch.create({
-          data: {
-            name: "Default Batch",
-            description: "Auto-created default batch for students without a specific assignment.",
-            courseId: id,
-          },
-        });
-      }
-    } catch (err) {
-      logger.warn("set-default: failed to link Default Batch", {
-        courseId: id,
-        error: err instanceof Error ? err.message : String(err),
-      });
-      // Non-fatal — the course is still marked as default
-    }
-
     await logAudit({
       actor: { id: payload.sub, name: payload.name, role: payload.role },
       action: "course_set_default",
@@ -82,7 +52,7 @@ export async function POST(
     return NextResponse.json({
       ok: true,
       course: { id, isDefault: true },
-      message: `"${course.name}" is now the default course for new students. The Default Batch has been linked to it.`,
+      message: `"${course.name}" is now the default course for new students.`,
     });
   } else {
     // Unset the default
@@ -100,7 +70,7 @@ export async function POST(
     return NextResponse.json({
       ok: true,
       course: { id, isDefault: false },
-      message: `"${course.name}" is no longer the default course. New students will be assigned to the first available course on approval (until you set a new default).`,
+      message: `"${course.name}" is no longer the default course.`,
     });
   }
 }

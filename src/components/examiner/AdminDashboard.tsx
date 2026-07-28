@@ -197,7 +197,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
 
   const pending = users.filter(u => u.role === "pending");
   const students = users.filter(u => u.role === "student");
-  const teachers = users.filter(u => u.role === "teacher");
+  const teachers = users.filter(u => u.role === "instructor" || u.role === "teacher");
   const blocked = users.filter(u => u.blocked);
 
   return (
@@ -334,7 +334,8 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                 <option value="">All roles</option>
                 <option value="pending">Pending</option>
                 <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
+                <option value="instructor">Instructor</option>
+                <option value="teacher">Teacher (legacy)</option>
                 <option value="course_coordinator">Course Coordinator</option>
                 <option value="counselor">Counselor</option>
                 <option value="guardian">Guardian</option>
@@ -382,7 +383,8 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="student">Student</SelectItem>
-                            <SelectItem value="teacher">Teacher / Mentor</SelectItem>
+                            <SelectItem value="instructor">Instructor / Mentor</SelectItem>
+                            <SelectItem value="teacher">Teacher (legacy)</SelectItem>
                             <SelectItem value="course_coordinator">Course Coordinator</SelectItem>
                             <SelectItem value="counselor">Counselor</SelectItem>
                             <SelectItem value="guardian">Guardian</SelectItem>

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.TEACHING_ASSISTANT,
+    UserRole.INSTRUCTOR, UserRole.TEACHING_ASSISTANT,
     UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
@@ -76,15 +76,26 @@ export async function POST(req: NextRequest) {
       error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
     });
     // Fallback: get basic student list — NO relations (safe for all schemas)
-    // For admin/principal/demo roles, getTeacherBatchIds returns null (all batches).
-    // We must NOT pass `batchId: { in: null || [] }` (= zero students).
     const { db } = await import("@/lib/db");
-    const { getTeacherBatchIds } = await import("@/lib/batch-teachers");
-    const batchIds = await getTeacherBatchIds(teacherId, auth.ctx.payload.role);
-    // null = admin role → see all students. [] = teacher with no batches → see nothing.
-    const batchFilter = batchIds === null ? {} : { batchId: { in: batchIds } };
+    const isAdmin = ["principal", "administrator", "admin", "demo"].includes(auth.ctx.payload.role);
+    let studentIds: string[] = [];
+    if (!isAdmin) {
+      const instructorCourses = await db.courseEnrollment.findMany({
+        where: { userId: teacherId, role: "instructor" },
+        select: { courseId: true },
+      });
+      const courseIds = instructorCourses.map(c => c.courseId);
+      if (courseIds.length > 0) {
+        const enrollments = await db.courseEnrollment.findMany({
+          where: { courseId: { in: courseIds }, role: "student" },
+          select: { userId: true },
+        });
+        studentIds = enrollments.map(e => e.userId);
+      }
+    }
+    const studentFilter = isAdmin ? {} : { id: { in: studentIds } };
     const students = await db.user.findMany({
-      where: { role: "student", ...batchFilter, blocked: false },
+      where: { role: "student", ...studentFilter, blocked: false },
       select: { id: true, name: true, currentWeek: true },
       take: 200,
     });

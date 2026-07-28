@@ -72,7 +72,7 @@ export async function GET() {
       select: {
         id: true, name: true, email: true, currentWeek: true,
         projectName: true, projectDescription: true,
-        batchId: true, createdAt: true,
+        createdAt: true,
       },
     }),
     db.wellbeingState.findUnique({
@@ -130,15 +130,20 @@ export async function GET() {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  // Find the student's teacher (from batch)
+  // Find the student's instructors (from CourseEnrollment)
   let teacher: { name: string; email: string } | null = null;
-  if (student.batchId) {
-    const batchTeacher = await db.batchTeacher.findFirst({
-      where: { batchId: student.batchId },
-      include: { teacher: { select: { name: true, email: true } } },
+  const studentCourses = await db.courseEnrollment.findMany({
+    where: { userId: studentId, role: "student" },
+    select: { courseId: true },
+  });
+  if (studentCourses.length > 0) {
+    const courseIds = studentCourses.map(c => c.courseId);
+    const instructor = await db.courseEnrollment.findFirst({
+      where: { courseId: { in: courseIds }, role: "instructor" },
+      include: { user: { select: { name: true, email: true } } },
     });
-    if (batchTeacher?.teacher) {
-      teacher = batchTeacher.teacher;
+    if (instructor?.user) {
+      teacher = instructor.user;
     }
   }
 

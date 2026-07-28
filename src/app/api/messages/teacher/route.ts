@@ -2,26 +2,39 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-/** GET /api/messages/teacher — returns the student's assigned teacher. */
+/** GET /api/messages/teacher — returns the student's assigned instructor(s). */
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "student") {
     return NextResponse.json({ error: "Only students can use Ask My Teacher" }, { status: 403 });
   }
-  if (user.batchId) {
-    const batchTeacher = await db.user.findFirst({
-      where: { role: "teacher", batchId: user.batchId, blocked: false },
-      orderBy: { lastLogin: "desc" },
-      select: { id: true, name: true, email: true },
+  // Find the student's courses and return the first instructor
+  const enrollments = await db.courseEnrollment.findMany({
+    where: { userId: user.id, role: "student" },
+    select: { courseId: true },
+  });
+  const courseIds = enrollments.map(e => e.courseId);
+  if (courseIds.length > 0) {
+    const instructorEnrollments = await db.courseEnrollment.findMany({
+      where: { courseId: { in: courseIds }, role: "instructor" },
+      select: { userId: true },
     });
-    if (batchTeacher) return NextResponse.json({ teacher: batchTeacher });
+    const instructorIds = [...new Set(instructorEnrollments.map(e => e.userId))];
+    if (instructorIds.length > 0) {
+      const instructor = await db.user.findFirst({
+        where: { id: { in: instructorIds }, blocked: false },
+        orderBy: { lastLogin: "desc" },
+        select: { id: true, name: true, email: true },
+      });
+      if (instructor) return NextResponse.json({ teacher: instructor });
+    }
   }
-  const anyTeacher = await db.user.findFirst({
-    where: { role: "teacher", blocked: false },
+  const anyInstructor = await db.user.findFirst({
+    where: { role: "instructor", blocked: false },
     orderBy: { lastLogin: "desc" },
     select: { id: true, name: true, email: true },
   });
-  if (anyTeacher) return NextResponse.json({ teacher: anyTeacher });
+  if (anyInstructor) return NextResponse.json({ teacher: anyInstructor });
   return NextResponse.json({ teacher: null });
 }

@@ -1,26 +1,15 @@
 // ExaminerAI — Prisma schema (default, SQLite for zero-setup local dev)
 //
-// This is the default schema used by `bun run db:push` and `prisma generate`.
-// It uses SQLite so you can run the app locally with zero setup:
-//
-//   DATABASE_URL="file:./db/custom.db" bun run db:push
-//
-// ---- PRODUCTION (Vercel) ----
-// SQLite does NOT work on Vercel serverless because the filesystem is
-// read-only and stateless. For Vercel, use the Postgres variant:
-//
-//   prisma/schema.prod.prisma  (provider = "postgresql")
-//
-// On Vercel, set these env vars:
-//   - DATABASE_URL=postgresql://...  (your Neon/Supabase/Vercel Postgres URL)
-//   - PRISMA_SCHEMA_PATH=prisma/schema.prod.prisma
-//   - RUN_DB_PUSH=1  (triggers `prisma db push` before build — optional but
-//                      recommended for first deploy; can be removed after)
-//
-// Or, simpler: on Vercel, set the Build Command to:
-//   prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss && next build
-//
-// See README.md → "Deploying to Vercel" for the full walkthrough.
+// Course-Centric Architecture:
+// - Courses are the central entity. Everything revolves around courses.
+// - Students are enrolled in courses via CourseEnrollment.
+// - Instructors are assigned to courses via CourseEnrollment.
+// - Guardians are linked to students via GuardianLink.
+// - Projects are part of courses (if course allows project).
+// - Each student/instructor sees navigation per enrolled/assigned course.
+// - Batch/BatchTeacher/Cohort models have been removed.
+// - Role "teacher" renamed to "instructor".
+// - NotebookLM removed entirely.
 
 generator client {
   provider = "prisma-client-js"
@@ -31,53 +20,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Batch — a group of students going through the bootcamp together.
-// Allows running multiple intakes without data collision. Existing
-// users default to the "default" batch for backward compatibility.
-// (Renamed from Cohort — see migration SQL for the ALTER TABLE RENAME.)
-model Batch {
-  id            String   @id @default(cuid())
-  name          String   @unique // e.g. "Spring 2026", "Summer 2026"
-  startDate     DateTime?
-  endDate       DateTime?
-  description   String   @default("")
-  courseId      String?  // assigned course outline
-  deliveryMode  String   @default("online") // "online" | "physical" | "hybrid"
-  createdAt     DateTime @default(now())
+// CourseEnrollment — junction table linking users to courses.
+// A user can be enrolled in multiple courses in different roles.
+// For students: role = "student"
+// For instructors: role = "instructor"
+// For TAs: role = "teaching_assistant"
+// This replaces the old Batch model + User.batchId + BatchTeacher.
+model CourseEnrollment {
+  id         String   @id @default(cuid())
+  userId     String
+  courseId   String
+  role       String   // "student" | "instructor" | "teaching_assistant"
+  enrolledAt DateTime @default(now())
 
-  course        Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
-  users         User[]
-  // Multi-teacher: many-to-many between batches and teachers
-  teachers      BatchTeacher[]
-  // Phase Scale Tier 2: group tasks + events for this batch
-  groupTasks    GroupTask[]
-  events        Event[]
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
-  // Speeds up "find all batches using course X" (used by DELETE /api/courses/[id]
-  // and by the CoursePlanner list view).
+  @@unique([userId, courseId, role])
+  @@index([userId])
   @@index([courseId])
+  @@index([role])
 }
 
-// BatchTeacher — many-to-many between Batch and teacher Users.
-// Students stay one-batch-each via User.batchId (unchanged).
-// Teachers get multi-batch access via this junction table.
-// User.batchId remains for students; for teachers it's legacy (kept for
-// backward compat, not used for scoping — BatchTeacher is the source of truth).
-model BatchTeacher {
-  id        String   @id @default(cuid())
-  batchId   String
-  teacherId String
-  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-
-  @@unique([batchId, teacherId])
-  @@index([teacherId])
-}
-
-// Course — a named curriculum outline for ANY subject (CS, mechanical,
-// electrical, HR, business, communications, robotics, etc.).
-// Admins/teachers create/edit these via the Pro Course Editor.
-// Each batch is assigned one course. When assigned, ALL app features adapt.
+// Course — a named curriculum outline for ANY subject.
+// This is the central entity of the platform.
+// Admins/instructors create/edit these via the Course Planner.
+// Students are enrolled in courses. Instructors are assigned to courses.
 //
 // DOMAIN-AGNOSTIC DESIGN:
 // - "Deliverables" replace "GitHub commits" (can be: lab report, CAD file,
@@ -94,55 +62,31 @@ model Course {
   isActive        Boolean  @default(true)
 
   // Domain metadata — what IS this course?
-  domain          String   @default("technology") // technology | engineering | business | humanities | science | arts | healthcare | law | other
-  level           String   @default("beginner")   // beginner | intermediate | advanced | mixed
-  toolsUsed       String   @default("[]")          // JSON: string[] — e.g. ["Python", "AutoCAD", "Excel", "Figma"]
-  deliverableTypes String  @default("[]")          // JSON: string[] — e.g. ["code commit", "lab report", "presentation", "design file"]
+  domain          String   @default("technology")
+  level           String   @default("beginner")
+  toolsUsed       String   @default("[]")
+  deliverableTypes String  @default("[]")
 
-  // Assessment configuration — how are students evaluated?
-  assessmentType  String   @default("socratic")   // socratic | quiz | case-study | practical | oral | written | portfolio | mixed
-  assessmentConfigJson String? // JSON: type-specific config (e.g. pillars for socratic, question bank for quiz, rubric for practical)
+  // Assessment configuration
+  assessmentType  String   @default("socratic")
+  assessmentConfigJson String?
 
-  // Course-specific configuration JSON (fallback to course-defaults.ts if null)
+  // Course-specific configuration JSON
   journeyStepsJson    String?
   projectTemplateJson String?
   aiPromptsJson       String?
   testConfigJson      String?
   reportCardTemplateJson String?
 
-  // Phase AI-Tutor Revert: per-course NotebookLM URL. When set, the AI Tutor
-  // tab loads this notebook in an iframe. When null, falls back to the global
-  // NOTEBOOKLM_URL constant in src/lib/constants.ts (the original bootcamp
-  // notebook). Course coordinators set this in the Course Planner.
-  notebooklmUrl       String?
-
-  // Scale Tier 2: Multiple subjects per course.
-  // JSON array of subject names: ["Frontend Development", "Backend Development", "Soft Skills"]
-  // When set, the course planner can organize weeks/days by subject.
-  // When empty/null, the course is single-subject (backward compatible).
+  // Multiple subjects per course
   subjects            String    @default("[]")
 
-  // Project configuration — set by the course coordinator in the Course Planner.
-  // projectEnabled: whether the capstone project feature is available for this course at all.
-  //   - Courses with < 4 weeks cannot enable projects (too short for a meaningful capstone).
-  //   - When false, students do NOT see the Project nav item, the Project tab, or any project banners.
-  // projectRequired: whether the project is MANDATORY for students in this course.
-  //   - Only meaningful when projectEnabled = true.
-  //   - When true, students see a "Required" badge and the daily check-in + alert system
-  //     treats missing project tasks as attention-worthy.
-  //   - When false (project optional), the alert system never nags about project inactivity.
-  // projectDefaultDurationWeeks: the default project duration suggested to students when they
-  //   set up their project. Must be between 2 and (courseWeeks - 1).
+  // Project configuration
   projectEnabled              Boolean  @default(false)
   projectRequired             Boolean  @default(false)
   projectDefaultDurationWeeks Int      @default(4)
 
-  // isDefault: marks this course as the default for new students. When a student
-  // is approved without a specific batch assignment, they're placed in the Default
-  // Batch, which is linked to whichever course has isDefault=true. Only ONE course
-  // can be the default at a time (enforced at the API level — setting isDefault=true
-  // on one course unsets it on all others). The CoursePlanner UI shows a "Default"
-  // badge + a "Set as default" button.
+  // isDefault: marks this course as the default for new students
   isDefault                   Boolean  @default(false)
 
   institutionId       String?
@@ -151,17 +95,17 @@ model Course {
   updatedAt   DateTime @updatedAt
 
   weeks       CourseWeek[]
-  batches     Batch[]
+  enrollments CourseEnrollment[]
   institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
-  // Phase Scale Tier 2: events linked to this course
   events      Event[]
+  groupTasks  GroupTask[]
 }
 
 model CourseWeek {
   id          String   @id @default(cuid())
   courseId    String
   weekNumber  Int
-  phase       String   // e.g. "Fundamentals of Thermodynamics" or "Market Analysis"
+  phase       String
   milestone   String   @default("")
 
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -175,14 +119,14 @@ model CourseDay {
   id              String   @id @default(cuid())
   courseWeekId    String
   day             Int      // 1-7 (configurable per course)
-  title           String   // e.g. "Understanding Stress Analysis" or "Employee Onboarding Process"
-  objective       String   @default("")    // what students will be able to DO
-  whyItMatters    String   @default("")    // real-world relevance
-  topicsCovered   String   @default("[]")  // JSON: string[] — subtopics
-  activity        String   @default("")    // hands-on task (lab, build, write, analyze, role-play, etc.)
-  deliverable     String   @default("")    // what to submit (code, report, presentation, design, etc.)
-  resources       String   @default("[]")  // JSON: [{ label, url }]
-  teacherNote     String   @default("")    // Phase 3.2: AI-generated guidance for future question generation on this topic
+  title           String
+  objective       String   @default("")
+  whyItMatters    String   @default("")
+  topicsCovered   String   @default("[]")
+  activity        String   @default("")
+  deliverable     String   @default("")
+  resources       String   @default("[]")
+  teacherNote     String   @default("")
 
   courseWeek      CourseWeek @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
 
@@ -195,46 +139,40 @@ model User {
   email           String    @unique
   name            String
   passwordHash    String
-  // Role values (Phase RBAC+AUDIT):
-  //   pending | student | teaching_assistant | teacher | course_coordinator
+  // Role values:
+  //   pending | student | teaching_assistant | instructor | course_coordinator
   //   | counselor | guardian | institution_admin | platform_admin
-  // Kept as String (not Prisma enum) to avoid SQLite migration friction.
-  // Values normalized at the application layer in src/lib/rbac.ts.
-  // Legacy "admin" → migrated via scripts/migrate-roles.ts (manual decision per user).
   role            String    @default("pending")
-  blocked         Boolean   @default(false) // teacher/admin can block a user
+  blocked         Boolean   @default(false)
   approvedAt      DateTime?
   createdAt       DateTime  @default(now())
   lastLogin       DateTime?
   currentWeek     Int       @default(1)
-  currentDay      Int       @default(1) // 1-5 (Mon-Fri). Self-paced: student advances when today's tasks are done.
-  selfPacedEnabled Boolean   @default(true) // if true, student can advance to next day/week when tasks complete
-  batchId        String?   // null = "default" batch (backward compat)
-  projectName        String?   // the capstone project name
-  projectDescription String?   // longer free-text description of the project (AI-generated or student-written)
-  projectType        String?   // project type (e.g., "Web App", "Mobile App", "Data Pipeline", "Research Paper")
-  projectScope       String?   // project scope description
-  projectObjectives  String?   // project objectives and goals
-  projectRequirements String?  // project requirements
-  projectBusinessCase String?  // business case / use case
-  // AI-generated project summary + key features — generated when the project
-  // is created or edited. Replaces the 4-tab scope/objectives/requirements/business-case
-  // display on the Project tab with a single concise summary.
-  projectSummary     String?   // 2-3 sentence AI summary of the project
-  projectKeyFeatures String?   // JSON array of key feature strings
-  // Project planning fields — student defines their own project duration + timeline
-  projectDurationWeeks Int?    // how many weeks the student plans to spend (default 6)
-  projectStartDate  DateTime?  // when the student starts the project
-  projectNotes      String?   // free-text notes about the project (architecture, decisions, etc.)
-  projectGithubUrl  String?   // GitHub repository URL
-  projectDeployUrl  String?   // Live deployment URL
-  journeyProgress String    @default("[]") // JSON array of completed manual step IDs
+  currentDay      Int       @default(1)
+  selfPacedEnabled Boolean   @default(true)
+  projectName        String?
+  projectDescription String?
+  projectType        String?
+  projectScope       String?
+  projectObjectives  String?
+  projectRequirements String?
+  projectBusinessCase String?
+  projectSummary     String?
+  projectKeyFeatures String?
+  projectDurationWeeks Int?
+  projectStartDate  DateTime?
+  projectNotes      String?
+  projectGithubUrl  String?
+  projectDeployUrl  String?
+  journeyProgress String    @default("[]")
 
   // Security question for self-service password reset
   securityQuestion String?
-  securityAnswer   String?  // stored hashed (bcrypt) for security
+  securityAnswer   String?
 
-  batch          Batch?   @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  // Course enrollments — replaces batchId + batchTeaching
+  enrollments     CourseEnrollment[]
+
   dailyLogs       DailyLog[]
   tasks           ProjectTask[]
   projectWeeks    ProjectWeek[]
@@ -251,11 +189,9 @@ model User {
   messagesRecv    Message[]     @relation("MsgRecipient")
   resetRequests   PasswordResetRequest[]
   certificates    Certificate[]
-  // Phase RBAC+AUDIT: AccessGrant relations + audit log entries
   accessGrantsReceived AccessGrant[] @relation("AccessGrantGrantee")
   accessGrantsGiven    AccessGrant[] @relation("AccessGrantGrantor")
   auditLogs       AuditLog[]
-  // Phase Three-Tab Redesign: psychological + educational + mentorship relations
   confidenceRatings ConfidenceRating[]
   wellbeingState     WellbeingState?
   crisisFlags        CrisisFlag[]
@@ -263,47 +199,32 @@ model User {
   skillMastery       SkillMastery[]
   mentorshipTouchpoints MentorshipTouchpoint[]
   dailyTests         DailyTest[]
-  // Unified chat sessions — tests + AI Teacher + Teacher AI Assistant
   chatSessions       ChatSession[]
-  // Lightweight health summary — 1 row per student, upserted on each interaction
   healthSummary      StudentHealthSummary?
-  // Multi-teacher: this user's batch memberships (as a teacher)
-  batchTeaching      BatchTeacher[]
-  // Institution membership
   institutionId      String?
   institution        Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
-  // Private growth report (generated at course completion)
   growthReport       GrowthReport?
-  // Alerts — psych/educational/mentorship
   studentAlerts     StudentAlert[]
-  // Phase Scale Tier 2: group task submissions
   groupTaskSubmissions GroupTaskSubmission[]
-  // Phase Scale Tier 2: events created by this user
   eventsCreated     Event[]
-  // Group tasks this teacher created (C4-rel: cascade delete)
   groupTasksTaught  GroupTask[] @relation("GroupTaskTeacher")
-  // Guardian links — guardians see their linked students' data
   guardianLinks     GuardianLink[] @relation("GuardianLinkGuardian")
   studentGuardians  GuardianLink[] @relation("GuardianLinkStudent")
-  // Peer Assessment: assessments given + received
   peerAssessmentsGiven    PeerAssessment[] @relation("PeerAssessor")
   peerAssessmentsReceived PeerAssessment[] @relation("PeerAssessee")
-  // Phase 3.5 + 3.7: Teacher rules + case reviews
   teacherRules            TeacherRule[] @relation("TeacherRuleOwner")
   caseReviewsPosted       CaseReview[] @relation("CaseReviewAuthor")
   caseReviewResponses     CaseReviewResponse[] @relation("CaseReviewResponder")
-
-  @@index([batchId])
 }
 
 // Admin-reset workflow: student requests a reset, admin approves + sets temp password
 model PasswordResetRequest {
   id              String    @id @default(cuid())
   userId          String
-  reason          String    @default("") // student's note explaining the request
-  status          String    @default("pending") // pending | approved | resolved | rejected
-  tempPassword    String?   // admin sets this when approving (plaintext — shared with student)
-  adminNote       String?   // admin's note
+  reason          String    @default("")
+  status          String    @default("pending")
+  tempPassword    String?
+  adminNote       String?
   createdAt       DateTime  @default(now())
   resolvedAt      DateTime?
 
@@ -319,12 +240,11 @@ model DailyLog {
   week         Int
   whatDidYouDo String
   anyErrors    String   @default("")
-  confidence   Int      @default(3) // 1-5
+  confidence   Int      @default(3)
   gitCommit    String?
-  // Learning reflection fields — mentor-guided self-reflection
-  learningReflection String @default("") // "What did you learn today?"
-  confusionNotes     String @default("") // "What confused you?"
-  nextQuestion       String @default("") // "What's your next question to explore?"
+  learningReflection String @default("")
+  confusionNotes     String @default("")
+  nextQuestion       String @default("")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -335,17 +255,16 @@ model ProjectTask {
   id          String   @id @default(cuid())
   userId      String
   description String
-  status      String   @default("planned") // planned | in-progress | completed | blocked
+  status      String   @default("planned")
   week        Int
-  day         Int?     // 1-5 (Mon-Fri) — optional, used to filter "today's" tasks. Null = unscheduled.
+  day         Int?
   dueDate     String?
   createdAt   DateTime @default(now())
-  completedAt DateTime? // when the task was marked completed (for teacher timeline + self-paced advancement)
-  // Project task metadata — mentor-recommended fields
-  estimatedMinutes Int? // how long the student thinks this will take
-  isMilestone  Boolean @default(false) // key milestone tasks are highlighted in the Gantt chart
-  taskNotes    String? // student's notes on this specific task
-  timeEstimate String? // AI-generated human-readable estimate, e.g. "2h", "30m" (kept for backward compat with task-generator)
+  completedAt DateTime?
+  estimatedMinutes Int?
+  isMilestone  Boolean @default(false)
+  taskNotes    String?
+  timeEstimate String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -353,17 +272,13 @@ model ProjectTask {
   @@index([userId, week, day])
 }
 
-// ProjectWeek — custom week titles + AI-generated summaries for the student's project.
-// Each row is one week (1..projectDurationWeeks). The student can edit the title;
-// the AI generates title + summary + milestones when tasks are generated.
-// This is SEPARATE from the curriculum week names (which are fixed in course-topics.ts).
 model ProjectWeek {
   id          String   @id @default(cuid())
   userId      String
-  weekNumber  Int      // 1, 2, 3, ...
-  title       String   // custom week title (e.g., "Week 1: Planning & Setup")
-  summary     String   @default("") // AI-generated or student-edited summary of what happens this week
-  milestones  String   @default("[]") // JSON array of milestone strings
+  weekNumber  Int
+  title       String
+  summary     String   @default("")
+  milestones  String   @default("[]")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -373,17 +288,13 @@ model ProjectWeek {
   @@index([userId])
 }
 
-// ProjectReport — student's weekly or final project report, with AI analysis.
-// The AI analysis is similar to practice-question evaluation: it scores the report
-// on project understanding, technical depth, progress, and clarity, then gives
-// strengths, weaknesses, and feedback.
 model ProjectReport {
   id          String   @id @default(cuid())
   userId      String
-  week        Int      // which week the report is for (0 = final capstone report)
-  reportType  String   @default("weekly") // weekly | final
-  reportText  String   // the student's project report
-  aiAnalysis  String?  // JSON: { score, strengths[], weaknesses[], feedback, projectUnderstanding, technicalDepth, progress, clarity }
+  week        Int
+  reportType  String   @default("weekly")
+  reportText  String
+  aiAnalysis  String?
   submittedAt DateTime @default(now())
   analyzedAt  DateTime?
 
@@ -392,15 +303,11 @@ model ProjectReport {
   @@index([userId, week])
 }
 
-// CurriculumProgress — tracks which curriculum days a student has completed.
-// One row per (userId, week, day). The curriculum itself is fixed in
-// src/lib/course-topics.ts; this model just records completion.
-// week: 1-6, day: 1-5 (Mon-Fri)
 model CurriculumProgress {
   id          String   @id @default(cuid())
   userId      String
-  week        Int      // 1-52 (configurable per course)
-  day         Int      // 1-7 (configurable per course)
+  week        Int
+  day         Int
   completedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -409,13 +316,12 @@ model CurriculumProgress {
   @@index([userId, week])
 }
 
-
 model Interaction {
   id              String   @id @default(cuid())
   userId          String
   date            DateTime @default(now())
   week            Int
-  pillar          String   // Why Probe | Break-It Scenario | Client Translation | Edge Case Test
+  pillar          String
   topic           String
   question        String
   projectContext  String   @default("")
@@ -425,12 +331,12 @@ model Interaction {
   correctness     Int      @default(0)
   feedback        String   @default("")
   level           String   @default("Beginner")
-  gaps            String   @default("") // JSON-encoded string[]
+  gaps            String   @default("")
   followUp        String?
   cognitiveLoad   String   @default("moderate")
   confidence      String   @default("moderate")
   metacognitive   String   @default("moderate")
-  plagiarismScore Int?     // 0-100, higher = more likely AI-generated/copied
+  plagiarismScore Int?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -441,27 +347,22 @@ model WeeklyTest {
   id              String   @id @default(cuid())
   userId          String
   week            Int
-  status          String   @default("locked") // locked | available | in-progress | completed
+  status          String   @default("locked")
   startedAt       DateTime?
   completedAt     DateTime?
-  interactionIds  String   @default("[]") // JSON string[]
+  interactionIds  String   @default("[]")
   score           Int?
-  strengths       String   @default("[]") // JSON string[]
-  weaknesses      String   @default("[]") // JSON string[]
+  strengths       String   @default("[]")
+  weaknesses      String   @default("[]")
   examinerObs     String?
   nextAction      String?
+  conversation    String   @default("[]")
+  currentQuestion Int      @default(0)
+  replyCount      Int      @default(0)
+  psychAnalysis   String?
+  examinerComment String?
+  plagiarismScore Int?
 
-  // Chatbot agent fields (Socratic weekly test)
-  conversation    String   @default("[]") // JSON: [{role, content, timestamp, questionIndex}]
-  currentQuestion Int      @default(0)    // which of the 5 questions we're on (0-4)
-  replyCount      Int      @default(0)    // replies on the current question (max 5)
-  psychAnalysis   String?                 // AI psychological analysis comment
-  examinerComment String?                 // AI examiner's observation comment
-  plagiarismScore Int?                    // 0-100, higher = more likely cheated/AI-used
-
-  // Retake gate — teacher must explicitly allow retake (default: false).
-  // Students cannot retake a completed test unless the teacher enables this.
-  // When a student starts the retake, this is reset to false.
   retakeAllowed   Boolean  @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -477,7 +378,7 @@ model Competency {
   score          Int      @default(0)
   attempts       Int      @default(0)
   lastAssessed   DateTime @default(now())
-  weakSubTopics  String   @default("[]") // JSON string[]
+  weakSubTopics  String   @default("[]")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -521,13 +422,12 @@ model PsychologyObs {
   @@index([userId, week])
 }
 
-// AI response cache — avoids redundant AI calls for same week/topic/pillar.
-// Used by /api/ai/generate (practice question generation) to cache questions.
+// AI response cache
 model AICache {
   id          String   @id @default(cuid())
-  cacheKey    String   @unique // SHA256 of week:topic:pillar
-  response    String   // JSON response from AI
-  provider    String   @default("deepseek") // deepseek | z-ai | fallback
+  cacheKey    String   @unique
+  response    String
+  provider    String   @default("deepseek")
   promptTokens Int     @default(0)
   completionTokens Int @default(0)
   hitCount    Int      @default(0)
@@ -536,15 +436,13 @@ model AICache {
   @@index([cacheKey])
 }
 
-// Unified AI usage log — every AI call (generate / evaluate / weekly-test)
-// is recorded here so the admin dashboard can show accurate token usage,
-// quota remaining, cost trends, and error rates per provider.
+// Unified AI usage log
 model AIUsageLog {
   id               String   @id @default(cuid())
-  userId           String?  // null = system/admin call; set for per-user rate limiting
-  provider         String   // gemini | z-ai | fallback
-  model            String   // gemini-1.5-flash | z-ai-sdk | none
-  feature          String   // question-gen | evaluate | weekly-test-reply | final-analysis
+  userId           String?
+  provider         String
+  model            String
+  feature          String
   promptTokens     Int      @default(0)
   completionTokens Int      @default(0)
   totalTokens      Int      @default(0)
@@ -556,7 +454,7 @@ model AIUsageLog {
   @@index([provider, createdAt])
   @@index([feature, createdAt])
   @@index([createdAt])
-  @@index([userId, feature, createdAt]) // per-user daily rate-limit queries
+  @@index([userId, feature, createdAt])
 }
 
 model Message {
@@ -579,19 +477,19 @@ model Message {
 
 model Comment {
   id              String   @id @default(cuid())
-  interactionId   String?  // optional — comment on a practice question
-  taskId          String?  // optional — comment on a specific task
-  weeklyTestId    String?  // optional — comment on a specific weekly test
-  dailyLogId      String?  // optional — comment on a daily check-in
+  interactionId   String?
+  taskId          String?
+  weeklyTestId    String?
+  dailyLogId      String?
   studentId       String
-  teacherId       String
+  instructorId     String
   body            String?
   marksOverride   Int?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  student User @relation("CommentTarget", fields: [studentId], references: [id], onDelete: Cascade)
-  teacher User @relation("CommentAuthor", fields: [teacherId], references: [id], onDelete: Cascade)
+  student   User @relation("CommentTarget", fields: [studentId], references: [id], onDelete: Cascade)
+  instructor User @relation("CommentAuthor", fields: [instructorId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([interactionId])
@@ -600,31 +498,26 @@ model Comment {
   @@index([dailyLogId])
 }
 
-// App-wide settings (key/value store). Used for storing the Gemini API
-// key in the DB so admins can set it from the UI without needing Vercel
-// env var access. The key is stored encrypted at rest in production.
+// App-wide settings (key/value store)
 model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
 }
 
-// Certificate — issued when a student completes their course (all weekly
-// tests completed). Phase 4.1. Stored as a DB row + a shareable verification
-// token so employers/parents can verify the certificate is genuine at
-// /verify/[token] without logging in.
+// Certificate
 model Certificate {
   id            String   @id @default(cuid())
   userId        String
   courseId      String?
-  courseName    String   // snapshot at issue time (course may be deleted later)
-  studentName   String   // snapshot at issue time (user may rename themselves)
-  grade         String   // "A", "B", "C", "D" — from final-result performanceScore
-  score         Int      // 0-100 — from final-result performanceScore
+  courseName    String
+  studentName   String
+  grade         String
+  score         Int
   issuedAt      DateTime @default(now())
-  signedBy      String   // admin/teacher name who signed off (or "AI Examiner" for auto)
-  verifyToken   String   @unique // random token for /verify/[token] URL
-  pdfUrl        String?  // optional: if we generate a PDF, store the URL here
+  signedBy      String
+  verifyToken   String   @unique
+  pdfUrl        String?
   institutionId String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -633,12 +526,9 @@ model Certificate {
   @@index([userId])
 }
 
-// ============================================================
-// AccessGrant — Phase RBAC+AUDIT Phase 2 (scoped least-privilege access).
-// scopeType: "batch" | "student" | "course" | "institution"
+// AccessGrant — scoped least-privilege access
+// scopeType: "course" | "student" | "institution"
 // dataScope: "full" | "wellbeing_only" | "crisis_only" | "content_only"
-// A counselor role with no explicit AccessGrant rows sees nothing.
-// ============================================================
 model AccessGrant {
   id              String   @id @default(cuid())
   granteeUserId   String
@@ -657,17 +547,13 @@ model AccessGrant {
   @@index([scopeType, scopeId])
 }
 
-// ============================================================
-// AuditLog — Phase RBAC+AUDIT Phase 4 (universal append-only audit log).
-// NEVER store sensitive crisis content in beforeJson/afterJson.
-// For CrisisFlag/WellbeingAlert reads, log FACT of access only.
-// ============================================================
+// AuditLog
 model AuditLog {
   id              String   @id @default(cuid())
   actorUserId     String
   actorName       String
   actorRole       String
-  action          String   // "grade_changed" | "role_assigned" | "access_grant_created" | "crisis_flag_viewed" | ...
+  action          String
   targetType      String
   targetId        String
   beforeJson      String?
@@ -684,54 +570,40 @@ model AuditLog {
   @@index([createdAt])
 }
 
-// ============================================================
-// Phase Three-Tab Redesign — Psychological / Educational / Mentorship models
-//
-// These models were specified as prerequisites in earlier master prompts
-// that were never executed. Added here as minimal-but-faithful versions
-// so the three-tab redesign is unblocked. Each can be expanded later.
-// ============================================================
+// Phase Three-Tab Redesign models
 
-// ConfidenceRating — a single student self-rating or AI-observed confidence
-// signal. Used by the Psychological tab for calibration (Dunning-Kruger).
 model ConfidenceRating {
   id              String   @id @default(cuid())
   userId          String
-  source          String   // "self" | "ai_observed" | "weekly_test"
-  rating          Int      // 1-5 (1=very unconfident, 5=very confident)
-  actualScore     Int?     // 0-100, the actual outcome (for calibration diff)
-  context         String?  // what was the rating about? (topic, week, etc.)
+  source          String
+  rating          Int
+  actualScore     Int?
+  context         String?
   week            Int?
   createdAt       DateTime @default(now())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, createdAt])
 }
 
-// WellbeingState — current Green/Amber/Red tier per student. The detection
-// side of wellbeing lives on the Psychological tab; the human-response side
-// lives on the Mentorship tab.
 model WellbeingState {
   id              String   @id @default(cuid())
   userId          String   @unique
-  tier            String   // "green" | "amber" | "red"
-  reasonsJson     String   @default("[]") // JSON array of concern strings
+  tier            String
+  reasonsJson     String   @default("[]")
   detectedAt      DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([tier])
 }
 
-// CrisisFlag — a flagged concern requiring human follow-up. Existence/state
-// is shown on the Psychological tab; the human response is on Mentorship.
-// Content is sensitive — NEVER duplicated into AuditLog.beforeJson/afterJson.
 model CrisisFlag {
   id              String   @id @default(cuid())
   userId          String
-  flaggedBy       String   // userId of the flagger, or "ai_detection"
-  category        String   // "self_harm_risk" | "severe_distress" | "disclosure" | ...
-  severity        String   // "amber" | "red"
-  status          String   @default("open") // "open" | "acknowledged" | "resolved"
-  evidenceRef     String?  // JSON pointer to source evidence (no raw content)
+  flaggedBy       String
+  category        String
+  severity        String
+  status          String   @default("open")
+  evidenceRef     String?
   resolvedAt      DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -740,25 +612,18 @@ model CrisisFlag {
   @@index([severity, status])
 }
 
-// PsychEvidence — one observation across one of the 7 dimensions
-// (calibration, explanatory_depth, gaming_pattern, srl_phase, fluency,
-// attribution, cognitive_load). Sourced — every entry links to the
-// interaction/test that produced it.
 model PsychEvidence {
   id              String   @id @default(cuid())
   userId          String
-  dimension       String   // "calibration" | "explanatory_depth" | "gaming_pattern" | "srl_phase" | "fluency" | "attribution" | "cognitive_load"
-  value           String   // dimension-specific value (e.g. "overconfident" / "step-by-step" / "avoidant")
-  evidenceText    String   // short, factual observation (NOT speculative diagnosis)
-  sourceType      String   // "weekly_test" | "interaction" | "check_in" | "manual"
-  sourceId        String?  // the interaction/test/log id
+  dimension       String
+  value           String
+  evidenceText    String
+  sourceType      String
+  sourceId        String?
   week            Int?
-  // ME-6 fix: disputed flag — teachers can contest AI-derived psych labels.
-  // When true, the evidence is still visible but marked as "Disputed" in the UI,
-  // and the disputeNote explains why the teacher disagrees.
   disputed        Boolean  @default(false)
-  disputeNote     String?  // teacher's explanation for the dispute
-  disputedBy      String?  // teacher user ID who disputed
+  disputeNote     String?
+  disputedBy      String?
   disputedAt      DateTime?
   createdAt       DateTime @default(now())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -766,18 +631,15 @@ model PsychEvidence {
   @@index([userId, createdAt])
 }
 
-// SkillMastery — per-topic mastery computed from Interaction/WeeklyTest data.
-// Turns "week 3: 68%" into "database queries: developing, custom post types:
-// proficient" — actionable specificity.
 model SkillMastery {
   id              String   @id @default(cuid())
   userId          String
   topic           String
-  pillar          String   // existing pillar taxonomy
-  masteryLevel    String   // "not-started" | "developing" | "proficient" | "mastered"
+  pillar          String
+  masteryLevel    String
   evidenceCount   Int      @default(0)
   lastAssessedWeek Int?
-  trend           String   // "improving" | "stable" | "declining"
+  trend           String
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([userId, topic])
@@ -785,17 +647,14 @@ model SkillMastery {
   @@index([userId, masteryLevel])
 }
 
-// MentorshipTouchpoint — every logged contact between staff and student.
-// Auto-written by alert-response actions + manually logged by teachers.
-// This is what makes "presence tracking" possible.
 model MentorshipTouchpoint {
   id              String   @id @default(cuid())
-  userId          String   // the student
-  actorUserId     String   // the teacher/TA/counselor
-  type            String   // "checkin" | "alert_response" | "escalation" | "praise_note" | "scheduled_followup"
-  relatedAlertId  String?  // links to CrisisFlag/WellbeingAlert if response
-  note            String   // what happened, in the teacher's own words
-  outcome         String?  // "resolved" | "ongoing" | "escalated" | null for routine check-in
+  userId          String
+  actorUserId     String
+  type            String
+  relatedAlertId  String?
+  note            String
+  outcome         String?
   followUpDate    DateTime?
   createdAt       DateTime @default(now())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -804,33 +663,21 @@ model MentorshipTouchpoint {
   @@index([type])
 }
 
-// ============================================================
-// Phase Three-Tab Redesign — Daily Test
-//
-// Short, 2-3 question test running on a daily cadence. Same Socratic
-// format as the weekly test, just shorter. Distinct from DailyLog
-// (self-report reflection) and daily-tasks (task reminders).
-//
-// CRITICAL: Daily tests feed the SAME analysis pipeline as weekly tests
-// — they're smaller, more frequent data points into the same system.
-// This is what makes the Psychological/Mentorship tabs update daily
-// instead of only weekly.
-// ============================================================
+// Daily Test
 model DailyTest {
   id            String   @id @default(cuid())
   userId        String
   date          DateTime @default(now())
   week          Int
-  topic         String              // pulled from current week's material
-  pillar        String              // for SkillMastery aggregation
+  topic         String
+  pillar        String
   questionCount Int      @default(3)
   score         Int?
-  status        String   @default("in_progress") // "in_progress" | "completed" | "skipped"
+  status        String   @default("in_progress")
   psychAnalysisGenerated Boolean @default(false)
-  // Socratic conversation state (mirrors weekly test structure)
   currentQuestion Int    @default(0)
   replyCount       Int    @default(0)
-  conversation     String @default("[]") // JSON array of { role, content, timestamp, questionIndex }
+  conversation     String @default("[]")
   createdAt     DateTime @default(now())
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   answers       DailyTestAnswer[]
@@ -847,43 +694,34 @@ model DailyTestAnswer {
   answer          String
   score           Int
   timeTakenSec    Int?
-  confidenceRating String? // "low" | "medium" | "high"
-  topic           String?  // per-question topic for fine-grained SkillMastery
+  confidenceRating String?
+  topic           String?
   dailyTest       DailyTest @relation(fields: [dailyTestId], references: [id], onDelete: Cascade)
 
   @@index([dailyTestId])
 }
 
-// ============================================================
-// Phase Scale Tier 2 — Group Tasks, Assignments, Events
-//
-// Institutional features for managing hundreds of students:
-// - GroupTask: teacher assigns work to an entire batch
-// - GroupTaskSubmission: student submits their work
-// - Event: scheduled deadlines, exams, activities, meetings
-// ============================================================
-
+// Group Tasks — course-scoped (replaces batch-scoped)
 model GroupTask {
   id          String    @id @default(cuid())
-  batchId    String
-  courseId    String?
+  courseId    String
   teacherId   String
   title       String
   description String    @default("")
-  type        String    @default("assignment") // "assignment" | "project" | "reading" | "practice" | "other"
+  type        String    @default("assignment")
   dueDate     DateTime?
   week        Int?
-  status      String    @default("open") // "open" | "closed" | "graded"
+  status      String    @default("open")
   maxScore    Int       @default(100)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  batch      Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   teacher     User      @relation("GroupTaskTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
   submissions GroupTaskSubmission[]
   peerAssessments PeerAssessment[]
 
-  @@index([batchId, status])
+  @@index([courseId, status])
   @@index([teacherId])
   @@index([dueDate])
 }
@@ -892,8 +730,8 @@ model GroupTaskSubmission {
   id           String    @id @default(cuid())
   groupTaskId  String
   userId       String
-  content      String    @default("") // student's submission text
-  link         String?   // optional URL (GitHub, doc, etc.)
+  content      String    @default("")
+  link         String?
   score        Int?
   feedback     String?
   submittedAt  DateTime  @default(now())
@@ -907,90 +745,66 @@ model GroupTaskSubmission {
   @@index([userId])
 }
 
+// Events — course-scoped (replaces batch-scoped)
 model Event {
   id          String    @id @default(cuid())
-  batchId    String?
-  courseId    String?
+  courseId    String
   createdById String
   title       String
   description String    @default("")
-  type        String    @default("deadline") // "deadline" | "exam" | "meeting" | "activity" | "holiday" | "vocational" | "extracurricular" | "other"
-  activityType String?  // Scale Tier 2: for vocational/extracurricular — "workshop" | "internship" | "industry_visit" | "club" | "sports" | "arts" | "competition" | "community_service" | null
+  type        String    @default("deadline")
+  activityType String?
   startDate   DateTime
   endDate     DateTime?
   location    String?
   isAllDay    Boolean   @default(false)
   createdAt   DateTime  @default(now())
 
-  batch      Batch?   @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  course      Course?   @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
-  @@index([batchId, startDate])
+  @@index([courseId, startDate])
   @@index([startDate])
   @@index([type])
 }
 
-// ============================================================
-// Peer Assessment — students rate their group members' behavior
-// after group activities. Feeds into the analysis pipeline:
-//   - PsychEvidence (attribution/mindset + collaboration signals)
-//   - SkillMastery (collaboration as a trackable skill)
-//   - WellbeingState (social integration signal)
-//
-// Dimensions rated (1-5 each):
-//   collaboration — did they work well with the team?
-//   contribution — did they do their fair share?
-//   communication — were they clear and responsive?
-//   reliability — did they show up and deliver on time?
-//   respect — were they respectful of others' ideas?
-//
-// The text feedback is shown to the teacher only, never to the
-// assessed student (to prevent retaliation / bias).
-// ============================================================
+// Peer Assessment
 model PeerAssessment {
   id              String   @id @default(cuid())
   groupTaskId     String
-  assessorId      String   // the student giving the assessment
-  assesseeId      String   // the group member being assessed
-  collaboration   Int      // 1-5
-  contribution    Int      // 1-5
-  communication   Int      // 1-5
-  reliability     Int      // 1-5
-  respect         Int      // 1-5
-  textFeedback    String   @default("") // shown to teacher only, never to assessee
+  assessorId      String
+  assesseeId      String
+  collaboration   Int
+  contribution    Int
+  communication   Int
+  reliability     Int
+  respect         Int
+  textFeedback    String   @default("")
   createdAt       DateTime @default(now())
 
   groupTask       GroupTask @relation(fields: [groupTaskId], references: [id], onDelete: Cascade)
   assessor        User      @relation("PeerAssessor", fields: [assessorId], references: [id], onDelete: Cascade)
   assessee        User      @relation("PeerAssessee", fields: [assesseeId], references: [id], onDelete: Cascade)
 
-  @@unique([groupTaskId, assessorId, assesseeId]) // one assessment per pair per task
+  @@unique([groupTaskId, assessorId, assesseeId])
   @@index([groupTaskId])
   @@index([assesseeId])
 }
 
-// ============================================================
-// RoleNavConfig — admin-configurable navigation per role.
-// Instead of hardcoding which nav items each role sees in AppShell,
-// the admin can toggle them from the Admin Dashboard.
-// Defaults are seeded by the API on first load.
-// ============================================================
+// RoleNavConfig
 model RoleNavConfig {
   id        String   @id @default(cuid())
-  role      String   @unique // "student" | "teaching_assistant" | "teacher" | "course_coordinator" | "counselor" | "guardian" | "principal" | "administrator" | "demo"
-  navItems  String   @default("[]") // JSON array of ViewKey strings the role can see
+  role      String   @unique
+  navItems  String   @default("[]")
   updatedAt DateTime @updatedAt
 }
 
-// Guardian↔Student link — allows guardians to see their own children's
-// data without an explicit AccessGrant. A guardian can have multiple
-// children; a student can have multiple guardians.
+// GuardianLink
 model GuardianLink {
   id           String   @id @default(cuid())
-  guardianId   String   // User with role "guardian"
-  studentId    String   // User with role "student"
-  relationship String   @default("parent") // parent | guardian | sibling | other
+  guardianId   String
+  studentId    String
+  relationship String   @default("parent")
   createdAt    DateTime @default(now())
 
   guardian     User     @relation("GuardianLinkGuardian", fields: [guardianId], references: [id], onDelete: Cascade)
@@ -1001,26 +815,26 @@ model GuardianLink {
   @@index([studentId])
 }
 
-// Phase 3.5: Configurable personal rules for teachers
+// Instructor Rules
 model TeacherRule {
   id          String   @id @default(cuid())
-  teacherId   String
-  condition   String   // structured: "days_missed >= 2 AND days_since_contact >= 5"
-  action      String   // "draft_checkin" | "flag_in_today" | "notify"
+  instructorId String
+  condition   String
+  action      String
   enabled     Boolean  @default(true)
   createdAt   DateTime @default(now())
-  teacher     User     @relation("TeacherRuleOwner", fields: [teacherId], references: [id], onDelete: Cascade)
+  instructor  User     @relation("TeacherRuleOwner", fields: [instructorId], references: [id], onDelete: Cascade)
 
-  @@index([teacherId, enabled])
+  @@index([instructorId, enabled])
 }
 
-// Phase 3.7: Anonymized peer case review
+// Case Review
 model CaseReview {
   id              String   @id @default(cuid())
   postedBy        String
-  patternSummary  String   // AI-assisted anonymization, no PII
+  patternSummary  String
   responses       CaseReviewResponse[]
-  status          String   @default("open") // "open" | "closed"
+  status          String   @default("open")
   createdAt       DateTime @default(now())
   postedByUser    User     @relation("CaseReviewAuthor", fields: [postedBy], references: [id], onDelete: Cascade)
 
@@ -1039,59 +853,34 @@ model CaseReviewResponse {
   @@index([caseReviewId])
 }
 
-// StudentHealthSummary — ONE row per student. Lightweight aggregate stats
-// for the teacher dashboard's health overview. Updated on every interaction
-// (tutor message, test completion, check-in) via a single upsert — NOT per-
-// message evidence rows. This prevents DB flooding when scaling to 1000+
-// students.
-//
-// The full analysis pipeline (PsychEvidence, ConfidenceRating, SkillMastery)
-// still runs on TEST completions only — those are meaningful assessment
-// events. AI Tutor messages just increment counters here.
+// StudentHealthSummary
 model StudentHealthSummary {
   id                    String    @id @default(cuid())
   userId                String    @unique
-
-  // Engagement counters (weekly rollover is lazy — checked on next access)
   tutorMessagesThisWeek  Int      @default(0)
   tutorMessagesLastWeek  Int      @default(0)
   tutorMessagesTotal     Int      @default(0)
   testsThisWeek          Int      @default(0)
   testsLastWeek          Int      @default(0)
-
-  // Score tracking (updated on test completion)
-  avgScoreThisWeek       Float?   // 0-100, null if no tests this week
-  avgScoreLastWeek       Float?   // 0-100, null if no tests last week
-  avgScoreOverall        Float?   // 0-100, cumulative
-
-  // Engagement streak (consecutive days with ANY activity)
+  avgScoreThisWeek       Float?
+  avgScoreLastWeek       Float?
+  avgScoreOverall        Float?
   engagementStreak       Int      @default(0)
   lastActiveDate         DateTime?
-
-  // Last tutor session metadata (for language + topic tracking)
   lastTutorActiveAt      DateTime?
-  lastTutorLanguage      String?  // "english" | "roman_urdu" | "roman_hindi" | etc.
+  lastTutorLanguage      String?
   lastTutorTopic         String?
-
-  // Wellbeing tier (synced from WellbeingState on test completion)
-  wellbeingTier          String   @default("green") // "green" | "amber" | "red"
-
-  // Lightweight psych scores (0-100, from per-message heuristic analysis)
-  moodScore              Int      @default(50) // 0=sad/frustrated, 100=happy/engaged
-  engagementScore        Int      @default(50) // 0=disengaged, 100=highly engaged
-  frustrationCount       Int      @default(0) // frustration signals this week
-  avoidanceCount         Int      @default(0) // "I don't know"/"skip" this week
-  enthusiasmCount        Int      @default(0) // enthusiasm signals this week
-
-  // Alert flags (set when thresholds crossed, cleared when teacher acts)
+  wellbeingTier          String   @default("green")
+  moodScore              Int      @default(50)
+  engagementScore        Int      @default(50)
+  frustrationCount       Int      @default(0)
+  avoidanceCount         Int      @default(0)
+  enthusiasmCount        Int      @default(0)
   needsPsychAlert        Boolean  @default(false)
   needsEducationalAlert  Boolean  @default(false)
   needsMentorshipAlert   Boolean  @default(false)
-  alertReasonsJson       String   @default("[]") // JSON array of alert reason strings
-
-  // Weekly rollover tracking
-  weekRolloverAt         DateTime? // when the weekly counters were last rolled over
-
+  alertReasonsJson       String   @default("[]")
+  weekRolloverAt         DateTime?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
@@ -1101,47 +890,45 @@ model StudentHealthSummary {
   @@index([lastActiveDate])
 }
 
-// Unified ChatSession model — stores ALL chatbot sessions across the platform:
-//   - Student tests (practice, daily, weekly)
-//   - Student AI Teacher sessions
-//   - Teacher AI Assistant sessions (behavioral logging for admin/principal)
-//
-// This is the SINGLE source of truth for chat history + behavioral signals.
-// The legacy DailyTest / WeeklyTest models stay (they carry test-specific
-// fields like score, plagiarismScore, retakeAllowed), but ChatSession captures
-// the conversation + psych evidence uniformly so behavioral analysis works
-// the same way across all 4 chatbots.
-//
-// chatbotType values:
-//   "practice"        — student practice session (3 questions)
-//   "daily_test"      — student daily test (3 questions)
-//   "weekly_test"     — student weekly test (15 questions)
-//   "student_tutor"   — student AI Teacher session (no grading, longer explanations)
-//   "teacher_tutor"   — teacher AI Assistant session (behavioral logging for admin/principal)
-model ChatSession {
-  id              String   @id @default(cuid())
-  userId          String  // the user chatting (student OR teacher)
-  chatbotType     String  // practice | daily_test | weekly_test | student_tutor | teacher_tutor
-  week            Int?     // course week (for student sessions; null for teacher)
-  topic           String?  // topic/phase context
-  status          String   @default("in_progress") // in_progress | completed | abandoned
-  score           Int?     // 0-100 (null for tutor sessions — not graded)
-  totalQuestions  Int?     // for tests (3 for practice/daily, 15 for weekly; null for tutor)
-  currentQuestion Int      @default(0)
-  // Conversation: JSON array of { role, content, timestamp, questionIndex, questionExplanation? }
-  conversation    String   @default("[]")
-  // Behavioral signals extracted by the analysis pipeline — JSON object.
-  // Same 7-dimension shape as PsychEvidence: confidence, cognitiveLoad,
-  // metacognitive, engagement, communication, learningCurve, explanatoryDepth.
-  behavioralSignals String? // JSON
-  // AI psych analysis (free-text) — generated for tutor sessions too,
-  // not just tests. Visible to admins/principals for teacher sessions.
-  psychAnalysis   String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  completedAt     DateTime?
+// StudentAlert
+model StudentAlert {
+  id              String    @id @default(cuid())
+  userId          String
+  type            String
+  severity        String    @default("amber")
+  reason          String
+  metric          String
+  metricValue     String
+  status          String    @default("open")
+  createdAt       DateTime  @default(now())
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolutionNote  String?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, status])
+  @@index([type, status])
+  @@index([createdAt])
+}
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// ChatSession
+model ChatSession {
+  id                String    @id @default(cuid())
+  userId            String
+  chatbotType       String
+  week              Int?
+  topic             String?
+  status            String    @default("in_progress")
+  score             Int?
+  totalQuestions    Int?
+  currentQuestion   Int       @default(0)
+  conversation      String    @default("[]")
+  behavioralSignals String?
+  psychAnalysis     String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  completedAt       DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, chatbotType])
   @@index([userId, status])
@@ -1149,32 +936,7 @@ model ChatSession {
   @@index([createdAt])
 }
 
-// StudentAlert — created when a student crosses a psych/educational/mentorship
-// threshold. Shown to teachers in the dashboard + mentorship tab. Resolved
-// when the teacher takes action (logs a touchpoint or dismisses).
-model StudentAlert {
-  id              String    @id @default(cuid())
-  userId          String
-  type            String    // "psychological" | "educational" | "mentorship"
-  severity        String    @default("amber") // "amber" | "red"
-  reason          String    // plain-English explanation
-  metric          String    // "moodScore" | "avgScore" | "engagementStreak"
-  metricValue     String    // the value that triggered the alert
-  status          String    @default("open") // "open" | "acknowledged" | "resolved"
-  createdAt       DateTime  @default(now())
-  resolvedAt      DateTime?
-  resolvedBy      String?
-  resolutionNote  String?
-
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, status])
-  @@index([type, status])
-  @@index([createdAt])
-}
-
-// Institution — represents the organization running courses (e.g., FCCL-MIS).
-// All users, courses, and certificates belong to an institution.
+// Institution
 model Institution {
   id            String   @id @default(cuid())
   name          String
@@ -1187,19 +949,16 @@ model Institution {
   certificates  Certificate[]
 }
 
-// GrowthReport — private, honest student growth summary generated at course
-// completion. NOT publicly verifiable (unlike Certificate). Contains real
-// shortcomings alongside strengths. The full, honest picture lives here —
-// the certificate stays simple and positive.
+// GrowthReport
 model GrowthReport {
   id                String   @id @default(cuid())
   userId            String   @unique
   courseId          String?
   generatedAt       DateTime @default(now())
-  strengths         String   // JSON or free text — summary of what went well
-  growthAreas       String   // JSON or free text — honest shortcomings
-  dimensionSnapshot String   // JSON snapshot of the 7-dimension profile at completion
-  behavioralNotes   String?  // GROW/mentorship-derived summary, if available
+  strengths         String
+  growthAreas       String
+  dimensionSnapshot String
+  behavioralNotes   String?
 
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

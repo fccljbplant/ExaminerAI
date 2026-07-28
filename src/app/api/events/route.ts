@@ -1,31 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { requireRole, UserRole } from "@/lib/rbac";
+import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
- * GET /api/events?batchId=X — list events for a batch (or all upcoming).
- *   - Students: see events for their batch only
- *   - Staff: see events for the specified batch (or all if no batchId)
+ * GET /api/events?courseId=X — list events for a course (or all upcoming).
+ *   - Students: see events for their enrolled courses only
+ *   - Staff: see events for the specified course (or all if no courseId)
  */
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const batchId = req.nextUrl.searchParams.get("batchId");
+  const courseIdParam = req.nextUrl.searchParams.get("courseId");
 
-  let where: { batchId?: string } = {};
+  let where: { courseId?: string } = {};
   if (user.role === "student" || user.role === "pending") {
-    where.batchId = user.batchId ?? "none"; // if no batch, see nothing
-  } else if (batchId) {
-    where.batchId = batchId;
+    // Students see events for their enrolled courses only
+    const enrollments = await db.courseEnrollment.findMany({
+      where: { userId: user.id, role: "student" },
+      select: { courseId: true },
+    });
+    const courseIds = enrollments.map(e => e.courseId);
+    where.courseId = courseIds.length > 0 ? { in: courseIds } as any : "none";
+  } else if (courseIdParam) {
+    where.courseId = courseIdParam;
   }
 
   const events = await db.event.findMany({
     where,
     orderBy: { startDate: "asc" },
-    take: 50, // limit to next 50 events
+    take: 50,
   });
 
   return NextResponse.json({ events });
@@ -33,7 +39,7 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/events — create a new event (teachers/admins only).
- * Body: { title, description?, type?, startDate, endDate?, location?, batchId?, isAllDay? }
+ * Body: { title, description?, type?, startDate, endDate?, location?, courseId?, isAllDay? }
  */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("creating events"); if (_demoBlock) return _demoBlock;
@@ -41,19 +47,28 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
-  const { title, description, type, startDate, endDate, location, batchId, isAllDay, activityType } = body as {
+  const { title, description, type, startDate, endDate, location, courseId, isAllDay, activityType } = body as {
     title?: string; description?: string; type?: string;
     startDate?: string; endDate?: string; location?: string;
-    batchId?: string; isAllDay?: boolean; activityType?: string;
+    courseId?: string; isAllDay?: boolean; activityType?: string;
   };
 
   if (!title?.trim() || !startDate) {
     return NextResponse.json({ error: "title and startDate required" }, { status: 400 });
   }
-  // Input validation
   if (title.length > 500) return NextResponse.json({ error: "title too long (max 500 chars)" }, { status: 400 });
   if (description && description.length > 10_000) return NextResponse.json({ error: "description too long" }, { status: 400 });
   if (location && location.length > 500) return NextResponse.json({ error: "location too long" }, { status: 400 });
+
+  // Find the caller's course enrollment if no courseId provided
+  let targetCourseId = courseId;
+  if (!targetCourseId) {
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId: auth.ctx.payload.sub, role: "instructor" },
+      select: { courseId: true },
+    });
+    targetCourseId = enrollment?.courseId ?? null;
+  }
 
   const event = await db.event.create({
     data: {
@@ -64,7 +79,7 @@ export async function POST(req: NextRequest) {
       startDate: new Date(startDate),
       endDate: endDate ? new Date(endDate) : null,
       location: location?.trim() || null,
-      batchId: batchId || auth.ctx.user?.batchId || null,
+      courseId: targetCourseId,
       createdById: auth.ctx.payload.sub,
       isAllDay: isAllDay ?? false,
     },
@@ -77,7 +92,7 @@ export async function POST(req: NextRequest) {
  * DELETE /api/events — delete an event.
  * Body: { eventId }
  *
- * H2 fix (audit 2026-07-26): teachers can only delete events in batches they
+ * H2 fix (audit 2026-07-26): teachers can only delete events in courses they
  * can access. Admins can delete any event.
  */
 export async function DELETE(req: NextRequest) {
@@ -89,20 +104,18 @@ export async function DELETE(req: NextRequest) {
   const { eventId } = body as { eventId?: string };
   if (!eventId) return NextResponse.json({ error: "eventId required" }, { status: 400 });
 
-  // H2 fix: verify the event belongs to a batch the caller can access
-  const { hasRole, ADMIN_ROLES } = await import("@/lib/rbac");
   if (!hasRole(auth.ctx.payload.role, ADMIN_ROLES)) {
     const event = await db.event.findUnique({
       where: { id: eventId },
-      select: { batchId: true, createdById: true },
+      select: { courseId: true, createdById: true },
     });
     if (!event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
-    // Teacher can delete if they created it OR if it's in a batch they can access
-    if (event.createdById !== auth.ctx.payload.sub && event.batchId) {
-      const { canAccessBatch } = await import("@/lib/batch-teachers");
-      const canAccess = await canAccessBatch(auth.ctx.payload.sub, auth.ctx.payload.role, event.batchId);
-      if (!canAccess) {
-        return NextResponse.json({ error: "You can only delete events in batches you are assigned to" }, { status: 403 });
+    if (event.createdById !== auth.ctx.payload.sub && event.courseId) {
+      const instructorAccess = await db.courseEnrollment.findFirst({
+        where: { userId: auth.ctx.payload.sub, courseId: event.courseId, role: "instructor" },
+      });
+      if (!instructorAccess) {
+        return NextResponse.json({ error: "You can only delete events in courses you are assigned to" }, { status: 403 });
       }
     }
   }

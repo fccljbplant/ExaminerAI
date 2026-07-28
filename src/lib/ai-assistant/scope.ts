@@ -17,7 +17,6 @@
  */
 
 import { db } from "@/lib/db";
-import { getTeacherBatchIds } from "@/lib/batch-teachers";
 import { logger } from "@/lib/logger";
 
 export interface ScopeResult {
@@ -103,7 +102,7 @@ export async function resolveAssistantScope(
         select: { id: true },
       }),
       db.user.findMany({
-        where: { role: "teacher", ...institutionFilter },
+        where: { role: { in: ["teacher", "instructor"] }, ...institutionFilter },
         select: { id: true },
       }),
       db.course.findMany({
@@ -152,7 +151,7 @@ export async function resolveAssistantScope(
         select: { id: true },
       }),
       db.user.findMany({
-        where: { role: "teacher", ...institutionFilter },
+        where: { role: { in: ["teacher", "instructor"] }, ...institutionFilter },
         select: { id: true },
       }),
     ]);
@@ -210,15 +209,19 @@ export async function resolveAssistantScope(
     };
   }
 
-  // TEACHER / TEACHING_ASSISTANT — students in their batches only
-  // (Teachers don't need an institutionId — they're scoped by BatchTeacher.)
-  const batchIds = await getTeacherBatchIds(callerId, callerRole);
-  if (!batchIds || batchIds.length === 0) {
+  // TEACHER / TEACHING_ASSISTANT — students in their courses only
+  // (Teachers don't need an institutionId — they're scoped by CourseEnrollment.)
+  const instructorCourses = await db.courseEnrollment.findMany({
+    where: { userId: callerId, role: "instructor" },
+    select: { courseId: true },
+  });
+  const courseIds = instructorCourses.map(c => c.courseId);
+  if (courseIds.length === 0) {
     return {
       studentIds: [],
       teacherIds: [callerId], // Teachers can see their own load
-      courseIds: [],
-      batchIds: batchIds ?? [],
+      courseIds,
+      batchIds: [],
       institutionId,
       isInstitutionWide: false,
       callerRole,
@@ -226,24 +229,17 @@ export async function resolveAssistantScope(
     };
   }
 
-  // Get students in those batches
-  const students = await db.user.findMany({
-    where: { role: "student", batchId: { in: batchIds }, blocked: false },
-    select: { id: true },
+  // Get students in those courses
+  const studentEnrollments = await db.courseEnrollment.findMany({
+    where: { courseId: { in: courseIds }, role: "student" },
+    select: { userId: true },
   });
-
-  // Get courses for those batches
-  const batchRecords = await db.batch.findMany({
-    where: { id: { in: batchIds } },
-    select: { courseId: true },
-  });
-  const courseIds = [...new Set(batchRecords.map(b => b.courseId).filter(Boolean))] as string[];
 
   return {
-    studentIds: students.map(s => s.id),
+    studentIds: studentEnrollments.map(e => e.userId),
     teacherIds: [callerId],
     courseIds,
-    batchIds,
+    batchIds: [],
     institutionId,
     isInstitutionWide: false,
     callerRole,

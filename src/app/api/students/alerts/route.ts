@@ -44,16 +44,30 @@ export async function GET(req: NextRequest) {
   }
 
   // Get all open alerts across all students (for teacher dashboard)
-  // HI-2 fix: scope to the caller's batch(es) — was returning ALL alerts
-  // institution-wide with no scoping, leaking cross-batch/cross-institution data.
-  const { getBatchFilter } = await import("@/lib/batch-teachers");
-  const batchFilter = isPrincipal ? {} : await getBatchFilter(payload.sub, payload.role);
+  // Scope to the caller's enrolled students via CourseEnrollment
+  let accessibleStudentIds: string[] | undefined;
+  if (!isPrincipal) {
+    const instructorCourses = await db.courseEnrollment.findMany({
+      where: { userId: payload.sub, role: "instructor" },
+      select: { courseId: true },
+    });
+    const courseIds = instructorCourses.map(c => c.courseId);
+    if (courseIds.length > 0) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { courseId: { in: courseIds }, role: "student" },
+        select: { userId: true },
+      });
+      accessibleStudentIds = enrollments.map(e => e.userId);
+    } else {
+      accessibleStudentIds = [];
+    }
+  }
   const alertWhere: any = {
     status: "open",
     user: {
       role: "student",
       blocked: false,
-      ...batchFilter,
+      ...(accessibleStudentIds !== undefined ? { id: { in: accessibleStudentIds } } : {}),
     },
   };
   if (!isPrincipal) {
@@ -64,7 +78,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
-      user: { select: { id: true, name: true, email: true, batchId: true } },
+      user: { select: { id: true, name: true, email: true } },
     },
   });
 

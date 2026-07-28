@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
 
         // CR-1 fix: use createSafeguardingFlag() which enforces the 2+ corroboration rule
         await createSafeguardingFlag({
-          teacherId: user.id,
+          instructorId: user.id,
           studentId: toId,
           signalCount: totalSignalCount,
           messageIds: [msg.id],

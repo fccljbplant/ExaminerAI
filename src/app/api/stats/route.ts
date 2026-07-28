@@ -1,5 +1,4 @@
 import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
-import { getBatchFilter, getTeacherBatchIds } from "@/lib/batch-teachers";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -7,18 +6,18 @@ import { getCourseProjectConfig } from "@/lib/course-db";
 
 /** GET /api/stats — aggregated stats for the dashboard.
  *  - For students: their own progress, streak, weakest topic, etc.
- *  - For teachers/admins: batch overview + counts.
- *  - For admin impersonating (via ?as=student|teacher): returns that role's stats. */
+ *  - For instructors/admins: course overview + counts.
+ *  - For admin impersonating (via ?as=student|teacher|instructor): returns that role's stats. */
 export async function GET(req: Request) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const url = new URL(req.url);
-  const asRole = url.searchParams.get("as"); // student | teacher — for admin impersonation
-  const role = asRole === "student" || asRole === "teacher" ? asRole : payload.role;
+  const asRole = url.searchParams.get("as"); // student | teacher | instructor — for admin impersonation
+  const role = (asRole === "student" || asRole === "teacher" || asRole === "instructor") ? asRole : payload.role;
 
   // M4 fix (audit 2026-07-26): course_coordinator now has access to teacher
   // stats so they can see students in their institution's courses.
-  if (role === "teacher" || role === "course_coordinator" || (role === "admin" && asRole === "teacher")) {
+  if (role === "instructor" || role === "teacher" || role === "course_coordinator" || (role === "admin" && (asRole === "teacher" || asRole === "instructor"))) {
     // Scale: server-side pagination — don't load ALL students at once.
     // Default page size 100 (renders 4 pages of 25 in the UI). Max 200.
     const page = Math.max(0, parseInt(url.searchParams.get("page") || "0", 10));
@@ -27,27 +26,25 @@ export async function GET(req: Request) {
     // Search — filter by name or email (case-insensitive)
     const q = (url.searchParams.get("q") || "").trim();
 
-    // M1 fix (audit 2026-07-26): optional batchId query param for the batch
-    // switcher. When provided, the teacher sees only students in that batch.
-    // When omitted, the teacher sees students in ALL their batches (default).
-    // Admins can pass any batchId; teachers can only filter to batches they
-    // can access (verified via canAccessBatch).
-    const requestedBatchId = url.searchParams.get("batchId") || "";
-
-    // For stats (total counts), we need the full count — but we can get it
-    // without loading all records. The enriched student list is paginated.
-    // Multi-teacher: scope students to the teacher's batches via BatchTeacher
-    let batchFilter = await getBatchFilter(payload.sub, payload.role);
-
-    // M1 fix: if a specific batchId was requested, narrow the filter to just
-    // that batch (after verifying access).
-    if (requestedBatchId) {
-      const { canAccessBatch } = await import("@/lib/batch-teachers");
-      const hasAccess = await canAccessBatch(payload.sub, payload.role, requestedBatchId);
-      if (!hasAccess) {
-        return NextResponse.json({ error: "You don't have access to this batch" }, { status: 403 });
+    // Scope students to the instructor's courses via CourseEnrollment.
+    // Course coordinators and admins see all students (no scope filter).
+    const isAdminRole = hasRole(payload.role, ADMIN_ROLES);
+    let scopedStudentIds: string[] | null = null;
+    if (!isAdminRole && (role === "instructor" || role === "teacher")) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { userId: payload.sub, role: "instructor" },
+        select: { courseId: true },
+      });
+      const courseIds = enrollments.map(e => e.courseId);
+      if (courseIds.length > 0) {
+        const studentEnrollments = await db.courseEnrollment.findMany({
+          where: { courseId: { in: courseIds }, role: "student" },
+          select: { userId: true },
+        });
+        scopedStudentIds = [...new Set(studentEnrollments.map(e => e.userId))];
+      } else {
+        scopedStudentIds = [];
       }
-      batchFilter = { batchId: requestedBatchId };
     }
     const searchClause = q ? {
       OR: [
@@ -55,7 +52,7 @@ export async function GET(req: Request) {
         { email: { contains: q, mode: "insensitive" as const } },
       ],
     } : {};
-    const studentWhere = { role: "student" as const, ...batchFilter, ...searchClause };
+    const studentWhere = { role: "student" as const, ...(scopedStudentIds !== null ? { id: { in: scopedStudentIds } } : {}), ...searchClause };
 
     const [students, pending, teachers, totalStudents] = await Promise.all([
       db.user.findMany({
@@ -77,7 +74,7 @@ export async function GET(req: Request) {
         },
       }),
       db.user.count({ where: { role: "pending" } }),
-      db.user.count({ where: { role: "teacher" } }),
+      db.user.count({ where: { role: "instructor" } }),
       db.user.count({ where: studentWhere }),
     ]);
     const weekStart = new Date();
@@ -221,31 +218,8 @@ export async function GET(req: Request) {
     const studentsWithoutProjects = totalStudents - totalWithProjects;
     const studentsNeedingAttention = totalNeedingAttention;
 
-    // M1 fix: fetch the teacher's batch list for the batch switcher dropdown.
-    // Only fetches when no specific batchId is selected (otherwise the switcher
-    // would only show one option).
-    let teacherBatches: Array<{ id: string; name: string; studentCount: number }> = [];
-    if (!requestedBatchId) {
-      const teacherBatchIds = await getTeacherBatchIds(payload.sub, payload.role);
-      if (teacherBatchIds && teacherBatchIds.length > 1) {
-        // Only show the switcher when the teacher has 2+ batches
-        const batches = await db.batch.findMany({
-          where: { id: { in: teacherBatchIds } },
-          select: {
-            id: true, name: true,
-            _count: { select: { users: true } },
-          },
-        });
-        teacherBatches = batches.map(b => ({
-          id: b.id,
-          name: b.name,
-          studentCount: b._count.users,
-        }));
-      }
-    }
-
     return NextResponse.json({
-      role: "teacher",
+      role: "instructor",
       stats: {
         totalStudents,
         pendingApprovals: pending,
@@ -264,9 +238,6 @@ export async function GET(req: Request) {
         loadedCount: students.length,
       },
       students: enriched,
-      // M1 fix: batch list for the batch switcher (only populated when the
-      // teacher has 2+ batches and no specific batchId is selected).
-      teacherBatches,
     });
   }
 

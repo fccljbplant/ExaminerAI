@@ -1,51 +1,51 @@
 /**
- * Batch teacher helpers — multi-teacher batch support.
+ * Course-centric instructor helpers — replaces the old batch-teachers.ts.
  *
- * Teachers get multi-batch access via the BatchTeacher junction table.
- * This module provides helpers to query a teacher's batch memberships
- * and check access, replacing the old single-batchId approach.
- *
- * Students remain one-batch-each via User.batchId (unchanged).
+ * Instructors have access to students via CourseEnrollment.
+ * This module provides helpers to query an instructor's course memberships
+ * and check access.
  */
 
 import { db } from "@/lib/db";
 
-/** Get all batch IDs a teacher belongs to via BatchTeacher.
- *  Returns an empty array if the teacher has no batch memberships.
- *  For admin/principal/administrator/developer roles, returns null
- *  (meaning "all batches" — no scoping needed). */
-export async function getTeacherBatchIds(userId: string, role: string): Promise<string[] | null> {
-  // Admin roles — unrestricted access (no batch scoping)
+/** Get all course IDs an instructor is assigned to via CourseEnrollment.
+ *  Returns null for admin roles (meaning unrestricted access). */
+export async function getInstructorCourseIds(userId: string, role: string): Promise<string[] | null> {
   const adminRoles = ["principal", "administrator", "demo", "admin"];
   if (adminRoles.includes(role)) return null;
 
-  const memberships = await db.batchTeacher.findMany({
-    where: { teacherId: userId },
-    select: { batchId: true },
+  const memberships = await db.courseEnrollment.findMany({
+    where: { userId, role: "instructor" },
+    select: { courseId: true },
   });
-  return memberships.map(m => m.batchId);
+  return memberships.map(m => m.courseId);
 }
 
-/** Check if a teacher has access to a specific batch.
- *  Admins always have access. Teachers need a BatchTeacher row. */
-export async function canAccessBatch(userId: string, role: string, batchId: string): Promise<boolean> {
+/** Check if an instructor has access to students in a specific course.
+ *  Admins always have access. */
+export async function canAccessCourse(userId: string, role: string, courseId: string): Promise<boolean> {
   const adminRoles = ["principal", "administrator", "demo", "admin"];
   if (adminRoles.includes(role)) return true;
 
-  const membership = await db.batchTeacher.findFirst({
-    where: { teacherId: userId, batchId },
+  const membership = await db.courseEnrollment.findFirst({
+    where: { userId, courseId, role: "instructor" },
     select: { id: true },
   });
   return !!membership;
 }
 
 /** Build a Prisma `where` clause for filtering students by the caller's
- *  batch access. Returns {} (no filter) for admins, or { batchId: { in: [...] } }
- *  for teachers with batch memberships.
- *  Returns { batchId: null } for teachers with NO batch memberships (sees nothing). */
-export async function getBatchFilter(userId: string, role: string): Promise<Record<string, unknown>> {
-  const batchIds = await getTeacherBatchIds(userId, role);
-  if (batchIds === null) return {}; // admin — no filter
-  if (batchIds.length === 0) return { batchId: null }; // teacher with no batches — sees nothing
-  return { batchId: { in: batchIds } };
+ *  course access. Returns {} (no filter) for admins. */
+export async function getStudentFilter(userId: string, role: string): Promise<Record<string, unknown>> {
+  const courseIds = await getInstructorCourseIds(userId, role);
+  if (courseIds === null) return {}; // admin — no filter
+  if (courseIds.length === 0) return { id: null }; // sees nothing
+
+  const studentEnrollments = await db.courseEnrollment.findMany({
+    where: { courseId: { in: courseIds }, role: "student" },
+    select: { userId: true },
+  });
+  const studentIds = [...new Set(studentEnrollments.map(e => e.userId))];
+  if (studentIds.length === 0) return { id: null };
+  return { id: { in: studentIds } };
 }

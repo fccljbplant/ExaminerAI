@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         await tx.interaction.update({ where: { id }, data: { correctness: score } });
         await tx.comment.create({
           data: {
-            interactionId: id, studentId: interaction.userId, teacherId: ctx.payload.sub,
+            interactionId: id, studentId: interaction.userId, instructorId: ctx.payload.sub,
             body: `Grade overridden by teacher: ${oldScore}% → ${score}%${reason ? ` — ${reason}` : ""}`,
             marksOverride: score,
           },

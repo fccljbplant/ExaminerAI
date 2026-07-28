@@ -28,7 +28,7 @@ export async function GET() {
   const [institution, studentsCount, teachersCount, counselorsCount, mentorsCount, coursesCount, batchesCount, alerts, mentorSessionsCount, wellbeingStates, crisisFlags, healthSummaries, auditLogs, growthReports, enrollmentsCount, courses, teachers] = await Promise.all([
     db.institution.findUnique({ where: { id: institutionId } }),
     db.user.count({ where: { role: "student", institutionId, blocked: false } }),
-    db.user.count({ where: { role: "teacher", institutionId } }),
+    db.user.count({ where: { role: "instructor", institutionId } }),
     db.user.count({ where: { role: "counselor", institutionId } }),
     db.user.count({ where: { role: "course_coordinator", institutionId } }),
     db.course.count({ where: { institutionId } }),
@@ -59,7 +59,7 @@ export async function GET() {
     // C6 fix: load teachers WITH their BatchTeacher junction (so we can count
     // how many batches each teacher teaches) + their mentorship touchpoints.
     db.user.findMany({
-      where: { role: "teacher", institutionId },
+      where: { role: "instructor", institutionId },
       select: {
         id: true, name: true, email: true,
         _count: { select: { batchTeaching: true, mentorshipTouchpoints: true } },
@@ -142,22 +142,22 @@ export async function GET() {
   // C6 fix: real teacher performance — batch count from BatchTeacher junction,
   // sessions from mentorship touchpoints, alerts raised from StudentAlert
   // where userId = teacher's id.
-  const teacherIds = teachers.map(t => t.id);
-  const alertsByTeacher = teacherIds.length > 0
+  const instructorIds = teachers.map(t => t.id);
+  const alertsByInstructor = instructorIds.length > 0
     ? await db.studentAlert.groupBy({
         by: ["userId"],
-        where: { userId: { in: teacherIds } },
+        where: { userId: { in: instructorIds } },
         _count: { _all: true },
       })
     : [];
-  const alertsByTeacherMap = new Map(alertsByTeacher.map(a => [a.userId, a._count._all]));
+  const alertsByInstructorMap = new Map(alertsByInstructor.map(a => [a.userId, a._count._all]));
   const teacherPerformance = teachers.map(t => ({
     id: t.id,
     name: t.name,
     email: t.email,
     courses: t._count.batchTeaching,    // Number of batches the teacher is assigned to
     sessions: t._count.mentorshipTouchpoints,  // Mentorship sessions logged
-    alertsRaised: alertsByTeacherMap.get(t.id) || 0,
+    alertsRaised: alertsByInstructorMap.get(t.id) || 0,
   }));
 
   // CR-2 fix (audit 2026-07-26 FINAL): fetch safeguarding flags for principal review.

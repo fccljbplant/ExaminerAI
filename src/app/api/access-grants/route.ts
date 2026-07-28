@@ -8,7 +8,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 /** GET /api/access-grants — list access grants. Admins see all, staff see own. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR,
+    UserRole.INSTRUCTOR, UserRole.TEACHING_ASSISTANT, UserRole.COURSE_COORDINATOR,
     UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   if (!grantee) return NextResponse.json({ error: "Grantee user not found" }, { status: 404 });
 
   const GRANTABLE_ROLES: string[] = [
-    UserRole.TEACHING_ASSISTANT, UserRole.TEACHER, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, "teacher",
+    UserRole.TEACHING_ASSISTANT, UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, "teacher", "instructor",
   ];
   if (!GRANTABLE_ROLES.includes(grantee.role)) {
     return NextResponse.json({ error: `Role '${grantee.role}' cannot receive access grants` }, { status: 400 });

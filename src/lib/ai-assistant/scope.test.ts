@@ -21,8 +21,8 @@ describe("AI Assistant — Scope Resolver", () => {
   let institutionId: string;
 
   beforeAll(async () => {
-    // Find a teacher
-    const teacher = await db.user.findFirst({ where: { role: "teacher" } });
+    // Find a teacher (or instructor - for backward compat)
+    const teacher = await db.user.findFirst({ where: { role: { in: ["instructor", "teacher"] } } });
     teacherId = teacher!.id;
 
     // Find a principal

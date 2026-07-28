@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
   if (!groupTaskId) return NextResponse.json({ error: "groupTaskId required" }, { status: 400 });
 
   // Students see only their own submission; staff see all
-  const isStaff = ["teacher", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
+  const isStaff = ["teacher", "instructor", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
 
   const submissions = await db.groupTaskSubmission.findMany({
     where: { groupTaskId, ...(isStaff ? {} : { userId: user.id }) },
@@ -90,7 +90,7 @@ export async function PATCH(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("submitting group tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["teacher", "principal", "administrator", "admin"].includes(user.role)) {
+  if (!["teacher", "instructor", "principal", "administrator", "admin"].includes(user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -1,22 +1,5 @@
 "use client";
 
-/**
- * TeacherDashboard — the massive powerful assistant for 100 students.
- *
- * ARCHITECTURE:
- * - Sidebar is the PRIMARY navigation (5 items: Today/Students/Mentorship/Assignments/Insights)
- * - NO inline tabs for messages/myload/settings (sidebar handles those)
- * - Single data load: stats + alerts fetched ONCE, passed to all views
- * - Pagination support: uses hasMore/page from API (no silent student loss)
- *
- * DESIGN PRINCIPLES:
- * 1. Triage-first — every view answers "who needs me?"
- * 2. Glanceable — color, badges, charts (can't read 100 rows)
- * 3. AI as teammate — surfaces what to look at, drafts responses
- * 4. One-click actions — every item has a clear next action
- * 5. No duplicates — each feature lives in exactly one place
- */
-
 import { useEffect, useState, useCallback } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
@@ -69,7 +52,7 @@ interface AlertItem {
   user?: { id: string; name: string; email: string; batchId: string | null };
 }
 
-export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherTab } = {}) {
+export default function TeacherDashboard({ initialTab, courseId }: { initialTab?: TeacherTab; courseId?: string } = {}) {
   const [tab, setTab] = useState<TeacherTab>(initialTab || "today");
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [stats, setStats] = useState<TeacherStats | null>(null);
@@ -78,35 +61,25 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
   const [selectedStudentIndex, setSelectedStudentIndex] = useState<number>(-1);
-  // M1 fix: batch switcher state — when the teacher has 2+ batches, a dropdown
-  // appears in the header to let them focus on one batch at a time.
-  const [teacherBatches, setTeacherBatches] = useState<Array<{ id: string; name: string; studentCount: number }>>([]);
-  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
 
-  // Update tab when initialTab prop changes (from sidebar nav clicks)
   useEffect(() => {
     if (initialTab) setTab(initialTab);
   }, [initialTab]);
 
   const load = useCallback(async () => {
     try {
-      const batchParam = selectedBatchId ? `&batchId=${encodeURIComponent(selectedBatchId)}` : "";
+      const courseParam = courseId ? `&courseId=${encodeURIComponent(courseId)}` : "";
       const [statsRes, alertsRes] = await Promise.all([
         api.get<{
           stats: TeacherStats;
           students: StudentRow[];
           hasMore?: boolean;
-          teacherBatches?: Array<{ id: string; name: string; studentCount: number }>;
-        }>(`/api/stats?as=teacher&page=0&pageSize=100${batchParam}`, undefined, AI_TIMEOUT_MS),
+        }>(`/api/stats?as=instructor&page=0&pageSize=100${courseParam}`, undefined, AI_TIMEOUT_MS),
         api.get<{ alerts: AlertItem[] }>("/api/students/alerts").catch(() => ({ alerts: [] as AlertItem[] })),
       ]);
       setStats(statsRes?.stats || null);
       setStudents(Array.isArray(statsRes?.students) ? statsRes.students : []);
       setAlerts(Array.isArray(alertsRes?.alerts) ? alertsRes.alerts : []);
-      // M1 fix: populate the batch switcher options (only when no batch is selected)
-      if (statsRes?.teacherBatches) {
-        setTeacherBatches(statsRes.teacherBatches);
-      }
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed to load dashboard");
       setStudents([]);
@@ -115,11 +88,10 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedBatchId]);
+  }, [courseId]);
 
   useEffect(() => { load(); }, [load]);
 
-  // Student portfolio navigation
   const handleStudentClick = (student: StudentRow) => {
     const idx = students.findIndex(s => s.id === student.id);
     setSelectedStudentIndex(idx);
@@ -166,7 +138,6 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
     );
   }
 
-  // Empty state — teacher with no students assigned
   if (!loading && students.length === 0 && !stats) {
     return (
       <div className="max-w-2xl mx-auto pt-8">
@@ -177,8 +148,8 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">No students assigned yet</h2>
             <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-              You don&apos;t have any students in your classes yet. Once an administrator
- assigns students to your courses, they&apos;ll appear here with their progress,
+              You don&apos;t have any students in this course yet. Once an administrator
+ enrolls students to your courses, they&apos;ll appear here with their progress,
  wellbeing indicators, and action items.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -202,10 +173,9 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      {/* Header bar — with inline stat pills */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Teacher Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Instructor Dashboard</h1>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {stats && (
               <>
@@ -241,21 +211,6 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* M1 fix: Batch switcher — only shows when the teacher has 2+ batches.
-              Lets them focus on one batch at a time instead of seeing all students mixed. */}
-          {teacherBatches.length > 1 && (
-            <select
-              value={selectedBatchId}
-              onChange={(e) => { setSelectedBatchId(e.target.value); setLoading(true); }}
-              className="text-xs border border-border rounded-md px-2 py-1.5 bg-background text-foreground h-8"
-              title="Filter students by class"
-            >
-              <option value="">All Classes ({teacherBatches.reduce((a, b) => a + b.studentCount, 0)} students)</option>
-              {teacherBatches.map(b => (
-                <option key={b.id} value={b.id}>{b.name} ({b.studentCount})</option>
-              ))}
-            </select>
-          )}
           <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); load(); }} disabled={refreshing}>
             <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", refreshing && "animate-spin")} />
             Refresh
@@ -263,7 +218,6 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
         </div>
       </div>
 
-      {/* Inline tab nav — ONLY the 5 main views (no messages/myload/settings — sidebar handles those) */}
       <ProminentTabs
         tabs={TABS.map(item => ({
           key: item.key,
@@ -278,7 +232,6 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
         size="md"
       />
 
-      {/* Tab content — each view receives students + stats + alerts as props (no refetching) */}
       {tab === "today" && (
         <div className="space-y-4">
           <TodayView
@@ -308,7 +261,7 @@ export default function TeacherDashboard({ initialTab }: { initialTab?: TeacherT
         />
       )}
 
-      {tab === "assignments" && <AssignmentsTab students={students} batchId={selectedBatchId || teacherBatches[0]?.id} />}
+      {tab === "assignments" && <AssignmentsTab students={students} courseId={courseId} />}
 
       {tab === "insights" && (
         <InsightsView

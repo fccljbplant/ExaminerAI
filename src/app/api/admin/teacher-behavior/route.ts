@@ -41,7 +41,7 @@ export async function GET() {
 
   // Build per-teacher summary
   const byTeacher = new Map<string, {
-    teacherId: string;
+    instructorId: string;
     name: string;
     email: string;
     role: string;
@@ -53,7 +53,7 @@ export async function GET() {
 
   for (const s of sessions) {
     const existing = byTeacher.get(s.userId) ?? {
-      teacherId: s.userId,
+      instructorId: s.userId,
       name: s.user.name,
       email: s.user.email,
       role: s.user.role,
@@ -88,7 +88,7 @@ export async function GET() {
     } catch {/* ignore */}
     return {
       id: s.id,
-      teacherId: s.userId,
+      instructorId: s.userId,
       teacherName: s.user.name,
       teacherEmail: s.user.email,
       teacherRole: s.user.role,

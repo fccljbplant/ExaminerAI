@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { isStaffRole } from "@/lib/rbac";
-import { getBatchFilter } from "@/lib/batch-teachers";
+import { isStaffRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { getCourseDurationWeeks } from "@/lib/course-db";
 
 /** GET /api/certificates/pending — list pending certificate requests for staff.
@@ -27,9 +26,24 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden — staff only" }, { status: 403 });
   }
 
-  // Get the batch filter for this staff member — scopes students to their batches.
-  // Admins/principals get an empty filter (see all institution students).
-  const batchFilter = await getBatchFilter(user.id, user.role);
+  // Get accessible student IDs via CourseEnrollment
+  let accessibleStudentIds: string[] | undefined;
+  if (!hasRole(user.role, ADMIN_ROLES)) {
+    const instructorCourses = await db.courseEnrollment.findMany({
+      where: { userId: user.id, role: "instructor" },
+      select: { courseId: true },
+    });
+    const courseIds = instructorCourses.map(c => c.courseId);
+    if (courseIds.length > 0) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { courseId: { in: courseIds }, role: "student" },
+        select: { userId: true },
+      });
+      accessibleStudentIds = enrollments.map(e => e.userId);
+    } else {
+      accessibleStudentIds = []; // no courses = sees nothing
+    }
+  }
 
   // Fetch pending certificates (grade="PENDING") for the scoped students
   const pendingCerts = await db.certificate.findMany({
@@ -37,14 +51,14 @@ export async function GET() {
       grade: "PENDING",
       user: {
         role: "student",
-        ...batchFilter,
+        ...(accessibleStudentIds !== undefined ? { id: { in: accessibleStudentIds } } : {}),
         blocked: false,
       },
     },
     include: {
       user: {
         select: {
-          id: true, name: true, email: true, currentWeek: true, batchId: true,
+          id: true, name: true, email: true, currentWeek: true,
         },
       },
     },

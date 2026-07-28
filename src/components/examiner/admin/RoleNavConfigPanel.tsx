@@ -20,7 +20,7 @@ export function RoleNavConfigPanel() {
   const [configs, setConfigs] = useState<Array<{ role: string; navItems: string[]; isCustom: boolean }>>([]);
   const [allNavKeys, setAllNavKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRole, setSelectedRole] = useState<string>("teacher");
+  const [selectedRole, setSelectedRole] = useState<string>("instructor");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 

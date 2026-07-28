@@ -1,35 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getBatchFilter, getTeacherBatchIds, canAccessBatch } from "@/lib/batch-teachers";
 import { getCurrentUser } from "@/lib/auth";
 import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
- * GET /api/group-tasks?batchId=X — list group tasks for a batch.
+ * GET /api/group-tasks?courseId=X — list group tasks for a course.
  *   - Teachers/admins: see all tasks + submission counts
- *   - Students: see tasks for their batch + their own submission status
+ *   - Students: see tasks for their courses + their own submission status
  */
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const batchId = req.nextUrl.searchParams.get("batchId");
+  const courseIdParam = req.nextUrl.searchParams.get("courseId");
 
-  // Determine which batch to query
-  let targetBatchId = batchId;
+  // Determine which course to query
+  let targetCourseId = courseIdParam;
   if (user.role === "student" || user.role === "pending") {
-    // Students see tasks for their own batch only
-    targetBatchId = user.batchId;
-    if (!targetBatchId) return NextResponse.json({ tasks: [] });
+    // Students see tasks for their enrolled courses
+    const enrollments = await db.courseEnrollment.findMany({
+      where: { userId: user.id, role: "student" },
+      select: { courseId: true },
+    });
+    const courseIds = enrollments.map(e => e.courseId);
+    if (courseIds.length === 0) return NextResponse.json({ tasks: [] });
+    if (courseIdParam && courseIds.includes(courseIdParam)) {
+      targetCourseId = courseIdParam;
+    } else {
+      targetCourseId = courseIds[0];
+    }
   } else {
-    // Staff: use the batchId param, or their own batch if not provided
-    if (!targetBatchId && user.batchId) targetBatchId = user.batchId;
-    if (!targetBatchId) return NextResponse.json({ error: "batchId required" }, { status: 400 });
+    // Staff: use the courseId param, or their first course if not provided
+    if (!targetCourseId) {
+      const enrollment = await db.courseEnrollment.findFirst({
+        where: { userId: user.id, role: "instructor" },
+        select: { courseId: true },
+      });
+      targetCourseId = enrollment?.courseId || null;
+    }
+    if (!targetCourseId) return NextResponse.json({ error: "courseId required" }, { status: 400 });
   }
 
   const tasks = await db.groupTask.findMany({
-    where: { batchId: targetBatchId },
+    where: { courseId: targetCourseId },
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { submissions: true } },
@@ -44,7 +58,7 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/group-tasks — create a new group task (teachers/admins only).
- * Body: { batchId, title, description?, type?, dueDate?, week?, maxScore? }
+ * Body: { courseId, title, description?, type?, dueDate?, week?, maxScore? }
  */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
@@ -52,32 +66,29 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
-  const { batchId, title, description, type, dueDate, week, maxScore } = body as {
-    batchId?: string; title?: string; description?: string;
+  const { courseId, title, description, type, dueDate, week, maxScore } = body as {
+    courseId?: string; title?: string; description?: string;
     type?: string; dueDate?: string; week?: number; maxScore?: number;
   };
 
-  if (!batchId || !title?.trim()) {
-    return NextResponse.json({ error: "batchId and title required" }, { status: 400 });
+  if (!courseId || !title?.trim()) {
+    return NextResponse.json({ error: "courseId and title required" }, { status: 400 });
   }
 
-  // H10-rel: batch ownership check — teachers can only create tasks for
-  // their own batch. Admins can create for any batch.
+  // Verify instructor can access this course
   if (!hasRole(auth.ctx.payload.role, ADMIN_ROLES)) {
-    const teacher = await db.user.findUnique({
-      where: { id: auth.ctx.payload.sub },
-      select: { batchId: true },
+    const access = await db.courseEnrollment.findFirst({
+      where: { userId: auth.ctx.payload.sub, courseId, role: "instructor" },
     });
-    const canAccess = await canAccessBatch(auth.ctx.payload.sub, auth.ctx.payload.role, batchId);
-    if (!canAccess) {
-      return NextResponse.json({ error: "You can only create tasks for batches you are assigned to" }, { status: 403 });
+    if (!access) {
+      return NextResponse.json({ error: "You can only create tasks for courses you are assigned to" }, { status: 403 });
     }
   }
 
   const task = await db.groupTask.create({
     data: {
-      batchId,
-      teacherId: auth.ctx.payload.sub,
+      courseId,
+      instructorId: auth.ctx.payload.sub,
       title: title.trim(),
       description: description?.trim() || "",
       type: type || "assignment",
@@ -99,22 +110,22 @@ export async function POST(req: NextRequest) {
  */
 async function verifyGroupTaskOwnership(payload: { sub: string; role: string }, taskId: string) {
   // Admins can access any task
-  const { hasRole, ADMIN_ROLES } = await import("@/lib/rbac");
   if (hasRole(payload.role, ADMIN_ROLES)) return { ok: true as const };
 
   const task = await db.groupTask.findUnique({
     where: { id: taskId },
-    select: { teacherId: true, batchId: true },
+    select: { instructorId: true, courseId: true },
   });
   if (!task) {
     return { ok: false as const, error: NextResponse.json({ error: "Task not found" }, { status: 404 }) };
   }
-  // Teacher must be the task creator OR have access to the task's batch
-  if (task.teacherId === payload.sub) return { ok: true as const };
-  const { canAccessBatch } = await import("@/lib/batch-teachers");
-  const canAccess = await canAccessBatch(payload.sub, payload.role, task.batchId);
-  if (!canAccess) {
-    return { ok: false as const, error: NextResponse.json({ error: "You can only modify tasks in batches you are assigned to" }, { status: 403 }) };
+  // Teacher must be the task creator OR have access to the task's course
+  if (task.instructorId === payload.sub) return { ok: true as const };
+  const access = await db.courseEnrollment.findFirst({
+    where: { userId: payload.sub, courseId: task.courseId, role: "instructor" },
+  });
+  if (!access) {
+    return { ok: false as const, error: NextResponse.json({ error: "You can only modify tasks in courses you are assigned to" }, { status: 403 }) };
   }
   return { ok: true as const };
 }
