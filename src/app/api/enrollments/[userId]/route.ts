@@ -33,7 +33,7 @@ export async function PATCH(
   }
 
   const targetRole = role || "student";
-  if (!["student", "instructor", "teaching_assistant"].includes(targetRole)) {
+  if (!["student", "instructor"].includes(targetRole)) {
     return NextResponse.json({ error: "Invalid role for enrollment" }, { status: 400 });
   }
 
