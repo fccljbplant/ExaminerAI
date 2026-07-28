@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Vercel build script for ExaminerAI
 # - Uses prisma/schema.prod.prisma (Postgres) for Vercel
-# - RESETS database to flush old data (schema incompatible with old models)
-# - Seeds fresh demo data
+# - NEVER flushes data — only adds new tables/columns safely
+# - Seeds demo data ONLY if database is empty (idempotent)
 # - Builds Next.js
 set -e
 
@@ -13,13 +13,16 @@ echo "DATABASE_URL prefix: $(echo "$DATABASE_URL" | sed 's/\/\/.*/\/\/***REDACTE
 echo "Generating Prisma client (prod schema)..."
 bunx prisma generate --schema=prisma/schema.prod.prisma
 
-# Step 2: Push schema changes without data loss
-echo "Pushing schema changes (preserving existing data)..."
-bunx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate
+# Step 2: SAFELY push schema — NEVER force-reset, NEVER accept-data-loss.
+# This will only ADD new tables and nullable columns.
+# It will NEVER drop tables, columns, or modify existing data.
+echo "Safely syncing schema (add-only, data preserved)..."
+bunx prisma db push --schema=prisma/schema.prod.prisma --skip-generate
 
-# Step 3: Seed fresh demo data
-echo "Seeding fresh demo data..."
-bun run scripts/seed-demo.ts
+# Step 3: Seed demo data ONLY if the database is empty
+# (idempotent — re-deploys never wipe or duplicate data)
+echo "Seeding demo data (if empty)..."
+bun run scripts/seed-demo.ts --skip-if-populated
 
 # Step 4: Build Next.js
 echo "Building Next.js..."
