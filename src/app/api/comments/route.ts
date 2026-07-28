@@ -5,7 +5,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { analyzeMessageForSafeguarding, createSafeguardingFlag } from "@/lib/ai-assistant/safeguarding";
 
-/** GET /api/comments?studentId=... — list teacher comments for a student.
+/** GET /api/comments?studentId=... — list instructor comments for a student.
  *  Staff can view comments for students they have access to.
  *  Students can only view their OWN comments. */
 export async function GET(req: NextRequest) {
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ comments });
 }
 
-/** POST /api/comments — teacher/admin adds a comment on ANY student activity.
+/** POST /api/comments — instructor/admin adds a comment on ANY student activity.
  *
  *  Body:
  *    - studentId (required)
@@ -133,7 +133,7 @@ instructorId: payload.sub,
   return NextResponse.json({ comment });
 }
 
-/** PATCH /api/comments?id=... — teacher/admin edits an existing comment.
+/** PATCH /api/comments?id=... — instructor/admin edits an existing comment.
  *
  *  Body:
  *    - body (optional — new comment text)
@@ -171,7 +171,7 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({ comment: updated });
 }
 
-/** DELETE /api/comments?id=... — teacher/admin deletes a comment. */
+/** DELETE /api/comments?id=... — instructor/admin deletes a comment. */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("posting comments"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();

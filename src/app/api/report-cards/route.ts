@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ reportCards: cards });
 }
 
-/** POST /api/report-cards — teacher/admin writes a report card. */
+/** POST /api/report-cards — instructor/admin writes a report card. */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("generating report cards"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();

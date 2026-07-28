@@ -117,7 +117,7 @@ ${teacherContext}
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block
     const isDemo = user.email === "demo@examiner.ai";
-    const blocked = await enforceAIRateLimit(user.id, "teacher-tutor", isDemo);
+    const blocked = await enforceAIRateLimit(user.id, "instructor-tutor", isDemo);
     if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 
     const aiMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
@@ -131,7 +131,7 @@ ${teacherContext}
     const result = await callAI(aiMessages, {
       temperature: 0.7,
       maxTokens: 1500, // detailed lesson plans, drafts, case analyses
-      feature: "teacher-tutor",
+      feature: "instructor-tutor",
     });
 
     // Write to the unified ChatSession model with chatbotType="teacher_tutor".

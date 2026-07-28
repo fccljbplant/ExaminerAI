@@ -132,7 +132,7 @@ export async function GET(
     weeklyTests: weeklyTests.map(t => ({ score: t.score, week: t.week, date: t.completedAt })),
   };
 
-  const systemPrompt = `Write a short (4-6 sentence) narrative for a teacher about one student's trajectory this course. Plain language, not a data recitation. Note what changed and when. Note anything you're uncertain about rather than smoothing over it. Never state a clinical or psychological diagnosis. Use "the data suggests" or "appears to" language for behavioral observations. Write in Roman (Latin) script, matching the student's dominant language from their answers if not English.`;
+  const systemPrompt = `Write a short (4-6 sentence) narrative for an instructor about one student's trajectory this course. Plain language, not a data recitation. Note what changed and when. Note anything you're uncertain about rather than smoothing over it. Never state a clinical or psychological diagnosis. Use "the data suggests" or "appears to" language for behavioral observations. Write in Roman (Latin) script, matching the student's dominant language from their answers if not English.`;
 
   const userPrompt = `Student: ${student.name} (Week ${student.currentWeek})
 

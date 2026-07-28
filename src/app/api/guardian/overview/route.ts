@@ -31,7 +31,7 @@ import { getAuthUser } from "@/lib/auth";
  *     description: string,
  *     date: string,
  *   }[],
- *   teacherComments: {              // last 5 teacher comments
+ *   teacherComments: {              // last 5 instructor comments
  *     teacherName: string,
  *     body: string,
  *     createdAt: string,
@@ -229,7 +229,7 @@ export async function GET() {
     });
   });
 
-  // Add teacher comments
+  // Add instructor comments
   comments.slice(0, 3).forEach(c => {
     recentActivity.push({
       type: "comment",

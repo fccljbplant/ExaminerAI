@@ -79,7 +79,7 @@ function normalizeAiCourseData(raw: unknown): unknown[] | undefined {
   });
 }
 
-/** GET /api/courses — list all courses (admin/teacher only). */
+/** GET /api/courses — list all courses (admin/instructor only). */
 export async function GET() {
   const payload = await getAuthUser();
   if (!payload || (!isStaffRole(payload.role))) {

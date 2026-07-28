@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** GET /api/instructor/rules — list teacher's personal rules */
+/** GET /api/instructor/rules — list instructor's personal rules */
 export async function GET() {
   const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;

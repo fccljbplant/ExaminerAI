@@ -5,7 +5,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** POST /api/students/[id]/unlock-test — teacher/admin unlocks a week's test
+/** POST /api/students/[id]/unlock-test — instructor/admin unlocks a week's test
  *  for a student, bypassing the task-completion requirement.
  *
  *  Body: { week: number, action?: "unlock" | "reset" }

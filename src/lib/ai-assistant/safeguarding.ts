@@ -122,7 +122,7 @@ export function analyzeMessageForSafeguarding(
 }
 
 /**
- * Count recent safeguarding signals for a teacher.
+ * Count recent safeguarding signals for an instructor.
  * Escalation requires MULTIPLE corroborating signals, never a single message.
  */
 export async function countTeacherSafeguardingSignals(

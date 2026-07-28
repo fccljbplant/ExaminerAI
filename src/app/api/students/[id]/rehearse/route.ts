@@ -88,7 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     psychSignals: psychEvidence.map(e => `${e.dimension}: ${e.value}`),
   };
 
-  const systemPrompt = `You are SIMULATING a student named ${student.name} for a teacher's practice conversation. This is a REHEARSAL — not a prediction of how the real student will respond.
+  const systemPrompt = `You are SIMULATING a student named ${student.name} for an instructor's practice conversation. This is a REHEARSAL — not a prediction of how the real student will respond.
 
 Student persona (based on real evidence):
 ${JSON.stringify(personaContext, null, 2)}

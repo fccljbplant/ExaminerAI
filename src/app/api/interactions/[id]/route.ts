@@ -22,7 +22,7 @@ async function verifyInteractionOwnership(payload: { sub: string; role: string; 
   return { userId: interaction.userId };
 }
 
-/** PATCH /api/interactions/[id] — teacher/admin edits a practice question record.
+/** PATCH /api/interactions/[id] — instructor/admin edits a practice question record.
  *
  *  Body (all optional):
  *    - correctness (0-100), feedback, level, topic, question, studentAnswer
@@ -59,7 +59,7 @@ export async function PATCH(
   return NextResponse.json({ interaction });
 }
 
-/** DELETE /api/interactions/[id] — teacher/admin deletes a practice question + its comments (cascade). */
+/** DELETE /api/interactions/[id] — instructor/admin deletes a practice question + its comments (cascade). */
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -5,7 +5,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** POST /api/students/[id]/allow-retake — teacher/admin explicitly allows a
+/** POST /api/students/[id]/allow-retake — instructor/admin explicitly allows a
  *  student to retake a completed weekly test.
  *
  *  Body: { week: number }
@@ -73,7 +73,7 @@ export async function POST(
   });
 }
 
-/** DELETE /api/students/[id]/allow-retake?week=N — teacher/admin REVOKES a
+/** DELETE /api/students/[id]/allow-retake?week=N — instructor/admin REVOKES a
  *  previously-granted retake permission. Sets `retakeAllowed = false`.
  *
  *  Use this when a teacher granted retake by mistake, or wants to take back

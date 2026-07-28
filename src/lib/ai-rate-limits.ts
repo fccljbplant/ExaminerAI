@@ -66,7 +66,7 @@ const FEATURE_TO_CATEGORY: Record<string, AICategory> = {
   "connection-test": "test",
   // Tutor category — student-facing AI Tutor only
   "ai-tutor": "tutor",
-  "teacher-tutor": "tutor", // teacher-facing tutor (uses same category)
+  "instructor-tutor": "tutor", // teacher-facing tutor (uses same category)
   // Assistant category — staff-facing AI Assistant + student-detail tools
   "teacher_assistant": "assistant",
   "action-dialog": "assistant",

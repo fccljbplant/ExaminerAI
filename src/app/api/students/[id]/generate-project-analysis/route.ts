@@ -7,7 +7,7 @@ import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logger } from "@/lib/logger";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** POST /api/students/[id]/generate-project-analysis — teacher/admin generates
+/** POST /api/students/[id]/generate-project-analysis — instructor/admin generates
  *  a final project analysis for a student. This is shown in the final result.
  *
  *  The analysis is based on:

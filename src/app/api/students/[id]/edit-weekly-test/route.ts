@@ -5,7 +5,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** PATCH /api/students/[id]/edit-weekly-test — teacher/admin edits the
+/** PATCH /api/students/[id]/edit-weekly-test — instructor/admin edits the
  *  AI-generated results of a completed weekly test.
  *
  *  Body:

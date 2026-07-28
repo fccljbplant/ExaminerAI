@@ -164,7 +164,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-/** POST /api/users — admin/teacher creates a new user.
+/** POST /api/users — admin/instructor creates a new user.
  *  Teachers can ONLY create student accounts. Only admins can create teachers/admins.
  *  Demo is read-only and cannot create users at all. */
 export async function POST(req: Request) {

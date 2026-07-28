@@ -6,7 +6,7 @@ import { getAuthUser } from "@/lib/auth";
 /** GET /api/students/[id]/portfolio — full student portfolio for teachers/admins.
  *
  *  Returns the student's project tasks, recent daily logs, recent AI
- *  interactions, bugs, and existing teacher comments. This is what the
+ *  interactions, bugs, and existing instructor comments. This is what the
  *  teacher sees when they click into a student from the batch dashboard.
  *
  *  Admins impersonating teachers (via ?as=teacher) can also access this.

@@ -7,7 +7,7 @@ import { getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 
-/** POST /api/students/[id]/generate-report-card — teacher/admin auto-generates
+/** POST /api/students/[id]/generate-report-card — instructor/admin auto-generates
  *  a report card for a student based on their accumulated data (weekly tests,
  *  practice questions, tasks, check-ins, behavioral observations).
  *
