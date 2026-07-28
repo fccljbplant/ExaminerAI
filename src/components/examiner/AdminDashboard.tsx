@@ -213,7 +213,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
 
   const pending = users.filter(u => u.role === "pending");
   const students = users.filter(u => u.role === "student");
-  const teachers = users.filter(u => u.role === "instructor" || u.role === "teacher");
+  const teachers = users.filter(u => u.role === "instructor");
   const blocked = users.filter(u => u.blocked);
 
   return (

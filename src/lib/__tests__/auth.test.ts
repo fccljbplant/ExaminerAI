@@ -50,7 +50,7 @@ describe("JWT sign + verify", () => {
   });
 
   it("preserves role information correctly for each role", () => {
-    for (const role of ["student", "teacher", "admin", "pending"] as const) {
+    for (const role of ["student", "instructor", "admin", "pending"] as const) {
       const token = signToken({ ...samplePayload, role });
       const verified = verifyToken(token);
       expect(verified?.role).toBe(role);

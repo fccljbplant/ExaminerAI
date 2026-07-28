@@ -39,7 +39,7 @@ export async function GET(
 
   if (hasRole(payload.role, ADMIN_ROLES)) {
     // Admins — full access, no check needed
-  } else if (payload.role === "instructor" || payload.role === "teacher") {
+  } else if (payload.role === "instructor") {
     const studentCheck = await db.user.findUnique({
       where: { id },
       select: { role: true },

@@ -250,7 +250,7 @@ export default function AppShell() {
           }
         } else if (role === "principal") {
           setView("principal-dashboard");
-        } else if (role === "instructor" || role === "teacher") {
+        } else if (role === "instructor") {
           setView("instructor-today");
         } else if (role === "course_coordinator") {
           setView("course-planner");
@@ -388,7 +388,7 @@ export default function AppShell() {
         }
       }
       else if (u.role === "principal") setView("principal-dashboard");
-      else if (u.role === "instructor" || u.role === "teacher") setView("instructor-today");
+      else if (u.role === "instructor") setView("instructor-today");
       else if (u.role === "course_coordinator") setView("course-planner");
       else if (u.role === "counselor") setView("counselor-dashboard");
       else if (u.role === "guardian") setView("guardian-dashboard");

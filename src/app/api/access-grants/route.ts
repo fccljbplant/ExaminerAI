@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   if (!grantee) return NextResponse.json({ error: "Grantee user not found" }, { status: 404 });
 
   const GRANTABLE_ROLES: string[] = [
-    UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, "teacher", "instructor",
+    UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, "instructor",
   ];
   if (!GRANTABLE_ROLES.includes(grantee.role)) {
     return NextResponse.json({ error: `Role '${grantee.role}' cannot receive access grants` }, { status: 400 });

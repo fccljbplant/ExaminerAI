@@ -235,7 +235,7 @@ export async function assertCanAccessStudent(
 
   // Instructor — check course enrollment via CourseEnrollment
   // Instructors can access students enrolled in the same courses they teach.
-  if (payload.role === "instructor" || payload.role === "teacher") {
+  if (payload.role === "instructor") {
     const student = await db.user.findUnique({
       where: { id: studentId },
       select: { role: true },

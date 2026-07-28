@@ -22,7 +22,7 @@ describe("AI Assistant — Scope Resolver", () => {
 
   beforeAll(async () => {
     // Find a teacher (or instructor - for backward compat)
-    const teacher = await db.user.findFirst({ where: { role: { in: ["instructor", "teacher"] } } });
+    const teacher = await db.user.findFirst({ where: { role: "instructor" } });
     teacherId = teacher!.id;
 
     // Find a principal
@@ -39,28 +39,36 @@ describe("AI Assistant — Scope Resolver", () => {
 
     institutionId = teacher!.institutionId!;
 
-    // Find the teacher's batches
-    const batchTeachers = await db.batchTeacher.findMany({
-      where: { teacherId },
-      select: { batchId: true },
+    // Find the instructor's courses via CourseEnrollment
+    const instructorCourses = await db.courseEnrollment.findMany({
+      where: { userId: teacherId, role: "instructor" },
+      select: { courseId: true },
     });
-    const batchIds = batchTeachers.map(bt => bt.batchId);
+    const teacherCourseIds = instructorCourses.map(ec => ec.courseId);
 
-    // Find a student in one of the teacher's batches
-    const inBatchStudent = await db.user.findFirst({
-      where: { role: "student", batchId: { in: batchIds } },
+    // Find a student enrolled in one of the instructor's courses
+    const inCourseEnrollment = await db.courseEnrollment.findFirst({
+      where: { courseId: { in: teacherCourseIds }, role: "student" },
+      select: { userId: true },
     });
-    teacherStudentId = inBatchStudent!.id;
+    teacherStudentId = inCourseEnrollment!.userId;
 
-    // Find a student NOT in any of the teacher's batches
+    // Find all student IDs enrolled in the instructor's courses
+    const enrolledInCourses = await db.courseEnrollment.findMany({
+      where: { courseId: { in: teacherCourseIds }, role: "student" },
+      select: { userId: true },
+    });
+    const enrolledStudentIds = enrolledInCourses.map(e => e.userId);
+
+    // Find a student NOT in any of the instructor's courses
     const outOfBatchStudent = await db.user.findFirst({
-      where: { role: "student", batchId: { notIn: batchIds }, institutionId },
+      where: { role: "student", id: { notIn: enrolledStudentIds }, institutionId },
     });
     otherStudentId = outOfBatchStudent!.id;
   });
 
   it("teacher scope includes only students in their batches", async () => {
-    const scope = await resolveAssistantScope(teacherId, "teacher");
+    const scope = await resolveAssistantScope(teacherId, "instructor");
 
     expect(scope.studentIds).toContain(teacherStudentId);
     expect(scope.studentIds).not.toContain(otherStudentId);
@@ -68,7 +76,7 @@ describe("AI Assistant — Scope Resolver", () => {
   });
 
   it("teacher scope does NOT include students outside their batches (security guarantee)", async () => {
-    const scope = await resolveAssistantScope(teacherId, "teacher");
+    const scope = await resolveAssistantScope(teacherId, "instructor");
 
     // This is the core security assertion
     const inScope = await assertStudentInScope(scope, otherStudentId);

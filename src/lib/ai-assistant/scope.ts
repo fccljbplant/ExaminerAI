@@ -102,7 +102,7 @@ export async function resolveAssistantScope(
         select: { id: true },
       }),
       db.user.findMany({
-        where: { role: { in: ["teacher", "instructor"] }, ...institutionFilter },
+        where: { role: "instructor", ...institutionFilter },
         select: { id: true },
       }),
       db.course.findMany({
@@ -146,7 +146,7 @@ export async function resolveAssistantScope(
         select: { id: true },
       }),
       db.user.findMany({
-        where: { role: { in: ["teacher", "instructor"] }, ...institutionFilter },
+        where: { role: "instructor", ...institutionFilter },
         select: { id: true },
       }),
     ]);

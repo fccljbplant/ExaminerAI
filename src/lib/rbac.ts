@@ -101,7 +101,6 @@ export function normalizeRole(role: string): UserRoleValue | null {
     case "student": return UserRole.STUDENT;
     case "instructor":
     case "teaching_assistant": // legacy alias
-    case "teacher": // legacy alias
       return UserRole.INSTRUCTOR;
     case "course_coordinator": return UserRole.COURSE_COORDINATOR;
     case "counselor": return UserRole.COUNSELOR;

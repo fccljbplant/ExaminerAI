@@ -209,7 +209,7 @@ function DraftCheckin({ studentId, studentName, onDraftCheckin }: { studentId: s
 }
 
 // === Rehearsal Mode ===
-interface RehearseMsg { role: "teacher" | "student_sim"; content: string; timestamp: string }
+interface RehearseMsg { role: "instructor" | "student_sim"; content: string; timestamp: string }
 
 function RehearsalMode({ studentId, studentName }: { studentId: string; studentName: string }) {
   const [conversation, setConversation] = useState<RehearseMsg[]>([]);
@@ -272,9 +272,9 @@ function RehearsalMode({ studentId, studentName }: { studentId: string; studentN
         <>
           <div className="max-h-[250px] overflow-y-auto space-y-2 pr-1">
             {conversation.map((m, i) => (
-              <div key={i} className={cn("flex", m.role === "teacher" ? "justify-end" : "justify-start")}>
+              <div key={i} className={cn("flex", m.role === "instructor" ? "justify-end" : "justify-start")}>
                 <div className={cn("max-w-[85%] rounded-lg px-3 py-2 text-xs",
-                  m.role === "teacher" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground")}>
+                  m.role === "instructor" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground")}>
                   {m.role === "student_sim" && <div className="text-[9px] font-medium opacity-70 mb-0.5">{studentName} (simulated)</div>}
                   <p className="whitespace-pre-wrap">{m.content}</p>
                 </div>

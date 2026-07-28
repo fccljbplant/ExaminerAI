@@ -16,7 +16,6 @@ export interface Course {
   subjects: string[];
   toolsUsed: string[];
   deliverableTypes: string[];
-  notebooklmUrl: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

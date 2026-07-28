@@ -17,7 +17,7 @@ import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-
  */
 
 interface RehearseMessage {
-  role: "teacher" | "student_sim";
+  role: "instructor" | "student_sim";
   content: string;
   timestamp: string;
 }
@@ -118,17 +118,17 @@ IMPORTANT: This is a SIMULATION for teacher practice. It is NOT a prediction of 
   // ---- ACTION: REPLY ----
   if (action === "reply" && teacherReply?.trim()) {
     const conv: RehearseMessage[] = [...(conversation || []), {
-      role: "teacher", content: teacherReply.trim(),
+      role: "instructor", content: teacherReply.trim(),
       timestamp: new Date().toISOString(),
     }];
 
-    const exchangeCount = conv.filter(m => m.role === "teacher").length;
+    const exchangeCount = conv.filter(m => m.role === "instructor").length;
     const isLastExchange = exchangeCount >= MAX_EXCHANGES;
 
     const aiMessages = [
       { role: "system" as const, content: systemPrompt },
       ...conv.map(m => ({
-        role: (m.role === "teacher" ? "user" : "assistant") as "user" | "assistant",
+        role: (m.role === "instructor" ? "user" : "assistant") as "user" | "assistant",
         content: m.content,
       })),
     ];

@@ -25,7 +25,6 @@ interface CourseWeek {
 interface Course {
   id: string; name: string; description: string; isActive: boolean;
   domain?: string; level?: string; assessmentType?: string;
-  notebooklmUrl?: string | null;
   subjects?: string[];
   weeks: CourseWeek[]; batches: { id: string; name: string }[];
   journeySteps?: unknown; projectTemplate?: unknown; aiPrompts?: unknown;
@@ -57,8 +56,6 @@ export default function CoursePlanner() {
   const [genForm, setGenForm] = useState({
     courseName: "", description: "", durationWeeks: 6, daysPerWeek: 5,
     targetAudience: "complete beginners", tools: "", aiProvider: "Gemini API (free for students)",
-    // Phase AI-Tutor Revert: per-course NotebookLM URL (optional — falls back to global default if empty)
-    notebooklmUrl: "",
     // Scale Tier 2: multiple subjects (comma-separated, parsed to array)
     subjects: "",
   });
@@ -172,8 +169,6 @@ export default function CoursePlanner() {
         assessmentType: aiCourse.assessmentType,
         toolsUsed: aiCourse.toolsUsed,
         deliverableTypes: aiCourse.deliverableTypes,
-        // Phase AI-Tutor Revert: pass through per-course NotebookLM URL (empty = use global default)
-        notebooklmUrl: genForm.notebooklmUrl.trim() || undefined,
         // Scale Tier 2: parse comma-separated subjects into array
         subjects: genForm.subjects.trim() ? genForm.subjects.split(",").map(s => s.trim()).filter(Boolean) : undefined,
       });
@@ -206,8 +201,6 @@ export default function CoursePlanner() {
         domain: selectedCourse.domain,
         level: selectedCourse.level,
         assessmentType: selectedCourse.assessmentType,
-        // Phase AI-Tutor Revert: persist per-course NotebookLM URL (empty string clears it → null in API)
-        notebooklmUrl: selectedCourse.notebooklmUrl ?? null,
         // Scale Tier 2: persist subjects
         subjects: selectedCourse.subjects || [],
         // Project config — pass through so course coordinators can enable/disable
@@ -451,26 +444,6 @@ export default function CoursePlanner() {
                 <Label className="text-xs font-medium">AI Provider (for AI features in the course)</Label>
                 <Input value={genForm.aiProvider} onChange={(e) => setGenForm({ ...genForm, aiProvider: e.target.value })} placeholder="e.g. Gemini API (free for students), OpenAI API" className="bg-background border-border" />
               </div>
-              {/* LO-7: NotebookLM URL is currently DEAD CONFIG — collected + persisted
-                  but never rendered for students. The AI Tutor is a chatbot, not an iframe.
-                  Kept for potential future use. The "global default" referenced below
-                  no longer exists in constants.ts. */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium flex items-center gap-1">
-                  NotebookLM URL <span className="text-[10px] text-muted-foreground font-normal">(currently unused — AI Tutor is chatbot-based)</span>
-                </Label>
-                <Input
-                  value={genForm.notebooklmUrl}
-                  onChange={(e) => setGenForm({ ...genForm, notebooklmUrl: e.target.value })}
-                  placeholder="https://notebooklm.google.com/notebook/..."
-                  className="bg-background border-border"
-                  type="url"
-                />
-                <p className="text-[10px] text-muted-foreground">
-                  Note: This field is collected but not currently rendered to students. The AI Tutor uses a chat-based interface instead of a NotebookLM iframe.
-                  Leave empty to use the default bootcamp notebook. You can change this later in the course detail view.
-                </p>
-              </div>
               {/* Scale Tier 2: Multiple subjects per course */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium flex items-center gap-1">
@@ -586,32 +559,6 @@ export default function CoursePlanner() {
               {editing ? (
                 <Textarea value={selectedCourse.description} onChange={(e) => setSelectedCourse({ ...selectedCourse, description: e.target.value })} className="bg-background border-border text-xs min-h-12" />
               ) : <p className="text-xs text-muted-foreground">{selectedCourse.description || "No description"}</p>}
-            </div>
-            {/* Phase AI-Tutor Revert: per-course NotebookLM URL — editable in the detail view */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                NotebookLM URL <span className="text-[9px] text-muted-foreground/70 font-normal">(AI Tutor iframe — empty = global default)</span>
-              </Label>
-              {editing ? (
-                <>
-                  <Input
-                    value={selectedCourse.notebooklmUrl || ""}
-                    onChange={(e) => setSelectedCourse({ ...selectedCourse, notebooklmUrl: e.target.value })}
-                    placeholder="https://notebooklm.google.com/notebook/..."
-                    className="bg-background border-border text-xs"
-                    type="url"
-                  />
-                  <p className="text-[9px] text-muted-foreground">
-                    Students in this course see this notebook in their AI Tutor tab. Clear to use the default bootcamp notebook.
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs text-foreground break-all">
-                  {selectedCourse.notebooklmUrl || (
-                    <span className="text-muted-foreground italic">Not set — using global default notebook</span>
-                  )}
-                </p>
-              )}
             </div>
             {/* Scale Tier 2: Multiple subjects per course */}
             <div className="space-y-1.5">

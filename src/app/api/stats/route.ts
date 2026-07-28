@@ -14,11 +14,11 @@ export async function GET(req: NextRequest) {
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const url = new URL(req.url);
   const asRole = url.searchParams.get("as"); // student | teacher | instructor — for admin impersonation
-  const role = (asRole === "student" || asRole === "teacher" || asRole === "instructor") ? asRole : payload.role;
+  const role = (asRole === "student" || asRole === "instructor") ? asRole : payload.role;
 
   // M4 fix (audit 2026-07-26): course_coordinator now has access to teacher
   // stats so they can see students in their institution's courses.
-  if (role === "instructor" || role === "teacher" || role === "course_coordinator" || (role === "admin" && (asRole === "teacher" || asRole === "instructor"))) {
+  if (role === "instructor" || role === "course_coordinator" || (role === "admin" && asRole === "instructor")) {
     // Scale: server-side pagination — don't load ALL students at once.
     // Default page size 100 (renders 4 pages of 25 in the UI). Max 200.
     const page = Math.max(0, parseInt(url.searchParams.get("page") || "0", 10));
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     // Course coordinators and admins see all students (no scope filter).
     const isAdminRole = hasRole(payload.role, ADMIN_ROLES);
     let scopedStudentIds: string[] | null = null;
-    if (!isAdminRole && (role === "instructor" || role === "teacher")) {
+    if (!isAdminRole && role === "instructor") {
       const enrollments = await db.courseEnrollment.findMany({
         where: { userId: payload.sub, role: "instructor" },
         select: { courseId: true },

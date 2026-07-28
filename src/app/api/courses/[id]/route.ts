@@ -78,7 +78,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
+  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
     name?: string;
     description?: string;
     weeks?: { weekNumber: number; phase: string; milestone?: string; days: { day: number; title: string; objective?: string; whyItMatters?: string; topicsCovered?: string[]; activity?: string; deliverable?: string; resources?: { label: string; url: string }[] }[] }[];
@@ -93,7 +93,6 @@ export async function PUT(
     deliverableTypes?: string[];
     assessmentType?: string;
     assessmentConfig?: unknown;
-    notebooklmUrl?: string | null;
     subjects?: string[];
     projectEnabled?: boolean;
     projectRequired?: boolean;
@@ -165,8 +164,6 @@ export async function PUT(
         ...(domain !== undefined ? { domain } : {}),
         ...(level !== undefined ? { level } : {}),
         ...(assessmentType !== undefined ? { assessmentType } : {}),
-        // Phase AI-Tutor Revert: notebooklmUrl explicitly updatable — empty string clears it (→ null)
-        ...(notebooklmUrl !== undefined ? { notebooklmUrl: notebooklmUrl?.trim() || null } : {}),
         // Scale Tier 2: subjects updatable
         ...(subjects !== undefined ? { subjects: JSON.stringify(subjects || []) } : {}),
         // Project config — validated above

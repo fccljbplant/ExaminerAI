@@ -106,7 +106,6 @@ export async function GET() {
     domain: c.domain,
     level: c.level,
     assessmentType: c.assessmentType,
-    notebooklmUrl: c.notebooklmUrl,
     subjects: (() => { try { return JSON.parse(c.subjects || "[]"); } catch { return []; } })(),
     projectEnabled: c.projectEnabled,
     projectRequired: c.projectRequired,
@@ -150,7 +149,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks: rawWeeks, domain, level, assessmentType, toolsUsed, deliverableTypes, notebooklmUrl, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
+  const { name, description, weeks: rawWeeks, domain, level, assessmentType, toolsUsed, deliverableTypes, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
     name?: string;
     description?: string;
     weeks?: unknown;
@@ -159,7 +158,6 @@ export async function POST(req: NextRequest) {
     assessmentType?: string;
     toolsUsed?: string[];
     deliverableTypes?: string[];
-    notebooklmUrl?: string;
     subjects?: string[];
     projectEnabled?: boolean;
     projectRequired?: boolean;
@@ -193,11 +191,6 @@ export async function POST(req: NextRequest) {
     return Math.min(Math.max(w, 2), maxAllowed);
   })();
 
-  // Phase AI-Tutor Revert: normalize notebooklmUrl — trim, allow empty (→ null)
-  const normalizedNotebooklmUrl = notebooklmUrl?.trim() || null;
-  if (normalizedNotebooklmUrl && !normalizedNotebooklmUrl.startsWith("https://notebooklm.google.com/")) {
-    return NextResponse.json({ error: "NotebookLM URL must start with https://notebooklm.google.com/" }, { status: 400 });
-  }
   // Scale Tier 2: normalize subjects to JSON string
   const subjectsJson = subjects && Array.isArray(subjects) ? JSON.stringify(subjects) : "[]";
 
@@ -231,8 +224,6 @@ export async function POST(req: NextRequest) {
       ...(assessmentType ? { assessmentType } : {}),
       ...(toolsUsed ? { toolsUsed: JSON.stringify(toolsUsed) } : {}),
       ...(deliverableTypes ? { deliverableTypes: JSON.stringify(deliverableTypes) } : {}),
-      // Phase AI-Tutor Revert: persist per-course NotebookLM URL (null = use global default)
-      ...(normalizedNotebooklmUrl !== null ? { notebooklmUrl: normalizedNotebooklmUrl } : {}),
       // Scale Tier 2: persist subjects
       subjects: subjectsJson,
       // Project config — validated above (weekCount >= 4 enforced for projectEnabled)
