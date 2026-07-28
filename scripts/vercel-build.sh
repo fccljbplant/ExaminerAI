@@ -13,9 +13,9 @@ echo "DATABASE_URL prefix: $(echo "$DATABASE_URL" | sed 's/\/\/.*/\/\/***REDACTE
 echo "Generating Prisma client (prod schema)..."
 bunx prisma generate --schema=prisma/schema.prod.prisma
 
-# Step 2: Reset database — flush all old data, recreate schema fresh
-echo "Resetting database (flushing old data)..."
-bunx prisma db push --schema=prisma/schema.prod.prisma --force-reset --accept-data-loss --skip-generate
+# Step 2: Push schema changes without data loss
+echo "Pushing schema changes (preserving existing data)..."
+bunx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate
 
 # Step 3: Seed fresh demo data
 echo "Seeding fresh demo data..."
