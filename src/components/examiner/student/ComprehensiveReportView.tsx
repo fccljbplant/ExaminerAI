@@ -14,7 +14,7 @@
  *
  * Visible to:
  *   - The student themselves (their own report)
- *   - Teachers (for their batch students)
+ *   - Instructors (for their course students)
  *   - Counsellors (for their caseload)
  *   - Principal + Administrator (any student)
  */
