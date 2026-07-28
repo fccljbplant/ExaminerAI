@@ -38,7 +38,7 @@ const ROLES = [
     ],
   },
   {
-    id: "teacher",
+    id: "instructor",
     label: "Teacher",
     icon: BookOpen,
     accent: "from-emerald-500 to-teal-500",
@@ -1216,7 +1216,7 @@ export function ModernLanding() {
       {/* ============================================ */}
       {/* TEACHER FEATURES */}
       {/* ============================================ */}
-      <section id="teacher" className="py-20 lg:py-28 bg-muted/30 border-y">
+      <section id="instructor" className="py-20 lg:py-28 bg-muted/30 border-y">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-14">
             <div className="order-2 lg:order-1">

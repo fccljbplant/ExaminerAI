@@ -27,7 +27,7 @@ import type {
 } from "@/components/examiner/student/types";
 import { TeacherComments } from "@/components/examiner/student/TeacherComments";
 
-export function CheckInPanel({ currentWeek, onSaved, stats, onMode }: { currentWeek: number; onSaved: () => void; stats: StatsResponse; onMode?: (m: Mode) => void; }) {
+export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: { currentWeek: number; onSaved: () => void; stats: StatsResponse; onMode?: (m: Mode) => void; courseId?: string }) {
   // Form state for the daily check-in
   const [what, setWhat] = useState("");
   const [errors, setErrors] = useState("");

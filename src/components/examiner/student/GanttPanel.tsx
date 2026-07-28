@@ -9,7 +9,7 @@ import { ProjectProgressChart } from "@/components/examiner/student/ProjectProgr
 import { CompactGantt } from "@/components/examiner/student/CompactGantt";
 import { ProjectWeekPlan } from "@/components/examiner/student/ProjectWeekPlan";
 
-export function GanttPanel({ stats, onReload, onMode }: { stats: StatsResponse; onReload?: () => void; onMode?: (m: Mode) => void }) {
+export function GanttPanel({ stats, onReload, onMode, courseId }: { stats: StatsResponse; onReload?: () => void; onMode?: (m: Mode) => void; courseId?: string }) {
   return (
     <div className="space-y-4 animate-fade-in-up">
       <ProjectDescriptionCard

@@ -18,6 +18,9 @@ export async function PUT(
   if (!auth.ok) return auth.response;
 
   const { id } = await params;
+  const body = await req.json().catch(() => ({}));
+  const { courseId } = body as { courseId?: string };
+
   const target = await db.user.findUnique({ where: { id }, select: { role: true, name: true, email: true } });
   if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
   if (target.role !== "pending") {
@@ -36,9 +39,21 @@ export async function PUT(
     }
   }
 
-  // Enroll the student in the default course
-  const defaultCourse = await db.course.findFirst({ where: { isDefault: true } })
-    || await db.course.findFirst({ where: { isActive: true } });
+  // Enroll the student — use provided courseId or fall back to default course
+  let targetCourseId = courseId;
+  if (!targetCourseId) {
+    const defaultCourse = await db.course.findFirst({ where: { isDefault: true } })
+      || await db.course.findFirst({ where: { isActive: true } });
+    if (defaultCourse) targetCourseId = defaultCourse.id;
+  }
+
+  // Verify the course exists if a specific one was requested
+  if (targetCourseId) {
+    const course = await db.course.findUnique({ where: { id: targetCourseId }, select: { id: true } });
+    if (!course) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+  }
 
   // Update user role
   const user = await db.user.update({
@@ -46,12 +61,12 @@ export async function PUT(
     data: { role: "student", approvedAt: new Date() },
   });
 
-  // Create CourseEnrollment if a default course exists
-  if (defaultCourse) {
+  // Create CourseEnrollment
+  if (targetCourseId) {
     await db.courseEnrollment.create({
       data: {
         userId: id,
-        courseId: defaultCourse.id,
+        courseId: targetCourseId,
         role: "student",
       },
     }).catch(() => {/* non-fatal — user is still approved */});

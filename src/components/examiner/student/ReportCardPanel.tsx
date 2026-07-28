@@ -135,7 +135,7 @@ function CertificateCard() {
   );
 }
 
-export function ReportCardPanel({ reportCards, comments, studentId }: { reportCards: ReportCardRow[]; comments: CommentRow[]; studentId?: string }) {
+export function ReportCardPanel({ reportCards, comments, studentId, courseId }: { reportCards: ReportCardRow[]; comments: CommentRow[]; studentId?: string; courseId?: string }) {
   return (
     <div className="space-y-4">
       {/* Certificate — students can generate when they complete the course */}
