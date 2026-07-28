@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -132,7 +132,7 @@ async function verifyGroupTaskOwnership(payload: { sub: string; role: string }, 
 
 export async function PATCH(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -169,7 +169,7 @@ export async function PATCH(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

@@ -100,7 +100,7 @@ export async function GET() {
       where: { studentId },
       orderBy: { createdAt: "desc" },
       take: 5,
-      include: { teacher: { select: { name: true, email: true } } },
+      include: { instructor: { select: { name: true, email: true } } },
     }),
     db.studentHealthSummary.findUnique({
       where: { userId: studentId },

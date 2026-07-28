@@ -7,7 +7,7 @@ import { assertCanAccessStudent } from "@/lib/auth";
  *  IDOR protected: caller must have batch access to the student. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.TEACHING_ASSISTANT, UserRole.COUNSELOR,
+    UserRole.INSTRUCTOR, UserRole.TEACHING_ASSISTANT, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO,
   ]);
   if (!auth.ok) return auth.response;

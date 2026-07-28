@@ -11,7 +11,7 @@ import { assertCanAccessStudent } from "@/lib/auth";
  *  IDOR protected: caller must have batch access to the student. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.COUNSELOR,
+    UserRole.INSTRUCTOR, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO,
   ]);
   if (!auth.ok) return auth.response;
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
 /** POST /api/crisis-flags — create a crisis flag for a student.
  *
- *  Teachers, counselors, principals, and administrators can flag a student.
+ *  Instructors, counselors, principals, and administrators can flag a student.
  *  The flag's existence is shown on the Psychological tab; the human response
  *  is tracked on the Mentorship tab.
  *
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing crisis flags"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.COUNSELOR,
+    UserRole.INSTRUCTOR, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,
   ]);
   if (!auth.ok) return auth.response;
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing crisis flags"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
-    UserRole.TEACHER, UserRole.COUNSELOR,
+    UserRole.INSTRUCTOR, UserRole.COUNSELOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR,
   ]);
   if (!auth.ok) return auth.response;

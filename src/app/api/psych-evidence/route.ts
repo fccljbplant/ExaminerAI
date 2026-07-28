@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/psych-evidence — write a new evidence row (staff only). */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing psychology evidence"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
  *  Body: { evidenceId, disputed: boolean, disputeNote?: string } */
 export async function PATCH(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing psychology evidence"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.TEACHER, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

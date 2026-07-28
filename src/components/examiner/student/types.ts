@@ -99,7 +99,7 @@ export interface CommentRow {
   taskId: string | null;
   weeklyTestId: string | null;
   dailyLogId: string | null;
-  teacher: { name: string; email: string };
+  instructor: { name: string; email: string };
 }
 
 /** Project + course configuration returned by /api/stats?as=student.

@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
-import { buildTeacherBatchSummary } from "@/lib/teacher-batch-summary";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
@@ -64,41 +63,36 @@ export async function POST(req: NextRequest) {
 
   const teacherId = auth.ctx.payload.sub;
 
-  // Build batch summary (shared helper — same data as the Psych/Edu tabs)
-  // Wrap in try-catch: the batch summary might fail if schema relations
-  // don't match. Fall back to a simple student list from /api/stats data.
+  // Build student summary using course enrollment (instead of deleted buildTeacherBatchSummary)
   let summary;
   try {
-    summary = await buildTeacherBatchSummary(teacherId, batchScope, auth.ctx.payload.role);
-  } catch (summaryErr) {
-    logger.error("Batch summary failed, falling back to simple stats", {
-      teacherId,
-      error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
+    // Get courses the instructor has access to
+    const instructorCourses = await db.courseEnrollment.findMany({
+      where: { userId: teacherId, role: "instructor" },
+      select: { courseId: true },
     });
-    // Fallback: get basic student list — NO relations (safe for all schemas)
-    const { db } = await import("@/lib/db");
-    const isAdmin = ["principal", "administrator", "admin", "demo"].includes(auth.ctx.payload.role);
+    const courseIds = instructorCourses.map(c => c.courseId);
+    
+    // Get students in those courses
     let studentIds: string[] = [];
-    if (!isAdmin) {
-      const instructorCourses = await db.courseEnrollment.findMany({
-        where: { userId: teacherId, role: "instructor" },
-        select: { courseId: true },
+    if (courseIds.length > 0) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { courseId: { in: courseIds }, role: "student" },
+        select: { userId: true },
       });
-      const courseIds = instructorCourses.map(c => c.courseId);
-      if (courseIds.length > 0) {
-        const enrollments = await db.courseEnrollment.findMany({
-          where: { courseId: { in: courseIds }, role: "student" },
-          select: { userId: true },
-        });
-        studentIds = enrollments.map(e => e.userId);
-      }
+      studentIds = enrollments.map(e => e.userId);
     }
+    
+    // For admins, get all students
+    const isAdmin = ["principal", "administrator", "admin", "demo"].includes(auth.ctx.payload.role);
     const studentFilter = isAdmin ? {} : { id: { in: studentIds } };
+    
     const students = await db.user.findMany({
       where: { role: "student", ...studentFilter, blocked: false },
       select: { id: true, name: true, currentWeek: true },
       take: 200,
     });
+    
     summary = {
       totalStudents: students.length,
       students: students.map(s => ({
@@ -114,6 +108,15 @@ export async function POST(req: NextRequest) {
         skillMastery: [],
         psychEvidence: [],
       })),
+    };
+  } catch (summaryErr) {
+    logger.error("Student summary failed", {
+      teacherId,
+      error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
+    });
+    summary = {
+      totalStudents: 0,
+      students: [],
     };
   }
 

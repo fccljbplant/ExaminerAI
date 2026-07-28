@@ -126,7 +126,7 @@ export async function GET(
     db.comment.findMany({
       where: { studentId: id },
       orderBy: { createdAt: "desc" },
-      include: { teacher: { select: { name: true, email: true } } },
+      include: { instructor: { select: { name: true, email: true } } },
     }),
     db.weeklyTest.findMany({
       where: { userId: id },

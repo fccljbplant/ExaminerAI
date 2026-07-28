@@ -96,7 +96,7 @@ export async function resolveAssistantScope(
         callerId,
       };
     }
-    const [students, teachers, courses, batches] = await Promise.all([
+    const [students, teachers, courses] = await Promise.all([
       db.user.findMany({
         where: { role: "student", ...institutionFilter, blocked: false },
         select: { id: true },
@@ -109,17 +109,12 @@ export async function resolveAssistantScope(
         where: institutionFilter,
         select: { id: true },
       }),
-      db.batch.findMany({
-        where: { course: institutionFilter },
-        select: { id: true },
-      }),
     ]);
 
     return {
       studentIds: students.map(s => s.id),
       teacherIds: teachers.map(t => t.id),
       courseIds: courses.map(c => c.id),
-      batchIds: batches.map(b => b.id),
       institutionId,
       isInstitutionWide: true,
       callerRole,
@@ -179,20 +174,15 @@ export async function resolveAssistantScope(
         studentIds: [],
         teacherIds: [],
         courseIds: [],
-        batchIds: [],
         institutionId,
         isInstitutionWide: false,
         callerRole,
         callerId,
       };
     }
-    const [courses, batches] = await Promise.all([
+    const [courses] = await Promise.all([
       db.course.findMany({
         where: institutionFilter,
-        select: { id: true },
-      }),
-      db.batch.findMany({
-        where: { course: institutionFilter },
         select: { id: true },
       }),
     ]);
@@ -201,7 +191,6 @@ export async function resolveAssistantScope(
       studentIds: [], // Coordinators don't get individual student behavioral data via scope
       teacherIds: [],
       courseIds: courses.map(c => c.id),
-      batchIds: batches.map(b => b.id),
       institutionId,
       isInstitutionWide: false,
       callerRole,

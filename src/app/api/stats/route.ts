@@ -275,7 +275,7 @@ export async function GET(req: Request) {
       commentsRecv: {
         orderBy: { createdAt: "desc" },
         take: 100,
-        include: { teacher: { select: { name: true, email: true } } },
+        include: { instructor: { select: { name: true, email: true } } },
       },
     },
   });

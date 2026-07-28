@@ -35,7 +35,7 @@ export interface PortfolioData {
   tasks: { id: string; description: string; status: string; week: number; dueDate: string | null }[];
   dailyLogs: { id: string; date: string; week: number; whatDidYouDo: string; anyErrors: string; confidence: number }[];
   interactions: { id: string; date: string; week: number; pillar: string; topic: string; question: string; studentAnswer: string; correctness: number; feedback: string; level: string }[];
-  comments: { id: string; body: string | null; marksOverride: number | null; createdAt: string; interactionId: string | null; taskId: string | null; weeklyTestId: string | null; dailyLogId: string | null; teacher: { name: string; email: string } }[];
+  comments: { id: string; body: string | null; marksOverride: number | null; createdAt: string; interactionId: string | null; taskId: string | null; weeklyTestId: string | null; dailyLogId: string | null; instructor: { name: string; email: string } }[];
   weeklyTests: { id: string; week: number; status: string; score: number | null; completedAt: string | null; psychAnalysis?: string | null; examinerComment?: string | null; retakeAllowed?: boolean }[];
   psychObs: { id: string; week: number; date: string; confidence: string; communication: string; learningCurve: string; engagement: string; cognitiveLoad: string; metacognitive: string; remarks: string }[];
   psychTrend: {

@@ -75,20 +75,14 @@ export { DEFAULT_TEST_CONFIG, DEFAULT_REPORT_CARD_TEMPLATE, DEFAULT_PROJECT_TEMP
 
 async function loadCourseConfig<T>(userId: string, field: string, fallback: T): Promise<T> {
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      select: { batchId: true },
-    });
-    if (!user?.batchId) return fallback;
-
-    const batch = await db.batch.findUnique({
-      where: { id: user.batchId },
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId, role: "student" },
       select: { courseId: true },
     });
-    if (!batch?.courseId) return fallback;
+    if (!enrollment) return fallback;
 
     const course = await db.course.findUnique({
-      where: { id: batch.courseId, isActive: true },
+      where: { id: enrollment.courseId, isActive: true },
       select: { [field]: true },
     });
 
@@ -125,20 +119,20 @@ export async function getReportCardTemplate(userId: string): Promise<ReportCardT
 
 export async function getCourseInfo(userId: string): Promise<{ courseId: string | null; courseName: string | null }> {
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      select: { batchId: true },
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId, role: "student" },
+      select: { courseId: true },
     });
-    if (!user?.batchId) return { courseId: null, courseName: null };
+    if (!enrollment) return { courseId: null, courseName: null };
 
-    const batch = await db.batch.findUnique({
-      where: { id: user.batchId },
-      select: { courseId: true, course: { select: { name: true } } },
+    const course = await db.course.findUnique({
+      where: { id: enrollment.courseId },
+      select: { id: true, name: true },
     });
 
     return {
-      courseId: batch?.courseId ?? null,
-      courseName: batch?.course?.name ?? null,
+      courseId: course?.id ?? null,
+      courseName: course?.name ?? null,
     };
   } catch {
     return { courseId: null, courseName: null };

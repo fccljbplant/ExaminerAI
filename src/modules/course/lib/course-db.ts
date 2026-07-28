@@ -24,22 +24,15 @@ import {
 /** Load the full course outline from the DB for a given user.
  *  Returns null if the user's batch has no course assigned (caller falls back). */
 async function loadCourseFromDB(userId: string): Promise<WeekTopic[] | null> {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { batchId: true },
-  });
-
-  if (!user?.batchId) return null;
-
-  const batch = await db.batch.findUnique({
-    where: { id: user.batchId },
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId, role: "student" },
     select: { courseId: true },
   });
 
-  if (!batch?.courseId) return null;
+  if (!enrollment) return null;
 
   const course = await db.course.findUnique({
-    where: { id: batch.courseId, isActive: true },
+    where: { id: enrollment.courseId, isActive: true },
     include: {
       weeks: {
         orderBy: { weekNumber: "asc" },
@@ -52,7 +45,6 @@ async function loadCourseFromDB(userId: string): Promise<WeekTopic[] | null> {
 
   if (!course) return null;
 
-  // Convert DB rows to the same shape as WeekTopic[]
   return course.weeks.map((w) => ({
     week: w.weekNumber,
     phase: w.phase,
@@ -62,8 +54,6 @@ async function loadCourseFromDB(userId: string): Promise<WeekTopic[] | null> {
       resources: (() => {
         try { return JSON.parse(d.resources || "[]"); } catch { return []; }
       })(),
-      // Domain-agnostic fields (not in the hardcoded DailyTopic type but
-      // available when reading from DB — accessed via type casting)
       whyItMatters: d.whyItMatters,
       topicsCovered: (() => { try { return JSON.parse(d.topicsCovered || "[]"); } catch { return []; } })(),
       activity: d.activity,
@@ -139,20 +129,14 @@ export async function getCourseMetadata(userId: string): Promise<{
   description: string;
 } | null> {
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      select: { batchId: true },
-    });
-    if (!user?.batchId) return null;
-
-    const batch = await db.batch.findUnique({
-      where: { id: user.batchId },
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId, role: "student" },
       select: { courseId: true },
     });
-    if (!batch?.courseId) return null;
+    if (!enrollment) return null;
 
     const course = await db.course.findUnique({
-      where: { id: batch.courseId, isActive: true },
+      where: { id: enrollment.courseId, isActive: true },
       select: {
         name: true,
         description: true,
@@ -197,27 +181,11 @@ export async function getCourseProjectConfig(userId: string): Promise<{
   projectDefaultDurationWeeks: number;
 }> {
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      select: { batchId: true },
-    });
-    if (!user?.batchId) {
-      return {
-        courseAssigned: false,
-        courseId: null,
-        courseName: null,
-        totalWeeks: 0,
-        projectEnabled: false,
-        projectRequired: false,
-        projectDefaultDurationWeeks: 4,
-      };
-    }
-
-    const batch = await db.batch.findUnique({
-      where: { id: user.batchId },
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId, role: "student" },
       select: { courseId: true },
     });
-    if (!batch?.courseId) {
+    if (!enrollment) {
       return {
         courseAssigned: false,
         courseId: null,
@@ -230,7 +198,7 @@ export async function getCourseProjectConfig(userId: string): Promise<{
     }
 
     const course = await db.course.findUnique({
-      where: { id: batch.courseId, isActive: true },
+      where: { id: enrollment.courseId, isActive: true },
       select: {
         id: true,
         name: true,

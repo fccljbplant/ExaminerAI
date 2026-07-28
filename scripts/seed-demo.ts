@@ -6,7 +6,7 @@
  *  - 1 admin, 1 principal, 2 teachers, 1 counsellor, 1 mentor, 50 students
  *  - 1 Demo account (auto-login target)
  *  - 2 Courses with full outlines (CS-301 DSA, MGT-205 Management)
- *  - 3 Batches (Section A, B, MGT-A)
+ *  - CourseEnrollments (replacing batches)
  *  - StudentAlerts (with responses), MentorshipTouchpoints (GROW-style)
  *  - PsychologyObs (psychological observations)
  *  - Messages between roles
@@ -177,8 +177,6 @@ async function main() {
   await db.aICache.deleteMany()
   await db.aIUsageLog.deleteMany()
   await db.setting.deleteMany()
-  await db.batchTeacher.deleteMany()
-  await db.batch.deleteMany()
   await db.courseWeek.deleteMany()
   await db.courseDay.deleteMany()
   await db.course.deleteMany()
@@ -372,55 +370,24 @@ async function main() {
     })
   }
 
-  // ---------- batches ----------
-  console.log('📦 Creating batches...')
-  const batch1A = await db.batch.create({
-    data: {
-      name: 'CS-301 Section A',
-      courseId: course1.id,
-      deliveryMode: 'physical',
-      startDate: new Date('2025-09-01'),
-      endDate: new Date('2025-12-20'),
-      description: 'On-campus section A for CS-301'
-    }
-  })
-  const batch1B = await db.batch.create({
-    data: {
-      name: 'CS-301 Section B',
-      courseId: course1.id,
-      deliveryMode: 'hybrid',
-      startDate: new Date('2025-09-01'),
-      endDate: new Date('2025-12-20'),
-      description: 'Hybrid section B for CS-301'
-    }
-  })
-  const batch2A = await db.batch.create({
-    data: {
-      name: 'MGT-205 Section A',
-      courseId: course2.id,
-      deliveryMode: 'physical',
-      startDate: new Date('2025-09-01'),
-      endDate: new Date('2025-12-20'),
-      description: 'On-campus section A for MGT-205'
-    }
-  })
-
-  // Assign teachers to batches
-  await db.batchTeacher.create({ data: { batchId: batch1A.id, teacherId: teacher1.id } })
-  await db.batchTeacher.create({ data: { batchId: batch1B.id, teacherId: teacher1.id } })
-  await db.batchTeacher.create({ data: { batchId: batch2A.id, teacherId: teacher2.id } })
-
-  // Enroll students in batches
-  console.log('🔗 Enrolling students in batches...')
+  // ---------- course enrollments ----------
+  console.log('📦 Creating course enrollments...')
+  
+  // Enroll instructors in courses
+  await db.courseEnrollment.create({ data: { userId: teacher1.id, courseId: course1.id, role: 'instructor' } })
+  await db.courseEnrollment.create({ data: { userId: teacher2.id, courseId: course2.id, role: 'instructor' } })
+  
+  // Enroll students in courses (replace batches with course enrollments)
+  console.log('🔗 Enrolling students in courses...')
   for (let i = 0; i < students.length; i++) {
     const s = students[i]
-    let batchId: string
-    if (i < 15) batchId = batch1A.id
-    else if (i < 30) batchId = batch1B.id
-    else batchId = batch2A.id
-    await db.user.update({
-      where: { id: s.id },
-      data: { batchId }
+    let courseId: string
+    if (i < 15) courseId = course1.id
+    else if (i < 30) courseId = course1.id
+    else courseId = course2.id
+    
+    await db.courseEnrollment.create({
+      data: { userId: s.id, courseId, role: 'student' }
     })
   }
 
@@ -613,7 +580,7 @@ async function main() {
     { userId: counsellor.id, action: 'alert_resolved', targetType: 'student_alert', targetId: 'multiple', meta: 'Responded to 12 alerts' },
     { userId: mentor.id, action: 'mentorship_session', targetType: 'mentorship_touchpoint', targetId: 'multiple', meta: 'Conducted 24 mentor sessions' },
     { userId: principal.id, action: 'report_viewed', targetType: 'report_card', targetId: 'multiple', meta: 'Viewed Q3 performance review' },
-    { userId: principal.id, action: 'batch_approved', targetType: 'batch', targetId: batch2A.id, meta: 'Approved additional MGT-205 tutorial slot' },
+    { userId: principal.id, action: 'course_approved', targetType: 'course', targetId: course2.id, meta: 'Approved additional MGT-205 tutorial slot' },
     { userId: admin.id, action: 'institution_updated', targetType: 'institution', targetId: institution.id, meta: 'Updated institution contact info' }
   ]
   for (let i = 0; i < auditActions.length; i++) {
@@ -1259,7 +1226,7 @@ async function main() {
   console.log(`   - Institution: 1`)
   console.log(`   - Users: 57 (admin, principal, 2 teachers, counsellor, mentor, 50 students, demo)`)
   console.log(`   - Courses: 2 with professional outlines`)
-  console.log(`   - Batches: 3`)
+   console.log(`   - CourseEnrollments: ${50 + 2} (50 students + 2 instructors)`)
   console.log(`   - Course weeks: ${csWeeks.length + mgtWeeks.length}`)
   console.log(`   - Student alerts: ${alertCount} (with counsellor responses)`)
   console.log(`   - Mentorship touchpoints: ${touchpointCount + touchpointCount2} (GROW sessions)`)
