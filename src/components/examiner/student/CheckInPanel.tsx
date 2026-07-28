@@ -268,7 +268,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">No course assigned yet</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Your daily curriculum (topics, objectives, and resources) will appear here once your teacher assigns you to a course. In the meantime, you can still log today&apos;s work in the check-in form below.
+                  Your daily curriculum (topics, objectives, and resources) will appear here once your instructor assigns you to a course. In the meantime, you can still log today&apos;s work in the check-in form below.
                 </p>
               </div>
             </div>

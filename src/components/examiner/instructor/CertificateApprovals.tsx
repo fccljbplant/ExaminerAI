@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * CertificateApprovals — teacher/admin UI for reviewing + approving/rejecting
+ * CertificateApprovals — instructor/admin UI for reviewing + approving/rejecting
  * student certificate requests.
  *
  * C4 fix (audit 2026-07-26): the certificate request/approve backend was
@@ -33,7 +33,7 @@ interface CertificateRequest {
   studentEmail: string;
   courseName: string;
   requestedAt: string;
-  // Eligibility info — computed by the API so the teacher can see whether
+  // Eligibility info — computed by the API so the instructor can see whether
   // the student has actually met the completion criteria before approving.
   completedTests: number;
   totalWeeks: number;

@@ -56,7 +56,7 @@ export function PsychologicalTab({ portfolio }: { portfolio: PortfolioData }) {
     return acc;
   }, {});
 
-  // 7 dimensions per spec — each with explanation + value meanings for the teacher
+  // 7 dimensions per spec — each with explanation + value meanings for the instructor
   const DIMENSIONS = [
     {
       key: "calibration",
@@ -368,7 +368,7 @@ export function PsychologicalTab({ portfolio }: { portfolio: PortfolioData }) {
                         {(dim as any).explanation || dim.hint}
                       </p>
                     </div>
-                    {/* What the current value means + teacher action */}
+                    {/* What the current value means + instructor action */}
                     {latest && (dim as any).valueMeanings?.[latest.value] && (
                       <div className="rounded-md bg-primary/5 border border-primary/20 p-2 mb-2">
                         <p className="text-[10px] text-foreground leading-relaxed">

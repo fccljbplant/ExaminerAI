@@ -27,7 +27,7 @@ export async function GET() {
         orderBy: { lastLogin: "desc" },
         select: { id: true, name: true, email: true },
       });
-      if (instructor) return NextResponse.json({ teacher: instructor });
+      if (instructor) return NextResponse.json({ instructor });
     }
   }
   const anyInstructor = await db.user.findFirst({
@@ -35,6 +35,6 @@ export async function GET() {
     orderBy: { lastLogin: "desc" },
     select: { id: true, name: true, email: true },
   });
-  if (anyInstructor) return NextResponse.json({ teacher: anyInstructor });
-  return NextResponse.json({ teacher: null });
+  if (anyInstructor) return NextResponse.json({ instructor: anyInstructor });
+  return NextResponse.json({ instructor: null });
 }

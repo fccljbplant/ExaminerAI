@@ -89,7 +89,7 @@ export function SecurityQuestionPanel() {
               <SelectContent>
                 <SelectItem value="What was the name of your first pet?">What was the name of your first pet?</SelectItem>
                 <SelectItem value="What city were you born in?">What city were you born in?</SelectItem>
-                <SelectItem value="What was your first teacher's name?">What was your first teacher's name?</SelectItem>
+                <SelectItem value="What was your first instructor's name?">What was your first instructor's name?</SelectItem>
                 <SelectItem value="What is your favorite programming language?">What is your favorite programming language?</SelectItem>
                 <SelectItem value="What was the name of your first school?">What was the name of your first school?</SelectItem>
                 <SelectItem value="What is your mother's maiden name?">What is your mother's maiden name?</SelectItem>

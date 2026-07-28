@@ -3,7 +3,7 @@
 /**
  * CounselorDashboard — a massive powerful assistant for 1000 students.
  *
- * NOT a teacher dashboard clone. Counselors have fundamentally different jobs:
+ * NOT a instructor dashboard clone. Counselors have fundamentally different jobs:
  * 1. Monitor wellbeing across the entire institution (not just one batch)
  * 2. Manage crisis flags + escalate when needed
  * 3. Conduct GROW mentorship sessions + track follow-ups

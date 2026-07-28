@@ -106,7 +106,7 @@ export function SelfPacedAdvanceButton() {
           <div className="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/30">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-[10px] font-medium text-amber-700 dark:text-amber-300">Review flags (your teacher may be notified):</p>
+              <p className="text-[10px] font-medium text-amber-700 dark:text-amber-300">Review flags (your instructor may be notified):</p>
               <ul className="text-[10px] text-muted-foreground">
                 {status.antiCheatFlags.map((flag, i) => <li key={i}>• {flag}</li>)}
               </ul>

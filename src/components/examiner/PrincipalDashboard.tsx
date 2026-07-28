@@ -12,7 +12,7 @@
  *
  * 4 views:
  * - Overview: institution-wide stats + charts + alerts
- * - Academic: course performance + teacher performance
+ * - Academic: course performance + instructor performance
  * - Wellbeing: wellbeing distribution + psych signals + crisis flags
  * - Audit: audit log + growth reports
  */
@@ -281,7 +281,7 @@ function OverviewView({ data }: { data: PrincipalData }) {
 }
 
 // ============================================================
-// ACADEMIC — course + teacher performance
+// ACADEMIC — course + instructor performance
 // ============================================================
 function AcademicView({ data }: { data: PrincipalData }) {
   return (
@@ -320,7 +320,7 @@ function AcademicView({ data }: { data: PrincipalData }) {
         </CardContent>
       </Card>
 
-      {/* Teacher performance */}
+      {/* Instructor performance */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">

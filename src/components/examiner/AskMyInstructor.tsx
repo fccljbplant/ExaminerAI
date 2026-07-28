@@ -23,7 +23,7 @@ const VIEW_LABELS: Record<string, string> = {
 
 export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
   const [open, setOpen] = useState(false);
-  const [teacher, setTeacher] = useState<TeacherInfo | null>(null);
+  const [instructorInfo, setInstructorInfo] = useState<InstructorInfo | null>(null);
   const [loadingTeacher, setLoadingTeacher] = useState(false);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -32,21 +32,21 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!open || teacher) return;
+    if (!open || instructorInfo) return;
     setLoadingTeacher(true); setError("");
-    api.get<{ teacher: TeacherInfo | null }>("/api/messages/teacher")
+    api.get<{ instructor: InstructorInfo | null }>("/api/messages/instructor")
       .then((res) => {
         if (res.instructor) {
-          setTeacher(res.instructor);
+          setInstructorInfo(res.instructor);
           const viewLabel = currentView ? VIEW_LABELS[currentView] ?? "Dashboard" : "Dashboard";
           setSubject(`Question about ${viewLabel}`);
         } else {
-          setError("No teacher is assigned to you yet. Please contact your administrator.");
+          setError("No instructor is assigned to you yet. Please contact your administrator.");
         }
       })
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to find your teacher."))
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to find your instructor."))
       .finally(() => setLoadingTeacher(false));
-  }, [open, teacher, currentView]);
+  }, [open, instructorInfo, currentView]);
 
   useEffect(() => {
     if (!open) {
@@ -56,10 +56,10 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
   }, [open]);
 
   const send = async () => {
-    if (!teacher || !body.trim()) return;
+    if (!instructorInfo || !body.trim()) return;
     setSending(true); setError("");
     try {
-      await api.post("/api/messages", { toId: teacher.id, subject: subject.trim() || "Question", body: body.trim() });
+      await api.post("/api/messages", { toId: instructorInfo.id, subject: subject.trim() || "Question", body: body.trim() });
       setSuccess(true);
       setTimeout(() => setOpen(false), 1200);
     } catch (e) {
@@ -80,11 +80,11 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
           "transition-all duration-200 animate-fade-in-up",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         )}
-        aria-label="Ask my teacher a question"
-        title="Ask my teacher"
+        aria-label="Ask your instructor a question"
+        title="Ask your instructor"
       >
         <HelpCircle className="h-4 w-4" />
-        <span className="hidden sm:inline">Ask my teacher</span>
+        <span className="hidden sm:inline">Ask your instructor</span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -4,7 +4,7 @@
  * VoiceTouchpointLogger — natural-language touchpoint logging.
  *
  * "Log a touchpoint with Alex, went well, still worried about pacing"
- * → parsed into structured fields → teacher confirms → saved.
+ * → parsed into structured fields → instructor confirms → saved.
  */
 
 import { useState } from "react";

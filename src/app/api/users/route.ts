@@ -8,7 +8,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *
  *  Query params:
  *    - q: search string (matches name OR email, case-insensitive)
- *    - role: filter by role (e.g. 'student', 'teacher', 'pending')
+ *    - role: filter by role (e.g. 'student', 'instructor', 'pending')
  *    - page: 1-indexed page number (default 1)
  *    - pageSize: items per page (default 50, max 200)
  *

@@ -588,7 +588,7 @@ function UserAuditSearchPanel() {
           <ShieldCheck className="h-4 w-4 text-primary" /> User Audit Trail
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Search for any user (student, teacher, counselor, admin) to view their complete audit trail — all actions they performed and all actions taken about them.
+          Search for any user (student, instructor, counselor, admin) to view their complete audit trail — all actions they performed and all actions taken about them.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

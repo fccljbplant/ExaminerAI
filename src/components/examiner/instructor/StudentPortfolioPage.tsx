@@ -69,7 +69,7 @@ export function StudentPortfolioPage({
 
   // --- Report Card Dialog state ---
   // When rcDialogOpen is true, the report card generation dialog is open.
-  // Teacher picks a week (1-6) and clicks Generate.
+  // instructor picks a week (1-6) and clicks Generate.
   const [rcDialogOpen, setRcDialogOpen] = useState(false);
   const [rcSelectedWeek, setRcSelectedWeek] = useState<string>("");
   const [rcGenerating, setRcGenerating] = useState(false);
@@ -261,7 +261,7 @@ export function StudentPortfolioPage({
       if (data.error) throw new Error(data.error);
       setRcDialogOpen(false);
       await loadPortfolio(studentId);
-      // Switch to report cards tab so teacher sees the result
+      // Switch to report cards tab so instructor sees the result
       setTab("report-cards");
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed to generate report card");
@@ -524,7 +524,7 @@ export function StudentPortfolioPage({
                         </button>
                       </div>
                     </div>
-                    {/* Show teacher comments for this task */}
+                    {/* Show instructor comments for this task */}
                     {portfolio.comments.filter(c => c.taskId === t.id).map(c => (
                       <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                         <div className="flex items-center justify-between mb-0.5">
@@ -577,7 +577,7 @@ export function StudentPortfolioPage({
                   </div>
                   <p className="text-foreground break-words">{log.whatDidYouDo}</p>
                   {log.anyErrors && <p className="text-xs text-destructive mt-1 break-words">{log.anyErrors}</p>}
-                  {/* Show teacher comments for this check-in */}
+                  {/* Show instructor comments for this check-in */}
                   {portfolio.comments.filter(c => c.dailyLogId === log.id).map(c => (
                     <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                       <div className="flex items-center justify-between mb-0.5">
@@ -655,7 +655,7 @@ export function StudentPortfolioPage({
                         </p>
                       </div>
                     )}
-                    {/* Teacher actions */}
+                    {/* instructor actions */}
                     <div className="flex flex-wrap gap-2 mt-2">
                       {wt.status === "completed" && (
                         <>
@@ -744,7 +744,7 @@ export function StudentPortfolioPage({
                         </Button>
                       )}
                     </div>
-                    {/* Inline teacher comments on this weekly test */}
+                    {/* Inline instructor comments on this weekly test */}
                     {portfolio.comments.filter(c => c.weeklyTestId === wt.id).map(c => (
                       <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                         <div className="flex items-center justify-between mb-0.5">
@@ -846,7 +846,7 @@ export function StudentPortfolioPage({
                         </p>
                       </div>
                     )}
-                    {/* Show teacher comments for this practice question */}
+                    {/* Show instructor comments for this practice question */}
                     {portfolio.comments.filter(c => c.interactionId === i.id).map(c => (
                       <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                         <div className="flex items-center justify-between mb-0.5">
@@ -868,7 +868,7 @@ export function StudentPortfolioPage({
         )}
 
         {/* === Weekly Test Comment Dialog ===
-            Opens when teacher clicks "Comment" on a weekly test.
+            Opens when instructor clicks "Comment" on a weekly test.
             Shows previous comments for that test, allows writing a new comment
             with an optional grade override, and supports deleting comments. */}
         <Dialog open={wtCommentFor !== null} onOpenChange={(open) => { if (!open) setWtCommentFor(null); }}>
@@ -952,7 +952,7 @@ export function StudentPortfolioPage({
         </Dialog>
 
         {/* === Weekly Test Edit AI Results Dialog ===
-            Opens when teacher clicks "Edit AI Results" on a completed weekly test.
+            Opens when instructor clicks "Edit AI Results" on a completed weekly test.
             Allows editing the AI-generated score, psychAnalysis, and examinerComment. */}
         <Dialog open={wtEditFor !== null} onOpenChange={(open) => { if (!open) setWtEditFor(null); }}>
           <DialogContent className="max-w-lg">
@@ -1013,7 +1013,7 @@ export function StudentPortfolioPage({
         </Dialog>
 
         {/* === Generic Entity Comment Dialog ===
-            Opens when teacher clicks Comment on any entity (check-in, practice, task).
+            Opens when instructor clicks Comment on any entity (check-in, practice, task).
             Shows previous comments + a new comment composer with optional grade. */}
         <Dialog open={entityCommentFor !== null} onOpenChange={(open) => { if (!open) setEntityCommentFor(null); }}>
           <DialogContent className="max-w-lg">
@@ -1079,7 +1079,7 @@ export function StudentPortfolioPage({
         </Dialog>
 
         {/* === Report Card Generation Dialog ===
-            Teacher selects a week (1-6) and generates a report card. */}
+            instructor selects a week (1-6) and generates a report card. */}
         <Dialog open={rcDialogOpen} onOpenChange={setRcDialogOpen}>
           <DialogContent className="max-w-sm">
             <DialogHeader>

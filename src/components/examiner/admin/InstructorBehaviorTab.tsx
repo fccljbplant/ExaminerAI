@@ -5,7 +5,7 @@
  * usage + behavioral signals.
  *
  * Displays:
- *  - Per-teacher summary: session count, last active, avg session length
+ *  - Per-instructor summary: session count, last active, avg session length
  *  - Recent sessions (last 100): teacher name, topic, message count, preview,
  *    behavioral signals, psych analysis
  *
@@ -13,7 +13,7 @@
  * chatbotType="teacher_tutor").
  *
  * Visibility: principal + administrator only (pastoral data, not technical).
- * Developer is excluded — this is teacher behavioral data, not system logs.
+ * Developer is excluded — this is instructor behavioral data, not system logs.
  */
 
 import { useEffect, useState } from "react";
@@ -75,7 +75,7 @@ export function InstructorBehaviorTab() {
       const res = await api.get<TeacherBehaviorData>("/api/admin/instructor-behavior");
       setData(res);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load teacher behavior data.");
+      setError(e instanceof Error ? e.message : "Failed to load instructor behavior data.");
     } finally {
       setLoading(false);
     }
@@ -110,7 +110,7 @@ export function InstructorBehaviorTab() {
         <CardContent className="p-8 text-center">
           <GraduationCap className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">
-            No teacher AI Assistant sessions yet. When teachers use the AI Assistant tab,
+            No instructor AI Assistant sessions yet. When teachers use the AI Assistant tab,
             their sessions + behavioral signals will appear here.
           </p>
         </CardContent>
@@ -161,14 +161,14 @@ export function InstructorBehaviorTab() {
         </Card>
       </div>
 
-      {/* Per-teacher summary table */}
+      {/* Per-instructor summary table */}
       <Card className="border-border bg-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-base text-foreground flex items-center gap-2">
             <GraduationCap className="h-4 w-4 text-primary" /> Teacher AI Assistant Usage
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Per-teacher aggregate of AI Assistant sessions. Behavioral signals (engagement, language, topic drift) feed into the same pipeline as student tests.
+            Per-instructor aggregate of AI Assistant sessions. Behavioral signals (engagement, language, topic drift) feed into the same pipeline as student tests.
           </CardDescription>
         </CardHeader>
         <CardContent>

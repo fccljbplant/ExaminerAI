@@ -1,4 +1,4 @@
-// Teacher dashboard shared types — extracted from TeacherDashboard.tsx
+// instructor dashboard shared types — extracted from TeacherDashboard.tsx
 
 export interface StudentRow {
   id: string;

@@ -362,7 +362,7 @@ export default function GuardianDashboard({ onMessage }: GuardianDashboardProps 
               Teacher Updates
             </CardTitle>
             <CardDescription className="text-xs">
-              Recent notes from your child's teacher
+              Recent notes from your child's instructor
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">

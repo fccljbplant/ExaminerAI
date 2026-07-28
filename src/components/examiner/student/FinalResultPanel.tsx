@@ -137,7 +137,7 @@ export function FinalResultPanel() {
           </div>
         )}
 
-        {/* SDT rebalance: Average Plagiarism Risk hidden from student — teacher only.
+        {/* SDT rebalance: Average Plagiarism Risk hidden from student — instructor only.
             The old UI showed this permanently on the report card, which made students
             feel surveilled even when their score was low. Teachers see it in the portfolio. */}
 

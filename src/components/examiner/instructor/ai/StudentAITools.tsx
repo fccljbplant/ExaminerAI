@@ -6,7 +6,7 @@
  * Combines:
  * - Explain this student (one-click narrative, cached)
  * - Living-book narrative (per-week, scrollable)
- * - Draft-a-check-in (AI drafts message in teacher's voice)
+ * - Draft-a-check-in (AI drafts message in instructor's voice)
  * - Rehearsal mode (practice conversation against AI student persona)
  *
  * All use the configured AI model (callAI) via backend routes.

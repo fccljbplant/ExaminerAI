@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * TodayView — the teacher's command center for 100 students.
+ * TodayView — the instructor's command center for 100 students.
  *
  * Receives students + stats + alerts as props (no refetching).
  *
@@ -56,7 +56,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
   const safeStudents = Array.isArray(students) ? students : [];
   const safeAlerts = Array.isArray(alerts) ? alerts : [];
 
-  // H9 fix (audit 2026-07-26): Action Dialog state — when a teacher clicks
+  // H9 fix (audit 2026-07-26): Action Dialog state — when a instructor clicks
   // "Act" on a triage item, we fetch AI-drafted action content from
   // /api/assistant/action-dialog and open the ActionDialog component.
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
@@ -258,7 +258,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
 
   return (
     <div className="space-y-4">
-      {/* H10 fix: Teacher Load + Wellbeing panel — was completely disconnected
+      {/* H10 fix: instructor Load + Wellbeing panel — was completely disconnected
           (the /api/instructor/load endpoint existed but no UI consumed it). */}
       <InstructorLoadPanel />
 
@@ -398,7 +398,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
         </CardContent>
       </Card>
 
-      {/* H9 fix: AI Action Dialog — opens when teacher clicks "Act" on a triage
+      {/* H9 fix: AI Action Dialog — opens when instructor clicks "Act" on a triage
           item. Fetches AI-drafted headline, why, suggested action, + note presets
           from /api/assistant/action-dialog. On confirm, sends the edited action
           as a message + acknowledges the alert. */}

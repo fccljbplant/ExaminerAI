@@ -111,7 +111,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
                 <span className="text-sm font-semibold text-amber-900 dark:text-amber-200">Try the Live Demo</span>
               </div>
               <p className="text-xs text-amber-800 dark:text-amber-300 mb-2.5">
-                One-click access. Explore every dashboard as admin, teacher, student, counsellor, principal.
+                One-click access. Explore every dashboard as admin, instructor, student, counsellor, principal.
               </p>
               <Button
                 type="button"

@@ -16,7 +16,7 @@
  * 4. Touchpoint history with outcomes + follow-up scheduling
  * 5. Quick message button (links to Messages)
  *
- * The teacher sees exactly what the student needs — driven by data, not guessing.
+ * The instructor sees exactly what the student needs — driven by data, not guessing.
  */
 
 import { useEffect, useState, useCallback } from "react";

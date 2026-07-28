@@ -29,7 +29,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
-  // C5 fix: fetch the teacher's courseId from /api/auth/me so we can pass it
+  // C5 fix: fetch the instructor's courseId from /api/auth/me so we can pass it
   // to POST /api/group-tasks (which requires it). Without this, teachers could
   // never create assignments — the API returned 400 "batchId and title required".
   // If a courseId prop is passed from the dashboard's course switcher, prefer that.
@@ -56,7 +56,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // C5 fix: fetch the teacher's courseId in parallel with the task list.
+      // C5 fix: fetch the instructor's courseId in parallel with the task list.
       // Without courseId, the create-task form is disabled.
       const [tasksRes, eventsRes, meRes] = await Promise.all([
         api.get<{ tasks: any[] }>("/api/group-tasks"),
@@ -80,7 +80,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
   const createTask = async () => {
     if (!taskTitle.trim()) return;
     if (!courseId) {
-      showError("Cannot create assignment — no course assigned to your teacher account.");
+      showError("Cannot create assignment — no course assigned to your instructor account.");
       return;
     }
     setBusy(true);
@@ -197,7 +197,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {/* C5 fix: show a clear error when the teacher has no course assigned */}
+          {/* C5 fix: show a clear error when the instructor has no course assigned */}
           {courseError && (
             <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
@@ -324,7 +324,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
         </Card>
       )}
 
-      {/* Peer Assessment Results — teacher view */}
+      {/* Peer Assessment Results — instructor view */}
       {selectedTask && <PeerAssessmentInstructorView groupTaskId={selectedTask.id} />}
 
       {/* Events / Calendar */}

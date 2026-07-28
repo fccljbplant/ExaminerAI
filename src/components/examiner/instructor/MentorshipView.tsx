@@ -3,7 +3,7 @@
 /**
  * MentorshipView — redesigned for GROW coaching at scale.
  *
- * At 50-100 students, a teacher can't mentor everyone equally. This view
+ * At 50-100 students, a instructor can't mentor everyone equally. This view
  * prioritizes the students who need coaching most, with:
  *
  * 1. Follow-ups Due — students with scheduled follow-ups coming up
@@ -56,7 +56,7 @@ export function MentorshipView({ students, alerts, onStudentClick }: MentorshipV
       // the "follow-ups" filter showed an empty list even when students had
       // upcoming follow-up dates logged via touchpoints.
       //
-      // Now we fetch ALL recent touchpoints for the teacher's students in one
+      // Now we fetch ALL recent touchpoints for the instructor's students in one
       // request, then filter client-side for those with upcoming follow-ups.
       // The /api/mentorship/touchpoints endpoint accepts a ?userId= filter,
       // but we want ALL students' touchpoints — so we fetch without a userId

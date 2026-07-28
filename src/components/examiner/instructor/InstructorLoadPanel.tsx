@@ -3,8 +3,8 @@
 /**
  * InstructorLoadPanel — shows the instructor's own wellbeing/load metrics.
  *
- * H10 fix (audit 2026-07-26): the teacher-load module + /api/instructor/load
- * endpoint existed but had NO UI consumer — teachers couldn't see their own
+ * H10 fix (audit 2026-07-26): the instructor-load module + /api/instructor/load
+ * endpoint existed but had NO UI consumer — instructors couldn't see their own
  * load metrics. This component surfaces:
  *   - Overall tier (green/amber/red) with reasons
  *   - Response time trend (last 4 weeks vs this week)
@@ -12,7 +12,7 @@
  *   - Load vs capacity (assigned students vs historical baseline)
  *   - Crisis load (open crisis flags across their students)
  *
- * Wired into the teacher's TodayView.
+ * Wired into the instructor's TodayView.
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { Loader2, RefreshCw, Activity, Clock, HeartHandshake, AlertTriangle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface TeacherLoadData {
+interface InstructorLoadData {
   tier: "green" | "amber" | "red" | string;
   tierReasons: string[];
   responseTimeTrend: {
@@ -49,7 +49,7 @@ interface TeacherLoadData {
 }
 
 export function InstructorLoadPanel() {
-  const [data, setData] = useState<TeacherLoadData | null>(null);
+  const [data, setData] = useState<InstructorLoadData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export function InstructorLoadPanel() {
       const res = await api.get<TeacherLoadData>("/api/instructor/load");
       setData(res);
     } catch (e: any) {
-      setError(e?.message || "Failed to load teacher metrics");
+      setError(e?.message || "Failed to load instructor metrics");
     } finally {
       setLoading(false);
       setRefreshing(false);

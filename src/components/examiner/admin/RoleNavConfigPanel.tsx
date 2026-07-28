@@ -219,7 +219,7 @@ export function RoleNavConfigPanel() {
         <CardContent className="space-y-2">
           {[
             { role: "guardian", label: "Guardian — Progress overview only", items: ["guardian-dashboard", "guardian-progress", "course-outline", "messages", "settings"], desc: "Sees student dashboard (read-only overview) + report card + course outline + messages." },
-            { role: "counselor", label: "Counselor — Wellbeing focus", items: ["batch", "messages", "settings"], desc: "Sees teacher dashboard (for psychological/mentorship tabs) + messages. No course planner, no educational detail." },
+            { role: "counselor", label: "Counselor — Wellbeing focus", items: ["dashboard", "messages", "settings"], desc: "Sees instructor dashboard (for psychological/mentorship tabs) + messages. No course planner, no educational detail." },
             { role: "course_coordinator", label: "Coordinator — Course management", items: ["course-planner", "batch-students", "instructor-ai-tutor", "course-outline", "messages", "settings"], desc: "Sees course planner + student roster + shared resources. No user management." },
           ].map(preset => (
             <div key={preset.role} className="flex items-center justify-between rounded-md border border-border p-2.5">
