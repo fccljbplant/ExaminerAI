@@ -6,19 +6,19 @@ import { ALL_ADMIN_ROLES } from "@/lib/client-rbac";
 import type { EnrollmentResponse } from "@/app/api/enrollments/route";
 import Login, { type PublicUser } from "./Login";
 import StudentDashboard from "./StudentDashboard";
-import TeacherDashboard from "./TeacherDashboard";
+import InstructorDashboard from "./InstructorDashboard";
 import AdminDashboard from "./AdminDashboard";
 import GuardianDashboard from "./GuardianDashboard";
 import CounselorDashboard from "./CounselorDashboard";
 import PrincipalDashboard from "./PrincipalDashboard";
 import { AITutor } from "@/modules/ai-tutor";
-import { TeacherAITutor } from "@/modules/ai-assistant";
+import { InstructorAITutor } from "@/modules/ai-assistant";
 import Messages from "./Messages";
 import CourseOutline from "./CourseOutline";
 import CoursePlanner from "./CoursePlanner";
 import { SettingsPanel } from "./SettingsPanel";
 import GuardianReportCards from "./GuardianReportCards";
-import { AskMyTeacher } from "./AskMyTeacher";
+import { AskMyInstructor } from "./AskMyInstructor";
 import ErrorBoundary from "./ErrorBoundary";
 import {
   GraduationCap,
@@ -62,7 +62,7 @@ export type ViewKey =
   | "report-card"
   | "course-outline"
   | "ai-tutor"
-  | "teacher-ai-tutor"
+  | "instructor-ai-tutor"
   | "messages"
   | "settings"
   | "instructor-today"
@@ -125,7 +125,7 @@ const ALL_NAV: NavItem[] = [
   { key: "admin-system", label: "System", icon: ShieldAlert, roles: ADMIN_NAV_ROLES },
 
   { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ["student"] },
-  { key: "teacher-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
+  { key: "instructor-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
   { key: "course-outline", label: "Course", icon: BookOpen, roles: ALL_ROLES_WITH_SHARED },
   { key: "messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES_WITH_SHARED },
   { key: "settings", label: "Settings", icon: Settings, roles: ALL_ROLES_WITH_SHARED },
@@ -452,11 +452,11 @@ export default function AppShell() {
       case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "guardian-dashboard": return wrap(<GuardianDashboard key={`guardian-${navClickCount}`} onMessage={() => navigateTo("messages")} />);
       case "guardian-progress": return wrap(<GuardianReportCards key={`guardian-progress-${navClickCount}`} />);
-      case "instructor-today": return wrap(<TeacherDashboard key={`today-${navClickCount}`} initialTab="today" courseId={activeCourseId} />);
-      case "instructor-students": return wrap(<TeacherDashboard key={`students-${navClickCount}`} initialTab="students" courseId={activeCourseId} />);
-      case "instructor-mentorship": return wrap(<TeacherDashboard key={`mentorship-${navClickCount}`} initialTab="mentorship" courseId={activeCourseId} />);
-      case "instructor-assignments": return wrap(<TeacherDashboard key={`assignments-${navClickCount}`} initialTab="assignments" courseId={activeCourseId} />);
-      case "instructor-insights": return wrap(<TeacherDashboard key={`insights-${navClickCount}`} initialTab="insights" courseId={activeCourseId} />);
+      case "instructor-today": return wrap(<InstructorDashboard key={`today-${navClickCount}`} initialTab="today" courseId={activeCourseId} />);
+      case "instructor-students": return wrap(<InstructorDashboard key={`students-${navClickCount}`} initialTab="students" courseId={activeCourseId} />);
+      case "instructor-mentorship": return wrap(<InstructorDashboard key={`mentorship-${navClickCount}`} initialTab="mentorship" courseId={activeCourseId} />);
+      case "instructor-assignments": return wrap(<InstructorDashboard key={`assignments-${navClickCount}`} initialTab="assignments" courseId={activeCourseId} />);
+      case "instructor-insights": return wrap(<InstructorDashboard key={`insights-${navClickCount}`} initialTab="insights" courseId={activeCourseId} />);
       case "counselor-dashboard": return wrap(<CounselorDashboard key={`counselor-${navClickCount}`} onNavigateToMessages={() => navigateTo("messages")} onStudentClick={(studentId, studentName) => {
         if (typeof window !== "undefined") {
           window.open(`/?view=instructor-students&studentId=${encodeURIComponent(studentId)}`, "_blank");
@@ -464,7 +464,7 @@ export default function AppShell() {
       }} />);
       case "principal-dashboard": return wrap(<PrincipalDashboard key={`principal-${navClickCount}`} />);
       case "ai-tutor": return wrap(<AITutor />);
-      case "teacher-ai-tutor": return wrap(<TeacherAITutor />);
+      case "instructor-ai-tutor": return wrap(<InstructorAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
       case "messages": return wrap(<Messages />);
       case "settings": return wrap(<SettingsPanel user={user ? { id: user.id, name: user.name, email: user.email, role: user.role, hasSecurityQuestion: user.hasSecurityQuestion } : null} />);
@@ -703,7 +703,7 @@ export default function AppShell() {
 
         <div className={cn(
           "flex-1 min-w-0 w-full min-h-0",
-          view === "ai-tutor" || view === "teacher-ai-tutor"
+          view === "ai-tutor" || view === "instructor-ai-tutor"
             ? "p-2 sm:p-3 flex flex-col"
             : view === "course-outline"
             ? "p-2 sm:p-3"
@@ -715,7 +715,7 @@ export default function AppShell() {
       </main>
 
       {effectiveRole === "student" && view !== "messages" && (
-        <AskMyTeacher currentView={view} />
+        <AskMyInstructor currentView={view} />
       )}
       </div>
     </div>

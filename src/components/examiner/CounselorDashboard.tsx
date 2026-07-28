@@ -35,8 +35,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
-import { VoiceTouchpointLogger } from "@/components/examiner/teacher/VoiceTouchpointLogger";
-import { CaseReviewPanel } from "@/components/examiner/teacher/CaseReviewPanel";
+import { VoiceTouchpointLogger } from "@/components/examiner/instructor/VoiceTouchpointLogger";
+import { CaseReviewPanel } from "@/components/examiner/instructor/CaseReviewPanel";
 import {
   ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, RadialBarChart, RadialBar,

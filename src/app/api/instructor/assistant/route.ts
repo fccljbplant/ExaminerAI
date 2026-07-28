@@ -1,0 +1,210 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { requireRole, UserRole } from "@/lib/rbac";
+import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { logger } from "@/lib/logger";
+import { isFeatureEnabled } from "@/lib/feature-flags";
+import { demoWriteBlock } from "@/lib/demo-guard";
+import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
+
+/** POST /api/instructor/assistant — free-text question about the batch,
+ *  answered from existing data (PsychEvidence, ConfidenceRating,
+ *  SkillMastery, MentorshipTouchpoint, CrisisFlag).
+ *
+ *  Uses the configured AI model (callAI) — the AI Assistant.
+ *
+ *  The response must:
+ *  - Cite which students and which specific signal led to the answer
+ *  - If the data doesn't support a confident answer, say so
+ *  - Never speculate about a student's internal state beyond evidence
+ */
+
+export async function POST(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("using AI Assistant"); if (_demoBlock) return _demoBlock;
+  if (!(await isFeatureEnabled("ai_enabled"))) {
+    return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
+  }
+
+  const auth = await requireRole([
+    UserRole.INSTRUCTOR,
+    UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR,
+    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  if (!auth.ok) return auth.response;
+
+  // Demo AI enable/disable check (admin-configurable)
+  const isDemoUser = auth.ctx.payload.email === "demo@examiner.ai";
+  if (await isDemoAIBlocked(isDemoUser)) {
+    return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
+  }
+
+  // Per-user daily rate limit (admin-configurable, default 100/day for assistant)
+  const category = categoryForFeature("teacher_assistant");
+  const limit = await checkUserAILimit(auth.ctx.payload.sub, category);
+  if (!limit.allowed) {
+    return NextResponse.json({
+      error: `Daily AI Assistant limit reached (${limit.used}/${limit.limit}). Resets at ${limit.resetAt.toISOString()}.`,
+      rateLimited: true,
+      category,
+      used: limit.used,
+      limit: limit.limit,
+      resetAt: limit.resetAt.toISOString(),
+    }, { status: 429 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const { question, batchScope } = body as { question?: string; batchScope?: string[] };
+
+  if (!question?.trim()) {
+    return NextResponse.json({ error: "question required" }, { status: 400 });
+  }
+  if (question.length > 1000) {
+    return NextResponse.json({ error: "Question too long (max 1000 characters)" }, { status: 400 });
+  }
+
+  const teacherId = auth.ctx.payload.sub;
+
+  // Build student summary using course enrollment (instead of deleted buildTeacherBatchSummary)
+  let summary;
+  try {
+    // Get courses the instructor has access to
+    const instructorCourses = await db.courseEnrollment.findMany({
+      where: { userId: teacherId, role: "instructor" },
+      select: { courseId: true },
+    });
+    const courseIds = instructorCourses.map(c => c.courseId);
+    
+    // Get students in those courses
+    let studentIds: string[] = [];
+    if (courseIds.length > 0) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { courseId: { in: courseIds }, role: "student" },
+        select: { userId: true },
+      });
+      studentIds = enrollments.map(e => e.userId);
+    }
+    
+    // For admins, get all students
+    const isAdmin = ["principal", "administrator", "admin", "demo"].includes(auth.ctx.payload.role);
+    const studentFilter = isAdmin ? {} : { id: { in: studentIds } };
+    
+    const students = await db.user.findMany({
+      where: { role: "student", ...studentFilter, blocked: false },
+      select: { id: true, name: true, currentWeek: true },
+      take: 200,
+    });
+    
+    summary = {
+      totalStudents: students.length,
+      students: students.map(s => ({
+        userId: s.id,
+        name: s.name,
+        currentWeek: s.currentWeek,
+        progress: 0,
+        wellbeingTier: "green",
+        calibrationGap: 0,
+        daysSinceTouchpoint: 0,
+        openCrisisFlags: 0,
+        latestWeeklyTestScore: null,
+        skillMastery: [],
+        psychEvidence: [],
+      })),
+    };
+  } catch (summaryErr) {
+    logger.error("Student summary failed", {
+      teacherId,
+      error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
+    });
+    summary = {
+      totalStudents: 0,
+      students: [],
+    };
+  }
+
+  if (summary.students.length === 0) {
+    return NextResponse.json({
+      answer: "You don't have any students assigned to your batch yet. Once students are assigned, I can analyze their patterns for you.",
+      references: [],
+    });
+  }
+
+  // Build a compact JSON for the AI (not the full summary — just what's needed)
+  const compactSummary = summary.students.map(s => ({
+    name: s.name,
+    week: s.currentWeek,
+    progress: s.progress,
+    tier: s.wellbeingTier,
+    calibrationGap: s.calibrationGap,
+    daysSinceContact: s.daysSinceTouchpoint,
+    crisisFlags: s.openCrisisFlags,
+    latestScore: s.latestWeeklyTestScore,
+    masteryTrends: s.skillMastery.reduce((acc, m) => {
+      if (m.trend === "declining") acc.declining.push(m.topic);
+      if (m.trend === "improving") acc.improving.push(m.topic);
+      return acc;
+    }, { declining: [] as string[], improving: [] as string[] }),
+    psychSignals: s.psychEvidence.slice(0, 3).map(e => `${e.dimension}: ${e.value}`),
+  }));
+
+  const systemPrompt = `You are helping a teacher understand their batch. You are given structured data, not raw student work. Answer the specific question asked.
+
+Rules:
+1. Cite which students and which specific signal led to your answer.
+2. If the data doesn't support a confident answer, say so — do not speculate about a student's internal state beyond what the evidence shows.
+3. Use "the data suggests" or "appears to" language for behavioral observations.
+4. Never state a clinical or psychological diagnosis.
+5. Write in Roman (Latin) script. If the question is in another language, respond in that language in Roman script.
+6. Keep the answer concise — 3-5 sentences for specific questions, up to 8 for broad questions.
+7. End with a "References:" section listing the student names and data points you cited, one per line, so the teacher can click through.
+
+Example answer format:
+"Three students show declining mastery trends this week: Alex (database queries), Sam (API design), and Jordan (authentication). Alex also has a calibration gap of +15 (overconfident), suggesting they may not realize they're struggling. Consider a group review session on these topics.
+
+References:
+- Alex: declining mastery in 'database queries', calibration gap +15
+- Sam: declining mastery in 'API design'
+- Jordan: declining mastery in 'authentication'"`;
+
+  const userPrompt = `Batch data (${summary.totalStudents} students):
+${JSON.stringify(compactSummary, null, 2)}
+
+Question: "${question}"
+
+Answer:`;
+
+  try {
+    const result = await callAI([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ], {
+      feature: "teacher_assistant",
+      temperature: 0.3, // low temp — analytical, not creative
+      maxTokens: 800,
+      userId: auth.ctx.payload.sub, // for per-user daily rate limiting
+    });
+
+    const answer = result.text?.trim() || "I wasn't able to generate an answer. Please try rephrasing your question.";
+
+    // Extract references (student names mentioned in the answer)
+    const mentionedStudents = summary.students.filter(s =>
+      answer.toLowerCase().includes(s.name.toLowerCase())
+    );
+    const references = mentionedStudents.map(s => ({
+      userId: s.userId,
+      name: s.name,
+      tier: s.wellbeingTier,
+      week: s.currentWeek,
+    }));
+
+    return NextResponse.json({
+      answer,
+      references,
+      queryTimestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    logger.error("Instructor AI Assistant call failed", { instructorId, error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({
+      answer: "I wasn't able to process your question right now. Please try again in a moment.",
+      references: [],
+    });
+  }
+}

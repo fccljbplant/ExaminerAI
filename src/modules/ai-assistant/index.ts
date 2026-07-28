@@ -17,8 +17,8 @@
  */
 
 // Components
-export { default as TeacherAITutor } from "@/components/examiner/TeacherAITutor";
-export { AIAssistantBox } from "@/components/examiner/teacher/ai/AIAssistantBox";
+export { default as InstructorAITutor } from "@/components/examiner/InstructorAITutor";
+export { AIAssistantBox } from "@/components/examiner/instructor/ai/AIAssistantBox";
 export { ActionDialog, type ActionDialogData } from "@/components/shared/action-dialog";
 
 // Lib functions
@@ -50,7 +50,7 @@ export {
 } from "@/lib/ai-assistant/safeguarding";
 
 // HI-5 fix: teacher-load.ts removed — was dead code with a different formula
-// than /api/teacher/load/route.ts. The route is the single source of truth.
+// than /api/instructor/load/route.ts. The route is the single source of truth.
 // HI-6 fix: teaching-guidance.ts removed — was dead code. The action-dialog
 // route generates guidance inline via the AI prompt.
 // HI-6 fix: data-efficiency.ts exports removed from barrel — the functions
@@ -60,7 +60,7 @@ export {
 
 /** API route paths for the AI Assistant */
 export const AI_ASSISTANT_API = {
-  query: "/api/teacher/assistant",
+  query: "/api/instructor/assistant",
   actionDialog: "/api/assistant/action-dialog",
   escalation: "/api/assistant/escalation/run",
 } as const;

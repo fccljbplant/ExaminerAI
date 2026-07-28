@@ -67,7 +67,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
             onLoggedIn(res.user);
           } catch {
             setTab("login");
-            setError("Account created — it's now pending approval. A teacher/admin must approve it before login.");
+            setError("Account created — it's now pending approval. An instructor/admin must approve it before login.");
           }
         }
       } catch (e) {

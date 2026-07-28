@@ -25,7 +25,7 @@ import type {
   Stats, WeeklyTest, Competency, ReportCardRow, DailyLog, Task,
   Interaction, CommentRow, StatsResponse, Mode, JourneyStep,
 } from "@/components/examiner/student/types";
-import { TeacherComments } from "@/components/examiner/student/TeacherComments";
+import { InstructorComments } from "@/components/examiner/student/InstructorComments";
 
 export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: { currentWeek: number; onSaved: () => void; stats: StatsResponse; onMode?: (m: Mode) => void; courseId?: string }) {
   // Form state for the daily check-in
@@ -679,7 +679,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                 {log.nextQuestion && (
                   <p className="text-xs text-violet-600 mt-1"><strong>Next question:</strong> {log.nextQuestion}</p>
                 )}
-                <TeacherComments comments={stats.comments} entityId={log.id} field="dailyLogId" />
+                <InstructorComments comments={stats.comments} entityId={log.id} field="dailyLogId" />
               </div>
             ))
           )}

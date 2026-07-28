@@ -12,13 +12,13 @@ import { AdminCoursesPanel } from "@/components/examiner/admin/AdminCoursesPanel
 import { SystemPanel } from "@/components/examiner/admin/SystemPanel";
 import { hasAdminRole, hasPrincipalRole } from "@/lib/client-rbac";
 import { AILimitsPanel } from "@/components/examiner/admin/AILimitsPanel";
-import { UserAuditTab } from "@/components/examiner/teacher/UserAuditTab";
+import { UserAuditTab } from "@/components/examiner/instructor/UserAuditTab";
 import { AuditLogPanel } from "@/components/examiner/admin/AuditLogPanel";
 import { AccessGrantsPanel } from "@/components/examiner/admin/AccessGrantsPanel";
 import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel";
 import { PasswordResetPanel } from "@/components/examiner/admin/PasswordResetPanel";
 import { RoleNavConfigPanel } from "@/components/examiner/admin/RoleNavConfigPanel";
-import { TeacherBehaviorTab } from "@/components/examiner/admin/TeacherBehaviorTab";
+import { InstructorBehaviorTab } from "@/components/examiner/admin/InstructorBehaviorTab";
 import { LayoutDashboard } from "@/components/examiner/admin/LayoutDashboard";
 
 import { useEffect, useState, useCallback } from "react";
@@ -38,11 +38,11 @@ import {
 } from "lucide-react";
 
 interface Props {
-  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits" | "user-audit";
+  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "instructor-behavior" | "ai-limits" | "user-audit";
 }
 
 export default function AdminDashboard({ initialView = "overview" }: Props) {
-  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "teacher-behavior" | "ai-limits" | "user-audit">(
+  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "instructor-behavior" | "ai-limits" | "user-audit">(
     initialView === "users" ? "users" :
     initialView === "courses" ? "courses" :
     initialView === "features" ? "features" :
@@ -51,7 +51,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     initialView === "principal" ? "principal" :
     initialView === "coordinator" ? "coordinator" :
     initialView === "pm" ? "pm" :
-    initialView === "teacher-behavior" ? "teacher-behavior" :
+    initialView === "instructor-behavior" ? "instructor-behavior" :
     initialView === "ai-limits" ? "ai-limits" :
     initialView === "user-audit" ? "user-audit" :
     "overview"
@@ -231,8 +231,8 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
         )}
         {/* Teacher Behavior tab — visible to principal + administrator (pastoral data) */}
         {isPrincipalRole && (
-          <Button onClick={() => setView("teacher-behavior")} variant={view === "teacher-behavior" ? "default" : "outline"} className={view === "teacher-behavior" ? "bg-primary text-primary-foreground" : "border-border"}>
-            <GraduationCap className="h-4 w-4" /> Teacher Behavior
+          <Button onClick={() => setView("instructor-behavior")} variant={view === "instructor-behavior" ? "default" : "outline"} className={view === "instructor-behavior" ? "bg-primary text-primary-foreground" : "border-border"}>
+            <GraduationCap className="h-4 w-4" /> Instructor Behavior
           </Button>
         )}
         {/* Coordinator tab — visible to all admin-equivalent roles */}
@@ -298,7 +298,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       )}
 
       {/* Teacher Behavior tab — teacher AI Assistant usage + behavioral signals */}
-      {view === "teacher-behavior" && <TeacherBehaviorTab />}
+      {view === "instructor-behavior" && <InstructorBehaviorTab />}
 
       {/* Phase 8: Coordinator tab — curriculum management */}
       {view === "coordinator" && <AdminCoordinatorTab />}

@@ -17,4 +17,4 @@
 export { default as Messages } from "@/components/examiner/Messages";
 
 // Components
-export { AskMyTeacher } from "@/components/examiner/AskMyTeacher";
+export { AskMyInstructor } from "@/components/examiner/AskMyInstructor";

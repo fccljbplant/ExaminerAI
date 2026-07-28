@@ -39,7 +39,7 @@ const ROLES = [
   },
   {
     id: "instructor",
-    label: "Teacher",
+    label: "Instructor",
     icon: BookOpen,
     accent: "from-emerald-500 to-teal-500",
     chip: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
@@ -92,7 +92,7 @@ const ROLES = [
     tagline: "Run the institution on signal, not gut.",
     desc: "Institution-wide analytics: academic performance distribution, teacher load tiers, safeguarding flags, audit log, wellbeing trends. The only role that sees safeguarding flags against teachers.",
     stats: [
-      { label: "Teacher load", value: "Tiered" },
+      { label: "Instructor load", value: "Tiered" },
       { label: "Audit log", value: "Full" },
       { label: "Safeguarding", value: "Exclusive" },
     ],
@@ -156,7 +156,7 @@ const AI_SECTIONS = [
   {
     num: "06",
     icon: Scale,
-    title: "Teacher Load",
+            title: "Instructor Load",
     desc: "loadScore = students × 1 + batches × 15 + alerts × 5 + crisis × 25 + overdue × 3. Green < 50, warning 50-99, red ≥ 100. Co-teacher suggestions NEVER propose warning/red candidates.",
     color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30",
   },

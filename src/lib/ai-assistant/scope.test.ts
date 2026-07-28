@@ -67,7 +67,7 @@ describe("AI Assistant — Scope Resolver", () => {
     otherStudentId = outOfBatchStudent!.id;
   });
 
-  it("teacher scope includes only students in their batches", async () => {
+  it("instructor scope includes only students in their courses", async () => {
     const scope = await resolveAssistantScope(teacherId, "instructor");
 
     expect(scope.studentIds).toContain(teacherStudentId);
@@ -75,7 +75,7 @@ describe("AI Assistant — Scope Resolver", () => {
     expect(scope.isInstitutionWide).toBe(false);
   });
 
-  it("teacher scope does NOT include students outside their batches (security guarantee)", async () => {
+  it("instructor scope does NOT include students outside their courses (security guarantee)", async () => {
     const scope = await resolveAssistantScope(teacherId, "instructor");
 
     // This is the core security assertion

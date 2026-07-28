@@ -233,7 +233,7 @@ export async function GET() {
   comments.slice(0, 3).forEach(c => {
     recentActivity.push({
       type: "comment",
-      title: `Comment from ${c.teacher?.name || "Teacher"}`,
+      title: `Comment from ${c.instructor?.name || "Instructor"}`,
       description: (c.body || "").slice(0, 80),
       date: c.createdAt.toISOString(),
     });
@@ -255,7 +255,7 @@ export async function GET() {
 
   // ---- Format teacher comments ----
   const teacherComments = comments.map(c => ({
-    teacherName: c.teacher?.name || "Teacher",
+      teacherName: c.instructor?.name || "Instructor",
     body: c.body,
     createdAt: c.createdAt.toISOString(),
   }));

@@ -36,20 +36,20 @@ export const ALL_NAV_KEYS = [
   // Admin
   "admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system",
   // Shared
-  "ai-tutor", "teacher-ai-tutor", "course-outline", "messages", "settings",
+  "ai-tutor", "instructor-ai-tutor", "course-outline", "messages", "settings",
 ] as const;
 
 /** Default nav items per role (used when no DB config exists).
  *  C10 fix: aligned with AppShell.tsx's ALL_NAV array. */
 export const DEFAULT_NAV_PER_ROLE: Record<string, string[]> = {
   student: ["dashboard", "checkin", "gantt", "report-card", "ai-tutor", "course-outline", "messages", "settings"],
-  teacher: ["batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights", "course-planner", "teacher-ai-tutor", "course-outline", "messages", "settings"],
-  course_coordinator: ["course-planner", "batch-students", "teacher-ai-tutor", "course-outline", "messages", "settings"],
+  teacher: ["batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights", "course-planner", "instructor-ai-tutor", "course-outline", "messages", "settings"],
+  course_coordinator: ["course-planner", "batch-students", "instructor-ai-tutor", "course-outline", "messages", "settings"],
   counselor: ["counselor-dashboard", "messages", "settings"],
   guardian: ["guardian-dashboard", "guardian-progress", "ai-tutor", "course-outline", "messages", "settings"],
   principal: ["principal-dashboard", "admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "settings"],
   administrator: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
-  demo: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "teacher-ai-tutor"],
+  demo: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "instructor-ai-tutor"],
   admin: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
 };
 
