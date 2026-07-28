@@ -50,7 +50,7 @@ export async function DELETE(
     // Order matters: delete dependent records first.
     await db.$transaction([
       // Comments authored by this user (as teacher) or targeting them (as student)
-      db.comment.deleteMany({ where: { teacherId: id } }),
+      db.comment.deleteMany({ where: { instructorId: id } }),
       db.comment.deleteMany({ where: { studentId: id } }),
       // Messages sent or received
       db.message.deleteMany({ where: { fromId: id } }),

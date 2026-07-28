@@ -21,7 +21,34 @@ export async function GET(req: NextRequest) {
   if (!auth.ok) return auth.response;
 
   const userId = req.nextUrl.searchParams.get("userId");
-  if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+
+  // If no userId is provided, return touchpoints for ALL students the caller
+  // can access (instructor's enrolled courses). MentorshipView uses this to
+  // surface follow-ups across the entire roster.
+  if (!userId) {
+    if (auth.ctx.user) {
+      const enrollments = await db.courseEnrollment.findMany({
+        where: { userId: auth.ctx.payload.sub, role: "instructor" },
+        select: { courseId: true },
+      });
+      const courseIds = enrollments.map(e => e.courseId);
+      if (courseIds.length === 0) {
+        return NextResponse.json({ touchpoints: [] });
+      }
+      const studentEnrollments = await db.courseEnrollment.findMany({
+        where: { courseId: { in: courseIds }, role: "student" },
+        select: { userId: true },
+      });
+      const studentIds = [...new Set(studentEnrollments.map(e => e.userId))];
+      const touchpoints = await db.mentorshipTouchpoint.findMany({
+        where: { userId: { in: studentIds } },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      });
+      return NextResponse.json({ touchpoints });
+    }
+    return NextResponse.json({ touchpoints: [] });
+  }
 
   // IDOR protection
   try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {

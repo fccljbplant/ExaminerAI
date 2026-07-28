@@ -53,7 +53,7 @@ export interface GroupTask {
   id: string;
   batchId: string;
   courseId: string | null;
-  teacherId: string;
+  instructorId: string;
   title: string;
   description: string;
   type: string;

@@ -394,7 +394,7 @@ export default function AppShell() {
       else if (u.role === "guardian") setView("guardian-dashboard");
       else setView("dashboard");
       // Fetch enrollments for student
-      if (["student", "guardian"].includes(u.role)) fetchEnrollments();
+      if (["student", "guardian", "instructor"].includes(u.role)) fetchEnrollments();
     }} />;
   }
 

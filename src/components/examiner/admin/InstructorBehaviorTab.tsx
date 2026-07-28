@@ -31,7 +31,7 @@ interface SessionPreview {
 
 interface Session {
   id: string;
-  teacherId: string;
+  instructorId: string;
   teacherName: string;
   teacherEmail: string;
   teacherRole: string;
@@ -45,7 +45,7 @@ interface Session {
 }
 
 interface TeacherSummary {
-  teacherId: string;
+  instructorId: string;
   name: string;
   email: string;
   role: string;
@@ -185,7 +185,7 @@ export function InstructorBehaviorTab() {
               </thead>
               <tbody>
                 {data.summary.map(t => (
-                  <tr key={t.teacherId} className="border-b border-border hover:bg-muted/50">
+                  <tr key={t.instructorId} className="border-b border-border hover:bg-muted/50">
                     <td className="py-2 px-3">
                       <div className="font-medium text-foreground">{t.name}</div>
                       <div className="text-[10px] text-muted-foreground">{t.email}</div>

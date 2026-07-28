@@ -209,7 +209,7 @@ export function ReportCardPanel({ reportCards, comments, studentId, courseId }: 
               <div key={c.id} className="rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="font-medium text-primary flex items-center gap-1">
-                    <MessageSquare className="h-2.5 w-2.5" /> {c.teacher.name}
+                    <MessageSquare className="h-2.5 w-2.5" /> {c.instructor.name}
                   </span>
                   <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
                 </div>

@@ -12,7 +12,7 @@ import { resolveAssistantScope, assertStudentInScope } from "@/lib/ai-assistant/
 import { db } from "@/lib/db";
 
 describe("AI Assistant — Scope Resolver", () => {
-  let teacherId: string;
+  let instructorId: string;
   let teacherStudentId: string; // student in teacher's batch
   let otherStudentId: string; // student NOT in teacher's batch
   let principalId: string;
@@ -23,7 +23,7 @@ describe("AI Assistant — Scope Resolver", () => {
   beforeAll(async () => {
     // Find a teacher (or instructor - for backward compat)
     const teacher = await db.user.findFirst({ where: { role: "instructor" } });
-    teacherId = teacher!.id;
+    instructorId = teacher!.id;
 
     // Find a principal
     const principal = await db.user.findFirst({ where: { role: "principal" } });
@@ -41,7 +41,7 @@ describe("AI Assistant — Scope Resolver", () => {
 
     // Find the instructor's courses via CourseEnrollment
     const instructorCourses = await db.courseEnrollment.findMany({
-      where: { userId: teacherId, role: "instructor" },
+      where: { userId: instructorId, role: "instructor" },
       select: { courseId: true },
     });
     const teacherCourseIds = instructorCourses.map(ec => ec.courseId);
@@ -68,7 +68,7 @@ describe("AI Assistant — Scope Resolver", () => {
   });
 
   it("instructor scope includes only students in their courses", async () => {
-    const scope = await resolveAssistantScope(teacherId, "instructor");
+    const scope = await resolveAssistantScope(instructorId, "instructor");
 
     expect(scope.studentIds).toContain(teacherStudentId);
     expect(scope.studentIds).not.toContain(otherStudentId);
@@ -76,7 +76,7 @@ describe("AI Assistant — Scope Resolver", () => {
   });
 
   it("instructor scope does NOT include students outside their courses (security guarantee)", async () => {
-    const scope = await resolveAssistantScope(teacherId, "instructor");
+    const scope = await resolveAssistantScope(instructorId, "instructor");
 
     // This is the core security assertion
     const inScope = await assertStudentInScope(scope, otherStudentId);
@@ -96,7 +96,7 @@ describe("AI Assistant — Scope Resolver", () => {
     const scope = await resolveAssistantScope(counselorId, "counselor");
 
     expect(scope.studentIds.length).toBeGreaterThan(0);
-    expect(scope.teacherIds.length).toBeGreaterThan(0);
+    expect(scope.instructorIds.length).toBeGreaterThan(0);
     expect(scope.courseIds).toEqual([]);
     expect(scope.isInstitutionWide).toBe(false);
   });

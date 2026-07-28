@@ -23,7 +23,7 @@ export interface ScopeResult {
   /** All student IDs the caller can see */
   studentIds: string[];
   /** All teacher IDs the caller can see (for load/behavior queries) */
-  teacherIds: string[];
+  instructorIds: string[];
   /** All course IDs the caller can see */
   courseIds: string[];
   /** All batch IDs the caller can see */
@@ -87,7 +87,7 @@ export async function resolveAssistantScope(
       });
       return {
         studentIds: [],
-        teacherIds: [],
+        instructorIds: [],
         courseIds: [],
         batchIds: [],
         institutionId,
@@ -113,7 +113,7 @@ export async function resolveAssistantScope(
 
     return {
       studentIds: students.map(s => s.id),
-      teacherIds: teachers.map(t => t.id),
+      instructorIds: teachers.map(t => t.id),
       courseIds: courses.map(c => c.id),
       institutionId,
       isInstitutionWide: true,
@@ -131,7 +131,7 @@ export async function resolveAssistantScope(
       });
       return {
         studentIds: [],
-        teacherIds: [],
+        instructorIds: [],
         courseIds: [],
         batchIds: [],
         institutionId,
@@ -153,7 +153,7 @@ export async function resolveAssistantScope(
 
     return {
       studentIds: students.map(s => s.id),
-      teacherIds: teachers.map(t => t.id),
+      instructorIds: teachers.map(t => t.id),
       courseIds: [], // Counselors don't get curriculum access via scope
       batchIds: [], // Counselors don't get batch structure access via scope
       institutionId,
@@ -172,7 +172,7 @@ export async function resolveAssistantScope(
       });
       return {
         studentIds: [],
-        teacherIds: [],
+        instructorIds: [],
         courseIds: [],
         institutionId,
         isInstitutionWide: false,
@@ -189,7 +189,7 @@ export async function resolveAssistantScope(
 
     return {
       studentIds: [], // Coordinators don't get individual student behavioral data via scope
-      teacherIds: [],
+      instructorIds: [],
       courseIds: courses.map(c => c.id),
       institutionId,
       isInstitutionWide: false,
@@ -208,7 +208,7 @@ export async function resolveAssistantScope(
   if (courseIds.length === 0) {
     return {
       studentIds: [],
-      teacherIds: [callerId], // Teachers can see their own load
+      instructorIds: [callerId], // Teachers can see their own load
       courseIds,
       batchIds: [],
       institutionId,
@@ -226,7 +226,7 @@ export async function resolveAssistantScope(
 
   return {
     studentIds: studentEnrollments.map(e => e.userId),
-    teacherIds: [callerId],
+    instructorIds: [callerId],
     courseIds,
     batchIds: [],
     institutionId,

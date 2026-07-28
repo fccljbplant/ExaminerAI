@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.TEACHER, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -57,7 +57,7 @@ Return ONLY the anonymized version (2-4 sentences). Do not include any names, da
 /** PUT /api/mentorship/case-review — confirm + publish */
 export async function PUT(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("reviewing cases"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.TEACHER, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

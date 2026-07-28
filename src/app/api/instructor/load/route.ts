@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
-  const teacherId = auth.ctx.payload.sub;
+  const instructorId = auth.ctx.payload.sub;
   const now = new Date();
   const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   let studentIds: string[] = [];
   if (!isAdmin) {
     const instructorCourses = await db.courseEnrollment.findMany({
-      where: { userId: teacherId, role: "instructor" },
+      where: { userId: instructorId, role: "instructor" },
       select: { courseId: true },
     });
     const courseIds = instructorCourses.map(c => c.courseId);
@@ -63,8 +63,8 @@ export async function GET(req: NextRequest) {
   const messages = await db.message.findMany({
     where: {
       OR: [
-        { fromId: { in: studentIds }, toId: teacherId }, // student → teacher
-        { fromId: teacherId, toId: { in: studentIds } }, // teacher → student
+        { fromId: { in: studentIds }, toId: instructorId }, // student → teacher
+        { fromId: instructorId, toId: { in: studentIds } }, // teacher → student
       ],
       sentAt: { gte: fourWeeksAgo },
     },
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
     const msg = messages[i];
     const next = messages[i + 1];
     // If student sent a message and teacher replied
-    if (studentIds.includes(msg.fromId) && next.fromId === teacherId) {
+    if (studentIds.includes(msg.fromId) && next.fromId === instructorId) {
       const responseTime = new Date(next.sentAt).getTime() - new Date(msg.sentAt).getTime();
       if (responseTime > 0 && responseTime < 7 * 24 * 60 * 60 * 1000) { // ignore >7d gaps (probably unrelated)
         totalResponseTimeMs += responseTime;
@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
   // 2. Touchpoint completion rate
   const touchpoints = await db.mentorshipTouchpoint.count({
     where: {
-      actorUserId: teacherId,
+      actorUserId: instructorId,
       createdAt: { gte: oneWeekAgo },
     },
   });
@@ -165,7 +165,7 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({
-    teacherId,
+    instructorId,
     generatedAt: now.toISOString(),
     studentCount,
     responseTime: {

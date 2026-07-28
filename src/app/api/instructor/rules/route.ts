@@ -8,8 +8,8 @@ export async function GET() {
   const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
-  const rules = await db.teacherRule.findMany({
-    where: { teacherId: auth.ctx.payload.sub },
+  const rules = await db.instructorRule.findMany({
+    where: { instructorId: auth.ctx.payload.sub },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json({ rules });
@@ -34,8 +34,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Invalid action. Valid: ${VALID_ACTIONS.join(", ")}` }, { status: 400 });
   }
 
-  const rule = await db.teacherRule.create({
-    data: { teacherId: auth.ctx.payload.sub, condition, action },
+  const rule = await db.instructorRule.create({
+    data: { instructorId: auth.ctx.payload.sub, condition, action },
   });
   return NextResponse.json({ rule });
 }
@@ -49,6 +49,6 @@ export async function DELETE(req: NextRequest) {
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  await db.teacherRule.deleteMany({ where: { id, teacherId: auth.ctx.payload.sub } });
+  await db.instructorRule.deleteMany({ where: { id, instructorId: auth.ctx.payload.sub } });
   return NextResponse.json({ ok: true });
 }

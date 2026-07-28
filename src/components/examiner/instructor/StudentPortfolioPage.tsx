@@ -528,7 +528,7 @@ export function StudentPortfolioPage({
                     {portfolio.comments.filter(c => c.taskId === t.id).map(c => (
                       <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="font-medium text-primary">{c.teacher.name}</span>
+                          <span className="font-medium text-primary">{c.instructor.name}</span>
                           <div className="flex items-center gap-1">
                             <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
                             <button onClick={() => deleteComment(c.id)} className="text-destructive hover:underline"><Trash2 className="h-2.5 w-2.5" /></button>
@@ -581,7 +581,7 @@ export function StudentPortfolioPage({
                   {portfolio.comments.filter(c => c.dailyLogId === log.id).map(c => (
                     <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="font-medium text-primary">{c.teacher.name}</span>
+                        <span className="font-medium text-primary">{c.instructor.name}</span>
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
                           <button onClick={() => deleteComment(c.id)} className="text-[10px] text-destructive hover:underline"><Trash2 className="h-2.5 w-2.5" /></button>
@@ -748,7 +748,7 @@ export function StudentPortfolioPage({
                     {portfolio.comments.filter(c => c.weeklyTestId === wt.id).map(c => (
                       <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="font-medium text-primary">{c.teacher.name}</span>
+                          <span className="font-medium text-primary">{c.instructor.name}</span>
                           <div className="flex items-center gap-1">
                             {c.marksOverride !== null && <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">Score: {c.marksOverride}%</Badge>}
                             <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
@@ -850,7 +850,7 @@ export function StudentPortfolioPage({
                     {portfolio.comments.filter(c => c.interactionId === i.id).map(c => (
                       <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="font-medium text-primary">{c.teacher.name}</span>
+                          <span className="font-medium text-primary">{c.instructor.name}</span>
                           <div className="flex items-center gap-1">
                             <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
                             <button onClick={() => deleteComment(c.id)} className="text-destructive hover:underline"><Trash2 className="h-2.5 w-2.5" /></button>
@@ -890,7 +890,7 @@ export function StudentPortfolioPage({
                     {portfolio.comments.filter(c => c.weeklyTestId === wtCommentFor?.testId).map((c) => (
                       <div key={c.id} className="rounded-md bg-muted p-2.5 text-xs">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-foreground">{c.teacher.name}</span>
+                          <span className="font-medium text-foreground">{c.instructor.name}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
                             <button
@@ -1039,7 +1039,7 @@ export function StudentPortfolioPage({
                       {prev.map((c) => (
                         <div key={c.id} className="rounded-md bg-muted p-2.5 text-xs">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-foreground">{c.teacher.name}</span>
+                            <span className="font-medium text-foreground">{c.instructor.name}</span>
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
                               <button onClick={() => deleteComment(c.id)} className="text-destructive hover:text-destructive/80" title="Delete" aria-label="Delete comment"><Trash2 className="h-3 w-3" /></button>
@@ -1252,7 +1252,7 @@ export function StudentPortfolioPage({
                   {portfolio.comments.filter(c => c.body?.includes(`[Week ${rc.week} Report Card]`)).map(c => (
                     <div key={c.id} className="mt-1.5 rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="font-medium text-primary">{c.teacher.name}</span>
+                        <span className="font-medium text-primary">{c.instructor.name}</span>
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
                           <button onClick={() => deleteComment(c.id)} className="text-destructive hover:text-destructive/80"><Trash2 className="h-2.5 w-2.5" /></button>
@@ -1302,7 +1302,7 @@ export function StudentPortfolioPage({
                 portfolio.comments.map((c) => (
                   <div key={c.id} className="rounded-md bg-muted p-3 text-sm">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-foreground">{c.teacher.name}</span>
+                      <span className="text-xs font-medium text-foreground">{c.instructor.name}</span>
                       <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
                     </div>
                     {c.body && <p className="text-foreground/80 text-xs break-words">{c.body}</p>}

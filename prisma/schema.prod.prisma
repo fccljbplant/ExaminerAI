@@ -170,13 +170,13 @@ model User {
   growthReport            GrowthReport?
   studentAlerts           StudentAlert[]
   groupTaskSubmissions    GroupTaskSubmission[]
-  groupTasksTaught        GroupTask[]            @relation("GroupTaskTeacher")
+  instructorGroupTasks        GroupTask[]            @relation("GroupTaskInstructor")
   guardianLinks           GuardianLink[]         @relation("GuardianLinkGuardian")
   studentGuardians        GuardianLink[]         @relation("GuardianLinkStudent")
   eventsCreated           Event[]
   peerAssessmentsGiven    PeerAssessment[]       @relation("PeerAssessor")
   peerAssessmentsReceived PeerAssessment[]       @relation("PeerAssessee")
-  teacherRules            TeacherRule[]          @relation("TeacherRuleOwner")
+  instructorRules            InstructorRule[]          @relation("InstructorRuleOwner")
   caseReviewsPosted       CaseReview[]           @relation("CaseReviewAuthor")
   caseReviewResponses     CaseReviewResponse[]   @relation("CaseReviewResponder")
 }
@@ -688,7 +688,7 @@ model DailyTestAnswer {
 model GroupTask {
   id          String    @id @default(cuid())
   courseId    String
-  teacherId   String
+  instructorId   String
   title       String
   description String    @default("")
   type        String    @default("assignment")
@@ -700,12 +700,12 @@ model GroupTask {
   updatedAt   DateTime  @updatedAt
 
   course          Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  teacher         User                  @relation("GroupTaskTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher         User                  @relation("GroupTaskInstructor", fields: [instructorId], references: [id], onDelete: Cascade)
   submissions     GroupTaskSubmission[]
   peerAssessments PeerAssessment[]
 
   @@index([courseId, status])
-  @@index([teacherId])
+  @@index([instructorId])
   @@index([dueDate])
 }
 
@@ -794,14 +794,14 @@ model GuardianLink {
   @@index([studentId])
 }
 
-model TeacherRule {
+model InstructorRule {
   id           String   @id @default(cuid())
   instructorId String
   condition    String
   action       String
   enabled      Boolean  @default(true)
   createdAt    DateTime @default(now())
-  instructor   User     @relation("TeacherRuleOwner", fields: [instructorId], references: [id], onDelete: Cascade)
+  instructor   User     @relation("InstructorRuleOwner", fields: [instructorId], references: [id], onDelete: Cascade)
 
   @@index([instructorId, enabled])
 }

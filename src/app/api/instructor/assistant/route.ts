@@ -61,14 +61,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Question too long (max 1000 characters)" }, { status: 400 });
   }
 
-  const teacherId = auth.ctx.payload.sub;
+  const instructorId = auth.ctx.payload.sub;
 
   // Build student summary using course enrollment (instead of deleted buildTeacherBatchSummary)
   let summary;
   try {
     // Get courses the instructor has access to
     const instructorCourses = await db.courseEnrollment.findMany({
-      where: { userId: teacherId, role: "instructor" },
+      where: { userId: instructorId, role: "instructor" },
       select: { courseId: true },
     });
     const courseIds = instructorCourses.map(c => c.courseId);
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     };
   } catch (summaryErr) {
     logger.error("Student summary failed", {
-      teacherId,
+      instructorId,
       error: summaryErr instanceof Error ? summaryErr.message : String(summaryErr),
     });
     summary = {
@@ -201,7 +201,7 @@ Answer:`;
       queryTimestamp: new Date().toISOString(),
     });
   } catch (err) {
-    logger.error("Instructor AI Assistant call failed", { instructorId, error: err instanceof Error ? err.message : String(err) });
+    logger.error("Instructor AI Assistant call failed", { instructorId: teacherId, error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({
       answer: "I wasn't able to process your question right now. Please try again in a moment.",
       references: [],

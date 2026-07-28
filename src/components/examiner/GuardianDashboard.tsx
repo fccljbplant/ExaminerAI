@@ -391,7 +391,7 @@ export default function GuardianDashboard({ onMessage }: GuardianDashboardProps 
       {/* ============================================ */}
       {/* CONTACT TEACHER — direct action */}
       {/* ============================================ */}
-      {data.teacher && (
+      {data.instructor && (
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="pt-5 pb-5">
             <div className="flex items-center justify-between flex-wrap gap-3">
@@ -400,7 +400,7 @@ export default function GuardianDashboard({ onMessage }: GuardianDashboardProps 
                   <Mail className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Message {data.teacher.name}</div>
+                  <div className="text-sm font-medium">Message {data.instructor.name}</div>
                   <div className="text-xs text-muted-foreground">Your child's teacher — ask questions, share concerns</div>
                 </div>
               </div>

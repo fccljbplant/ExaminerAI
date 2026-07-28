@@ -139,16 +139,16 @@ export async function getAggregateSummary(scope: ScopeResult): Promise<{
   // C1 fix (audit 2026-07-26): when scope.institutionId is null, the previous
   // version passed `institutionId: undefined` to Prisma, which Prisma interprets
   // as "no filter" — leaking cross-institution data. The scope resolver now
-  // returns empty studentIds/teacherIds when institutionId is null, so we can
-  // safely use scope.studentIds/teacherIds here in BOTH branches.
+  // returns empty studentIds/instructorIds when institutionId is null, so we can
+  // safely use scope.studentIds/instructorIds here in BOTH branches.
   // - Institution-wide: filter by id IN studentIds (which is already institution-scoped)
   //   OR fall back to a guaranteed-empty filter when scope has no students.
   // - Non-institution-wide: same — use the scoped studentIds list directly.
   const studentFilter = scope.studentIds.length > 0
     ? { id: { in: scope.studentIds }, blocked: false }
     : { id: "nonexistent-id-to-force-zero-count" as const, blocked: false };
-  const teacherFilter = scope.teacherIds.length > 0
-    ? { id: { in: scope.teacherIds } }
+  const teacherFilter = scope.instructorIds.length > 0
+    ? { id: { in: scope.instructorIds } }
     : { id: "nonexistent-id-to-force-zero-count" as const };
 
   const [students, teachers, wellbeingStates, alerts, healthSummaries] = await Promise.all([

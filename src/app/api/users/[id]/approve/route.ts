@@ -13,7 +13,7 @@ export async function PUT(
 ) {
   const _demoBlock = await demoWriteBlock("approving users"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
-    UserRole.INSTRUCTOR, UserRole.TEACHER,
+    UserRole.INSTRUCTOR,
     UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
   if (!auth.ok) return auth.response;
 

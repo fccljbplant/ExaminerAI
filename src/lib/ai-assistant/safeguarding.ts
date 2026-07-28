@@ -126,7 +126,7 @@ export function analyzeMessageForSafeguarding(
  * Escalation requires MULTIPLE corroborating signals, never a single message.
  */
 export async function countTeacherSafeguardingSignals(
-  teacherId: string,
+  instructorId: string,
   windowDays: number = 30
 ): Promise<number> {
   // Count StudentAlerts of type "safeguarding" for this teacher in the window
@@ -134,7 +134,7 @@ export async function countTeacherSafeguardingSignals(
 
   const count = await db.studentAlert.count({
     where: {
-      userId: teacherId, // The flag is ABOUT the teacher (stored as userId)
+      userId: instructorId, // The flag is ABOUT the teacher (stored as userId)
       type: "safeguarding",
       createdAt: { gt: windowAgo },
       status: { not: "dismissed" },
@@ -160,7 +160,7 @@ export async function countTeacherSafeguardingSignals(
  * as a JSON array of message IDs — NOT the message text itself.
  */
 export async function createSafeguardingFlag(params: {
-  teacherId: string;
+  instructorId: string;
   studentId: string;
   signalCount: number;
   messageIds: string[];
@@ -170,7 +170,7 @@ export async function createSafeguardingFlag(params: {
   // Require at least 2 corroborating signals
   if (params.signalCount < 2) {
     logger.info("Safeguarding flag not created — insufficient corroboration", {
-      teacherId: params.teacherId,
+      instructorId: params.instructorId,
       signalCount: params.signalCount,
     });
     return null;
@@ -180,7 +180,7 @@ export async function createSafeguardingFlag(params: {
 
   const alert = await db.studentAlert.create({
     data: {
-      userId: params.teacherId, // Flag is ABOUT the teacher
+      userId: params.instructorId, // Flag is ABOUT the teacher
       type: "safeguarding",
       severity: "warning", // Escalation engine may promote to red
       reason,
@@ -193,11 +193,11 @@ export async function createSafeguardingFlag(params: {
   });
 
   // Check for immediate escalation (repeat occurrence)
-  await checkOnWriteEscalation(params.teacherId, "safeguarding", alert.id);
+  await checkOnWriteEscalation(params.instructorId, "safeguarding", alert.id);
 
   logger.info("Safeguarding flag created", {
     flagId: alert.id,
-    teacherId: params.teacherId,
+    instructorId: params.instructorId,
     signalCount: params.signalCount,
     categories: params.categories,
   });
@@ -211,7 +211,7 @@ export async function createSafeguardingFlag(params: {
  */
 export async function getSafeguardingFlagsForPrincipal(institutionId: string): Promise<Array<{
   id: string;
-  teacherId: string;
+  instructorId: string;
   teacherName: string;
   reason: string;
   severity: string;
@@ -231,7 +231,7 @@ export async function getSafeguardingFlagsForPrincipal(institutionId: string): P
 
   return flags.map(f => ({
     id: f.id,
-    teacherId: f.userId,
+    instructorId: f.userId,
     teacherName: f.user?.name || "Unknown",
     reason: f.reason,
     severity: f.severity,
@@ -267,11 +267,11 @@ export async function dismissSafeguardingFlag(
  * This is the security assertion for Section 5.
  */
 export async function assertTeacherCannotSeeOwnSafeguardingFlags(
-  teacherId: string
+  instructorId: string
 ): Promise<boolean> {
   // The /api/students/alerts endpoint only returns alerts WHERE userId = studentId
   // for student-scoped queries, or WHERE the caller is staff.
-  // Safeguarding flags have userId = teacherId (the teacher being flagged).
+  // Safeguarding flags have userId = instructorId (the teacher being flagged).
   // A teacher querying /api/students/alerts will NOT see alerts where
   // they themselves are the subject, because the query is scoped to
   // students in their batch, not to themselves.

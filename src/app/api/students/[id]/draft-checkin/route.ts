@@ -154,7 +154,7 @@ Draft the check-in message:`;
       note: "This is a draft — edit before sending. AI-drafted, not AI-sent.",
     });
   } catch (err) {
-    logger.error("Draft check-in AI call failed", { teacherId: payload.sub, studentId: id, error: err instanceof Error ? err.message : String(err) });
+    logger.error("Draft check-in AI call failed", { instructorId: payload.sub, studentId: id, error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({
       draft: `Hi ${student.name}, I wanted to check in and see how things are going. Let me know if you'd like to talk.`,
       note: "AI draft unavailable — using template. Edit before sending.",

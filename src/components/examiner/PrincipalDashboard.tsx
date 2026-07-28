@@ -53,7 +53,7 @@ interface PrincipalData {
   coursePerformance: Array<{ id: string; code: string; name: string; teacher: string; studentCount: number; avgScore: number }>;
   teacherPerformance: Array<{ id: string; name: string; email: string; courses: number; sessions: number; alertsRaised: number }>;
   // CR-2 fix: safeguarding flags for principal review
-  safeguardingFlags?: Array<{ id: string; teacherId: string; teacherName: string; reason: string; severity: string; status: string; createdAt: string }>;
+  safeguardingFlags?: Array<{ id: string; instructorId: string; teacherName: string; reason: string; severity: string; status: string; createdAt: string }>;
   auditLogs: Array<{ id: string; actorName: string; actorRole: string; action: string; targetType: string; metadata: string | null; createdAt: string }>;
   growthReports: Array<{ id: string; title: string; userName: string; generatedAt: string }>;
 }
@@ -305,7 +305,7 @@ function AcademicView({ data }: { data: PrincipalData }) {
                       <span className="text-sm font-medium truncate">{c.name}</span>
                       <Badge variant="outline" className="text-[9px] font-mono">{c.code}</Badge>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">Teacher: {c.teacher} · {c.studentCount} students</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">Teacher: {c.instructor} · {c.studentCount} students</div>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <div className={cn("text-lg font-bold", c.avgScore >= 70 ? "text-emerald-600" : c.avgScore >= 50 ? "text-amber-600" : "text-rose-600")}>

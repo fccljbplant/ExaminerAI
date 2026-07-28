@@ -36,8 +36,8 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
     setLoadingTeacher(true); setError("");
     api.get<{ teacher: TeacherInfo | null }>("/api/messages/teacher")
       .then((res) => {
-        if (res.teacher) {
-          setTeacher(res.teacher);
+        if (res.instructor) {
+          setTeacher(res.instructor);
           const viewLabel = currentView ? VIEW_LABELS[currentView] ?? "Dashboard" : "Dashboard";
           setSubject(`Question about ${viewLabel}`);
         } else {

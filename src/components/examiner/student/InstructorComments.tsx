@@ -22,7 +22,7 @@ export function InstructorComments({ comments, entityId, field }: {
         <div key={c.id} className="rounded-md bg-primary/10 border border-primary/20 p-1.5 text-[11px]">
           <div className="flex items-center justify-between mb-0.5">
             <span className="font-medium text-primary flex items-center gap-1">
-              <MessageSquare className="h-2.5 w-2.5" /> {c.teacher.name}
+              <MessageSquare className="h-2.5 w-2.5" /> {c.instructor.name}
             </span>
             {c.marksOverride !== null && (
               <Badge variant="outline" className="text-[8px] border-primary/30 text-primary">Score: {c.marksOverride}%</Badge>
