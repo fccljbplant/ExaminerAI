@@ -1,11 +1,11 @@
 /**
- * Scope Resolver Tests (Section 1 VERIFY)
+ * Scope Resolver Tests
  *
  * Confirms:
- * 1. A teacher's scope does NOT include students outside their BatchTeacher batches
+ * 1. An instructor's scope does NOT include students outside their courses
  * 2. A principal's scope includes all institution students
  * 3. A counselor's scope includes students + teachers but not courses
- * 4. A course_coordinator's scope includes courses/batches but not students
+ * 4. A course_coordinator's scope includes courses but not students
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { resolveAssistantScope, assertStudentInScope } from "@/lib/ai-assistant/scope";

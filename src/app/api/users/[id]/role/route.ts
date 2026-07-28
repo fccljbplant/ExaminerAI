@@ -74,6 +74,25 @@ export async function PATCH(
 
   const user = await db.user.update({ where: { id }, data: { role: canonicalRole } });
 
+  // Sync CourseEnrollment role when changing between student and instructor
+  const enrollmentRole = canonicalRole === "instructor" ? "instructor"
+    : canonicalRole === "student" ? "student" : null;
+  if (enrollmentRole) {
+    // Update existing enrollments to match the new role
+    const existingEnrollments = await db.courseEnrollment.findMany({
+      where: { userId: id, role: enrollmentRole === "instructor" ? "student" : "instructor" },
+    });
+    if (existingEnrollments.length > 0) {
+      // Delete old-role enrollments (they'll be recreated as needed)
+      await db.courseEnrollment.deleteMany({
+        where: { id: { in: existingEnrollments.map(e => e.id) } },
+      });
+    }
+  } else if (canonicalRole !== "student" && canonicalRole !== "instructor") {
+    // Non-student/instructor roles: remove all course enrollments
+    await db.courseEnrollment.deleteMany({ where: { userId: id } });
+  }
+
   // R4-fix: invalidate the auth cache so the role change takes effect
   // immediately (within 60s instead of 7 days when only relying on JWT).
   invalidateAuthCache(id);
