@@ -211,21 +211,21 @@ export async function POST(req: NextRequest) {
 
   // ---- RETAKE GATE ----
   // If the test is already completed and the student tries to start it again,
-  // only allow if the teacher has explicitly set `retakeAllowed = true`.
+  // only allow if the instructor has explicitly set `retakeAllowed = true`.
   // When the retake starts, reset the test + clear the flag so they can't
   // retake twice without teacher permission.
   if (test?.status === "completed" && action === "start") {
     if (!test.retakeAllowed) {
       // Phase 1.6: Parse weaknesses so we can include a study plan in the
       // retake-denial message. The student gets actionable guidance instead
-      // of just "ask your teacher".
+      // of just "ask your instructor".
       let weaknesses: string[] = [];
       try { weaknesses = JSON.parse(test.weaknesses || "[]"); } catch { weaknesses = []; }
       const studyPlan = weaknesses.length > 0
         ? ` Before retaking, review these topics: ${weaknesses.join(", ")}.`
         : "";
       return NextResponse.json({
-        error: `Week ${week} test already completed. Ask your teacher to allow a retake if you'd like to try again.${studyPlan}`,
+        error: `Week ${week} test already completed. Ask your instructor to allow a retake if you'd like to try again.${studyPlan}`,
         alreadyCompleted: true,
         retakeAllowed: false,
         weaknesses,
@@ -531,7 +531,7 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
               weaknesses: JSON.stringify(analysis.weaknesses || []),
               // Phase 1.2 v2 + 1.3 v2: Store the full analysis breakdown
               // (plagiarism per-answer + engagement feedback) as JSON in the
-              // existing examinerObs column. The teacher portfolio view parses
+              // existing examinerObs column. The instructor portfolio view parses
               // this to show the full analysis. The student UI shows a
               // constructive subset.
               examinerObs: JSON.stringify({
@@ -766,7 +766,7 @@ async function generateFinalAnalysis(
     voiceConsistency: string;
     perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
     strongestSignal: string;
-    teacherNote: string;
+    instructorNote: string;
   } | null;
   engagementFeedback: {
     subjectChanges: number;
@@ -774,7 +774,7 @@ async function generateFinalAnalysis(
     distractedQuestions: number[];
     overallEngagement: string;
     studentFeedback: string;
-    teacherNote: string;
+    instructorNote: string;
   } | null;
   feedback: TeachingFeedback;
 }> {
@@ -793,7 +793,7 @@ async function generateFinalAnalysis(
     const parsed = match ? JSON.parse(match[0]) : {};
     // Store the REAL score (0-100). The previous 50% floor was pedagogically
     // dishonest — a student who answered nothing got 50, which destroyed the
-    // signal for the teacher and gave the student a false sense of passing.
+    // signal for the instructor and gave the student a false sense of passing.
     // The student-facing UI now buffers low scores with a study-plan message
     // (see StudentDashboard WeeklyTestPanel). Teachers see the real score.
     const rawScore = Number(parsed.score ?? 70);
@@ -824,13 +824,13 @@ async function generateFinalAnalysis(
     }
 
     // Phase 1.2 v2: Parse the plagiarism breakdown (per-answer analysis +
-    // voice consistency + teacher note). Stored on WeeklyTest.examinerObs
-    // as JSON so the teacher can review the full analysis.
+    // voice consistency + instructor note). Stored on WeeklyTest.examinerObs
+    // as JSON so the instructor can review the full analysis.
     let plagiarismBreakdown: {
       voiceConsistency: string;
       perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
       strongestSignal: string;
-      teacherNote: string;
+      instructorNote: string;
     } | null = null;
     try {
       const rawBreakdown = parsed.plagiarismBreakdown;
@@ -849,7 +849,7 @@ async function generateFinalAnalysis(
           voiceConsistency: typeof b.voiceConsistency === "string" ? b.voiceConsistency : "Analysis unavailable.",
           perAnswerFlags,
           strongestSignal: typeof b.strongestSignal === "string" ? b.strongestSignal : "No concerning patterns.",
-          teacherNote: typeof b.teacherNote === "string" ? b.teacherNote : "No teacher action needed.",
+          instructorNote: typeof b.instructorNote === "string" ? b.instructorNote : "No instructor action needed.",
         };
       }
     } catch {
@@ -857,14 +857,14 @@ async function generateFinalAnalysis(
     }
 
     // Phase 1.3 v2: Parse the engagement feedback (subject changes +
-    // avoidance + constructive student feedback + teacher note).
+    // avoidance + constructive student feedback + instructor note).
     let engagementFeedback: {
       subjectChanges: number;
       avoidanceCount: number;
       distractedQuestions: number[];
       overallEngagement: string;
       studentFeedback: string;
-      teacherNote: string;
+      instructorNote: string;
     } | null = null;
     try {
       const rawEngagement = parsed.engagementFeedback;
@@ -878,7 +878,7 @@ async function generateFinalAnalysis(
             : [],
           overallEngagement: typeof e.overallEngagement === "string" ? e.overallEngagement : "unknown",
           studentFeedback: typeof e.studentFeedback === "string" ? e.studentFeedback : "Engagement analysis unavailable.",
-          teacherNote: typeof e.teacherNote === "string" ? e.teacherNote : "No concerns.",
+          instructorNote: typeof e.instructorNote === "string" ? e.instructorNote : "No concerns.",
         };
       }
     } catch {
@@ -1054,14 +1054,14 @@ export async function GET(req: NextRequest) {
 
     // Phase 1.2 v2 + 1.3 v2: Parse the full analysis breakdown stored in
     // examinerObs. Returns the plagiarism breakdown + engagement feedback.
-    // The student UI shows a constructive subset; the teacher portfolio view
+    // The student UI shows a constructive subset; the instructor portfolio view
     // shows the full detail.
     let analysisBreakdown: {
       plagiarismBreakdown: {
         voiceConsistency: string;
         perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
         strongestSignal: string;
-        teacherNote: string;
+        instructorNote: string;
       } | null;
       engagementFeedback: {
         subjectChanges: number;
@@ -1069,7 +1069,7 @@ export async function GET(req: NextRequest) {
         distractedQuestions: number[];
         overallEngagement: string;
         studentFeedback: string;
-        teacherNote: string;
+        instructorNote: string;
       } | null;
       plagiarismNotes: string;
       feedback: TeachingFeedback | null;
@@ -1096,7 +1096,7 @@ export async function GET(req: NextRequest) {
         weaknesses,
         // Phase 1.1: flag for the student-facing UI — if true, the UI shows
         // a kind "here's what to focus on" message instead of the raw score.
-        // The teacher-facing portfolio view always shows the real score.
+        // The instructor-facing portfolio view always shows the real score.
         needsStudyPlan: (test.score ?? 100) < 60,
         // Phase 1.2 v2 + 1.3 v2: full analysis breakdown
         plagiarismNotes: analysisBreakdown?.plagiarismNotes ?? "No signs of plagiarism detected.",

@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** GET /api/students/alerts — returns open alerts for students in the teacher's batch.
+/** GET /api/students/alerts — returns open alerts for students in the instructor's course.
  *  Also returns the StudentHealthSummary for each student with alerts.
  *  Staff-only. Safeguarding alerts (type="safeguarding") are principal-only. */
 export async function GET(req: NextRequest) {
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ alerts, summary });
   }
 
-  // Get all open alerts across all students (for teacher dashboard)
+  // Get all open alerts across all students (for instructor dashboard)
   // Scope to the caller's enrolled students via CourseEnrollment
   let accessibleStudentIds: string[] | undefined;
   if (!isPrincipal) {

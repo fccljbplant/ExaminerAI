@@ -58,8 +58,8 @@ interface GuardianData {
   wins: string[];
   weeklySummary: Array<{ week: number; score: number | null; grade: string | null }>;
   recentActivity: Array<{ type: string; title: string; description: string; date: string }>;
-  teacherComments: Array<{ teacherName: string; body: string; createdAt: string }>;
-  teacher: { name: string; email: string } | null;
+  instructorComments: Array<{ instructorName: string; body: string; createdAt: string }>;
+  instructor: { name: string; email: string } | null;
   reportCards: Array<{
     week: number; grade: string; score: number;
     strengths: string; weaknesses: string;
@@ -354,7 +354,7 @@ export default function GuardianDashboard({ onMessage }: GuardianDashboardProps 
       {/* ============================================ */}
       {/* TEACHER COMMENTS — direct communication */}
       {/* ============================================ */}
-      {data.teacherComments.length > 0 && (
+      {data.instructorComments.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -367,15 +367,15 @@ export default function GuardianDashboard({ onMessage }: GuardianDashboardProps 
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-3">
-              {data.teacherComments.map((comment, i) => (
+              {data.instructorComments.map((comment, i) => (
                 <div key={i} className="p-3 rounded-lg border bg-card">
                   <div className="flex items-center gap-2 mb-1.5">
                     <Avatar className="w-6 h-6">
                       <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-                        {comment.teacherName.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        {comment.instructorName.split(" ").map(n => n[0]).join("").slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-xs font-medium">{comment.teacherName}</span>
+                    <span className="text-xs font-medium">{comment.instructorName}</span>
                     <span className="text-[10px] text-muted-foreground">
                       {timeAgo(comment.createdAt)}
                     </span>

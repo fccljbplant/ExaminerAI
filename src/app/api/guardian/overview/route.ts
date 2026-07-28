@@ -131,7 +131,7 @@ export async function GET() {
   }
 
   // Find the student's instructors (from CourseEnrollment)
-  let teacher: { name: string; email: string } | null = null;
+  let instructorInfo: { name: string; email: string } | null = null;
   const studentCourses = await db.courseEnrollment.findMany({
     where: { userId: studentId, role: "student" },
     select: { courseId: true },
@@ -143,7 +143,7 @@ export async function GET() {
       include: { user: { select: { name: true, email: true } } },
     });
     if (instructor?.user) {
-      teacher = instructor.user;
+      instructorInfo = instructor.user;
     }
   }
 
@@ -253,9 +253,9 @@ export async function GET() {
   recentActivity.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   recentActivity.splice(10);
 
-  // ---- Format teacher comments ----
-  const teacherComments = comments.map(c => ({
-      teacherName: c.instructor?.name || "Instructor",
+  // ---- Format instructor comments ----
+  const instructorComments = comments.map(c => ({
+    instructorName: c.instructor?.name || "Instructor",
     body: c.body,
     createdAt: c.createdAt.toISOString(),
   }));
@@ -284,8 +284,8 @@ export async function GET() {
     wins,
     weeklySummary,
     recentActivity,
-    teacherComments,
-    teacher,
+    instructorComments,
+    instructor: instructorInfo,
     reportCards: reportCards.map(rc => ({
       week: rc.week,
       grade: rc.grade,

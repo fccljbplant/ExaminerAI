@@ -39,7 +39,7 @@ export async function GET() {
     },
   });
 
-  // Build per-teacher summary
+  // Build per-instructor summary
   const byTeacher = new Map<string, {
     instructorId: string;
     name: string;

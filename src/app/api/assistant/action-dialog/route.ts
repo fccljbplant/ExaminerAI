@@ -65,11 +65,11 @@ export async function POST(req: NextRequest) {
     entityName = student?.name || "a student";
     entityContext = `Student: ${entityName}, Week ${student?.currentWeek || "?"}. `;
   } else if (instructorId) {
-    const teacher = await db.user.findUnique({
+    const instructor = await db.user.findUnique({
       where: { id: instructorId },
       select: { name: true },
     });
-    entityName = teacher?.name || "a teacher";
+    entityName = instructor?.name || "an instructor";
     entityContext = `Teacher: ${entityName}. `;
   }
 

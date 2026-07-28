@@ -28,7 +28,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *
  *  The tutor also feeds behavioral signals (engagement, language, topic
  *  drift) into the same analysis pipeline as the test chatbots — so
- *  teacher dashboards update from tutor sessions too, not just tests.
+ *  instructor dashboards update from tutor sessions too, not just tests.
  *
  *  Body: { messages: [{role: "user" | "assistant", content: string}] }
  *  Returns: { reply: string, provider: string }

@@ -9,7 +9,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 /** POST /api/instructor/topic-guidance — AI drafts guidance for future
  *  question generation on a topic, based on actual wrong answers.
  *
- *  Teacher approves/edits before it's saved to CourseDay.teacherNote.
+ *  Teacher approves/edits before it's saved to CourseDay.instructorNote.
  *  The note gets injected into future question generation prompts.
  */
 
@@ -61,17 +61,17 @@ export async function PUT(req: NextRequest) {
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
-  const { courseDayId, teacherNote } = body as { courseDayId?: string; teacherNote?: string };
+  const { courseDayId, instructorNote } = body as { courseDayId?: string; instructorNote?: string };
 
   if (!courseDayId?.trim()) return NextResponse.json({ error: "courseDayId required" }, { status: 400 });
-  if (teacherNote === undefined) return NextResponse.json({ error: "teacherNote required" }, { status: 400 });
-  if (teacherNote.length > 500) return NextResponse.json({ error: "teacherNote too long (max 500 chars)" }, { status: 400 });
+  if (instructorNote === undefined) return NextResponse.json({ error: "instructorNote required" }, { status: 400 });
+  if (instructorNote.length > 500) return NextResponse.json({ error: "instructorNote too long (max 500 chars)" }, { status: 400 });
 
   const updated = await db.courseDay.update({
     where: { id: courseDayId },
-    data: { teacherNote },
+    data: { instructorNote },
   }).catch(() => null);
 
   if (!updated) return NextResponse.json({ error: "CourseDay not found" }, { status: 404 });
-  return NextResponse.json({ ok: true, courseDay: { id: updated.id, teacherNote: updated.teacherNote } });
+  return NextResponse.json({ ok: true, courseDay: { id: updated.id, instructorNote: updated.instructorNote } });
 }

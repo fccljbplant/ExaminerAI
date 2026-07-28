@@ -125,9 +125,9 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
       }
     }
 
-    // ---- Phase 3.3: Check for struggle signals that should alert the teacher ----
+    // ---- Phase 3.3: Check for struggle signals that should alert the instructor ----
     // SDT rebalance: every alert includes a strengthSignal alongside the concern.
-    // No deficit-only alerts — the teacher needs the full picture.
+    // No deficit-only alerts — the instructor needs the full picture.
     const struggleReasons: string[] = [];
     const strengthSignals: string[] = [];
 
@@ -191,7 +191,7 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
       }
     }
 
-    // If we found struggle signals, alert the student's teacher (if they have one)
+    // If we found struggle signals, alert the student's instructor (if they have one)
     if (struggleReasons.length > 0) {
       // H3 fix (audit 2026-07-26): the previous version only notified teachers +
       // admins about struggle signals. Counselors were NOT notified unless a
@@ -229,9 +229,9 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
         select: { id: true, name: true },
       });
 
-      for (const teacher of recipients) {
+      for (const instructor of recipients) {
         // Don't alert the admin about themselves
-        if (teacher.id === senderId && recipients.length > 1) continue;
+        if (instructor.id === senderId && recipients.length > 1) continue;
 
         // Check if we already sent this alert recently
         const existingAlert = student.messagesSent.find(
@@ -239,10 +239,10 @@ async function runAlertCheck(dryRun: boolean, senderId: string) {
         );
         if (existingAlert) continue;
 
-        // Check if the teacher already has an unread alert about this student
+        // Check if the instructor already has an unread alert about this student
         const teacherMessages = await db.message.findFirst({
           where: {
-            toId: teacher.id,
+            toId: instructor.id,
             subject: { contains: `Student alert: ${student.name}` },
             sentAt: { gte: threeDaysAgo },
           },
@@ -268,7 +268,7 @@ This is an automated alert — review the student's portfolio before acting.`;
 
         messagesCreated.push({
           type: "teacher_alert",
-          toName: teacher.name,
+          toName: instructor.name,
           subject: `Student alert: ${student.name} — ${struggleReasons[0]}`,
           body: alertBody,
         });
@@ -277,7 +277,7 @@ This is an automated alert — review the student's portfolio before acting.`;
           await db.message.create({
             data: {
               fromId: senderId, // admin (system)
-              toId: teacher.id,
+              toId: instructor.id,
               subject: `Student alert: ${student.name} — ${struggleReasons[0]}`,
               body: alertBody,
             },

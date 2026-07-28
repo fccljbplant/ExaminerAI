@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 
-/** GET /api/instructor/load — teacher wellbeing/load view.
+/** GET /api/instructor/load — instructor wellbeing/load view.
  *
  *  Computed, not AI-generated. Fully transparent, deterministic math
- *  the teacher can audit. This is the one place where "the algorithm
+ *  the instructor can audit. This is the one place where "the algorithm
  *  decided" needs to be fully inspectable by the person it's about.
  *
  *  Returns:
  *  - responseTimeTrend: avg time between student message/flag and
- *    teacher's reply, last 4 weeks vs this week
+ *    instructor's reply, last 4 weeks vs this week
  *  - touchpointCompletionRate: MentorshipTouchpoint count vs overdue count
  *  - loadVsCapacity: assigned student count vs historical baseline
  *  - crisisLoad: count of currently-open CrisisFlags across their students
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
   });
   const studentCount = students.length;
 
-  // 1. Response time trend: time between student messages and teacher replies
+  // 1. Response time trend: time between student messages and instructor replies
   const messages = await db.message.findMany({
     where: {
       OR: [
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
   for (let i = 0; i < messages.length - 1; i++) {
     const msg = messages[i];
     const next = messages[i + 1];
-    // If student sent a message and teacher replied
+    // If student sent a message and instructor replied
     if (studentIds.includes(msg.fromId) && next.fromId === instructorId) {
       const responseTime = new Date(next.sentAt).getTime() - new Date(msg.sentAt).getTime();
       if (responseTime > 0 && responseTime < 7 * 24 * 60 * 60 * 1000) { // ignore >7d gaps (probably unrelated)
@@ -181,7 +181,7 @@ export async function GET(req: NextRequest) {
     crisisLoad: openCrisisFlags,
     tier,
     tierReasons: reasons,
-    // Explicitly labeled — only the teacher sees this until the Principal view is built
+    // Explicitly labeled — only the instructor sees this until the Principal view is built
     visibility: "self-only",
   });
 }

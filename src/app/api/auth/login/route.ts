@@ -51,13 +51,13 @@ export async function POST(req: NextRequest) {
   }
   if (user.role === "pending") {
     return NextResponse.json(
-      { error: "Account pending approval. Ask a teacher/admin to approve." },
+      { error: "Account pending approval. Ask an instructor/admin to approve." },
       { status: 403 }
     );
   }
   if (user.blocked) {
     return NextResponse.json(
-      { error: "Your account has been blocked. Contact your teacher or admin." },
+      { error: "Your account has been blocked. Contact your instructor or admin." },
       { status: 403 }
     );
   }

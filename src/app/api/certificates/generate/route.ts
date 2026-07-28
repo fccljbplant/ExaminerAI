@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     if (existingRequest) {
       return NextResponse.json({
         requested: true,
-        message: "Certificate request already submitted. Waiting for teacher approval.",
+        message: "Certificate request already submitted. Waiting for instructor approval.",
         requestId: existingRequest.id,
       });
     }
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       requested: true,
-      message: "Certificate request submitted. Your teacher will review and approve it.",
+      message: "Certificate request submitted. Your instructor will review and approve it.",
       requestId: request.id,
     });
   }

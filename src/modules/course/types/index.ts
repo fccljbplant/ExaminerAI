@@ -32,7 +32,7 @@ export interface CourseDay {
   activity: string;
   deliverable: string;
   resources: { label: string; url: string }[];
-  teacherNote: string;
+  instructorNote: string;
 }
 
 export interface CourseWeek {

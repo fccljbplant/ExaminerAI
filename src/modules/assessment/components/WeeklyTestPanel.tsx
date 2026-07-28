@@ -62,7 +62,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
     voiceConsistency: string;
     perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
     strongestSignal: string;
-    teacherNote: string;
+    instructorNote: string;
   } | null>(null);
   const [engagementFeedback, setEngagementFeedback] = useState<{
     subjectChanges: number;
@@ -70,7 +70,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
     distractedQuestions: number[];
     overallEngagement: string;
     studentFeedback: string;
-    teacherNote: string;
+    instructorNote: string;
   } | null>(null);
   // Teaching feedback — same shape as practice/daily (model answer +
   // missed points + next-time tip). Stored alongside psychAnalysis on
@@ -116,7 +116,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               voiceConsistency: string;
               perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
               strongestSignal: string;
-              teacherNote: string;
+              instructorNote: string;
             } | null;
             engagementFeedback?: {
               subjectChanges: number;
@@ -124,7 +124,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               distractedQuestions: number[];
               overallEngagement: string;
               studentFeedback: string;
-              teacherNote: string;
+              instructorNote: string;
             } | null;
             feedback?: TeachingFeedback;
           } | null;
@@ -218,7 +218,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
           voiceConsistency: string;
           perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
           strongestSignal: string;
-          teacherNote: string;
+          instructorNote: string;
         } | null;
         engagementFeedback?: {
           subjectChanges: number;
@@ -226,7 +226,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
           distractedQuestions: number[];
           overallEngagement: string;
           studentFeedback: string;
-          teacherNote: string;
+          instructorNote: string;
         } | null;
         feedback?: TeachingFeedback;
       }>("/api/ai/weekly-test", { week: selectedWeek, action: "reply", message: msg }, AI_TIMEOUT_MS);
@@ -275,7 +275,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
           voiceConsistency: string;
           perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
           strongestSignal: string;
-          teacherNote: string;
+          instructorNote: string;
         } | null;
         engagementFeedback?: {
           subjectChanges: number;
@@ -283,7 +283,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
           distractedQuestions: number[];
           overallEngagement: string;
           studentFeedback: string;
-          teacherNote: string;
+          instructorNote: string;
         } | null;
         feedback?: TeachingFeedback;
       }>("/api/ai/weekly-test", { week: selectedWeek, action: "finish" }, AI_TIMEOUT_MS);
@@ -411,7 +411,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                   {/* Phase 1.1: Only show the raw score if the student passed
                       (score >= 60). For lower scores, show a kind message
                       instead — the student doesn't need to see "32%" staring
-                      at them. The teacher sees the real score. */}
+                      at them. The instructor sees the real score. */}
                   {score !== null && !needsStudyPlan && (
                     <span className="text-2xl font-bold text-primary">{score}%</span>
                   )}
@@ -571,16 +571,16 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                 </div>
               )}
 
-              {/* Retake button ONLY shows if the teacher has explicitly allowed it.
+              {/* Retake button ONLY shows if the instructor has explicitly allowed it.
                   Otherwise the student sees the results only — no retake option. */}
               {currentTest?.retakeAllowed && (
                 <Button onClick={() => { if (confirm("Retake the test? Your previous result will be replaced.")) startTest(); }} variant="outline" className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10">
-                  <RefreshCw className="h-4 w-4" /> Retake Test (teacher-approved)
+                  <RefreshCw className="h-4 w-4" /> Retake Test (instructor-approved)
                 </Button>
               )}
               {!currentTest?.retakeAllowed && (
                 <p className="text-xs text-muted-foreground italic">
-                  Test locked. Ask your teacher if you need to retake this test.
+                  Test locked. Ask your instructor if you need to retake this test.
                 </p>
               )}
             </div>
@@ -628,7 +628,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                   )}
                   {currentTest?.retakeAllowed && (
                     <Button onClick={() => { if (confirm("Retake the test? Your previous result will be replaced.")) startTest(); }} variant="outline" className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10">
-                      <RefreshCw className="h-4 w-4" /> Retake Test (teacher-approved)
+                      <RefreshCw className="h-4 w-4" /> Retake Test (instructor-approved)
                     </Button>
                   )}
                   {/* Post-test reflection — "testing as learning" */}

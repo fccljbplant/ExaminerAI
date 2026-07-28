@@ -8,11 +8,11 @@ import { getCourseDurationWeeks } from "@/lib/course-db";
  *
  *  C4 fix (audit 2026-07-26): the certificate request/approve backend existed
  *  but there was no UI for staff to see pending requests. This endpoint powers
- *  the new CertificateApprovals component in the teacher dashboard.
+ *  the new CertificateApprovals component in the instructor dashboard.
  *
  *  Returns pending requests (grade="PENDING") for batches the staff member
  *  can access, plus computed eligibility info (completed tests, avg score,
- *  whether they've met the completion criteria) so the teacher can decide
+ *  whether they've met the completion criteria) so the instructor can decide
  *  whether to approve.
  *
  *  Auth: staff only (teacher, course_coordinator, counselor, admin, principal).

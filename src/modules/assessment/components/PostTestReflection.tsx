@@ -6,7 +6,7 @@
  *
  * This is the "testing as learning" feature the audit recommended:
  * instead of just showing a score, the student sees 2-3 sentences
- * generated from the same PsychEvidence the teacher sees, reframed
+ * generated from the same PsychEvidence the instructor sees, reframed
  * as growth-oriented coaching.
  *
  * Examples:
@@ -21,7 +21,7 @@
  *   - Test score + answer length patterns
  *
  * Shown to the STUDENT only, in student-friendly language.
- * Never shows surveillance terms, never shows teacher-only data.
+ * Never shows surveillance terms, never shows instructor-only data.
  */
 
 import { useEffect, useState } from "react";
@@ -48,7 +48,7 @@ export function PostTestReflection({ score, testType }: { score: number; testTyp
   useEffect(() => {
     // Generate reflection from the student's recent psychological evidence
     // + confidence ratings. This is a client-side computation that reads
-    // the same data the teacher sees, reframed for the student.
+    // the same data the instructor sees, reframed for the student.
     setLoading(true);
     Promise.allSettled([
       api.get<{ evidence: Array<{ dimension: string; value: string; evidenceText: string; createdAt: string }> }>("/api/psych-evidence"),
@@ -169,7 +169,7 @@ function generateReflections(
     reflections.push({
       type: "growth",
       title: "This topic needs more practice",
-      message: `You scored ${score}% — don't worry, this just means you haven't had enough practice yet. Try the practice questions on this topic, and ask your teacher for help if you're stuck. Every expert started here.`,
+      message: `You scored ${score}% — don't worry, this just means you haven't had enough practice yet. Try the practice questions on this topic, and ask your instructor for help if you're stuck. Every expert started here.`,
     });
   }
 
@@ -204,7 +204,7 @@ function generateReflections(
       reflections.push({
         type: "growth",
         title: "Try to explain your reasoning more",
-        message: "Your answers are short. Even if you know the answer, explaining WHY helps you remember it and shows your teacher you understand. Try adding 'because...' to your answers.",
+        message: "Your answers are short. Even if you know the answer, explaining WHY helps you remember it and shows your instructor you understand. Try adding 'because...' to your answers.",
       });
     }
   }

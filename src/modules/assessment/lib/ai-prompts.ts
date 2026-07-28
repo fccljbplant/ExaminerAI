@@ -405,7 +405,7 @@ SCORING RULES — HONEST BUT KIND:
 - A student who showed partial understanding should score 50-70.
 - A student who showed solid understanding should score 75-95.
 - A student who showed exceptional understanding should score 95-100.
-- Be honest. A fake "70" for a student who actually scored 30 helps no one — the teacher can't intervene, the student doesn't know what to study, and the next test will be even harder.
+- Be honest. A fake "70" for a student who actually scored 30 helps no one — the instructor can't intervene, the student doesn't know what to study, and the next test will be even harder.
 - When in doubt between two scores, you MAY nudge up by 5 (not 20) to be kind. But don't lie.
 
 Return ONLY a JSON object (no prose, no markdown fences):
@@ -423,7 +423,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
       { "questionIndex": <0-based>, "flagged": <true|false>, "reason": "<one sentence: why this answer stands out from the student's baseline, or 'consistent with baseline'>" }
     ],
     "strongestSignal": "<one sentence: the single most concerning pattern, or 'no concerning patterns'>",
-    "teacherNote": "<1-2 sentences for the TEACHER ONLY: what specifically should they look at if they review this test? Be specific about which questions and what pattern.>"
+    "instructorNote": "<1-2 sentences for the TEACHER ONLY: what specifically should they look at if they review this test? Be specific about which questions and what pattern.>"
   },
   "engagementFeedback": {
     "subjectChanges": <number of times the student changed the subject or went off-topic>,
@@ -431,7 +431,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
     "distractedQuestions": [<0-based question indices where distraction or avoidance occurred>],
     "overallEngagement": "<high | medium | low>",
     "studentFeedback": "<2-3 sentences of CONSTRUCTIVE feedback FOR THE STUDENT. Reference specific moments from the test (which questions, what happened). Frame engagement as professional habits. Include an implementation intention: a concrete next action, not a vague aspiration. Example: 'On Q3 and Q7, you changed the subject instead of attempting an answer. In professional meetings, even a partial attempt shows engagement. Next time you open the app, try answering one practice question fully — even if you're not sure, starting with \"I think...\" builds the habit of engaging.'>",
-    "teacherNote": "<1-2 sentences for the TEACHER ONLY: behavioral patterns to watch for, or 'no concerns.'>"
+    "instructorNote": "<1-2 sentences for the TEACHER ONLY: behavioral patterns to watch for, or 'no concerns.'>"
   },
   "modelAnswer": "<2-4 sentences showing what a strong set of answers across the test would have looked like. Plain language, like explaining to a peer. Cover the core ideas, one concrete example per major topic, and the key trade-offs.>",
   "missedPoints": ["<one sentence: a specific actionable gap, phrased as 'You could have...'>", "<one sentence: another gap>", "<up to 4 items>"],
@@ -508,7 +508,7 @@ STEP 4 — Write plagiarismBreakdown:
 - voiceConsistency: describe the student's baseline + any deviations
 - perAnswerFlags: one entry per question (flagged=true if it deviates)
 - strongestSignal: the single most concerning pattern
-- teacherNote: what the teacher should look at if they review
+- instructorNote: what the instructor should look at if they review
 
 CRITICAL: Be SPECIFIC in your evidence. "Answer 4 used the phrase
 'It's important to note that' which didn't appear in answers 1-3, and

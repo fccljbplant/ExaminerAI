@@ -135,7 +135,7 @@ model CourseDay {
   activity        String   @default("")
   deliverable     String   @default("")
   resources       String   @default("[]")
-  teacherNote     String   @default("")
+  instructorNote     String   @default("")
 
   courseWeek      CourseWeek @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
 
