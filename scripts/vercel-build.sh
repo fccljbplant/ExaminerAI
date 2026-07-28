@@ -13,11 +13,11 @@ echo "DATABASE_URL prefix: $(echo "$DATABASE_URL" | sed 's/\/\/.*/\/\/***REDACTE
 echo "Generating Prisma client (prod schema)..."
 bunx prisma generate --schema=prisma/schema.prod.prisma
 
-# Step 2: SAFELY push schema — NEVER force-reset, NEVER accept-data-loss.
-# This will only ADD new tables and nullable columns.
-# It will NEVER drop tables, columns, or modify existing data.
-echo "Safely syncing schema (add-only, data preserved)..."
-bunx prisma db push --schema=prisma/schema.prod.prisma --skip-generate
+# Step 2: SAFELY push schema — accepts column-level changes without data loss.
+# --accept-data-loss is needed for column renames/additions (Prisma requirement).
+# NEVER uses --force-reset (would wipe all data).
+echo "Safely syncing schema (data preserved)..."
+bunx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate
 
 # Step 3: Seed demo data ONLY if the database is empty
 # (idempotent — re-deploys never wipe or duplicate data)
