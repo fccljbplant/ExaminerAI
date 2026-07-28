@@ -10,7 +10,7 @@
  *
  * Visible to: principal + administrator (full oversight)
  * Also visible to: the user themselves (self-audit) + teachers (for their
- * batch students) + counselors (for their caseload)
+ * course students) + counselors (for their caseload)
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -151,7 +151,7 @@ export function UserAuditTab({ userId }: { userId: string }) {
         <div className="p-3 rounded-md bg-blue-500/10 border border-blue-500/30 flex items-start gap-2">
           <ShieldCheck className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            You're viewing this user's audit trail based on your batch access. Principals and administrators can view the full audit trail for any user.
+            You're viewing this user's audit trail based on your course access. Principals and administrators can view the full audit trail for any user.
           </p>
         </div>
       )}

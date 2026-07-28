@@ -50,17 +50,12 @@ export interface PortfolioData {
 }
 
 /**
- * TeacherView — type for the teacher dashboard's sub-navigation tabs.
- *
- * (Extracted from TeacherShell.tsx which was deleted as dead code — the
- * AppShell sidebar handles the main nav, and TeacherDashboard renders its
- * own inline sub-nav tabs instead of using TeacherShell.)
+ * InstructorView — sub-navigation tabs for the instructor dashboard.
  */
 
-export type TeacherView =
+export type InstructorView =
   | "today"
   | "students"
-  | "batch"
   | "mentorship"
   | "assignments"
   | "messages"

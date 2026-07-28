@@ -464,7 +464,7 @@ export function StudentPortfolioPage({
           { key: "mentorship", label: "Mentorship", icon: HeartHandshake },
           { key: "comments", label: `Comments (${portfolio.comments.length})`, icon: MessageSquare },
           // Audit tab — visible to principal + administrator (full oversight).
-          // Also visible to the user themselves + teachers (limited to their batch).
+          // Also visible to the user themselves + instructors (limited to their course).
           ...(isPrivilegedRole ? [{ key: "audit" as const, label: "Audit", icon: ShieldCheck }] : []),
         ]}
         active={tab}

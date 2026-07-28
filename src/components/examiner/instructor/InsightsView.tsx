@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * InsightsView — batch-level analytics + AI Assistant for weekly review.
+ * InsightsView — course-level analytics + AI Assistant for weekly review.
  *
  * This is the "zoom out" view. Where Today is tactical (who needs me now),
- * Insights is strategic (how is the batch trending? what should I plan?).
+ * Insights is strategic (how is the course trending? what should I plan?).
  *
  * Sections:
  * 1. Batch distribution — wellbeing tiers, score distribution, engagement
  * 2. Trend charts — score trend, engagement trend, alert volume
- * 3. Topic mastery heatmap — which topics are batch-wide weak spots
- * 4. AI Assistant — free-text Q&A about the batch ("Who's likely to drop off?")
+ * 3. Topic mastery heatmap — which topics are course-wide weak spots
+ * 4. AI Assistant — free-text Q&A about the course ("Who's likely to drop off?")
  */
 
 import { useEffect, useState, useMemo } from "react";

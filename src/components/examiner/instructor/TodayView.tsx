@@ -9,7 +9,7 @@
  * 1. Batch Health Pulse — 4 glanceable stat cards with progress bars
  * 2. Triage Queue — urgency-sorted: Crisis → Alerts → Silent → Blocked → Plagiarism
  * 3. Wins to Celebrate — top performers + most improved
- * 4. AI Assistant — free-text Q&A about the batch
+ * 4. AI Assistant — free-text Q&A about the course
  */
 
 import { useMemo, useState } from "react";

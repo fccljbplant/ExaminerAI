@@ -26,14 +26,20 @@ export async function GET(req: NextRequest) {
     const skip = page * pageSize;
     // Search — filter by name or email (case-insensitive)
     const q = (url.searchParams.get("q") || "").trim();
+    // Optional courseId filter — scope to a single course
+    const courseIdFilter = url.searchParams.get("courseId");
 
     // Scope students to the instructor's courses via CourseEnrollment.
     // Course coordinators and admins see all students (no scope filter).
     const isAdminRole = hasRole(payload.role, ADMIN_ROLES);
     let scopedStudentIds: string[] | null = null;
     if (!isAdminRole && role === "instructor") {
+      const enrollmentWhere: any = { userId: payload.sub, role: "instructor" };
+      if (courseIdFilter) {
+        enrollmentWhere.courseId = courseIdFilter;
+      }
       const enrollments = await db.courseEnrollment.findMany({
-        where: { userId: payload.sub, role: "instructor" },
+        where: enrollmentWhere,
         select: { courseId: true },
       });
       const courseIds = enrollments.map(e => e.courseId);

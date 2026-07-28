@@ -517,7 +517,7 @@ export default function AppShell() {
         </div>
 
         {/* Course Selector — shown when user has multiple courses */}
-        {(effectiveRole === "student" || effectiveRole === "guardian") && enrollments.length > 1 && (
+        {(effectiveRole === "student" || effectiveRole === "guardian" || effectiveRole === "instructor") && enrollments.length > 1 && (
           <div className="px-3 pt-3 pb-1 flex-shrink-0">
             <div className="relative">
               <button
