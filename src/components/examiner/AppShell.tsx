@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { ALL_ADMIN_ROLES } from "@/lib/client-rbac";
+import type { EnrollmentResponse } from "@/app/api/enrollments/route";
 import Login, { type PublicUser } from "./Login";
 import StudentDashboard from "./StudentDashboard";
 import TeacherDashboard from "./TeacherDashboard";
@@ -157,15 +158,7 @@ export default function AppShell() {
   const [navClickCount, setNavClickCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [alertCount, setAlertCount] = useState(0);
-  const [projectConfig, setProjectConfig] = useState<{
-    courseAssigned: boolean;
-    projectEnabled: boolean;
-    projectRequired: boolean;
-    totalWeeks: number;
-  } | null>(null);
-
-  // Course selector state — users can be enrolled in multiple courses
-  const [userCourses, setUserCourses] = useState<CourseOption[]>([]);
+  const [enrollments, setEnrollments] = useState<EnrollmentResponse["enrollments"]>([]);
   const [activeCourseId, setActiveCourseId] = useState<string>("");
   const [courseSelectorOpen, setCourseSelectorOpen] = useState(false);
 
@@ -215,16 +208,18 @@ export default function AppShell() {
     document.title = `${title} — AI Examiner`;
   }, [view, effectiveRole, navConfig]);
 
-  // Fetch user's course enrollments
-  const fetchUserCourses = useCallback(async (userId: string, role: string) => {
+  const fetchEnrollments = useCallback(async () => {
     try {
-      const res = await api.get<{ courses: CourseOption[] }>("/api/courses/my");
-      setUserCourses(res.courses || []);
-      if (res.courses && res.courses.length > 0) {
-        setActiveCourseId(res.courses[0].id);
+      const res = await api.get<EnrollmentResponse>("/api/enrollments");
+      setEnrollments(res.enrollments || []);
+      if (res.enrollments && res.enrollments.length > 0) {
+        setActiveCourseId(res.enrollments[0].courseId);
+      } else {
+        setActiveCourseId("");
       }
     } catch {
-      setUserCourses([]);
+      setEnrollments([]);
+      setActiveCourseId("");
     }
   }, []);
 
@@ -267,29 +262,18 @@ export default function AppShell() {
           setView("dashboard");
         }
 
-        // Fetch user's course enrollments for course selector
-        await fetchUserCourses(res.user.id, role);
+        // Fetch user's course enrollments
+        await fetchEnrollments();
 
-        if (role === "student" || role === "guardian") {
-          try {
-            const statsRes = await api.get<{ projectConfig?: {
-              courseAssigned: boolean;
-              projectEnabled: boolean;
-              projectRequired: boolean;
-              totalWeeks: number;
-            } }>("/api/stats" + (role === "guardian" ? "" : "?as=student"));
-            setProjectConfig(statsRes.projectConfig ?? null);
-          } catch {
-            setProjectConfig(null);
-          }
-        }
+        // Students have course-aware data via enrollments
+        // projectConfig is now part of each enrollment entry
       }
     } catch {
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, [fetchUserCourses]);
+  }, [fetchEnrollments]);
 
   const [timedOut, setTimedOut] = useState(false);
 
@@ -409,8 +393,14 @@ export default function AppShell() {
       else if (u.role === "counselor") setView("counselor-dashboard");
       else if (u.role === "guardian") setView("guardian-dashboard");
       else setView("dashboard");
+      // Fetch enrollments for student
+      if (["student", "guardian"].includes(u.role)) fetchEnrollments();
     }} />;
   }
+
+  const isStudent = effectiveRole === "student" || effectiveRole === "guardian";
+  const enrolled = isStudent ? enrollments.length > 0 : true;
+  const activeEnrollment = enrollments.find(e => e.courseId === activeCourseId);
 
   const visibleNav = ALL_NAV.filter((n) => {
     if (navConfig && navConfig[effectiveRole]) {
@@ -419,10 +409,15 @@ export default function AppShell() {
       if (!n.roles.includes(effectiveRole)) return false;
     }
 
-    if (n.key === "gantt" && (effectiveRole === "student" || effectiveRole === "guardian")) {
-      if (projectConfig && (!projectConfig.courseAssigned || !projectConfig.projectEnabled)) {
-        return false;
-      }
+    // Student nav items gated on enrollment
+    if (isStudent && !enrolled) {
+      // Only show Messages and Settings when unenrolled
+      if (n.key !== "messages" && n.key !== "settings") return false;
+    }
+
+    // Project nav gated on course's projectEnabled
+    if (n.key === "gantt" && isStudent) {
+      if (!activeEnrollment?.projectEnabled) return false;
     }
     return true;
   });
@@ -430,11 +425,31 @@ export default function AppShell() {
 
   const renderView = () => {
     const wrap = (el: React.ReactNode) => <ErrorBoundary key={view}>{el}</ErrorBoundary>;
+
+    // Zero-enrollment state for students
+    if (isStudent && !enrolled && view !== "messages" && view !== "settings") {
+      return wrap(
+        <div className="max-w-lg mx-auto pt-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <GraduationCap className="h-8 w-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Welcome to ExaminerAI</h2>
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+            You haven&apos;t been assigned a course yet. Your instructor or administrator
+            will enroll you in a course soon. Check back here once you&apos;re enrolled.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => navigateTo("messages")}>
+            <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Contact Instructor
+          </Button>
+        </div>
+      );
+    }
+
     switch (view) {
-      case "dashboard": return wrap(<StudentDashboard key={`home-${navClickCount}`} />);
-      case "checkin": return wrap(<StudentDashboard key={`study-${navClickCount}`} initialMode="checkin" />);
-      case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" />);
-      case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" />);
+      case "dashboard": return wrap(<StudentDashboard key={`home-${navClickCount}`} enrollments={enrollments} activeCourseId={activeCourseId} />);
+      case "checkin": return wrap(<StudentDashboard key={`study-${navClickCount}`} initialMode="checkin" enrollments={enrollments} activeCourseId={activeCourseId} />);
+      case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" enrollments={enrollments} activeCourseId={activeCourseId} />);
+      case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "guardian-dashboard": return wrap(<GuardianDashboard key={`guardian-${navClickCount}`} onMessage={() => navigateTo("messages")} />);
       case "guardian-progress": return wrap(<GuardianReportCards key={`guardian-progress-${navClickCount}`} />);
       case "instructor-today": return wrap(<TeacherDashboard key={`today-${navClickCount}`} initialTab="today" courseId={activeCourseId} />);
@@ -502,7 +517,7 @@ export default function AppShell() {
         </div>
 
         {/* Course Selector — shown when user has multiple courses */}
-        {(effectiveRole === "student" || effectiveRole === "instructor") && userCourses.length > 1 && (
+        {(effectiveRole === "student" || effectiveRole === "guardian") && enrollments.length > 1 && (
           <div className="px-3 pt-3 pb-1 flex-shrink-0">
             <div className="relative">
               <button
@@ -511,7 +526,7 @@ export default function AppShell() {
               >
                 <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="flex-1 text-left truncate">
-                  {userCourses.find(c => c.id === activeCourseId)?.name || "Select Course"}
+                  {activeEnrollment?.courseName || "Select Course"}
                 </span>
                 <ChevronDown className="h-3 w-3 text-muted-foreground" />
               </button>
@@ -519,26 +534,25 @@ export default function AppShell() {
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setCourseSelectorOpen(false)} />
                   <div className="absolute top-full left-0 right-0 mt-1 z-20 rounded-lg border border-border bg-card shadow-lg overflow-hidden">
-                    {userCourses.map((course) => (
+                    {enrollments.map((enr) => (
                       <button
-                        key={course.id}
+                        key={enr.courseId}
                         onClick={() => {
-                          setActiveCourseId(course.id);
+                          setActiveCourseId(enr.courseId);
                           setCourseSelectorOpen(false);
-                          // Refresh dashboard view on course change
                           setNavClickCount(c => c + 1);
                         }}
                         className={cn(
                           "w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors",
-                          course.id === activeCourseId
+                          enr.courseId === activeCourseId
                             ? "bg-primary/10 text-primary font-medium"
                             : "text-muted-foreground hover:bg-muted"
                         )}
                       >
-                        {course.id === activeCourseId && <Check className="h-3 w-3 flex-shrink-0" />}
-                        <span className="flex-1 truncate">{course.name}</span>
+                        {enr.courseId === activeCourseId && <Check className="h-3 w-3 flex-shrink-0" />}
+                        <span className="flex-1 truncate">{enr.courseName}</span>
                         <Badge variant="outline" className="text-[9px] px-1 py-0">
-                          {course.role}
+                          Wk {enr.currentWeek}/{enr.totalWeeks}
                         </Badge>
                       </button>
                     ))}
