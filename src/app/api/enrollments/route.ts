@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 
 export type EnrollmentResponse = {
   enrollments: Array<{
@@ -22,14 +23,20 @@ export type EnrollmentResponse = {
   overallStreak: number;
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Admin can query any user's enrollments via ?userId=xxx
+  const targetUserId = req.nextUrl.searchParams.get("userId") || payload.sub;
+  if (targetUserId !== payload.sub && !hasRole(payload.role, ADMIN_ROLES)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const enrollments = await db.courseEnrollment.findMany({
-    where: { userId: payload.sub },
+    where: { userId: targetUserId },
     select: {
       role: true,
       courseId: true,
@@ -53,7 +60,7 @@ export async function GET() {
   }
 
   const user = await db.user.findUnique({
-    where: { id: payload.sub },
+    where: { id: targetUserId },
     select: {
       currentWeek: true,
       currentDay: true,
@@ -65,18 +72,18 @@ export async function GET() {
 
   const [weeklyTests, tasks, dailyLogs] = await Promise.all([
     db.weeklyTest.findMany({
-      where: { userId: payload.sub, status: "completed", score: { not: null } },
+      where: { userId: targetUserId, status: "completed", score: { not: null } },
       select: { score: true, week: true },
       orderBy: { week: "desc" },
       take: 50,
     }),
     db.projectTask.findMany({
-      where: { userId: payload.sub },
+      where: { userId: targetUserId },
       select: { id: true, status: true },
       take: 200,
     }),
     db.dailyLog.findMany({
-      where: { userId: payload.sub },
+      where: { userId: targetUserId },
       select: { date: true },
       orderBy: { date: "desc" },
       take: 500,

@@ -57,7 +57,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     "overview"
   );
   const [users, setUsers] = useState<UserRow[]>([]);
-  const [batches, setBatches] = useState<Array<{ id: string; name: string; courseId: string | null }>>([]);
+  const [enrollmentsMap, setEnrollmentsMap] = useState<Record<string, Array<{ courseId: string; courseName: string; role: string }>>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [seedMsg, setSeedMsg] = useState("");
@@ -84,27 +84,36 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   const load = useCallback(async (pageNum?: number) => {
     setLoading(true);
     try {
-      // Fetch batches in parallel with users (for batch assignment dropdown)
-      const [usersRes, batchRes] = await Promise.all([
-        (async () => {
-          const isOverview = view === "overview";
-          const params = new URLSearchParams();
-          if (searchQuery.trim()) params.set("q", searchQuery.trim());
-          if (roleFilter) params.set("role", roleFilter);
-          if (!isOverview) {
-            params.set("page", String(pageNum ?? page));
-            params.set("pageSize", String(pageSize));
-          } else {
-            params.set("pageSize", "200");
-          }
-          const qs = params.toString();
-          return api.get<{ users: UserRow[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/api/users${qs ? `?${qs}` : ""}`);
-        })(),
-        api.get<{ batches: Array<{ id: string; name: string; courseId: string | null }> }>("/api/batches").catch(() => ({ batches: [] })),
-      ]);
+      const usersRes = await (async () => {
+        const isOverview = view === "overview";
+        const params = new URLSearchParams();
+        if (searchQuery.trim()) params.set("q", searchQuery.trim());
+        if (roleFilter) params.set("role", roleFilter);
+        if (!isOverview) {
+          params.set("page", String(pageNum ?? page));
+          params.set("pageSize", String(pageSize));
+        } else {
+          params.set("pageSize", "200");
+        }
+        const qs = params.toString();
+        return api.get<{ users: UserRow[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }>(`/api/users${qs ? `?${qs}` : ""}`);
+      })();
       setUsers(usersRes.users);
       if (usersRes.pagination) setPagination(usersRes.pagination);
-      setBatches(batchRes.batches || []);
+      // Fetch enrollments for students to show in Courses column
+      const studentIds = usersRes.users.filter(u => u.role === "student").map(u => u.id);
+      if (studentIds.length > 0) {
+        const enrollMap: Record<string, Array<{ courseId: string; courseName: string; role: string }>> = {};
+        for (const sid of studentIds) {
+          try {
+            const res = await api.get<{ enrollments: Array<{ courseId: string; courseName: string; role: string }> }>(`/api/enrollments?userId=${encodeURIComponent(sid)}`);
+            enrollMap[sid] = res.enrollments || [];
+          } catch {
+            enrollMap[sid] = [];
+          }
+        }
+        setEnrollmentsMap(enrollMap);
+      }
     } catch { /* ignore */ }
     finally { setLoading(false); }
   }, [searchQuery, roleFilter, page, view]);
@@ -132,12 +141,19 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     finally { setBusy(null); }
   };
 
-  const assignBatch = async (userId: string, batchId: string) => {
+  const toggleEnrollment = async (userId: string, courseId: string, action: "enroll" | "unenroll") => {
     setBusy(userId);
-    try { await api.patch(`/api/users/${userId}/batch`, { batchId }); await load(); showSuccess("Course assigned."); }
-    catch (e) { showError(e instanceof Error ? e.message : "Failed"); }
-    finally { setBusy(null); }
+    try {
+      const role = action === "enroll" ? "student" : undefined;
+      await api.patch(`/api/enrollments/${userId}`, { courseId, action, role });
+      showSuccess(action === "enroll" ? "Enrolled." : "Unenrolled.");
+      await load();
+    } catch (e) {
+      showError(e instanceof Error ? e.message : "Failed");
+    } finally { setBusy(null); }
   };
+
+  const [enrollDialog, setEnrollDialog] = useState<{ userId: string; open: boolean }>({ userId: "", open: false });
 
   const remove = async (id: string) => {
     if (!confirm("Delete this user and ALL their data? This cannot be undone.")) return;
@@ -363,7 +379,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                     <th className="text-left py-2 px-3">Name</th>
                     <th className="text-left py-2 px-3 hidden sm:table-cell">Email</th>
                     <th className="text-left py-2 px-3">Role</th>
-                    <th className="text-left py-2 px-3 hidden lg:table-cell">Batch</th>
+                    <th className="text-left py-2 px-3 hidden lg:table-cell">Courses</th>
                     <th className="text-left py-2 px-3 hidden md:table-cell">Project</th>
                     <th className="text-left py-2 px-3 hidden md:table-cell">Last Login</th>
                     <th className="text-left py-2 px-3">Actions</th>
@@ -395,22 +411,38 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                         </Select>
                       </td>
                       <td className="py-2 px-3 hidden lg:table-cell">
-                        {u.role === "student" && isAdminRole && batches.length > 0 ? (
-                          <Select
-                            value={(u as any).batchId || ""}
-                            onValueChange={(bid) => assignBatch(u.id, bid)}
-                            disabled={busy === u.id}
-                          >
-                            <SelectTrigger className="bg-muted border-border h-7 text-xs w-32"><SelectValue placeholder="No class" /></SelectTrigger>
-                            <SelectContent>
-                              {batches.map(b => (
-                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {u.role === "student" && enrollmentsMap[u.id]?.length > 0 ? (
+                            enrollmentsMap[u.id].map((enr, ei) => (
+                              <Badge key={ei} variant="secondary" className="text-[9px] px-1.5 py-0">
+                                {enr.courseName}
+                                {isAdminRole && (
+                                  <button
+                                    className="ml-1 text-muted-foreground hover:text-destructive"
+                                    onClick={() => toggleEnrollment(u.id, enr.courseId, "unenroll")}
+                                    title="Remove from course"
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </Badge>
+                            ))
+                          ) : u.role === "student" ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                          {u.role === "student" && isAdminRole && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-[9px] h-5 px-1.5 border-dashed"
+                              onClick={() => setEnrollDialog({ userId: u.id, open: true })}
+                            >
+                              + Enroll
+                            </Button>
+                          )}
+                        </div>
                       </td>
                       <td className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.projectName || "—"}</td>
                       <td className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "—"}</td>
@@ -500,6 +532,15 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       {/* System & Dev tab — ALL dev stuff here, nowhere else.
           Admin-only (NOT demo) — the tab button is hidden from demo above. */}
       {view === "system" && <SystemPanel users={users} />}
+
+      {/* Enroll Dialog — assign a student to a course */}
+      {enrollDialog.open && enrollDialog.userId && (
+        <EnrollDialog
+          userId={enrollDialog.userId}
+          onClose={() => setEnrollDialog({ userId: "", open: false })}
+          onEnrolled={() => { setEnrollDialog({ userId: "", open: false }); load(); }}
+        />
+      )}
     </div>
   );
 }
@@ -662,3 +703,70 @@ function UserAuditSearchPanel() {
 // to see overview of student progress, counselor to just see data
 // important for counselor, etc."
 // ============================================================
+
+// ============================================================
+// EnrollDialog — modal to enroll a student in a course
+// ============================================================
+function EnrollDialog({ userId, onClose, onEnrolled }: {
+  userId: string;
+  onClose: () => void;
+  onEnrolled: () => void;
+}) {
+  const [courses, setCourses] = useState<Array<{ id: string; name: string }>>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api.get<{ courses: Array<{ id: string; name: string }> }>("/api/courses")
+      .then(res => setCourses(res.courses || []))
+      .catch(() => setError("Failed to load courses"));
+  }, []);
+
+  const enroll = async (courseId: string) => {
+    setBusy(courseId);
+    setError("");
+    try {
+      await api.patch(`/api/enrollments/${userId}`, { courseId, action: "enroll", role: "student" });
+      onEnrolled();
+    } catch (e: any) {
+      setError(e?.message || "Failed to enroll");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-foreground">Enroll in Course</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg leading-none">&times;</button>
+        </div>
+        <div className="p-5 space-y-2 max-h-60 overflow-y-auto">
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          {courses.length === 0 && !error && (
+            <p className="text-xs text-muted-foreground">Loading courses...</p>
+          )}
+          {courses.map(c => (
+            <button
+              key={c.id}
+              onClick={() => enroll(c.id)}
+              disabled={busy === c.id}
+              className="w-full flex items-center justify-between rounded-lg border border-border px-4 py-2.5 text-left text-sm hover:bg-muted/50 transition-colors disabled:opacity-50"
+            >
+              <span className="font-medium text-foreground">{c.name}</span>
+              {busy === c.id ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              ) : (
+                <Plus className="h-3.5 w-3.5 text-primary" />
+              )}
+            </button>
+          ))}
+        </div>
+        <div className="px-5 py-3 border-t border-border text-right">
+          <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
