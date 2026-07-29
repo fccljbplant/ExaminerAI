@@ -3,7 +3,7 @@
  * This is the SINGLE PLACE in the codebase where role checks happen.
  *
  * Role values (course-centric architecture):
- *   pending | student | instructor | course_coordinator
+ *   pending | student | instructor | coordinator
  *   | counselor | guardian | principal | administrator | demo
  *
  * Backward-compat aliases (normalized transparently):
@@ -41,7 +41,7 @@ export const UserRole = {
   PENDING: "pending",
   STUDENT: "student",
   INSTRUCTOR: "instructor",
-  COURSE_COORDINATOR: "course_coordinator",
+  COORDINATOR: "coordinator",
   COUNSELOR: "counselor",
   GUARDIAN: "guardian",
   PRINCIPAL: "principal",
@@ -63,7 +63,7 @@ export const TECHNICAL_ROLES: UserRoleValue[] = [
 
 export const STAFF_ROLES: UserRoleValue[] = [
   UserRole.INSTRUCTOR,
-  UserRole.COURSE_COORDINATOR,
+  UserRole.COORDINATOR,
   UserRole.COUNSELOR,
   UserRole.PRINCIPAL,
   UserRole.ADMINISTRATOR,
@@ -86,7 +86,8 @@ export const ROLE_LABELS: Record<string, string> = {
   pending: "Pending",
   student: "Student",
   instructor: "Instructor / Mentor",
-  course_coordinator: "Course Coordinator",
+  coordinator: "Coordinator",
+  course_coordinator: "Coordinator", // legacy alias
   counselor: "Counselor",
   guardian: "Guardian",
   principal: "Principal",
@@ -102,7 +103,8 @@ export function normalizeRole(role: string): UserRoleValue | null {
     case "instructor":
     case "teaching_assistant": // legacy alias
       return UserRole.INSTRUCTOR;
-    case "course_coordinator": return UserRole.COURSE_COORDINATOR;
+    case "coordinator": return UserRole.COORDINATOR;
+    case "course_coordinator": return UserRole.COORDINATOR; // legacy alias
     case "counselor": return UserRole.COUNSELOR;
     case "guardian": return UserRole.GUARDIAN;
     case "principal":

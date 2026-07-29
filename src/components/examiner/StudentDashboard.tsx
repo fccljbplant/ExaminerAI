@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 import { scoreToGrade, gradeColor } from "@/lib/constants";
 import {
   CalendarCheck, TrendingUp, Loader2, RefreshCw, Sparkles,
-  Bot, ClipboardList, FileText, BookOpen, ArrowRight, CheckCircle2,
+  Bot, ClipboardList, ClipboardCheck, FileText, BookOpen, ArrowRight, CheckCircle2,
   AlertCircle, Award, ChevronRight, Activity, Target, Clock, MessageSquare,
 } from "lucide-react";
 import type { StatsResponse, Mode } from "@/components/examiner/student/types";
@@ -130,7 +130,7 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
         <div className="space-y-4">
           {enrollments.length === 1 ? (
             /* Single course: show current progress card */
-            <SingleCourseHome enrollment={enrollments[0]} stats={stats} onNavigate={setView} onReload={load} />
+            <SingleCourseHome enrollment={(enrollments && enrollments.length > 0) ? enrollments[0] : null as any} stats={stats!} onNavigate={setView} onReload={load} />
           ) : (
             /* Multiple courses: show card grid */
             <div>
@@ -157,8 +157,8 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
           )}
         </div>
       )}
-      {view === "study" && <StudyView stats={stats} onReload={load} onNavigate={setView} />}
-      {view === "project" && <GanttPanel stats={stats} onReload={load} onMode={() => setView("study")} />}
+      {view === "study" && <StudyView stats={stats!} onReload={load} onNavigate={setView} />}
+      {view === "project" && <GanttPanel stats={stats!} onReload={load} onMode={() => setView("study")} />}
       {view === "progress" && (
         <div className="space-y-6">
           {userId && <ComprehensiveReportView studentId={userId} />}
@@ -196,7 +196,7 @@ function StudyView({ stats, onReload, onNavigate }: {
     { key: "checkin", label: "Daily Check-in", icon: CalendarCheck },
     { key: "practice", label: "Practice", icon: Bot },
     { key: "daily-test", label: "Daily Test", icon: ClipboardCheck },
-    { key: "weekly-test", label: "Weekly Test", icon: ClipboardList },
+    { key: "weekly-test", label: "Weekly Test", icon: ClipboardList, ClipboardCheck },
   ];
 
   return (
@@ -224,14 +224,14 @@ function StudyView({ stats, onReload, onNavigate }: {
       </div>
 
       {studyMode === "practice" && (
-        <QuestionPanel currentWeek={stats?.stats.currentWeek ?? 1} onAnswered={onReload} stats={stats} />
+        <QuestionPanel currentWeek={stats?.stats.currentWeek ?? 1} onAnswered={onReload} stats={stats!} />
       )}
       {studyMode === "daily-test" && <DailyTestPanel />}
       {studyMode === "weekly-test" && (
-        <WeeklyTestPanel stats={stats} onReload={onReload} onMode={() => onNavigate("home")} />
+        <WeeklyTestPanel stats={stats!} onReload={onReload} onMode={() => onNavigate("home")} />
       )}
       {studyMode === "checkin" && (
-        <CheckInPanel currentWeek={stats?.stats.currentWeek ?? 1} onSaved={onReload} stats={stats} onMode={() => onNavigate("home")} />
+        <CheckInPanel currentWeek={stats?.stats.currentWeek ?? 1} onSaved={onReload} stats={stats!} onMode={() => onNavigate("home")} />
       )}
     </div>
   );
@@ -306,7 +306,7 @@ function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
         </CardContent>
       </Card>
 
-      {stats && stats.tasks.length === 0 && enrollment.projectEnabled && (
+      {stats && (stats.tasks || []).length === 0 && enrollment.projectEnabled && (
         <Card className="border-amber-500/40 bg-amber-500/5">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -334,7 +334,6 @@ function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
         </Card>
       )}
 
-      <HomeView stats={stats} onNavigate={onNavigate} onReload={onReload} />
     </div>
   );
 }

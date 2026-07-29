@@ -33,9 +33,9 @@ export async function PUT(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  // Teachers, TAs, course_coordinators, and counselors can only block
+  // Teachers, TAs, coordinators, and counselors can only block
   // student/pending accounts — they must not be able to block other staff.
-  if ((payload.role === "instructor" || payload.role === "course_coordinator" || payload.role === "counselor") && target.role !== "student" && target.role !== "pending") {
+  if ((payload.role === "instructor" || payload.role === "coordinator" || payload.role === "counselor") && target.role !== "student" && target.role !== "pending") {
     return NextResponse.json({ error: "You can only block student or pending accounts" }, { status: 403 });
   }
 

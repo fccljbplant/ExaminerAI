@@ -214,7 +214,7 @@ No markdown. No explanation. Just the JSON.`;
     const needsBatching = weeks > BATCH_SIZE;
 
     // H1 fix: enforce per-user daily AI rate limit + demo block (course-gen is expensive)
-    const isDemo = payload.email === "demo@examiner.ai";
+    const isDemo = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(payload.sub, "course-gen", isDemo);
     if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 

@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
         select: {
           id: true, email: true, name: true, role: true, blocked: true,
           approvedAt: true, createdAt: true, lastLogin: true, currentWeek: true, projectName: true,
-          batchId: true,
+          
         },
       }),
     ]);
@@ -117,10 +117,10 @@ export async function GET(req: NextRequest) {
   }
 
   // Build the where clause
-  // Teachers, TAs, course_coordinators, and counselors only see students and
+  // Teachers, TAs, coordinators, and counselors only see students and
   // pending users (not other teachers/admins). Admins (principal/administrator)
   // and demo (read-only preview) see all users.
-  const roleScope = (payload.role === "instructor" || payload.role === "course_coordinator" || payload.role === "counselor")
+  const roleScope = (payload.role === "instructor" || payload.role === "coordinator" || payload.role === "counselor")
     ? { role: { in: ["student", "pending"] } }
     : {};
 
@@ -148,7 +148,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true, email: true, name: true, role: true, blocked: true,
         approvedAt: true, createdAt: true, lastLogin: true, currentWeek: true, projectName: true,
-        batchId: true,
+        
       },
     }),
   ]);
@@ -193,7 +193,7 @@ export async function POST(req: Request) {
   // create student accounts. This prevents privilege escalation via account
   // creation — e.g. a counselor creating an admin account for themselves.
   // Allowlist of valid roles — reject unknown roles instead of silent downgrade
-  const VALID_ROLES = ["student", "instructor", "course_coordinator", "counselor", "principal", "administrator", "demo"];
+  const VALID_ROLES = ["student", "instructor", "coordinator", "counselor", "principal", "administrator", "demo"];
   if (role && !VALID_ROLES.includes(role)) {
     return NextResponse.json({ error: `Invalid role: ${role}. Must be one of: ${VALID_ROLES.join(", ")}` }, { status: 400 });
   }

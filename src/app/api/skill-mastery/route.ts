@@ -27,7 +27,7 @@ import { assertCanAccessStudent } from "@/lib/auth";
  */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR,
+    UserRole.INSTRUCTOR, UserRole.COORDINATOR,
     UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO,
   ]);
   if (!auth.ok) return auth.response;

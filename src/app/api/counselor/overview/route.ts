@@ -45,7 +45,7 @@ export async function GET() {
     where: { role: "student", blocked: false, institutionId },
     select: {
       id: true, name: true, email: true, currentWeek: true,
-      batchId: true, lastLogin: true,
+       lastLogin: true,
     },
     orderBy: { name: "asc" },
   });

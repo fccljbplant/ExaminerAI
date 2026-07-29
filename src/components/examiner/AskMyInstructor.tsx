@@ -1,4 +1,5 @@
 "use client";
+interface InstructorInfo { id: string; name: string; email: string; }
 
 /** AskMyInstructor — Phase E.1 floating button. */
 
@@ -23,8 +24,9 @@ const VIEW_LABELS: Record<string, string> = {
 
 export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
   const [open, setOpen] = useState(false);
+  const [instructor, setInstructor] = useState<InstructorInfo | null>(null);
+  const [loadingInstructor, setLoadingInstructor] = useState(false);
   const [instructorInfo, setInstructorInfo] = useState<InstructorInfo | null>(null);
-  const [loadingTeacher, setLoadingTeacher] = useState(false);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
@@ -33,7 +35,7 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
 
   useEffect(() => {
     if (!open || instructorInfo) return;
-    setLoadingTeacher(true); setError("");
+    setLoadingInstructor(true); setError("");
     api.get<{ instructor: InstructorInfo | null }>("/api/messages/instructor")
       .then((res) => {
         if (res.instructor) {
@@ -45,7 +47,7 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
         }
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to find your instructor."))
-      .finally(() => setLoadingTeacher(false));
+      .finally(() => setLoadingInstructor(false));
   }, [open, instructorInfo, currentView]);
 
   useEffect(() => {
@@ -91,10 +93,10 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
         <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
-              <Mail className="h-4 w-4 text-primary" /> Ask my teacher
+              <Mail className="h-4 w-4 text-primary" /> Ask my instructor
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Send a quick question to your teacher. They'll reply in your Messages tab.
+              Send a quick question to your instructor. They'll reply in your Messages tab.
             </DialogDescription>
           </DialogHeader>
 
@@ -102,18 +104,18 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
             <div className="py-6 flex flex-col items-center text-center animate-success-burst">
               <CheckCircle2 className="h-12 w-12 text-growth-sage mb-3" />
               <p className="text-sm font-medium text-foreground">Message sent!</p>
-              <p className="text-xs text-muted-foreground mt-1">Your teacher will see this in their Messages tab and reply soon.</p>
+              <p className="text-xs text-muted-foreground mt-1">Your instructor will see this in their Messages tab and reply soon.</p>
             </div>
           ) : (
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">To</Label>
-                {loadingTeacher ? (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Finding your teacher...</div>
-                ) : teacher ? (
-                  <div className="text-sm text-foreground font-medium">{teacher.name} <span className="text-xs text-muted-foreground font-normal">· {teacher.email}</span></div>
+                {loadingInstructor ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Finding your instructor...</div>
+                ) : instructor ? (
+                  <div className="text-sm text-foreground font-medium">{instructor.name} <span className="text-xs text-muted-foreground font-normal">· {instructor.email}</span></div>
                 ) : (
-                  <div className="text-xs text-growth-coral">{error || "No teacher found."}</div>
+                  <div className="text-xs text-growth-coral">{error || "No instructor found."}</div>
                 )}
               </div>
               <div className="space-y-1.5">
@@ -136,7 +138,7 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
           {!success && (
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)} className="border-border"><X className="h-3 w-3" /> Cancel</Button>
-              <Button onClick={send} disabled={sending || !teacher || !body.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button onClick={send} disabled={sending || !instructor || !body.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />} Send
               </Button>
             </DialogFooter>

@@ -236,7 +236,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
   };
 
   // All check-ins (most recent first)
-  const recentLogs = stats.dailyLogs.slice().reverse();
+  const recentLogs = (stats.dailyLogs || []).slice().reverse();
 
   // Curriculum chart data: completion percent per week
   const curriculumChartData = curriculum
@@ -679,7 +679,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                 {log.nextQuestion && (
                   <p className="text-xs text-violet-600 mt-1"><strong>Next question:</strong> {log.nextQuestion}</p>
                 )}
-                <InstructorComments comments={stats.comments} entityId={log.id} field="dailyLogId" />
+                <InstructorComments comments={stats.comments || []} entityId={log.id} field="dailyLogId" />
               </div>
             ))
           )}

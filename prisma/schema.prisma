@@ -149,7 +149,7 @@ model User {
   name            String
   passwordHash    String
   // Role values:
-  //   pending | student | instructor | course_coordinator
+  //   pending | student | instructor | coordinator
   //   | counselor | guardian | institution_admin | platform_admin
   role            String    @default("pending")
   blocked         Boolean   @default(false)

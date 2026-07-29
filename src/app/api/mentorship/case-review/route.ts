@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!(await isFeatureEnabled("ai_enabled"))) {
     return NextResponse.json({ error: "AI features are currently disabled." }, { status: 403 });
   }
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -33,7 +33,7 @@ Return ONLY the anonymized version (2-4 sentences). Do not include any names, da
 
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block
-    const isDemo = auth.ctx.payload.email === "demo@examiner.ai";
+    const isDemo = auth.ctx.payload.email.includes("@demo.ai") || auth.ctx.payload.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(auth.ctx.payload.sub, "case-review-anonymize", isDemo);
     if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 
@@ -57,7 +57,7 @@ Return ONLY the anonymized version (2-4 sentences). Do not include any names, da
 /** PUT /api/mentorship/case-review — confirm + publish */
 export async function PUT(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("reviewing cases"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

@@ -93,7 +93,6 @@ export async function GET() {
         orderBy: { weekNumber: "asc" },
         select: { id: true, weekNumber: true, phase: true, milestone: true, _count: { select: { days: true } } },
       },
-      batches: { select: { id: true, name: true } },
     },
   });
 
@@ -119,7 +118,6 @@ export async function GET() {
       days: [], // Don't load all days for the list view — only when viewing detail
       dayCount: w._count.days,
     })),
-    batches: c.batches,
   }));
 
   return NextResponse.json({ courses: enrichedCourses });
@@ -260,7 +258,6 @@ export async function POST(req: NextRequest) {
           }
         : undefined,
     },
-    include: { weeks: { include: { days: true } }, batches: { select: { id: true, name: true } } },
   });
 
   return NextResponse.json({ course });

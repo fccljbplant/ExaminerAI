@@ -33,7 +33,7 @@ export async function GET() {
   let statement = "";
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block
-    const isDemo = user.email === "demo@examiner.ai";
+    const isDemo = user.email.includes("@demo.ai") || user.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(user.id, "daily-motivation", isDemo);
     if (blocked) return NextResponse.json({ error: blocked.body.error }, { status: blocked.status });
 

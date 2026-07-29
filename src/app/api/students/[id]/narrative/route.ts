@@ -26,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   // Demo AI enable/disable check (admin-configurable)
-  const isDemoUser = payload.email === "demo@examiner.ai";
+  const isDemoUser = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
   if (await isDemoAIBlocked(isDemoUser)) {
     return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
   }

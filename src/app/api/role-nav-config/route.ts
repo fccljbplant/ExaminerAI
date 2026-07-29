@@ -44,7 +44,7 @@ export const ALL_NAV_KEYS = [
 export const DEFAULT_NAV_PER_ROLE: Record<string, string[]> = {
   student: ["dashboard", "checkin", "gantt", "report-card", "ai-tutor", "course-outline", "messages", "settings"],
   teacher: ["batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights", "course-planner", "instructor-ai-tutor", "course-outline", "messages", "settings"],
-  course_coordinator: ["course-planner", "batch-students", "instructor-ai-tutor", "course-outline", "messages", "settings"],
+  coordinator: ["course-planner", "batch-students", "instructor-ai-tutor", "course-outline", "messages", "settings"],
   counselor: ["counselor-dashboard", "messages", "settings"],
   guardian: ["guardian-dashboard", "guardian-progress", "ai-tutor", "course-outline", "messages", "settings"],
   principal: ["principal-dashboard", "admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "settings"],

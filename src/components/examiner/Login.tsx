@@ -4,13 +4,10 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GraduationCap, Loader2, KeyRound, Sparkles } from "lucide-react";
-import ForgotPassword, { SECURITY_QUESTIONS } from "./ForgotPassword";
+import { GraduationCap, Loader2, KeyRound, Sparkles, Users, BookOpen, ClipboardList } from "lucide-react";
+import ForgotPassword from "./ForgotPassword";
 
 export interface PublicUser {
   id: string;
@@ -18,17 +15,17 @@ export interface PublicUser {
   name: string;
   role: string;
   currentWeek?: number;
-  /** Whether the user has set a security question (for self-service password reset). */
   hasSecurityQuestion?: boolean;
-  /** For guardians — the ID of the student they're linked to. */
   linkedStudentId?: string | null;
-  /** Teacher's batch ID (C5 fix: exposed so AssignmentsTab can pass it to group-tasks API). */
-  batchId?: string | null;
-  /** The course ID the user's batch is assigned to (for students/guardians). */
   courseId?: string | null;
-  /** The course name (for students/guardians). */
   courseName?: string | null;
 }
+
+const DEMO_ACCOUNTS = [
+  { email: "student@demo.ai", password: "demo123", label: "Student Demo", icon: GraduationCap, color: "bg-blue-500 hover:bg-blue-600" },
+  { email: "instructor@demo.ai", password: "demo123", label: "Instructor Demo", icon: BookOpen, color: "bg-emerald-500 hover:bg-emerald-600" },
+  { email: "coordinator@demo.ai", password: "demo123", label: "Coordinator Demo", icon: ClipboardList, color: "bg-violet-500 hover:bg-violet-600" },
+] as const;
 
 export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => void }) {
   const [tab, setTab] = useState<"login" | "signup">("login");
@@ -39,12 +36,9 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
   const [securityAnswer, setSecurityAnswer] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [busyDemo, setBusyDemo] = useState<string | null>(null);
   const [showForgot, setShowForgot] = useState(false);
 
-  // Clear any stale demo flag from a previous session before showing the login
-  // form. This prevents the client-side demo write-block from blocking the
-  // login POST itself (the flag persists in localStorage if the user closed
-  // the tab without logging out).
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("examiner-is-demo");
@@ -67,7 +61,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
             onLoggedIn(res.user);
           } catch {
             setTab("login");
-            setError("Account created — it's now pending approval. An instructor/admin must approve it before login.");
+            setError("Account created — pending approval.");
           }
         }
       } catch (e) {
@@ -79,184 +73,104 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
     [tab, email, password, name, securityQuestion, securityAnswer, onLoggedIn]
   );
 
-  if (showForgot) {
-    return <ForgotPassword onBack={() => setShowForgot(false)} />;
-  }
+  const launchDemo = useCallback(
+    async (demoEmail: string, demoPassword: string, label: string) => {
+      setError("");
+      setBusyDemo(label);
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("examiner-is-demo", "1");
+        }
+        const res = await api.post<{ user: PublicUser }>("/api/auth/login", { email: demoEmail, password: demoPassword });
+        onLoggedIn(res.user);
+      } catch (err) {
+        setError(`Demo login failed: ${err instanceof Error ? err.message : "unknown error"}`);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("examiner-is-demo");
+        }
+      } finally {
+        setBusyDemo(null);
+      }
+    },
+    [onLoggedIn]
+  );
+
+  if (showForgot) return <ForgotPassword onBack={() => setShowForgot(false)} />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-            <GraduationCap className="h-7 w-7" />
+      <div className="w-full max-w-md space-y-6 text-center">
+        {/* Logo */}
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg mb-4">
+          <GraduationCap className="h-7 w-7" />
+        </div>
+        <h1 className="text-3xl font-bold">ExaminerAI</h1>
+
+        {/* Demo buttons — 3 read-only role previews */}
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Try a Demo (Read-Only)</p>
+          <div className="grid grid-cols-3 gap-2">
+            {DEMO_ACCOUNTS.map((demo) => {
+              const Icon = demo.icon;
+              const isThisBusy = busyDemo === demo.label;
+              return (
+                <Button
+                  key={demo.email}
+                  onClick={() => launchDemo(demo.email, demo.password, demo.label)}
+                  disabled={busyDemo !== null}
+                  className={`${demo.color} text-white flex-col h-auto py-3 gap-1.5`}
+                  size="sm"
+                >
+                  {isThisBusy ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Icon className="h-5 w-5" />
+                  )}
+                  <span className="text-[10px] font-medium leading-tight">{demo.label.replace(" Demo", "")}</span>
+                </Button>
+              );
+            })}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">AI Examiner</h1>
-          <p className="text-sm text-muted-foreground">
-            Socratic assessments for the Modern Web Dev &amp; AI Bootcamp
-          </p>
         </div>
 
-        <Card className="border-border bg-card text-foreground shadow-sm">
+        {/* Login / Signup card */}
+        <Card>
           <CardHeader>
-            <CardTitle className="text-foreground">Welcome back</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Sign in to access your dashboard, weekly tests, and AI tutor.
-            </CardDescription>
+            <CardTitle>Welcome</CardTitle>
+            <CardDescription>Sign in to your dashboard.</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* PROMINENT DEMO CTA */}
-            <div className="mb-4 p-3 rounded-lg border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-amber-600" />
-                <span className="text-sm font-semibold text-amber-900 dark:text-amber-200">Try the Live Demo</span>
-              </div>
-              <p className="text-xs text-amber-800 dark:text-amber-300 mb-2.5">
-                One-click access. Explore every dashboard as admin, instructor, student, counsellor, principal.
-              </p>
-              <Button
-                type="button"
-                onClick={async (e) => {
-                  e.preventDefault();
-                  setError("");
-                  setBusy(true);
-                  try {
-                    const res = await api.post<{ user: PublicUser }>("/api/auth/login", {
-                      email: "demo@examiner.ai",
-                      password: "demo123"
-                    });
-                    onLoggedIn(res.user);
-                  } catch (err) {
-                    setError(err instanceof Error ? err.message : "Demo login failed");
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-                disabled={busy}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-              >
-                <Sparkles className="w-4 h-4 mr-1.5" />
-                {busy ? "Signing in…" : "Launch Demo"}
-              </Button>
-            </div>
-
             <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")}>
-              <TabsList className="grid w-full grid-cols-2 bg-muted">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
-
               <TabsContent value="login" className="mt-4">
                 <form onSubmit={submit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-foreground">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-foreground">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                      required
-                    />
-                  </div>
+                  <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                   {error && <p className="text-sm text-destructive">{error}</p>}
-                  <Button
-                    type="submit"
-                    disabled={busy}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
+                  <Button type="submit" disabled={busy} className="w-full">
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
                   </Button>
                   <button
                     type="button"
                     onClick={() => setShowForgot(true)}
-                    className="w-full text-sm text-primary hover:underline flex items-center justify-center gap-1"
+                    className="text-xs text-muted-foreground hover:text-foreground w-full text-center"
                   >
-                    <KeyRound className="h-3 w-3" /> Forgot password?
+                    Forgot password?
                   </button>
                 </form>
               </TabsContent>
-
               <TabsContent value="signup" className="mt-4">
-                <form onSubmit={submit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-foreground">Name</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                      placeholder="Ada Lovelace"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email-su" className="text-foreground">Email</Label>
-                    <Input
-                      id="email-su"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-su" className="text-foreground">Password</Label>
-                    <Input
-                      id="password-su"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                      placeholder="At least 6 characters"
-                      required
-                    />
-                  </div>
-                  {/* Security question for password recovery */}
-                  <div className="space-y-2 pt-2 border-t border-border">
-                    <Label className="text-foreground text-xs uppercase tracking-wider text-muted-foreground">
-                      Security Question (for password recovery)
-                    </Label>
-                    <Select value={securityQuestion} onValueChange={setSecurityQuestion}>
-                      <SelectTrigger className="bg-background border-border text-foreground">
-                        <SelectValue placeholder="Choose a security question..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SECURITY_QUESTIONS.filter(q => q).map((q) => (
-                          <SelectItem key={q} value={q}>{q}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {securityQuestion && (
-                      <Input
-                        type="text"
-                        value={securityAnswer}
-                        onChange={(e) => setSecurityAnswer(e.target.value)}
-                        className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                        placeholder="Your answer (case-insensitive)"
-                      />
-                    )}
-                  </div>
+                <form onSubmit={submit} className="space-y-3">
+                  <Input placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
+                  <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                  <Input placeholder="Security Question" value={securityQuestion} onChange={(e) => setSecurityQuestion(e.target.value)} required />
+                  <Input placeholder="Security Answer" value={securityAnswer} onChange={(e) => setSecurityAnswer(e.target.value)} required />
                   {error && <p className="text-sm text-destructive">{error}</p>}
-                  <Button
-                    type="submit"
-                    disabled={busy}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
+                  <Button type="submit" disabled={busy} className="w-full">
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Account"}
                   </Button>
                 </form>

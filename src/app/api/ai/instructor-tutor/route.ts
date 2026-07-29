@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
   const teacherContext = [
     `Instructor name: ${user.name}`,
     `Role: ${user.role}`,
-    user.batchId ? `Has an assigned batch` : `No batch assigned (institution-wide role)`,
   ].join("\n");
 
   const systemPrompt = `You are a friendly, practical AI Assistant for an instructor / mentor at an educational bootcamp. Your role is to help the instructor with lesson preparation, student case review, rubric design, parent communication, and pedagogical guidance.
@@ -116,7 +115,7 @@ ${teacherContext}
 
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block
-    const isDemo = user.email === "demo@examiner.ai";
+    const isDemo = user.email.includes("@demo.ai") || user.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(user.id, "instructor-tutor", isDemo);
     if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 

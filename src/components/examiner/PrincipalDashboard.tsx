@@ -305,7 +305,7 @@ function AcademicView({ data }: { data: PrincipalData }) {
                       <span className="text-sm font-medium truncate">{c.name}</span>
                       <Badge variant="outline" className="text-[9px] font-mono">{c.code}</Badge>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">Teacher: {c.instructor} · {c.studentCount} students</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">Teacher: {c.teacher} · {c.studentCount} students</div>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <div className={cn("text-lg font-bold", c.avgScore >= 70 ? "text-emerald-600" : c.avgScore >= 50 ? "text-amber-600" : "text-rose-600")}>

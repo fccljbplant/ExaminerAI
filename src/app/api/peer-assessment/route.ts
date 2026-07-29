@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Teacher viewing all peer assessments for a task
-  const isStaff = ["instructor", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
+  const isStaff = ["instructor", "coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
   if (isStaff && groupTaskId) {
     const assessments = await db.peerAssessment.findMany({
       where: { groupTaskId },
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
         // Get the group task for context
         const task = await db.groupTask.findUnique({
           where: { id: groupTaskId },
-          select: { week: true, title: true, batchId: true },
+          select: { week: true, title: true, courseId: true },
         });
 
         // Run the analysis pipeline — peer assessment feeds:

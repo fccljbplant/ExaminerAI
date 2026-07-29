@@ -245,7 +245,7 @@ export async function DELETE(
   const { id } = await params;
 
   // Permission: only ADMIN_ROLES (principal, administrator) can delete a course.
-  // No other role — including course_coordinator, counselor, teacher,
+  // No other role — including coordinator, counselor, teacher,
   // may delete a course. Course deletion is a high-impact admin action that
   // can wipe curriculum for an entire course mid-bootcamp.
   if (!hasRole(payload.role, ADMIN_ROLES)) {

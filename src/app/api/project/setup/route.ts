@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
   let summaryGenerated = false;
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block
-    const isDemo = user.email === "demo@examiner.ai";
+    const isDemo = user.email.includes("@demo.ai") || user.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(user.id, "project-summary-gen", isDemo);
     if (!blocked) {
       const summary = await generateProjectSummary({
@@ -302,7 +302,7 @@ export async function PATCH(req: NextRequest) {
     if (fullUser?.projectName) {
       try {
         // H1 fix: enforce per-user daily AI rate limit + demo block
-        const isDemo = user.email === "demo@examiner.ai";
+        const isDemo = user.email.includes("@demo.ai") || user.email === "demo@examiner.ai";
         const blocked = await enforceAIRateLimit(user.id, "project-summary-gen", isDemo);
         if (!blocked) {
           const summary = await generateProjectSummary({

@@ -25,14 +25,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "groupTaskId and content required" }, { status: 400 });
   }
 
-  // Verify the task exists and belongs to the student's batch
+  // Verify the task exists
   const task = await db.groupTask.findUnique({
     where: { id: groupTaskId },
-    select: { batchId: true, status: true },
+    select: { status: true, courseId: true },
   });
   if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
-  if (task.batchId !== user.batchId) {
-    return NextResponse.json({ error: "Not in your batch" }, { status: 403 });
+  // Check enrollment: student must be enrolled in the task's course
+  if (task.courseId) {
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId: user.id, courseId: task.courseId, role: "student" },
+    });
+    if (!enrollment) {
+      return NextResponse.json({ error: "Not enrolled in this course" }, { status: 403 });
+    }
   }
   if (task.status === "closed") {
     return NextResponse.json({ error: "Task is closed" }, { status: 400 });
@@ -71,7 +77,7 @@ export async function GET(req: NextRequest) {
   if (!groupTaskId) return NextResponse.json({ error: "groupTaskId required" }, { status: 400 });
 
   // Students see only their own submission; staff see all
-  const isStaff = ["instructor", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
+  const isStaff = ["instructor", "coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
 
   const submissions = await db.groupTaskSubmission.findMany({
     where: { groupTaskId, ...(isStaff ? {} : { userId: user.id }) },

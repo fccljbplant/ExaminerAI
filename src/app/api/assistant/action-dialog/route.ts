@@ -97,7 +97,7 @@ Generate the Action Dialog content as JSON.`;
 
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block
-    const isDemo = payload.email === "demo@examiner.ai";
+    const isDemo = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(payload.sub, "action_dialog", isDemo);
     if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 

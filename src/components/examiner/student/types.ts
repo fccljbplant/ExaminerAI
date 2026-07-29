@@ -118,13 +118,13 @@ export interface ProjectConfig {
 export interface StatsResponse {
   role: string;
   stats: Stats;
-  weeklyTests: WeeklyTest[];
-  competencies: Competency[];
-  reportCards: ReportCardRow[];
-  dailyLogs: DailyLog[];
-  recentInteractions: Interaction[];
-  tasks: Task[];
-  comments: CommentRow[];
+  weeklyTests?: WeeklyTest[];
+  competencies?: Competency[];
+  reportCards?: ReportCardRow[];
+  dailyLogs?: DailyLog[];
+  recentInteractions?: Interaction[];
+  tasks?: Task[];
+  comments?: CommentRow[];
   /** Optional — only present for student stats responses. */
   projectConfig?: ProjectConfig;
 }

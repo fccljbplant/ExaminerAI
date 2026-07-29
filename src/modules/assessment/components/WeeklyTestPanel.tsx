@@ -33,11 +33,11 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
   // tests in courses of any length, not just 6-week ones.
   const projectDurationWeeks = stats.stats.projectDurationWeeks ?? 6;
   const isFinalWeek = selectedWeek === projectDurationWeeks;
-  const weekTasks = stats.tasks.filter((t) => t.week === selectedWeek);
+  const weekTasks = (stats.tasks || []).filter((t) => t.week === selectedWeek);
   // Final week has NO task constraint — open all week (capstone test).
   // Admin bypasses task requirement.
   const allTasksDone = isAdmin || isFinalWeek || weekTasks.length === 0 || weekTasks.every((t) => t.status === "completed");
-  const currentTest = stats.weeklyTests.find((t) => t.week === selectedWeek);
+  const currentTest = (stats.weeklyTests || []).find((t) => t.week === selectedWeek);
   const isCompleted = currentTest?.status === "completed";
 
   // Chat state
@@ -316,7 +316,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs font-medium text-muted-foreground">Select week:</span>
         {Array.from({ length: stats.stats.projectDurationWeeks ?? 6 }, (_, i) => i + 1).map(w => {
-          const test = stats.weeklyTests.find(t => t.week === w);
+          const test = (stats.weeklyTests || []).find(t => t.week === w);
           const isDone = test?.status === "completed";
           return (
             <button
@@ -643,12 +643,12 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         </CardContent>
       </Card>
 
-      {stats.weeklyTests.length > 0 && (
+      {(stats.weeklyTests || []).length > 0 && (
         <Card className="border-border bg-card">
           <CardHeader><CardTitle className="text-base text-foreground">Test History</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {stats.weeklyTests.map((t) => (
+              {(stats.weeklyTests || []).map((t) => (
                 <div key={t.week} className="flex items-center justify-between rounded-md bg-muted p-3 text-sm">
                   <span className="text-foreground">Week {t.week}</span>
                   <Badge variant="outline" className="capitalize">{t.status}</Badge>

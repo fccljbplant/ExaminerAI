@@ -12,7 +12,7 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const isDemoUser = user.email === "demo@examiner.ai";
+  const isDemoUser = user.email.includes("@demo.ai") || user.email === "demo@examiner.ai";
   const demoBlocked = await isDemoAIBlocked(isDemoUser);
   const demoAIEnabled = await isDemoAIEnabled();
 

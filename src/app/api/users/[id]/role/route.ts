@@ -33,7 +33,7 @@ export async function PATCH(
   const reason = body.reason as string | undefined;
 
   const VALID_ROLES = [
-    "pending", "student", "instructor", "course_coordinator",
+    "pending", "student", "instructor", "coordinator",
     "counselor", "guardian", "principal", "administrator", "demo",
     // Legacy aliases (normalized to canonical on read via normalizeRole)
     "institution_admin", "platform_admin", "admin",
@@ -61,8 +61,8 @@ export async function PATCH(
   //   demo (demo is system-level, not institution-scoped).
   // - demo: NOT in requireRole, so never reaches this matrix.
   const ELEVATION_MATRIX: Record<string, string[]> = {
-    administrator: ["pending", "student", "instructor", "course_coordinator", "counselor", "guardian", "principal", "administrator", "demo"],
-    principal: ["pending", "student", "instructor", "course_coordinator", "counselor", "guardian", "principal", "administrator"],
+    administrator: ["pending", "student", "instructor", "coordinator", "counselor", "guardian", "principal", "administrator", "demo"],
+    principal: ["pending", "student", "instructor", "coordinator", "counselor", "guardian", "principal", "administrator"],
   };
   const callerRole = auth.ctx.payload.role;
   const allowedTargets = ELEVATION_MATRIX[callerRole] || [];

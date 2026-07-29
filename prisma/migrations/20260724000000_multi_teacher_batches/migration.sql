@@ -41,7 +41,7 @@ CREATE INDEX "BatchTeacher_teacherId_idx" ON "BatchTeacher"("teacherId");
 -- ============================================================
 -- 3. Data backfill: migrate existing teacher.batchId to BatchTeacher
 --    For every User with role IN (teacher, teaching_assistant,
---    course_coordinator, counselor) that has a non-null batchId,
+--    coordinator, counselor) that has a non-null batchId,
 --    insert a BatchTeacher row. This preserves existing access.
 -- ============================================================
 INSERT INTO "BatchTeacher" ("id", "batchId", "teacherId")
@@ -51,7 +51,7 @@ SELECT
     "id"
 FROM "User"
 WHERE "batchId" IS NOT NULL
-  AND "role" IN ('teacher', 'teaching_assistant', 'course_coordinator', 'counselor')
+  AND "role" IN ('teacher', 'teaching_assistant', 'coordinator', 'counselor')
   AND NOT EXISTS (
     SELECT 1 FROM "BatchTeacher" bt
     WHERE bt."batchId" = "User"."batchId"

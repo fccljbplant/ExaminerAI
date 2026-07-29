@@ -53,7 +53,7 @@ function buildInstitutionFilter(institutionId: string | null): { institutionId: 
  * Per role:
  * - TEACHER / INSTRUCTOR: students in courses where CourseEnrollment(callerId, "instructor") exists
  * - COUNSELOR: teachers + students within their institution (behavior/wellbeing access)
- * - COURSE_COORDINATOR: course/batch structure within institution (not individual behavioral data)
+ * - COORDINATOR: course/batch structure within institution (not individual behavioral data)
  * - PRINCIPAL / ADMINISTRATOR / DEMO: entire institution
  *
  * Returns empty arrays if the caller has no accessible entities.
@@ -117,6 +117,7 @@ export async function resolveAssistantScope(
       courseIds: courses.map(c => c.id),
       institutionId,
       isInstitutionWide: true,
+      batchIds: [],
       callerRole,
       callerId,
     };
@@ -163,17 +164,18 @@ export async function resolveAssistantScope(
     };
   }
 
-  // COURSE_COORDINATOR — course/batch structure within institution
+  // COORDINATOR — course/batch structure within institution
   // C1 fix: same null-institutionId guard.
-  if (callerRole === "course_coordinator") {
+  if (callerRole === "coordinator") {
     if (!institutionFilter) {
-      logger.warn("resolveAssistantScope: course_coordinator has no institutionId — returning empty scope", {
+      logger.warn("resolveAssistantScope: coordinator has no institutionId — returning empty scope", {
         callerId,
       });
       return {
         studentIds: [],
         instructorIds: [],
         courseIds: [],
+        batchIds: [],
         institutionId,
         isInstitutionWide: false,
         callerRole,
@@ -192,6 +194,7 @@ export async function resolveAssistantScope(
       instructorIds: [],
       courseIds: courses.map(c => c.id),
       institutionId,
+      batchIds: [],
       isInstitutionWide: false,
       callerRole,
       callerId,

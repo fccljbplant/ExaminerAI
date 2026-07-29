@@ -101,7 +101,7 @@ export async function POST(
 
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block (attributed to staff)
-    const isDemo = payload.email === "demo@examiner.ai";
+    const isDemo = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(payload.sub, "project-final-analysis", isDemo);
     if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 

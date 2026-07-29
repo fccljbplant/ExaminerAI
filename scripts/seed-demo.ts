@@ -173,7 +173,7 @@ async function main() {
   await db.passwordResetRequest.deleteMany()
   await db.roleNavConfig.deleteMany()
   await db.guardianLink.deleteMany()
-  await db.teacherRule.deleteMany()
+  await db.instructorRule.deleteMany()
   await db.aICache.deleteMany()
   await db.aIUsageLog.deleteMany()
   await db.setting.deleteMany()

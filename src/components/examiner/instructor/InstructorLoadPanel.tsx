@@ -1,4 +1,5 @@
 "use client";
+type TeacherLoadData = InstructorLoadData;
 
 /**
  * InstructorLoadPanel — shows the instructor's own wellbeing/load metrics.

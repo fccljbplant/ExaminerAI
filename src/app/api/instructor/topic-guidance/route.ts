@@ -40,7 +40,7 @@ Guidance:`;
 
   try {
     // H1 fix: enforce per-user daily AI rate limit + demo block
-    const isDemo = auth.ctx.payload.email === "demo@examiner.ai";
+    const isDemo = auth.ctx.payload.email.includes("@demo.ai") || auth.ctx.payload.email === "demo@examiner.ai";
     const blocked = await enforceAIRateLimit(auth.ctx.payload.sub, "topic-guidance", isDemo);
     if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
 

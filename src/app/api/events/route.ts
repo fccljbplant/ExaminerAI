@@ -67,7 +67,10 @@ export async function POST(req: NextRequest) {
       where: { userId: auth.ctx.payload.sub, role: "instructor" },
       select: { courseId: true },
     });
-    targetCourseId = enrollment?.courseId ?? null;
+    targetCourseId = enrollment?.courseId || "";
+  }
+  if (!targetCourseId) {
+    return NextResponse.json({ error: "No course specified and no instructor enrollment found" }, { status: 400 });
   }
 
   const event = await db.event.create({

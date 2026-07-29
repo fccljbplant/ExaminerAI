@@ -65,7 +65,7 @@ export async function GET(
       needsGrantCheck = true;
     }
   } else {
-    // counselor, course_coordinator, demo — need an AccessGrant
+    // counselor, coordinator, demo — need an AccessGrant
     needsGrantCheck = true;
   }
 

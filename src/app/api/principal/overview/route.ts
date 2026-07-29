@@ -30,7 +30,7 @@ export async function GET() {
     db.user.count({ where: { role: "student", institutionId, blocked: false } }),
     db.user.count({ where: { role: "instructor", institutionId } }),
     db.user.count({ where: { role: "counselor", institutionId } }),
-    db.user.count({ where: { role: "course_coordinator", institutionId } }),
+    db.user.count({ where: { role: "coordinator", institutionId } }),
     db.course.count({ where: { institutionId } }),
     db.studentAlert.findMany({ where: { user: { institutionId } }, select: { id: true, type: true, severity: true, status: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 200 }),
     db.mentorshipTouchpoint.count({ where: { user: { institutionId } } }),

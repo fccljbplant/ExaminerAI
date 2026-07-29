@@ -20,7 +20,7 @@ export const PRINCIPAL_ROLES = ["principal", "institution_admin"] as const;
 
 export const STAFF_ROLES = [
   "instructor",
-  "course_coordinator",
+  "coordinator",
   "counselor",
   "principal",
   "administrator",

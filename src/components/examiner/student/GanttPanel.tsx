@@ -14,7 +14,7 @@ export function GanttPanel({ stats, onReload, onMode, courseId }: { stats: Stats
     <div className="space-y-4 animate-fade-in-up">
       <ProjectDescriptionCard
         onMode={onMode}
-        hasTasks={stats.tasks.length > 0}
+        hasTasks={(stats.tasks || []).length > 0}
         onTasksGenerated={onReload}
       />
       <ProjectProgressChart stats={stats} />

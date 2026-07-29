@@ -90,10 +90,10 @@ interface NavItem {
   roles: string[];
 }
 
-const ALL_ROLES_WITH_SHARED = ["student", "instructor", "course_coordinator", "counselor", "guardian", "admin", "principal", "administrator", "demo"];
+const ALL_ROLES_WITH_SHARED = ["student", "instructor", "coordinator", "counselor", "guardian", "admin", "principal", "administrator", "demo"];
 const ADMIN_NAV_ROLES = ["admin", "administrator", "principal"];
 const PRINCIPAL_NAV_ROLES = ["principal"];
-const STAFF_NAV_ROLES = ["instructor", "course_coordinator", "counselor", "admin", "principal", "administrator", "demo"];
+const STAFF_NAV_ROLES = ["instructor", "coordinator", "counselor", "admin", "principal", "administrator", "demo"];
 
 const ALL_NAV: NavItem[] = [
   { key: "dashboard", label: "Home", icon: LayoutDashboard, roles: ["student"] },
@@ -109,8 +109,8 @@ const ALL_NAV: NavItem[] = [
 
   { key: "counselor-dashboard", label: "Command Center", icon: Zap, roles: ["counselor"] },
 
-  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "course_coordinator"] },
-  { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "course_coordinator"] },
+  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "coordinator"] },
+  { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "coordinator"] },
 
   { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
   { key: "guardian-progress", label: "Report Cards", icon: FileText, roles: ["guardian"] },
@@ -230,7 +230,7 @@ export default function AppShell() {
       const res = await api.get<{ user: PublicUser | null }>("/api/auth/me");
       setUser(res.user);
       if (res.user) {
-        const isDemo = res.user.email === "demo@examiner.ai";
+        const isDemo = res.user?.email?.includes("@demo.ai") || user?.email === "demo@examiner.ai";
         if (typeof window !== "undefined") {
           if (isDemo) {
             localStorage.setItem("examiner-is-demo", "1");
@@ -241,7 +241,7 @@ export default function AppShell() {
         const role = res.user.role;
         const adminRoles = [...ALL_ADMIN_ROLES];
         if (adminRoles.includes(role)) {
-          if (res.user.email === "demo@examiner.ai") {
+          if (res.user?.email?.includes("@demo.ai") || user?.email === "demo@examiner.ai") {
             setAdminAs("instructor");
             setView("instructor-today");
           } else {
@@ -252,7 +252,7 @@ export default function AppShell() {
           setView("principal-dashboard");
         } else if (role === "instructor") {
           setView("instructor-today");
-        } else if (role === "course_coordinator") {
+        } else if (role === "coordinator") {
           setView("course-planner");
         } else if (role === "counselor") {
           setView("counselor-dashboard");
@@ -316,7 +316,7 @@ export default function AppShell() {
 
   useEffect(() => {
     if (!user) return;
-    const staffRoles = ["instructor", "course_coordinator", "counselor", "admin", "principal", "administrator", "demo"];
+    const staffRoles = ["instructor", "coordinator", "counselor", "admin", "principal", "administrator", "demo"];
     if (!staffRoles.includes(user.role) && user.role !== "admin") return;
     const checkAlerts = async () => {
       try {
@@ -389,7 +389,7 @@ export default function AppShell() {
       }
       else if (u.role === "principal") setView("principal-dashboard");
       else if (u.role === "instructor") setView("instructor-today");
-      else if (u.role === "course_coordinator") setView("course-planner");
+      else if (u.role === "coordinator") setView("course-planner");
       else if (u.role === "counselor") setView("counselor-dashboard");
       else if (u.role === "guardian") setView("guardian-dashboard");
       else setView("dashboard");
@@ -604,7 +604,7 @@ export default function AppShell() {
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
-                  {(item.key === "instructor-today" || item.key === "batch") && alertCount > 0 && (
+                  {(item.key === "instructor-today") && alertCount > 0 && (
                     <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
                       {alertCount > 9 ? "9+" : alertCount}
                     </span>
@@ -623,7 +623,7 @@ export default function AppShell() {
               {([
                 { role: "student", label: "Student", view: "dashboard" },
                 { role: "instructor", label: "Instructor", view: "instructor-today" },
-                { role: "course_coordinator", label: "Coordinator", view: "course-planner" },
+                { role: "coordinator", label: "Coordinator", view: "course-planner" },
                 { role: "counselor", label: "Counselor", view: "counselor-dashboard" },
                 { role: "guardian", label: "Guardian", view: "guardian-dashboard" },
                 { role: "principal", label: "Principal", view: "principal-dashboard" },

@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
   // Demo AI enable/disable check (admin-configurable)
   const { isDemoAIBlocked, checkUserAILimit, categoryForFeature } = await import("@/lib/ai-rate-limits");
-  const isDemoUser = user.email === "demo@examiner.ai";
+  const isDemoUser = user.email.includes("@demo.ai") || user.email === "demo@examiner.ai";
   if (await isDemoAIBlocked(isDemoUser)) {
     return NextResponse.json({ error: "AI access for demo accounts is currently disabled by the administrator." }, { status: 403 });
   }

@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Demo AI check
-  const isDemoUser = payload.email === "demo@examiner.ai";
+  const isDemoUser = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
   if (await isDemoAIBlocked(isDemoUser)) {
     return NextResponse.json({ error: "AI access for demo accounts is currently disabled." }, { status: 403 });
   }

@@ -21,7 +21,7 @@ import type {
 export function CompactGantt({ stats }: { stats: StatsResponse }) {
   const currentWeek = stats.stats.currentWeek;
   const projectDurationWeeks = stats.stats.projectDurationWeeks ?? 6;
-  const maxWeek = Math.max(projectDurationWeeks, ...stats.tasks.map(t => t.week), 1);
+  const maxWeek = Math.max(projectDurationWeeks, ...(stats.tasks || []).map(t => t.week), 1);
 
   // Fetch the student's custom ProjectWeek rows for week titles
   const [projectWeeks, setProjectWeeks] = useState<{ weekNumber: number; title: string }[]>([]);
@@ -36,11 +36,11 @@ export function CompactGantt({ stats }: { stats: StatsResponse }) {
   // Calculate task spans: a task starts at its `week` and extends to its
   // `dueDate` week (if set), otherwise just occupies 1 week.
   type TaskSpan = { task: Task; startWeek: number; endWeek: number };
-  const taskSpans: TaskSpan[] = stats.tasks.map(t => {
+  const taskSpans: TaskSpan[] = (stats.tasks || []).map(t => {
     let endWeek = t.week;
     if (t.dueDate) {
       const due = new Date(t.dueDate);
-      const projectStart = stats.tasks.length > 0 ? null : null; // We don't have projectStartDate in stats
+      const projectStart = (stats.tasks || []).length > 0 ? null : null; // We don't have projectStartDate in stats
       // Calculate week from due date: approximate by comparing to task's week
       // If due date is more than 7 days after the task's week start, extend
       // We'll estimate: each week ≈ 7 days. Due date week = task.week + ceil(daysDiff / 7)

@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const requestedUserId = req.nextUrl.searchParams.get("userId");
-  const isStaff = ["instructor", "course_coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
+  const isStaff = ["instructor", "coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
   const userId = isStaff ? (requestedUserId || user.id) : user.id;
 
   const ratings = await db.confidenceRating.findMany({

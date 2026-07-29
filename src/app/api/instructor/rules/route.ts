@@ -5,7 +5,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** GET /api/instructor/rules — list instructor's personal rules */
 export async function GET() {
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const rules = await db.instructorRule.findMany({
@@ -18,7 +18,7 @@ export async function GET() {
 /** POST /api/instructor/rules — create a new rule */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing teacher rules"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 /** DELETE /api/instructor/rules?id=X — delete a rule */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing teacher rules"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COURSE_COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.COORDINATOR, UserRole.COUNSELOR, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const id = new URL(req.url).searchParams.get("id");

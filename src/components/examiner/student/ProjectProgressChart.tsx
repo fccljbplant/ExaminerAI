@@ -22,10 +22,10 @@ export function ProjectProgressChart({ stats }: { stats: StatsResponse }) {
   const c = useChartColors();
   // Respect the student's configured project duration (default 6).
   const projectDurationWeeks = stats.stats.projectDurationWeeks ?? 6;
-  const maxWeek = Math.max(projectDurationWeeks, ...stats.tasks.map(t => t.week), 1);
+  const maxWeek = Math.max(projectDurationWeeks, ...(stats.tasks || []).map(t => t.week), 1);
 
   const projectChartData = Array.from({ length: maxWeek }, (_, i) => i + 1).map(w => {
-    const weekTasks = stats.tasks.filter(t => t.week === w);
+    const weekTasks = (stats.tasks || []).filter(t => t.week === w);
     const completed = weekTasks.filter(t => t.status === "completed").length;
     const total = weekTasks.length;
     return {
@@ -36,8 +36,8 @@ export function ProjectProgressChart({ stats }: { stats: StatsResponse }) {
     };
   });
 
-  const totalTasks = stats.tasks.length;
-  const completedTasks = stats.tasks.filter(t => t.status === "completed").length;
+  const totalTasks = (stats.tasks || []).length;
+  const completedTasks = (stats.tasks || []).filter(t => t.status === "completed").length;
   const overallPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (

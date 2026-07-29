@@ -59,7 +59,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
 
   // Group tasks by week
   const tasksByWeek = new Map<number, Task[]>();
-  for (const t of stats.tasks) {
+  for (const t of (stats.tasks || [])) {
     if (!tasksByWeek.has(t.week)) tasksByWeek.set(t.week, []);
     tasksByWeek.get(t.week)!.push(t);
   }
@@ -194,7 +194,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
   }
 
   // If no project weeks AND no tasks, show the old task manager as fallback
-  if (weeks.length === 0 && stats.tasks.length === 0) {
+  if (weeks.length === 0 && (stats.tasks || []).length === 0) {
     return (
       <Card className="border-border bg-card">
         <CardHeader className="pb-3">
@@ -219,7 +219,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
   // Determine the full list of weeks to show: project weeks + any weeks that have tasks
   const allWeekNumbers = new Set<number>([
     ...weeks.map(w => w.weekNumber),
-    ...stats.tasks.map(t => t.week),
+    ...(stats.tasks || []).map(t => t.week),
   ]);
   const sortedWeeks = Array.from(allWeekNumbers).sort((a, b) => a - b);
 

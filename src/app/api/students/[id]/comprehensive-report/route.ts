@@ -41,7 +41,7 @@ export async function GET(
   }
 
   // Demo AI check (the report uses AI to generate the narrative + recommendations)
-  const isDemoUser = payload.email === "demo@examiner.ai";
+  const isDemoUser = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
   if (await isDemoAIBlocked(isDemoUser)) {
     return NextResponse.json({ error: "AI access for demo accounts is currently disabled." }, { status: 403 });
   }

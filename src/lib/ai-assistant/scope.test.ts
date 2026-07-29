@@ -5,7 +5,7 @@
  * 1. An instructor's scope does NOT include students outside their courses
  * 2. A principal's scope includes all institution students
  * 3. A counselor's scope includes students + teachers but not courses
- * 4. A course_coordinator's scope includes courses but not students
+ * 4. A coordinator's scope includes courses but not students
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { resolveAssistantScope, assertStudentInScope } from "@/lib/ai-assistant/scope";
@@ -33,8 +33,8 @@ describe("AI Assistant — Scope Resolver", () => {
     const counselor = await db.user.findFirst({ where: { role: "counselor" } });
     counselorId = counselor!.id;
 
-    // Find a course_coordinator
-    const coordinator = await db.user.findFirst({ where: { role: "course_coordinator" } });
+    // Find a coordinator
+    const coordinator = await db.user.findFirst({ where: { role: "coordinator" } });
     coordinatorId = coordinator!.id;
 
     institutionId = teacher!.institutionId!;
@@ -101,8 +101,8 @@ describe("AI Assistant — Scope Resolver", () => {
     expect(scope.isInstitutionWide).toBe(false);
   });
 
-  it("course_coordinator scope includes courses/batches but not students", async () => {
-    const scope = await resolveAssistantScope(coordinatorId, "course_coordinator");
+  it("coordinator scope includes courses/batches but not students", async () => {
+    const scope = await resolveAssistantScope(coordinatorId, "coordinator");
 
     expect(scope.courseIds.length).toBeGreaterThan(0);
     expect(scope.studentIds).toEqual([]);
