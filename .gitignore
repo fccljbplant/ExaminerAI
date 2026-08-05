@@ -80,3 +80,4 @@ download/*.png
 download/*.jpg
 download/*.jpeg
 download/*.gif
+.env.local.vercel
