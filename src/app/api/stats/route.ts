@@ -69,15 +69,8 @@ export async function GET(req: NextRequest) {
         include: {
           dailyLogs: { select: { date: true, confidence: true }, orderBy: { date: "desc" }, take: 5 },
           weeklyTests: { where: { status: "completed" }, select: { week: true, score: true, completedAt: true }, orderBy: { week: "asc" } },
-          psychObs: { select: { week: true, confidence: true, cognitiveLoad: true, engagement: true }, orderBy: { week: "asc" } },
           tasks: { select: { status: true, week: true } },
           _count: { select: { interactions: true } },
-          // H16 fix: include wellbeing state + crisis flags so the teacher
-          // Students tab can filter by wellbeing tier + flagged status.
-          // These were missing from the API response, so the filters always
-          // showed an empty list.
-          wellbeingState: { select: { tier: true } },
-          crisisFlags: { where: { status: "open" }, select: { id: true, severity: true }, take: 1 },
         },
       }),
       db.user.count({ where: { role: "pending" } }),
@@ -155,13 +148,6 @@ export async function GET(req: NextRequest) {
         attentionReasons.push(`${blockedTasks} blocked task${blockedTasks === 1 ? "" : "s"}`);
       }
 
-      // 6. High cognitive load in recent psych obs
-      const recentHighLoad = s.psychObs.slice(-3).filter(o => o.cognitiveLoad === "high").length;
-      if (recentHighLoad >= 2) {
-        attentionScore += 15;
-        attentionReasons.push("Sustained high cognitive load");
-      }
-
       return {
         id: s.id,
         email: s.email,
@@ -183,11 +169,6 @@ export async function GET(req: NextRequest) {
         attentionScore,
         attentionReasons,
         needsAttention: attentionScore >= 20,
-        // H16 fix: wellbeing tier + crisis flag for the Students tab filters.
-        // These were missing from the API response, so the "Struggling (Psych)"
-        // and "Flagged" filters always showed an empty list.
-        wellbeingTier: s.wellbeingState?.tier ?? null,
-        hasFlag: s.crisisFlags.length > 0,
       };
     });
 
@@ -318,7 +299,7 @@ export async function GET(req: NextRequest) {
   const user = statsData;
 
   // ---- Self-healing: fix stale weekly test statuses ----
-  // Some tests were completed by the AI (score + psychAnalysis were set) but
+  // Some tests were completed by the AI (score was set) but
   // the `status` field wasn't updated to "completed". Fix them here so the
   // Progress tab charts and Weekly Test Summary always reflect reality.
   const staleTests = user.weeklyTests.filter(

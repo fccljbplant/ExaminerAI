@@ -39,7 +39,6 @@ export async function POST(req: NextRequest) {
     week, pillar, topic, question, projectContext, studentAnswer,
     timeTakenSeconds, answerLength,
     correctness, feedback, level, gaps, followUp,
-    cognitiveLoad, confidence, metacognitive,
   } = body as Record<string, unknown>;
 
   // Input validation — prevent resource exhaustion
@@ -65,9 +64,6 @@ export async function POST(req: NextRequest) {
       level: String(level ?? "Beginner"),
       gaps: JSON.stringify(gaps ?? []),
       followUp: followUp ? String(followUp) : null,
-      cognitiveLoad: String(cognitiveLoad ?? "moderate"),
-      confidence: String(confidence ?? "moderate"),
-      metacognitive: String(metacognitive ?? "moderate"),
     },
   });
   return NextResponse.json({ interaction });

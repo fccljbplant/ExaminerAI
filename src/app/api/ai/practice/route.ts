@@ -8,10 +8,8 @@ import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseMetadata, getCou
 import { getBootcampDayNumber } from "@/lib/course-topics";
 import { getAIPrompts } from "@/lib/course-config";
 import { logger } from "@/lib/logger";
-import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
 import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
-import { trackTestCompletion } from "@/modules/assessment/lib/engagement-tracker";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
@@ -209,27 +207,6 @@ export async function POST(req: NextRequest) {
       // If last exchange, grade the conversation
       if (isLastExchange) {
         const grade = await gradeConversation(conversation, practiceTopic, user.name);
-        // Build answers array from conversation for the pipeline
-        const studentMsgs = conversation.filter(m => m.role === "student");
-        const examinerMsgs = conversation.filter(m => m.role === "examiner");
-        const answersForPipeline = studentMsgs.map((sm, i) => ({
-          question: examinerMsgs[i]?.content || "",
-          answer: sm.content,
-          score: grade.score, // practice gives one overall score
-          topic: practiceTopic,
-        }));
-        // Run pipeline with full data (same shape as daily + weekly)
-        void runAnalysisPipeline({
-          userId: user.id,
-          testId: `practice-${Date.now()}`,
-          testType: "daily_test",
-          week,
-          score: grade.score,
-          topics: [practiceTopic],
-          conversation: conversation.map(m => ({ role: m.role, content: m.content, questionIndex: 0 })),
-          answers: answersForPipeline,
-        }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
-        void trackTestCompletion({ userId: user.id, score: grade.score, testType: "practice" });
 
         // Write a unified ChatSession row (chatbotType="practice") so all
         // chatbot sessions live in one model for cross-chatbot analysis.
@@ -279,17 +256,6 @@ export async function POST(req: NextRequest) {
   if (action === "finish") {
     const conversation: ChatMessage[] = existingConversation || [];
     const grade = await gradeConversation(conversation, practiceTopic, user.name);
-
-    void runAnalysisPipeline({
-      userId: user.id,
-      testId: `practice-${Date.now()}`,
-      testType: "daily_test",
-      week,
-      score: grade.score,
-      topics: [practiceTopic],
-      conversation: conversation.map(m => ({ role: m.role, content: m.content, questionIndex: 0 })),
-    }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
-    void trackTestCompletion({ userId: user.id, score: grade.score, testType: "practice" });
 
     return NextResponse.json({
       conversation,

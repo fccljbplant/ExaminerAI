@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { analyzeMessageForSafeguarding, createSafeguardingFlag } from "@/lib/ai-assistant/safeguarding";
 
 /** GET /api/messages — list messages for current user (with pagination).
  *  Query params: box (all|sent|received), page (default 1), pageSize (default 50, max 200) */
@@ -72,52 +71,6 @@ export async function POST(req: NextRequest) {
     },
     include: { from: { select: { name: true, email: true } }, to: { select: { name: true, email: true } } },
   });
-
-  // Safeguarding: if a staff member sent this message to a student, scan for
-  // aggressive/inappropriate language. This is the teacher→student safeguarding
-  // pathway (Section 5 of the AI Assistant spec).
-  //
-  // CR-1 fix (audit 2026-07-26 FINAL): the previous version created one
-  // StudentAlert per regex match, bypassing createSafeguardingFlag() which
-  // enforces the 2+ corroboration rule (2+ signals within 14 days). Now we
-  // count total recent signals from this teacher and call createSafeguardingFlag()
-  // which only creates a flag when corroboration is met.
-  try {
-    const recipientUser = await db.user.findUnique({
-      where: { id: toId },
-      select: { role: true },
-    });
-    // Only scan staff→student messages (not student→teacher, not student→student)
-    if (recipientUser?.role === "student" && user.role !== "student") {
-      const signals = analyzeMessageForSafeguarding(text, msg.id);
-      if (signals.length > 0) {
-        // Count existing safeguarding signals from this teacher in the last 14 days
-        const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-        const recentSignals = await db.studentAlert.count({
-          where: {
-            userId: user.id,
-            type: "safeguarding",
-            createdAt: { gte: fourteenDaysAgo },
-          },
-        });
-
-        // Total signal count = existing + new signals from this message
-        const totalSignalCount = recentSignals + signals.length;
-        const categories = signals.map(s => s.category);
-        const contextSummary = signals.map(s => `${s.category}: ${s.matchedPatterns.join(", ")}`).join("; ");
-
-        // CR-1 fix: use createSafeguardingFlag() which enforces the 2+ corroboration rule
-        await createSafeguardingFlag({
-          instructorId: user.id,
-          studentId: toId,
-          signalCount: totalSignalCount,
-          messageIds: [msg.id],
-          categories: categories as any,
-          contextSummary,
-        }).catch(() => {}); // best-effort
-      }
-    }
-  } catch { /* safeguarding is best-effort, never blocks the message */ }
 
   return NextResponse.json({ message: msg });
 }

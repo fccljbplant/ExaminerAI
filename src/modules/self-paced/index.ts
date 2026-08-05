@@ -156,31 +156,8 @@ export async function advanceDay(userId: string): Promise<{ week: number; day: n
     data: { currentWeek: newWeek, currentDay: newDay },
   });
 
-  // Persist anti-cheat flags as StudentAlerts so teachers can see them
-  // in the triage queue. Only create if there are flags AND no duplicate
-  // alert exists for the same student in the last 24 hours.
-  if (status.antiCheatFlags.length > 0) {
-    try {
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const existingAlert = await db.studentAlert.findFirst({
-        where: { userId, type: "self_paced_cheat", createdAt: { gte: oneDayAgo } },
-        select: { id: true },
-      });
-      if (!existingAlert) {
-        await db.studentAlert.create({
-          data: {
-            userId,
-            type: "self_paced_cheat",
-            severity: status.daysAheadOfSchedule >= 5 ? "red" : "warning",
-            reason: `Self-paced anti-cheat: ${status.antiCheatFlags.join("; ")}`,
-            metric: "daysAheadOfSchedule",
-            metricValue: String(status.daysAheadOfSchedule),
-            status: "open",
-          },
-        });
-      }
-    } catch { /* best-effort — don't block advancement */ }
-  }
+  // Anti-cheat flags are still computed and surfaced via getSelfPacedStatus
+  // (returned in the API response), but no longer persisted as alerts.
 
   logger.info("Student advanced day (self-paced)", {
     userId, fromWeek: user.currentWeek, fromDay: user.currentDay,

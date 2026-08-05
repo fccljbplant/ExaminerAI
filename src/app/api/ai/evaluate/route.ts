@@ -235,9 +235,6 @@ export async function POST(req: NextRequest) {
       level: evaluation.level,
       gaps: JSON.stringify(evaluation.gaps),
       followUp: evaluation.followUp,
-      cognitiveLoad: evaluation.cognitiveLoad,
-      confidence: evaluation.confidence,
-      metacognitive: evaluation.metacognitive,
       plagiarismScore: evaluation.plagiarismScore,
     },
   });
@@ -280,25 +277,6 @@ export async function POST(req: NextRequest) {
     evaluation.metacognitive,
     evaluation.correctness
   );
-
-  // Write to PsychologyObs — longitudinal behavioral tracking (previously dead table)
-  try {
-    await db.psychologyObs.create({
-      data: {
-        userId: user.id,
-        week: w,
-        confidence: evaluation.confidence,
-        cognitiveLoad: evaluation.cognitiveLoad,
-        metacognitive: evaluation.metacognitive,
-        communication: evaluation.correctness >= 70 ? "clear" : "needs work",
-        engagement: ans.split(/\s+/).length > 20 ? "high" : "moderate",
-        learningCurve: evaluation.correctness >= 70 ? "improving" : "steady",
-        remarks: `${pillar} · ${topic} · ${evaluation.correctness}%`,
-      },
-    });
-  } catch {
-    // Non-blocking — PsychologyObs is supplementary
-  }
 
   return NextResponse.json({ evaluation, interaction, behavioralInsights });
 }

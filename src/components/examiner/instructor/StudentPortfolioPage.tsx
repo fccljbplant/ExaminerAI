@@ -16,14 +16,12 @@ import {
   Users, Clock, CheckCircle2, Loader2, ShieldCheck, TrendingUp, Mail, UserCheck,
   Award, AlertCircle, RefreshCw, FolderOpen, MessageSquare, ClipboardList,
   CalendarCheck, Bug as BugIcon, Send, Inbox, ArrowLeft, HelpCircle,
-  Lock, KeyRound, Edit3, Save, Trash2, Brain, FileText, LayoutDashboard, Activity,
-  GraduationCap, HeartHandshake, Plus, Download, ChevronLeft, ChevronRight,
+  Lock, KeyRound, Edit3, Save, Trash2, FileText, LayoutDashboard, Activity,
+  GraduationCap, Plus, Download, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import type { StudentRow, PortfolioData } from "@/components/examiner/instructor/types";
 import { InstructorCourseProgressView } from "@/components/examiner/instructor/InstructorCourseProgressView";
-import { PsychologicalTab } from "@/components/examiner/instructor/PsychologicalTab";
 import { EducationalTab } from "@/components/examiner/instructor/EducationalTab";
-import { MentorshipTabV2 } from "@/components/examiner/instructor/MentorshipTabV2";
 import { UserAuditTab } from "@/components/examiner/instructor/UserAuditTab";
 import { StudentAITools } from "@/components/examiner/instructor/ai/StudentAITools";
 import { GuardianCreationPanel } from "@/components/examiner/instructor/GuardianCreationPanel";
@@ -46,7 +44,7 @@ export function StudentPortfolioPage({
 }) {
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"project" | "wizard" | "logs" | "assessments" | "report-cards" | "comments" | "psychological" | "educational" | "mentorship" | "audit">("project");
+  const [tab, setTab] = useState<"project" | "wizard" | "logs" | "assessments" | "report-cards" | "comments" | "educational" | "audit">("project");
   const [commentBody, setCommentBody] = useState("");
   const [commentTarget, setCommentTarget] = useState<string>("general");
   const [posting, setPosting] = useState(false);
@@ -450,8 +448,7 @@ export function StudentPortfolioPage({
         </div>
       </div>
 
-      {/* Tabs — prominent, theme-synced, horizontally scrollable on mobile.
-          Phase Three-Tab Redesign: 'trends' replaced with 'psychological' | 'educational' | 'mentorship'. */}
+      {/* Tabs — prominent, theme-synced, horizontally scrollable on mobile. */}
       <ProminentTabs
         tabs={[
           { key: "project", label: "Project", icon: FolderOpen },
@@ -459,9 +456,7 @@ export function StudentPortfolioPage({
           { key: "logs", label: "Check-Ins", icon: CalendarCheck },
           { key: "assessments", label: "Assessments", icon: ClipboardList },
           { key: "report-cards", label: "Report Cards", icon: FileText },
-          { key: "psychological", label: "Psychological", icon: Brain },
           { key: "educational", label: "Educational", icon: GraduationCap },
-          { key: "mentorship", label: "Mentorship", icon: HeartHandshake },
           { key: "comments", label: `Comments (${portfolio.comments.length})`, icon: MessageSquare },
           // Audit tab — visible to principal + administrator (full oversight).
           // Also visible to the user themselves + instructors (limited to their course).
@@ -1285,13 +1280,9 @@ export function StudentPortfolioPage({
           </div>
         )}
 
-        {/* Phase Three-Tab Redesign: 'trends' replaced with three clearly-scoped tabs.
-            - Psychological: how the student thinks and feels (cognition, confidence, emotional state)
-            - Educational: what the student knows and can do (skill mastery, gap specificity)
-            - Mentorship: how the student is being supported, and by whom (touchpoints, presence) */}
-        {tab === "psychological" && <PsychologicalTab portfolio={portfolio} />}
+        {/* Phase Three-Tab Redesign: 'trends' replaced with educational tab.
+            - Educational: what the student knows and can do (skill mastery, gap specificity) */}
         {tab === "educational" && <EducationalTab portfolio={portfolio} />}
-        {tab === "mentorship" && <MentorshipTabV2 portfolio={portfolio} onCompose={onMessage} />}
 
         {tab === "comments" && (
           <div className="space-y-3">

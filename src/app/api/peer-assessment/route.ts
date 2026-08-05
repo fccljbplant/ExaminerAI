@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
-import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
@@ -98,10 +97,6 @@ export async function GET(req: NextRequest) {
 /**
  * POST /api/peer-assessment — submit a peer assessment
  * Body: { groupTaskId, assesseeId, collaboration, contribution, communication, reliability, respect, textFeedback? }
- *
- * After ALL peer assessments for a task are submitted, the pipeline runs
- * for each assessed student — feeding PsychEvidence (attribution/mindset +
- * collaboration signals) and SkillMastery (collaboration skill).
  */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("submitting peer assessments"); if (_demoBlock) return _demoBlock;
@@ -161,67 +156,6 @@ export async function POST(req: NextRequest) {
         textFeedback: textFeedback?.trim() || "",
       },
     });
-
-    // Check if all peer assessments are complete for this task
-    // (i.e., every student who submitted has rated every other student who submitted)
-    const allSubmissions = await db.groupTaskSubmission.findMany({
-      where: { groupTaskId },
-      select: { userId: true },
-    });
-    const allAssessments = await db.peerAssessment.findMany({
-      where: { groupTaskId },
-      select: { assessorId: true, assesseeId: true },
-    });
-
-    const expectedCount = allSubmissions.length * (allSubmissions.length - 1); // n*(n-1) pairs
-    if (allAssessments.length >= expectedCount && expectedCount > 0) {
-      // All assessments complete — run the pipeline for each assessed student.
-      // H7-rel: idempotency note — two students submitting the final
-      // assessments simultaneously can both trigger this branch. The
-      // pipeline is best-effort (void + catch), and upserts are mostly
-      // idempotent, but ConfidenceRating creates new rows each call.
-      logger.info("All peer assessments complete for group task", { groupTaskId, pairs: allAssessments.length });
-
-      for (const submission of allSubmissions) {
-        const received = await db.peerAssessment.findMany({
-          where: { groupTaskId, assesseeId: submission.userId },
-          select: { collaboration: true, contribution: true, communication: true, reliability: true, respect: true, textFeedback: true },
-        });
-
-        if (received.length === 0) continue;
-
-        const avgScore = (key: keyof typeof received[0]) =>
-          received.reduce((a, r) => a + (r[key] as number), 0) / received.length;
-        const overall = (avgScore("collaboration") + avgScore("contribution") + avgScore("communication") + avgScore("reliability") + avgScore("respect")) / 5;
-        // Convert 1-5 to 0-100 for the pipeline
-        const score100 = Math.round((overall / 5) * 100);
-
-        // Get the group task for context
-        const task = await db.groupTask.findUnique({
-          where: { id: groupTaskId },
-          select: { week: true, title: true, courseId: true },
-        });
-
-        // Run the analysis pipeline — peer assessment feeds:
-        // - PsychEvidence (attribution/mindset: how does the student collaborate?)
-        // - SkillMastery (collaboration as a skill)
-        void runAnalysisPipeline({
-          userId: submission.userId,
-          testId: `peer-assessment-${groupTaskId}`,
-          testType: "daily_test", // reuse the pipeline's daily_test path
-          week: task?.week ?? 1,
-          score: score100,
-          topics: [task?.title || "group collaboration"],
-          answers: received.map((r, i) => ({
-            question: `Peer assessment dimension ${i + 1}`,
-            answer: `Collaboration: ${r.collaboration}/5, Contribution: ${r.contribution}/5, Communication: ${r.communication}/5, Reliability: ${r.reliability}/5, Respect: ${r.respect}/5`,
-            score: Math.round(((r.collaboration + r.contribution + r.communication + r.reliability + r.respect) / 25) * 100),
-            confidenceRating: null,
-            topic: "peer collaboration",
-          })),
-        }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
-      }
-    }
 
     return NextResponse.json({ assessment });
   } catch (err) {

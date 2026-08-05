@@ -7,7 +7,6 @@
  *   - AI evaluation + tutoring
  *   - Unified grading with teaching feedback
  *   - Plagiarism scoring
- *   - Analysis pipeline (psych evidence, engagement, etc.)
  *
  * Other modules should import from here, not from the internal lib/
  * or components/ directories. The API routes in src/app/api/ai/ are
@@ -17,7 +16,7 @@
  *   import { gradeTest, TeachingFeedbackCard } from "@/modules/assessment";
  */
 
-// Library — grading, AI, analysis
+// Library — grading, AI
 export { gradeTest, fallbackGrade, parseQuestionExplanations } from "./lib/unified-grader";
 export type { GradeResult, GradeTestInput, TeachingFeedback, QuestionExplanation, TestKind } from "./lib/unified-grader";
 
@@ -28,8 +27,6 @@ export type { AIResult } from "./lib/ai-provider";
 export { getCachedResponse, setCachedResponse, clearTokenCache, getCacheStats, resetCacheStats } from "./lib/token-cache";
 
 export { weeklyTestSystemPrompt, finalAnalysisPrompt, GLOBAL_AI_RULES, connectionTestPrompt, questionGenPrompt } from "./lib/ai-prompts";
-
-export { runAnalysisPipeline } from "./lib/analysis-pipeline";
 
 export { applyPlagiarismDeduction } from "./lib/plagiarism-scoring";
 

@@ -108,7 +108,7 @@ export async function GET(
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  const [tasks, dailyLogs, interactions, comments, weeklyTests, competencies, psychObs, reportCards] = await Promise.all([
+  const [tasks, dailyLogs, interactions, comments, weeklyTests, competencies, reportCards] = await Promise.all([
     db.projectTask.findMany({
       where: { userId: id },
       orderBy: { week: "asc" },
@@ -131,18 +131,11 @@ export async function GET(
     db.weeklyTest.findMany({
       where: { userId: id },
       orderBy: { week: "asc" },
-      // Phase 1.2 v2 + 1.3 v2: include examinerObs (contains the full analysis
-      // breakdown as JSON) + weaknesses so the teacher portfolio view can show
-      // the per-answer plagiarism analysis + engagement feedback + study plan.
-      select: { id: true, week: true, status: true, score: true, completedAt: true, psychAnalysis: true, examinerComment: true, retakeAllowed: true, plagiarismScore: true, examinerObs: true, weaknesses: true, conversation: true },
+      select: { id: true, week: true, status: true, score: true, completedAt: true, retakeAllowed: true, plagiarismScore: true, weaknesses: true, conversation: true },
     }),
     db.competency.findMany({
       where: { userId: id },
       orderBy: { score: "asc" },
-    }),
-    db.psychologyObs.findMany({
-      where: { userId: id },
-      orderBy: { week: "asc" },
     }),
     db.reportCard.findMany({
       where: { userId: id },
@@ -156,15 +149,11 @@ export async function GET(
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const hasProject = totalTasks > 0;
 
-  // Compute behavioral trend summary from PsychologyObs
-  const psychTrend = computePsychTrend(psychObs);
-
   // N2-fix: filter the response based on the grant's dataScope.
   // - full: everything (default for admins + teachers in own batch)
-  // - wellbeing_only: psychObs + psychTrend + dailyLogs only (no project content)
-  // - crisis_only: psychObs + psychTrend only (no project, no daily logs)
-  // - content_only: tasks + reportCards + interactions only (no psychObs, no psychTrend)
-  const canSeePsych = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "wellbeing_only" || portfolioDataScope === "crisis_only";
+  // - wellbeing_only: dailyLogs only (no project content)
+  // - crisis_only: minimal (no project, no daily logs)
+  // - content_only: tasks + reportCards + interactions only
   const canSeeContent = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "content_only";
   const canSeeWellbeing = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "wellbeing_only";
 
@@ -188,87 +177,7 @@ export async function GET(
     comments,
     weeklyTests: canSeeContent ? weeklyTests : [],
     competencies: canSeeContent ? competencies : [],
-    psychObs: canSeePsych ? psychObs : [],
-    psychTrend: canSeePsych ? psychTrend : { weeks: [], trajectory: "insufficient-data" as const, needsAttention: false, attentionReasons: [] },
     reportCards: canSeeContent ? reportCards : [],
     dataScope: portfolioDataScope,  // so the client knows what was filtered
   });
-}
-
-/** Compute a longitudinal behavioral trend from PsychologyObs entries.
- *  Returns per-week signals + an overall trajectory + flags for the
- *  teacher dashboard's "needs attention" logic. */
-function computePsychTrend(obs: {
-  week: number;
-  confidence: string;
-  cognitiveLoad: string;
-  metacognitive: string;
-  communication: string;
-  engagement: string;
-  learningCurve: string;
-  remarks: string;
-}[]): {
-  weeks: { week: number; confidence: string; cognitiveLoad: string; metacognitive: string; engagement: string }[];
-  latest?: { confidence: string; cognitiveLoad: string; metacognitive: string; engagement: string };
-  trajectory: "improving" | "stable" | "declining" | "insufficient-data";
-  needsAttention: boolean;
-  attentionReasons: string[];
-} {
-  if (obs.length === 0) {
-    return {
-      weeks: [],
-      trajectory: "insufficient-data",
-      needsAttention: false,
-      attentionReasons: [],
-    };
-  }
-
-  const weeks = obs.map(o => ({
-    week: o.week,
-    confidence: o.confidence,
-    cognitiveLoad: o.cognitiveLoad,
-    metacognitive: o.metacognitive,
-    engagement: o.engagement,
-  }));
-
-  const latest = weeks[weeks.length - 1];
-
-  // Trajectory: compare first half vs second half confidence + cognitiveLoad
-  const confidenceRank = { low: 1, moderate: 2, high: 3 };
-  const loadRank = { low: 1, moderate: 2, high: 3 };
-  const firstHalf = obs.slice(0, Math.ceil(obs.length / 2));
-  const secondHalf = obs.slice(Math.ceil(obs.length / 2));
-  const avgFirstConf = firstHalf.reduce((a, o) => a + (confidenceRank[o.confidence as keyof typeof confidenceRank] ?? 2), 0) / firstHalf.length;
-  const avgSecondConf = secondHalf.reduce((a, o) => a + (confidenceRank[o.confidence as keyof typeof confidenceRank] ?? 2), 0) / secondHalf.length;
-  const avgFirstLoad = firstHalf.reduce((a, o) => a + (loadRank[o.cognitiveLoad as keyof typeof loadRank] ?? 2), 0) / firstHalf.length;
-  const avgSecondLoad = secondHalf.reduce((a, o) => a + (loadRank[o.cognitiveLoad as keyof typeof loadRank] ?? 2), 0) / secondHalf.length;
-
-  let trajectory: "improving" | "stable" | "declining" | "insufficient-data";
-  if (obs.length < 2) {
-    trajectory = "insufficient-data";
-  } else if (avgSecondConf > avgFirstConf && avgSecondLoad <= avgFirstLoad) {
-    trajectory = "improving";
-  } else if (avgSecondConf < avgFirstConf || avgSecondLoad > avgFirstLoad) {
-    trajectory = "declining";
-  } else {
-    trajectory = "stable";
-  }
-
-  // Attention flags: declining trend, sustained high load, sustained low confidence
-  const attentionReasons: string[] = [];
-  const recentObs = obs.slice(-3); // last 3 entries
-  const recentHighLoad = recentObs.filter(o => o.cognitiveLoad === "high").length;
-  const recentLowConf = recentObs.filter(o => o.confidence === "low").length;
-  if (trajectory === "declining") attentionReasons.push("Declining confidence or rising cognitive load trend");
-  if (recentHighLoad >= 2) attentionReasons.push("Sustained high cognitive load in recent sessions");
-  if (recentLowConf >= 2) attentionReasons.push("Sustained low confidence in recent sessions");
-  if (latest?.engagement === "low") attentionReasons.push("Latest session showed low engagement");
-
-  return {
-    weeks,
-    latest,
-    trajectory,
-    needsAttention: attentionReasons.length > 0,
-    attentionReasons,
-  };
 }

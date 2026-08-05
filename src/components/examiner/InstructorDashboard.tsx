@@ -9,19 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
 import {
-  CalendarDays, Users, HeartHandshake, ClipboardList, BarChart3,
+  CalendarDays, Users, ClipboardList, BarChart3,
   Loader2, RefreshCw, AlertTriangle, Sparkles, Activity,
 } from "lucide-react";
 import type { StudentRow } from "@/components/examiner/instructor/types";
 import { TodayView } from "@/components/examiner/instructor/TodayView";
 import { StudentsRoster } from "@/components/examiner/instructor/StudentsRoster";
-import { MentorshipView } from "@/components/examiner/instructor/MentorshipView";
 import { AssignmentsTab } from "@/components/examiner/instructor/AssignmentsTab";
 import { InsightsView } from "@/components/examiner/instructor/InsightsView";
 import { StudentPortfolioPage } from "@/components/examiner/instructor/StudentPortfolioPage";
 import { AIAssistantBox } from "@/components/examiner/instructor/ai/AIAssistantBox";
 
-export type InstructorTab = "today" | "students" | "mentorship" | "assignments" | "insights";
+export type InstructorTab = "today" | "students" | "assignments" | "insights";
 
 interface TeacherStats {
   totalStudents: number;
@@ -128,7 +127,6 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
   }
 
   const openAlertCount = alerts.filter(a => a.status === "open").length;
-  const crisisCount = alerts.filter(a => a.severity === "red" && a.status === "open").length;
 
   if (loading) {
     return (
@@ -166,7 +164,6 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
   const TABS: Array<{ key: InstructorTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
     { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined, badgeColor: "warning" as const },
     { key: "students", label: "Students", icon: Users },
-    { key: "mentorship", label: "Mentorship", icon: HeartHandshake, badge: crisisCount || undefined, badgeColor: "red" as const },
     { key: "assignments", label: "Assignments", icon: ClipboardList },
     { key: "insights", label: "Insights", icon: BarChart3 },
   ];
@@ -249,14 +246,6 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
         <StudentsRoster
           students={students}
           stats={stats}
-          onStudentClick={handleStudentClick}
-        />
-      )}
-
-      {tab === "mentorship" && (
-        <MentorshipView
-          students={students}
-          alerts={alerts}
           onStudentClick={handleStudentClick}
         />
       )}

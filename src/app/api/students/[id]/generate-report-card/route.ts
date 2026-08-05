@@ -9,7 +9,7 @@ import { logAudit, AuditAction } from "@/lib/audit-log";
 
 /** POST /api/students/[id]/generate-report-card — instructor/admin auto-generates
  *  a report card for a student based on their accumulated data (weekly tests,
- *  practice questions, tasks, check-ins, behavioral observations).
+ *  practice questions, tasks, check-ins).
  *
  *  Body: { week: number } — which week the report card is for.
  *
@@ -18,7 +18,6 @@ import { logAudit, AuditAction } from "@/lib/audit-log";
  *    - Practice question average for the week
  *    - Task completion rate for the week
  *    - Check-in count for the week
- *    - Behavioral signals from PsychologyObs
  *
  *  The generated card is upserted (replaces any existing card for that week).
  */
@@ -50,12 +49,11 @@ export async function POST(
   }
 
   // Fetch all data needed for the report card
-  const [tasks, dailyLogs, interactions, weeklyTests, psychObs, comments] = await Promise.all([
+  const [tasks, dailyLogs, interactions, weeklyTests, comments] = await Promise.all([
     db.projectTask.findMany({ where: { userId: id, week }, select: { status: true, description: true } }),
     db.dailyLog.findMany({ where: { userId: id, week }, select: { date: true, whatDidYouDo: true, confidence: true, anyErrors: true } }),
     db.interaction.findMany({ where: { userId: id, week }, select: { correctness: true, topic: true, pillar: true, feedback: true } }),
-    db.weeklyTest.findUnique({ where: { userId_week: { userId: id, week } }, select: { score: true, status: true, psychAnalysis: true, examinerComment: true } }),
-    db.psychologyObs.findMany({ where: { userId: id, week }, select: { confidence: true, cognitiveLoad: true, metacognitive: true, engagement: true, remarks: true } }),
+    db.weeklyTest.findUnique({ where: { userId_week: { userId: id, week } }, select: { score: true, status: true } }),
     db.comment.findMany({ where: { studentId: id }, select: { body: true, marksOverride: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
 
@@ -102,26 +100,11 @@ export async function POST(
   if (dailyLogs.length >= 3) strengths.push(`Consistent daily check-ins (${dailyLogs.length} this week)`);
   else if (dailyLogs.length === 0) weaknesses.push("No daily check-ins this week — encourage daily logging");
 
-  // Behavioral signals
-  if (psychObs.length > 0) {
-    const highConfidence = psychObs.filter(o => o.confidence === "high").length;
-    const lowConfidence = psychObs.filter(o => o.confidence === "low").length;
-    if (highConfidence > lowConfidence) strengths.push("Growing confidence across sessions");
-    if (lowConfidence > highConfidence) weaknesses.push("Confidence appears low — needs encouragement");
-
-    const highEngagement = psychObs.filter(o => o.engagement === "high").length;
-    if (highEngagement >= psychObs.length / 2) strengths.push("Strong engagement with the material");
-  }
-
   // Default if nothing
   if (strengths.length === 0) strengths.push("Showing up and participating — keep building from here");
   if (weaknesses.length === 0) weaknesses.push("Continue practicing consistently to deepen understanding");
 
   // ---- Build narrative sections ----
-  const workHabits = dailyLogs.length > 0
-    ? `${dailyLogs.length} check-in${dailyLogs.length === 1 ? "" : "s"} this week. Confidence average: ${(dailyLogs.reduce((a, l) => a + l.confidence, 0) / dailyLogs.length).toFixed(1)}/5. ${dailyLogs.filter(l => l.anyErrors).length} check-in(s) mentioned errors.`
-    : "No daily check-ins this week.";
-
   const progress = `Tasks: ${completedTasks}/${totalTasks} (${taskRate}%). Practice: ${practiceAvg !== null ? practiceAvg + "%" : "none"}. Weekly test: ${weeklyTestScore !== null ? weeklyTestScore + "%" : "not taken"}. Overall: ${overallScore}% (${grade}).`;
 
   const nextSteps: string[] = [];
@@ -130,10 +113,6 @@ export async function POST(
   if (weeklyTestScore === null) nextSteps.push(`Take the Week ${week} weekly test`);
   if (taskRate < 100) nextSteps.push("Complete remaining project tasks");
   if (nextSteps.length === 0) nextSteps.push("Continue at this pace — great progress!");
-
-  const examinerObservations = weeklyTests?.examinerComment
-    ? weeklyTests.examinerComment
-    : `${overallScore >= 70 ? "Solid" : "Developing"} understanding of Week ${week} concepts. ${overallScore >= 70 ? "Ready to move forward." : "Needs more practice before advancing."}`;
 
   // ---- Upsert the report card ----
   const card = await db.reportCard.upsert({
@@ -145,20 +124,16 @@ export async function POST(
       score: overallScore,
       strengths: JSON.stringify(strengths),
       weaknesses: JSON.stringify(weaknesses),
-      workHabits,
       progress,
       nextSteps: JSON.stringify(nextSteps),
-      examinerObservations,
     },
     update: {
       grade,
       score: overallScore,
       strengths: JSON.stringify(strengths),
       weaknesses: JSON.stringify(weaknesses),
-      workHabits,
       progress,
       nextSteps: JSON.stringify(nextSteps),
-      examinerObservations,
     },
   });
 

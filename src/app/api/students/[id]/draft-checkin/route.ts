@@ -71,46 +71,20 @@ export async function POST(
     select: { body: true, subject: true, sentAt: true },
   });
 
-  // Pull the student's current concern context
-  const [student, wellbeing, openFlags, latestTouchpoint] = await Promise.all([
-    db.user.findUnique({
-      where: { id },
-      select: { name: true, currentWeek: true },
-    }),
-    db.wellbeingState.findUnique({
-      where: { userId: id },
-      select: { tier: true, reasonsJson: true },
-    }),
-    db.crisisFlag.findFirst({
-      where: { userId: id, status: "open" },
-      select: { category: true, severity: true },
-    }),
-    db.mentorshipTouchpoint.findFirst({
-      where: { userId: id },
-      orderBy: { createdAt: "desc" },
-      select: { note: true, createdAt: true, type: true },
-    }),
-  ]);
+  // Pull the student's basic context
+  const student = await db.user.findUnique({
+    where: { id },
+    select: { name: true, currentWeek: true },
+  });
 
   if (!student) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  // Build concern context
-  let wellbeingReasons: string[] = [];
-  try { wellbeingReasons = JSON.parse(wellbeing?.reasonsJson || "[]"); } catch { wellbeingReasons = []; }
-
+  // Build concern context (academic only — psych/wellbeing data removed)
   const concernContext = {
     studentName: student.name,
     currentWeek: student.currentWeek,
-    wellbeingTier: wellbeing?.tier || "green",
-    wellbeingReasons,
-    openCrisisFlag: openFlags ? { category: openFlags.category, severity: openFlags.severity } : null,
-    lastTouchpoint: latestTouchpoint ? {
-      type: latestTouchpoint.type,
-      note: latestTouchpoint.note,
-      daysAgo: Math.floor((Date.now() - new Date(latestTouchpoint.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
-    } : null,
     teacherReason: reason || null,
   };
 

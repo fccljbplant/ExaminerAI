@@ -9,8 +9,6 @@ import StudentDashboard from "./StudentDashboard";
 import InstructorDashboard from "./InstructorDashboard";
 import AdminDashboard from "./AdminDashboard";
 import GuardianDashboard from "./GuardianDashboard";
-import CounselorDashboard from "./CounselorDashboard";
-import PrincipalDashboard from "./PrincipalDashboard";
 import { AITutor } from "@/modules/ai-tutor";
 import { InstructorAITutor } from "@/modules/ai-assistant";
 import Messages from "./Messages";
@@ -42,10 +40,7 @@ import {
   Sparkles,
   RefreshCw,
   ArrowLeft,
-  HeartHandshake,
   BarChart3,
-  Zap,
-  Building2,
   ChevronDown,
   Check,
 } from "lucide-react";
@@ -67,11 +62,8 @@ export type ViewKey =
   | "settings"
   | "instructor-today"
   | "instructor-students"
-  | "instructor-mentorship"
   | "instructor-assignments"
   | "instructor-insights"
-  | "counselor-dashboard"
-  | "principal-dashboard"
   | "guardian-dashboard"
   | "guardian-progress"
   | "admin-dashboard"
@@ -90,10 +82,9 @@ interface NavItem {
   roles: string[];
 }
 
-const ALL_ROLES_WITH_SHARED = ["student", "instructor", "coordinator", "counselor", "guardian", "admin", "principal", "administrator", "demo"];
-const ADMIN_NAV_ROLES = ["admin", "administrator", "principal"];
-const PRINCIPAL_NAV_ROLES = ["principal"];
-const STAFF_NAV_ROLES = ["instructor", "coordinator", "counselor", "admin", "principal", "administrator", "demo"];
+const ALL_ROLES_WITH_SHARED = ["student", "instructor", "coordinator", "guardian", "admin", "administrator", "demo"];
+const ADMIN_NAV_ROLES = ["admin", "administrator"];
+const STAFF_NAV_ROLES = ["instructor", "coordinator", "admin", "administrator", "demo"];
 
 const ALL_NAV: NavItem[] = [
   { key: "dashboard", label: "Home", icon: LayoutDashboard, roles: ["student"] },
@@ -103,19 +94,14 @@ const ALL_NAV: NavItem[] = [
 
   { key: "instructor-today", label: "Today", icon: LayoutDashboard, roles: ["instructor"] },
   { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor"] },
-  { key: "instructor-mentorship", label: "Mentorship", icon: HeartHandshake, roles: ["instructor"] },
   { key: "instructor-assignments", label: "Assignments", icon: ClipboardList, roles: ["instructor"] },
   { key: "instructor-insights", label: "Insights", icon: BarChart3, roles: ["instructor"] },
-
-  { key: "counselor-dashboard", label: "Command Center", icon: Zap, roles: ["counselor"] },
 
   { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "coordinator"] },
   { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "coordinator"] },
 
   { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
   { key: "guardian-progress", label: "Report Cards", icon: FileText, roles: ["guardian"] },
-
-  { key: "principal-dashboard", label: "Institution", icon: Building2, roles: PRINCIPAL_NAV_ROLES },
 
   { key: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ADMIN_NAV_ROLES },
   { key: "admin-users", label: "Users", icon: Users, roles: ADMIN_NAV_ROLES },
@@ -194,7 +180,7 @@ export default function AppShell() {
   const [adminAs, setAdminAs] = useState<string>("instructor");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const ADMIN_ROLES_RAW = [...ALL_ADMIN_ROLES, "principal"];
+  const ADMIN_ROLES_RAW = [...ALL_ADMIN_ROLES];
   const rawRole = user?.role ?? "student";
   const isAdminEquivalent = ADMIN_ROLES_RAW.includes(rawRole);
   const effectiveRole: string = isAdminEquivalent ? adminAs : rawRole;
@@ -248,14 +234,10 @@ export default function AppShell() {
             setAdminAs("admin");
             setView("admin-dashboard");
           }
-        } else if (role === "principal") {
-          setView("principal-dashboard");
         } else if (role === "instructor") {
           setView("instructor-today");
         } else if (role === "coordinator") {
           setView("course-planner");
-        } else if (role === "counselor") {
-          setView("counselor-dashboard");
         } else if (role === "guardian") {
           setView("guardian-dashboard");
         } else {
@@ -316,7 +298,7 @@ export default function AppShell() {
 
   useEffect(() => {
     if (!user) return;
-    const staffRoles = ["instructor", "coordinator", "counselor", "admin", "principal", "administrator", "demo"];
+    const staffRoles = ["instructor", "coordinator", "admin", "administrator", "demo"];
     if (!staffRoles.includes(user.role) && user.role !== "admin") return;
     const checkAlerts = async () => {
       try {
@@ -387,10 +369,8 @@ export default function AppShell() {
           setView("admin-dashboard");
         }
       }
-      else if (u.role === "principal") setView("principal-dashboard");
       else if (u.role === "instructor") setView("instructor-today");
       else if (u.role === "coordinator") setView("course-planner");
-      else if (u.role === "counselor") setView("counselor-dashboard");
       else if (u.role === "guardian") setView("guardian-dashboard");
       else setView("dashboard");
       // Fetch enrollments for student
@@ -454,15 +434,8 @@ export default function AppShell() {
       case "guardian-progress": return wrap(<GuardianReportCards key={`guardian-progress-${navClickCount}`} />);
       case "instructor-today": return wrap(<InstructorDashboard key={`today-${navClickCount}`} initialTab="today" courseId={activeCourseId} />);
       case "instructor-students": return wrap(<InstructorDashboard key={`students-${navClickCount}`} initialTab="students" courseId={activeCourseId} />);
-      case "instructor-mentorship": return wrap(<InstructorDashboard key={`mentorship-${navClickCount}`} initialTab="mentorship" courseId={activeCourseId} />);
       case "instructor-assignments": return wrap(<InstructorDashboard key={`assignments-${navClickCount}`} initialTab="assignments" courseId={activeCourseId} />);
       case "instructor-insights": return wrap(<InstructorDashboard key={`insights-${navClickCount}`} initialTab="insights" courseId={activeCourseId} />);
-      case "counselor-dashboard": return wrap(<CounselorDashboard key={`counselor-${navClickCount}`} onNavigateToMessages={() => navigateTo("messages")} onStudentClick={(studentId, studentName) => {
-        if (typeof window !== "undefined") {
-          window.open(`/?view=instructor-students&studentId=${encodeURIComponent(studentId)}`, "_blank");
-        }
-      }} />);
-      case "principal-dashboard": return wrap(<PrincipalDashboard key={`principal-${navClickCount}`} />);
       case "ai-tutor": return wrap(<AITutor />);
       case "instructor-ai-tutor": return wrap(<InstructorAITutor />);
       case "course-outline": return wrap(<CourseOutline />);
@@ -624,9 +597,7 @@ export default function AppShell() {
                 { role: "student", label: "Student", view: "dashboard" },
                 { role: "instructor", label: "Instructor", view: "instructor-today" },
                 { role: "coordinator", label: "Coordinator", view: "course-planner" },
-                { role: "counselor", label: "Counselor", view: "counselor-dashboard" },
                 { role: "guardian", label: "Guardian", view: "guardian-dashboard" },
-                { role: "principal", label: "Principal", view: "principal-dashboard" },
                 { role: "admin", label: "Admin", view: "admin-dashboard" },
               ] as const).map((r) => (
                 <button

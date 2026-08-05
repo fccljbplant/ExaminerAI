@@ -9,8 +9,6 @@ import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseDurationWeeks, g
 import { getBootcampDayNumber } from "@/lib/course-topics";
 import { getAIPrompts } from "@/lib/course-config";
 import { logger } from "@/lib/logger";
-import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
-import { trackTestCompletion } from "@/modules/assessment/lib/engagement-tracker";
 import { applyPlagiarismDeduction } from "@/lib/plagiarism-scoring";
 import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
@@ -348,17 +346,6 @@ DAILY TEST — SHORTER FORMAT:
         },
       });
 
-      // Run the analysis pipeline — build answers array from conversation
-      const answersForPipeline = buildAnswersFromConversation(conversation, plagiarismResult.finalScore, test.topic);
-      void runAnalysisPipeline({
-        userId: user.id, testId: test.id, testType: "daily_test",
-        week: test.week, score: plagiarismResult.finalScore, topics: [test.topic],
-        conversation: conversation.map(m => ({ role: m.role, content: m.content, questionIndex: m.questionIndex })),
-        answers: answersForPipeline,
-        plagiarismScore,
-      }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
-      void trackTestCompletion({ userId: user.id, score: plagiarismResult.finalScore, testType: "daily_test" });
-
       // Write a unified ChatSession row (chatbotType="daily_test") so all
       // chatbot sessions live in one model for cross-chatbot analysis.
       // Non-blocking — best-effort.
@@ -437,16 +424,6 @@ DAILY TEST — SHORTER FORMAT:
       },
     });
 
-    const answersForPipeline = buildAnswersFromConversation(conversation, plagiarismResult.finalScore, test.topic);
-    void runAnalysisPipeline({
-      userId: user.id, testId: test.id, testType: "daily_test",
-      week: test.week, score: plagiarismResult.finalScore, topics: [test.topic],
-      conversation: conversation.map(m => ({ role: m.role, content: m.content, questionIndex: m.questionIndex })),
-      answers: answersForPipeline,
-      plagiarismScore,
-    }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
-    void trackTestCompletion({ userId: user.id, score: plagiarismResult.finalScore, testType: "daily_test" });
-
     return NextResponse.json({
       conversation, isComplete: true,
       score: plagiarismResult.finalScore,
@@ -515,53 +492,6 @@ export async function GET(req: NextRequest) {
   });
 
   return NextResponse.json({ tests });
-}
-
-/** Build an answers array from the Socratic conversation for the analysis pipeline.
- *
- *  The pipeline's writeConfidenceRatings + writeSkillMastery expect an `answers`
- *  array with per-question { question, answer, score, confidenceRating, topic }.
- *  This function extracts student answers from the conversation, distributes the
- *  overall test score across questions (rough even split), and passes through
- *  any confidence ratings the student provided before each answer.
- */
-function buildAnswersFromConversation(
-  conversation: ChatMessage[],
-  overallScore: number,
-  topic: string,
-): Array<{ question: string; answer: string; score: number; confidenceRating: "low" | "medium" | "high" | null; topic: string }> {
-  // Extract student messages — each one is an "answer"
-  const studentMessages = conversation.filter(m => m.role === "student");
-  if (studentMessages.length === 0) return [];
-
-  // Find the preceding examiner message for each student message (the "question")
-  const answers: Array<{ question: string; answer: string; score: number; confidenceRating: "low" | "medium" | "high" | null; topic: string }> = [];
-
-  for (let i = 0; i < studentMessages.length; i++) {
-    const studentMsg = studentMessages[i];
-    // Find the last examiner message before this student message
-    const studentIdx = conversation.indexOf(studentMsg);
-    let questionText = "(question not found)";
-    for (let j = studentIdx - 1; j >= 0; j--) {
-      if (conversation[j].role === "examiner") {
-        questionText = conversation[j].content;
-        break;
-      }
-    }
-
-    answers.push({
-      question: questionText,
-      answer: studentMsg.content,
-      // Distribute the overall score roughly evenly across answers.
-      // This is imperfect — a real per-question grade would be better —
-      // but it's better than nothing for SkillMastery aggregation.
-      score: Math.round(overallScore),
-      confidenceRating: studentMsg.confidenceRating || null,
-      topic,
-    });
-  }
-
-  return answers;
 }
 
 /** Estimate plagiarism from conversation patterns.

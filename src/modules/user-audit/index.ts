@@ -7,7 +7,7 @@
  *
  * Exports:
  *   - getUserAuditTrail(userId, options): full audit trail (actions BY + ABOUT)
- *   - getUserActivitySummary(userId): activity counts (mentorship, alerts, tests, AI)
+ *   - getUserActivitySummary(userId): activity counts (tests, tasks, AI)
  *   - getUserAIUsage(userId): AI usage breakdown (last 30 days by feature)
  *   - AuditDirection type: "by" | "about" | "all"
  *   - AuditTrailEntry interface
@@ -47,9 +47,6 @@ export interface AuditTrailResult {
 }
 
 export interface ActivitySummary {
-  mentorshipTouchpoints: number;
-  alerts: number;
-  crisisFlags: number;
   completedTests: number;
   completedTasks: number;
   totalTasks: number;
@@ -152,17 +149,11 @@ export async function getUserAuditTrail(
 /** Fetch a user's activity summary (counts of key entities). */
 export async function getUserActivitySummary(userId: string): Promise<ActivitySummary> {
   const [
-    mentorshipTouchpoints,
-    alerts,
-    crisisFlags,
     completedTests,
     tasks,
     projectReports,
     comments,
   ] = await Promise.all([
-    db.mentorshipTouchpoint.count({ where: { userId } }).catch(() => 0),
-    db.studentAlert.count({ where: { userId } }).catch(() => 0),
-    db.crisisFlag.count({ where: { userId } }).catch(() => 0),
     db.weeklyTest.count({ where: { userId, status: "completed" } }).catch(() => 0),
     db.projectTask.findMany({
       where: { userId },
@@ -173,9 +164,6 @@ export async function getUserActivitySummary(userId: string): Promise<ActivitySu
   ]);
 
   return {
-    mentorshipTouchpoints,
-    alerts,
-    crisisFlags,
     completedTests,
     completedTasks: tasks.filter(t => t.status === "completed").length,
     totalTasks: tasks.length,

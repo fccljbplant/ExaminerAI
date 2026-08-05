@@ -7,12 +7,10 @@ import { weeklyTestSystemPrompt, finalAnalysisPrompt } from "@/lib/ai-prompts";
 import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { getTestConfig, getAIPrompts } from "@/lib/course-config";
 import { logger } from "@/lib/logger";
-import { runAnalysisPipeline } from "@/lib/analysis-pipeline";
 import { applyPlagiarismDeduction } from "@/lib/plagiarism-scoring";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { fallbackGrade, parseQuestionExplanations, type TeachingFeedback, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
-import { trackTestCompletion } from "@/modules/assessment/lib/engagement-tracker";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
@@ -231,7 +229,6 @@ export async function POST(req: NextRequest) {
         weaknesses,
         test: {
           id: test.id, week: test.week, status: test.status, score: test.score,
-          psychAnalysis: test.psychAnalysis, examinerComment: test.examinerComment,
           plagiarismScore: test.plagiarismScore,
           completedAt: test.completedAt, retakeAllowed: test.retakeAllowed,
         },
@@ -253,8 +250,6 @@ export async function POST(req: NextRequest) {
         currentQuestion: 0,
         replyCount: 0,
         score: null,
-        psychAnalysis: null,
-        examinerComment: null,
         retakeAllowed: false,
       },
     });
@@ -270,7 +265,7 @@ export async function POST(req: NextRequest) {
 
   // ============================================================
   // Phase D.3: Final-result analysis is already cached on the
-  // WeeklyTest row (psychAnalysis, examinerComment, score, examinerObs).
+  // WeeklyTest row (score, plagiarismScore, weaknesses).
   // This guard prevents accidental regeneration if a "reply" or
   // "finish" action arrives for an already-completed test (race
   // condition: double-click, retried POST, stale client state).
@@ -281,21 +276,19 @@ export async function POST(req: NextRequest) {
     try { cachedConversation = JSON.parse(test.conversation || "[]"); } catch { cachedConversation = []; }
     let cachedWeaknesses: string[] = [];
     try { cachedWeaknesses = JSON.parse(test.weaknesses || "[]"); } catch { cachedWeaknesses = []; }
-    let cachedExaminerObs: { plagiarismBreakdown?: unknown; engagementFeedback?: unknown; plagiarismNotes?: string } | null = null;
-    try { cachedExaminerObs = test.examinerObs ? JSON.parse(test.examinerObs) : null; } catch { cachedExaminerObs = null; }
 
     return NextResponse.json({
       conversation: cachedConversation,
       isComplete: true,
-      psychAnalysis: test.psychAnalysis ?? "",
-      examinerComment: test.examinerComment ?? "",
+      psychAnalysis: "",
+      examinerComment: "",
       strengthSignal: "", // not stored separately pre-SDT — omitted from cache reads
       score: test.score ?? 0,
       plagiarismScore: test.plagiarismScore ?? 0,
-      plagiarismNotes: cachedExaminerObs?.plagiarismNotes ?? "",
+      plagiarismNotes: "",
       weaknesses: cachedWeaknesses,
-      plagiarismBreakdown: cachedExaminerObs?.plagiarismBreakdown ?? null,
-      engagementFeedback: cachedExaminerObs?.engagementFeedback ?? null,
+      plagiarismBreakdown: null,
+      engagementFeedback: null,
       cached: true,
       message: "Test already completed — showing stored analysis.",
     });
@@ -522,24 +515,11 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
               status: "completed",
               completedAt: new Date(),
               conversation: JSON.stringify(conversation),
-              psychAnalysis: analysis.psychAnalysis,
-              examinerComment: analysis.examinerComment,
               score: plagiarismResult.finalScore, // DEDUCTED score
               plagiarismScore: analysis.plagiarismScore,
               // Phase 1.6: Store the weaknesses array so the student dashboard
               // can show a study plan ("review these topics before retaking").
               weaknesses: JSON.stringify(analysis.weaknesses || []),
-              // Phase 1.2 v2 + 1.3 v2: Store the full analysis breakdown
-              // (plagiarism per-answer + engagement feedback) as JSON in the
-              // existing examinerObs column. The instructor portfolio view parses
-              // this to show the full analysis. The student UI shows a
-              // constructive subset.
-              examinerObs: JSON.stringify({
-                plagiarismBreakdown: analysis.plagiarismBreakdown,
-                engagementFeedback: analysis.engagementFeedback,
-                plagiarismNotes: analysis.plagiarismNotes,
-                feedback: analysis.feedback,
-              }),
               currentQuestion: questionsAnswered,
             },
           });
@@ -553,31 +533,6 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
             });
           }
         });
-        // Phase Three-Tab Redesign: run the analysis pipeline AFTER the test
-        // is marked complete. Best-effort — never blocks the response.
-        // Uses the FINAL (post-deduction) score for psychological analysis.
-        // Build answers array from conversation for the pipeline (same as daily test)
-        const weeklyAnswersForPipeline = conversation
-          .filter(m => m.role === "student")
-          .map((sm, i) => {
-            const studentIdx = conversation.indexOf(sm);
-            let questionText = "";
-            for (let j = studentIdx - 1; j >= 0; j--) {
-              if (conversation[j].role === "examiner") { questionText = conversation[j].content; break; }
-            }
-            return { question: questionText, answer: sm.content, score: plagiarismResult.finalScore, topic: topics[Math.min(sm.questionIndex ?? 0, topics.length - 1)] || topics[0] || `Week ${week}` };
-          });
-        void runAnalysisPipeline({
-          userId: user.id, testId: test.id, testType: "weekly_test",
-          week, score: plagiarismResult.finalScore, topics,
-          conversation: conversation.map(m => ({ role: m.role, content: m.content, questionIndex: m.questionIndex })),
-          answers: weeklyAnswersForPipeline,
-          psychAnalysis: analysis.psychAnalysis,
-          engagementFeedback: analysis.engagementFeedback,
-          plagiarismScore: analysis.plagiarismScore,
-        }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
-        void trackTestCompletion({ userId: user.id, score: plagiarismResult.finalScore, testType: "weekly_test" });
-
         // Write a unified ChatSession row (chatbotType="weekly_test") so all
         // chatbot sessions live in one model for cross-chatbot analysis.
         // Non-blocking — best-effort.
@@ -592,7 +547,6 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
             totalQuestions: TOTAL_QUESTIONS,
             currentQuestion: questionsAnswered,
             conversation: JSON.stringify(conversation),
-            psychAnalysis: analysis.psychAnalysis,
             completedAt: new Date(),
           },
         }).catch(() => {/* Non-blocking — best-effort logging */});
@@ -670,19 +624,10 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
           status: "completed",
           completedAt: new Date(),
           conversation: JSON.stringify(conversation),
-          psychAnalysis: analysis.psychAnalysis,
-          examinerComment: analysis.examinerComment,
           score: plagiarismResult.finalScore, // DEDUCTED score
           plagiarismScore: analysis.plagiarismScore,
           // Phase 1.6: Store weaknesses for the study plan
           weaknesses: JSON.stringify(analysis.weaknesses || []),
-          // Phase 1.2 v2 + 1.3 v2: Store the full analysis breakdown
-          examinerObs: JSON.stringify({
-            plagiarismBreakdown: analysis.plagiarismBreakdown,
-            engagementFeedback: analysis.engagementFeedback,
-            plagiarismNotes: analysis.plagiarismNotes,
-            feedback: analysis.feedback,
-          }),
           currentQuestion: test.currentQuestion + 1,
         },
       });
@@ -696,26 +641,6 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
     });
     // Phase Three-Tab Redesign: run analysis pipeline after early-finish too
     // Uses the FINAL (post-deduction) score.
-    const finishAnswersForPipeline = conversation
-      .filter(m => m.role === "student")
-      .map((sm) => {
-        const studentIdx = conversation.indexOf(sm);
-        let questionText = "";
-        for (let j = studentIdx - 1; j >= 0; j--) {
-          if (conversation[j].role === "examiner") { questionText = conversation[j].content; break; }
-        }
-        return { question: questionText, answer: sm.content, score: plagiarismResult.finalScore, topic: topics[Math.min(sm.questionIndex ?? 0, topics.length - 1)] || topics[0] || `Week ${week}` };
-      });
-    void runAnalysisPipeline({
-      userId: user.id, testId: test.id, testType: "weekly_test",
-      week, score: plagiarismResult.finalScore, topics,
-      conversation: conversation.map(m => ({ role: m.role, content: m.content, questionIndex: m.questionIndex })),
-      answers: finishAnswersForPipeline,
-      psychAnalysis: analysis.psychAnalysis,
-      engagementFeedback: analysis.engagementFeedback,
-      plagiarismScore: analysis.plagiarismScore,
-    }).catch(err => logger.warn("Analysis pipeline failed", { error: err instanceof Error ? err.message : String(err) }));
-    void trackTestCompletion({ userId: user.id, score: plagiarismResult.finalScore, testType: "weekly_test" });
     return NextResponse.json({
       conversation, isComplete: true, ...analysis,
       score: plagiarismResult.finalScore, // DEDUCTED score
@@ -1052,44 +977,15 @@ export async function GET(req: NextRequest) {
     let weaknesses: string[] = [];
     try { weaknesses = JSON.parse(test.weaknesses || "[]"); } catch { weaknesses = []; }
 
-    // Phase 1.2 v2 + 1.3 v2: Parse the full analysis breakdown stored in
-    // examinerObs. Returns the plagiarism breakdown + engagement feedback.
-    // The student UI shows a constructive subset; the instructor portfolio view
-    // shows the full detail.
-    let analysisBreakdown: {
-      plagiarismBreakdown: {
-        voiceConsistency: string;
-        perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
-        strongestSignal: string;
-        instructorNote: string;
-      } | null;
-      engagementFeedback: {
-        subjectChanges: number;
-        avoidanceCount: number;
-        distractedQuestions: number[];
-        overallEngagement: string;
-        studentFeedback: string;
-        instructorNote: string;
-      } | null;
-      plagiarismNotes: string;
-      feedback: TeachingFeedback | null;
-    } | null = null;
-    try {
-      if (test.examinerObs) {
-        const parsed = JSON.parse(test.examinerObs);
-        if (parsed && typeof parsed === "object") {
-          analysisBreakdown = parsed;
-        }
-      }
-    } catch {
-      analysisBreakdown = null;
-    }
+    // analysisBreakdown (plagiarism per-answer + engagement feedback) was
+    // previously stored on WeeklyTest.examinerObs. That column has been
+    // dropped, so the GET endpoint can no longer surface the full breakdown
+    // — students/instructors only see the aggregate score + weaknesses now.
 
     return NextResponse.json({
       test: {
         id: test.id, week: test.week, status: test.status, score: test.score,
         currentQuestion: test.currentQuestion, replyCount: test.replyCount,
-        psychAnalysis: test.psychAnalysis, examinerComment: test.examinerComment,
         completedAt: test.completedAt, retakeAllowed: test.retakeAllowed,
         plagiarismScore: test.plagiarismScore,
         // Phase 1.6: weaknesses array for the study plan
@@ -1098,11 +994,11 @@ export async function GET(req: NextRequest) {
         // a kind "here's what to focus on" message instead of the raw score.
         // The instructor-facing portfolio view always shows the real score.
         needsStudyPlan: (test.score ?? 100) < 60,
-        // Phase 1.2 v2 + 1.3 v2: full analysis breakdown
-        plagiarismNotes: analysisBreakdown?.plagiarismNotes ?? "No signs of plagiarism detected.",
-        plagiarismBreakdown: analysisBreakdown?.plagiarismBreakdown ?? null,
-        engagementFeedback: analysisBreakdown?.engagementFeedback ?? null,
-        feedback: analysisBreakdown?.feedback ?? null,
+        // Phase 1.2 v2 + 1.3 v2: full analysis breakdown no longer persisted
+        plagiarismNotes: "No signs of plagiarism detected.",
+        plagiarismBreakdown: null,
+        engagementFeedback: null,
+        feedback: null,
       },
       conversation: savedConversation,
       currentQuestion: test.currentQuestion,

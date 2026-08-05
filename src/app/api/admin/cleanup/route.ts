@@ -9,7 +9,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *
  *  The admin account is a developer super-account for testing. Over time,
  *  it accumulates test data (weekly tests, practice questions, tasks,
- *  check-ins, competencies, bugs, psychObs, report cards) from testing
+ *  check-ins, competencies, bugs, report cards) from testing
  *  the app as different roles. This endpoint clears ALL of that junk data
  *  so the admin account is clean.
  *
@@ -34,7 +34,6 @@ export async function POST() {
     const deletes = [
       () => db.comment.deleteMany({ where: { studentId: adminId } }),
       () => db.comment.deleteMany({ where: { instructorId: adminId, interactionId: { not: null } } }),
-      () => db.psychologyObs.deleteMany({ where: { userId: adminId } }),
       () => db.reportCard.deleteMany({ where: { userId: adminId } }),
       () => db.competency.deleteMany({ where: { userId: adminId } }),
       () => db.weeklyTest.deleteMany({ where: { userId: adminId } }),
@@ -45,11 +44,7 @@ export async function POST() {
       () => db.projectReport.deleteMany({ where: { userId: adminId } }),
       () => db.curriculumProgress.deleteMany({ where: { userId: adminId } }),
       () => db.certificate.deleteMany({ where: { userId: adminId } }),
-      () => db.confidenceRating.deleteMany({ where: { userId: adminId } }),
-      () => db.wellbeingState.deleteMany({ where: { userId: adminId } }),
-      () => db.crisisFlag.deleteMany({ where: { userId: adminId } }),
       () => db.skillMastery.deleteMany({ where: { userId: adminId } }),
-      () => db.mentorshipTouchpoint.deleteMany({ where: { userId: adminId } }),
       () => db.dailyTest.deleteMany({ where: { userId: adminId } }),
       () => db.peerAssessment.deleteMany({ where: { OR: [{ assesseeId: adminId }, { assessorId: adminId }] } }),
       () => db.accessGrant.deleteMany({ where: { OR: [{ granteeUserId: adminId }, { scopeId: adminId }] } }),
@@ -69,14 +64,13 @@ export async function POST() {
 
     const deleted = {
       comments: (counts[0] ?? 0) + (counts[1] ?? 0),
-      psychObs: counts[2] ?? 0,
-      reportCards: counts[3] ?? 0,
-      competencies: counts[4] ?? 0,
-      weeklyTests: counts[5] ?? 0,
-      interactions: counts[6] ?? 0,
-      tasks: counts[7] ?? 0,
-      dailyLogs: counts[8] ?? 0,
-      additional: counts.slice(9).reduce((a, b) => a + b, 0),
+      reportCards: counts[2] ?? 0,
+      competencies: counts[3] ?? 0,
+      weeklyTests: counts[4] ?? 0,
+      interactions: counts[5] ?? 0,
+      tasks: counts[6] ?? 0,
+      dailyLogs: counts[7] ?? 0,
+      additional: counts.slice(8).reduce((a, b) => a + b, 0),
     };
 
     const totalDeleted = Object.values(deleted).reduce((a, b) => a + b, 0);

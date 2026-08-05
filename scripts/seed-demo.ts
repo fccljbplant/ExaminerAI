@@ -7,11 +7,8 @@
  *  - 1 Demo account (auto-login target)
  *  - 2 Courses with full outlines (CS-301 DSA, MGT-205 Management)
  *  - CourseEnrollments (replacing batches)
- *  - StudentAlerts (with responses), MentorshipTouchpoints (GROW-style)
- *  - PsychologyObs (psychological observations)
  *  - Messages between roles
  *  - AuditLogs
- *  - WellbeingState entries
  *  - Interactions (activity feed)
  *
  * Run: bun run scripts/seed-demo.ts
@@ -142,15 +139,8 @@ async function main() {
   await db.interaction.deleteMany()
   await db.auditLog.deleteMany()
   await db.message.deleteMany()
-  await db.mentorshipTouchpoint.deleteMany()
-  await db.studentAlert.deleteMany()
-  await db.psychologyObs.deleteMany()
-  await db.psychEvidence.deleteMany()
-  await db.wellbeingState.deleteMany()
-  await db.crisisFlag.deleteMany()
   await db.certificate.deleteMany()
   await db.reportCard.deleteMany()
-  await db.growthReport.deleteMany()
   await db.competency.deleteMany()
   await db.weeklyTest.deleteMany()
   await db.dailyLog.deleteMany()
@@ -163,11 +153,7 @@ async function main() {
   await db.groupTask.deleteMany()
   await db.groupTaskSubmission.deleteMany()
   await db.curriculumProgress.deleteMany()
-  await db.confidenceRating.deleteMany()
   await db.peerAssessment.deleteMany()
-  await db.caseReview.deleteMany()
-  await db.caseReviewResponse.deleteMany()
-  await db.studentHealthSummary.deleteMany()
   await db.chatSession.deleteMany()
   await db.accessGrant.deleteMany()
   await db.passwordResetRequest.deleteMany()
@@ -391,146 +377,6 @@ async function main() {
     })
   }
 
-  // ---------- student alerts (with responses) ----------
-  console.log('🚨 Creating student alerts...')
-  const alertTemplates = [
-    { type: 'educational', severity: 'red', reason: 'Student has missed 3 consecutive daily check-ins. Engagement streak broken.', metric: 'engagementStreak', metricValue: '0' },
-    { type: 'psychological', severity: 'red', reason: 'Mood score dropped to 2/10 in latest reflection. Possible distress.', metric: 'moodScore', metricValue: '2' },
-    { type: 'educational', severity: 'amber', reason: 'Average score below 50% for 2 consecutive weeks.', metric: 'avgScore', metricValue: '47' },
-    { type: 'psychological', severity: 'amber', reason: 'Reduced communication in AI Tutor sessions — possible disengagement.', metric: 'engagementStreak', metricValue: '3' },
-    { type: 'educational', severity: 'amber', reason: 'Project tasks overdue by 5 days. At risk of falling behind.', metric: 'avgScore', metricValue: '65' },
-    { type: 'mentorship', severity: 'red', reason: 'Student disclosed personal stress during mentor session. Refer to counsellor.', metric: 'moodScore', metricValue: '1' },
-    { type: 'educational', severity: 'amber', reason: 'Quiz scores trending down across last 3 quizzes.', metric: 'avgScore', metricValue: '58' },
-    { type: 'psychological', severity: 'amber', reason: 'Increased frustration markers in practice sessions.', metric: 'engagementStreak', metricValue: '5' }
-  ]
-  const alertResponses = [
-    { status: 'resolved', note: 'Scheduled 1:1 with student. Issue resolved, will monitor weekly.' },
-    { status: 'acknowledged', note: 'Referred to counsellor. Appointment booked for Friday.' },
-    { status: 'resolved', note: 'Spoke with student. Family situation addressed, focus returning.' },
-    { status: 'acknowledged', note: 'Mentor check-in scheduled for tomorrow.' },
-    { status: 'resolved', note: 'Parent contacted. Will attend remedial sessions.' },
-    { status: 'acknowledged', note: 'Counsellor intake scheduled. Mentor following up weekly.' },
-    null, null, null
-  ]
-  let alertCount = 0
-  for (let i = 0; i < 25; i++) {
-    const student = students[i]
-    const tpl = alertTemplates[i % alertTemplates.length]
-    const resp = pick(alertResponses, i)
-    const fromUser = i % 2 === 0 ? teacher1 : teacher2
-    await db.studentAlert.create({
-      data: {
-        userId: student.id,
-        type: tpl.type,
-        severity: tpl.severity,
-        reason: tpl.reason + ` [${student.name}]`,
-        metric: tpl.metric,
-        metricValue: tpl.metricValue,
-        status: resp?.status || 'open',
-        resolvedAt: resp ? new Date(Date.now() - rand(1, 14) * 86400000) : null,
-        resolvedBy: resp ? counsellor.id : null,
-        resolutionNote: resp?.note || null,
-        createdAt: new Date(Date.now() - rand(1, 30) * 86400000)
-      }
-    })
-    alertCount++
-  }
-  console.log(`   ✓ ${alertCount} alerts created`)
-
-  // ---------- mentorship touchpoints (GROW-style) ----------
-  console.log('🌱 Creating mentorship touchpoints...')
-  const touchpointTypes = ['checkin', 'alert_response', 'praise_note', 'scheduled_followup']
-  const touchpointNotes = [
-    'GROW session — Goal: improve DSA problem-solving. Reality: struggles with graph algorithms. Options: re-watch lectures + 5 LeetCode problems/week. Will: commit to daily practice.',
-    'GROW session — Goal: manage exam anxiety. Reality: reports sleeping <5 hrs during exams. Options: box breathing, sleep hygiene. Will: try before next quiz.',
-    'Routine check-in. Student engaged and motivated. No concerns.',
-    'Praise note — student submitted exceptional project. Recommended for honours track.',
-    'Follow-up on previous alert. Student mood improved, engagement up.',
-    'GROW session — Goal: career path clarity (SE vs DS). Reality: confused, no research done. Options: 2 informational interviews. Will: reach out via LinkedIn this week.',
-    'GROW session — Goal: build confidence in group settings. Reality: avoids asking questions. Options: graduated exposure, 1 question/class. Will: try tomorrow.',
-    'Check-in after failed quiz. Student emotional but resilient. Will reframe failure as data.',
-    'Scheduled follow-up completed. Student showing steady progress on action items.',
-    'Crisis intervention — student disclosed family pressure. Referred to counsellor immediately.'
-  ]
-  let touchpointCount = 0
-  for (let i = 0; i < 15; i++) {
-    const student = students[i]
-    const sessionsToCreate = (i % 3) + 1
-    for (let j = 0; j < sessionsToCreate; j++) {
-      await db.mentorshipTouchpoint.create({
-        data: {
-          userId: student.id,
-          actorUserId: mentor.id,
-          type: pick(touchpointTypes, i + j),
-          note: pick(touchpointNotes, i * 3 + j),
-          outcome: pick(['resolved', 'ongoing', 'escalated', null], i + j),
-          followUpDate: Math.random() < 0.4 ? new Date(Date.now() + rand(3, 14) * 86400000) : null,
-          createdAt: new Date(Date.now() - rand(1, 60) * 86400000)
-        }
-      })
-      touchpointCount++
-    }
-  }
-  console.log(`   ✓ ${touchpointCount} mentorship touchpoints created`)
-
-  // ---------- psychology observations ----------
-  console.log('🧠 Creating psychology observations...')
-  const commStyles = ['Clear and concise', 'Thoughtful, takes time to respond', 'Enthusiastic, asks many questions', 'Quiet, needs prompting', 'Articulate, uses examples well']
-  const learningCurves = ['Steady progress', 'Fast initial uptake, plateaued', 'Slow start, accelerating', 'Consistent high performer', 'Inconsistent — peaks and valleys']
-  const engagementLevels = ['Highly engaged', 'Engaged', 'Moderately engaged', 'Variable engagement', 'Recently disengaged']
-  const cognitiveLoads = ['light', 'moderate', 'heavy']
-  const remarks = [
-    'Student shows strong analytical thinking. Encourage deeper exploration of edge cases.',
-    'Excellent participation this week. Recommend peer-mentoring role.',
-    'Showing signs of stress. Monitor closely and offer support.',
-    'Solid grasp of fundamentals. Ready for advanced topics.',
-    'Needs more practice with recursion. Suggested additional problems.',
-    'Top of cohort. Consider honours track.',
-    'Improving steadily. Keep current pace.',
-    'Struggling with abstract concepts. Use more concrete examples.'
-  ]
-  for (let i = 0; i < 20; i++) {
-    const student = students[i]
-    await db.psychologyObs.create({
-      data: {
-        userId: student.id,
-        week: rand(1, 12),
-        confidence: pick(['low', 'moderate', 'high'], i),
-        communication: pick(commStyles, i),
-        learningCurve: pick(learningCurves, i),
-        engagement: pick(engagementLevels, i),
-        cognitiveLoad: pick(cognitiveLoads, i),
-        metacognitive: pick(['low', 'moderate', 'high'], i),
-        remarks: pick(remarks, i),
-        date: new Date(Date.now() - rand(1, 30) * 86400000)
-      }
-    })
-  }
-
-  // ---------- wellbeing states ----------
-  console.log('💚 Creating wellbeing states...')
-  const tiers = ['green', 'amber', 'red']
-  const reasonPool = [
-    'Mood score dropped',
-    'Engagement streak broken',
-    'Missed 2+ check-ins',
-    'Average score below 50%',
-    'Reduced AI Tutor interaction',
-    'Project tasks overdue'
-  ]
-  for (let i = 0; i < 30; i++) {
-    const student = students[i]
-    const tier = pick(tiers, i % 3)
-    await db.wellbeingState.create({
-      data: {
-        userId: student.id,
-        tier,
-        reasonsJson: tier === 'green' ? '[]' : JSON.stringify([pick(reasonPool, i), pick(reasonPool, i + 1)]),
-        detectedAt: new Date(Date.now() - rand(1, 14) * 86400000)
-      }
-    }).catch(() => {})
-  }
-
   // ---------- messages ----------
   console.log('💬 Creating messages...')
   const messagePairs = [
@@ -576,9 +422,6 @@ async function main() {
     { userId: admin.id, action: 'user_created', targetType: 'user', targetId: teacher1.id, meta: 'Created teacher account' },
     { userId: admin.id, action: 'course_created', targetType: 'course', targetId: course1.id, meta: 'Created CS-301' },
     { userId: teacher1.id, action: 'grade_changed', targetType: 'assessment', targetId: 'multiple', meta: 'Graded Quiz 1 for 30 students' },
-    { userId: teacher1.id, action: 'alert_created', targetType: 'student_alert', targetId: 'multiple', meta: 'Raised 18 alerts to counsellor' },
-    { userId: counsellor.id, action: 'alert_resolved', targetType: 'student_alert', targetId: 'multiple', meta: 'Responded to 12 alerts' },
-    { userId: mentor.id, action: 'mentorship_session', targetType: 'mentorship_touchpoint', targetId: 'multiple', meta: 'Conducted 24 mentor sessions' },
     { userId: principal.id, action: 'report_viewed', targetType: 'report_card', targetId: 'multiple', meta: 'Viewed Q3 performance review' },
     { userId: principal.id, action: 'course_approved', targetType: 'course', targetId: course2.id, meta: 'Approved additional MGT-205 tutorial slot' },
     { userId: admin.id, action: 'institution_updated', targetType: 'institution', targetId: institution.id, meta: 'Updated institution contact info' }
@@ -621,244 +464,16 @@ async function main() {
         correctness: rand(0, 100),
         feedback: pick(['Good attempt', 'Needs work', 'Excellent', 'Review fundamentals'], i),
         level: pick(['Beginner', 'Intermediate', 'Advanced'], i),
-        cognitiveLoad: pick(['light', 'moderate', 'heavy'], i),
-        confidence: pick(['low', 'moderate', 'high'], i),
-        metacognitive: pick(['low', 'moderate', 'high'], i),
         date: new Date(Date.now() - rand(0, 14) * 86400000)
       }
     }).catch(() => {})
   }
 
-  // ---------- growth reports ----------
-  console.log('📈 Creating growth reports...')
-  // GrowthReport in original schema is per-student (userId @unique), so create one for principal
-  await db.growthReport.create({
-    data: {
-      userId: principal.id,
-      courseId: course1.id,
-      strengths: 'Strong analytical thinking; consistent engagement; excellent participation in graph algorithms unit. Demonstrates leadership in group work.',
-      growthAreas: 'Time management during exams; needs more practice with dynamic programming; tendency to over-engineer solutions.',
-      dimensionSnapshot: JSON.stringify({
-        correctness: 78,
-        engagement: 92,
-        confidence: 65,
-        metacognitive: 70,
-        cognitiveLoad: 'moderate',
-        communication: 'high',
-        consistency: 85
-      }),
-      behavioralNotes: 'GROW session notes: Goal — maintain A grade; Reality — strong but exam anxiety; Options — timed practice; Will — daily 30min timed sets.',
-      generatedAt: new Date(Date.now() - 7 * 86400000)
-    }
-  }).catch(() => {})
-
   // ============================================================
-  // COMPREHENSIVE PSYCHOLOGY + EDUCATIONAL + MENTOR DATA
-  // Fills all the tabs that were empty so the demo shows full functionality
+  // COMPREHENSIVE EDUCATIONAL DATA
+  // Fills the academic tabs so the demo shows full functionality
   // ============================================================
-  console.log('\n📊 Filling comprehensive psychology + educational + mentor data...')
-
-  // ---------- 1. PsychologyObs for ALL 50 students (multiple weeks each) ----------
-  console.log('   🧠 Psychology observations for all students...')
-  const psychDimensions = {
-    confidence: ['low', 'moderate', 'high'],
-    communication: [
-      'Clear and concise; articulates concepts well',
-      'Thoughtful, takes time to respond thoroughly',
-      'Enthusiastic, asks many probing questions',
-      'Quiet, needs prompting to share thoughts',
-      'Articulate, uses examples from real projects',
-      'Tends to over-explain; can be more concise',
-      'Strong written communication, weaker verbal',
-      'Excellent at simplifying complex topics for peers'
-    ],
-    learningCurve: [
-      'Steady consistent progress week over week',
-      'Fast initial uptake, plateaued in week 4',
-      'Slow start, accelerating as fundamentals click',
-      'Consistent high performer across all topics',
-      'Inconsistent — peaks and valleys by topic',
-      'Struggles with abstract concepts, excels with concrete examples',
-      'Linear progression; benefits from structured practice',
-      'Rapid learner; needs enrichment to stay engaged'
-    ],
-    engagement: [
-      'Highly engaged;主动 participates in every session',
-      'Engaged and responsive; asks clarifying questions',
-      'Moderately engaged; participates when prompted',
-      'Variable engagement; strong on familiar topics',
-      'Recently disengaged; possible burnout',
-      'Deeply engaged in projects, less in quizzes',
-      'Engaged in theory, resists practical exercises',
-      'Highly engaged; mentors peers voluntarily'
-    ],
-    cognitiveLoad: ['light', 'moderate', 'heavy'],
-    metacognitive: ['low', 'moderate', 'high'],
-    remarks: [
-      'Student shows strong analytical thinking. Encourage deeper exploration of edge cases.',
-      'Excellent participation this week. Recommend peer-mentoring role.',
-      'Showing signs of stress. Monitor closely and offer support.',
-      'Solid grasp of fundamentals. Ready for advanced topics.',
-      'Needs more practice with recursion. Suggested additional problems.',
-      'Top of cohort. Consider honours track.',
-      'Improving steadily. Keep current pace.',
-      'Struggling with abstract concepts. Use more concrete examples.',
-      'Demonstrates growth mindset. Frames failures as learning.',
-      'Perfectionism emerging; may need encouragement to ship imperfect work.',
-      'Strong collaboration skills; leads group effectively.',
-      'Requires structured accountability; thrives with check-ins.',
-      'Excellent at debugging; methodical and patient.',
-      'Tends to rush; encourage slower, more deliberate practice.',
-      'Creative problem-solver; thinks outside the box.',
-      'Solid technical foundation; communication needs work.',
-      'Highly self-motivated; completes work ahead of schedule.',
-      'Anxiety around assessments; recommend box breathing technique.',
-      'Excellent peer reviewer; gives constructive feedback.',
-      'Inconsistent attendance affecting progress; follow up.'
-    ]
-  }
-
-  for (let i = 0; i < students.length; i++) {
-    const s = students[i]
-    // Create 4 weeks of psychology observations per student
-    const weeksCount = (i % 3) + 3 // 3-5 weeks each
-    for (let w = 0; w < weeksCount; w++) {
-      await db.psychologyObs.create({
-        data: {
-          userId: s.id,
-          week: w + 1,
-          confidence: pick(psychDimensions.confidence, i + w),
-          communication: pick(psychDimensions.communication, i + w),
-          learningCurve: pick(psychDimensions.learningCurve, i + w),
-          engagement: pick(psychDimensions.engagement, i + w),
-          cognitiveLoad: pick(psychDimensions.cognitiveLoad, i + w),
-          metacognitive: pick(psychDimensions.metacognitive, i + w),
-          remarks: pick(psychDimensions.remarks, i + w),
-          date: new Date(Date.now() - (weeksCount - w) * 7 * 86400000)
-        }
-      })
-    }
-  }
-
-  // ---------- 2. PsychEvidence — 7-dimension evidence for all students ----------
-  // VALUES MUST MATCH what PsychologicalTab.tsx expects (see valueMeanings in DIMENSIONS)
-  console.log('   🔬 Psychology evidence (7 dimensions)...')
-  const evidenceDimensions = [
-    {
-      dim: 'calibration',
-      values: ['overconfident', 'well-calibrated', 'underconfident'],
-      texts: [
-        'Student rated themselves 9/10 but scored 4/10 on the daily test. They may not realize they don\'t understand the material.',
-        'Self-assessment closely matches actual performance. Healthy self-awareness.',
-        'Student rated themselves 3/10 but scored 8/10. They know more than they think — build confidence with specific praise.'
-      ]
-    },
-    {
-      dim: 'explanatory_depth',
-      values: ['detailed_reasoning', 'moderate_depth', 'surface_answers'],
-      texts: [
-        'Step-by-step explanations (over 300 characters). Strong signal — the student is connecting concepts, not just reciting.',
-        'Adequate explanations (50-300 characters). The student can explain but doesn\'t go deep without prompting.',
-        'Very short answers (under 50 characters). May indicate rushing, anxiety, or gaps. Probe with "Can you explain why?"'
-      ]
-    },
-    {
-      dim: 'gaming_pattern',
-      values: ['authentic_voice', 'voice_inconsistency', 'not_analyzed'],
-      texts: [
-        'Consistent voice across all answers. No signs of AI assistance. The student\'s work is their own.',
-        'Significant voice differences detected. Some answers may be AI-generated. Ask the student to explain verbally in a 1-on-1.',
-        'This test type doesn\'t run plagiarism analysis (practice tests). Weekly tests run the full analysis.'
-      ]
-    },
-    {
-      dim: 'attribution',
-      values: ['growth_mindset', 'fixed_mindset', 'avoidant', 'neutral'],
-      texts: [
-        'Student uses effort-based language ("I can learn this", "I need more practice"). Responds well to challenges.',
-        'Student uses ability-based language ("I\'m not good at this", "I can\'t do it"). May avoid challenges. Praise effort, not ability.',
-        'Multiple "I don\'t know" or "skip" answers. May indicate anxiety, lack of preparation, or fear of being wrong.',
-        'No strong mindset signals in this test. The student engaged normally.'
-      ]
-    },
-    {
-      dim: 'cognitive_load',
-      values: ['high_intrinsic', 'moderate_load', 'low_germane'],
-      texts: [
-        'Score below 40%. The material is too difficult right now. Break into smaller pieces, provide prerequisites, slow down.',
-        'Score 40-89%. The student is engaging with the material but hasn\'t mastered it yet. This is the sweet spot for learning.',
-        'Score 90%+. Material mastered, low cognitive load. The student is ready for advanced or applied work.'
-      ]
-    },
-    {
-      dim: 'srl_phase',
-      values: ['forethought', 'performance', 'reflection', 'performance_with_fatigue'],
-      texts: [
-        'Student is still building familiarity. Short, tentative answers. Provide clear instructions and examples before asking questions.',
-        'Student is actively working at a steady pace. Moderate-length answers. Let them work, provide feedback on process not just answers.',
-        'Student is deeply processing, connecting concepts. Long, detailed answers. Ask them to teach the concept to someone else.',
-        'Student started strong but shortened over time. May be tired or losing focus. Consider shorter sessions, check workload.'
-      ]
-    },
-    {
-      dim: 'fluency',
-      values: ['fluent', 'developing', 'fragmented', 'improving', 'declining'],
-      texts: [
-        'Score 75%+. Strong, stable recall. The student can retrieve and apply knowledge consistently.',
-        'Score 50-74%. Recall is improving but not yet stable. The student needs more practice to consolidate.',
-        'Score below 50%. Recall is inconsistent — the student may know pieces but can\'t connect them. Go back to fundamentals.',
-        'Later answers scored higher than earlier ones. Retrieval practice is working — the student is warming up. Good sign.',
-        'Later answers scored lower than earlier ones. May indicate fatigue, time pressure, or weak memory. Shorter sessions, check rest.'
-      ]
-    }
-  ]
-
-  for (let i = 0; i < students.length; i++) {
-    const s = students[i]
-    // 4-7 evidence entries per student, across different dimensions
-    const evidenceCount = (i % 4) + 4
-    for (let e = 0; e < evidenceCount; e++) {
-      const dim = evidenceDimensions[(i + e) % evidenceDimensions.length]
-      const valueIdx = (i + e) % dim.values.length
-      const text = dim.texts[valueIdx]
-      await db.psychEvidence.create({
-        data: {
-          userId: s.id,
-          dimension: dim.dim,
-          value: dim.values[valueIdx],
-          evidenceText: text,
-          sourceType: pick(['weekly_test', 'interaction', 'check_in', 'manual'], e),
-          week: rand(1, 12),
-          createdAt: new Date(Date.now() - rand(1, 30) * 86400000)
-        }
-      }).catch(() => {})
-    }
-  }
-
-  // ---------- 2b. ConfidenceRatings for calibration scatter chart ----------
-  console.log('   📊 Confidence ratings (for calibration scatter chart)...')
-  for (let i = 0; i < students.length; i++) {
-    const s = students[i]
-    // 3-6 confidence ratings per student (self-rated vs actual score)
-    const ratingCount = (i % 4) + 3
-    for (let r = 0; r < ratingCount; r++) {
-      const selfRating = rand(1, 5)
-      // Create calibration patterns: some overconfident, some underconfident, some well-calibrated
-      const offset = (i + r) % 3 === 0 ? -20 : (i + r) % 3 === 1 ? 20 : 0
-      const actualScore = Math.max(0, Math.min(100, selfRating * 20 + offset + rand(-10, 10)))
-      await db.confidenceRating.create({
-        data: {
-          userId: s.id,
-          source: pick(['self', 'weekly_test', 'ai_observed'], r),
-          rating: selfRating,
-          actualScore,
-          context: pick(['Week 3 daily test — arrays', 'Week 5 practice — trees', 'Week 7 weekly test — graphs', 'Week 9 daily test — DP', 'Week 11 practice — sorting'], r),
-          week: rand(1, 12),
-          createdAt: new Date(Date.now() - rand(1, 30) * 86400000)
-        }
-      }).catch(() => {})
-    }
-  }
+  console.log('\n📊 Filling comprehensive educational data...')
 
   // ---------- 2c. AccessGrants for demo account → all students ----------
   // CRITICAL: demo account has 'demo' role which needs an AccessGrant
@@ -896,101 +511,7 @@ async function main() {
     }
   }
 
-  // ---------- 3. WellbeingState for ALL students ----------
-  console.log('   💚 Wellbeing states for all students...')
-  const tierReasons = {
-    green: [[]],
-    amber: [
-      ['Mood score dropped below 5/10', 'Engagement streak broken'],
-      ['Average score below 60% for 2 weeks', 'Reduced AI Tutor interaction'],
-      ['Project tasks overdue by 3 days'],
-      ['Increased frustration markers in practice sessions']
-    ],
-    red: [
-      ['Mood score 2/10 or below', 'Missed 3+ consecutive check-ins'],
-      ['Disclosed personal stress', 'Engagement critically low'],
-      ['Crisis flag raised by AI detection', 'Failed 2 consecutive weekly tests']
-    ]
-  }
-  for (let i = 0; i < students.length; i++) {
-    const s = students[i]
-    // Distribute: ~60% green, ~30% amber, ~10% red
-    const tier = i % 10 < 6 ? 'green' : (i % 10 < 9 ? 'amber' : 'red')
-    const reasons = tier === 'green' ? [] : pick(tierReasons[tier as 'amber' | 'red'], i)
-    await db.wellbeingState.create({
-      data: {
-        userId: s.id,
-        tier,
-        reasonsJson: JSON.stringify(reasons),
-        detectedAt: new Date(Date.now() - rand(1, 14) * 86400000)
-      }
-    }).catch(() => {})
-  }
-
-  // ---------- 4. CrisisFlags for at-risk students ----------
-  console.log('   🚨 Crisis flags for at-risk students...')
-  const crisisCategories = ['self_harm_risk', 'severe_distress', 'disclosure', 'academic_crisis', 'behavioural_concern']
-  const crisisSeverities = ['amber', 'red']
-  for (let i = 0; i < 8; i++) {
-    const s = students[i * 5] // every 5th student, first 8
-    const status = i < 3 ? 'open' : (i < 6 ? 'acknowledged' : 'resolved')
-    await db.crisisFlag.create({
-      data: {
-        userId: s.id,
-        flaggedBy: i % 2 === 0 ? counsellor.id : 'ai_detection',
-        category: pick(crisisCategories, i),
-        severity: pick(crisisSeverities, i),
-        status,
-        resolvedAt: status === 'resolved' ? new Date(Date.now() - rand(1, 14) * 86400000) : null,
-        createdAt: new Date(Date.now() - rand(3, 21) * 86400000)
-      }
-    }).catch(() => {})
-  }
-
-  // ---------- 5. MentorshipTouchpoints — comprehensive GROW sessions ----------
-  console.log('   🌱 Mentorship touchpoints (GROW sessions)...')
-  const growSessions = [
-    { type: 'checkin', note: 'GROW Session — Goal: Improve DSA problem-solving speed. Reality: Currently averaging 25 min per problem, peer avg is 15 min. Options: Daily timed practice (3 problems), review optimal approaches before coding, study editorial after attempt. Will: Commit to 3 timed problems daily for next 2 weeks, share repo link each Friday.', outcome: 'ongoing', followUp: 14 },
-    { type: 'checkin', note: 'GROW Session — Goal: Manage exam anxiety. Reality: Reports sleeping <5 hrs during exam week, heart racing during quizzes. Options: Box breathing technique (4-4-4-4), sleep hygiene plan (no screens 1hr before bed), positive self-talk reframing. Will: Try box breathing before next quiz, report back in 1 week.', outcome: 'resolved', followUp: 7 },
-    { type: 'alert_response', note: 'GROW Session — Goal: Reconnect with coursework after absence. Reality: Missed 5 days due to family emergency, feels overwhelmed and behind. Options: Prioritise core topics, skip enrichment, schedule catch-up session with teacher. Will: Complete missed daily logs by Friday, attend office hours Wednesday.', outcome: 'ongoing', followUp: 7 },
-    { type: 'checkin', note: 'GROW Session — Goal: Build confidence in group settings. Reality: Avoids asking questions in class despite knowing answers, self-rated confidence 4/10. Options: Graduated exposure — ask 1 question per class for 2 weeks, practice in mentor sessions first. Will: Ask 1 question in tomorrow\'s class, mentor follows up Friday.', outcome: 'ongoing', followUp: 7 },
-    { type: 'praise_note', note: 'Praise Note — Student submitted exceptional capstone project. Code quality exceeded expectations, README was publication-ready, and they proactively helped 3 peers debug their projects. Recommended for honours track and potential TA position next cohort.', outcome: 'resolved', followUp: null },
-    { type: 'scheduled_followup', note: 'Follow-up Session — Reviewed action items from last GROW session. Student completed 18 of 21 planned practice problems. Confidence up from 4/10 to 6/10. Box breathing technique reported as helpful — used before Quiz 3 and felt calmer. New goal: maintain streak and add 1 harder problem per day.', outcome: 'resolved', followUp: 14 },
-    { type: 'checkin', note: 'GROW Session — Goal: Career path clarity (Software Engineering vs Data Science). Reality: Confused, has not researched either path, fears making wrong choice. Options: 2 informational interviews (1 SE + 1 DS practitioner), review job postings, identify which daily tasks energise them. Will: Reach out to 2 alumni via LinkedIn this week, document findings.', outcome: 'ongoing', followUp: 14 },
-    { type: 'escalation', note: 'Escalation — Student disclosed significant family pressure regarding grades. Reports parents threatening to withdraw from program if GPA drops below 3.5. Visible distress during session. Escalated to counsellor for ongoing support. Mentor will continue academic coaching; counsellor handles family dynamics.', outcome: 'escalated', followUp: 3 },
-    { type: 'checkin', note: 'GROW Session — Goal: Improve time management during exams. Reality: Runs out of time, spends 40% on first 30% of paper. Options: Marks-per-minute allocation, flag-and-move strategy, timed practice at home. Will: Do 1 timed paper this week using new strategy, review timing log Friday.', outcome: 'ongoing', followUp: 7 },
-    { type: 'checkin', note: 'GROW Session — Goal: Build a portfolio project using course concepts. Reality: GitHub empty beyond assignments, no personal project. Options: Build a CLI visualiser for Dijkstra (combines course concepts + portfolio building), commit weekly. Will: Scaffold project this weekend, commit by Sunday, share link Monday.', outcome: 'ongoing', followUp: 14 },
-    { type: 'alert_response', note: 'Alert Response — Followed up on wellbeing alert. Student mood improved from 2/10 to 6/10 over 2 weeks. Engaged with counsellor, started exercise routine, sleep back to 7+ hours. Academic engagement returning. Will continue weekly check-ins for 4 more weeks then reassess.', outcome: 'resolved', followUp: 7 },
-    { type: 'praise_note', note: 'Praise Note — Student demonstrated exceptional growth mindset after failing Quiz 3. Instead of giving up, they requested a 1:1 to review mistakes, completed 5 additional practice problems, and helped explain the concepts to a struggling peer. This is exactly the metacognitive behaviour we want to cultivate.', outcome: 'resolved', followUp: null },
-    { type: 'checkin', note: 'GROW Session — Goal: Address burnout. Reality: Reports exhaustion, no hobbies, studies 12+ hours daily. Concerned about sustainability. Options: Forced-rest blocks (2 hrs/day offline), reconnect with one hobby (cricket), track energy levels daily. Will: Schedule 30-min walk daily, stop studying by 10pm, track in journal.', outcome: 'ongoing', followUp: 7 },
-    { type: 'scheduled_followup', note: 'Follow-up Session — Burnout intervention review. Student implemented walk daily (missed 2 days), sleep improved to 7.5 hrs avg. Energy levels self-rated 6/10 (up from 3/10). Mood stable. Will maintain protocol for 4 more weeks, then consider scaling back rest blocks.', outcome: 'ongoing', followUp: 14 },
-    { type: 'checkin', note: 'GROW Session — Goal: Strengthen understanding of graph algorithms. Reality: Confident on arrays/trees but lost on graphs, has not practised Dijkstra. Options: Re-watch Lectures 9-10, solve 5 graph problems on LeetCode, submit to mentor by Friday. Will: Watch both lectures this weekend, solve 5 problems by Monday.', outcome: 'resolved', followUp: 7 }
-  ]
-
-  let touchpointCount2 = 0
-  for (let i = 0; i < students.length; i++) {
-    const s = students[i]
-    // 2-4 touchpoints per student
-    const sessionsToCreate = (i % 3) + 2
-    for (let j = 0; j < sessionsToCreate; j++) {
-      const session = pick(growSessions, i * 2 + j)
-      await db.mentorshipTouchpoint.create({
-        data: {
-          userId: s.id,
-          actorUserId: mentor.id,
-          type: session.type,
-          note: session.note,
-          outcome: session.outcome,
-          followUpDate: session.followUp ? new Date(Date.now() + session.followUp * 86400000) : null,
-          createdAt: new Date(Date.now() - rand(1, 60) * 86400000)
-        }
-      })
-      touchpointCount2++
-    }
-  }
-  console.log(`      ✓ ${touchpointCount2} mentorship touchpoints`)
-
-  // ---------- 6. Competencies for all students ----------
+  // ---------- 3. Competencies for all students ----------
   console.log('   🎯 Competencies for all students...')
   const topics = ['arrays', 'linked-lists', 'stacks-queues', 'hash-tables', 'trees', 'graphs', 'sorting', 'dynamic-programming', 'greedy', 'motivation', 'leadership', 'case-study', 'planning', 'org-structure', 'communication']
   for (let i = 0; i < students.length; i++) {
@@ -1068,13 +589,6 @@ async function main() {
           score,
           strengths: JSON.stringify(pick([['clear reasoning', 'good code structure'], ['thorough explanations', 'edge case awareness'], ['fast problem-solving', 'clean syntax'], ['deep understanding', 'excellent debugging']], w)),
           weaknesses: JSON.stringify(pick([['time management', 'overthinks solutions'], ['skips edge cases', 'rarely tests null input'], ['rushed answers', 'misses optimisation'], ['assumes input validity', 'no error handling']], w)),
-          examinerObs: pick([
-            'Strong analytical thinking; would benefit from timed practice.',
-            'Excellent conceptual grasp; needs work on implementation speed.',
-            'Solid effort; recommend reviewing week 4 materials on graph traversal.',
-            'Shows growth from last week; consistency improving.',
-            'Top performer; consider enrichment problems.'
-          ], w),
           nextAction: pick([
             'Practice 3 more problems on this topic',
             'Review lecture notes before next test',
@@ -1158,66 +672,12 @@ async function main() {
           score,
           strengths: JSON.stringify(pick([['analytical thinking', 'consistent effort', 'excellent participation'], ['clean code', 'thorough testing', 'good documentation'], ['creative problem-solving', 'helps peers', 'asks insightful questions'], ['strong fundamentals', 'steady progress', 'reliable attendance']], w)),
           weaknesses: JSON.stringify(pick([['time management under pressure', 'rushes through edge cases'], ['over-engineers solutions', 'needs simpler approach'], ['inconsistent practice', 'gaps in fundamentals'], ['avoidance of difficult topics', 'procrastination']], w)),
-          workHabits: pick(['Excellent — completes all assignments on time, proactive in seeking help', 'Good — generally punctual, occasionally needs prompting', 'Developing — needs structure and accountability check-ins', 'Improving — was inconsistent, now showing steady progress'], w),
           progress: pick(['Strong upward trajectory; ready for advanced topics', 'Steady progress; on track to meet course outcomes', 'Plateaued; needs new challenge or different approach', 'Recovered from early struggles; momentum building'], w),
           nextSteps: JSON.stringify(pick([['Continue daily practice', 'Start capstone planning', 'Mentor a junior peer'], ['Focus on weak areas', 'Schedule office hours weekly', 'Try extension problems'], ['Maintain current pace', 'Explore enrichment material', 'Build portfolio project'], ['Review fundamentals', 'Complete missed assignments', 'Attend all office hours']], w)),
-          examinerObservations: pick([
-            'Student demonstrates strong analytical thinking and consistent engagement. Recommend for honours track.',
-            'Solid grasp of fundamentals. Would benefit from more timed practice to improve exam performance.',
-            'Showing excellent growth mindset. Frames failures as learning opportunities.',
-            'Top performer. Consider giving enrichment problems to maintain engagement.',
-            'Improving steadily. Needs to build confidence in group settings.'
-          ], w),
           date: new Date(Date.now() - w * 7 * 86400000)
         }
       }).catch(() => {})
     }
-  }
-
-  // ---------- 10. CaseReviews for counsellor ----------
-  console.log('   📋 Case reviews...')
-  const casePatterns = [
-    'Student showing strong improvement after 3 weeks of GROW sessions. Pattern: initial resistance to reflection → gradual ownership → proactive goal-setting. Recommended approach: shift from weekly to bi-weekly check-ins.',
-    'Pattern of anxiety spikes before assessments. Intervention: box breathing + reframing techniques. Outcome: anxiety self-rating dropped from 8/10 to 4/10 over 2 weeks. Pattern matches 3 other students this cohort.',
-    'Burnout pattern detected: declining engagement + reduced sleep + increased irritability. Intervention: forced rest blocks + hobby reconnection. Pattern resolved in 4 weeks for this student.',
-    'Family pressure pattern: parent expectations creating performance anxiety. Counsellor involved for family dynamics. Pattern: student oscillates between over-performance and crash. Ongoing.',
-    'Perfectionism pattern: student spends excessive time on minor details, ships late. GROW sessions focused on "done is better than perfect". Slow progress; pattern is deeply ingrained.',
-    'Social anxiety pattern: avoids group work, declines to present. Graduated exposure intervention (1 question per class). Pattern improving; student presented 3 slides to mentor last session.',
-    'Disengagement pattern after failing quiz. Intervention: growth mindset reframing + easier wins to rebuild confidence. Pattern reversed within 1 week. Student now mentoring peers.',
-    'Crisis pattern: disclosed self-harm ideation. Immediate escalation to clinical psychologist. Pattern: academic stress + family conflict + social isolation. Multi-pronged intervention ongoing.',
-    'Recovery pattern: student returned from 2-week absence (family emergency). Phased reintegration plan. Pattern: initial overwhelm → catch-up plan → steady re-engagement. Resolved.',
-    'Imposter syndrome pattern: high performer who dismisses achievements. Pattern: attributes success to luck, fears being "found out". GROW sessions on internal attribution. Ongoing.',
-    'Procrastination pattern: consistently starts assignments late. Time-blocking intervention + accountability partner. Pattern improving; on-time submission rate up from 40% to 80%.',
-    'Over-commitment pattern: student takes on too many extracurriculars, coursework suffers. Values clarification exercise. Pattern: student dropped 2 commitments, grades recovering.'
-  ]
-  for (let i = 0; i < 12; i++) {
-    await db.caseReview.create({
-      data: {
-        postedBy: counsellor.id,
-        patternSummary: pick(casePatterns, i),
-        status: i < 4 ? 'open' : 'closed',
-        createdAt: new Date(Date.now() - rand(1, 30) * 86400000)
-      }
-    }).catch(() => {})
-  }
-
-  // ---------- 11. StudentHealthSummary for each student ----------
-  console.log('   🏥 Student health summaries (per student)...')
-  for (let i = 0; i < students.length; i++) {
-    const s = students[i]
-    await db.studentHealthSummary.create({
-      data: {
-        userId: s.id,
-        tutorMessagesThisWeek: rand(0, 15),
-        tutorMessagesLastWeek: rand(5, 20),
-        tutorMessagesTotal: rand(20, 100),
-        testsThisWeek: rand(1, 4),
-        testsLastWeek: rand(1, 4),
-        avgScoreThisWeek: rand(50, 95),
-        avgScoreLastWeek: rand(50, 90),
-        avgScoreOverall: rand(55, 90)
-      } as any
-    }).catch(() => {})
   }
 
   console.log('   ✅ Comprehensive data fill complete!')
@@ -1228,21 +688,13 @@ async function main() {
   console.log(`   - Courses: 2 with professional outlines`)
    console.log(`   - CourseEnrollments: ${50 + 2} (50 students + 2 instructors)`)
   console.log(`   - Course weeks: ${csWeeks.length + mgtWeeks.length}`)
-  console.log(`   - Student alerts: ${alertCount} (with counsellor responses)`)
-  console.log(`   - Mentorship touchpoints: ${touchpointCount + touchpointCount2} (GROW sessions)`)
-  console.log(`   - Psychology observations: 200+ (7-dimension profiles, all students)`)
-  console.log(`   - Psychology evidence: 200+ entries across 7 dimensions`)
-  console.log(`   - Wellbeing states: 50 (green/amber/red tiers)`)
-  console.log(`   - Crisis flags: 8 (open/acknowledged/resolved)`)
   console.log(`   - Competencies: 250+ (4-6 per student)`)
   console.log(`   - Weekly tests: 150+ (2-5 per student with scores)`)
   console.log(`   - Daily logs: 250+ (3-7 per student with reflections)`)
   console.log(`   - Report cards: 100+ (1-3 per student)`)
-  console.log(`   - Case reviews: 12`)
   console.log(`   - Messages: ${messagePairs.length}`)
   console.log(`   - Audit logs: ${auditActions.length}`)
   console.log(`   - Interactions: 200`)
-  console.log(`   - Student health summary: 1`)
   console.log(`\n🔑 DEMO LOGIN: demo@examiner.ai / demo123`)
   console.log(`   (or admin@examiner.ai / helloworld)`)
   console.log(`   Demo account has 'demo' role — read-only, no writes.`)

@@ -13,7 +13,6 @@ import { AI_TOKEN_QUOTA, hasAI, isAIConfigured, getRateLimitStats } from "@/lib/
  *  - quota: { limit, used, left, percentUsed, resetInHours }
  *  - featureBreakdown: tokens per feature (question-gen / evaluate / weekly-test)
  *  - recentErrors: last 5 failed AI calls
- *  - psychObsCount: behavioral records
  */
 export async function GET() {
   const payload = await getAuthUser();
@@ -43,14 +42,12 @@ export async function GET() {
       recentLogs,
       monthlyLogs,
       failedLogs,
-      psychObsCount,
       aiCacheTokens,
     ] = await Promise.all([
       db.aIUsageLog.findMany({ take: 5000, orderBy: { createdAt: "desc" } }),
       db.aIUsageLog.findMany({ where: { createdAt: { gte: since } }, orderBy: { createdAt: "desc" }, take: 500 }),
       db.aIUsageLog.findMany({ where: { createdAt: { gte: since30 } }, orderBy: { createdAt: "desc" }, take: 2000 }),
       db.aIUsageLog.findMany({ where: { success: false }, take: 5, orderBy: { createdAt: "desc" } }),
-      db.psychologyObs.count().catch(() => 0),
       db.aICache.aggregate({ _sum: { promptTokens: true, completionTokens: true } }).catch(() => ({ _sum: { promptTokens: 0, completionTokens: 0 } })),
     ]);
 
@@ -149,7 +146,6 @@ export async function GET() {
         error: l.errorMessage ?? "Unknown error",
         at: l.createdAt,
       })),
-      psychObsCount,
       aiConfigured: await isAIConfigured(),
       aiModel: process.env.DEEPSEEK_MODEL || "deepseek-chat",
       aiProvider: "deepseek",
@@ -176,7 +172,6 @@ export async function GET() {
       featureBreakdown: {},
       latencyByProvider: {},
       recentErrors: [],
-      psychObsCount: 0,
       aiConfigured: await isAIConfigured(),
       aiModel: process.env.DEEPSEEK_MODEL || "deepseek-chat",
       aiProvider: "deepseek",

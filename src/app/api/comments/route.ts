@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { analyzeMessageForSafeguarding, createSafeguardingFlag } from "@/lib/ai-assistant/safeguarding";
 
 /** GET /api/comments?studentId=... — list instructor comments for a student.
  *  Staff can view comments for students they have access to.
@@ -93,42 +92,6 @@ export async function POST(req: NextRequest) {
     },
     include: { instructor: { select: { name: true, email: true } } },
   });
-
-  // Safeguarding: scan the comment for aggressive/inappropriate language.
-  // This is a teacher→student communication — run the deterministic pre-filter.
-  // If signals are found, they're stored for the principal to review (2+
-  // corroborating signals required before a flag is created).
-  //
-  // CR-1 fix (audit 2026-07-26 FINAL): use createSafeguardingFlag() which
-  // enforces the 2+ corroboration rule instead of creating one alert per signal.
-  try {
-    const signals = analyzeMessageForSafeguarding(String(commentBody), comment.id);
-    if (signals.length > 0) {
-      // Count existing safeguarding signals from this teacher in the last 14 days
-      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-      const recentSignals = await db.studentAlert.count({
-        where: {
-          userId: payload.sub,
-          type: "safeguarding",
-          createdAt: { gte: fourteenDaysAgo },
-        },
-      });
-
-      const totalSignalCount = recentSignals + signals.length;
-      const categories = signals.map(s => s.category);
-      const contextSummary = signals.map(s => `${s.category}: ${s.matchedPatterns.join(", ")}`).join("; ");
-
-      // CR-1 fix: use createSafeguardingFlag() which enforces the 2+ corroboration rule
-      await createSafeguardingFlag({
-instructorId: payload.sub,
-        studentId,
-        signalCount: totalSignalCount,
-        messageIds: [comment.id],
-        categories: categories as any,
-        contextSummary,
-      }).catch(() => {}); // best-effort
-    }
-  } catch { /* safeguarding is best-effort, never blocks the comment */ }
 
   return NextResponse.json({ comment });
 }

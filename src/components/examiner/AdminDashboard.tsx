@@ -5,7 +5,6 @@ import { AdminOverview } from "@/components/examiner/admin/AdminOverview";
 import { OverviewStat } from "@/components/examiner/admin/OverviewStat";
 import { QuickAction } from "@/components/examiner/admin/QuickAction";
 import { FeaturesPanel } from "@/components/examiner/admin/FeaturesPanel";
-import { AdminPrincipalTab } from "@/components/examiner/admin/AdminPrincipalTab";
 import { AdminCoordinatorTab } from "@/components/examiner/admin/AdminCoordinatorTab";
 import { AdminPMTab } from "@/components/examiner/admin/AdminPMTab";
 import { AdminCoursesPanel } from "@/components/examiner/admin/AdminCoursesPanel";
@@ -18,7 +17,6 @@ import { AccessGrantsPanel } from "@/components/examiner/admin/AccessGrantsPanel
 import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel";
 import { PasswordResetPanel } from "@/components/examiner/admin/PasswordResetPanel";
 import { RoleNavConfigPanel } from "@/components/examiner/admin/RoleNavConfigPanel";
-import { InstructorBehaviorTab } from "@/components/examiner/admin/InstructorBehaviorTab";
 import { LayoutDashboard } from "@/components/examiner/admin/LayoutDashboard";
 
 import { useEffect, useState, useCallback } from "react";
@@ -31,27 +29,25 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import {
-  Users, ShieldAlert, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
+  Users, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
-  Settings as SettingsIcon, Server, Send, BookOpen, Plus, Edit3, GraduationCap, ClipboardList,
+  Settings as SettingsIcon, Server, Send, BookOpen, Plus, Edit3, ClipboardList,
   ShieldCheck, Save, Gauge, Search, ChevronLeft, ChevronRight,
 } from "lucide-react";
 
 interface Props {
-  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "instructor-behavior" | "ai-limits" | "user-audit";
+  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "coordinator" | "pm" | "ai-limits" | "user-audit";
 }
 
 export default function AdminDashboard({ initialView = "overview" }: Props) {
-  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "principal" | "coordinator" | "pm" | "instructor-behavior" | "ai-limits" | "user-audit">(
+  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "coordinator" | "pm" | "ai-limits" | "user-audit">(
     initialView === "users" ? "users" :
     initialView === "courses" ? "courses" :
     initialView === "features" ? "features" :
     initialView === "resets" ? "resets" :
     initialView === "system" ? "system" :
-    initialView === "principal" ? "principal" :
     initialView === "coordinator" ? "coordinator" :
     initialView === "pm" ? "pm" :
-    initialView === "instructor-behavior" ? "instructor-behavior" :
     initialView === "ai-limits" ? "ai-limits" :
     initialView === "user-audit" ? "user-audit" :
     "overview"
@@ -223,18 +219,6 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
         <Button onClick={() => setView("overview")} variant={view === "overview" ? "default" : "outline"} className={view === "overview" ? "bg-primary text-primary-foreground" : "border-border"}>
           <LayoutDashboard className="h-4 w-4" /> Overview
         </Button>
-        {/* Principal tab — visible to principal + administrator */}
-        {isPrincipalRole && (
-          <Button onClick={() => setView("principal")} variant={view === "principal" ? "default" : "outline"} className={view === "principal" ? "bg-primary text-primary-foreground" : "border-border"}>
-            <ShieldAlert className="h-4 w-4" /> Principal
-          </Button>
-        )}
-        {/* Teacher Behavior tab — visible to principal + administrator (pastoral data) */}
-        {isPrincipalRole && (
-          <Button onClick={() => setView("instructor-behavior")} variant={view === "instructor-behavior" ? "default" : "outline"} className={view === "instructor-behavior" ? "bg-primary text-primary-foreground" : "border-border"}>
-            <GraduationCap className="h-4 w-4" /> Instructor Behavior
-          </Button>
-        )}
         {/* Coordinator tab — visible to all admin-equivalent roles */}
         <Button onClick={() => setView("coordinator")} variant={view === "coordinator" ? "default" : "outline"} className={view === "coordinator" ? "bg-primary text-primary-foreground" : "border-border"}>
           <BookOpen className="h-4 w-4" /> Coordinator
@@ -291,14 +275,6 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       {view === "overview" && (
         <AdminOverview users={users} pending={pending} students={students} teachers={teachers} blocked={blocked} onTab={setView} />
       )}
-
-      {/* Phase 8: Principal tab — institutional health */}
-      {view === "principal" && (
-        <AdminPrincipalTab users={users} students={students} teachers={teachers} pending={pending} blocked={blocked} />
-      )}
-
-      {/* Teacher Behavior tab — teacher AI Assistant usage + behavioral signals */}
-      {view === "instructor-behavior" && <InstructorBehaviorTab />}
 
       {/* Phase 8: Coordinator tab — curriculum management */}
       {view === "coordinator" && <AdminCoordinatorTab />}

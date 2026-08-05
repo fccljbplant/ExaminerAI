@@ -6,7 +6,6 @@ import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { isStaffRole } from "@/lib/rbac";
-import { trackTutorEngagement } from "@/modules/assessment/lib/engagement-tracker";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/ai/instructor-tutor — AI Assistant chatbot for INSTRUCTORS.
@@ -132,18 +131,6 @@ ${teacherContext}
       maxTokens: 1500, // detailed lesson plans, drafts, case analyses
       feature: "instructor-tutor",
     });
-
-    // Write to the unified ChatSession model with chatbotType="teacher_tutor".
-    // LIGHTWEIGHT engagement tracking — no pipeline, no ChatSession.
-    // Just track that the instructor used the AI Assistant.
-    const lastUserMessage = messages.filter(m => m.role === "user").slice(-1)[0];
-    if (lastUserMessage) {
-      void trackTutorEngagement({
-        userId: user.id,
-        topic: "Instructor AI Assistant",
-        messageText: lastUserMessage.content,
-      });
-    }
 
     return NextResponse.json({
       reply: sanitizeExaminerText(result.text || "") || "I'm having trouble responding right now. Please try again.",

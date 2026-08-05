@@ -45,11 +45,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }, { status: 429 });
   }
 
-  const [student, psychEvidence, interactions, touchpoints, weeklyTests] = await Promise.all([
+  const [student, interactions, weeklyTests] = await Promise.all([
     db.user.findUnique({ where: { id }, select: { name: true, currentWeek: true, createdAt: true } }),
-    db.psychEvidence.findMany({ where: { userId: id }, orderBy: { week: "asc" }, take: 200 }),
     db.interaction.findMany({ where: { userId: id }, orderBy: { date: "asc" }, take: 100, select: { correctness: true, topic: true, week: true } }),
-    db.mentorshipTouchpoint.findMany({ where: { userId: id }, orderBy: { createdAt: "asc" }, take: 50, select: { type: true, note: true, outcome: true, createdAt: true } }),
     db.weeklyTest.findMany({ where: { userId: id, status: "completed" }, orderBy: { week: "asc" }, select: { score: true, week: true } }),
   ]);
 
@@ -57,7 +55,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   // Group evidence by week
   const weeks = new Set<number>();
-  psychEvidence.forEach(e => { if (e.week) weeks.add(e.week); });
   interactions.forEach(i => { if (i.week) weeks.add(i.week); });
   weeklyTests.forEach(t => weeks.add(t.week));
   const sortedWeeks = Array.from(weeks).sort((a, b) => a - b);
@@ -65,17 +62,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const narratives: Array<{ week: number; text: string; cached: boolean }> = [];
 
   for (const week of sortedWeeks) {
-    const weekEvidence = psychEvidence.filter(e => e.week === week);
     const weekInteractions = interactions.filter(i => i.week === week);
     const weekTest = weeklyTests.find(t => t.week === week);
-    const weekTouchpoints = touchpoints.filter(t => {
-      const tw = Math.ceil((new Date(t.createdAt).getTime() - new Date(student.createdAt || Date.now()).getTime()) / (7 * 24 * 60 * 60 * 1000));
-      return tw === week;
-    });
 
-    // Cache key per week (invalidated when new evidence for that week arrives)
-    const latestInWeek = weekEvidence.length > 0 ? weekEvidence[weekEvidence.length - 1].createdAt.toISOString() : "";
-    const cacheKey = crypto.createHash("sha256").update(`narrative:${id}:week${week}:${latestInWeek}`).digest("hex");
+    // Cache key per week (invalidated when new academic data for that week arrives)
+    const cacheKey = crypto.createHash("sha256").update(`narrative:${id}:week${week}`).digest("hex");
 
     const isCurrentWeek = week === student.currentWeek;
     // Past weeks: try cache. Current week: always regenerate (or use cache if no new evidence)
@@ -96,9 +87,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     // Generate paragraph for this week
     const weekData = {
       week, testScore: weekTest?.score ?? null,
-      evidence: weekEvidence.map(e => ({ dimension: e.dimension, value: e.value, text: e.evidenceText })),
       interactions: weekInteractions.map(i => ({ score: i.correctness, topic: i.topic })),
-      touchpoints: weekTouchpoints.map(t => ({ type: t.type, note: t.note, outcome: t.outcome })),
     };
 
     try {

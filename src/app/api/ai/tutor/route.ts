@@ -12,7 +12,6 @@ import {
   getCourseDurationWeeks,
   getCourseTopics,
 } from "@/lib/course-db";
-import { trackTutorEngagement } from "@/modules/assessment/lib/engagement-tracker";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/ai/tutor — in-app AI Tutor chatbot.
@@ -267,19 +266,6 @@ ${currentTopicText}
       // per-student conversation makes each call unique. (The system-prompt
       // prefix dedup is handled by the provider's prompt-caching if available.)
     });
-
-    // LIGHTWEIGHT engagement tracking — replaces the heavy per-message pipeline.
-    // Old code ran runAnalysisPipeline + ChatSession.create + Interaction.create
-    // on every message (15-20 DB writes). Now: 1 upsert to StudentHealthSummary.
-    // The full pipeline still runs on TEST completions only.
-    const lastUserMessage = messages.filter(m => m.role === "user").slice(-1)[0];
-    if (lastUserMessage) {
-      void trackTutorEngagement({
-        userId: user.id,
-        topic: weekPhase || `Week ${week}`,
-        messageText: lastUserMessage.content,
-      });
-    }
 
     return NextResponse.json({
       reply: sanitizeExaminerText(result.text || "") || "I'm having trouble responding right now. Please try again.",

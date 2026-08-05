@@ -11,7 +11,7 @@ import crypto from "crypto";
  *  of a student's trajectory.
  *
  *  Uses the configured AI model (callAI) — the AI Assistant.
- *  Cached via AICache model, invalidated when new evidence is added.
+ *  Cached via AICache model, invalidated when new academic data arrives.
  *
  *  The narrative is:
  *  - 4-6 sentences, plain language
@@ -59,30 +59,14 @@ export async function GET(
     }, { status: 429 });
   }
 
-  // Fetch full evidence history (chronological)
-  const [student, psychEvidence, confidenceRatings, skillMastery, touchpoints, interactions, weeklyTests] = await Promise.all([
+  // Fetch academic history (chronological)
+  const [student, skillMastery, interactions, weeklyTests] = await Promise.all([
     db.user.findUnique({
       where: { id },
       select: { id: true, name: true, currentWeek: true, createdAt: true, lastLogin: true },
     }),
-    db.psychEvidence.findMany({
-      where: { userId: id },
-      orderBy: { createdAt: "asc" },
-      take: 100,
-    }),
-    db.confidenceRating.findMany({
-      where: { userId: id, actualScore: { not: null } },
-      orderBy: { createdAt: "asc" },
-      take: 50,
-    }),
     db.skillMastery.findMany({
       where: { userId: id },
-    }),
-    db.mentorshipTouchpoint.findMany({
-      where: { userId: id },
-      orderBy: { createdAt: "asc" },
-      take: 30,
-      select: { type: true, note: true, outcome: true, createdAt: true },
     }),
     db.interaction.findMany({
       where: { userId: id },
@@ -101,9 +85,9 @@ export async function GET(
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  // Build cache key: studentId + latest evidence timestamp
-  const latestEvidenceDate = psychEvidence.length > 0
-    ? psychEvidence[psychEvidence.length - 1].createdAt.toISOString()
+  // Build cache key: studentId + latest activity timestamp
+  const latestEvidenceDate = weeklyTests.length > 0
+    ? weeklyTests[weeklyTests.length - 1].completedAt?.toISOString() || student.createdAt.toISOString()
     : student.createdAt.toISOString();
   const cacheKey = crypto.createHash("sha256").update(`explain:${id}:${latestEvidenceDate}`).digest("hex");
 
@@ -118,21 +102,12 @@ export async function GET(
   // Build the prompt
   const evidenceSummary = {
     student: { name: student.name, currentWeek: student.currentWeek, enrolledAt: student.createdAt },
-    psychEvidence: psychEvidence.map(e => ({
-      dimension: e.dimension, value: e.value, evidenceText: e.evidenceText, week: e.week, date: e.createdAt,
-    })),
-    calibration: confidenceRatings.length > 0 ? {
-      avgConfidence: Math.round(confidenceRatings.reduce((a, r) => a + r.rating * 20, 0) / confidenceRatings.length),
-      avgActual: Math.round(confidenceRatings.reduce((a, r) => a + (r.actualScore ?? 0), 0) / confidenceRatings.length),
-      count: confidenceRatings.length,
-    } : null,
     skillMastery: skillMastery.map(m => ({ topic: m.topic, level: m.masteryLevel, trend: m.trend })),
-    touchpoints: touchpoints.map(t => ({ type: t.type, note: t.note, outcome: t.outcome, date: t.createdAt })),
     interactions: interactions.map(i => ({ score: i.correctness, topic: i.topic, week: i.week, date: i.date })),
     weeklyTests: weeklyTests.map(t => ({ score: t.score, week: t.week, date: t.completedAt })),
   };
 
-  const systemPrompt = `Write a short (4-6 sentence) narrative for an instructor about one student's trajectory this course. Plain language, not a data recitation. Note what changed and when. Note anything you're uncertain about rather than smoothing over it. Never state a clinical or psychological diagnosis. Use "the data suggests" or "appears to" language for behavioral observations. Write in Roman (Latin) script, matching the student's dominant language from their answers if not English.`;
+  const systemPrompt = `Write a short (4-6 sentence) narrative for an instructor about one student's trajectory this course. Plain language, not a data recitation. Note what changed and when. Note anything you're uncertain about rather than smoothing over it. Use "the data suggests" or "appears to" language for behavioral observations. Write in Roman (Latin) script, matching the student's dominant language from their answers if not English.`;
 
   const userPrompt = `Student: ${student.name} (Week ${student.currentWeek})
 

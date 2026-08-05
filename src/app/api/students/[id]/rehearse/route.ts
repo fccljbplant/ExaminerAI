@@ -66,26 +66,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     scenario?: string;
   };
 
-  // Fetch student evidence for the AI persona
-  const [student, interactions, psychEvidence, wellbeing] = await Promise.all([
+  // Fetch student academic data for the AI persona
+  const [student, interactions] = await Promise.all([
     db.user.findUnique({ where: { id }, select: { name: true, currentWeek: true } }),
     db.interaction.findMany({ where: { userId: id }, orderBy: { date: "desc" }, take: 10, select: { studentAnswer: true, topic: true } }),
-    db.psychEvidence.findMany({ where: { userId: id }, orderBy: { createdAt: "desc" }, take: 5, select: { dimension: true, value: true, evidenceText: true } }),
-    db.wellbeingState.findUnique({ where: { userId: id }, select: { tier: true, reasonsJson: true } }),
   ]);
   if (!student) return NextResponse.json({ error: "Student not found" }, { status: 404 });
-
-  let reasons: string[] = [];
-  try { reasons = JSON.parse(wellbeing?.reasonsJson || "[]"); } catch {}
 
   // Build student persona prompt
   const personaContext = {
     name: student.name,
     currentWeek: student.currentWeek,
-    wellbeingTier: wellbeing?.tier || "green",
-    concerns: reasons,
     answerStyle: interactions.slice(0, 5).map(i => i.studentAnswer?.slice(0, 100)).filter(Boolean),
-    psychSignals: psychEvidence.map(e => `${e.dimension}: ${e.value}`),
   };
 
   const systemPrompt = `You are SIMULATING a student named ${student.name} for an instructor's practice conversation. This is a REHEARSAL — not a prediction of how the real student will respond.

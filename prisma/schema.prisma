@@ -30,7 +30,7 @@ model CourseEnrollment {
   id         String   @id @default(cuid())
   userId     String
   courseId   String
-  role       String   // "student" | "instructor"
+  role       String // "student" | "instructor"
   enrolledAt DateTime @default(now())
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -56,186 +56,175 @@ model CourseEnrollment {
 //   role-play, build feature, write report, analyze data, etc.)
 // - "Tools" field replaces hardcoded "VS Code, Git, LocalWP"
 model Course {
-  id              String   @id @default(cuid())
-  name            String   @unique
-  description     String   @default("")
-  isActive        Boolean  @default(true)
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String  @default("")
+  isActive    Boolean @default(true)
 
   // Domain metadata — what IS this course?
-  domain          String   @default("technology")
-  level           String   @default("beginner")
-  toolsUsed       String   @default("[]")
-  deliverableTypes String  @default("[]")
+  domain           String @default("technology")
+  level            String @default("beginner")
+  toolsUsed        String @default("[]")
+  deliverableTypes String @default("[]")
 
   // Assessment configuration
-  assessmentType  String   @default("socratic")
+  assessmentType       String  @default("socratic")
   assessmentConfigJson String?
 
   // Course-specific configuration JSON
-  journeyStepsJson    String?
-  projectTemplateJson String?
-  aiPromptsJson       String?
-  testConfigJson      String?
+  journeyStepsJson       String?
+  projectTemplateJson    String?
+  aiPromptsJson          String?
+  testConfigJson         String?
   reportCardTemplateJson String?
 
   // Multiple subjects per course
-  subjects            String    @default("[]")
+  subjects String @default("[]")
 
   // Project configuration
-  projectEnabled              Boolean  @default(false)
-  projectRequired             Boolean  @default(false)
-  projectDefaultDurationWeeks Int      @default(4)
+  projectEnabled              Boolean @default(false)
+  projectRequired             Boolean @default(false)
+  projectDefaultDurationWeeks Int     @default(4)
 
   // isDefault: marks this course as the default for new students
-  isDefault                   Boolean  @default(false)
+  isDefault Boolean @default(false)
 
-  institutionId       String?
+  institutionId String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  weeks       CourseWeek[]
-  enrollments CourseEnrollment[]
-  institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
-  events      Event[]
-  groupTasks  GroupTask[]
-  dailyLogs   DailyLog[]
-  projectTasks ProjectTask[]
-  projectWeeks ProjectWeek[]
-  projectReports ProjectReport[]
-  interactions Interaction[]
-  weeklyTests  WeeklyTest[]
-  reportCards  ReportCard[]
-  dailyTests   DailyTest[]
+  weeks              CourseWeek[]
+  enrollments        CourseEnrollment[]
+  institution        Institution?         @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  events             Event[]
+  groupTasks         GroupTask[]
+  dailyLogs          DailyLog[]
+  projectTasks       ProjectTask[]
+  projectWeeks       ProjectWeek[]
+  projectReports     ProjectReport[]
+  interactions       Interaction[]
+  weeklyTests        WeeklyTest[]
+  reportCards        ReportCard[]
+  dailyTests         DailyTest[]
   curriculumProgress CurriculumProgress[]
 }
 
 model CourseWeek {
-  id          String   @id @default(cuid())
-  courseId    String
-  weekNumber  Int
-  phase       String
-  milestone   String   @default("")
+  id         String @id @default(cuid())
+  courseId   String
+  weekNumber Int
+  phase      String
+  milestone  String @default("")
 
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  days        CourseDay[]
+  course Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  days   CourseDay[]
 
   @@unique([courseId, weekNumber])
   @@index([courseId])
 }
 
 model CourseDay {
-  id              String   @id @default(cuid())
-  courseWeekId    String
-  day             Int      // 1-7 (configurable per course)
-  title           String
-  objective       String   @default("")
-  whyItMatters    String   @default("")
-  topicsCovered   String   @default("[]")
-  activity        String   @default("")
-  deliverable     String   @default("")
-  resources       String   @default("[]")
-  instructorNote     String   @default("")
+  id             String @id @default(cuid())
+  courseWeekId   String
+  day            Int // 1-7 (configurable per course)
+  title          String
+  objective      String @default("")
+  whyItMatters   String @default("")
+  topicsCovered  String @default("[]")
+  activity       String @default("")
+  deliverable    String @default("")
+  resources      String @default("[]")
+  instructorNote String @default("")
 
-  courseWeek      CourseWeek @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
+  courseWeek CourseWeek @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
 
   @@unique([courseWeekId, day])
   @@index([courseWeekId])
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  name            String
-  passwordHash    String
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  name                 String
+  passwordHash         String
   // Role values:
   //   pending | student | instructor | coordinator
-  //   | counselor | guardian | institution_admin | platform_admin
-  role            String    @default("pending")
-  blocked         Boolean   @default(false)
-  approvedAt      DateTime?
-  createdAt       DateTime  @default(now())
-  lastLogin       DateTime?
-  currentWeek     Int       @default(1)
-  currentDay      Int       @default(1)
-  selfPacedEnabled Boolean   @default(true)
-  projectName        String?
-  projectDescription String?
-  projectType        String?
-  projectScope       String?
-  projectObjectives  String?
-  projectRequirements String?
-  projectBusinessCase String?
-  projectSummary     String?
-  projectKeyFeatures String?
+  //   | institution_admin | platform_admin
+  role                 String    @default("pending")
+  blocked              Boolean   @default(false)
+  approvedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  lastLogin            DateTime?
+  currentWeek          Int       @default(1)
+  currentDay           Int       @default(1)
+  selfPacedEnabled     Boolean   @default(true)
+  projectName          String?
+  projectDescription   String?
+  projectType          String?
+  projectScope         String?
+  projectObjectives    String?
+  projectRequirements  String?
+  projectBusinessCase  String?
+  projectSummary       String?
+  projectKeyFeatures   String?
   projectDurationWeeks Int?
-  projectStartDate  DateTime?
-  projectNotes      String?
-  projectGithubUrl  String?
-  projectDeployUrl  String?
-  journeyProgress String    @default("[]")
+  projectStartDate     DateTime?
+  projectNotes         String?
+  projectGithubUrl     String?
+  projectDeployUrl     String?
+  journeyProgress      String    @default("[]")
 
   // Security question for self-service password reset
   securityQuestion String?
   securityAnswer   String?
 
   // Course enrollments — replaces batchId + batchTeaching
-  enrollments     CourseEnrollment[]
+  enrollments CourseEnrollment[]
 
-  dailyLogs       DailyLog[]
-  tasks           ProjectTask[]
-  projectWeeks    ProjectWeek[]
-  projectReports  ProjectReport[]
-  interactions    Interaction[]
-  weeklyTests     WeeklyTest[]
-  competencies    Competency[]
-  reportCards     ReportCard[]
-  psychObs        PsychologyObs[]
-  curriculumProgress CurriculumProgress[]
-  commentsGiven   Comment[]     @relation("CommentAuthor")
-  commentsRecv    Comment[]     @relation("CommentTarget")
-  messagesSent    Message[]     @relation("MsgSender")
-  messagesRecv    Message[]     @relation("MsgRecipient")
-  resetRequests   PasswordResetRequest[]
-  certificates    Certificate[]
-  accessGrantsReceived AccessGrant[] @relation("AccessGrantGrantee")
-  accessGrantsGiven    AccessGrant[] @relation("AccessGrantGrantor")
-  auditLogs       AuditLog[]
-  confidenceRatings ConfidenceRating[]
-  wellbeingState     WellbeingState?
-  crisisFlags        CrisisFlag[]
-  psychEvidence      PsychEvidence[]
-  skillMastery       SkillMastery[]
-  mentorshipTouchpoints MentorshipTouchpoint[]
-  dailyTests         DailyTest[]
-  chatSessions       ChatSession[]
-  healthSummary      StudentHealthSummary?
-  institutionId      String?
-  institution        Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
-  growthReport       GrowthReport?
-  studentAlerts     StudentAlert[]
-  groupTaskSubmissions GroupTaskSubmission[]
-  eventsCreated     Event[]
-  instructorGroupTasks  GroupTask[] @relation("GroupTaskInstructor")
-  guardianLinks     GuardianLink[] @relation("GuardianLinkGuardian")
-  studentGuardians  GuardianLink[] @relation("GuardianLinkStudent")
-  peerAssessmentsGiven    PeerAssessment[] @relation("PeerAssessor")
-  peerAssessmentsReceived PeerAssessment[] @relation("PeerAssessee")
-  instructorRules            InstructorRule[] @relation("InstructorRuleOwner")
-  caseReviewsPosted       CaseReview[] @relation("CaseReviewAuthor")
-  caseReviewResponses     CaseReviewResponse[] @relation("CaseReviewResponder")
+  dailyLogs               DailyLog[]
+  tasks                   ProjectTask[]
+  projectWeeks            ProjectWeek[]
+  projectReports          ProjectReport[]
+  interactions            Interaction[]
+  weeklyTests             WeeklyTest[]
+  competencies            Competency[]
+  reportCards             ReportCard[]
+  curriculumProgress      CurriculumProgress[]
+  commentsGiven           Comment[]              @relation("CommentAuthor")
+  commentsRecv            Comment[]              @relation("CommentTarget")
+  messagesSent            Message[]              @relation("MsgSender")
+  messagesRecv            Message[]              @relation("MsgRecipient")
+  resetRequests           PasswordResetRequest[]
+  certificates            Certificate[]
+  accessGrantsReceived    AccessGrant[]          @relation("AccessGrantGrantee")
+  accessGrantsGiven       AccessGrant[]          @relation("AccessGrantGrantor")
+  auditLogs               AuditLog[]
+  skillMastery            SkillMastery[]
+  dailyTests              DailyTest[]
+  chatSessions            ChatSession[]
+  institutionId           String?
+  institution             Institution?           @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  groupTaskSubmissions    GroupTaskSubmission[]
+  eventsCreated           Event[]
+  instructorGroupTasks    GroupTask[]            @relation("GroupTaskInstructor")
+  guardianLinks           GuardianLink[]         @relation("GuardianLinkGuardian")
+  studentGuardians        GuardianLink[]         @relation("GuardianLinkStudent")
+  peerAssessmentsGiven    PeerAssessment[]       @relation("PeerAssessor")
+  peerAssessmentsReceived PeerAssessment[]       @relation("PeerAssessee")
+  instructorRules         InstructorRule[]       @relation("InstructorRuleOwner")
 }
 
 // Admin-reset workflow: student requests a reset, admin approves + sets temp password
 model PasswordResetRequest {
-  id              String    @id @default(cuid())
-  userId          String
-  reason          String    @default("")
-  status          String    @default("pending")
-  tempPassword    String?
-  adminNote       String?
-  createdAt       DateTime  @default(now())
-  resolvedAt      DateTime?
+  id           String    @id @default(cuid())
+  userId       String
+  reason       String    @default("")
+  status       String    @default("pending")
+  tempPassword String?
+  adminNote    String?
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -243,44 +232,44 @@ model PasswordResetRequest {
 }
 
 model DailyLog {
-  id           String   @id @default(cuid())
-  userId       String
-  date         DateTime @default(now())
-  week         Int
-  whatDidYouDo String
-  anyErrors    String   @default("")
-  confidence   Int      @default(3)
-  gitCommit    String?
-  learningReflection String @default("")
-  confusionNotes     String @default("")
-  nextQuestion       String @default("")
-  courseId String?
+  id                 String   @id @default(cuid())
+  userId             String
+  date               DateTime @default(now())
+  week               Int
+  whatDidYouDo       String
+  anyErrors          String   @default("")
+  confidence         Int      @default(3)
+  gitCommit          String?
+  learningReflection String   @default("")
+  confusionNotes     String   @default("")
+  nextQuestion       String   @default("")
+  courseId           String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
   @@index([courseId])
 }
 
 model ProjectTask {
-  id          String   @id @default(cuid())
-  userId      String
-  description String
-  status      String   @default("planned")
-  week        Int
-  day         Int?
-  dueDate     String?
-  createdAt   DateTime @default(now())
-  completedAt DateTime?
+  id               String    @id @default(cuid())
+  userId           String
+  description      String
+  status           String    @default("planned")
+  week             Int
+  day              Int?
+  dueDate          String?
+  createdAt        DateTime  @default(now())
+  completedAt      DateTime?
   estimatedMinutes Int?
-  isMilestone  Boolean @default(false)
-  taskNotes    String?
-  timeEstimate String?
-  courseId String?
+  isMilestone      Boolean   @default(false)
+  taskNotes        String?
+  timeEstimate     String?
+  courseId         String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
   @@index([userId, week, day])
@@ -288,18 +277,18 @@ model ProjectTask {
 }
 
 model ProjectWeek {
-  id          String   @id @default(cuid())
-  userId      String
-  weekNumber  Int
-  title       String
-  summary     String   @default("")
-  milestones  String   @default("[]")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  courseId String?
+  id         String   @id @default(cuid())
+  userId     String
+  weekNumber Int
+  title      String
+  summary    String   @default("")
+  milestones String   @default("[]")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  courseId   String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, weekNumber])
   @@index([userId])
@@ -307,18 +296,18 @@ model ProjectWeek {
 }
 
 model ProjectReport {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   week        Int
-  reportType  String   @default("weekly")
+  reportType  String    @default("weekly")
   reportText  String
   aiAnalysis  String?
-  submittedAt DateTime @default(now())
+  submittedAt DateTime  @default(now())
   analyzedAt  DateTime?
-  courseId String?
+  courseId    String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
   @@index([courseId])
@@ -330,10 +319,10 @@ model CurriculumProgress {
   week        Int
   day         Int
   completedAt DateTime @default(now())
-  courseId String?
+  courseId    String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, week, day])
   @@index([userId, week])
@@ -341,74 +330,68 @@ model CurriculumProgress {
 }
 
 model Interaction {
-  id              String   @id @default(cuid())
-  userId          String
-  date            DateTime @default(now())
-  week            Int
-  pillar          String
-  topic           String
-  question        String
-  projectContext  String   @default("")
-  studentAnswer   String   @default("")
-  timeTakenSeconds Int     @default(0)
-  answerLength    Int      @default(0)
-  correctness     Int      @default(0)
-  feedback        String   @default("")
-  level           String   @default("Beginner")
-  gaps            String   @default("")
-  followUp        String?
-  cognitiveLoad   String   @default("moderate")
-  confidence      String   @default("moderate")
-  metacognitive   String   @default("moderate")
-  plagiarismScore Int?
-  courseId String?
+  id               String   @id @default(cuid())
+  userId           String
+  date             DateTime @default(now())
+  week             Int
+  pillar           String
+  topic            String
+  question         String
+  projectContext   String   @default("")
+  studentAnswer    String   @default("")
+  timeTakenSeconds Int      @default(0)
+  answerLength     Int      @default(0)
+  correctness      Int      @default(0)
+  feedback         String   @default("")
+  level            String   @default("Beginner")
+  gaps             String   @default("")
+  followUp         String?
+  plagiarismScore  Int?
+  courseId         String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@index([userId, week])
   @@index([courseId])
 }
 
 model WeeklyTest {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
   week            Int
-  status          String   @default("locked")
+  status          String    @default("locked")
   startedAt       DateTime?
   completedAt     DateTime?
-  interactionIds  String   @default("[]")
+  interactionIds  String    @default("[]")
   score           Int?
-  strengths       String   @default("[]")
-  weaknesses      String   @default("[]")
-  examinerObs     String?
+  strengths       String    @default("[]")
+  weaknesses      String    @default("[]")
   nextAction      String?
-  conversation    String   @default("[]")
-  currentQuestion Int      @default(0)
-  replyCount      Int      @default(0)
-  psychAnalysis   String?
-  examinerComment String?
+  conversation    String    @default("[]")
+  currentQuestion Int       @default(0)
+  replyCount      Int       @default(0)
   plagiarismScore Int?
 
-  retakeAllowed   Boolean  @default(false)
-  courseId String?
+  retakeAllowed Boolean @default(false)
+  courseId      String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, week])
   @@index([courseId])
 }
 
 model Competency {
-  id             String   @id @default(cuid())
-  userId         String
-  topic          String
-  level          String   @default("Beginner")
-  score          Int      @default(0)
-  attempts       Int      @default(0)
-  lastAssessed   DateTime @default(now())
-  weakSubTopics  String   @default("[]")
+  id            String   @id @default(cuid())
+  userId        String
+  topic         String
+  level         String   @default("Beginner")
+  score         Int      @default(0)
+  attempts      Int      @default(0)
+  lastAssessed  DateTime @default(now())
+  weakSubTopics String   @default("[]")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -416,55 +399,35 @@ model Competency {
 }
 
 model ReportCard {
-  id                  String   @id @default(cuid())
-  userId              String
-  week                Int
-  date                DateTime @default(now())
-  grade               String
-  score               Int
-  strengths           String   @default("[]")
-  weaknesses          String   @default("[]")
-  workHabits          String
-  progress            String
-  nextSteps           String   @default("[]")
-  examinerObservations String
-  courseId String?
+  id         String   @id @default(cuid())
+  userId     String
+  week       Int
+  date       DateTime @default(now())
+  grade      String
+  score      Int
+  strengths  String   @default("[]")
+  weaknesses String   @default("[]")
+  progress   String
+  nextSteps  String   @default("[]")
+  courseId   String?
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course  Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, week])
   @@index([courseId])
 }
 
-model PsychologyObs {
-  id                String   @id @default(cuid())
-  userId            String
-  date              DateTime @default(now())
-  week              Int
-  confidence        String   @default("moderate")
-  communication     String   @default("")
-  learningCurve     String   @default("")
-  engagement        String   @default("")
-  cognitiveLoad     String   @default("moderate")
-  metacognitive     String   @default("moderate")
-  remarks           String   @default("")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, week])
-}
-
 // AI response cache
 model AICache {
-  id          String   @id @default(cuid())
-  cacheKey    String   @unique
-  response    String
-  provider    String   @default("deepseek")
-  promptTokens Int     @default(0)
-  completionTokens Int @default(0)
-  hitCount    Int      @default(0)
-  createdAt   DateTime @default(now())
+  id               String   @id @default(cuid())
+  cacheKey         String   @unique
+  response         String
+  provider         String   @default("deepseek")
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  hitCount         Int      @default(0)
+  createdAt        DateTime @default(now())
 
   @@index([cacheKey])
 }
@@ -509,19 +472,19 @@ model Message {
 }
 
 model Comment {
-  id              String   @id @default(cuid())
-  interactionId   String?
-  taskId          String?
-  weeklyTestId    String?
-  dailyLogId      String?
-  studentId       String
-  instructorId     String
-  body            String?
-  marksOverride   Int?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(cuid())
+  interactionId String?
+  taskId        String?
+  weeklyTestId  String?
+  dailyLogId    String?
+  studentId     String
+  instructorId  String
+  body          String?
+  marksOverride Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  student   User @relation("CommentTarget", fields: [studentId], references: [id], onDelete: Cascade)
+  student    User @relation("CommentTarget", fields: [studentId], references: [id], onDelete: Cascade)
   instructor User @relation("CommentAuthor", fields: [instructorId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
@@ -553,7 +516,7 @@ model Certificate {
   pdfUrl        String?
   institutionId String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
 
   @@index([userId])
@@ -561,18 +524,18 @@ model Certificate {
 
 // AccessGrant — scoped least-privilege access
 // scopeType: "course" | "student" | "institution"
-// dataScope: "full" | "wellbeing_only" | "crisis_only" | "content_only"
+// dataScope: "full" | "content_only"
 model AccessGrant {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   granteeUserId   String
   scopeType       String
   scopeId         String
-  dataScope       String   @default("full")
+  dataScope       String    @default("full")
   grantedByUserId String?
-  grantedAt       DateTime @default(now())
+  grantedAt       DateTime  @default(now())
   revokedAt       DateTime?
 
-  grantee  User  @relation("AccessGrantGrantee", fields: [granteeUserId], references: [id], onDelete: Cascade)
+  grantee   User  @relation("AccessGrantGrantee", fields: [granteeUserId], references: [id], onDelete: Cascade)
   grantedBy User? @relation("AccessGrantGrantor", fields: [grantedByUserId], references: [id], onDelete: SetNull)
 
   @@unique([granteeUserId, scopeType, scopeId])
@@ -582,18 +545,18 @@ model AccessGrant {
 
 // AuditLog
 model AuditLog {
-  id              String   @id @default(cuid())
-  actorUserId     String
-  actorName       String
-  actorRole       String
-  action          String
-  targetType      String
-  targetId        String
-  beforeJson      String?
-  afterJson       String?
-  metadata        String?
-  ipAddress       String?
-  createdAt       DateTime @default(now())
+  id          String   @id @default(cuid())
+  actorUserId String
+  actorName   String
+  actorRole   String
+  action      String
+  targetType  String
+  targetId    String
+  beforeJson  String?
+  afterJson   String?
+  metadata    String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
 
   actor User @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
 
@@ -603,119 +566,42 @@ model AuditLog {
   @@index([createdAt])
 }
 
-// Phase Three-Tab Redesign models
-
-model ConfidenceRating {
-  id              String   @id @default(cuid())
-  userId          String
-  source          String
-  rating          Int
-  actualScore     Int?
-  context         String?
-  week            Int?
-  createdAt       DateTime @default(now())
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId, createdAt])
-}
-
-model WellbeingState {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  tier            String
-  reasonsJson     String   @default("[]")
-  detectedAt      DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([tier])
-}
-
-model CrisisFlag {
-  id              String   @id @default(cuid())
-  userId          String
-  flaggedBy       String
-  category        String
-  severity        String
-  status          String   @default("open")
-  evidenceRef     String?
-  resolvedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId, status])
-  @@index([severity, status])
-}
-
-model PsychEvidence {
-  id              String   @id @default(cuid())
-  userId          String
-  dimension       String
-  value           String
-  evidenceText    String
-  sourceType      String
-  sourceId        String?
-  week            Int?
-  disputed        Boolean  @default(false)
-  disputeNote     String?
-  disputedBy      String?
-  disputedAt      DateTime?
-  createdAt       DateTime @default(now())
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId, dimension])
-  @@index([userId, createdAt])
-}
-
 model SkillMastery {
-  id              String   @id @default(cuid())
-  userId          String
-  topic           String
-  pillar          String
-  masteryLevel    String
-  evidenceCount   Int      @default(0)
+  id               String   @id @default(cuid())
+  userId           String
+  topic            String
+  pillar           String
+  masteryLevel     String
+  evidenceCount    Int      @default(0)
   lastAssessedWeek Int?
-  trend           String
-  updatedAt       DateTime @updatedAt
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trend            String
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, topic])
   @@index([userId, pillar])
   @@index([userId, masteryLevel])
 }
 
-model MentorshipTouchpoint {
-  id              String   @id @default(cuid())
-  userId          String
-  actorUserId     String
-  type            String
-  relatedAlertId  String?
-  note            String
-  outcome         String?
-  followUpDate    DateTime?
-  createdAt       DateTime @default(now())
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId, createdAt])
-  @@index([actorUserId])
-  @@index([type])
-}
-
 // Daily Test
 model DailyTest {
-  id            String   @id @default(cuid())
-  userId        String
-  date          DateTime @default(now())
-  week          Int
-  topic         String
-  pillar        String
-  questionCount Int      @default(3)
-  score         Int?
-  status        String   @default("in_progress")
-  psychAnalysisGenerated Boolean @default(false)
-  currentQuestion Int    @default(0)
-  replyCount       Int    @default(0)
-  conversation     String @default("[]")
-  createdAt     DateTime @default(now())
-  courseId String?
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course        Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
-  answers       DailyTestAnswer[]
+  id              String            @id @default(cuid())
+  userId          String
+  date            DateTime          @default(now())
+  week            Int
+  topic           String
+  pillar          String
+  questionCount   Int               @default(3)
+  score           Int?
+  status          String            @default("in_progress")
+  currentQuestion Int               @default(0)
+  replyCount      Int               @default(0)
+  conversation    String            @default("[]")
+  createdAt       DateTime          @default(now())
+  courseId        String?
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course          Course?           @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  answers         DailyTestAnswer[]
 
   @@unique([userId, date])
   @@index([userId, date])
@@ -724,37 +610,36 @@ model DailyTest {
 }
 
 model DailyTestAnswer {
-  id              String   @id @default(cuid())
-  dailyTestId     String
-  question        String
-  answer          String
-  score           Int
-  timeTakenSec    Int?
-  confidenceRating String?
-  topic           String?
-  dailyTest       DailyTest @relation(fields: [dailyTestId], references: [id], onDelete: Cascade)
+  id           String    @id @default(cuid())
+  dailyTestId  String
+  question     String
+  answer       String
+  score        Int
+  timeTakenSec Int?
+  topic        String?
+  dailyTest    DailyTest @relation(fields: [dailyTestId], references: [id], onDelete: Cascade)
 
   @@index([dailyTestId])
 }
 
 // Group Tasks — course-scoped (replaces batch-scoped)
 model GroupTask {
-  id          String    @id @default(cuid())
-  courseId    String
-  instructorId   String
-  title       String
-  description String    @default("")
-  type        String    @default("assignment")
-  dueDate     DateTime?
-  week        Int?
-  status      String    @default("open")
-  maxScore    Int       @default(100)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  courseId     String
+  instructorId String
+  title        String
+  description  String    @default("")
+  type         String    @default("assignment")
+  dueDate      DateTime?
+  week         Int?
+  status       String    @default("open")
+  maxScore     Int       @default(100)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  teacher     User      @relation("GroupTaskInstructor", fields: [instructorId], references: [id], onDelete: Cascade)
-  submissions GroupTaskSubmission[]
+  course          Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher         User                  @relation("GroupTaskInstructor", fields: [instructorId], references: [id], onDelete: Cascade)
+  submissions     GroupTaskSubmission[]
   peerAssessments PeerAssessment[]
 
   @@index([courseId, status])
@@ -763,18 +648,18 @@ model GroupTask {
 }
 
 model GroupTaskSubmission {
-  id           String    @id @default(cuid())
-  groupTaskId  String
-  userId       String
-  content      String    @default("")
-  link         String?
-  score        Int?
-  feedback     String?
-  submittedAt  DateTime  @default(now())
-  gradedAt     DateTime?
+  id          String    @id @default(cuid())
+  groupTaskId String
+  userId      String
+  content     String    @default("")
+  link        String?
+  score       Int?
+  feedback    String?
+  submittedAt DateTime  @default(now())
+  gradedAt    DateTime?
 
-  groupTask    GroupTask @relation(fields: [groupTaskId], references: [id], onDelete: Cascade)
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupTask GroupTask @relation(fields: [groupTaskId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupTaskId, userId])
   @@index([groupTaskId])
@@ -783,21 +668,21 @@ model GroupTaskSubmission {
 
 // Events — course-scoped (replaces batch-scoped)
 model Event {
-  id          String    @id @default(cuid())
-  courseId    String
-  createdById String
-  title       String
-  description String    @default("")
-  type        String    @default("deadline")
+  id           String    @id @default(cuid())
+  courseId     String
+  createdById  String
+  title        String
+  description  String    @default("")
+  type         String    @default("deadline")
   activityType String?
-  startDate   DateTime
-  endDate     DateTime?
-  location    String?
-  isAllDay    Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+  startDate    DateTime
+  endDate      DateTime?
+  location     String?
+  isAllDay     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
 
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdBy User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
   @@index([courseId, startDate])
   @@index([startDate])
@@ -806,21 +691,21 @@ model Event {
 
 // Peer Assessment
 model PeerAssessment {
-  id              String   @id @default(cuid())
-  groupTaskId     String
-  assessorId      String
-  assesseeId      String
-  collaboration   Int
-  contribution    Int
-  communication   Int
-  reliability     Int
-  respect         Int
-  textFeedback    String   @default("")
-  createdAt       DateTime @default(now())
+  id            String   @id @default(cuid())
+  groupTaskId   String
+  assessorId    String
+  assesseeId    String
+  collaboration Int
+  contribution  Int
+  communication Int
+  reliability   Int
+  respect       Int
+  textFeedback  String   @default("")
+  createdAt     DateTime @default(now())
 
-  groupTask       GroupTask @relation(fields: [groupTaskId], references: [id], onDelete: Cascade)
-  assessor        User      @relation("PeerAssessor", fields: [assessorId], references: [id], onDelete: Cascade)
-  assessee        User      @relation("PeerAssessee", fields: [assesseeId], references: [id], onDelete: Cascade)
+  groupTask GroupTask @relation(fields: [groupTaskId], references: [id], onDelete: Cascade)
+  assessor  User      @relation("PeerAssessor", fields: [assessorId], references: [id], onDelete: Cascade)
+  assessee  User      @relation("PeerAssessee", fields: [assesseeId], references: [id], onDelete: Cascade)
 
   @@unique([groupTaskId, assessorId, assesseeId])
   @@index([groupTaskId])
@@ -843,8 +728,8 @@ model GuardianLink {
   relationship String   @default("parent")
   createdAt    DateTime @default(now())
 
-  guardian     User     @relation("GuardianLinkGuardian", fields: [guardianId], references: [id], onDelete: Cascade)
-  student      User     @relation("GuardianLinkStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  guardian User @relation("GuardianLinkGuardian", fields: [guardianId], references: [id], onDelete: Cascade)
+  student  User @relation("GuardianLinkStudent", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([guardianId, studentId])
   @@index([guardianId])
@@ -853,116 +738,32 @@ model GuardianLink {
 
 // Instructor Rules
 model InstructorRule {
-  id          String   @id @default(cuid())
+  id           String   @id @default(cuid())
   instructorId String
-  condition   String
-  action      String
-  enabled     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  instructor  User     @relation("InstructorRuleOwner", fields: [instructorId], references: [id], onDelete: Cascade)
+  condition    String
+  action       String
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  instructor   User     @relation("InstructorRuleOwner", fields: [instructorId], references: [id], onDelete: Cascade)
 
   @@index([instructorId, enabled])
 }
 
-// Case Review
-model CaseReview {
-  id              String   @id @default(cuid())
-  postedBy        String
-  patternSummary  String
-  responses       CaseReviewResponse[]
-  status          String   @default("open")
-  createdAt       DateTime @default(now())
-  postedByUser    User     @relation("CaseReviewAuthor", fields: [postedBy], references: [id], onDelete: Cascade)
-
-  @@index([status])
-}
-
-model CaseReviewResponse {
-  id            String   @id @default(cuid())
-  caseReviewId  String
-  responderId   String
-  content       String
-  createdAt     DateTime @default(now())
-  caseReview    CaseReview @relation(fields: [caseReviewId], references: [id], onDelete: Cascade)
-  responder     User     @relation("CaseReviewResponder", fields: [responderId], references: [id], onDelete: Cascade)
-
-  @@index([caseReviewId])
-}
-
-// StudentHealthSummary
-model StudentHealthSummary {
-  id                    String    @id @default(cuid())
-  userId                String    @unique
-  tutorMessagesThisWeek  Int      @default(0)
-  tutorMessagesLastWeek  Int      @default(0)
-  tutorMessagesTotal     Int      @default(0)
-  testsThisWeek          Int      @default(0)
-  testsLastWeek          Int      @default(0)
-  avgScoreThisWeek       Float?
-  avgScoreLastWeek       Float?
-  avgScoreOverall        Float?
-  engagementStreak       Int      @default(0)
-  lastActiveDate         DateTime?
-  lastTutorActiveAt      DateTime?
-  lastTutorLanguage      String?
-  lastTutorTopic         String?
-  wellbeingTier          String   @default("green")
-  moodScore              Int      @default(50)
-  engagementScore        Int      @default(50)
-  frustrationCount       Int      @default(0)
-  avoidanceCount         Int      @default(0)
-  enthusiasmCount        Int      @default(0)
-  needsPsychAlert        Boolean  @default(false)
-  needsEducationalAlert  Boolean  @default(false)
-  needsMentorshipAlert   Boolean  @default(false)
-  alertReasonsJson       String   @default("[]")
-  weekRolloverAt         DateTime?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([wellbeingTier])
-  @@index([lastActiveDate])
-}
-
-// StudentAlert
-model StudentAlert {
-  id              String    @id @default(cuid())
-  userId          String
-  type            String
-  severity        String    @default("amber")
-  reason          String
-  metric          String
-  metricValue     String
-  status          String    @default("open")
-  createdAt       DateTime  @default(now())
-  resolvedAt      DateTime?
-  resolvedBy      String?
-  resolutionNote  String?
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@index([userId, status])
-  @@index([type, status])
-  @@index([createdAt])
-}
-
 // ChatSession
 model ChatSession {
-  id                String    @id @default(cuid())
-  userId            String
-  chatbotType       String
-  week              Int?
-  topic             String?
-  status            String    @default("in_progress")
-  score             Int?
-  totalQuestions    Int?
-  currentQuestion   Int       @default(0)
-  conversation      String    @default("[]")
-  behavioralSignals String?
-  psychAnalysis     String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  completedAt       DateTime?
+  id              String    @id @default(cuid())
+  userId          String
+  chatbotType     String
+  week            Int?
+  topic           String?
+  status          String    @default("in_progress")
+  score           Int?
+  totalQuestions  Int?
+  currentQuestion Int       @default(0)
+  conversation    String    @default("[]")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -974,29 +775,13 @@ model ChatSession {
 
 // Institution
 model Institution {
-  id            String   @id @default(cuid())
-  name          String
-  logoUrl       String?
-  contactEmail  String
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  name         String
+  logoUrl      String?
+  contactEmail String
+  createdAt    DateTime @default(now())
 
-  users         User[]
-  courses       Course[]
-  certificates  Certificate[]
-}
-
-// GrowthReport
-model GrowthReport {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  courseId          String?
-  generatedAt       DateTime @default(now())
-  strengths         String
-  growthAreas       String
-  dimensionSnapshot String
-  behavioralNotes   String?
-
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+  users        User[]
+  courses      Course[]
+  certificates Certificate[]
 }

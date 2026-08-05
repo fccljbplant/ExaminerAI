@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const {
     userId, week, grade, score, strengths, weaknesses,
-    workHabits, progress, nextSteps, examinerObservations,
+    progress, nextSteps,
   } = body as Record<string, unknown>;
   if (!userId || !week) {
     return NextResponse.json({ error: "userId and week required" }, { status: 400 });
@@ -47,10 +47,8 @@ export async function POST(req: NextRequest) {
   const MAX_TEXT = 10_000;
   if (strengths && String(strengths).length > MAX_TEXT) return NextResponse.json({ error: "strengths too long" }, { status: 400 });
   if (weaknesses && String(weaknesses).length > MAX_TEXT) return NextResponse.json({ error: "weaknesses too long" }, { status: 400 });
-  if (workHabits && String(workHabits).length > MAX_TEXT) return NextResponse.json({ error: "workHabits too long" }, { status: 400 });
   if (progress && String(progress).length > MAX_TEXT) return NextResponse.json({ error: "progress too long" }, { status: 400 });
   if (nextSteps && String(nextSteps).length > MAX_TEXT) return NextResponse.json({ error: "nextSteps too long" }, { status: 400 });
-  if (examinerObservations && String(examinerObservations).length > MAX_TEXT) return NextResponse.json({ error: "examinerObservations too long" }, { status: 400 });
   const numScore = Number(score ?? 0);
   if (isNaN(numScore) || numScore < 0 || numScore > 100) return NextResponse.json({ error: "score must be 0-100" }, { status: 400 });
   const card = await db.reportCard.upsert({
@@ -62,20 +60,16 @@ export async function POST(req: NextRequest) {
       score: Number(score ?? 0),
       strengths: JSON.stringify(strengths ?? []),
       weaknesses: JSON.stringify(weaknesses ?? []),
-      workHabits: String(workHabits ?? ""),
       progress: String(progress ?? ""),
       nextSteps: JSON.stringify(nextSteps ?? []),
-      examinerObservations: String(examinerObservations ?? ""),
     },
     update: {
       grade: String(grade ?? "B"),
       score: Number(score ?? 0),
       strengths: JSON.stringify(strengths ?? []),
       weaknesses: JSON.stringify(weaknesses ?? []),
-      workHabits: String(workHabits ?? ""),
       progress: String(progress ?? ""),
       nextSteps: JSON.stringify(nextSteps ?? []),
-      examinerObservations: String(examinerObservations ?? ""),
     },
   });
   return NextResponse.json({ reportCard: card });

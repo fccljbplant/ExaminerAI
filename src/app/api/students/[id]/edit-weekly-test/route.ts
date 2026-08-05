@@ -11,18 +11,11 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *  Body:
  *    - week: number (1..courseDuration, required — identifies which weekly test to edit)
  *    - score?: number (0-100)
- *    - psychAnalysis?: string
- *    - examinerComment?: string
  *
  *  Only fields that are present in the body are updated. The teacher can
- *  use this to:
- *    - Correct an unfair AI score (e.g. raise a 35% to a 50%)
- *    - Soften a harsh psychological analysis
- *    - Rewrite the examiner comment to be more encouraging
+ *  use this to correct an unfair AI score (e.g. raise a 35% to a 50%).
  *
- *  The original AI values are NOT preserved — this overwrites them. If the
- *  teacher wants to keep the AI values, they should copy them somewhere
- *  before editing.
+ *  The original AI values are NOT preserved — this overwrites them.
  */
 export async function PATCH(
   req: NextRequest,
@@ -43,8 +36,8 @@ export async function PATCH(
   }
 
   const body = await req.json().catch(() => ({}));
-  const { week, score, psychAnalysis, examinerComment } = body as {
-    week?: number; score?: number; psychAnalysis?: string; examinerComment?: string;
+  const { week, score } = body as {
+    week?: number; score?: number;
   };
 
   // Look up the student's course duration (defaults to 6 if no course assigned)
@@ -77,17 +70,15 @@ export async function PATCH(
     }
     data.score = s;
   }
-  if (psychAnalysis !== undefined) data.psychAnalysis = String(psychAnalysis).trim() || null;
-  if (examinerComment !== undefined) data.examinerComment = String(examinerComment).trim() || null;
 
   if (Object.keys(data).length === 0) {
-    return NextResponse.json({ error: "Nothing to update — provide score, psychAnalysis, or examinerComment." }, { status: 400 });
+    return NextResponse.json({ error: "Nothing to update — provide score." }, { status: 400 });
   }
 
   const updated = await db.weeklyTest.update({
     where: { id: existing.id },
     data,
-    select: { id: true, week: true, score: true, psychAnalysis: true, examinerComment: true, status: true },
+    select: { id: true, week: true, score: true, status: true },
   });
 
   return NextResponse.json({

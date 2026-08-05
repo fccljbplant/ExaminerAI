@@ -45,7 +45,6 @@ export async function GET(req: Request) {
       weeklyTests: { orderBy: { week: "asc" }, take: 50 },
       interactions: { select: { week: true, correctness: true, date: true, plagiarismScore: true }, take: 500 },
       reportCards: { orderBy: { week: "asc" }, take: 50 },
-      psychObs: { orderBy: { week: "asc" }, take: 100 },
       projectReports: { orderBy: { week: "asc" }, take: 50 },
       tasks: { select: { status: true, isMilestone: true, week: true }, take: 200 },
     },
@@ -141,15 +140,11 @@ export async function GET(req: Request) {
   for (const t of completedTests) {
     const w = t.week;
     const phase = await getCourseWeekPhase(targetUserId, w);
-    testSummariesArr.push(`Week ${w} (${phase}): Score ${t.score}%, Questions answered: ${t.currentQuestion > 0 ? t.currentQuestion : 10}/10. ${t.examinerComment || ""}`);
+    testSummariesArr.push(`Week ${w} (${phase}): Score ${t.score}%, Questions answered: ${t.currentQuestion > 0 ? t.currentQuestion : 10}/10.`);
   }
   const testSummaries = testSummariesArr.join("\n");
 
   const practiceSummary = `Practice questions answered: ${totalPracticeQuestions}, Average score: ${practiceAvg}%`;
-
-  const psychSummary = user.psychObs.length > 0
-    ? user.psychObs.map(o => `Week ${o.week}: confidence=${o.confidence}, engagement=${o.engagement}, cognitiveLoad=${o.cognitiveLoad}, remarks=${o.remarks}`).join("\n")
-    : "No behavioral observations recorded.";
 
   let aiAnalysis: {
     behavioralPattern: string;
@@ -179,9 +174,6 @@ ${testSummaries || "No weekly tests completed yet."}
 
 PRACTICE QUESTIONS:
 ${practiceSummary}
-
-BEHAVIORAL OBSERVATIONS:
-${psychSummary}
 
 Write a final assessment with these sections:
 1. BEHAVIORAL PATTERN ANALYSIS (3-4 sentences in SIMPLE English: How does this student think and learn? Are they consistent? Do they engage deeply or surface-level? What patterns do you see across weeks?)

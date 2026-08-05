@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StudentRow } from "@/components/examiner/instructor/types";
-import { InstructorLoadPanel } from "@/components/examiner/instructor/InstructorLoadPanel";
 import { ActionDialog, type ActionDialogData } from "@/components/shared/action-dialog";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
@@ -258,10 +257,6 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
 
   return (
     <div className="space-y-4">
-      {/* H10 fix: instructor Load + Wellbeing panel — was completely disconnected
-          (the /api/instructor/load endpoint existed but no UI consumed it). */}
-      <InstructorLoadPanel />
-
       {/* ============================================ */}
       {/* BATCH HEALTH PULSE */}
       {/* ============================================ */}

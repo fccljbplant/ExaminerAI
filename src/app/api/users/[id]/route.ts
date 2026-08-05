@@ -57,8 +57,6 @@ export async function DELETE(
       db.message.deleteMany({ where: { toId: id } }),
       // Password reset requests
       db.passwordResetRequest.deleteMany({ where: { userId: id } }),
-      // Psychology observations
-      db.psychologyObs.deleteMany({ where: { userId: id } }),
       // Report cards
       db.reportCard.deleteMany({ where: { userId: id } }),
       // Competencies
