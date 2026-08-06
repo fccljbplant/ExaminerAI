@@ -45,6 +45,7 @@ import { SelfPacedAdvanceButton } from "@/components/examiner/student/SelfPacedA
 import { GanttPanel } from "@/components/examiner/student/GanttPanel";
 import { redirectToView } from "@/components/examiner/student/shared";
 import { DailyTestPanel } from "@/components/examiner/student/DailyTestPanel";
+import TodayView from "@/components/examiner/student/TodayView";
 import { CollapsibleCard, CardRefreshButton } from "@/components/shared/collapsible-card";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -123,6 +124,11 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
         <div className="flex items-center justify-center py-2 text-xs text-muted-foreground">
           <Loader2 className="h-3 w-3 animate-spin mr-2" /> Refreshing…
         </div>
+      )}
+
+      {/* TodayView — the modern "what do I do next?" landing card */}
+      {view === "home" && (
+        <TodayView onNavigate={(v) => setView(v as StudentView)} />
       )}
 
       {/* My Courses overview — course cards from enrollments */}

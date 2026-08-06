@@ -202,6 +202,7 @@ model User {
   auditLogs               AuditLog[]
   skillMastery            SkillMastery[]
   dailyTests              DailyTest[]
+  drillCards              DrillCard[]
   chatSessions            ChatSession[]
   institutionId           String?
   institution             Institution?           @relation(fields: [institutionId], references: [id], onDelete: SetNull)
@@ -597,6 +598,7 @@ model DailyTest {
   currentQuestion Int               @default(0)
   replyCount      Int               @default(0)
   conversation    String            @default("[]")
+  difficultyState String            @default("{\"level\":1,\"streak\":0,\"history\":[]}")
   createdAt       DateTime          @default(now())
   courseId        String?
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -607,6 +609,27 @@ model DailyTest {
   @@index([userId, date])
   @@index([userId, status])
   @@index([courseId])
+}
+
+/// Spaced-repetition drill cards generated from wrong answers.
+/// When a trainee scores < 60 on a question, a DrillCard is created
+/// with the question digest + correct explanation. Due in 2 days,
+/// then re-queued until the trainee demonstrates mastery.
+model DrillCard {
+  id              String   @id @default(cuid())
+  userId          String
+  topic           String
+  questionDigest  String
+  explanation     String   @default("")
+  dueAt           DateTime
+  attempts        Int      @default(0)
+  lastScore       Int      @default(0)
+  masteredAt      DateTime?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dueAt])
+  @@index([userId, masteredAt])
 }
 
 model DailyTestAnswer {
