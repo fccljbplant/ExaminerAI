@@ -69,7 +69,6 @@ model Course {
   weeklyTests        WeeklyTest[]
   reportCards        ReportCard[]
   dailyTests         DailyTest[]
-  drillCards         DrillCard[]
   curriculumProgress CurriculumProgress[]
 }
 
