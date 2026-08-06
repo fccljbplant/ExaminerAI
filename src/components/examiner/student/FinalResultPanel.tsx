@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { scoreToGrade, gradeColor, PILLARS } from "@/lib/constants";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
-  Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, Brain, AlertCircle, RefreshCw,
+  Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, AlertCircle, RefreshCw,
   Sun, Moon, Monitor, Plus, Edit3, Save, Trash2, X, BookOpen, ArrowLeft, MessageSquare,
   ChevronDown, ChevronRight, Bot, ShieldAlert, Award, ExternalLink,
 } from "lucide-react";
@@ -27,7 +27,6 @@ export function FinalResultPanel() {
     totalPracticeQuestions: number;
     avgPlagiarism: number;
     weekBreakdown: { week: number; phase: string; weeklyTestScore: number | null; weeklyTestStatus: string; questionsAnswered: number; practiceCount: number; practiceAvg: number | null; plagiarismScore: number | null }[];
-    behavioralPattern: string;
     areasToImprove: string[];
     overallAssessment: string;
     careerReadiness: string;
@@ -49,7 +48,6 @@ export function FinalResultPanel() {
       totalPracticeQuestions: number;
       avgPlagiarism: number;
       weekBreakdown: { week: number; phase: string; weeklyTestScore: number | null; weeklyTestStatus: string; questionsAnswered: number; practiceCount: number; practiceAvg: number | null; plagiarismScore: number | null }[];
-      behavioralPattern: string;
       areasToImprove: string[];
       overallAssessment: string;
       careerReadiness: string;
@@ -140,15 +138,6 @@ export function FinalResultPanel() {
         {/* SDT rebalance: Average Plagiarism Risk hidden from student — instructor only.
             The old UI showed this permanently on the report card, which made students
             feel surveilled even when their score was low. Teachers see it in the portfolio. */}
-
-        {/* Behavioral Pattern Analysis */}
-        <div className="rounded-md bg-muted/50 p-3">
-          <p className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-1.5">
-            <Brain className="h-3.5 w-3.5 text-violet-600" /> Your Engagement Pattern
-            <span className="ml-2 text-[9px] text-muted-foreground italic">(AI-generated)</span>
-          </p>
-          <p className="text-sm text-foreground/80 leading-relaxed">{data.behavioralPattern || "Not enough data yet."}</p>
-        </div>
 
         {/* Overall Assessment */}
         <div className="rounded-md bg-primary/5 border border-primary/20 p-3">

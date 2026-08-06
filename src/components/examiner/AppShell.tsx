@@ -8,14 +8,12 @@ import Login, { type PublicUser } from "./Login";
 import StudentDashboard from "./StudentDashboard";
 import InstructorDashboard from "./InstructorDashboard";
 import AdminDashboard from "./AdminDashboard";
-import GuardianDashboard from "./GuardianDashboard";
 import { AITutor } from "@/modules/ai-tutor";
 import { InstructorAITutor } from "@/modules/ai-assistant";
 import Messages from "./Messages";
 import CourseOutline from "./CourseOutline";
 import CoursePlanner from "./CoursePlanner";
 import { SettingsPanel } from "./SettingsPanel";
-import GuardianReportCards from "./GuardianReportCards";
 import { AskMyInstructor } from "./AskMyInstructor";
 import ErrorBoundary from "./ErrorBoundary";
 import {
@@ -430,8 +428,6 @@ export default function AppShell() {
       case "checkin": return wrap(<StudentDashboard key={`study-${navClickCount}`} initialMode="checkin" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" enrollments={enrollments} activeCourseId={activeCourseId} />);
-      case "guardian-dashboard": return wrap(<GuardianDashboard key={`guardian-${navClickCount}`} onMessage={() => navigateTo("messages")} />);
-      case "guardian-progress": return wrap(<GuardianReportCards key={`guardian-progress-${navClickCount}`} />);
       case "instructor-today": return wrap(<InstructorDashboard key={`today-${navClickCount}`} initialTab="today" courseId={activeCourseId} />);
       case "instructor-students": return wrap(<InstructorDashboard key={`students-${navClickCount}`} initialTab="students" courseId={activeCourseId} />);
       case "instructor-assignments": return wrap(<InstructorDashboard key={`assignments-${navClickCount}`} initialTab="assignments" courseId={activeCourseId} />);

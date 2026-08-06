@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ExaminerAI — AI-Powered Bootcamp Management Platform",
-  description: "AI-powered bootcamp platform for software training (up to 6 months). Students build real capstone projects. Socratic test chatbots (never MCQs). 7-dimension psychological cycle. AI mentorship at scale.",
-  keywords: ["ExaminerAI", "bootcamp", "software training", "Socratic assessment", "AI tutor", "project-based learning", "capstone", "mentorship", "AI mentorship"],
+  title: "TraineesAI — AI-Driven Training for Engineering Internees",
+  description: "AI teaches. AI tests. Human mentors. The training platform that takes the training burden off busy engineers and managers.",
+  keywords: ["TraineesAI", "engineering training", "internship", "AI tutor", "Socratic assessment", "project-based learning", "mentorship"],
   authors: [{ name: "Inzet Enterprises" }],
   icons: {
     icon: "/logo.svg",

@@ -195,9 +195,7 @@ export function ReportCardPanel({ reportCards, comments, studentId, courseId }: 
                 </ul>
               </div>
             </div>
-            <div><p className="text-xs text-muted-foreground">Work Habits</p><p className="text-foreground">{rc.workHabits}</p></div>
             <div><p className="text-xs text-muted-foreground">Progress</p><p className="text-foreground">{rc.progress}</p></div>
-            <div><p className="text-xs text-muted-foreground">Examiner Observations</p><p className="text-foreground">{rc.examinerObservations}</p></div>
             <div>
               <p className="text-xs text-secondary-foreground mb-1">Next Steps</p>
               <ul className="text-foreground/80 list-disc list-inside">

@@ -18,8 +18,7 @@ import {
 } from "lucide-react";
 
 // ============================================================
-// 6 ROLES — every role now has its own dedicated dashboard
-// (the previous landing page was missing Counselor + Guardian)
+// 4 ROLES — every role now has its own dedicated dashboard
 // ============================================================
 const ROLES = [
   {
@@ -45,56 +44,26 @@ const ROLES = [
     chip: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
     screenshot: "/screenshots/dashboard-teacher.png",
     tagline: "See every student. Know what to do next.",
-    desc: "Batch dashboard with attention-scored triage queue, 7-dimension psychology per student, GROW coaching tools, AI Assistant for natural-language batch queries, automated alerts.",
+    desc: "Batch dashboard with attention-scored triage queue, per-student academic portfolio, AI Assistant for natural-language batch queries, and automated alerts for inactivity and score drops.",
     stats: [
       { label: "Attention score", value: "Auto" },
-      { label: "Psych dimensions", value: "7" },
-      { label: "Coaching model", value: "GROW" },
+      { label: "AI Assistant", value: "Batch" },
+      { label: "Triage", value: "Ranked" },
     ],
   },
   {
-    id: "counselor",
-    label: "Counsellor",
-    icon: Brain,
-    accent: "from-rose-500 to-pink-500",
-    chip: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
-    screenshot: "/screenshots/dashboard-counselor.png",
-    tagline: "A command center for wellbeing.",
-    desc: "Institution-wide caseload with green/warning/red wellbeing tiers, crisis flag management, mentorship touchpoints, case reviews, and scoped access (wellbeing only, no curriculum leak).",
-    stats: [
-      { label: "Wellbeing tiers", value: "3" },
-      { label: "Crisis response", value: "Now" },
-      { label: "Scope", value: "Strict" },
-    ],
-  },
-  {
-    id: "guardian",
-    label: "Guardian",
-    icon: HeartPulse,
-    accent: "from-fuchsia-500 to-purple-500",
-    chip: "bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/40 dark:text-fuchsia-300",
-    screenshot: "/screenshots/dashboard-guardian.png",
-    tagline: "Parents see progress. Not noise.",
-    desc: "A clean, parent-friendly view of their child's academic progress, attendance, report cards, and wellbeing signals — without exposing internal psych evidence or teacher notes.",
-    stats: [
-      { label: "Report cards", value: "Auto" },
-      { label: "Wellbeing signal", value: "Tier" },
-      { label: "Internal notes", value: "Hidden" },
-    ],
-  },
-  {
-    id: "principal",
-    label: "Principal",
+    id: "coordinator",
+    label: "Coordinator",
     icon: Building2,
     accent: "from-purple-500 to-indigo-500",
     chip: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300",
     screenshot: "/screenshots/dashboard-principal.png",
     tagline: "Run the institution on signal, not gut.",
-    desc: "Institution-wide analytics: academic performance distribution, teacher load tiers, safeguarding flags, audit log, wellbeing trends. The only role that sees safeguarding flags against teachers.",
+    desc: "Institution-wide analytics: academic performance distribution, instructor load, audit log, cohort trends. Coordinator oversees course alignment and instructor coverage.",
     stats: [
       { label: "Instructor load", value: "Tiered" },
       { label: "Audit log", value: "Full" },
-      { label: "Safeguarding", value: "Exclusive" },
+      { label: "Cohorts", value: "All" },
     ],
   },
   {
@@ -115,14 +84,14 @@ const ROLES = [
 ];
 
 // ============================================================
-// AI ASSISTANT — 7 sections (was missing from old landing page)
+// AI ASSISTANT — systems that scope data and answer questions
 // ============================================================
 const AI_SECTIONS = [
   {
     num: "01",
     icon: Compass,
     title: "Scope Resolver",
-    desc: "Every AI query is scoped BEFORE the call. Teachers see only their batch. Counselors see wellbeing only. Principals see everything. The AI never receives data outside the caller's scope.",
+    desc: "Every AI query is scoped BEFORE the call. Teachers see only their batch. Coordinators see institution-wide academics. The AI never receives data outside the caller's scope.",
     color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30",
   },
   {
@@ -135,133 +104,82 @@ const AI_SECTIONS = [
   {
     num: "03",
     icon: TrendingUp,
-    title: "Escalation Engine",
-    desc: "Amber flags unresolved 7+ days auto-escalate to red. Repeat occurrences escalate faster (3rd = immediate, 2nd = 2-day timer). Runs as scheduled job + on-write check.",
+    title: "Attention Score",
+    desc: "Students auto-ranked by who needs help most: inactivity (3d = +30), score drop (+20), low practice (+20), blocked tasks (+10). The batch tells you who to talk to today.",
     color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30",
   },
   {
     num: "04",
     icon: MessageSquare,
     title: "Action Dialog",
-    desc: "One reusable dialog for every flag type. AI-drafted headline, why, suggested action, 3 one-tap note presets. Confirm disabled until note provided. Cancel always available.",
+    desc: "One reusable dialog for every alert type. AI-drafted headline, why, suggested action, 3 one-tap note presets. Confirm disabled until note provided. Cancel always available.",
     color: "text-fuchsia-600 bg-fuchsia-50 dark:bg-fuchsia-950/30",
   },
   {
     num: "05",
-    icon: ShieldAlert,
-    title: "Safeguarding Mode",
-    desc: "Deterministic pre-filter first, AI explains candidates. Requires 2+ corroborating signals — never a single message. Flags go to principal scope only. Teacher is NOT notified. Dismissed, not deleted.",
-    color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30",
-  },
-  {
-    num: "06",
     icon: Scale,
-            title: "Instructor Load",
-    desc: "loadScore = students × 1 + batches × 15 + alerts × 5 + crisis × 25 + overdue × 3. Green < 50, warning 50-99, red ≥ 100. Co-teacher suggestions NEVER propose warning/red candidates.",
+    title: "Instructor Load",
+    desc: "loadScore = students × 1 + batches × 15 + alerts × 5 + overdue × 3. Green < 50, warning 50-99, red ≥ 100. Co-teacher suggestions NEVER propose warning/red candidates.",
     color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30",
   },
   {
-    num: "07",
+    num: "06",
     icon: Lightbulb,
     title: "In-Action Teaching",
-    desc: "Per-flag-type guidance: psychological → 'Ask don't tell'. Educational → 'Process not outcome'. Mentorship → 'Reality before Goal'. Safeguarding → 'Review evidence'. Crisis → 'Act now, document after'.",
+    desc: "Per-alert-type guidance: inactivity → 'Reach out and check in'. Score drop → 'Review missed concepts together'. Blocked task → 'Pair them with a peer'. Always actionable.",
     color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30",
   },
 ];
 
 // ============================================================
-// MENTORSHIP & MENTAL HEALTH — the human cycle that closes the loop
-// AI surfaces signal. Humans provide judgment. Every action is audited.
-// See docs/PSYCHOLOGICAL-CYCLE.md and docs/MENTORSHIP-CYCLE.md.
+// HUMAN MENTORING AT SCALE — AI surfaces signal. Humans provide judgment.
 // ============================================================
-const PSYCH_CYCLE_STAGES = [
+const MENTOR_LOOP_STAGES = [
   {
     num: "1",
     icon: MessageCircle,
     title: "Observe",
     short: "Every interaction",
-    desc: "AI Tutor chat, daily tests, weekly tests, project reports — every student interaction is a data point. Real-time heuristic analysis (mood, engagement, frustration, avoidance) runs in <1ms with no AI call.",
+    desc: "AI Tutor chat, daily tests, weekly tests, project reports — every student interaction is a data point. Real-time engagement analysis runs in <1ms with no AI call.",
     color: "from-blue-500/10 to-cyan-500/10",
     iconColor: "text-blue-600",
   },
   {
     num: "2",
-    icon: Brain,
-    title: "Analyze",
-    short: "7 dimensions, every test",
-    desc: "After every test, the pipeline writes 7 PsychEvidence rows — calibration, explanatory depth, gaming pattern, attribution, cognitive load, SRL phase, fluency. Grounded in Dunning-Kruger, Sweller, Zimmerman, Dweck, Fredericks.",
-    color: "from-fuchsia-500/10 to-purple-500/10",
-    iconColor: "text-fuchsia-600",
-  },
-  {
-    num: "3",
     icon: Activity,
-    title: "Tier",
-    short: "Green / Warning / Red",
-    desc: "14-day rolling window of evidence is reduced to a single wellbeing tier. >60% concerning signals = red. Any open crisis flag = red. Trajectory, not snapshot — a single bad day doesn't trigger anything.",
+    title: "Triage",
+    short: "Attention-scored queue",
+    desc: "Students auto-ranked by who needs help most. Attention score = inactivity (3d = +30) + score drop (+20) + low practice (+20) + blocked tasks (+10). The batch tells you who to talk to today.",
     color: "from-amber-500/10 to-rose-500/10",
     iconColor: "text-amber-600",
   },
   {
-    num: "4",
+    num: "3",
     icon: Bell,
     title: "Alert",
-    short: "Attention-scored triage",
-    desc: "Students auto-ranked by who needs help most. Attention score = inactivity (3d = +30) + score drop (+20) + low confidence (+20) + blocked tasks (+10) + high cognitive load (+15). Tier transitions auto-create touchpoints.",
+    short: "Actionable notifications",
+    desc: "Inactivity, score drops, and blocked tasks trigger alerts. AI Assistant drafts the check-in message. Teacher confirms, edits, and sends. Every action recorded.",
     color: "from-rose-500/10 to-pink-500/10",
     iconColor: "text-rose-600",
   },
   {
-    num: "5",
-    icon: TrendingUp,
-    title: "Escalate",
-    short: "Warning → red, intelligently",
-    desc: "One engine, two triggers: warning unresolved 7+ days → red. 3rd repeat occurrence → immediate red. 2nd repeat → shortened 2-day timer. Applies to wellbeing, safeguarding, teacher load — all flag sources.",
-    color: "from-purple-500/10 to-indigo-500/10",
-    iconColor: "text-purple-600",
-  },
-  {
-    num: "6",
+    num: "4",
     icon: Target,
     title: "Mentor",
-    short: "GROW coaching + AI-drafted action",
-    desc: "AI Assistant drafts: headline, why, suggested action, 3 one-tap note presets. Confirm disabled until teacher writes a note. Session recorded as MentorshipTouchpoint with outcome + follow-up. Every intervention auditable.",
+    short: "AI-drafted, human-sent",
+    desc: "AI Assistant drafts: headline, why, suggested action, 3 one-tap note presets. Confirm disabled until teacher writes a note. Every intervention auditable.",
     color: "from-emerald-500/10 to-teal-500/10",
     iconColor: "text-emerald-600",
   },
 ];
 
-const SAFEGUARDING_PRINCIPLES = [
-  {
-    icon: ShieldAlert,
-    title: "Deterministic pre-filter first",
-    desc: "Regex patterns scan every teacher-to-student message. The AI never raises a flag on its own — the regex must match first. False negatives acceptable; false positives not.",
-  },
-  {
-    icon: Users,
-    title: "Two-plus corroboration required",
-    desc: "A single message never produces a flag. Two corroborating signals in a 14-day window, same category, same teacher — only then is a flag created. Prevents reactive flags from heated exchanges.",
-  },
-  {
-    icon: Lock,
-    title: "Principal-only visibility",
-    desc: "Safeguarding flags about a teacher go to principal scope only. The teacher is NOT notified. The one deliberate exception to 'insight stays with caller' — student safety outranks teacher transparency.",
-  },
-  {
-    icon: ScrollText,
-    title: "Dismissed, not deleted",
-    desc: "A principal who reviews and dismisses a flag marks it dismissed with a required note. The flag persists in the audit trail permanently. Patterns can be reviewed historically.",
-  },
-];
-
-const PSYCH_DIMENSIONS = [
-  { num: "1", name: "Calibration", desc: "Does the student know what they know? (Dunning-Kruger gap.)", icon: Target, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
-  { num: "2", name: "Explanatory Depth", desc: "Surface answers vs. step-by-step reasoning.", icon: Lightbulb, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
-  { num: "3", name: "Gaming Pattern", desc: "Voice-inconsistency detection flags AI-generated answers.", icon: Eye, color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30" },
-  { num: "4", name: "Attribution / Mindset", desc: "Growth vs. fixed mindset, with avoidance detection.", icon: Brain, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30" },
-  { num: "5", name: "Cognitive Load", desc: "Is the material at the edge of ability (Sweller)?", icon: Cpu, color: "text-orange-600 bg-orange-50 dark:bg-orange-950/30" },
-  { num: "6", name: "SRL Phase", desc: "Forethought → Performance → Reflection (Zimmerman).", icon: TrendingUp, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
-  { num: "7", name: "Fluency / Retention", desc: "Improving, stable, or declining recall during a test.", icon: Activity, color: "text-fuchsia-600 bg-fuchsia-50 dark:bg-fuchsia-950/30" },
+const PLATFORM_FEATURES = [
+  { icon: Bot, title: "Multi-Provider AI", desc: "DeepSeek V4 Flash (primary, cheap + fast), Z.ai (fallback). Automatic failover. Token cache for repeat calls." },
+  { icon: ShieldCheck, title: "Role-Based RBAC", desc: "Granular permissions with IDOR protection, AccessGrant scoping (full / read-only / coordinator), and rate limiting per role." },
+  { icon: Database, title: "Lightweight Telemetry", desc: "1 DB upsert per AI Tutor message (not 15-20). Scales to 10,000+ students without DB flooding. Best-effort pipelines never block UX." },
+  { icon: Bell, title: "Automated Alert Engine", desc: "Academic alerts fire automatically on threshold crossings: inactivity, score drops, blocked tasks. AI-drafted notes per alert." },
+  { icon: ScrollText, title: "Audit & Compliance", desc: "Every sensitive action logged: role changes, approvals, blocks, grants, AI key changes. Full audit trail for institutional compliance." },
+  { icon: Palette, title: "Live Theme System", desc: "4 preset themes switchable from the sidebar — applied instantly via CSS variables. Modern Slate, Ocean Blue, Forest Sage, Sunset Rose." },
 ];
 
 const THEMES = [
@@ -271,42 +189,33 @@ const THEMES = [
   { name: "Sunset Rose", desc: "Rose primary, amber accents.", colors: ["#e11d48", "#f59e0b", "#fff1f2"] },
 ];
 
-const PLATFORM_FEATURES = [
-  { icon: Bot, title: "Multi-Provider AI", desc: "DeepSeek V4 Flash (primary, cheap + fast), Z.ai (fallback). Automatic failover. Token cache for repeat calls." },
-  { icon: ShieldCheck, title: "7-Role RBAC", desc: "Granular permissions with IDOR protection, AccessGrant scoping (full / wellbeing_only / crisis_only / content_only), and rate limiting per role." },
-  { icon: Database, title: "Lightweight Telemetry", desc: "1 DB upsert per AI Tutor message (not 15-20). Scales to 10,000+ students without DB flooding. Best-effort pipelines never block UX." },
-  { icon: Bell, title: "Automated Alert Engine", desc: "Psychological, educational, and mentorship alerts fire automatically on threshold crossings. 7-day warning timer + repeat-occurrence escalation." },
-  { icon: ScrollText, title: "Audit & Compliance", desc: "Every sensitive action logged: role changes, approvals, blocks, grants, AI key changes. Full audit trail for institutional compliance." },
-  { icon: Palette, title: "Live Theme System", desc: "4 preset themes switchable from the sidebar — applied instantly via CSS variables. Modern Slate, Ocean Blue, Forest Sage, Sunset Rose." },
-];
-
 const STUDENT_FEATURES = [
   { icon: GitBranch, title: "Capstone Project Planning", desc: "Define your project on day one. AI generates N weeks × 5 tasks/week with milestones, daily schedule, and time estimates. Gantt chart + per-week summaries + final capstone analysis." },
-  { icon: Bot, title: "AI Tutor", desc: "Friendly chatbot that teaches today's topic in your language, connects every concept to your capstone project, and handles disengagement with empathy." },
-  { icon: ClipboardCheck, title: "Socratic Daily Test", desc: "3-question check-in on today's topic with confidence self-rating. Per-question explanations revealed immediately, not at end-of-test." },
-  { icon: FileText, title: "Weekly Test + Project Report", desc: "15-question Socratic exam with plagiarism analysis + 7-dimension psychology. Plus weekly project report analyzed on 4 dimensions: understanding, depth, progress, clarity." },
+  { icon: Bot, title: "AI Tutor", desc: "Friendly chatbot that teaches today's topic in your language, connects every concept to your capstone project, and meets you where you are." },
+  { icon: ClipboardCheck, title: "Socratic Daily Test", desc: "3-question check-in on today's topic. Per-question explanations revealed immediately, not at end-of-test." },
+  { icon: FileText, title: "Weekly Test + Project Report", desc: "15-question Socratic exam with plagiarism analysis. Plus weekly project report analyzed on 4 dimensions: understanding, depth, progress, clarity." },
   { icon: Lightbulb, title: "Per-Question Explanations", desc: "Correct answer, why it's correct, specific encouragement — immediately after every question. Learn from every question." },
   { icon: GanttChartSquare, title: "Gantt + Milestones", desc: "Visual timeline of all project tasks. Milestones highlighted. Always know where you are vs. where you should be." },
   { icon: Award, title: "Report Cards & Certificates", desc: "Auto-generated from test scores (80% weekly + 20% practice) + final capstone analysis. Certificates are publicly verifiable via shareable URL." },
-  { icon: Calendar, title: "Daily Check-in + Ask My Teacher", desc: "Confidence rating + learning reflection every day. Floating button for quick questions to your assigned teacher." },
+  { icon: Calendar, title: "Daily Check-in + Ask My Teacher", desc: "Daily learning reflection + what confused you. Floating button for quick questions to your assigned teacher." },
 ];
 
 const TEACHER_FEATURES = [
   { icon: GitBranch, title: "Project Progress Visibility", desc: "See every student's capstone progress at a glance. Tasks completed, milestones hit, blocked items, weekly report scores. No more 'are they on track?' guesswork." },
-  { icon: Users, title: "Attention-Scored Triage", desc: "Students auto-ranked by who needs help most: inactivity, score drops, low confidence, blocked tasks, high cognitive load. The batch tells you who to talk to today." },
-  { icon: Brain, title: "7-Dimension Psychology", desc: "Calibration, explanatory depth, gaming pattern, attribution, cognitive load, SRL phase, fluency — with concrete teacher actions per dimension." },
-  { icon: Target, title: "GROW Mentorship", desc: "Structured coaching: Goal, Reality, Options, Will. Alert-driven actions, outcome tracking, follow-up scheduling. AI-drafted check-in messages." },
+  { icon: Users, title: "Attention-Scored Triage", desc: "Students auto-ranked by who needs help most: inactivity, score drops, low practice volume, blocked tasks. The batch tells you who to talk to today." },
+  { icon: Activity, title: "Skill Mastery Tracking", desc: "Per-topic mastery computed from practice + test data — turns 'week 3: 68%' into 'database queries: developing, custom post types: proficient'. Actionable specificity." },
+  { icon: Target, title: "Actionable Interventions", desc: "Alert-driven actions with outcome tracking, follow-up scheduling, and AI-drafted check-in messages. Every intervention documented." },
   { icon: Bot, title: "AI Assistant", desc: "Natural-language batch queries: 'Who's likely to drop off?' — answered from existing data with cited student evidence. Scope-aware: teachers only see their batch." },
-  { icon: Bell, title: "Automated Alerts", desc: "Psych / educational / mentorship alerts fire automatically when students cross thresholds. Action dialog with AI-drafted notes. 7-day warning timer + escalation engine." },
+  { icon: Bell, title: "Automated Alerts", desc: "Academic alerts fire automatically when students cross thresholds: inactivity, score drops, blocked tasks. Action dialog with AI-drafted notes." },
   { icon: BookOpen, title: "Course Planner", desc: "Course CRUD, batch assignment, AI course generation. Full curriculum control with weekly phase + daily topic structure." },
   { icon: BarChart3, title: "Final Project Analysis", desc: "Trigger comprehensive AI capstone evaluation: execution, technical competence, quality, career readiness. Auto-generates strengths, weaknesses, recommendations." },
 ];
 
 const TRUST_STATS = [
-  { value: "6", label: "Role dashboards" },
-  { value: "7", label: "Psych dimensions" },
+  { value: "4", label: "Role dashboards" },
   { value: "0", label: "MCQs (Socratic)" },
   { value: "44+", label: "Data models" },
+  { value: "6mo", label: "Max cohort length" },
 ];
 
 // ============================================================
@@ -373,7 +282,7 @@ const PROJECT_METRICS = [
 
 // ============================================================
 // SOCRATIC TESTING — the anti-MCQ assessment philosophy
-// Three test types, one Socratic method, 7-dimension psych per test
+// Three test types, one Socratic method, plagiarism + voice analysis per test
 // ============================================================
 const TEST_TYPES = [
   {
@@ -390,7 +299,7 @@ const TEST_TYPES = [
     name: "Daily Test",
     cadence: "Every day",
     questions: "3 Socratic questions",
-    desc: "3-question check-in on today's topic with per-question confidence self-rating. The calibration signal flows directly into the 7-dimension pipeline.",
+    desc: "3-question check-in on today's topic. Per-question explanations revealed immediately so students learn from every answer.",
     accent: "from-blue-500/10 to-cyan-500/10",
     iconColor: "text-blue-600",
   },
@@ -399,7 +308,7 @@ const TEST_TYPES = [
     name: "Weekly Test",
     cadence: "End of week",
     questions: "15 Socratic questions, max 5 replies each",
-    desc: "The full psychological snapshot. AI probes reasoning, evaluates with plagiarism analysis, and produces psychAnalysis + examinerComment + 7-dimension evidence.",
+    desc: "The full academic snapshot. AI probes reasoning, evaluates with plagiarism analysis, and produces a score plus an AI-generated examiner comment.",
     accent: "from-fuchsia-500/10 to-purple-500/10",
     iconColor: "text-fuchsia-600",
   },
@@ -409,14 +318,7 @@ const SOCRATIC_PRINCIPLES = [
   { icon: MessageCircle, title: "AI probes, never tells", desc: "The chatbot never gives the answer. It asks 'Why?', 'How would you explain this to a peer?', 'What if the requirement changed?'" },
   { icon: Lightbulb, title: "Per-question explanations", desc: "Correct answer + why it's correct + specific encouragement — revealed immediately after every question, not at end-of-test." },
   { icon: Eye, title: "Plagiarism + voice analysis", desc: "Voice-inconsistency detection flags AI-generated answers. Vocabulary jumps + AI-typical phrasing patterns caught on every weekly test." },
-  { icon: Brain, title: "7 dimensions per test", desc: "Every test writes 7 PsychEvidence rows — calibration, depth, gaming, attribution, cognitive load, SRL phase, fluency. Always." },
-];
-
-const GROW_STEPS = [
-  { letter: "G", title: "Goal", desc: "What does the student want to achieve?", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" },
-  { letter: "R", title: "Reality", desc: "Where are they now? What is the current situation?", color: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" },
-  { letter: "O", title: "Options", desc: "What approaches, strategies, and resources are available?", color: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" },
-  { letter: "W", title: "Will", desc: "What will the student commit to doing next?", color: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" },
+  { icon: TrendingUp, title: "Skill mastery tracking", desc: "Every test feeds the per-topic mastery model — turns raw scores into actionable 'database queries: developing, custom post types: proficient' insights." },
 ];
 
 // ============================================================
@@ -503,8 +405,8 @@ export function ModernLanding() {
             <a href="#projects" className="text-muted-foreground hover:text-foreground transition-colors">Projects</a>
             <a href="#testing" className="text-muted-foreground hover:text-foreground transition-colors">Testing</a>
             <a href="#dashboards" className="text-muted-foreground hover:text-foreground transition-colors">Roles</a>
-            <a href="#mentorship" className="text-muted-foreground hover:text-foreground transition-colors">Mentorship</a>
-            <a href="#psychology" className="text-muted-foreground hover:text-foreground transition-colors">Psychology</a>
+            <a href="#mentorship" className="text-muted-foreground hover:text-foreground transition-colors">Mentoring</a>
+            <a href="#psychology" className="text-muted-foreground hover:text-foreground transition-colors">Mastery</a>
             <a href="#tech" className="text-muted-foreground hover:text-foreground transition-colors">Platform</a>
           </nav>
 
@@ -529,8 +431,8 @@ export function ModernLanding() {
             <a href="#projects" onClick={() => setMobileNav(false)} className="block py-1.5">Projects</a>
             <a href="#testing" onClick={() => setMobileNav(false)} className="block py-1.5">Testing</a>
             <a href="#dashboards" onClick={() => setMobileNav(false)} className="block py-1.5">Roles</a>
-            <a href="#mentorship" onClick={() => setMobileNav(false)} className="block py-1.5">Mentorship</a>
-            <a href="#psychology" onClick={() => setMobileNav(false)} className="block py-1.5">Psychology</a>
+            <a href="#mentorship" onClick={() => setMobileNav(false)} className="block py-1.5">Mentoring</a>
+            <a href="#psychology" onClick={() => setMobileNav(false)} className="block py-1.5">Mastery</a>
             <a href="#themes" onClick={() => setMobileNav(false)} className="block py-1.5">Themes</a>
             <a href="#tech" onClick={() => setMobileNav(false)} className="block py-1.5">Platform</a>
             <Link href="/app" className="block">
@@ -571,7 +473,7 @@ export function ModernLanding() {
               </h1>
 
               <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed">
-                ExaminerAI is the AI-powered bootcamp platform where students learn software by building real capstone projects. The AI teaches, the Socratic test chatbot probes reasoning — <span className="text-amber-300 font-medium">never MCQs</span> — and a 7-dimension psychological cycle turns every interaction into mentorship-grade insight. Teachers mentor at scale. Institutions see signal, not noise.
+                ExaminerAI is the AI-powered bootcamp platform where students learn software by building real capstone projects. The AI teaches, the Socratic test chatbot probes reasoning — <span className="text-amber-300 font-medium">never MCQs</span> — and every interaction feeds per-topic skill mastery plus attention-scored triage. Teachers mentor at scale. Institutions see signal, not noise.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mb-10">
@@ -705,7 +607,7 @@ export function ModernLanding() {
                 num: "03",
                 icon: LineChart,
                 title: "Institutions need signal, not noise.",
-                desc: "Six role-specific dashboards. Automated alerts that escalate intelligently. A natural-language AI Assistant that answers 'who's likely to drop off?' in seconds. Every role gets exactly the signal they need — without drowning in data or flooding the database.",
+                desc: "Four role-specific dashboards. Automated alerts that surface who needs help. A natural-language AI Assistant that answers 'who's likely to drop off?' in seconds. Every role gets exactly the signal they need — without drowning in data or flooding the database.",
                 gradient: "from-fuchsia-500/10 to-purple-500/10",
                 iconColor: "text-fuchsia-600",
               },
@@ -738,7 +640,7 @@ export function ModernLanding() {
                 <span className="text-muted-foreground">Just Socratic dialogue.</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Multiple-choice tests tell you a student picked the right letter. They tell you nothing about how the student reasons, whether they know what they don't know, or whether the answer was even theirs. ExaminerAI uses the Socratic method instead — the AI probes with follow-up questions, the student articulates their reasoning, and the conversation itself becomes the psychological evidence.
+                Multiple-choice tests tell you a student picked the right letter. They tell you nothing about how the student reasons, whether they know what they don't know, or whether the answer was even theirs. ExaminerAI uses the Socratic method instead — the AI probes with follow-up questions, the student articulates their reasoning, and the conversation itself becomes the evidence of understanding.
               </p>
               <div className="grid sm:grid-cols-2 gap-3 mt-8">
                 {SOCRATIC_PRINCIPLES.map(p => (
@@ -792,7 +694,7 @@ export function ModernLanding() {
                 <div className="text-xs uppercase tracking-wider text-amber-600 dark:text-amber-300 font-bold mb-1">Why Socratic, not MCQ</div>
                 <h3 className="text-lg font-semibold mb-2">A score without reasoning is just a number.</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Multiple-choice tests measure recognition, not understanding. They can't detect overconfidence, surface answers, AI-generated responses, fixed mindset, cognitive overload, or fading recall. Socratic dialogue can. Every conversation becomes evidence on <span className="font-medium text-foreground">7 dimensions, every test, every time</span> — feeding the wellbeing tier, the attention score, the AI Assistant's action dialog, and the mentorship cycle that follows.
+                  Multiple-choice tests measure recognition, not understanding. They can't detect overconfidence, surface answers, AI-generated responses, or fading recall. Socratic dialogue can. Every conversation becomes evidence — feeding per-topic mastery, the attention score, the AI Assistant's action dialog, and the mentoring loop that follows.
                 </p>
               </div>
             </div>
@@ -881,7 +783,7 @@ export function ModernLanding() {
       <section id="dashboards" className="py-20 lg:py-28 bg-muted/30 border-y">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <Badge variant="outline" className="mb-3">Six dashboards</Badge>
+            <Badge variant="outline" className="mb-3">Four dashboards</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               Every role. Their own cockpit.
             </h2>
@@ -965,13 +867,13 @@ export function ModernLanding() {
         <div className="container mx-auto px-4 lg:px-8 relative">
           <div className="grid lg:grid-cols-12 gap-10 items-start mb-14">
             <div className="lg:col-span-6">
-              <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">AI Assistant · 7 systems</Badge>
+              <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">AI Assistant · 6 systems</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
                 Not a chatbot.<br />
                 <span className="bg-gradient-to-r from-amber-300 to-fuchsia-300 bg-clip-text text-transparent">A mentorship operating system.</span>
               </h2>
               <p className="text-slate-300 text-lg leading-relaxed">
-                Seven coordinated systems that scope data, cache aggressively, escalate intelligently, draft actions, safeguard students, balance teacher load, and teach the teacher how to intervene — all per role, all auditable.
+                Six coordinated systems that scope data, cache aggressively, score attention, draft actions, balance teacher load, and teach the teacher how to intervene — all per role, all auditable.
               </p>
             </div>
             <div className="lg:col-span-6">
@@ -1015,10 +917,10 @@ export function ModernLanding() {
                 <div className="text-xs uppercase tracking-wider text-amber-300 font-bold mb-1">Real example</div>
                 <p className="text-lg text-white font-medium mb-3">"Who's likely to drop off in the next two weeks?"</p>
                 <p className="text-sm text-slate-300 leading-relaxed">
-                  Sam Ali and Maria Cruz appear most likely to drop off. Both are in the red tier (highest risk) with low progress and low latest scores. Sam has a crisis flag, low engagement, and 14 days since contact; Maria has the longest gap (21 days), declining database queries, and low confidence.
+                  Sam Ali and Maria Cruz appear most likely to drop off. Both have low progress and low latest scores. Sam hasn&apos;t logged in for 14 days and has a blocked task; Maria has the longest gap (21 days), declining database queries, and a recent score drop on the Week 3 test.
                 </p>
                 <div className="mt-3 text-xs text-slate-400">
-                  <span className="font-semibold text-slate-300">References:</span> Sam Ali (red tier, crisisFlags: 1, daysSinceContact: 14) · Maria Cruz (red tier, daysSinceContact: 21, confidence: low)
+                  <span className="font-semibold text-slate-300">References:</span> Sam Ali (progress: 28%, daysSinceContact: 14, blockedTasks: 1) · Maria Cruz (progress: 22%, daysSinceContact: 21, week3ScoreDrop: -18)
                 </div>
               </div>
             </div>
@@ -1027,24 +929,24 @@ export function ModernLanding() {
       </section>
 
       {/* ============================================ */}
-      {/* MENTORSHIP & MENTAL HEALTH — the human cycle */}
+      {/* HUMAN MENTORING AT SCALE — the human loop */}
       {/* ============================================ */}
       <section id="mentorship" className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mb-14">
-            <Badge variant="outline" className="mb-3"><HeartPulse className="w-3 h-3 mr-1" /> Mentorship &amp; Mental Health</Badge>
+            <Badge variant="outline" className="mb-3"><HeartPulse className="w-3 h-3 mr-1" /> Human Mentoring at Scale</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               AI surfaces signal.<br />
               <span className="text-muted-foreground">Humans provide judgment.</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              This is the heart of the platform. Every student interaction feeds a 6-stage cycle that turns behavior into evidence, evidence into tier, tier into alert, alert into mentorship session — with the AI drafting the action and the human confirming it. Every step is auditable. Every intervention is documented. The AI never acts alone.
+              Every student interaction feeds a 4-stage loop that turns activity into attention scores, attention scores into alerts, alerts into a drafted check-in message — with the AI drafting the action and the human confirming it. Every step is auditable. Every intervention is documented. The AI never acts alone.
             </p>
           </div>
 
-          {/* The 6-stage cycle */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-14">
-            {PSYCH_CYCLE_STAGES.map(stage => (
+          {/* The 4-stage loop */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
+            {MENTOR_LOOP_STAGES.map(stage => (
               <div key={stage.num} className={`p-5 rounded-xl bg-gradient-to-br ${stage.color} border`}>
                 <div className="flex items-start gap-3 mb-3">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-background ${stage.iconColor}`}>
@@ -1069,18 +971,17 @@ export function ModernLanding() {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Track 1</div>
-                  <h3 className="font-semibold">Student mentorship &amp; mental health</h3>
+                  <h3 className="font-semibold">Student academic mentoring</h3>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                Teacher is the first responder. Counsellor escalates for psychological concerns. Principal oversees institution-wide. Guardian sees a sanitized view — never the mentorship notes.
+                Teacher is the first responder. Coordinator sees institution-wide academics. The AI Assistant surfaces who needs help today and drafts the check-in message — the teacher sends it.
               </p>
               <ul className="space-y-2 text-xs text-muted-foreground">
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Wellbeing tier (green/warning/red) auto-computed from 14-day evidence window</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Attention-scored triage queue ranks who needs help today</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> GROW coaching sessions: Goal → Reality → Options → Will</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Crisis flag bypasses tier system — immediate counsellor + principal alert</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Every touchpoint recorded with note + outcome + follow-up</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> AI-drafted check-in messages with one-tap note presets</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Per-topic skill mastery highlights exactly what to review</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Every action recorded with note + outcome + follow-up</li>
               </ul>
             </div>
 
@@ -1091,55 +992,28 @@ export function ModernLanding() {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Track 2</div>
-                  <h3 className="font-semibold">Teacher mentorship &amp; load management</h3>
+                  <h3 className="font-semibold">Teacher load management</h3>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                Teachers are people too. Burned-out teachers fail students. Load score = students × 1 + batches × 15 + alerts × 5 + crisis × 25 + overdue × 3. Green &lt; 50, amber 50–99, red ≥ 100.
+                Teachers are people too. Burned-out teachers fail students. Load score = students × 1 + batches × 15 + alerts × 5 + overdue × 3. Green &lt; 50, amber 50–99, red ≥ 100.
               </p>
               <ul className="space-y-2 text-xs text-muted-foreground">
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Teacher sees their own load tier — full transparency</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Principal sees staff load distribution + can reassign</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Coordinator sees staff load distribution + can reassign</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> AI suggests co-teachers — never proposes warning/red candidates</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Wellbeing touchpoints for staff, separate from student notes</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Red-tier load auto-escalates — no 7-day timer</li>
               </ul>
-            </div>
-          </div>
-
-          {/* Safeguarding callout */}
-          <div className="p-6 rounded-2xl bg-slate-950 text-white border border-white/10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl" />
-            <div className="relative">
-              <div className="flex items-start gap-3 mb-4">
-                <ShieldAlert className="w-6 h-6 text-rose-300 flex-shrink-0 mt-1" />
-                <div>
-                  <Badge variant="outline" className="mb-2 bg-rose-500/20 border-rose-500/30 text-rose-200">Safeguarding Mode · Principal-only</Badge>
-                  <h3 className="text-xl font-bold mb-2">The one exception to "insight stays with caller".</h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    Safeguarding flags about a teacher go to the principal scope only. The teacher is never notified. This is the deliberate exception — student safety outranks teacher transparency. The system requires 2+ corroborating signals, never a single message. Deterministic regex pre-filters first; the AI explains candidates but cannot invent flags.
-                  </p>
-                </div>
-              </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-                {SAFEGUARDING_PRINCIPLES.map(p => (
-                  <div key={p.title} className="p-3 rounded-lg bg-white/5 border border-white/10">
-                    <p.icon className="w-4 h-4 text-rose-300 mb-2" />
-                    <div className="text-xs font-semibold text-white mb-1">{p.title}</div>
-                    <div className="text-[11px] text-slate-400 leading-relaxed">{p.desc}</div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 
           {/* What this is NOT */}
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { title: "Not therapy", desc: "Surfaces signals, structures mentorship. Students in crisis need human professionals." },
-              { title: "Not surveillance", desc: "Observes learning behavior. No off-platform tracking, no location, no device monitoring." },
-              { title: "Not punishment", desc: "Triggers support, not discipline. Even safeguarding is framed as 'requires judgment'." },
+              { title: "Not surveillance", desc: "Observes learning activity. No off-platform tracking, no location, no device monitoring." },
+              { title: "Not punishment", desc: "Triggers support, not discipline. Alerts are framed as 'reach out and check in'." },
               { title: "Not a replacement for teachers", desc: "AI drafts, humans decide. Teachers provide judgment the AI never will." },
+              { title: "Not a black box", desc: "Every alert has a cited reason. Every action is logged. Every intervention is auditable." },
             ].map(item => (
               <div key={item.title} className="p-3 rounded-lg border bg-muted/30">
                 <div className="text-xs font-bold mb-1 flex items-center gap-1.5">
@@ -1154,12 +1028,12 @@ export function ModernLanding() {
           {/* Deep-dive link */}
           <div className="mt-10 text-center">
             <p className="text-xs text-muted-foreground mb-3">
-              The full cycle — including the AI Tutor teaching rules, Socratic test chatbot logic, 7-dimension pipeline, escalation engine, and safeguarding pathway — is documented in:
+              The full loop — including the AI Tutor teaching rules, Socratic test chatbot logic, attention score, and the action dialog — is documented in:
             </p>
             <div className="inline-flex items-center gap-3 text-sm">
-              <Badge variant="secondary" className="font-mono">docs/PSYCHOLOGICAL-CYCLE.md</Badge>
-              <Badge variant="secondary" className="font-mono">docs/MENTORSHIP-CYCLE.md</Badge>
-              <Badge variant="secondary" className="font-mono">docs/SEVEN-DIMENSIONS.md</Badge>
+              <Badge variant="secondary" className="font-mono">docs/architecture.md</Badge>
+              <Badge variant="secondary" className="font-mono">docs/frontend.md</Badge>
+              <Badge variant="secondary" className="font-mono">docs/api.md</Badge>
             </div>
           </div>
         </div>
@@ -1224,7 +1098,7 @@ export function ModernLanding() {
                 <div className="absolute -inset-3 bg-gradient-to-r from-emerald-500/20 to-amber-500/20 rounded-2xl blur-xl" />
                 <BrowserFrame
                   src="/screenshots/student-portfolio.png"
-                  alt="Student portfolio with project progress + 7-dimension psychology"
+                  alt="Student portfolio with project progress and skill mastery"
                   url="examiner.ai/app · teacher · students/[id]"
                   className="relative"
                 />
@@ -1236,12 +1110,12 @@ export function ModernLanding() {
                 See every capstone.<br />Know who to mentor today.
               </h2>
               <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-                The AI does the teaching. You do the mentoring. Attention-scored triage queue tells you who needs help most. Per-student portfolio shows project progress, 7-dimension psychology, GROW coaching history. AI Assistant answers batch questions in natural language. One teacher can now mentor 50–500+ students.
+                The AI does the teaching. You do the mentoring. Attention-scored triage queue tells you who needs help most. Per-student portfolio shows project progress, skill mastery, and test history. AI Assistant answers batch questions in natural language. One teacher can now mentor 50–500+ students.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary" className="text-xs"><GitBranch className="w-3 h-3 mr-1" /> Project Visibility</Badge>
-                <Badge variant="secondary" className="text-xs"><Brain className="w-3 h-3 mr-1" /> 7-Dimension Psychology</Badge>
-                <Badge variant="secondary" className="text-xs"><Target className="w-3 h-3 mr-1" /> GROW Coaching</Badge>
+                <Badge variant="secondary" className="text-xs"><Activity className="w-3 h-3 mr-1" /> Skill Mastery</Badge>
+                <Badge variant="secondary" className="text-xs"><Target className="w-3 h-3 mr-1" /> Actionable Interventions</Badge>
                 <Badge variant="secondary" className="text-xs"><Bot className="w-3 h-3 mr-1" /> AI Assistant</Badge>
               </div>
             </div>
@@ -1264,47 +1138,30 @@ export function ModernLanding() {
       </section>
 
       {/* ============================================ */}
-      {/* 7 PSYCHOLOGICAL DIMENSIONS */}
+      {/* SKILL MASTERY — actionable per-topic insight */}
       {/* ============================================ */}
       <section id="psychology" className="py-20 lg:py-28 bg-slate-950 text-white relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-fuchsia-500/10 rounded-full blur-3xl" />
         <div className="container mx-auto px-4 lg:px-8 relative">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">7-Dimension Psychology</Badge>
+            <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">Per-Topic Mastery</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Understand every student,<br />dimension by dimension.
+              Understand every student,<br />topic by topic.
             </h2>
             <p className="text-slate-300 text-lg">
-              Every test completion runs a full analysis pipeline — all 7 dimensions written every time, not just when conditions are met. Each value comes with a teacher-facing explanation and a concrete recommended action.
+              Every test and practice question feeds the per-topic mastery model. Each topic has a level (not-started → developing → proficient → mastered) and a trend (improving / stable / declining) — with concrete teacher actions per topic.
             </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-14">
-            {PSYCH_DIMENSIONS.map(d => (
-              <div key={d.num} className="p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${d.color}`}>
-                    <d.icon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">Dimension {d.num}</div>
-                    <h3 className="font-semibold text-sm">{d.name}</h3>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">{d.desc}</p>
-              </div>
-            ))}
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             <div>
-              <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">Psychological Tab</Badge>
-              <h3 className="text-2xl font-bold mb-3">Trajectory, evidence, calibration — all in one view.</h3>
+              <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">Educational Tab</Badge>
+              <h3 className="text-2xl font-bold mb-3">Trajectory, mastery, attention — all in one view.</h3>
               <p className="text-slate-300 mb-6 leading-relaxed">
-                Teachers see per-week trajectory (improving/stable/declining), every evidence entry with source, a calibration scatter chart (self-rated vs actual score), crisis flags, and the student's current wellbeing tier (green/warning/red).
+                Teachers see per-week trajectory (improving/stable/declining), per-topic mastery with weak sub-topics called out, attention flags with cited reasons, and the student&apos;s full assessment history.
               </p>
               <div className="space-y-2">
-                {["Confidence ratings scatter chart", "Crisis flag management", "Wellbeing state (green/warning/red)", "Attention flags with reasons", "Per-week trajectory analysis"].map(item => (
+                {["Per-topic mastery levels", "Trend tracking per topic", "Attention flags with reasons", "Per-week trajectory analysis", "Full assessment history"].map(item => (
                   <div key={item} className="flex items-center gap-2 text-sm text-slate-300">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                     {item}
@@ -1315,9 +1172,9 @@ export function ModernLanding() {
             <div className="relative">
               <div className="absolute -inset-3 bg-gradient-to-r from-fuchsia-500/30 to-purple-500/30 rounded-2xl blur-xl" />
               <BrowserFrame
-                src="/screenshots/psychological-tab.png"
-                alt="Psychological Tab"
-                url="examiner.ai/app · teacher · portfolio · psychological"
+                src="/screenshots/educational-tab.png"
+                alt="Educational Tab"
+                url="examiner.ai/app · teacher · portfolio · educational"
                 className="relative ring-1 ring-white/20"
               />
             </div>
@@ -1326,7 +1183,7 @@ export function ModernLanding() {
       </section>
 
       {/* ============================================ */}
-      {/* GROW MENTORSHIP */}
+      {/* ACTIONABLE INTERVENTIONS */}
       {/* ============================================ */}
       <section className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8">
@@ -1334,21 +1191,26 @@ export function ModernLanding() {
             <div className="order-2 lg:order-1">
               <BrowserFrame
                 src="/screenshots/mentorship-tab.png"
-                alt="Mentorship Tab"
-                url="examiner.ai/app · teacher · portfolio · mentorship"
+                alt="Actionable Interventions"
+                url="examiner.ai/app · teacher · portfolio · interventions"
               />
             </div>
             <div className="order-1 lg:order-2">
-              <Badge variant="outline" className="mb-3">GROW Coaching Model</Badge>
+              <Badge variant="outline" className="mb-3">Actionable Interventions</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-                Structured mentorship<br />that actually works.
+                Structured mentoring<br />that actually works.
               </h2>
               <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
-                Every mentor session follows the proven GROW framework. Track both psychological and educational mentorship with outcome tracking, follow-up scheduling, and an AI-drafted check-in message button.
+                Every intervention follows a clear structure: alert → AI-drafted check-in → teacher edits → send → outcome tracked → follow-up scheduled. The AI never sends anything on its own — it drafts, the teacher confirms.
               </p>
 
               <div className="space-y-3 mb-8">
-                {GROW_STEPS.map(item => (
+                {[
+                  { letter: "1", title: "Alert surfaces", desc: "Inactivity, score drop, or blocked task triggers a notification with cited evidence.", color: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" },
+                  { letter: "2", title: "AI drafts check-in", desc: "Suggested message + 3 one-tap note presets, grounded in the student's actual data.", color: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" },
+                  { letter: "3", title: "Teacher confirms", desc: "Confirm disabled until teacher writes a note. Every action is logged with reason.", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" },
+                  { letter: "4", title: "Outcome + follow-up", desc: "Teacher records outcome + optional follow-up date. Closes the loop.", color: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" },
+                ].map(item => (
                   <div key={item.letter} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold ${item.color} flex-shrink-0`}>
                       {item.letter}
@@ -1362,8 +1224,8 @@ export function ModernLanding() {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <Badge variant="secondary" className="text-xs"><HeartPulse className="w-3 h-3 mr-1" /> Psychological sessions</Badge>
-                <Badge variant="secondary" className="text-xs"><Target className="w-3 h-3 mr-1" /> Educational sessions</Badge>
+                <Badge variant="secondary" className="text-xs"><Target className="w-3 h-3 mr-1" /> Alert-driven</Badge>
+                <Badge variant="secondary" className="text-xs"><Bot className="w-3 h-3 mr-1" /> AI-drafted</Badge>
                 <Badge variant="secondary" className="text-xs"><Clock className="w-3 h-3 mr-1" /> Follow-up tracking</Badge>
                 <Badge variant="secondary" className="text-xs"><CheckCircle2 className="w-3 h-3 mr-1" /> Outcome tracking</Badge>
               </div>
@@ -1486,7 +1348,7 @@ export function ModernLanding() {
               Built to scale.<br />Built to be safe.
             </h2>
             <p className="text-slate-300 text-lg">
-              DeepSeek V4 Flash as primary AI (cheap + fast). Z.ai as fallback. 7-role RBAC with IDOR protection. Safeguarding mode that protects students from staff. Lightweight telemetry that scales to 10,000+ students.
+              DeepSeek V4 Flash as primary AI (cheap + fast). Z.ai as fallback. Role-based RBAC with IDOR protection. Lightweight telemetry that scales to 10,000+ students.
             </p>
           </div>
 
@@ -1575,7 +1437,7 @@ export function ModernLanding() {
                 <li><a href="#projects" className="hover:text-white">Projects</a></li>
                 <li><a href="#dashboards" className="hover:text-white">Roles</a></li>
                 <li><a href="#ai-assistant" className="hover:text-white">AI Assistant</a></li>
-                <li><a href="#psychology" className="hover:text-white">Psychology</a></li>
+                <li><a href="#psychology" className="hover:text-white">Mastery</a></li>
                 <li><a href="#themes" className="hover:text-white">Themes</a></li>
                 <li><a href="#tech" className="hover:text-white">Platform</a></li>
                 <li><Link href="/app" className="hover:text-white">Live Demo</Link></li>

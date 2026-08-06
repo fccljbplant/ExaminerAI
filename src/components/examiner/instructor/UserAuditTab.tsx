@@ -4,13 +4,13 @@
  * UserAuditTab — comprehensive audit trail for any user.
  *
  * Shows:
- *   1. Activity summary cards (mentorship, alerts, crisis, tests, AI usage)
+ *   1. Activity summary cards (tests, AI usage)
  *   2. AI usage breakdown (last 30 days, by feature)
  *   3. Full audit log (actions BY + ABOUT this user), paginated
  *
- * Visible to: principal + administrator (full oversight)
+ * Visible to: institution/platform admins (full oversight)
  * Also visible to: the user themselves (self-audit) + teachers (for their
- * course students) + counselors (for their caseload)
+ * course students)
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Loader2, ShieldCheck, Bot, AlertTriangle, HeartHandshake, FileText,
+  Loader2, ShieldCheck, Bot, AlertTriangle, FileText,
   Activity, ChevronLeft, ChevronRight, Brain, Clock, User, Target,
 } from "lucide-react";
 
@@ -50,9 +50,6 @@ interface AuditResponse {
     recent: Array<{ feature: string; provider: string; success: boolean; tokens: number; createdAt: string }>;
   };
   activity: {
-    mentorshipTouchpoints: number;
-    alerts: number;
-    crisisFlags: number;
     completedTests: number;
   };
   permissions: { canViewFullAudit: boolean; isViewingSelf: boolean };
@@ -75,8 +72,6 @@ const ACTION_LABELS: Record<string, string> = {
   course_deleted: "Course deleted",
   escalation_config_changed: "Escalation config changed",
   feature_flag_toggled: "Feature flag toggled",
-  crisis_flag_viewed: "Crisis flag viewed",
-  wellbeing_alert_viewed: "Wellbeing alert viewed",
   // Additional actions logged by the system
   user_logged_in: "Logged in",
   ai_limit_reached: "AI rate limit reached",
@@ -92,10 +87,10 @@ function roleColor(role: string): string {
   const colors: Record<string, string> = {
     student: "text-blue-600 bg-blue-50 dark:bg-blue-950/30",
     instructor: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30",
-    counselor: "text-rose-600 bg-rose-50 dark:bg-rose-950/30",
-    guardian: "text-fuchsia-600 bg-fuchsia-50 dark:bg-fuchsia-950/30",
-    principal: "text-purple-600 bg-purple-50 dark:bg-purple-950/30",
+    coordinator: "text-purple-600 bg-purple-50 dark:bg-purple-950/30",
     administrator: "text-slate-600 bg-slate-100 dark:bg-slate-800/50",
+    institution_admin: "text-slate-600 bg-slate-100 dark:bg-slate-800/50",
+    platform_admin: "text-slate-600 bg-slate-100 dark:bg-slate-800/50",
     demo: "text-amber-600 bg-amber-50 dark:bg-amber-950/30",
   };
   return colors[role] || "text-muted-foreground bg-muted";
@@ -157,33 +152,12 @@ export function UserAuditTab({ userId }: { userId: string }) {
       )}
 
       {/* Activity summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Card className="border-border bg-card">
           <CardContent className="p-3 text-center">
             <FileText className="w-4 h-4 text-blue-600 mx-auto mb-1" />
             <div className="text-lg font-bold text-foreground">{activity.completedTests}</div>
             <div className="text-[10px] text-muted-foreground">Tests</div>
-          </CardContent>
-        </Card>
-        <Card className="border-border bg-card">
-          <CardContent className="p-3 text-center">
-            <HeartHandshake className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
-            <div className="text-lg font-bold text-foreground">{activity.mentorshipTouchpoints}</div>
-            <div className="text-[10px] text-muted-foreground">Mentor Sessions</div>
-          </CardContent>
-        </Card>
-        <Card className="border-border bg-card">
-          <CardContent className="p-3 text-center">
-            <AlertTriangle className="w-4 h-4 text-amber-600 mx-auto mb-1" />
-            <div className="text-lg font-bold text-foreground">{activity.alerts}</div>
-            <div className="text-[10px] text-muted-foreground">Alerts</div>
-          </CardContent>
-        </Card>
-        <Card className="border-border bg-card">
-          <CardContent className="p-3 text-center">
-            <ShieldCheck className="w-4 h-4 text-red-600 mx-auto mb-1" />
-            <div className="text-lg font-bold text-foreground">{activity.crisisFlags}</div>
-            <div className="text-[10px] text-muted-foreground">Crisis Flags</div>
           </CardContent>
         </Card>
         <Card className="border-border bg-card">

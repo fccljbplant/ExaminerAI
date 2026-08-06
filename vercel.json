@@ -14,16 +14,6 @@
       "maxDuration": 180
     }
   },
-  "crons": [
-    {
-      "path": "/api/students/check-alerts?secret=${CRON_SECRET}",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/assistant/escalation/run?secret=${CRON_SECRET}",
-      "schedule": "0 0 * * *"
-    }
-  ],
   "github": {
     "silent": false
   }

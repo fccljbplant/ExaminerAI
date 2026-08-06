@@ -20,13 +20,8 @@
  *   - Language-specific details (unless the course is specifically about that)
  *   - Professional-level implementation details
  *
- * BUT behavioral monitoring IS critical and strict:
- *   - Is the student thinking logically?
- *   - Are they approaching problems systematically?
- *   - Do they understand cause and effect?
- *   - Are they confident but wrong? (overconfidence flag)
- *   - Do they give up easily? (engagement flag)
- *   - Can they explain things in their own words? (understanding flag)
+ * Focus on CONCEPTUAL understanding and reasoning — can the student
+ * explain WHY things work, not just recite facts?
  */
 
 /** Global rules appended to EVERY AI prompt.
@@ -56,7 +51,7 @@ export const GLOBAL_AI_RULES = `GLOBAL RULES (apply to every response):
 5. This is a CONCEPT-based course. Students are learning HOW their domain works, not memorizing syntax or implementation details. The specific tools they're learning are provided in the COURSE CONTEXT block — use THOSE tools in examples, not tools from other domains.
 6. Do NOT ask students to write code, recite syntax, or name functions — unless the course is specifically about coding. Ask about HOW and WHY things work, HOW to handle situations, and WHAT happens when things go wrong.
 7. Grade on CONCEPTUAL understanding and LOGICAL THINKING, not on technical precision.
-8. CRITICAL behavioral monitoring: assess the student's thinking approach critically. Are they reasoning logically? Do they understand cause and effect? Are they overconfident? Do they think before answering? Note these patterns honestly — don't sugarcoat behavioral issues.`;
+8. Focus on whether the student can explain HOW and WHY things work, not on memorizing syntax or reciting definitions.`;
 
 /** Shared core prompt for ALL AI assessments (practice + weekly test).
  *  This ensures consistent behavior: ask question, get answer, evaluate,
@@ -70,8 +65,8 @@ EXAMINER BEHAVIOR — STRICT RULES:
      their reasoning process — HOW they think, not just WHAT they know.
      Examples: "Can you give me an example?", "What do you mean by that?",
      "Why do you think that is?"
-   - Probing is a behavioral assessment tool: it reveals whether the
-     student actually understands or is guessing/memorizing.
+   - Probing reveals whether the student actually understands
+     or is guessing/memorizing.
    - After their follow-up reply, you MUST make a judgment and MOVE ON.
    - Maximum 2 exchanges of probing per question, then move to the next
      question regardless.
@@ -130,7 +125,6 @@ EXAMINER BEHAVIOR — STRICT RULES:
      point out the main gap (1 sentence) + move to next question.
    - Do NOT explain concepts in detail.
    - Do NOT tutor the student through answers.
-   - Do NOT add behavioral observations to individual replies.
    - Keep every examiner response under 3 sentences (excluding the question).
 
 5. EARLY ADVANCEMENT:
@@ -141,13 +135,10 @@ EXAMINER BEHAVIOR — STRICT RULES:
    - Only ask a follow-up if the answer is genuinely too unclear to assess.
    - Never spend more than 2-3 replies on a single question.
 
-6. PSYCHOLOGICAL ASSESSMENT:
-   - Do NOT include behavioral observations in individual replies.
-   - Psychological analysis happens ONLY in the final summary.
-   - During the test, silently note: distraction attempts, confidence
-     level, reasoning quality, engagement, give-up patterns.
-   - In the final summary, report any distraction attempts and how the
-     student handled the test structure.
+6. FINAL SUMMARY ONLY:
+   - During the test, focus on asking good questions and evaluating answers.
+   - The final summary (after all questions) is where you give overall feedback.
+   - Keep individual responses brief — save detailed feedback for the summary.
 `;
 
 /** Weekly test system prompt — the Socratic examiner persona. */
@@ -190,12 +181,7 @@ Give a full weekly result in simple English — OR in the student's language if 
 1. Overall grade (Novice/Practitioner/Engineer/Architect)
 2. Concepts they understood well
 3. Concepts they need to work on, with simple guidance
-4. PSYCHOLOGICAL ASSESSMENT (based on the ENTIRE conversation): How do they think?
-   Do they reason logically or guess? Are they overconfident? Do they give up?
-   Are they engaged? What's their preferred way of engaging with the material? Be honest but KIND.
-   ME-9 fix: Never state a clinical or psychological diagnosis. Use descriptive, evidence-linked
-   language (e.g. "shows uncertainty when..." not "has anxiety"). You are an observer, not a clinician.
-5. One specific, simple thing to focus on next week
+4. One specific, simple thing to focus on next week
 
 Keep the summary to 4-6 sentences total. Simple language. Encouraging but honest.`;
 }
@@ -229,7 +215,6 @@ Question requirements:
 
 In the projectContext field, mention briefly (in simple language) that:
 - They'll be graded on conceptual understanding and logical thinking
-- Behavioral patterns (confidence, approach) will be monitored
 - They should explain their reasoning, not just give a short answer
 
 Return ONLY a JSON object (no prose, no markdown fences):
@@ -237,7 +222,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
 }
 
 /** Evaluation prompt — grades a student's answer to a single question.
- *  Concept-focused, generous scoring, critical behavioral monitoring. */
+ *  Concept-focused, generous scoring. */
 export function evaluatePrompt(
   question: string,
   answer: string,
@@ -275,14 +260,6 @@ SCORING GUIDE (lenient, beginner-friendly):
 - 40-59: Mostly wrong but attempted seriously
 - 0-39: Blank, copied, or completely irrelevant
 
-BEHAVIORAL MONITORING (be kind but honest):
-- confidence: Are they overconfident? Underconfident? Calibrated?
-- cognitiveLoad: Did they struggle? Was the topic too hard? Too easy?
-- metacognitive: Do they know what they don't know? Can they self-assess?
-- thinkingApproach: Did they reason logically? Guess? Think systematically?
-- engagement: Did they engage with the question or give a lazy/copy-paste answer?
-- CRITICAL THINKING ANALYSIS (psychologist-style, in SIMPLE English, KIND tone): Describe their cognitive patterns honestly but without harshness. Frame gaps as growth opportunities, not failures.
-
 Return ONLY a JSON object (no prose, no markdown fences):
 {
   "correctness": <0-100>,
@@ -290,9 +267,6 @@ Return ONLY a JSON object (no prose, no markdown fences):
   "level": "Novice" | "Beginner" | "Practitioner" | "Engineer" | "Senior" | "Architect",
   "gaps": ["<one specific conceptual gap max, or empty array if none>"],
   "followUp": "<one simple conceptual follow-up question, or null>",
-  "cognitiveLoad": "low" | "moderate" | "high",
-  "confidence": "low" | "moderate" | "high",
-  "metacognitive": "low" | "moderate" | "high",
   "plagiarismScore": <0-100>,
   "plagiarismNotes": "<one sentence explaining why this score, or 'No signs of plagiarism detected.'>"
 }
@@ -410,7 +384,6 @@ SCORING RULES — HONEST BUT KIND:
 
 Return ONLY a JSON object (no prose, no markdown fences):
 {
-  "psychAnalysis": "<3-4 sentences in SIMPLE English: cognitive assessment — how they think, reason, approach problems. Be specific, honest, and KIND. Frame gaps as growth opportunities. Shown to BOTH student and teacher.>",
   "examinerComment": "<3-4 sentences in SIMPLE English: their grade level, concepts they understood, concepts to work on, and the implementation intention (specific next action). Shown to BOTH student and teacher.>",
   "strengthSignal": "<1-2 sentences identifying a SPECIFIC, genuine strength the student demonstrated. Must reference something they actually said or did during this test. Not generic praise. This is REQUIRED — do not leave it empty.>",
   "score": <0-100>,
@@ -430,8 +403,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
     "avoidanceCount": <number of times the student said "I don't know", "skip", "pass", or gave very short non-answers>,
     "distractedQuestions": [<0-based question indices where distraction or avoidance occurred>],
     "overallEngagement": "<high | medium | low>",
-    "studentFeedback": "<2-3 sentences of CONSTRUCTIVE feedback FOR THE STUDENT. Reference specific moments from the test (which questions, what happened). Frame engagement as professional habits. Include an implementation intention: a concrete next action, not a vague aspiration. Example: 'On Q3 and Q7, you changed the subject instead of attempting an answer. In professional meetings, even a partial attempt shows engagement. Next time you open the app, try answering one practice question fully — even if you're not sure, starting with \"I think...\" builds the habit of engaging.'>",
-    "instructorNote": "<1-2 sentences for the TEACHER ONLY: behavioral patterns to watch for, or 'no concerns.'>"
+    "studentFeedback": "<2-3 sentences of CONSTRUCTIVE feedback FOR THE STUDENT. Reference specific moments from the test (which questions, what happened). Frame engagement as professional habits. Include an implementation intention: a concrete next action, not a vague aspiration.>"
   },
   "modelAnswer": "<2-4 sentences showing what a strong set of answers across the test would have looked like. Plain language, like explaining to a peer. Cover the core ideas, one concrete example per major topic, and the key trade-offs.>",
   "missedPoints": ["<one sentence: a specific actionable gap, phrased as 'You could have...'>", "<one sentence: another gap>", "<up to 4 items>"],

@@ -33,18 +33,10 @@ export function RoleNavConfigPanel() {
     // Teacher sub-tabs
     "batch": "Today (Teacher Dashboard)",
     "batch-students": "Students Roster",
-    "batch-mentorship": "Mentorship",
     "batch-assignments": "Assignments",
     "batch-insights": "Insights",
-    // Counselor
-    "counselor-dashboard": "Counselor Command Center",
     // Course planner
     "course-planner": "Course Planner",
-    // Guardian
-    "guardian-dashboard": "Guardian Overview",
-    "guardian-progress": "Guardian Report Cards",
-    // Principal
-    "principal-dashboard": "Principal Institution Dashboard",
     // Admin
     "admin-dashboard": "Admin Dashboard",
     "admin-users": "Users Management",
@@ -64,10 +56,8 @@ export function RoleNavConfigPanel() {
     student: "Student",
     instructor: "Instructor / Mentor",
     coordinator: "Coordinator",
-    counselor: "Counselor",
-    guardian: "Guardian (Parent)",
-    principal: "Principal",
-    administrator: "Administrator",
+    institution_admin: "Institution Admin",
+    platform_admin: "Platform Admin",
     demo: "Demo (read-only)",
     admin: "Admin (Legacy)",
   };
@@ -218,9 +208,8 @@ export function RoleNavConfigPanel() {
         </CardHeader>
         <CardContent className="space-y-2">
           {[
-            { role: "guardian", label: "Guardian — Progress overview only", items: ["guardian-dashboard", "guardian-progress", "course-outline", "messages", "settings"], desc: "Sees student dashboard (read-only overview) + report card + course outline + messages." },
-            { role: "counselor", label: "Counselor — Wellbeing focus", items: ["dashboard", "messages", "settings"], desc: "Sees instructor dashboard (for psychological/mentorship tabs) + messages. No course planner, no educational detail." },
             { role: "coordinator", label: "Coordinator — Course management", items: ["course-planner", "batch-students", "instructor-ai-tutor", "course-outline", "messages", "settings"], desc: "Sees course planner + student roster + shared resources. No user management." },
+            { role: "institution_admin", label: "Institution Admin — Operational oversight", items: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-system", "course-outline", "messages", "settings"], desc: "Full institutional control: users, courses, feature flags, system health, audit log." },
           ].map(preset => (
             <div key={preset.role} className="flex items-center justify-between rounded-md border border-border p-2.5">
               <div className="flex-1 min-w-0">

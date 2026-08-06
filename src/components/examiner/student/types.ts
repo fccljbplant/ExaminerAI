@@ -43,10 +43,8 @@ export interface ReportCardRow {
   score: number;
   strengths: string;
   weaknesses: string;
-  workHabits: string;
   progress: string;
   nextSteps: string;
-  examinerObservations: string;
   date: string;
 }
 

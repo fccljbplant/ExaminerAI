@@ -193,7 +193,7 @@ export const DEFAULT_REPORT_CARD_TEMPLATE = {
     { grade: "F", min: 0, max: 59 },
   ],
   weights: { weeklyTest: 80, practice: 20 },
-  sections: ["strengths", "weaknesses", "workHabits", "progress", "nextSteps", "examinerObservations"],
+  sections: ["strengths", "weaknesses", "progress", "nextSteps"],
 };
 
 // ---- Project Template ----
@@ -242,5 +242,5 @@ CRITICAL RULES:
   evaluationPrompt: `You are an AI examiner evaluating a student's answer to a Socratic question. Grade on conceptual understanding, not perfect syntax. Be encouraging but honest.`,
 
   // Prompt for final analysis at the end of a weekly test
-  finalAnalysisPrompt: `You are an AI examiner writing a final analysis of a student's weekly test performance. Based on the conversation transcript, provide a psychological analysis, examiner's observation, and a score (0-100).`,
+  finalAnalysisPrompt: `You are an AI examiner writing a final analysis of a student's weekly test performance. Based on the conversation transcript, provide an examiner's observation and a score (0-100).`,
 };

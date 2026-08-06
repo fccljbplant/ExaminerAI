@@ -1,15 +1,14 @@
 "use client";
 
 /**
- * StudentsRoster — unified student roster replacing the separate
- * Psych/Educational tabs.
+ * StudentsRoster — unified student roster.
  *
  * One roster. Click a row, get a detail panel — no tab-switching to
  * piece a student together.
  *
  * MVP:
- * - Columns: name, wellbeing tier, current week, last active, attention score
- * - Filters: struggling academically / psychologically / overdue / flagged / on-track
+ * - Columns: name, current week, last active, progress, attention flags
+ * - Filters: struggling academically / overdue / on-track
  * - Click row → opens StudentDetailPanel (existing StudentPortfolioPage)
  */
 
@@ -22,7 +21,7 @@ import { Search, Users, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StudentRow } from "@/components/examiner/instructor/types";
 
-type FilterType = "all" | "struggling_academic" | "struggling_psych" | "overdue" | "flagged" | "ontrack";
+type FilterType = "all" | "struggling_academic" | "overdue" | "ontrack";
 
 interface StudentsRosterProps {
   students: StudentRow[];
@@ -33,9 +32,7 @@ interface StudentsRosterProps {
 const FILTER_LABELS: Record<FilterType, string> = {
   all: "All",
   struggling_academic: "Struggling academically",
-  struggling_psych: "Struggling psychologically",
   overdue: "Overdue for contact",
-  flagged: "Flagged",
   ontrack: "On track",
 };
 
@@ -62,21 +59,12 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
       case "struggling_academic":
         result = result.filter(s => (s.progress || 0) < 50);
         break;
-      case "struggling_psych":
-        // H16 fix: use the typed wellbeingTier field (was (s as any).wellbeingTier —
-        // always undefined because the API didn't return it).
-        result = result.filter(s => s.wellbeingTier === "warning" || s.wellbeingTier === "red" || s.wellbeingTier === "amber");
-        break;
       case "overdue":
         result = result.filter(s => {
           if (!s.lastActive) return true;
           const days = (Date.now() - new Date(s.lastActive).getTime()) / (1000 * 60 * 60 * 24);
           return days > 3;
         });
-        break;
-      case "flagged":
-        // H16 fix: use the typed hasFlag field (was (s as any).hasFlag — always undefined).
-        result = result.filter(s => s.hasFlag === true);
         break;
       case "ontrack":
         result = result.filter(s => (s.progress || 0) >= 50);
@@ -88,13 +76,6 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
 
   const paginated = filtered.slice(page * pageSize, (page + 1) * pageSize);
   const hasMore = (page + 1) * pageSize < filtered.length;
-
-  const tierColor = (tier?: string) => {
-    if (tier === "green") return "bg-emerald-500/10 text-emerald-600 border-emerald-500/30";
-    if (tier === "warning") return "bg-amber-500/10 text-amber-600 border-amber-500/30";
-    if (tier === "red") return "bg-red-500/10 text-red-600 border-red-500/30";
-    return "bg-muted text-muted-foreground border-border";
-  };
 
   return (
     <div className="space-y-4">
@@ -139,10 +120,9 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
             <div className="divide-y divide-border">
               {/* Header row */}
               <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                <div className="col-span-4">Name</div>
-                <div className="col-span-2">Wellbeing</div>
+                <div className="col-span-5">Name</div>
                 <div className="col-span-2">Week</div>
-                <div className="col-span-2">Last Active</div>
+                <div className="col-span-3">Last Active</div>
                 <div className="col-span-2 text-right">Progress</div>
               </div>
 
@@ -153,24 +133,19 @@ export function StudentsRoster({ students, stats, onStudentClick }: StudentsRost
                   onClick={() => onStudentClick(s)}
                   className="w-full grid grid-cols-12 gap-2 px-4 py-3 hover:bg-muted/50 transition-colors text-left items-center"
                 >
-                  <div className="col-span-12 sm:col-span-4">
+                  <div className="col-span-12 sm:col-span-5">
                     <p className="text-sm font-medium text-foreground">{s.name}</p>
                     <p className="text-xs text-muted-foreground">{s.email}</p>
                   </div>
                   <div className="col-span-4 sm:col-span-2">
-                    <Badge variant="outline" className={cn("text-[10px]", tierColor((s as any).wellbeingTier))}>
-                      {(s as any).wellbeingTier || "—"}
-                    </Badge>
-                  </div>
-                  <div className="col-span-4 sm:col-span-2">
                     <span className="text-xs text-muted-foreground">Week {s.currentWeek}</span>
                   </div>
-                  <div className="col-span-4 sm:col-span-2">
+                  <div className="col-span-4 sm:col-span-3">
                     <span className="text-xs text-muted-foreground">
                       {s.lastActive ? new Date(s.lastActive).toLocaleDateString() : "—"}
                     </span>
                   </div>
-                  <div className="col-span-12 sm:col-span-2 flex items-center justify-end gap-2">
+                  <div className="col-span-4 sm:col-span-2 flex items-center justify-end gap-2">
                     <Badge variant="outline" className="text-[10px]">
                       {s.progress || 0}%
                     </Badge>

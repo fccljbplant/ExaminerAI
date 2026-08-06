@@ -24,7 +24,6 @@ import { InstructorCourseProgressView } from "@/components/examiner/instructor/I
 import { EducationalTab } from "@/components/examiner/instructor/EducationalTab";
 import { UserAuditTab } from "@/components/examiner/instructor/UserAuditTab";
 import { StudentAITools } from "@/components/examiner/instructor/ai/StudentAITools";
-import { GuardianCreationPanel } from "@/components/examiner/instructor/GuardianCreationPanel";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
 
 export function StudentPortfolioPage({
@@ -75,18 +74,10 @@ export function StudentPortfolioPage({
   const [rcEditFor, setRcEditFor] = useState<number | null>(null);
   const [rcEditGrade, setRcEditGrade] = useState("");
   const [rcEditScore, setRcEditScore] = useState("");
-  const [rcEditExaminerObs, setRcEditExaminerObs] = useState("");
   const [rcEditSaving, setRcEditSaving] = useState(false);
   // Comment state for report cards
   const [rcCommentFor, setRcCommentFor] = useState<number | null>(null);
   const [rcCommentBody, setRcCommentBody] = useState("");
-
-  // --- Weekly Test Edit AI Results Dialog state ---
-  const [wtEditFor, setWtEditFor] = useState<{ testId: string; week: number } | null>(null);
-  const [wtEditScore, setWtEditScore] = useState("");
-  const [wtEditPsych, setWtEditPsych] = useState("");
-  const [wtEditComment, setWtEditComment] = useState("");
-  const [wtEditSaving, setWtEditSaving] = useState(false);
 
   const loadPortfolio = useCallback(async (studentId: string) => {
     setLoading(true);
@@ -269,11 +260,10 @@ export function StudentPortfolioPage({
   };
 
   /** Opens the report card edit dialog for a specific week. */
-  const openRcEdit = (week: number, grade: string, score: number, examinerObs: string) => {
+  const openRcEdit = (week: number, grade: string, score: number) => {
     setRcEditFor(week);
     setRcEditGrade(grade);
     setRcEditScore(String(score));
-    setRcEditExaminerObs(examinerObs);
   };
 
   /** Saves report card edits. */
@@ -286,7 +276,6 @@ export function StudentPortfolioPage({
         week: rcEditFor,
         grade: rcEditGrade,
         score: Number(rcEditScore) || 0,
-        examinerObservations: rcEditExaminerObs,
       });
       setRcEditFor(null);
       await loadPortfolio(student.id);
@@ -310,41 +299,6 @@ export function StudentPortfolioPage({
       await loadPortfolio(student.id);
     } catch (e) {
       showError(e instanceof Error ? e.message : "Failed to post comment");
-    }
-  };
-
-  // --- Weekly Test Edit AI Results handlers ---
-  const openWtEdit = (testId: string, week: number, score: number | null, psych: string | null, comment: string | null) => {
-    setWtEditFor({ testId, week });
-    setWtEditScore(score !== null ? String(score) : "");
-    setWtEditPsych(psych ?? "");
-    setWtEditComment(comment ?? "");
-  };
-
-  const saveWtEdit = async () => {
-    if (!student || !wtEditFor) return;
-    setWtEditSaving(true);
-    try {
-      const payload: Record<string, unknown> = { week: wtEditFor.week };
-      const scoreNum = wtEditScore.trim() === "" ? null : Number(wtEditScore);
-      if (scoreNum !== null && !Number.isNaN(scoreNum)) {
-        if (scoreNum < 0 || scoreNum > 100) {
-          showError("Score must be 0-100.");
-          setWtEditSaving(false);
-          return;
-        }
-        payload.score = scoreNum;
-      }
-      payload.psychAnalysis = wtEditPsych;
-      payload.examinerComment = wtEditComment;
-
-      await api.patch(`/api/students/${student.id}/edit-weekly-test`, payload);
-      setWtEditFor(null);
-      await loadPortfolio(student.id);
-    } catch (e) {
-      showError(e instanceof Error ? e.message : "Failed to save edits");
-    } finally {
-      setWtEditSaving(false);
     }
   };
 
@@ -421,10 +375,6 @@ export function StudentPortfolioPage({
         // Could wire to compose dialog — for now, copy to clipboard
         navigator.clipboard?.writeText(draft);
       }} />
-
-      {/* H6 fix: Guardian creation/management — staff can create a parent
-          account linked to this student, or remove an existing one. */}
-      <GuardianCreationPanel studentId={student.id} studentName={student.name} />
 
       {/* Summary stats — responsive grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -639,8 +589,6 @@ export function StudentPortfolioPage({
                         )}
                       </div>
                     </div>
-                    {wt.examinerComment && <p className="text-xs text-foreground/80 mt-1 break-words">{wt.examinerComment}</p>}
-                    {wt.psychAnalysis && <p className="text-xs text-violet-600 mt-1 italic break-words">Psych: {wt.psychAnalysis}</p>}
                     {wt.completedAt && <p className="text-[10px] text-muted-foreground mt-1">Completed {new Date(wt.completedAt).toLocaleDateString()}</p>}
                     {/* Plagiarism score for weekly test */}
                     {(wt as { plagiarismScore?: number | null }).plagiarismScore != null && (wt as { plagiarismScore?: number | null }).plagiarismScore! > 0 && (
@@ -662,15 +610,6 @@ export function StudentPortfolioPage({
                             onClick={() => openWtComment(wt.id, wt.week, wt.score ?? null)}
                           >
                             <MessageSquare className="h-3 w-3" /> Comment
-                          </Button>
-                          {/* Edit AI Results button — opens dialog to edit psychAnalysis, examinerComment, score */}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-[10px] border-violet-500/30 text-violet-600 hover:bg-violet-500/10"
-                            onClick={() => openWtEdit(wt.id, wt.week, wt.score ?? null, wt.psychAnalysis ?? null, wt.examinerComment ?? null)}
-                          >
-                            <Edit3 className="h-3 w-3" /> Edit AI Results
                           </Button>
                           {/* Retake controls — give OR revoke */}
                           {!wt.retakeAllowed ? (
@@ -946,61 +885,38 @@ export function StudentPortfolioPage({
           </DialogContent>
         </Dialog>
 
-        {/* === Weekly Test Edit AI Results Dialog ===
-            Opens when instructor clicks "Edit AI Results" on a completed weekly test.
-            Allows editing the AI-generated score, psychAnalysis, and examinerComment. */}
-        <Dialog open={wtEditFor !== null} onOpenChange={(open) => { if (!open) setWtEditFor(null); }}>
-          <DialogContent className="max-w-lg">
+        {/* === Report Card Edit Dialog === */}
+        <Dialog open={rcEditFor !== null} onOpenChange={(open) => { if (!open) setRcEditFor(null); }}>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Edit3 className="h-4 w-4 text-violet-600" />
-                Edit AI Results — Week {wtEditFor?.week}
+                <Edit3 className="h-4 w-4 text-violet-600" /> Edit Report Card — Week {rcEditFor}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-              <p className="text-[10px] text-muted-foreground italic">
-                Use this to correct an unfair AI score, soften a harsh psychological analysis, or rewrite the examiner comment to be more encouraging. The original AI values will be overwritten.
-              </p>
-              <div>
-                <label className="text-[10px] font-medium text-foreground">Score (0-100)</label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={wtEditScore}
-                  onChange={(e) => setWtEditScore(e.target.value)}
-                  className="mt-1 bg-muted border-border"
-                  placeholder="50"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-medium text-foreground">Examiner Comment</label>
-                <textarea
-                  value={wtEditComment}
-                  onChange={(e) => setWtEditComment(e.target.value)}
-                  className="w-full min-h-24 mt-1 rounded-md bg-muted border border-border p-2 text-xs text-foreground resize-y"
-                  placeholder="The examiner's overall observation of the student…"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-medium text-foreground">Psychological Analysis</label>
-                <textarea
-                  value={wtEditPsych}
-                  onChange={(e) => setWtEditPsych(e.target.value)}
-                  className="w-full min-h-24 mt-1 rounded-md bg-muted border border-border p-2 text-xs text-foreground resize-y"
-                  placeholder="Psychologist-style cognitive assessment…"
-                />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-medium text-foreground">Grade</label>
+                  <Select value={rcEditGrade} onValueChange={setRcEditGrade}>
+                    <SelectTrigger className="mt-1 bg-muted border-border h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A">A (90-100)</SelectItem>
+                      <SelectItem value="B">B (80-89)</SelectItem>
+                      <SelectItem value="C">C (70-79)</SelectItem>
+                      <SelectItem value="D">D (60-69)</SelectItem>
+                      <SelectItem value="F">F (below 60)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium text-foreground">Score (0-100)</label>
+                  <Input type="number" min="0" max="100" value={rcEditScore} onChange={(e) => setRcEditScore(e.target.value)} className="mt-1 bg-muted border-border h-8 text-xs" />
+                </div>
               </div>
               <div className="flex justify-end gap-2 pt-1">
-                <Button size="sm" variant="outline" onClick={() => setWtEditFor(null)} className="h-7 text-xs">Cancel</Button>
-                <Button
-                  size="sm"
-                  onClick={saveWtEdit}
-                  disabled={wtEditSaving}
-                  className="h-7 text-xs bg-violet-600 hover:bg-violet-700 text-white"
-                >
-                  {wtEditSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                  Save Changes
+                <Button size="sm" variant="outline" onClick={() => setRcEditFor(null)} className="h-7 text-xs">Cancel</Button>
+                <Button size="sm" onClick={saveRcEdit} disabled={rcEditSaving} className="h-7 text-xs bg-violet-600 hover:bg-violet-700 text-white">
+                  {rcEditSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save
                 </Button>
               </div>
             </div>
@@ -1143,15 +1059,6 @@ export function StudentPortfolioPage({
                   <Input type="number" min="0" max="100" value={rcEditScore} onChange={(e) => setRcEditScore(e.target.value)} className="mt-1 bg-muted border-border h-8 text-xs" />
                 </div>
               </div>
-              <div>
-                <label className="text-[10px] font-medium text-foreground">Examiner Observations</label>
-                <textarea
-                  value={rcEditExaminerObs}
-                  onChange={(e) => setRcEditExaminerObs(e.target.value)}
-                  className="w-full min-h-24 mt-1 rounded-md bg-muted border border-border p-2 text-xs text-foreground resize-y"
-                  placeholder="Examiner observations…"
-                />
-              </div>
               <div className="flex justify-end gap-2 pt-1">
                 <Button size="sm" variant="outline" onClick={() => setRcEditFor(null)} className="h-7 text-xs">Cancel</Button>
                 <Button size="sm" onClick={saveRcEdit} disabled={rcEditSaving} className="h-7 text-xs bg-violet-600 hover:bg-violet-700 text-white">
@@ -1192,7 +1099,7 @@ export function StudentPortfolioPage({
                       <span className={`text-lg font-bold ${gradeColor(rc.grade)}`}>{rc.score}%</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openRcEdit(rc.week, rc.grade, rc.score, rc.examinerObservations)} className="rounded p-1 text-muted-foreground hover:text-violet-600 hover:bg-violet-500/10 transition-colors" title="Edit report card" aria-label="Edit report card">
+                      <button onClick={() => openRcEdit(rc.week, rc.grade, rc.score)} className="rounded p-1 text-muted-foreground hover:text-violet-600 hover:bg-violet-500/10 transition-colors" title="Edit report card" aria-label="Edit report card">
                         <Edit3 className="h-3 w-3" />
                       </button>
                       <button onClick={() => setRcCommentFor(rc.week)} className="rounded p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Comment on this report card" aria-label="Comment on this report card">
@@ -1222,16 +1129,8 @@ export function StudentPortfolioPage({
                       </ul>
                     </div>
                   )}
-                  {/* Work habits + progress */}
-                  <p className="text-[10px] text-muted-foreground mt-1">{rc.workHabits}</p>
+                  {/* Progress */}
                   <p className="text-[10px] text-muted-foreground">{rc.progress}</p>
-                  {/* Examiner observations */}
-                  {rc.examinerObservations && (
-                    <div className="mt-1.5 rounded-md bg-primary/5 border border-primary/20 p-2">
-                      <p className="text-[10px] font-medium text-primary mb-0.5">Examiner Observations</p>
-                      <p className="text-xs text-foreground/80 break-words">{rc.examinerObservations}</p>
-                    </div>
-                  )}
                   {/* Next steps */}
                   {(() => {
                     try { return JSON.parse(rc.nextSteps); } catch { return []; }

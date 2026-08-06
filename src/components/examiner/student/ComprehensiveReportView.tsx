@@ -3,20 +3,16 @@
 /**
  * ComprehensiveReportView — displays the full private report for a student.
  *
- * Shows 7 sections:
+ * Shows 4 sections:
  *   1. Executive Summary (AI narrative)
  *   2. Educational Analysis (scores, skills, project)
- *   3. Psychological Analysis (7 dimensions, wellbeing)
- *   4. Behavioral Analysis (engagement, plagiarism, attendance)
- *   5. Mentor Analysis (GROW history, touchpoints)
- *   6. Accomplishments + Areas to Improve
- *   7. Management Attitude (productivity, professionalism, leadership)
+ *   3. Accomplishments + Areas to Improve
+ *   4. Management Attitude (productivity, professionalism, leadership)
  *
  * Visible to:
  *   - The student themselves (their own report)
  *   - Instructors (for their course students)
- *   - Counsellors (for their caseload)
- *   - Principal + Administrator (any student)
+ *   - Coordinator + Administrator (any student)
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -24,10 +20,9 @@ import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
-  Loader2, FileText, Brain, Activity, HeartHandshake, Award, Target,
-  TrendingUp, AlertTriangle, RefreshCw, ShieldCheck, Briefcase,
+  Loader2, FileText, Award, Target,
+  TrendingUp, AlertTriangle, RefreshCw, Briefcase,
 } from "lucide-react";
 
 interface Report {
@@ -44,28 +39,6 @@ interface Report {
     completedTasks: number;
     totalTasks: number;
   };
-  psychological: {
-    wellbeingTier: string;
-    wellbeingReasons: string[];
-    dimensions: Array<{ dimension: string; latestValue: string; trend: string; evidence: string }>;
-    calibrationGap: number | null;
-    cognitiveLoad: string;
-    mindset: string;
-  };
-  behavioral: {
-    engagementScore: number;
-    moodScore: number;
-    attendancePattern: string;
-    plagiarismFlags: number;
-    voiceConsistency: string;
-    disengagementSignals: string[];
-  };
-  mentor: {
-    touchpointCount: number;
-    outcomes: { ongoing: number; resolved: number; escalated: number; noActionNeeded: number };
-    growHistory: Array<{ date: string; type: string; outcome: string; note: string }>;
-    lastSessionDate: string | null;
-  };
   accomplishments: string[];
   areasToImprove: Array<{ area: string; current: string; recommendation: string; priority: string }>;
   managementAttitude: {
@@ -77,13 +50,6 @@ interface Report {
   };
   narrative: string;
 }
-
-const tierColor = (tier: string) => {
-  if (tier === "green") return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30";
-  if (tier === "warning") return "text-amber-600 bg-amber-50 dark:bg-amber-950/30";
-  if (tier === "red") return "text-rose-600 bg-rose-50 dark:bg-rose-950/30";
-  return "text-muted-foreground bg-muted";
-};
 
 const priorityColor = (priority: string) => {
   if (priority === "high") return "text-rose-600 bg-rose-50 dark:bg-rose-950/30 border-rose-500/30";
@@ -238,123 +204,7 @@ export function ComprehensiveReportView({ studentId }: { studentId: string }) {
         </CardContent>
       </Card>
 
-      {/* Section 3: Psychological Analysis */}
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Brain className="h-4 w-4 text-fuchsia-600" /> Psychological Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Wellbeing:</span>
-            <Badge variant="outline" className={`text-[9px] capitalize ${tierColor(report.psychological.wellbeingTier)}`}>
-              {report.psychological.wellbeingTier}
-            </Badge>
-            {report.psychological.calibrationGap !== null && (
-              <>
-                <span className="text-xs text-muted-foreground ml-2">Calibration Gap:</span>
-                <Badge variant="outline" className={`text-[9px] ${report.psychological.calibrationGap > 15 ? "text-amber-600" : "text-emerald-600"}`}>
-                  {report.psychological.calibrationGap > 0 ? "+" : ""}{report.psychological.calibrationGap}
-                </Badge>
-              </>
-            )}
-            <span className="text-xs text-muted-foreground ml-2">Mindset:</span>
-            <Badge variant="outline" className="text-[9px] capitalize">{report.psychological.mindset.replace(/_/g, " ")}</Badge>
-          </div>
-          {report.psychological.dimensions.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-2">
-              {report.psychological.dimensions.slice(0, 7).map(d => (
-                <div key={d.dimension} className="p-2 rounded-md border border-border bg-background">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] font-medium capitalize">{d.dimension.replace(/_/g, " ")}</span>
-                    <Badge variant="outline" className="text-[8px] capitalize">{d.latestValue.replace(/_/g, " ")}</Badge>
-                  </div>
-                  {d.evidence && <p className="text-[9px] text-muted-foreground line-clamp-2">{d.evidence}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Section 4: Behavioral Analysis */}
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="h-4 w-4 text-emerald-600" /> Behavioral Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div>
-              <p className="text-[10px] text-muted-foreground">Engagement</p>
-              <Progress value={report.behavioral.engagementScore} className="h-2 mt-1" />
-              <p className="text-[10px] font-medium mt-0.5">{report.behavioral.engagementScore}/100</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Mood</p>
-              <Progress value={report.behavioral.moodScore} className="h-2 mt-1" />
-              <p className="text-[10px] font-medium mt-0.5">{report.behavioral.moodScore}/100</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Plagiarism Flags</p>
-              <p className={`text-lg font-bold ${report.behavioral.plagiarismFlags > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                {report.behavioral.plagiarismFlags}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Attendance</p>
-              <p className="text-xs font-medium mt-0.5">{report.behavioral.attendancePattern}</p>
-            </div>
-          </div>
-          {report.behavioral.disengagementSignals.length > 0 && (
-            <div className="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/30">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-[10px] font-medium text-amber-700 dark:text-amber-300">Disengagement Signals</p>
-                <p className="text-[10px] text-muted-foreground">{report.behavioral.disengagementSignals.join(", ")}</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Section 5: Mentor Analysis */}
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <HeartHandshake className="h-4 w-4 text-purple-600" /> Mentor Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div className="text-center p-2 rounded-md bg-background border border-border">
-              <div className="text-lg font-bold">{report.mentor.touchpointCount}</div>
-              <div className="text-[10px] text-muted-foreground">Sessions</div>
-            </div>
-            <div className="text-center p-2 rounded-md bg-background border border-border">
-              <div className="text-lg font-bold text-emerald-600">{report.mentor.outcomes.resolved}</div>
-              <div className="text-[10px] text-muted-foreground">Resolved</div>
-            </div>
-            <div className="text-center p-2 rounded-md bg-background border border-border">
-              <div className="text-lg font-bold text-amber-600">{report.mentor.outcomes.ongoing}</div>
-              <div className="text-[10px] text-muted-foreground">Ongoing</div>
-            </div>
-            <div className="text-center p-2 rounded-md bg-background border border-border">
-              <div className="text-lg font-bold text-rose-600">{report.mentor.outcomes.escalated}</div>
-              <div className="text-[10px] text-muted-foreground">Escalated</div>
-            </div>
-          </div>
-          {report.mentor.lastSessionDate && (
-            <p className="text-[10px] text-muted-foreground">
-              Last session: {new Date(report.mentor.lastSessionDate).toLocaleDateString()}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Section 6: Accomplishments + Areas to Improve */}
+      {/* Section 3: Accomplishments + Areas to Improve */}
       <div className="grid md:grid-cols-2 gap-4">
         <Card className="border-emerald-500/30 bg-emerald-500/5">
           <CardHeader className="pb-2">
@@ -402,7 +252,7 @@ export function ComprehensiveReportView({ studentId }: { studentId: string }) {
         </Card>
       </div>
 
-      {/* Section 7: Management Attitude */}
+      {/* Section 4: Management Attitude */}
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">

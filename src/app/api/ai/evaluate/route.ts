@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { callAI, translateBehavioralSignals, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { evaluatePrompt } from "@/lib/ai-prompts";
 import { demoWriteBlock } from "@/lib/demo-guard";
@@ -39,14 +39,10 @@ export async function POST(req: NextRequest) {
       level: "Beginner",
       gaps: ["Needs more detail"],
       followUp: null,
-      cognitiveLoad: "low",
-      confidence: "low",
-      metacognitive: "low",
       plagiarismScore: 0,
       plagiarismNotes: "No signs of plagiarism detected.",
     };
-    const behavioralInsights = translateBehavioralSignals("low", "low", "low", 50);
-    return NextResponse.json({ evaluation, behavioralInsights, skipped: true });
+    return NextResponse.json({ evaluation, skipped: true });
   }
 
   // Prompt imported from src/lib/ai-prompts.ts — single source of truth
@@ -64,9 +60,6 @@ export async function POST(req: NextRequest) {
     level: string;
     gaps: string[];
     followUp: string | null;
-    cognitiveLoad: string;
-    confidence: string;
-    metacognitive: string;
     plagiarismScore: number;
     plagiarismNotes: string;
   };
@@ -90,9 +83,6 @@ export async function POST(req: NextRequest) {
       level: String(parsed.level ?? "Beginner"),
       gaps: Array.isArray(parsed.gaps) ? parsed.gaps : [],
       followUp: parsed.followUp ? String(parsed.followUp) : null,
-      cognitiveLoad: String(parsed.cognitiveLoad ?? "moderate"),
-      confidence: String(parsed.confidence ?? "moderate"),
-      metacognitive: String(parsed.metacognitive ?? "moderate"),
       plagiarismScore: Math.max(0, Math.min(100, Number(parsed.plagiarismScore ?? 0))),
       plagiarismNotes: String(parsed.plagiarismNotes ?? "No signs of plagiarism detected."),
     };
@@ -210,9 +200,6 @@ export async function POST(req: NextRequest) {
       level: "Beginner",
       gaps: ["Depth"],
       followUp: null,
-      cognitiveLoad: "moderate",
-      confidence: len > 50 ? "high" : "moderate",
-      metacognitive: "moderate",
       plagiarismScore: 0,
       plagiarismNotes: "No signs of plagiarism detected.",
     };
@@ -270,13 +257,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Translate behavioral signals into plain-language insights
-  const behavioralInsights = translateBehavioralSignals(
-    evaluation.cognitiveLoad,
-    evaluation.confidence,
-    evaluation.metacognitive,
-    evaluation.correctness
-  );
-
-  return NextResponse.json({ evaluation, interaction, behavioralInsights });
+  return NextResponse.json({ evaluation, interaction });
 }

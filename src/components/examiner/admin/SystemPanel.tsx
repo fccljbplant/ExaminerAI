@@ -31,7 +31,6 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
   const [features, setFeatures] = useState<Record<string, boolean> | null>(null);
   const [featureBusy, setFeatureBusy] = useState<string | null>(null);
   const [cacheStats, setCacheStats] = useState<{ size: number; hits: number; misses: number; hitRate: number; estimatedTokensSaved: number } | null>(null);
-  const [cleanupPreview, setCleanupPreview] = useState<{ wouldDelete: Record<string, number>; totalWouldDelete: number; kept: Record<string, number> } | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<"overview" | "ai" | "flags" | "actions" | "audit" | "access" | "navconfig" | "maintenance">("overview");
 
   const loadAiStats = useCallback(async () => {
@@ -362,9 +361,9 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                     <p className="text-[10px] text-emerald-600">{aiStats.usage24h?.successRate ?? 100}% success</p>
                   </div>
                   <div className="rounded-md bg-muted p-3">
-                    <p className="text-xs text-muted-foreground">Behavioral Records</p>
-                    <p className="text-xl font-bold text-violet-500">{aiStats.psychObsCount ?? 0}</p>
-                    <p className="text-[10px] text-muted-foreground">PsychologyObs entries</p>
+                    <p className="text-xs text-muted-foreground">Total Calls</p>
+                    <p className="text-xl font-bold text-foreground">{(aiStats.usage24h?.calls ?? 0)}</p>
+                    <p className="text-[10px] text-muted-foreground">Last 24 hours</p>
                   </div>
                 </div>
 
@@ -576,7 +575,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
       {/* ===== NAV CONFIG SUB-TAB (admin assigns nav items per role) ===== */}
       {activeSubTab === "navconfig" && (<RoleNavConfigPanel />)}
 
-      {/* ===== MAINTENANCE SUB-TAB (cache stats + psych data cleanup) ===== */}
+      {/* ===== MAINTENANCE SUB-TAB (cache stats) ===== */}
       {activeSubTab === "maintenance" && (
         <div className="space-y-4">
           {/* Cache Stats */}
@@ -602,37 +601,6 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
               <Button onClick={async () => {
                 try { await api.del("/api/admin/cache"); setCacheStats(null); } catch { /* non-blocking */ }
               }} variant="outline" size="sm" className="text-xs mt-2 text-destructive border-destructive/30">Clear cache</Button>
-            </CardContent>
-          </Card>
-
-          {/* Psych Data Cleanup */}
-          <Card className="border-border bg-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-foreground">Psychological Data Cleanup</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Remove old junk data from per-message pipeline (tutor snapshots, old PsychEvidence artifacts)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={async () => {
-                try {
-                  const preview = await api.get<{ wouldDelete: Record<string, number>; totalWouldDelete: number; kept: Record<string, number> }>("/api/admin/cleanup-psych-data");
-                  setCleanupPreview(preview);
-                } catch { /* non-blocking */ }
-              }} variant="outline" size="sm" className="text-xs">Preview junk data</Button>
-              {cleanupPreview && (
-                <div className="mt-3 text-xs space-y-1">
-                  <p className="font-medium text-foreground">Would delete: {cleanupPreview.totalWouldDelete} rows</p>
-                  {Object.entries(cleanupPreview.wouldDelete).map(([k, v]) => v > 0 ? <p key={k} className="text-muted-foreground">{k}: {v}</p> : null)}
-                  <p className="font-medium text-foreground mt-2">Would keep:</p>
-                  {Object.entries(cleanupPreview.kept).map(([k, v]) => <p key={k} className="text-muted-foreground">{k}: {v}</p>)}
-                </div>
-              )}
-              <Button onClick={async () => {
-                try {
-                  const result = await api.post<{ ok: boolean; deleted: Record<string, number>; totalDeleted: number }>("/api/admin/cleanup-psych-data", {});
-                  alert(`Deleted ${result.totalDeleted} junk rows`);
-                  setCleanupPreview(null);
-                } catch { /* non-blocking */ }
-              }} variant="outline" size="sm" className="text-xs mt-2 text-destructive border-destructive/30">Run cleanup</Button>
             </CardContent>
           </Card>
         </div>
