@@ -11,21 +11,18 @@ echo "DATABASE_URL prefix: $(echo "$DATABASE_URL" | sed 's/\/\/.*/\/\/***REDACTE
 
 # Step 1: Generate Prisma client using prod schema
 echo "Generating Prisma client (prod schema)..."
-bunx prisma generate --schema=prisma/schema.prod.prisma
+npx prisma generate --schema=prisma/schema.prod.prisma
 
 # Step 2: SAFELY push schema — accepts column-level changes without data loss.
-# --accept-data-loss is needed for column renames/additions (Prisma requirement).
-# NEVER uses --force-reset (would wipe all data).
 echo "Safely syncing schema (data preserved)..."
-bunx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate
+npx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate
 
 # Step 3: Seed demo data ONLY if the database is empty
-# (idempotent — re-deploys never wipe or duplicate data)
 echo "Seeding demo data (if empty)..."
-bun run scripts/seed-demo.ts --skip-if-populated
+npx tsx scripts/seed-demo.ts --skip-if-populated || echo "Seed skipped (tsx not available or error)"
 
 # Step 4: Build Next.js
 echo "Building Next.js..."
-bunx next build
+npx next build
 
 echo "Vercel build complete!"
