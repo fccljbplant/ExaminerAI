@@ -150,7 +150,8 @@ Return ONLY this JSON object (no prose, no markdown fences):
   "studentAnswer": "<student's answer, summarized in 1-2 sentences>",
   "correctAnswer": "<the RIGHT answer, 1-2 sentences, plain language. What they SHOULD have said.>",
   "explanation": "<2-3 sentences explaining WHY the correct answer is correct — cause-and-effect, the trade-off. Teach the concept.>",
-  "encouragement": "<ONE sentence specific encouragement for THIS question — what they did well OR what to try next time. Never harsh.>"
+  "encouragement": "<ONE sentence specific encouragement for THIS question — what they did well OR what to try next time. Never harsh.>",
+  "score": <0-100 integer, how well the student answered THIS question. 0=empty/wrong, 50=partial, 75=mostly right, 100=model answer.>
 }`;
 
   try {
@@ -191,6 +192,7 @@ function fallbackQuestionExplanation(question: string, topic: string): QuestionE
     correctAnswer: `A strong answer on "${topic}" would explain the core idea in your own words and give one concrete example.`,
     explanation: `This concept matters because it's foundational to "${topic}". Try relating it to a real situation you might face in your project — that makes the abstract idea concrete.`,
     encouragement: "Keep practicing — every attempt teaches you something. Review the topic and try again.",
+    score: 50, // neutral — keeps adaptive engine stable when AI grading fails
   };
 }
 

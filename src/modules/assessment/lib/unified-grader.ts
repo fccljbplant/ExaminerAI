@@ -48,6 +48,10 @@ export interface QuestionExplanation {
   explanation: string;
   /** One-sentence specific encouragement for THIS question. Never harsh. */
   encouragement: string;
+  /** Per-question score 0-100 — used by the adaptive difficulty engine
+   *  (src/lib/assessment/adaptive.ts) to decide whether to ramp up or
+   *  soften the next question. Defaults to 50 when the AI doesn't return one. */
+  score: number;
 }
 
 export interface TeachingFeedback {
@@ -227,6 +231,10 @@ export function parseQuestionExplanations(raw: unknown): QuestionExplanation[] {
     const correctAnswer = typeof r.correctAnswer === "string" ? r.correctAnswer.trim() : "";
     const explanation = typeof r.explanation === "string" ? r.explanation.trim() : "";
     const encouragement = typeof r.encouragement === "string" ? r.encouragement.trim() : "";
+    const rawScore = typeof r.score === "number" ? r.score : Number(r.score);
+    const score = Number.isFinite(rawScore) && rawScore >= 0 && rawScore <= 100
+      ? Math.round(rawScore)
+      : 50; // neutral fallback — keeps adaptive engine stable on parse misses
     // Skip entries missing the critical fields
     if (!correctAnswer || !explanation) continue;
     result.push({
@@ -236,6 +244,7 @@ export function parseQuestionExplanations(raw: unknown): QuestionExplanation[] {
       correctAnswer,
       explanation,
       encouragement: encouragement || "Keep practicing — every attempt teaches you something.",
+      score,
     });
   }
   return result;

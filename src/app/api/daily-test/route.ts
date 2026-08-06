@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { callAIJson } from "@/lib/ai-json";
+import { DEFAULT_STATE, nextState, questionDirective, calibrationFlag, type DifficultyState } from "@/lib/assessment/adaptive";
+import { recordLearningSignal } from "@/lib/learning-signal";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
-import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
 import { weeklyTestSystemPrompt } from "@/lib/ai-prompts";
 import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { getBootcampDayNumber } from "@/lib/course-topics";
@@ -42,25 +44,15 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 const TOTAL_QUESTIONS = 3;
 const MAX_REPLIES_PER_QUESTION = 2; // examiner probes once, then advances
 
-// Daily test includes both CONCEPTUAL and IMPLEMENTATION questions:
-// Q1: Conceptual (what is it?)
-// Q2: Implementation (how do you use it?)
-// Q3: Applied/edge case (what happens when...?)
-const QUESTION_TYPES = [
-  "a CONCEPTUAL question about what this topic IS and WHY it matters",
-  "an IMPLEMENTATION question about HOW to use this topic in practice (e.g., how would you configure/deploy/use it)",
-  "an APPLIED/EDGE-CASE question about what happens in unusual situations or when things go wrong",
-];
-
 interface ChatMessage {
   role: "student" | "examiner";
   content: string;
   timestamp: string;
   questionIndex: number;
-  confidenceRating?: "low" | "medium" | "high" | null; // captured before each student answer
-  /** Per-question explanation — attached to the examiner's advancing message
-   *  so the student sees it immediately when they move on to the next question. */
+  confidenceRating?: "low" | "medium" | "high" | null;
+  selfConfidence?: "sure" | "guessing" | null; // NEW: explicit confidence tap
   questionExplanation?: QuestionExplanation;
+  degraded?: boolean; // NEW: marks AI-failed responses
 }
 
 export async function POST(req: NextRequest) {
@@ -201,22 +193,28 @@ DAILY TEST — SHORTER FORMAT:
           update: {},
         });
 
-    // Generate the first question
+    // Generate the first question using adaptive difficulty
     const context = `Week ${week} (Day ${bootcampDay}): ${phase}. Today's topic: "${todaysTopic}".`;
-    const firstMsgRaw = await callAILocal([
+    const diffState: DifficultyState = DEFAULT_STATE;
+    const firstMsgResult = await callAILocal([
       { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: `${context}\n\nStart the daily test. You are on Question 1 of ${TOTAL_QUESTIONS}. Ask ${QUESTION_TYPES[0]}. Do NOT prefix with "Question 1:" — just ask the question directly.` },
+      { role: "user", content: `${context}\n\nStart the daily test. You are on Question 1 of ${TOTAL_QUESTIONS}. ${questionDirective(diffState.level)} Do NOT prefix with "Question 1:" — just ask the question directly.` },
     ], "daily-test-start", user.id);
 
-    const firstMsg = firstMsgRaw.replace(/^Question\s*\d+\s*:\s*/i, "").trim();
+    const firstMsg = firstMsgResult.text.replace(/^Question\s*\d+\s*:\s*/i, "").trim();
     const conversation: ChatMessage[] = [{
       role: "examiner", content: firstMsg,
       timestamp: new Date().toISOString(), questionIndex: 0,
+      degraded: firstMsgResult.degraded,
     }];
 
+    // Store initial difficulty state
     await db.dailyTest.update({
       where: { id: dailyTest.id },
-      data: { conversation: JSON.stringify(conversation) },
+      data: {
+        conversation: JSON.stringify(conversation),
+        difficultyState: JSON.stringify(diffState),
+      },
     });
 
     return NextResponse.json({
@@ -233,7 +231,7 @@ DAILY TEST — SHORTER FORMAT:
 
   // ---- ACTION: REPLY ----
   if (action === "reply") {
-    const { dailyTestId, studentReply, confidenceRating } = body as { dailyTestId?: string; studentReply?: string; confidenceRating?: "low" | "medium" | "high" };
+    const { dailyTestId, studentReply, confidenceRating, selfConfidence } = body as { dailyTestId?: string; studentReply?: string; confidenceRating?: "low" | "medium" | "high"; selfConfidence?: "sure" | "guessing" };
     if (!dailyTestId || !studentReply?.trim()) {
       return NextResponse.json({ error: "dailyTestId and studentReply required" }, { status: 400 });
     }
@@ -257,7 +255,12 @@ DAILY TEST — SHORTER FORMAT:
       role: "student", content: studentReply.trim(),
       timestamp: new Date().toISOString(), questionIndex: test.currentQuestion ?? 0,
       confidenceRating: confidenceRating || null,
+      selfConfidence: selfConfidence || null,
     });
+
+    // Read adaptive difficulty state from the test row
+    let diffState: DifficultyState = DEFAULT_STATE;
+    try { diffState = JSON.parse(test.difficultyState || ""); } catch { diffState = DEFAULT_STATE; }
 
     // Build system prompt (same as start)
     const [courseMeta, coursePrompts] = await Promise.all([
@@ -268,7 +271,7 @@ DAILY TEST — SHORTER FORMAT:
     const courseContext = courseMeta
       ? `\nCOURSE CONTEXT: ${courseMeta.name} (${courseMeta.domain}). Tools: ${courseMeta.toolsUsed.join(", ")}.`
       : "";
-    const SYSTEM_PROMPT = baseSystemPrompt + courseContext + `\n\nDAILY TEST: ${TOTAL_QUESTIONS} questions total, max ${MAX_REPLIES_PER_QUESTION} replies per question. Topic: "${test.topic}". You are on Question ${(test.currentQuestion ?? 0) + 1} of ${TOTAL_QUESTIONS}. Reply ${newReplyCount} of ${MAX_REPLIES_PER_QUESTION}. Question type: ${QUESTION_TYPES[Math.min(test.currentQuestion ?? 0, QUESTION_TYPES.length - 1)]}.` + `\n\nLANGUAGE CHECK — Re-read the student's LATEST message. If they wrote in Roman Urdu (e.g. "zaroori hota hai", "tum kon ho", "karna hai"), your ENTIRE response MUST be in Roman Urdu. If they wrote in English, use English. If they asked you to switch language ("explain in urdu"), comply. NEVER ask them to switch to English. Technical terms (database, API, plugin) stay in English.`;
+    const SYSTEM_PROMPT = baseSystemPrompt + courseContext + `\n\nDAILY TEST: ${TOTAL_QUESTIONS} questions total, max ${MAX_REPLIES_PER_QUESTION} replies per question. Topic: "${test.topic}". You are on Question ${(test.currentQuestion ?? 0) + 1} of ${TOTAL_QUESTIONS}. Reply ${newReplyCount} of ${MAX_REPLIES_PER_QUESTION}. ${questionDirective(diffState.level)}` + `\n\nLANGUAGE CHECK — Re-read the student's LATEST message. If they wrote in Roman Urdu (e.g. "zaroori hota hai", "tum kon ho", "karna hai"), your ENTIRE response MUST be in Roman Urdu. If they wrote in English, use English. If they asked you to switch language ("explain in urdu"), comply. NEVER ask them to switch to English. Technical terms (database, API, plugin) stay in English.`;
 
     // Convert conversation to AI messages
     const aiMessages = [
@@ -279,7 +282,9 @@ DAILY TEST — SHORTER FORMAT:
       })),
     ];
 
-    const examinerResponse = await callAILocal(aiMessages, "daily-test-reply", user.id);
+    const examinerResult = await callAILocal(aiMessages, "daily-test-reply", user.id);
+    const examinerResponse = examinerResult.text;
+    const isDegraded = examinerResult.degraded;
     const isLastReply = newReplyCount >= MAX_REPLIES_PER_QUESTION;
     const isLastQuestion = (test.currentQuestion ?? 0) >= TOTAL_QUESTIONS - 1;
 
@@ -321,10 +326,43 @@ DAILY TEST — SHORTER FORMAT:
       }
     }
 
+    // ADAPTIVE: update difficulty state based on the graded answer
+    if (questionExplanation) {
+      const selfConf = selfConfidence as "sure" | "guessing" | undefined;
+      if (selfConf) {
+        diffState = nextState(diffState, { score: questionExplanation.score, selfConfidence: selfConf });
+        const flag = calibrationFlag({ score: questionExplanation.score, selfConfidence: selfConf });
+        if (flag !== "calibrated") {
+          logger.info("calibration", { userId: user.id, flag, score: questionExplanation.score });
+        }
+      }
+
+      // MISTAKE REPLAY: weak answers become spaced drill cards
+      if (questionExplanation.score < 60) {
+        const studentAnswer = conversation
+          .filter(m => m.role === "student" && m.questionIndex === (test.currentQuestion ?? 0))
+          .map(m => m.content)
+          .join(" ")
+          .slice(0, 200);
+        db.drillCard.create({
+          data: {
+            userId: user.id,
+            topic: test.topic || "general",
+            questionDigest: studentAnswer,
+            explanation: questionExplanation.explanation ?? "",
+            dueAt: new Date(Date.now() + 2 * 86400_000), // due in 2 days
+            attempts: 0,
+            lastScore: questionExplanation.score,
+          },
+        }).catch(() => { /* non-blocking */ });
+      }
+    }
+
     conversation.push({
       role: "examiner", content: examinerResponse,
       timestamp: new Date().toISOString(), questionIndex: nextQuestion,
       questionExplanation,
+      degraded: isDegraded,
     });
 
     if (isComplete) {
@@ -343,6 +381,7 @@ DAILY TEST — SHORTER FORMAT:
           conversation: JSON.stringify(conversation),
           currentQuestion: TOTAL_QUESTIONS,
           replyCount: nextReplyCount,
+          difficultyState: JSON.stringify(diffState),
         },
       });
 
@@ -364,6 +403,9 @@ DAILY TEST — SHORTER FORMAT:
         },
       }).catch(() => {/* Non-blocking — best-effort logging */});
 
+      // MODERNIZED: transparent Learning Signal replaces the deleted psych pipeline
+      void recordLearningSignal(user.id).catch(() => { /* non-blocking */ });
+
       return NextResponse.json({
         conversation, isComplete: true,
         score: plagiarismResult.finalScore, // DEDUCTED score
@@ -374,6 +416,7 @@ DAILY TEST — SHORTER FORMAT:
         totalQuestions: TOTAL_QUESTIONS,
         maxReplies: MAX_REPLIES_PER_QUESTION,
         topic: test.topic, week: test.week,
+        difficulty: diffState,
       });
     }
 
@@ -383,6 +426,7 @@ DAILY TEST — SHORTER FORMAT:
         conversation: JSON.stringify(conversation),
         currentQuestion: nextQuestion,
         replyCount: nextReplyCount,
+        difficultyState: JSON.stringify(diffState),
       },
     });
 
@@ -394,6 +438,8 @@ DAILY TEST — SHORTER FORMAT:
       maxReplies: MAX_REPLIES_PER_QUESTION,
       isComplete,
       topic: test.topic, week: test.week,
+      difficulty: diffState,
+      degraded: isDegraded,
     });
   }
 
@@ -412,6 +458,10 @@ DAILY TEST — SHORTER FORMAT:
     let conversation: ChatMessage[] = [];
     try { conversation = JSON.parse(test.conversation || "[]"); } catch { conversation = []; }
 
+    // Read adaptive difficulty state from the test row
+    let diffState: DifficultyState = DEFAULT_STATE;
+    try { diffState = JSON.parse(test.difficultyState || ""); } catch { diffState = DEFAULT_STATE; }
+
     const grade = await gradeDailyTest(conversation, test.topic, user.name);
     const plagiarismScore = estimatePlagiarismFromConversation(conversation);
     const plagiarismResult = applyPlagiarismDeduction(grade.score, plagiarismScore);
@@ -421,8 +471,12 @@ DAILY TEST — SHORTER FORMAT:
         status: "completed",
         score: plagiarismResult.finalScore,
         conversation: JSON.stringify(conversation),
+        difficultyState: JSON.stringify(diffState),
       },
     });
+
+    // MODERNIZED: transparent Learning Signal replaces the deleted psych pipeline
+    void recordLearningSignal(user.id).catch(() => { /* non-blocking */ });
 
     return NextResponse.json({
       conversation, isComplete: true,
@@ -431,24 +485,33 @@ DAILY TEST — SHORTER FORMAT:
       plagiarismDeduction: plagiarismResult,
       feedback: grade.feedback,
       topic: test.topic, week: test.week,
+      difficulty: diffState,
     });
   }
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 }
 
-/** Call AI via shared provider — catches errors and returns a fallback
- *  prompt so a single AI failure doesn't crash the whole test.
- *  Uses shared sanitizeExaminerText from @/lib/examiner-sanitizer for
- *  comprehensive filtering of markdown, meta-commentary, and instruction echoes. */
-async function callAILocal(messages: { role: "system" | "user" | "assistant"; content: string }[], feature: string, userId?: string): Promise<string> {
-  try {
-    const result = await callAI(messages, { temperature: 0.5, maxTokens: TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature, userId });
-    if (result.text) return sanitizeExaminerText(result.text);
-  } catch (err) {
-    logger.warn("Daily test AI call failed", { feature, error: err instanceof Error ? err.message : String(err) });
+/** Schema for the examiner's turn — structured output replaces raw text + sanitizer */
+const ExaminerTurnSchema = z.object({
+  text: z.string().min(1).max(900),
+});
+
+/** Call AI via JSON mode — returns visible degraded flag on failure.
+ *  No more silent canned "Can you elaborate?" fallbacks. */
+async function callAILocal(messages: { role: "system" | "user" | "assistant"; content: string }[], feature: string, userId?: string): Promise<{ text: string; degraded: boolean }> {
+  const result = await callAIJson<{ text: string }>(messages, {
+    schema: ExaminerTurnSchema,
+    feature,
+    userId,
+    temperature: 0.5,
+    maxTokens: 800,
+  });
+  if (result.ok) {
+    return { text: result.data.text, degraded: false };
   }
-  return "Can you elaborate on that? Walk me through your reasoning.";
+  // VISIBLE degraded mode — the UI shows "AI temporarily unavailable"
+  return { text: "The examiner is temporarily unavailable. Your answer was saved — tap retry.", degraded: true };
 }
 
 /** Grade the daily test conversation using the UNIFIED grader
