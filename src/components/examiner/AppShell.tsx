@@ -189,7 +189,7 @@ export default function AppShell() {
       ? navConfig[effectiveRole].includes(view)
       : navItem?.roles.includes(effectiveRole) ?? false;
     const title = isVisible ? (navItem?.label ?? "Dashboard") : "Dashboard";
-    document.title = `${title} — AI Examiner`;
+    document.title = `${title} — TraineesAI`;
   }, [view, effectiveRole, navConfig]);
 
   const fetchEnrollments = useCallback(async () => {
@@ -329,7 +329,7 @@ export default function AppShell() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-3 text-muted-foreground">
           <Sparkles className="h-5 w-5 animate-pulse text-primary" />
-          <span>Loading AI Examiner…</span>
+          <span>Loading TraineesAI…</span>
         </div>
       </div>
     );
@@ -411,7 +411,7 @@ export default function AppShell() {
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <GraduationCap className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Welcome to ExaminerAI</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Welcome to TraineesAI</h2>
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
             You haven&apos;t been assigned a course yet. Your instructor or administrator
             will enroll you in a course soon. Check back here once you&apos;re enrolled.
@@ -481,7 +481,7 @@ export default function AppShell() {
           <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <GraduationCap className="h-5 w-5" />
           </div>
-          <span className="font-bold text-foreground flex-1">ExaminerAI</span>
+          <span className="font-bold text-foreground flex-1">TraineesAI</span>
           <UnifiedThemeToggle />
         </div>
 
@@ -664,7 +664,7 @@ export default function AppShell() {
             )}
           </div>
           <div className="text-xs text-muted-foreground hidden sm:block">
-            AI Examiner · Learning Platform
+            TraineesAI · Training Platform
           </div>
         </header>
 

@@ -136,6 +136,10 @@ model CourseDay {
   deliverable    String @default("")
   resources      String @default("[]")
   instructorNote String @default("")
+  videoUrl       String? // YouTube embed URL for the video slide
+  videoTitle     String? // Title of the video
+  codeExamples   String @default("[]") // JSON: [{filename, language, code, explanation}]
+  webImages      String @default("[]") // JSON: [{url, caption, source}]
 
   courseWeek CourseWeek @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
 

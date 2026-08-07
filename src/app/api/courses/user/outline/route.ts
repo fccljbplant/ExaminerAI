@@ -29,7 +29,12 @@ import { getCourseTopics, getCourseDurationWeeks, getCourseMetadata, getCoursePr
  *          topicsCovered: string[],
  *          activity: string,
  *          deliverable: string,
- *          resources: { label: string; url: string }[]
+ *          resources: { label: string; url: string }[],
+ *          // Phase 3: SlideViewer fields
+ *          videoUrl: string | null,
+ *          videoTitle: string | null,
+ *          codeExamples: { filename: string; language: string; code: string; explanation: string }[],
+ *          webImages: { url: string; caption: string; source: string }[]
  *        }]
  *      }]
  *    }
@@ -56,16 +61,23 @@ export async function GET() {
     phase: w.phase,
     days: w.topics.map((t, i) => {
       // The getCourseTopics helper returns topics with extra fields
-      // (whyItMatters, topicsCovered, activity, deliverable) via type casting
-      // when reading from the DB. Access them safely.
+      // (whyItMatters, topicsCovered, activity, deliverable, videoUrl,
+      // videoTitle, codeExamples, webImages) via type casting when reading
+      // from the DB. Access them safely.
       const enriched = t as DailyTopic & {
         whyItMatters?: string;
         topicsCovered?: string[];
         activity?: string;
         deliverable?: string;
+        // Phase 3: SlideViewer fields
+        day?: number;
+        videoUrl?: string | null;
+        videoTitle?: string | null;
+        codeExamples?: { filename: string; language: string; code: string; explanation: string }[];
+        webImages?: { url: string; caption: string; source: string }[];
       };
       return {
-        day: (t as any).day || i + 1,
+        day: enriched.day || (t as any).day || i + 1,
         title: t.title,
         objective: t.objective || "",
         whyItMatters: enriched.whyItMatters || "",
@@ -73,6 +85,11 @@ export async function GET() {
         activity: enriched.activity || "",
         deliverable: enriched.deliverable || "",
         resources: Array.isArray(t.resources) ? t.resources : [],
+        // Phase 3: SlideViewer fields — video/code/images
+        videoUrl: enriched.videoUrl ?? null,
+        videoTitle: enriched.videoTitle ?? null,
+        codeExamples: Array.isArray(enriched.codeExamples) ? enriched.codeExamples : [],
+        webImages: Array.isArray(enriched.webImages) ? enriched.webImages : [],
       };
     }),
   }));

@@ -237,6 +237,11 @@ export async function POST(req: NextRequest) {
                 whyItMatters?: string; topicsCovered?: string[];
                 activity?: string; deliverable?: string;
                 resources?: { label: string; url: string }[];
+                // Phase 3: SlideViewer fields (optional)
+                videoUrl?: string | null;
+                videoTitle?: string | null;
+                codeExamples?: { filename: string; language: string; code: string; explanation: string }[];
+                webImages?: { url: string; caption: string; source: string }[];
               }>;
             }>).map((w) => ({
               weekNumber: w.weekNumber,
@@ -252,6 +257,11 @@ export async function POST(req: NextRequest) {
                   activity: d.activity || "",
                   deliverable: d.deliverable || "",
                   resources: JSON.stringify(d.resources || []),
+                  // Phase 3: SlideViewer fields — persist video/code/images for the new slide-based viewer
+                  videoUrl: d.videoUrl || null,
+                  videoTitle: d.videoTitle || null,
+                  codeExamples: JSON.stringify(d.codeExamples || []),
+                  webImages: JSON.stringify(d.webImages || []),
                 })),
               },
             }))

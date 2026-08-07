@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { THEME_PRESETS, DEFAULT_THEME_ID, getThemePreset, type ThemeColors, type ThemePreset } from "./themes/presets";
 
 /**
- * Theme Module — Global theme system for ExaminerAI.
+ * Theme Module — Global theme system for TraineesAI.
  *
  * This module provides:
  *   1. Multiple preset themes (Modern Slate, Ocean Blue, Forest Sage, Sunset Rose)

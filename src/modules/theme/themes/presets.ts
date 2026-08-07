@@ -1,5 +1,5 @@
 /**
- * Theme preset definitions for ExaminerAI.
+ * Theme preset definitions for TraineesAI.
  *
  * Each preset is a complete set of CSS custom properties (variables) that
  * get applied to :root (light) and .dark (dark) at runtime.

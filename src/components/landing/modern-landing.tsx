@@ -395,7 +395,7 @@ export function ModernLanding() {
               <GraduationCap className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <div className="text-base font-bold leading-tight tracking-tight">ExaminerAI</div>
+              <div className="text-base font-bold leading-tight tracking-tight">TraineesAI</div>
               <div className="text-[10px] text-muted-foreground leading-tight">AI-Powered Bootcamp Management</div>
             </div>
           </a>
@@ -473,7 +473,7 @@ export function ModernLanding() {
               </h1>
 
               <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed">
-                ExaminerAI is the AI-powered bootcamp platform where students learn software by building real capstone projects. The AI teaches, the Socratic test chatbot probes reasoning — <span className="text-amber-300 font-medium">never MCQs</span> — and every interaction feeds per-topic skill mastery plus attention-scored triage. Teachers mentor at scale. Institutions see signal, not noise.
+                TraineesAI is the AI-powered bootcamp platform where students learn software by building real capstone projects. The AI teaches, the Socratic test chatbot probes reasoning — <span className="text-amber-300 font-medium">never MCQs</span> — and every interaction feeds per-topic skill mastery plus attention-scored triage. Teachers mentor at scale. Institutions see signal, not noise.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mb-10">
@@ -575,7 +575,7 @@ export function ModernLanding() {
       <section id="big-idea" className="py-20 lg:py-28">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mb-14">
-            <Badge variant="outline" className="mb-3">Why ExaminerAI exists</Badge>
+            <Badge variant="outline" className="mb-3">Why TraineesAI exists</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               Software skills are learned by building.<br />
               <span className="text-muted-foreground">Not by watching videos.</span>
@@ -640,7 +640,7 @@ export function ModernLanding() {
                 <span className="text-muted-foreground">Just Socratic dialogue.</span>
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Multiple-choice tests tell you a student picked the right letter. They tell you nothing about how the student reasons, whether they know what they don't know, or whether the answer was even theirs. ExaminerAI uses the Socratic method instead — the AI probes with follow-up questions, the student articulates their reasoning, and the conversation itself becomes the evidence of understanding.
+                Multiple-choice tests tell you a student picked the right letter. They tell you nothing about how the student reasons, whether they know what they don't know, or whether the answer was even theirs. TraineesAI uses the Socratic method instead — the AI probes with follow-up questions, the student articulates their reasoning, and the conversation itself becomes the evidence of understanding.
               </p>
               <div className="grid sm:grid-cols-2 gap-3 mt-8">
                 {SOCRATIC_PRINCIPLES.map(p => (
@@ -1386,7 +1386,7 @@ export function ModernLanding() {
         }} />
         <div className="container mx-auto px-4 lg:px-8 text-center relative">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
-            Run your bootcamp on ExaminerAI.
+            Run your bootcamp on TraineesAI.
           </h2>
           <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             One click. No signup. Watch the AI teach, students build, milestones track, and the teacher's dashboard light up with signal. The demo is read-only — try every role, nothing breaks.
@@ -1417,7 +1417,7 @@ export function ModernLanding() {
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
                   <GraduationCap className="w-4 h-4 text-slate-900" />
                 </div>
-                <span className="text-white font-bold">ExaminerAI</span>
+                <span className="text-white font-bold">TraineesAI</span>
               </div>
               <p className="text-sm max-w-md leading-relaxed">
                 AI-powered bootcamp management for software training programmes up to 6 months. Students learn by building real capstone projects — the AI teaches, tracks milestones, and gives institutions the signal they need to mentor at scale.
@@ -1458,7 +1458,7 @@ export function ModernLanding() {
           <div className="border-t border-slate-800 my-6" />
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
-            <div>© 2026 ExaminerAI · Inzet Enterprises. All rights reserved.</div>
+            <div>© 2026 TraineesAI · Inzet Enterprises. All rights reserved.</div>
             <div className="flex items-center gap-4">
               <span>v1.0.0</span>
               <span>·</span>

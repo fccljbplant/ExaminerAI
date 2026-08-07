@@ -45,6 +45,11 @@ export async function GET(
         ...d,
         resources: parseJSON(d.resources, []),
         topicsCovered: parseJSON(d.topicsCovered, []),
+        // Phase 3: SlideViewer fields — video slide, code examples, web images
+        videoUrl: d.videoUrl,
+        videoTitle: d.videoTitle,
+        codeExamples: parseJSON(d.codeExamples, []),
+        webImages: parseJSON(d.webImages, []),
       })),
     })),
     journeySteps: parseJSON(course.journeyStepsJson),
@@ -81,7 +86,21 @@ export async function PUT(
   const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
     name?: string;
     description?: string;
-    weeks?: { weekNumber: number; phase: string; milestone?: string; days: { day: number; title: string; objective?: string; whyItMatters?: string; topicsCovered?: string[]; activity?: string; deliverable?: string; resources?: { label: string; url: string }[] }[] }[];
+    weeks?: { weekNumber: number; phase: string; milestone?: string; days: {
+      day: number;
+      title: string;
+      objective?: string;
+      whyItMatters?: string;
+      topicsCovered?: string[];
+      activity?: string;
+      deliverable?: string;
+      resources?: { label: string; url: string }[];
+      // Phase 3: SlideViewer fields (optional, type-cast)
+      videoUrl?: string | null;
+      videoTitle?: string | null;
+      codeExamples?: { filename: string; language: string; code: string; explanation: string }[];
+      webImages?: { url: string; caption: string; source: string }[];
+    }[] }[];
     journeySteps?: unknown;
     projectTemplate?: unknown;
     aiPrompts?: unknown;
@@ -197,6 +216,11 @@ export async function PUT(
               activity: d.activity || "",
               deliverable: d.deliverable || "",
               resources: JSON.stringify(d.resources || []),
+              // Phase 3: SlideViewer fields — persist video/code/images for the new slide-based viewer
+              videoUrl: d.videoUrl || null,
+              videoTitle: d.videoTitle || null,
+              codeExamples: JSON.stringify(d.codeExamples || []),
+              webImages: JSON.stringify(d.webImages || []),
             })),
           });
         }

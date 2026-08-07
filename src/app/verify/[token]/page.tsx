@@ -130,7 +130,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ token: 
 
         {/* Verification timestamp */}
         <p className="text-center text-xs text-muted-foreground mt-4">
-          Verified on {new Date().toLocaleString()} · This certificate was issued by ExaminerAI
+          Verified on {new Date().toLocaleString()} · This certificate was issued by TraineesAI
         </p>
       </div>
     </div>

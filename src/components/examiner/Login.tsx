@@ -104,7 +104,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
         <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg mb-4">
           <GraduationCap className="h-7 w-7" />
         </div>
-        <h1 className="text-3xl font-bold">ExaminerAI</h1>
+        <h1 className="text-3xl font-bold">TraineesAI</h1>
 
         {/* Demo buttons — 3 read-only role previews */}
         <div className="space-y-2">

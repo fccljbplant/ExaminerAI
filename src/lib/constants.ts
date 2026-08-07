@@ -1,4 +1,4 @@
-/** Public, browser-safe constants for the ExaminerAI app. */
+/** Public, browser-safe constants for the TraineesAI app. */
 
 /** The 4 Socratic assessment pillars. Each weekly test question targets one. */
 export const PILLARS = [

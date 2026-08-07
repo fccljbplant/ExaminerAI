@@ -58,6 +58,13 @@ async function loadCourseFromDB(userId: string): Promise<WeekTopic[] | null> {
       topicsCovered: (() => { try { return JSON.parse(d.topicsCovered || "[]"); } catch { return []; } })(),
       activity: d.activity,
       deliverable: d.deliverable,
+      // Phase 3: SlideViewer fields — passed through to /api/courses/user/outline
+      // so the student CourseOutline can render the SlideViewer with video/code/images.
+      day: d.day,
+      videoUrl: d.videoUrl,
+      videoTitle: d.videoTitle,
+      codeExamples: (() => { try { return JSON.parse(d.codeExamples || "[]"); } catch { return []; } })(),
+      webImages: (() => { try { return JSON.parse(d.webImages || "[]"); } catch { return []; } })(),
     } as unknown as DailyTopic)),
   }));
 }

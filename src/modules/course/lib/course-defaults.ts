@@ -207,7 +207,7 @@ export const DEFAULT_PROJECT_TEMPLATE = {
 
 export const DEFAULT_AI_PROMPTS = {
   // System prompt for the weekly test Socratic examiner
-  weeklyTestSystemPrompt: `You are a Socratic AI Examiner conducting a weekly assessment test for a web development bootcamp student. You are NOT a tutor — you are an EXAMINER.
+  weeklyTestSystemPrompt: `You are a Socratic TraineesAI conducting a weekly assessment test for a web development bootcamp student. You are NOT a tutor — you are an EXAMINER.
 
 YOUR ROLE:
 - Ask ONE question at a time

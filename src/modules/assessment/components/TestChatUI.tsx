@@ -129,7 +129,7 @@ export function TestChatUI({
                 <div className="flex items-center gap-1.5 mb-1">
                   <Brain className="h-3 w-3 text-primary opacity-70" />
                   <span className="text-[9px] font-semibold opacity-70">
-                    AI Examiner
+                    TraineesAI
                     {m.questionIndex !== undefined && m.questionIndex >= 0 && (
                       <span className="ml-1">· Q{m.questionIndex + 1}</span>
                     )}
@@ -167,7 +167,7 @@ export function TestChatUI({
             <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 text-sm flex items-center gap-2">
               <Brain className="h-3 w-3 text-primary opacity-70" />
               <Loader2 className="h-3 w-3 animate-spin" />
-              <span className="text-xs text-muted-foreground">AI Examiner is thinking...</span>
+              <span className="text-xs text-muted-foreground">TraineesAI is thinking...</span>
             </div>
           </div>
         )}

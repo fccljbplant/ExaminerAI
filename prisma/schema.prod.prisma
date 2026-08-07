@@ -98,6 +98,10 @@ model CourseDay {
   deliverable    String @default("")
   resources      String @default("[]")
   instructorNote String @default("")
+  videoUrl       String?
+  videoTitle     String?
+  codeExamples   String @default("[]")
+  webImages      String @default("[]")
 
   courseWeek CourseWeek @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
 
