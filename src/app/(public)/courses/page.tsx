@@ -4,6 +4,7 @@ import { Star, Users, Clock, TrendingUp, Award, BookOpen, Sparkles, Route as Rou
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { db } from "@/lib/db";
 import {
   fetchMarketplaceCourses,
   fetchMarketplacePaths,
@@ -36,7 +37,19 @@ export default async function CoursesPage({
   const featured = getString("featured") === "1" || getString("featured") === "true";
   const free = getString("free") === "1" || getString("free") === "true";
 
-  const courses = await fetchMarketplaceCourses({ category, level, search, featured, free });
+  const [courses, categoryCounts] = await Promise.all([
+    fetchMarketplaceCourses({ category, level, search, featured, free }),
+    // Per-category course counts — used for the category nav sidebar.
+    db.course.groupBy({
+      by: ["category"],
+      where: { published: true },
+      _count: { _all: true },
+    }),
+  ]);
+  const countByCategory = new Map<string, number>(
+    categoryCounts.map((c) => [c.category, c._count._all])
+  );
+  const totalPublished = categoryCounts.reduce((sum, c) => sum + c._count._all, 0);
 
   const featuredCourses = courses.filter(c => c.featured);
   const freeCourses = courses.filter(c => c.price === 0);
@@ -99,6 +112,52 @@ export default async function CoursesPage({
             levels={MARKETPLACE_LEVELS}
             current={{ category, level, search, featured, free }}
           />
+        </div>
+      </section>
+
+      {/* Category navigation */}
+      <section className="border-b border-border bg-card/20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <BookOpen className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">Browse by category</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/courses"
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${
+                !category
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background hover:bg-accent"
+              }`}
+            >
+              All Categories
+              <Badge variant="outline" className="text-[9px] py-0 px-1.5 h-4">
+                {totalPublished}
+              </Badge>
+            </Link>
+            {MARKETPLACE_CATEGORIES.map((c) => {
+              const count = countByCategory.get(c.value) ?? 0;
+              if (count === 0) return null; // hide empty categories
+              const active = category === c.value;
+              return (
+                <Link
+                  key={c.value}
+                  href={`/courses/category/${c.value}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background hover:bg-accent"
+                  }`}
+                >
+                  {c.label}
+                  <Badge variant="outline" className="text-[9px] py-0 px-1.5 h-4">
+                    {count}
+                  </Badge>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 

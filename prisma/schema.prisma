@@ -117,6 +117,7 @@ model Course {
   weeks              CourseWeek[]
   enrollments        CourseEnrollment[]
   certificates       Certificate[]
+  reviews            CourseReview[]
   institution        Institution?         @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   events             Event[]
   groupTasks         GroupTask[]
@@ -130,6 +131,41 @@ model Course {
   dailyTests         DailyTest[]
   curriculumProgress CurriculumProgress[]
   learningPathCourses LearningPathCourse[]
+}
+
+/// Course reviews — students rate courses after completion.
+/// One review per user per course (@@unique on [userId, courseId]).
+model CourseReview {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+  rating      Int      // 1-5 stars
+  title       String
+  content     String
+  helpful     Int      @default(0)  // upvote count
+  createdAt   DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  votes  CourseReviewHelpfulVote[]
+
+  @@unique([userId, courseId])  // one review per user per course
+  @@index([courseId])
+}
+
+/// Per-user helpful-vote tracking — one vote per user per review.
+/// Lets us enforce "one upvote per user" without a JSON blob on CourseReview.
+model CourseReviewHelpfulVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  review CourseReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
 }
 
 /// A learning path — a sequence of courses that form a career trajectory.
@@ -280,6 +316,8 @@ model User {
   peerAssessmentsReceived PeerAssessment[]       @relation("PeerAssessee")
   instructorRules         InstructorRule[]       @relation("InstructorRuleOwner")
   milestones              Milestone[]
+  courseReviews           CourseReview[]
+  reviewVotes             CourseReviewHelpfulVote[]
 }
 
 // Admin-reset workflow: student requests a reset, admin approves + sets temp password

@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMarketplaceCourseDetail, MARKETPLACE_CATEGORIES, MARKETPLACE_LEVELS } from "@/lib/marketplace";
 import EnrollButton from "../EnrollButton";
+import CheckoutButton from "./CheckoutButton";
+import ReviewSection from "../ReviewSection";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -101,7 +103,12 @@ export default async function CourseDetailPage({ params }: Params) {
 
             {/* CTA + price */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <EnrollButton courseId={course.id} />
+              <CheckoutButton
+                courseId={course.id}
+                courseName={course.name}
+                price={course.price}
+                currency={course.currency}
+              />
               <span className="text-2xl font-bold">
                 {isFree ? (
                   <span className="text-emerald-500">Free</span>
@@ -219,6 +226,9 @@ export default async function CourseDetailPage({ params }: Params) {
               </ul>
             </section>
           )}
+
+          {/* Reviews */}
+          <ReviewSection courseId={course.id} />
         </div>
 
         {/* Right: sidebar */}

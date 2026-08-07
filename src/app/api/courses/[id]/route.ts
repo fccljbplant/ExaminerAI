@@ -83,7 +83,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks, published, featured, price, category, subtitle, instructorName, durationWeeks } = body as {
+  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks, published, featured, price, category, subtitle, instructorName, instructorBio, whatYouWillLearn, prerequisites, skillsVerified, thumbnailUrl, durationWeeks } = body as {
     name?: string;
     description?: string;
     weeks?: { weekNumber: number; phase: string; milestone?: string; days: {
@@ -123,6 +123,11 @@ export async function PUT(
     category?: string;
     subtitle?: string | null;
     instructorName?: string | null;
+    instructorBio?: string | null;
+    whatYouWillLearn?: string[];
+    prerequisites?: string[];
+    skillsVerified?: string[];
+    thumbnailUrl?: string | null;
     durationWeeks?: number;
   };
 
@@ -206,6 +211,11 @@ export async function PUT(
         ...(category !== undefined ? { category } : {}),
         ...(subtitle !== undefined ? { subtitle: subtitle ?? null } : {}),
         ...(instructorName !== undefined ? { instructorName: instructorName ?? null } : {}),
+        ...(instructorBio !== undefined ? { instructorBio: instructorBio ?? null } : {}),
+        ...(whatYouWillLearn !== undefined ? { whatYouWillLearn: JSON.stringify(whatYouWillLearn || []) } : {}),
+        ...(prerequisites !== undefined ? { prerequisites: JSON.stringify(prerequisites || []) } : {}),
+        ...(skillsVerified !== undefined ? { skillsVerified: JSON.stringify(skillsVerified || []) } : {}),
+        ...(thumbnailUrl !== undefined ? { thumbnailUrl: thumbnailUrl ?? null } : {}),
         ...(durationWeeks !== undefined ? { durationWeeks } : {}),
         ...configData,
       },

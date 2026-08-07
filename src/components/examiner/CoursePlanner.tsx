@@ -17,6 +17,7 @@ import {
   RefreshCw, GraduationCap, Edit3, X, Sparkles, Wand2, ExternalLink,
   CheckCircle2, Circle, AlertCircle, Copy, ClipboardList, Store,
 } from "lucide-react";
+import CourseThumbnailPicker from "./CourseThumbnailPicker";
 
 interface CourseDay {
   id?: string; day: number; title: string; objective: string;
@@ -47,6 +48,8 @@ interface Course {
   category?: string;
   subtitle?: string | null;
   instructorName?: string | null;
+  instructorBio?: string | null;
+  thumbnailUrl?: string | null;
   durationWeeks?: number;
 }
 interface Batch { id: string; name: string; courseId: string | null; courseName: string | null; }
@@ -248,6 +251,8 @@ export default function CoursePlanner() {
         category: selectedCourse.category ?? "technology",
         subtitle: selectedCourse.subtitle ?? "",
         instructorName: selectedCourse.instructorName ?? "",
+        instructorBio: selectedCourse.instructorBio ?? "",
+        thumbnailUrl: selectedCourse.thumbnailUrl ?? null,
         durationWeeks: Number(selectedCourse.durationWeeks ?? 6),
       }, AI_TIMEOUT_MS);
       showMsg("success", "Course saved.");
@@ -965,6 +970,34 @@ export default function CoursePlanner() {
                 <p className="text-xs text-muted-foreground">{selectedCourse.instructorName || "—"}</p>
               )}
             </div>
+
+            {/* Instructor bio */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Instructor bio</Label>
+              {editing ? (
+                <Textarea
+                  value={selectedCourse.instructorBio ?? ""}
+                  onChange={(e) => setSelectedCourse({ ...selectedCourse, instructorBio: e.target.value })}
+                  placeholder="Short professional bio — credentials, experience, teaching style."
+                  className="bg-background border-border text-xs min-h-[70px]"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground whitespace-pre-line">
+                  {selectedCourse.instructorBio || "—"}
+                </p>
+              )}
+            </div>
+
+            {/* Course thumbnail picker — Unsplash + upload + AI */}
+            <CourseThumbnailPicker
+              currentUrl={selectedCourse.thumbnailUrl ?? null}
+              courseName={selectedCourse.name}
+              category={selectedCourse.category ?? "technology"}
+              onSelect={(url) => setSelectedCourse({
+                ...selectedCourse,
+                thumbnailUrl: url || null,
+              })}
+            />
 
             {/* Public preview link */}
             {selectedCourse.published && (
