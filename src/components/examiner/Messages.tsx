@@ -1,7 +1,7 @@
 "use client";
 import { showError } from "@/lib/toast-helpers";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Loader2, Send, Inbox, ArrowUpRight, Trash2, CheckCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Mail, Loader2, Send, Inbox, ArrowUpRight, Trash2, CheckCheck, ChevronLeft, ChevronRight, ChevronsUpDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -241,12 +243,7 @@ export default function Messages() {
               {users.length === 0 ? (
                 <p className="text-xs text-muted-foreground">No recipients available — students can only message teachers/admins.</p>
               ) : (
-                <Select value={toId} onValueChange={setToId}>
-                  <SelectTrigger className="bg-muted border-border"><SelectValue placeholder="Select recipient..." /></SelectTrigger>
-                  <SelectContent>
-                    {users.filter(u => u.id).map((u) => <SelectItem key={u.id} value={u.id}>{u.name} ({u.email}) — {u.role}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <RecipientCombobox users={users} value={toId} onChange={setToId} />
               )}
             </div>
             <div className="space-y-2">
@@ -266,5 +263,102 @@ export default function Messages() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/**
+ * RecipientCombobox — searchable dropdown for picking a message recipient.
+ *
+ * Built on shadcn Popover + Command (cmdk). Filters users by name/email as
+ * you type. Shows up to 10 results at a time. Renders the selected user's
+ * name in the trigger button.
+ */
+function RecipientCombobox({
+  users,
+  value,
+  onChange,
+}: {
+  users: UserRow[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const list = users.filter(u => u.id);
+    if (!q) return list;
+    return list.filter(u =>
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.role.toLowerCase().includes(q)
+    );
+  }, [users, query]);
+
+  const selected = users.find(u => u.id === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between bg-muted border-border font-normal"
+        >
+          {selected ? (
+            <span className="flex items-center gap-2 truncate">
+              <span className="truncate">{selected.name}</span>
+              <span className="text-xs text-muted-foreground truncate">({selected.email})</span>
+            </span>
+          ) : (
+            <span className="text-muted-foreground">Select recipient...</span>
+          )}
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="bg-popover border-border p-0 w-[var(--radix-popover-trigger-width)] min-w-[260px]" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Search by name or email..."
+            value={query}
+            onValueChange={setQuery}
+            className="text-foreground"
+          />
+          <CommandList>
+            <CommandEmpty className="text-muted-foreground py-4 text-sm">No recipients found.</CommandEmpty>
+            <CommandGroup>
+              {filtered.slice(0, 10).map((u) => (
+                <CommandItem
+                  key={u.id}
+                  value={u.id}
+                  onSelect={() => {
+                    onChange(u.id);
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                  className="gap-2"
+                >
+                  <Check
+                    className={cn("h-3.5 w-3.5", value === u.id ? "opacity-100" : "opacity-0")}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-foreground truncate">{u.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{u.email} · {u.role}</div>
+                  </div>
+                </CommandItem>
+              ))}
+              {filtered.length > 10 && (
+                <div className="px-2 py-1 text-[10px] text-muted-foreground text-center">
+                  {filtered.length - 10} more — refine your search.
+                </div>
+              )}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

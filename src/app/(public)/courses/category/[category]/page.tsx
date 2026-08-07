@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { Star, Users, Clock, BookOpen, Sparkles, ChevronRight } from "lucide-react";
+import { BookOpen, Sparkles, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbPage, BreadcrumbSeparator,
@@ -13,6 +12,7 @@ import {
   fetchMarketplaceCourses,
   MARKETPLACE_CATEGORIES,
 } from "@/lib/marketplace";
+import MarketplaceCourseCard from "../../MarketplaceCourseCard";
 
 /**
  * /courses/category/[category] — server-rendered category landing page.
@@ -150,7 +150,7 @@ export default async function CategoryPage({
             </p>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {courses.map((course) => (
-                <CategoryCourseCard key={course.id} course={course} />
+                <MarketplaceCourseCard key={course.id} course={course} />
               ))}
             </div>
           </>
@@ -163,80 +163,5 @@ export default async function CategoryPage({
         </div>
       </footer>
     </div>
-  );
-}
-
-function CategoryCourseCard({
-  course,
-}: {
-  course: Awaited<ReturnType<typeof fetchMarketplaceCourses>>[number];
-}) {
-  const isFree = course.price === 0;
-  return (
-    <Card
-      className={`overflow-hidden py-0 gap-0 transition-shadow hover:shadow-md ${
-        course.featured ? "border-primary/60 ring-1 ring-primary/30" : ""
-      }`}
-    >
-      <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden">
-        {course.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={course.thumbnailUrl}
-            alt={course.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <BookOpen className="h-10 w-10 text-muted-foreground/50" />
-        )}
-        {course.featured && (
-          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
-            <Sparkles className="h-3 w-3 mr-1" /> Featured
-          </Badge>
-        )}
-      </div>
-      <CardContent className="p-4 space-y-3">
-        <div>
-          <h3 className="font-semibold text-base line-clamp-2 leading-snug">{course.name}</h3>
-          {course.subtitle && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{course.subtitle}</p>
-          )}
-        </div>
-        {course.instructorName && (
-          <p className="text-xs text-muted-foreground">By {course.instructorName}</p>
-        )}
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <Badge variant="outline" className="capitalize">{course.level}</Badge>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" /> {course.durationWeeks}w
-          </span>
-          {course.rating > 0 && (
-            <span className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              {course.rating.toFixed(1)} ({course.reviewCount})
-            </span>
-          )}
-          {course.enrollmentCount > 0 && (
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" /> {course.enrollmentCount.toLocaleString()}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <div>
-            {isFree ? (
-              <span className="text-base font-semibold text-emerald-500">Free</span>
-            ) : (
-              <span className="text-base font-semibold">
-                {course.currency} {course.price.toFixed(2)}
-              </span>
-            )}
-          </div>
-          <Button asChild size="sm">
-            <Link href={`/courses/${course.id}`}>Enroll</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

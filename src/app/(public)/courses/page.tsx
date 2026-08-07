@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Star, Users, Clock, TrendingUp, Award, BookOpen, Sparkles, Route as RouteIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/lib/db";
 import {
   fetchMarketplaceCourses,
@@ -13,6 +15,7 @@ import {
 } from "@/lib/marketplace";
 import { MarketplaceFilters } from "./MarketplaceFilters";
 import { VisitedCoursesTracker } from "./VisitedCoursesTracker";
+import MarketplaceCourseCard from "./MarketplaceCourseCard";
 
 export const metadata: Metadata = {
   title: "Course Marketplace — TraineesAI",
@@ -35,7 +38,11 @@ export const metadata: Metadata = {
   },
 };
 
-/** /courses — public marketplace listing. */
+/** /courses — public marketplace listing.
+ *  Page shell renders immediately (header, hero, filters, category nav);
+ *  the data-fetching is delegated to <MarketplaceContent> and wrapped in
+ *  <Suspense> so the user sees a MarketplaceSkeleton while the DB queries
+ *  resolve on the first paint. */
 export default async function CoursesPage({
   searchParams,
 }: {
@@ -53,32 +60,17 @@ export default async function CoursesPage({
   const featured = getString("featured") === "1" || getString("featured") === "true";
   const free = getString("free") === "1" || getString("free") === "true";
 
-  const [courses, categoryCounts] = await Promise.all([
-    fetchMarketplaceCourses({ category, level, search, featured, free }),
-    // Per-category course counts — used for the category nav sidebar.
-    db.course.groupBy({
-      by: ["category"],
-      where: { published: true },
-      _count: { _all: true },
-    }),
-  ]);
+  // Category counts fetch in parallel with the page shell — we want the
+  // category nav visible immediately, so we await it at the page level.
+  const categoryCounts = await db.course.groupBy({
+    by: ["category"],
+    where: { published: true },
+    _count: { _all: true },
+  });
   const countByCategory = new Map<string, number>(
     categoryCounts.map((c) => [c.category, c._count._all])
   );
   const totalPublished = categoryCounts.reduce((sum, c) => sum + c._count._all, 0);
-
-  const featuredCourses = courses.filter(c => c.featured);
-  const freeCourses = courses.filter(c => c.price === 0);
-  const paidCourses = courses.filter(c => c.price > 0);
-
-  // If filters are active, show a single flat list (no sections). Otherwise,
-  // show the curated homepage-style sections.
-  const isFiltered = Boolean(category || level || search || featured || free);
-
-  // Learning paths render only on the unfiltered homepage view — they are
-  // curated bundles, not individual courses, so the course-level filters
-  // don't apply to them.
-  const paths = isFiltered ? [] : await fetchMarketplacePaths();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -184,77 +176,16 @@ export default async function CoursesPage({
         </div>
       </section>
 
-      {/* Course grid */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-12">
-        {/* Learning Paths — only shown on the unfiltered homepage view, and
-            only if at least one path is published. */}
-        {paths.length > 0 && (
-          <section>
-            <SectionHeading
-              icon={<RouteIcon className="h-5 w-5 text-primary" />}
-              title="Learning Paths"
-              subtitle="Bundles of courses that form a complete career trajectory — from fundamentals to capstone."
-            />
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {paths.map((path) => (
-                <LearningPathCard key={path.id} path={path} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {courses.length === 0 && paths.length === 0 && (
-          <div className="text-center py-20">
-            <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-            <h2 className="text-lg font-semibold">No courses match your filters</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Try clearing some filters or browsing all courses.
-            </p>
-            <Button asChild variant="outline" size="sm" className="mt-4">
-              <Link href="/courses">Clear filters</Link>
-            </Button>
-          </div>
-        )}
-
-        {isFiltered ? (
-          <CourseGrid courses={courses} />
-        ) : (
-          <>
-            {featuredCourses.length > 0 && (
-              <section>
-                <SectionHeading
-                  icon={<TrendingUp className="h-5 w-5 text-primary" />}
-                  title="Featured courses"
-                  subtitle="Hand-picked programs recommended by our training team."
-                />
-                <CourseGrid courses={featuredCourses} highlightFeatured />
-              </section>
-            )}
-
-            {paidCourses.length > 0 && (
-              <section>
-                <SectionHeading
-                  icon={<Award className="h-5 w-5 text-primary" />}
-                  title="All courses"
-                  subtitle="Browse the full catalogue of professional programs."
-                />
-                <CourseGrid courses={paidCourses} highlightFeatured />
-              </section>
-            )}
-
-            {freeCourses.length > 0 && (
-              <section>
-                <SectionHeading
-                  icon={<Sparkles className="h-5 w-5 text-primary" />}
-                  title="Free courses"
-                  subtitle="Start learning today — no cost, full curriculum."
-                />
-                <CourseGrid courses={freeCourses} highlightFeatured />
-              </section>
-            )}
-          </>
-        )}
-      </main>
+      {/* Course grid — wrapped in Suspense so the shell renders immediately. */}
+      <Suspense fallback={<MarketplaceSkeleton />}>
+        <MarketplaceContent
+          category={category}
+          level={level}
+          search={search}
+          featured={featured}
+          free={free}
+        />
+      </Suspense>
 
       <footer className="border-t border-border py-6 mt-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-muted-foreground text-center">
@@ -262,6 +193,143 @@ export default async function CoursesPage({
         </div>
       </footer>
     </div>
+  );
+}
+
+/** Async content component — fetches courses + paths and renders the main grid.
+ *  Wrapped in <Suspense> by the page so the shell paints immediately. */
+async function MarketplaceContent({
+  category,
+  level,
+  search,
+  featured,
+  free,
+}: {
+  category?: string;
+  level?: string;
+  search?: string;
+  featured?: boolean;
+  free?: boolean;
+}) {
+  const [courses, paths] = await Promise.all([
+    fetchMarketplaceCourses({ category, level, search, featured, free }),
+    // Learning paths render only on the unfiltered homepage view — they are
+    // curated bundles, not individual courses, so the course-level filters
+    // don't apply to them.
+    category || level || search || featured || free
+      ? Promise.resolve([])
+      : fetchMarketplacePaths(),
+  ]);
+
+  const featuredCourses = courses.filter(c => c.featured);
+  const freeCourses = courses.filter(c => c.price === 0);
+  const paidCourses = courses.filter(c => c.price > 0);
+  const isFiltered = Boolean(category || level || search || featured || free);
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-12">
+      {/* Learning Paths — only shown on the unfiltered homepage view, and
+          only if at least one path is published. */}
+      {paths.length > 0 && (
+        <section>
+          <SectionHeading
+            icon={<RouteIcon className="h-5 w-5 text-primary" />}
+            title="Learning Paths"
+            subtitle="Bundles of courses that form a complete career trajectory — from fundamentals to capstone."
+          />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {paths.map((path) => (
+              <LearningPathCard key={path.id} path={path} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {courses.length === 0 && paths.length === 0 && (
+        <div className="text-center py-20">
+          <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+          <h2 className="text-lg font-semibold">No courses match your filters</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Try clearing some filters or browsing all courses.
+          </p>
+          <Button asChild variant="outline" size="sm" className="mt-4">
+            <Link href="/courses">Clear filters</Link>
+          </Button>
+        </div>
+      )}
+
+      {isFiltered ? (
+        <CourseGrid courses={courses} />
+      ) : (
+        <>
+          {featuredCourses.length > 0 && (
+            <section>
+              <SectionHeading
+                icon={<TrendingUp className="h-5 w-5 text-primary" />}
+                title="Featured courses"
+                subtitle="Hand-picked programs recommended by our training team."
+              />
+              <CourseGrid courses={featuredCourses} highlightFeatured />
+            </section>
+          )}
+
+          {paidCourses.length > 0 && (
+            <section>
+              <SectionHeading
+                icon={<Award className="h-5 w-5 text-primary" />}
+                title="All courses"
+                subtitle="Browse the full catalogue of professional programs."
+              />
+              <CourseGrid courses={paidCourses} highlightFeatured />
+            </section>
+          )}
+
+          {freeCourses.length > 0 && (
+            <section>
+              <SectionHeading
+                icon={<Sparkles className="h-5 w-5 text-primary" />}
+                title="Free courses"
+                subtitle="Start learning today — no cost, full curriculum."
+              />
+              <CourseGrid courses={freeCourses} highlightFeatured />
+            </section>
+          )}
+        </>
+      )}
+    </main>
+  );
+}
+
+/** Skeleton placeholder shown while <MarketplaceContent> fetches data.
+ *  Six course-card-shaped gray boxes matching the real card layout. */
+function MarketplaceSkeleton() {
+  return (
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-12">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="overflow-hidden py-0 gap-0">
+            <Skeleton className="aspect-video w-full rounded-none" />
+            <CardContent className="p-4 space-y-3">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
+              </div>
+              <Skeleton className="h-3 w-1/3" />
+              <div className="flex items-center gap-3 pt-1">
+                <Skeleton className="h-4 w-16 rounded-full" />
+                <Skeleton className="h-3 w-10" />
+                <Skeleton className="h-3 w-12" />
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-8 w-20 rounded-md" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </main>
   );
 }
 
@@ -289,100 +357,13 @@ function CourseGrid({
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {courses.map(course => (
-        <CourseCard key={course.id} course={course} highlightFeatured={highlightFeatured} />
+        <MarketplaceCourseCard
+          key={course.id}
+          course={course}
+          highlightFeatured={highlightFeatured}
+        />
       ))}
     </div>
-  );
-}
-
-function CourseCard({
-  course,
-  highlightFeatured,
-}: {
-  course: Awaited<ReturnType<typeof fetchMarketplaceCourses>>[number];
-  highlightFeatured?: boolean;
-}) {
-  const isFree = course.price === 0;
-  const showFeaturedBorder = highlightFeatured && course.featured;
-
-  return (
-    <Card
-      className={`overflow-hidden py-0 gap-0 transition-shadow hover:shadow-md ${
-        showFeaturedBorder ? "border-primary/60 ring-1 ring-primary/30" : ""
-      }`}
-    >
-      {/* Thumbnail */}
-      <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden">
-        {course.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={course.thumbnailUrl}
-            alt={course.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <CategoryGradient category={course.category} name={course.name} />
-        )}
-        {course.featured && (
-          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
-            <Sparkles className="h-3 w-3 mr-1" /> Featured
-          </Badge>
-        )}
-        <Badge variant="secondary" className="absolute top-2 right-2 capitalize">
-          {course.category.replace("-", " ")}
-        </Badge>
-      </div>
-
-      <CardContent className="p-4 space-y-3">
-        {/* Title + level */}
-        <div>
-          <h3 className="font-semibold text-base line-clamp-2 leading-snug">{course.name}</h3>
-          {course.subtitle && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{course.subtitle}</p>
-          )}
-        </div>
-
-        {/* Instructor */}
-        {course.instructorName && (
-          <p className="text-xs text-muted-foreground">By {course.instructorName}</p>
-        )}
-
-        {/* Stats row */}
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <Badge variant="outline" className="capitalize">{course.level}</Badge>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" /> {course.durationWeeks}w
-          </span>
-          {course.rating > 0 && (
-            <span className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              {course.rating.toFixed(1)} ({course.reviewCount})
-            </span>
-          )}
-          {course.enrollmentCount > 0 && (
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" /> {course.enrollmentCount.toLocaleString()}
-            </span>
-          )}
-        </div>
-
-        {/* Price + CTA */}
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <div>
-            {isFree ? (
-              <span className="text-base font-semibold text-emerald-500">Free</span>
-            ) : (
-              <span className="text-base font-semibold">
-                {course.currency} {course.price.toFixed(2)}
-              </span>
-            )}
-          </div>
-          <Button asChild size="sm">
-            <Link href={`/courses/${course.id}`}>Enroll</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -453,27 +434,6 @@ function LearningPathCard({
 }
 
 /** Category-based gradient placeholder when no thumbnail is available.
- *  Uses the course category to pick a professional color scheme. */
-function CategoryGradient({ category, name }: { category: string; name: string }) {
-  const gradients: Record<string, string> = {
-    technology: "from-blue-600 via-indigo-600 to-purple-600",
-    engineering: "from-orange-600 via-amber-600 to-yellow-600",
-    business: "from-emerald-600 via-teal-600 to-cyan-600",
-    finance: "from-green-600 via-emerald-600 to-teal-600",
-    healthcare: "from-rose-600 via-pink-600 to-red-600",
-    manufacturing: "from-slate-600 via-gray-600 to-zinc-600",
-    hr: "from-violet-600 via-purple-600 to-fuchsia-600",
-    compliance: "from-red-600 via-orange-600 to-amber-600",
-    "soft-skills": "from-cyan-600 via-sky-600 to-blue-600",
-    other: "from-indigo-600 via-blue-600 to-cyan-600",
-  };
-  const gradient = gradients[category] || gradients.other;
-  const initials = name.split(" ").slice(0, 3).map(w => w[0]).join("").toUpperCase();
-
-  return (
-    <div className={`h-full w-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2`}>
-      <span className="text-4xl font-bold text-white/90 drop-shadow-lg">{initials}</span>
-      <span className="text-xs text-white/70 uppercase tracking-wider font-medium">{category.replace("-", " ")}</span>
-    </div>
-  );
-}
+ *  Re-exported from MarketplaceCourseCard for backward-compat with any
+ *  inline usages in this file. */
+export { CategoryGradient } from "./MarketplaceCourseCard";

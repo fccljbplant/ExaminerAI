@@ -15,6 +15,7 @@ import {
 import { fetchMarketplaceCourseDetail, MARKETPLACE_CATEGORIES, MARKETPLACE_LEVELS } from "@/lib/marketplace";
 import CheckoutButton from "./CheckoutButton";
 import ReviewSection from "../ReviewSection";
+import FAQSection from "../FAQSection";
 import CourseProgressPreview from "./CourseProgressPreview";
 import WishlistButton from "../WishlistButton";
 import ShareButtons from "../ShareButtons";
@@ -355,6 +356,9 @@ export default async function CourseDetailPage({ params }: Params) {
 
           {/* Reviews */}
           <ReviewSection courseId={course.id} />
+
+          {/* FAQ */}
+          <FAQSection courseId={course.id} />
         </div>
 
         {/* Right: sidebar */}

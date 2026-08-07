@@ -100,6 +100,7 @@ model Course {
   curriculumProgress CurriculumProgress[]
   learningPathCourses LearningPathCourse[]
   payments           Payment[]
+  faqs               CourseFAQ[]
 }
 
 /// Course reviews — students rate courses after completion.
@@ -135,6 +136,20 @@ model CourseReviewHelpfulVote {
 
   @@unique([reviewId, userId])
   @@index([reviewId])
+}
+
+/// Course FAQs — common questions and answers displayed on course detail page.
+model CourseFAQ {
+  id          String   @id @default(cuid())
+  courseId    String
+  question    String
+  answer      String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
 }
 
 /// A learning path — a sequence of courses that form a career trajectory.

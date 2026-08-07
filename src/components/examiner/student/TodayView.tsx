@@ -15,6 +15,7 @@ import {
   MessageSquare, AlertCircle, Loader2, LayoutGrid,
 } from "lucide-react";
 import OnboardingGuide from "./OnboardingGuide";
+import StreakCalendar from "./StreakCalendar";
 
 interface TodayData {
   traineeName: string;
@@ -147,6 +148,10 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
           <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 mt-3" />
         </div>
       </button>
+
+      {/* Streak calendar — GitHub-style contribution grid showing the last
+          12 weeks of study activity. Visible to any logged-in student. */}
+      <StreakCalendar />
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Transparent learning signal */}

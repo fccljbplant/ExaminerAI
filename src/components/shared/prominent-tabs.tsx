@@ -72,9 +72,9 @@ export function ProminentTabs({
       <div
         className={cn(
           "flex gap-0 border-b border-border overflow-x-auto",
+          "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
           className
         )}
-        style={{ scrollbarWidth: "none" }}
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -116,7 +116,8 @@ export function ProminentTabs({
   return (
     <div
       className={cn(
-        "flex gap-1 flex-wrap p-1 bg-muted/50 rounded-xl border border-border/50",
+        "flex gap-1 overflow-x-auto p-1 bg-muted/50 rounded-xl border border-border/50",
+        "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
         className
       )}
     >
@@ -128,7 +129,7 @@ export function ProminentTabs({
             key={tab.key}
             onClick={() => onChange(tab.key)}
             className={cn(
-              "flex items-center font-medium rounded-lg transition-all",
+              "flex items-center font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0",
               sizes.button,
               isActive
                 ? "bg-primary text-primary-foreground shadow-sm"

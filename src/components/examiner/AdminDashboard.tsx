@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import {
   Users, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
@@ -214,36 +215,37 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Tab switcher — P1.3: role-based visibility */}
-      <div className="flex gap-2 flex-wrap">
-        <Button onClick={() => setView("overview")} variant={view === "overview" ? "default" : "outline"} className={view === "overview" ? "bg-primary text-primary-foreground" : "border-border"}>
+      {/* Tab switcher — P1.3: role-based visibility.
+          Horizontally scrolls on mobile instead of wrapping. */}
+      <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-1">
+        <Button onClick={() => setView("overview")} variant={view === "overview" ? "default" : "outline"} className={cn(view === "overview" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
           <LayoutDashboard className="h-4 w-4" /> Overview
         </Button>
         {/* Coordinator tab — visible to all admin-equivalent roles */}
-        <Button onClick={() => setView("coordinator")} variant={view === "coordinator" ? "default" : "outline"} className={view === "coordinator" ? "bg-primary text-primary-foreground" : "border-border"}>
+        <Button onClick={() => setView("coordinator")} variant={view === "coordinator" ? "default" : "outline"} className={cn(view === "coordinator" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
           <BookOpen className="h-4 w-4" /> Coordinator
         </Button>
         {/* Operations tab — visible to all admin-equivalent roles */}
-        <Button onClick={() => setView("pm")} variant={view === "pm" ? "default" : "outline"} className={view === "pm" ? "bg-primary text-primary-foreground" : "border-border"}>
+        <Button onClick={() => setView("pm")} variant={view === "pm" ? "default" : "outline"} className={cn(view === "pm" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
           <ClipboardList className="h-4 w-4" /> Operations
         </Button>
-        <div className="w-px h-8 bg-border mx-1" />
+        <div className="w-px h-8 bg-border mx-1 flex-shrink-0" />
         {/* Users tab — visible to administrator + principal (user management roles) */}
         {isPrincipalRole && (
-          <Button onClick={() => setView("users")} variant={view === "users" ? "default" : "outline"} className={view === "users" ? "bg-primary text-primary-foreground" : "border-border"}>
+          <Button onClick={() => setView("users")} variant={view === "users" ? "default" : "outline"} className={cn(view === "users" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
             <Users className="h-4 w-4" /> Users ({users.length})
           </Button>
         )}
-        <Button onClick={() => setView("courses")} variant={view === "courses" ? "default" : "outline"} className={view === "courses" ? "bg-primary text-primary-foreground" : "border-border"}>
+        <Button onClick={() => setView("courses")} variant={view === "courses" ? "default" : "outline"} className={cn(view === "courses" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
           <BookOpen className="h-4 w-4" /> Courses
         </Button>
         {/* Features + Resets — admin only (not demo) */}
         {isAdminRole && (
           <>
-            <Button onClick={() => setView("features")} variant={view === "features" ? "default" : "outline"} className={view === "features" ? "bg-primary text-primary-foreground" : "border-border"}>
+            <Button onClick={() => setView("features")} variant={view === "features" ? "default" : "outline"} className={cn(view === "features" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
               <SettingsIcon className="h-4 w-4" /> Features
             </Button>
-            <Button onClick={() => setView("resets")} variant={view === "resets" ? "default" : "outline"} className={view === "resets" ? "bg-primary text-primary-foreground" : "border-border"}>
+            <Button onClick={() => setView("resets")} variant={view === "resets" ? "default" : "outline"} className={cn(view === "resets" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
               <Key className="h-4 w-4" /> Resets
             </Button>
           </>
@@ -251,21 +253,21 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
         {/* AI Limits tab — visible to administrator + principal + demo.
             Demo only sees the demo-AI-enable toggle inside the panel. */}
         {(isAdminRole || isPrincipalRole || isDevRole) && (
-          <Button onClick={() => setView("ai-limits")} variant={view === "ai-limits" ? "default" : "outline"} className={view === "ai-limits" ? "bg-primary text-primary-foreground" : "border-border"}>
+          <Button onClick={() => setView("ai-limits")} variant={view === "ai-limits" ? "default" : "outline"} className={cn(view === "ai-limits" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
             <Gauge className="h-4 w-4" /> AI Limits
           </Button>
         )}
         {/* User Audit tab — visible to administrator + principal (NOT demo).
             Lets admins search for any user and view their full audit trail. */}
         {(isAdminRole || isPrincipalRole) && (
-          <Button onClick={() => setView("user-audit")} variant={view === "user-audit" ? "default" : "outline"} className={view === "user-audit" ? "bg-primary text-primary-foreground" : "border-border"}>
+          <Button onClick={() => setView("user-audit")} variant={view === "user-audit" ? "default" : "outline"} className={cn(view === "user-audit" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
             <ShieldCheck className="h-4 w-4" /> User Audit
           </Button>
         )}
         {/* System & Dev tab — visible to administrator only (NOT demo).
             Demo is read-only and has no system-level authority. */}
         {isAdminRole && (
-          <Button onClick={() => setView("system")} variant={view === "system" ? "default" : "outline"} className={view === "system" ? "bg-primary text-primary-foreground" : "border-border"}>
+          <Button onClick={() => setView("system")} variant={view === "system" ? "default" : "outline"} className={cn(view === "system" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
             <Server className="h-4 w-4" /> System
           </Button>
         )}
