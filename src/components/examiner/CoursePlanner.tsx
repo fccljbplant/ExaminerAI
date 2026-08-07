@@ -104,12 +104,11 @@ export default function CoursePlanner() {
 
   const load = useCallback(async () => {
     try {
-      const [courseRes, batchRes] = await Promise.all([
-        api.get<{ courses: Course[] }>("/api/courses"),
-        api.get<{ batches: Batch[] }>("/api/batches"),
-      ]);
+      // Fix: /api/batches no longer exists (replaced by CourseEnrollment).
+      // Only fetch courses — batches/cohorts are managed via the enrollment system.
+      const courseRes = await api.get<{ courses: Course[] }>("/api/courses", undefined, AI_TIMEOUT_MS);
       setCourses(courseRes.courses || []);
-      setBatches(batchRes.batches || []);
+      setBatches([]);
     } catch (e) {
       // Phase fix: show the error instead of silently swallowing it.
       // The old `catch { /* ignore */ }` meant if GET /api/courses failed
@@ -631,9 +630,10 @@ export default function CoursePlanner() {
                 </div>
               )}
             </div>
-            {/* Batch assignment */}
+            {/* Cohort assignment — hidden when no cohorts exist (batches model was removed) */}
+            {batches.length > 0 && (
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Assigned Batches</Label>
+              <Label className="text-xs text-muted-foreground">Assigned Cohorts</Label>
               <div className="flex flex-wrap gap-1.5">
                 {batches.map(co => {
                   const assigned = co.courseId === selectedCourse.id;
@@ -644,9 +644,10 @@ export default function CoursePlanner() {
                     </button>
                   );
                 })}
-                {batches.length === 0 && <span className="text-[10px] text-muted-foreground">No batches available</span>}
+                {batches.length === 0 && <span className="text-[10px] text-muted-foreground">No cohorts available</span>}
               </div>
             </div>
+            )}
           </CardContent>
         </Card>
 
