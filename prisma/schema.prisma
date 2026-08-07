@@ -129,6 +129,46 @@ model Course {
   reportCards        ReportCard[]
   dailyTests         DailyTest[]
   curriculumProgress CurriculumProgress[]
+  learningPathCourses LearningPathCourse[]
+}
+
+/// A learning path — a sequence of courses that form a career trajectory.
+model LearningPath {
+  id          String   @id @default(cuid())
+  title       String   @unique
+  subtitle    String?
+  description String
+  category    String   @default("technology")
+  icon        String   @default("🎓")
+  price       Float    @default(0)     // bundle price (0 = free)
+  currency    String   @default("USD")
+  durationWeeks Int    @default(12)
+  level       String   @default("beginner")
+  published   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+
+  courses     LearningPathCourse[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, featured])
+}
+
+/// Junction table — courses in a learning path, with order.
+model LearningPathCourse {
+  id              String       @id @default(cuid())
+  learningPathId  String
+  courseId        String
+  order           Int          // 1, 2, 3... — the sequence
+  isCapstone      Boolean      @default(false)  // the final project course
+
+  learningPath    LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  course          Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([learningPathId, courseId])
+  @@index([learningPathId, order])
 }
 
 model CourseWeek {

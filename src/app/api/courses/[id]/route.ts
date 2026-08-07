@@ -83,7 +83,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
+  const { name, description, weeks, journeySteps, projectTemplate, aiPrompts, testConfig, reportCardTemplate, domain, level, toolsUsed, deliverableTypes, assessmentType, assessmentConfig, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks, published, featured, price, category, subtitle, instructorName, durationWeeks } = body as {
     name?: string;
     description?: string;
     weeks?: { weekNumber: number; phase: string; milestone?: string; days: {
@@ -116,6 +116,14 @@ export async function PUT(
     projectEnabled?: boolean;
     projectRequired?: boolean;
     projectDefaultDurationWeeks?: number;
+    // Phase 6 — marketplace fields. All optional; only updated when provided.
+    published?: boolean;
+    featured?: boolean;
+    price?: number;
+    category?: string;
+    subtitle?: string | null;
+    instructorName?: string | null;
+    durationWeeks?: number;
   };
 
   // Verify course exists
@@ -189,6 +197,16 @@ export async function PUT(
         ...(projectEnabled !== undefined ? { projectEnabled: finalProjectEnabled } : {}),
         ...(projectRequired !== undefined ? { projectRequired: finalProjectRequired } : {}),
         ...(finalProjectDuration !== undefined ? { projectDefaultDurationWeeks: finalProjectDuration } : {}),
+        // Phase 6 — marketplace fields. Only updated when explicitly provided
+        // so legacy callers (which don't send these fields) don't accidentally
+        // clobber marketplace metadata.
+        ...(published !== undefined ? { published } : {}),
+        ...(featured !== undefined ? { featured } : {}),
+        ...(price !== undefined ? { price } : {}),
+        ...(category !== undefined ? { category } : {}),
+        ...(subtitle !== undefined ? { subtitle: subtitle ?? null } : {}),
+        ...(instructorName !== undefined ? { instructorName: instructorName ?? null } : {}),
+        ...(durationWeeks !== undefined ? { durationWeeks } : {}),
         ...configData,
       },
     });

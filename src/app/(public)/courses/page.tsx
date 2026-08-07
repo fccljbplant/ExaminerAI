@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Star, Users, Clock, TrendingUp, Award, BookOpen, Sparkles } from "lucide-react";
+import { Star, Users, Clock, TrendingUp, Award, BookOpen, Sparkles, Route as RouteIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   fetchMarketplaceCourses,
+  fetchMarketplacePaths,
   MARKETPLACE_CATEGORIES,
   MARKETPLACE_LEVELS,
 } from "@/lib/marketplace";
@@ -44,6 +45,11 @@ export default async function CoursesPage({
   // If filters are active, show a single flat list (no sections). Otherwise,
   // show the curated homepage-style sections.
   const isFiltered = Boolean(category || level || search || featured || free);
+
+  // Learning paths render only on the unfiltered homepage view — they are
+  // curated bundles, not individual courses, so the course-level filters
+  // don't apply to them.
+  const paths = isFiltered ? [] : await fetchMarketplacePaths();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -98,7 +104,24 @@ export default async function CoursesPage({
 
       {/* Course grid */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-12">
-        {courses.length === 0 && (
+        {/* Learning Paths — only shown on the unfiltered homepage view, and
+            only if at least one path is published. */}
+        {paths.length > 0 && (
+          <section>
+            <SectionHeading
+              icon={<RouteIcon className="h-5 w-5 text-primary" />}
+              title="Learning Paths"
+              subtitle="Bundles of courses that form a complete career trajectory — from fundamentals to capstone."
+            />
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {paths.map((path) => (
+                <LearningPathCard key={path.id} path={path} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {courses.length === 0 && paths.length === 0 && (
           <div className="text-center py-20">
             <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
             <h2 className="text-lg font-semibold">No courses match your filters</h2>
@@ -274,6 +297,72 @@ function CourseCard({
           </div>
           <Button asChild size="sm">
             <Link href={`/courses/${course.id}`}>Enroll</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LearningPathCard({
+  path,
+}: {
+  path: Awaited<ReturnType<typeof fetchMarketplacePaths>>[number];
+}) {
+  const isFree = path.price === 0;
+  return (
+    <Card className="overflow-hidden py-0 gap-0 transition-shadow hover:shadow-md flex flex-col">
+      {/* Header band — icon + category */}
+      <div className="relative bg-gradient-to-br from-primary/15 via-primary/5 to-background px-4 py-5 flex items-center gap-3 border-b border-border">
+        <span className="text-3xl leading-none" aria-hidden>
+          {path.icon || "🎓"}
+        </span>
+        <div className="min-w-0">
+          <h3 className="font-semibold text-base leading-tight line-clamp-2">
+            {path.title}
+          </h3>
+          {path.subtitle && (
+            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+              {path.subtitle}
+            </p>
+          )}
+        </div>
+        {path.featured && (
+          <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+            <Sparkles className="h-3 w-3 mr-1" /> Featured
+          </Badge>
+        )}
+      </div>
+
+      <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
+        <p className="text-sm text-muted-foreground line-clamp-3">
+          {path.description}
+        </p>
+
+        {/* Stats row */}
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <Badge variant="outline" className="capitalize">{path.level}</Badge>
+          <span className="flex items-center gap-1">
+            <BookOpen className="h-3 w-3" /> {path.courseCount} course{path.courseCount === 1 ? "" : "s"}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" /> {path.durationWeeks}w
+          </span>
+        </div>
+
+        {/* Price + CTA */}
+        <div className="flex items-center justify-between pt-2 border-t border-border mt-auto">
+          <div>
+            {isFree ? (
+              <span className="text-base font-semibold text-emerald-500">Free</span>
+            ) : (
+              <span className="text-base font-semibold">
+                {path.currency} {path.price.toFixed(2)}
+              </span>
+            )}
+          </div>
+          <Button asChild size="sm">
+            <Link href={`/paths/${path.id}`}>View Path</Link>
           </Button>
         </div>
       </CardContent>

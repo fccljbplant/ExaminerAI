@@ -8,10 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   Loader2, Plus, Trash2, Save, BookOpen, ChevronDown, ChevronRight,
   RefreshCw, GraduationCap, Edit3, X, Sparkles, Wand2, ExternalLink,
-  CheckCircle2, Circle, AlertCircle, Copy, ClipboardList,
+  CheckCircle2, Circle, AlertCircle, Copy, ClipboardList, Store,
 } from "lucide-react";
 
 interface CourseDay {
@@ -35,10 +39,32 @@ interface Course {
   projectDefaultDurationWeeks?: number;
   // Default-course flag — marks this course as the default for new students.
   isDefault?: boolean;
+  // Marketplace fields (Phase 6) — control whether/how this course appears on
+  // the public /courses marketplace.
+  published?: boolean;
+  featured?: boolean;
+  price?: number;
+  category?: string;
+  subtitle?: string | null;
+  instructorName?: string | null;
+  durationWeeks?: number;
 }
 interface Batch { id: string; name: string; courseId: string | null; courseName: string | null; }
 
 type View = "list" | "generate" | "detail";
+
+// Marketplace category options — mirror of MARKETPLACE_CATEGORIES from
+// src/lib/marketplace.ts. Inlined here (rather than imported) because the
+// marketplace lib pulls in Prisma (`db`) and cannot run in the browser.
+const COURSE_MARKETPLACE_CATEGORIES: { value: string; label: string }[] = [
+  { value: "web-dev", label: "Web Development" },
+  { value: "cloud", label: "Cloud & DevOps" },
+  { value: "data", label: "Data & AI" },
+  { value: "mobile", label: "Mobile" },
+  { value: "security", label: "Security" },
+  { value: "soft-skills", label: "Soft Skills" },
+  { value: "technology", label: "Technology" },
+];
 
 export default function CoursePlanner() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -208,6 +234,16 @@ export default function CoursePlanner() {
         projectEnabled: !!selectedCourse.projectEnabled,
         projectRequired: !!selectedCourse.projectRequired,
         projectDefaultDurationWeeks: Number(selectedCourse.projectDefaultDurationWeeks ?? 4),
+        // Phase 6 — marketplace fields. Pass these through so the publish
+        // toggle + marketing metadata save from this UI. The PUT endpoint
+        // accepts them as optional fields (only updates when provided).
+        published: !!selectedCourse.published,
+        featured: !!selectedCourse.featured,
+        price: Number(selectedCourse.price ?? 0),
+        category: selectedCourse.category ?? "technology",
+        subtitle: selectedCourse.subtitle ?? "",
+        instructorName: selectedCourse.instructorName ?? "",
+        durationWeeks: Number(selectedCourse.durationWeeks ?? 6),
       }, AI_TIMEOUT_MS);
       showMsg("success", "Course saved.");
       setEditing(false);
@@ -764,6 +800,179 @@ export default function CoursePlanner() {
                   <li>AI-generated weekly project tasks + milestones once they save their project definition.</li>
                   <li>{selectedCourse.projectRequired ? "Project is <strong>required</strong> — the alert system will message students who don't set up a project." : "Project is <strong>optional</strong> — students won't be nudged about project inactivity."}</li>
                 </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ============================================================
+            MARKETPLACE SETTINGS CARD (Phase 6)
+            Controls whether this course appears on the public /courses
+            marketplace, plus the marketing metadata (price, category,
+            subtitle, instructor name, duration) shown on the public
+            course detail page. These fields are saved via the existing
+            PUT /api/courses/[id] endpoint (which now accepts them as
+            optional fields). Auth required — admin/teacher only (the
+            CoursePlanner itself is gated by role).
+            ============================================================ */}
+        <Card className="border-border">
+          <CardHeader className="pb-2 pt-3 px-4">
+            <CardTitle className="text-sm text-foreground flex items-center gap-2">
+              <Store className="h-4 w-4 text-primary" /> Marketplace Settings
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Publish this course to the public marketplace and configure how it appears to prospective students.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-3 space-y-3">
+            {/* Published toggle */}
+            <div className="flex items-start justify-between gap-3 rounded-md border border-border bg-background/50 p-3">
+              <div className="flex-1">
+                <p className="text-xs font-medium text-foreground">Publish to marketplace</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                  When ON, this course appears on <code className="text-[9px] bg-muted px-1 py-0.5 rounded">/courses</code> and is fetchable via the public marketplace API. When OFF, only enrolled students and staff can see it.
+                </p>
+              </div>
+              {editing ? (
+                <Switch
+                  checked={!!selectedCourse.published}
+                  onCheckedChange={(checked) => setSelectedCourse({ ...selectedCourse, published: checked })}
+                  aria-label="Publish to marketplace"
+                />
+              ) : (
+                <Badge variant={selectedCourse.published ? "default" : "secondary"} className={selectedCourse.published ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : ""}>
+                  {selectedCourse.published ? "Published" : "Draft"}
+                </Badge>
+              )}
+            </div>
+
+            {/* Featured toggle */}
+            <div className="flex items-start justify-between gap-3 rounded-md border border-border bg-background/50 p-3">
+              <div className="flex-1">
+                <p className="text-xs font-medium text-foreground">Feature on homepage</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                  When ON, this course is sorted to the top of the marketplace and shows a &quot;Featured&quot; badge. Requires &quot;Publish to marketplace&quot; to be ON.
+                </p>
+              </div>
+              {editing ? (
+                <Switch
+                  checked={!!selectedCourse.featured}
+                  onCheckedChange={(checked) => setSelectedCourse({ ...selectedCourse, featured: checked })}
+                  disabled={!selectedCourse.published}
+                  aria-label="Feature on homepage"
+                />
+              ) : (
+                <Badge variant={selectedCourse.featured ? "default" : "secondary"} className={selectedCourse.featured ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : ""}>
+                  {selectedCourse.featured ? "Featured" : "Not featured"}
+                </Badge>
+              )}
+            </div>
+
+            {/* Price + Duration row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Price (USD)</Label>
+                {editing ? (
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={selectedCourse.price ?? 0}
+                    onChange={(e) => setSelectedCourse({ ...selectedCourse, price: Number(e.target.value) })}
+                    className="bg-background border-border h-8 text-xs"
+                  />
+                ) : (
+                  <p className="text-xs font-medium text-foreground">
+                    ${(selectedCourse.price ?? 0).toFixed(2)}
+                    {(selectedCourse.price ?? 0) === 0 && <span className="ml-1 text-emerald-600 dark:text-emerald-400">Free</span>}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Duration (weeks)</Label>
+                {editing ? (
+                  <Input
+                    type="number"
+                    min={1}
+                    max={52}
+                    value={selectedCourse.durationWeeks ?? 6}
+                    onChange={(e) => setSelectedCourse({ ...selectedCourse, durationWeeks: Number(e.target.value) })}
+                    className="bg-background border-border h-8 text-xs"
+                  />
+                ) : (
+                  <p className="text-xs font-medium text-foreground">{selectedCourse.durationWeeks ?? 6} weeks</p>
+                )}
+              </div>
+            </div>
+
+            {/* Category select */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Category</Label>
+              {editing ? (
+                <Select
+                  value={selectedCourse.category ?? "technology"}
+                  onValueChange={(value) => setSelectedCourse({ ...selectedCourse, category: value })}
+                >
+                  <SelectTrigger className="bg-background border-border h-8 text-xs w-full">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COURSE_MARKETPLACE_CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value} className="text-xs">
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Badge variant="outline" className="capitalize text-[10px]">
+                  {(selectedCourse.category ?? "technology").replace("-", " ")}
+                </Badge>
+              )}
+            </div>
+
+            {/* Marketing subtitle */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Marketing subtitle</Label>
+              {editing ? (
+                <Input
+                  value={selectedCourse.subtitle ?? ""}
+                  onChange={(e) => setSelectedCourse({ ...selectedCourse, subtitle: e.target.value })}
+                  placeholder="e.g. Build production apps with React, TypeScript, and AI APIs"
+                  className="bg-background border-border h-8 text-xs"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">{selectedCourse.subtitle || "—"}</p>
+              )}
+            </div>
+
+            {/* Instructor display name */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Instructor display name</Label>
+              {editing ? (
+                <Input
+                  value={selectedCourse.instructorName ?? ""}
+                  onChange={(e) => setSelectedCourse({ ...selectedCourse, instructorName: e.target.value })}
+                  placeholder="e.g. Dr. Amira Haddad"
+                  className="bg-background border-border h-8 text-xs"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">{selectedCourse.instructorName || "—"}</p>
+              )}
+            </div>
+
+            {/* Public preview link */}
+            {selectedCourse.published && (
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 text-[10px] text-foreground/80 leading-relaxed">
+                <p className="font-semibold text-foreground mb-0.5">This course is live on the marketplace:</p>
+                <a
+                  href={`/courses/${selectedCourse.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="h-2.5 w-2.5" /> View public course page
+                </a>
               </div>
             )}
           </CardContent>

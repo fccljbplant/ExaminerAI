@@ -254,3 +254,150 @@ export async function fetchCertificateForVerification(credentialId: string) {
 
   return certificate;
 }
+
+// ============================================================
+// Learning Paths — bundles of courses that form a career trajectory.
+// ============================================================
+
+export interface MarketplacePathCourseItem {
+  id: string;
+  courseId: string;
+  order: number;
+  isCapstone: boolean;
+  name: string;
+  subtitle: string | null;
+  level: string;
+  durationWeeks: number;
+  price: number;
+}
+
+export interface MarketplacePathListItem {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  description: string;
+  category: string;
+  icon: string;
+  price: number;
+  currency: string;
+  durationWeeks: number;
+  level: string;
+  featured: boolean;
+  courseCount: number;
+}
+
+export interface MarketplacePathDetail extends MarketplacePathListItem {
+  courses: MarketplacePathCourseItem[];
+}
+
+/** Fetch published learning paths — sorted featured-first, then by sortOrder. */
+export async function fetchMarketplacePaths(): Promise<MarketplacePathListItem[]> {
+  const paths = await db.learningPath.findMany({
+    where: { published: true },
+    orderBy: [
+      { featured: "desc" },
+      { sortOrder: "asc" },
+      { createdAt: "desc" },
+    ],
+    select: {
+      id: true,
+      title: true,
+      subtitle: true,
+      description: true,
+      category: true,
+      icon: true,
+      price: true,
+      currency: true,
+      durationWeeks: true,
+      level: true,
+      featured: true,
+      courses: { select: { id: true } },
+    },
+  });
+
+  return paths.map((p) => ({
+    id: p.id,
+    title: p.title,
+    subtitle: p.subtitle,
+    description: p.description,
+    category: p.category,
+    icon: p.icon,
+    price: p.price,
+    currency: p.currency,
+    durationWeeks: p.durationWeeks,
+    level: p.level,
+    featured: p.featured,
+    courseCount: p.courses.length,
+  }));
+}
+
+/** Fetch a single published learning path with its ordered course list.
+ *  Returns null if the path is not found or not published. */
+export async function fetchMarketplacePathDetail(
+  id: string
+): Promise<MarketplacePathDetail | null> {
+  const path = await db.learningPath.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      subtitle: true,
+      description: true,
+      category: true,
+      icon: true,
+      price: true,
+      currency: true,
+      durationWeeks: true,
+      level: true,
+      featured: true,
+      published: true,
+      courses: {
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          courseId: true,
+          order: true,
+          isCapstone: true,
+          course: {
+            select: {
+              id: true,
+              name: true,
+              subtitle: true,
+              level: true,
+              durationWeeks: true,
+              price: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!path || !path.published) return null;
+
+  return {
+    id: path.id,
+    title: path.title,
+    subtitle: path.subtitle,
+    description: path.description,
+    category: path.category,
+    icon: path.icon,
+    price: path.price,
+    currency: path.currency,
+    durationWeeks: path.durationWeeks,
+    level: path.level,
+    featured: path.featured,
+    courseCount: path.courses.length,
+    courses: path.courses.map((c) => ({
+      id: c.id,
+      courseId: c.courseId,
+      order: c.order,
+      isCapstone: c.isCapstone,
+      name: c.course.name,
+      subtitle: c.course.subtitle,
+      level: c.course.level,
+      durationWeeks: c.course.durationWeeks,
+      price: c.course.price,
+    })),
+  };
+}
