@@ -16,7 +16,12 @@ import {
   Loader2, Plus, Trash2, Save, BookOpen, ChevronDown, ChevronRight,
   RefreshCw, GraduationCap, Edit3, X, Sparkles, Wand2, ExternalLink,
   CheckCircle2, Circle, AlertCircle, Copy, ClipboardList, Store,
+  ClipboardPaste, FileText,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import CourseThumbnailPicker from "./CourseThumbnailPicker";
 import CourseCreationWizard from "./CourseCreationWizard";
 
@@ -106,6 +111,137 @@ export default function CoursePlanner() {
   // CourseCreationWizard dialog state — opens when the user clicks
   // "Create New Course (Wizard)" in the list view's header.
   const [wizardOpen, setWizardOpen] = useState(false);
+
+  // Convert-outline dialog state — opens when the user clicks
+  // "Convert Outline" in the detail view's Weekly Plan header. Lets the
+  // instructor paste a raw outline (Word doc / syllabus / PDF text / TOC)
+  // and replace the existing curriculum with the AI-converted version.
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [convertText, setConvertText] = useState("");
+  const [convertPreview, setConvertPreview] = useState<CourseWeek[] | null>(null);
+  const [converting, setConverting] = useState(false);
+  const [convertProgress, setConvertProgress] = useState(0);
+  const [convertStatus, setConvertStatus] = useState("");
+  const [convertError, setConvertError] = useState("");
+  const convertIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const convertStatusIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (convertIntervalRef.current) clearInterval(convertIntervalRef.current);
+      if (convertStatusIntervalRef.current) clearInterval(convertStatusIntervalRef.current);
+    };
+  }, []);
+
+  // ---------------- Convert a pasted outline (existing course) ----------------
+  // Opens the convert dialog from the detail view's Weekly Plan header.
+  const openConvertDialog = () => {
+    setConvertOpen(true);
+    setConvertText("");
+    setConvertPreview(null);
+    setConvertProgress(0);
+    setConvertStatus("");
+    setConvertError("");
+  };
+
+  const closeConvertDialog = () => {
+    if (convertIntervalRef.current) clearInterval(convertIntervalRef.current);
+    if (convertStatusIntervalRef.current) clearInterval(convertStatusIntervalRef.current);
+    setConvertOpen(false);
+    setConvertText("");
+    setConvertPreview(null);
+    setConverting(false);
+    setConvertProgress(0);
+    setConvertStatus("");
+    setConvertError("");
+  };
+
+  // Run the AI conversion: POST /api/courses/convert-outline with the
+  // pasted text + the selected course's metadata (name, category, level,
+  // durationWeeks).
+  const runConvert = async () => {
+    if (!selectedCourse) return;
+    if (!convertText.trim()) {
+      setConvertError("Please paste your course outline text first.");
+      return;
+    }
+    setConverting(true);
+    setConvertError("");
+    setConvertProgress(0);
+    setConvertStatus("Reading your outline…");
+
+    convertIntervalRef.current = setInterval(() => {
+      setConvertProgress(p => Math.min(p + Math.max(1, (90 - p) * 0.05), 90));
+    }, 500);
+    const statuses = [
+      "Reading your outline…",
+      "Reorganizing into weeks and days…",
+      "Enhancing objectives and activities…",
+      "Adding deliverables and reflections…",
+      "Finding real resource links…",
+    ];
+    let si = 0;
+    convertStatusIntervalRef.current = setInterval(() => {
+      si = (si + 1) % statuses.length;
+      setConvertStatus(statuses[si]);
+    }, 2500);
+
+    try {
+      const res = await api.post<{ weeks: CourseWeek[] }>(
+        "/api/courses/convert-outline",
+        {
+          outline: convertText.trim(),
+          courseName: selectedCourse.name,
+          category: selectedCourse.category ?? selectedCourse.domain ?? "technology",
+          level: selectedCourse.level ?? "beginner",
+          durationWeeks: selectedCourse.durationWeeks ?? selectedCourse.weeks.length ?? 6,
+          daysPerWeek: 5,
+        },
+        300_000, // 5 min — large outlines can take a while
+      );
+      if (convertIntervalRef.current) clearInterval(convertIntervalRef.current);
+      if (convertStatusIntervalRef.current) clearInterval(convertStatusIntervalRef.current);
+      setConvertProgress(100);
+      setConvertStatus("Done!");
+      setConvertPreview(res.weeks);
+    } catch (e) {
+      if (convertIntervalRef.current) clearInterval(convertIntervalRef.current);
+      if (convertStatusIntervalRef.current) clearInterval(convertStatusIntervalRef.current);
+      setConvertProgress(0);
+      setConvertStatus("");
+      setConvertError(e instanceof Error ? e.message : "AI conversion failed. Please try again.");
+    } finally {
+      setConverting(false);
+    }
+  };
+
+  // Replace the current course's outline with the converted preview by
+  // calling PUT /api/courses/[id] with the new weeks array. The PUT
+  // endpoint does a full replace (deletes old weeks + days, creates new).
+  const applyConvertedOutline = async () => {
+    if (!selectedCourse || !convertPreview || convertPreview.length === 0) return;
+    setBusy(true);
+    setConvertError("");
+    try {
+      await api.put(
+        `/api/courses/${selectedCourse.id}`,
+        { weeks: convertPreview },
+        AI_TIMEOUT_MS,
+      );
+      showMsg(
+        "success",
+        `Outline replaced with ${convertPreview.length} weeks · ${convertPreview.reduce((a, w) => a + w.days.length, 0)} days.`,
+      );
+      closeConvertDialog();
+      // Re-fetch the full course detail so the new weeks/days render.
+      const res = await api.get<{ course: Course }>(`/api/courses/${selectedCourse.id}`);
+      setSelectedCourse(res.course);
+      setExpandedWeeks(new Set([0]));
+    } catch (e) {
+      setConvertError(e instanceof Error ? e.message : "Failed to replace outline.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -1024,9 +1160,21 @@ export default function CoursePlanner() {
 
         {/* Weeks */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <h3 className="text-sm font-bold text-foreground">Weekly Plan ({selectedCourse.weeks.length} weeks, {selectedCourse.weeks.reduce((a, w) => a + w.days.length, 0)} days)</h3>
-            {editing && <Button size="sm" variant="outline" onClick={addWeek} className="border-border h-7 text-xs"><Plus className="h-3 w-3" /> Add Week</Button>}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={openConvertDialog}
+                disabled={busy}
+                className="border-primary/30 text-primary hover:bg-primary/10"
+                title="Paste a raw outline (Word doc, syllabus, PDF text, TOC) and let the AI convert it into a structured course. Replaces the current weekly plan."
+              >
+                <ClipboardPaste className="h-3.5 w-3.5" /> Convert Outline
+              </Button>
+              {editing && <Button size="sm" variant="outline" onClick={addWeek} className="border-border h-7 text-xs"><Plus className="h-3 w-3" /> Add Week</Button>}
+            </div>
           </div>
 
           {selectedCourse.weeks.map((w, weekIdx) => {
@@ -1272,6 +1420,142 @@ export default function CoursePlanner() {
         onOpenChange={setWizardOpen}
         onCreated={load}
       />
+
+      {/* ConvertOutlineDialog — opens via the "Convert Outline" button in
+          the detail view's Weekly Plan header. Lets the instructor paste a
+          raw outline and replace the current course's weeks/days with the
+          AI-converted version. Rendered here (at the root) so it overlays
+          both the list view and the detail view. */}
+      <Dialog open={convertOpen} onOpenChange={(o) => { if (!o) closeConvertDialog(); else setConvertOpen(true); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardPaste className="h-4 w-4 text-primary" /> Convert Outline
+            </DialogTitle>
+            <DialogDescription>
+              Paste any raw course outline (Word doc, syllabus, PDF text, textbook table of contents) and the AI converts it into a structured TraineesAI outline. This will REPLACE the current weekly plan.
+            </DialogDescription>
+          </DialogHeader>
+
+          {convertError && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <span>{convertError}</span>
+            </div>
+          )}
+
+          {!convertPreview && !converting && (
+            <div className="space-y-2">
+              <Label className="text-xs font-medium flex items-center gap-1">
+                <FileText className="h-3 w-3" /> Paste your course outline
+              </Label>
+              <Textarea
+                value={convertText}
+                onChange={(e) => setConvertText(e.target.value)}
+                placeholder="Paste your course outline here. This can be from a Word document, syllabus, PDF, textbook table of contents, or any format. The AI will convert it into a structured TraineesAI course."
+                className="bg-background border-border min-h-[300px] text-xs font-mono"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                {convertText.trim().length.toLocaleString()} characters · The AI will reorganize this into weeks × 5 days, enhance objectives, and add activities + deliverables + resources.
+              </p>
+            </div>
+          )}
+
+          {converting && (
+            <div className="space-y-3 py-6">
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <ClipboardPaste className="h-8 w-8 text-primary animate-pulse" />
+                  </div>
+                  <svg className="absolute inset-0 h-16 w-16 animate-spin" style={{ animationDuration: "2s" }} viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="60 240" className="text-primary" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+              <Progress value={convertProgress} className="h-2" />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>{Math.round(convertProgress)}%</span><span>Please wait…</span>
+              </div>
+              <p className="text-xs text-foreground/70 animate-pulse text-center">{convertStatus}</p>
+            </div>
+          )}
+
+          {convertPreview && !converting && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-sm font-medium">Outline converted!</span>
+                <Badge variant="secondary" className="text-[10px]">
+                  {convertPreview.length} weeks · {convertPreview.reduce((a, w) => a + w.days.length, 0)} days
+                </Badge>
+              </div>
+              <div className="max-h-72 overflow-y-auto rounded-md border border-border bg-background/50 p-3 space-y-2">
+                {convertPreview.map((w) => (
+                  <div key={w.weekNumber} className="text-xs">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="text-[9px]">W{w.weekNumber}</Badge>
+                      <span className="font-medium text-foreground">{w.phase}</span>
+                    </div>
+                    {w.milestone && (
+                      <p className="text-[10px] text-muted-foreground mb-1">🎯 {w.milestone}</p>
+                    )}
+                    <div className="flex flex-wrap gap-1 ml-6">
+                      {w.days.map((d) => (
+                        <Badge key={d.day} variant="outline" className="text-[9px] font-normal">
+                          D{d.day}: {d.title}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                <AlertCircle className="h-3.5 w-3.5 inline mr-1" />
+                Clicking "Replace Current Outline" will DELETE the existing {selectedCourse?.weeks.length ?? 0} weeks and create {convertPreview.length} new weeks. This cannot be undone.
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex-row justify-between gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeConvertDialog}
+              className="text-muted-foreground"
+              disabled={busy}
+            >
+              <X className="h-3.5 w-3.5" /> Cancel
+            </Button>
+            <div className="flex gap-2">
+              {!convertPreview && !converting && (
+                <Button
+                  size="sm"
+                  onClick={runConvert}
+                  disabled={!convertText.trim() || busy}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <ClipboardPaste className="h-3.5 w-3.5" /> Convert
+                </Button>
+              )}
+              {convertPreview && !converting && (
+                <Button
+                  size="sm"
+                  onClick={applyConvertedOutline}
+                  disabled={busy}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {busy ? (
+                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</>
+                  ) : (
+                    <><CheckCircle2 className="h-3.5 w-3.5" /> Replace Current Outline</>
+                  )}
+                </Button>
+              )}
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

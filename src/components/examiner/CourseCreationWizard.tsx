@@ -13,8 +13,13 @@
  *       skillsVerified (comma-separated → string[])
  *
  *   Step 3: Generate Curriculum
- *     - "Generate with AI" button calls POST /api/courses/generate
- *     - Progress bar + status messages during generation
+ *     - Toggle between two modes:
+ *       (a) "Generate with AI" — AI creates an outline from scratch
+ *           based on the course name + description (existing flow).
+ *       (b) "Paste Your Outline" — user pastes a raw outline (Word doc,
+ *           syllabus, PDF text, textbook TOC, etc.) and the AI converts
+ *           it into a structured TraineesAI outline (NEW).
+ *     - Progress bar + status messages during generation / conversion
  *     - When done: shows the generated weeks/days summary
  *     - "Create Course" button at the bottom
  *
@@ -45,7 +50,7 @@ import {
 } from "@/components/ui/select";
 import {
   Loader2, Sparkles, ArrowLeft, ArrowRight, Check, CheckCircle2,
-  AlertCircle, ExternalLink, Wand2, BookOpen, Store,
+  AlertCircle, ExternalLink, Wand2, BookOpen, Store, ClipboardPaste,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CourseThumbnailPicker from "./CourseThumbnailPicker";
@@ -126,6 +131,9 @@ export default function CourseCreationWizard({
   const [skillsVerified, setSkillsVerified] = useState("");
 
   // Step 3: Generated curriculum
+  // genMode — "ai" (AI generates from scratch) | "paste" (user pastes raw outline text)
+  const [genMode, setGenMode] = useState<"ai" | "paste">("ai");
+  const [pastedOutline, setPastedOutline] = useState("");
   const [generated, setGenerated] = useState<GeneratedCourse | null>(null);
   const [generating, setGenerating] = useState(false);
   const [genProgress, setGenProgress] = useState(0);
@@ -149,6 +157,7 @@ export default function CourseCreationWizard({
         setPrice(0); setInstructorName(""); setInstructorBio("");
         setThumbnailUrl(null);
         setWhatYouWillLearn(""); setPrerequisites(""); setSkillsVerified("");
+        setGenMode("ai"); setPastedOutline("");
         setGenerated(null); setGenProgress(0); setGenStatus("");
         setStep(1); setCreating(false); setError(""); setCreatedCourse(null);
       }, 250);
@@ -222,6 +231,68 @@ export default function CourseCreationWizard({
       setGenProgress(0);
       setGenStatus("");
       setError(e instanceof Error ? e.message : "AI generation failed. You can still create the course and edit the curriculum later.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // ---------------- Convert a pasted outline ----------------
+  // Mirrors generateCurriculum() but calls /api/courses/convert-outline
+  // with the raw pasted text. The response shape is { weeks: [...] } so
+  // we wrap it in { weeks } to match the GeneratedCourse interface used
+  // by the rest of the wizard.
+  const convertPastedOutline = async () => {
+    if (!pastedOutline.trim()) {
+      setError("Please paste your course outline text first.");
+      return;
+    }
+    setGenerating(true);
+    setGenProgress(0);
+    setGenStatus("Reading your outline…");
+    setError("");
+
+    // Progress animation — creeps toward 90% while we wait for the AI.
+    genIntervalRef.current = setInterval(() => {
+      setGenProgress(p => Math.min(p + Math.max(1, (90 - p) * 0.05), 90));
+    }, 500);
+    const statuses = [
+      "Reading your outline…",
+      `Reorganizing into ${durationWeeks} weeks × 5 days…`,
+      "Enhancing objectives and activities…",
+      "Adding deliverables and reflections…",
+      "Finding real resource links…",
+    ];
+    let si = 0;
+    statusIntervalRef.current = setInterval(() => {
+      si = (si + 1) % statuses.length;
+      setGenStatus(statuses[si]);
+    }, 2500);
+
+    try {
+      const res = await api.post<{ weeks: WeekSummary[] }>(
+        "/api/courses/convert-outline",
+        {
+          outline: pastedOutline.trim(),
+          courseName: name.trim(),
+          category,
+          level,
+          durationWeeks,
+          daysPerWeek: 5,
+        },
+        300_000, // 5 min — large outlines can take a while to convert
+      );
+
+      if (genIntervalRef.current) clearInterval(genIntervalRef.current);
+      if (statusIntervalRef.current) clearInterval(statusIntervalRef.current);
+      setGenProgress(100);
+      setGenStatus("Done!");
+      setGenerated({ weeks: res.weeks });
+    } catch (e) {
+      if (genIntervalRef.current) clearInterval(genIntervalRef.current);
+      if (statusIntervalRef.current) clearInterval(statusIntervalRef.current);
+      setGenProgress(0);
+      setGenStatus("");
+      setError(e instanceof Error ? e.message : "AI conversion failed. You can still create the course and edit the curriculum later.");
     } finally {
       setGenerating(false);
     }
@@ -464,16 +535,87 @@ export default function CourseCreationWizard({
           <div className="space-y-4">
             {!generated && !generating && (
               <div className="space-y-4">
-                <div className="rounded-md border border-border bg-muted/30 p-4 text-center">
-                  <Wand2 className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm font-medium text-foreground">Generate curriculum with AI</p>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
-                    The AI will create {durationWeeks} weeks × 5 days of lessons, with daily objectives, activities, deliverables, and resource links. Takes 15–60 seconds.
-                  </p>
-                  <Button onClick={generateCurriculum} className="bg-primary hover:bg-primary/90 text-primary-foreground mt-3">
-                    <Sparkles className="h-4 w-4" /> Generate with AI
-                  </Button>
+                {/* Mode toggle: AI generate vs Paste outline */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGenMode("ai")}
+                    className={cn(
+                      "flex items-start gap-2 rounded-md border p-3 text-left transition-colors",
+                      genMode === "ai"
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-background hover:bg-muted/40",
+                    )}
+                  >
+                    <Wand2 className={cn("h-4 w-4 mt-0.5", genMode === "ai" ? "text-primary" : "text-muted-foreground")} />
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("text-xs font-medium", genMode === "ai" ? "text-foreground" : "text-muted-foreground")}>
+                        Generate with AI
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                        AI creates an outline from scratch based on the course name + description.
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGenMode("paste")}
+                    className={cn(
+                      "flex items-start gap-2 rounded-md border p-3 text-left transition-colors",
+                      genMode === "paste"
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-background hover:bg-muted/40",
+                    )}
+                  >
+                    <ClipboardPaste className={cn("h-4 w-4 mt-0.5", genMode === "paste" ? "text-primary" : "text-muted-foreground")} />
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("text-xs font-medium", genMode === "paste" ? "text-foreground" : "text-muted-foreground")}>
+                        Paste Your Outline
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                        Paste a syllabus, Word doc, PDF text, or TOC — the AI converts it.
+                      </p>
+                    </div>
+                  </button>
                 </div>
+
+                {/* Mode-specific input */}
+                {genMode === "ai" ? (
+                  <div className="rounded-md border border-border bg-muted/30 p-4 text-center">
+                    <Wand2 className="h-8 w-8 text-primary mx-auto mb-2" />
+                    <p className="text-sm font-medium text-foreground">Generate curriculum with AI</p>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
+                      The AI will create {durationWeeks} weeks × 5 days of lessons, with daily objectives, activities, deliverables, and resource links. Takes 15–60 seconds.
+                    </p>
+                    <Button onClick={generateCurriculum} className="bg-primary hover:bg-primary/90 text-primary-foreground mt-3">
+                      <Sparkles className="h-4 w-4" /> Generate with AI
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium flex items-center gap-1">
+                      <ClipboardPaste className="h-3 w-3" /> Paste your course outline
+                    </Label>
+                    <Textarea
+                      value={pastedOutline}
+                      onChange={(e) => setPastedOutline(e.target.value)}
+                      placeholder="Paste your course outline here. This can be from a Word document, syllabus, PDF, textbook table of contents, or any format. The AI will convert it into a structured TraineesAI course."
+                      className="bg-background border-border min-h-[300px] text-xs font-mono"
+                    />
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] text-muted-foreground">
+                        {pastedOutline.trim().length.toLocaleString()} characters · AI will organize into {durationWeeks} weeks × 5 days
+                      </p>
+                      <Button
+                        onClick={convertPastedOutline}
+                        disabled={!pastedOutline.trim()}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        <ClipboardPaste className="h-4 w-4" /> Convert Outline
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <p className="text-center text-[10px] text-muted-foreground">
                   You can skip this step and create the course now — you&apos;ll be able to edit the curriculum in the Course Planner.
                 </p>
@@ -532,12 +674,16 @@ export default function CourseCreationWizard({
                 </div>
 
                 <Button
-                  onClick={generateCurriculum}
+                  onClick={genMode === "ai" ? generateCurriculum : convertPastedOutline}
                   variant="outline"
                   size="sm"
                   className="border-border text-xs"
                 >
-                  <Wand2 className="h-3 w-3" /> Regenerate
+                  {genMode === "ai" ? (
+                    <><Wand2 className="h-3 w-3" /> Regenerate</>
+                  ) : (
+                    <><ClipboardPaste className="h-3 w-3" /> Re-convert</>
+                  )}
                 </Button>
               </div>
             )}
