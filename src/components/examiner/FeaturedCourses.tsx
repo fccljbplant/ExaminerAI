@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Star, Users, Clock, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { api } from "@/lib/api-client";
+import { formatPrice } from "@/lib/format";
 
 /**
  * FeaturedCourses — client-side preview of the top featured courses,
@@ -154,7 +155,7 @@ export default function FeaturedCourses() {
                         <span className="text-sm font-semibold text-emerald-500">Free</span>
                       ) : (
                         <span className="text-sm font-semibold text-foreground">
-                          {course.currency} {course.price.toFixed(0)}
+                          {formatPrice(course.price, course.currency)}
                         </span>
                       )}
                     </div>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMarketplacePathDetail } from "@/lib/marketplace";
+import { formatPrice } from "@/lib/format";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -102,18 +103,18 @@ export default async function LearningPathDetailPage({ params }: Params) {
                   {isFree ? (
                     <span className="text-emerald-500">Free</span>
                   ) : (
-                    `${path.currency} ${path.price.toFixed(2)}`
+                    formatPrice(path.price, path.currency)
                   )}
                 </span>
                 {hasSavings && (
                   <span className="text-sm text-muted-foreground line-through">
-                    {path.currency} {individualTotal.toFixed(2)}
+                    {formatPrice(individualTotal, path.currency)}
                   </span>
                 )}
               </div>
               {hasSavings && (
                 <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
-                  Save {path.currency} {savings.toFixed(2)}
+                  Save {formatPrice(savings, path.currency)}
                 </Badge>
               )}
             </div>
@@ -139,14 +140,14 @@ export default async function LearningPathDetailPage({ params }: Params) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Bundle price</span>
                   <span className="font-medium">
-                    {isFree ? "Free" : `${path.currency} ${path.price.toFixed(2)}`}
+                    {isFree ? "Free" : formatPrice(path.price, path.currency)}
                   </span>
                 </div>
                 {hasSavings && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>You save</span>
                     <span className="font-medium">
-                      {path.currency} {savings.toFixed(2)}
+                      {formatPrice(savings, path.currency)}
                     </span>
                   </div>
                 )}
@@ -226,7 +227,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                               {c.price === 0 ? (
                                 <span className="text-emerald-600 dark:text-emerald-400 font-medium">Free</span>
                               ) : (
-                                `${path.currency} ${c.price.toFixed(2)}`
+                                formatPrice(c.price, path.currency)
                               )}
                             </span>
                           </div>
@@ -260,7 +261,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
               </ul>
               {hasSavings && (
                 <p className="mt-3 text-emerald-600 dark:text-emerald-400 font-medium">
-                  Bundle saves you {path.currency} {savings.toFixed(2)} vs. buying each course separately.
+                  Bundle saves you {formatPrice(savings, path.currency)} vs. buying each course separately.
                 </p>
               )}
             </CardContent>

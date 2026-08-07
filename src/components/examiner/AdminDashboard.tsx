@@ -57,7 +57,6 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   const [enrollmentsMap, setEnrollmentsMap] = useState<Record<string, Array<{ courseId: string; courseName: string; role: string }>>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
-  const [seedMsg, setSeedMsg] = useState("");
   // P1.3: Fetch current user's role for role-based tab visibility
   const [currentUserRole, setCurrentUserRole] = useState<string>("admin");
   // Search + pagination state
@@ -193,17 +192,6 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     finally { setBusy(null); }
   };
 
-  const reseed = async () => {
-    setBusy("seed");
-    try {
-      await api.get("/api/seed");
-      setSeedMsg("✓ Database reseeded.");
-      await load();
-      setTimeout(() => setSeedMsg(""), 3000);
-    } catch (e) { setSeedMsg(e instanceof Error ? e.message : "Failed"); }
-    finally { setBusy(null); }
-  };
-
   if (loading) {
     return <div className="flex items-center justify-center h-96"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
@@ -309,7 +297,6 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                 </Button>
               </div>
             </div>
-            {seedMsg && <span className="text-xs text-primary">{seedMsg}</span>}
             {/* Search + filter bar */}
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <div className="relative flex-1 min-w-[200px]">

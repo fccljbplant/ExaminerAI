@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { MarketplaceCourseListItem } from "@/lib/marketplace";
+import { formatPrice } from "@/lib/format";
 import WishlistButton from "./WishlistButton";
 
 /**
@@ -18,7 +19,7 @@ import WishlistButton from "./WishlistButton";
  *   - course:   a MarketplaceCourseListItem (or any compatible subset)
  *   - showWishlist: whether to render the wishlist button (default true)
  *   - highlightFeatured: render the featured ring when course.featured=true
- *   - ctaLabel: the button label (default "Enroll"). Instructor profile uses "View Course".
+ *   - ctaLabel: the button label (default "View Course"). Instructor profile may override.
  */
 
 export interface MarketplaceCourseCardProps {
@@ -32,7 +33,7 @@ export default function MarketplaceCourseCard({
   course,
   showWishlist = true,
   highlightFeatured = false,
-  ctaLabel = "Enroll",
+  ctaLabel = "View Course",
 }: MarketplaceCourseCardProps) {
   const isFree = course.price === 0;
   const showFeaturedBorder = highlightFeatured && course.featured;
@@ -112,7 +113,7 @@ export default function MarketplaceCourseCard({
               <span className="text-base font-semibold text-emerald-500">Free</span>
             ) : (
               <span className="text-base font-semibold">
-                {course.currency} {course.price.toFixed(2)}
+                {formatPrice(course.price, course.currency)}
               </span>
             )}
           </div>

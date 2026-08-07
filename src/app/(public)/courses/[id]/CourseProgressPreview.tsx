@@ -11,7 +11,7 @@
  * Renders:
  *   - A progress bar with percentage (X of Y weeks completed).
  *   - Week-by-week breakdown (each week with completion checkmark + score).
- *   - "Continue where you left off" button → links to /app (the dashboard).
+ *   - "Continue Learning" button → links to /app (the dashboard).
  *   - If certificate-eligible: a "Claim Your Certificate" CTA.
  */
 
@@ -116,7 +116,7 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
                 )}
                 <span className="text-sm font-medium">Week {w.week}</span>
                 {w.completed && (
-                  <Badge variant="secondary" className="text-[9px]">Done</Badge>
+                  <Badge variant="secondary" className="text-[10px]">Done</Badge>
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
@@ -151,7 +151,7 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
           ) : (
             <Button asChild size="sm" className="flex-1">
               <Link href="/app">
-                {isComplete ? "Review course" : "Continue where you left off"}
+                {isComplete ? "Review Course" : "Continue Learning"}
                 <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Link>
             </Button>
@@ -159,7 +159,7 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
         </div>
 
         {!data.hasCertificate && !data.certificateEligible && (
-          <p className="text-[11px] text-muted-foreground text-center flex items-center justify-center gap-1">
+          <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
             <Lock className="h-3 w-3" />
             Complete all weeks with a 75+ average to earn your certificate
           </p>

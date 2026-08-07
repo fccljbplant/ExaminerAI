@@ -22,6 +22,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { formatPrice } from "@/lib/format";
 import CourseThumbnailPicker from "./CourseThumbnailPicker";
 import CourseCreationWizard from "./CourseCreationWizard";
 
@@ -88,8 +90,6 @@ export default function CoursePlanner() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
-  const [msgType, setMsgType] = useState<"success" | "error">("success");
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
 
   // AI generation form state
@@ -263,13 +263,8 @@ export default function CoursePlanner() {
   useEffect(() => { load(); }, [load]);
 
   const showMsg = (type: "success" | "error", text: string) => {
-    setMsgType(type); setMsg(text);
-    // Phase fix: only auto-dismiss SUCCESS messages. Errors stay visible
-    // until the user takes action — the old 4-second timeout meant the
-    // user never saw why their course generation failed.
-    if (type === "success") {
-      setTimeout(() => setMsg(""), 4000);
-    }
+    if (type === "success") toast.success(text);
+    else toast.error(text);
   };
 
   const seedDefault = async () => {
@@ -297,7 +292,6 @@ export default function CoursePlanner() {
   const generateCourse = async () => {
     if (!genForm.courseName.trim()) { showMsg("error", "Course name is required"); return; }
     setGenerating(true); setGenProgress(0); setGenStatus("Saving course definition...");
-    setMsg("");
 
     // Progress animation
     genIntervalRef.current = setInterval(() => {
@@ -365,7 +359,7 @@ export default function CoursePlanner() {
 
   const saveCourse = async () => {
     if (!selectedCourse) return;
-    setBusy(true); setMsg("");
+    setBusy(true);
     try {
       await api.put(`/api/courses/${selectedCourse.id}`, {
         name: selectedCourse.name,
@@ -648,7 +642,6 @@ export default function CoursePlanner() {
                   Leave empty for single-subject courses.
                 </p>
               </div>
-              {msg && <p className={`text-xs ${msgType === "error" ? "text-destructive" : "text-primary"}`}>{msg}</p>}
               <Button onClick={generateCourse} disabled={!genForm.courseName.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground w-full" size="lg">
                 <Sparkles className="h-5 w-5" /> Generate {genForm.durationWeeks * genForm.daysPerWeek} Lessons with AI
               </Button>
@@ -672,7 +665,7 @@ export default function CoursePlanner() {
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2 flex-wrap">
               {editing ? "Edit Course" : selectedCourse.name}
               {selectedCourse.isDefault && (
-                <Badge variant="outline" className="text-[9px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                <Badge variant="outline" className="text-[10px] border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
                   Default for new students
                 </Badge>
               )}
@@ -731,8 +724,6 @@ export default function CoursePlanner() {
           </div>
         </div>
 
-        {msg && <p className={`text-xs ${msgType === "error" ? "text-destructive" : "text-primary"}`}>{msg}</p>}
-
         {/* Course metadata */}
         <Card className="border-border">
           <CardContent className="p-4 space-y-3">
@@ -765,7 +756,7 @@ export default function CoursePlanner() {
                 <div className="flex flex-wrap gap-1">
                   {(selectedCourse.subjects || []).length > 0 ? (
                     (selectedCourse.subjects || []).map((s, i) => (
-                      <Badge key={i} variant="outline" className="text-[9px] bg-primary/10 text-primary border-primary/30">{s}</Badge>
+                      <Badge key={i} variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">{s}</Badge>
                     ))
                   ) : (
                     <span className="text-xs text-muted-foreground italic">Single-subject course</span>
@@ -984,7 +975,7 @@ export default function CoursePlanner() {
               <div className="flex-1">
                 <p className="text-xs font-medium text-foreground">Publish to marketplace</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
-                  When ON, this course appears on <code className="text-[9px] bg-muted px-1 py-0.5 rounded">/courses</code> and is fetchable via the public marketplace API. When OFF, only enrolled students and staff can see it.
+                  When ON, this course appears on <code className="text-[10px] bg-muted px-1 py-0.5 rounded">/courses</code> and is fetchable via the public marketplace API. When OFF, only enrolled students and staff can see it.
                 </p>
               </div>
               {editing ? (
@@ -1037,8 +1028,11 @@ export default function CoursePlanner() {
                   />
                 ) : (
                   <p className="text-xs font-medium text-foreground">
-                    ${(selectedCourse.price ?? 0).toFixed(2)}
-                    {(selectedCourse.price ?? 0) === 0 && <span className="ml-1 text-emerald-600 dark:text-emerald-400">Free</span>}
+                    {(selectedCourse.price ?? 0) === 0 ? (
+                      <span className="text-emerald-600 dark:text-emerald-400">Free</span>
+                    ) : (
+                      formatPrice(selectedCourse.price ?? 0, "USD")
+                    )}
                   </p>
                 )}
               </div>
@@ -1187,7 +1181,7 @@ export default function CoursePlanner() {
                 <div className={`p-3 flex items-center gap-2 ${isExpanded ? "border-b border-border" : ""} ${!editing ? "cursor-pointer" : ""}`}
                   onClick={() => !editing && toggleWeek(weekIdx)}>
                   {!editing && (isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />)}
-                  <Badge variant="outline" className="text-[9px] text-primary border-primary/30">Week {w.weekNumber}</Badge>
+                  <Badge variant="outline" className="text-[10px] text-primary border-primary/30">Week {w.weekNumber}</Badge>
                   {editing ? (
                     <Input value={w.phase} onChange={(e) => updateWeek(weekIdx, "phase", e.target.value)} className="bg-background border-border h-7 text-xs flex-1" placeholder="Phase name..." />
                   ) : (
@@ -1207,7 +1201,7 @@ export default function CoursePlanner() {
                     {/* Milestone */}
                     {editing && (
                       <div className="space-y-1">
-                        <Label className="text-[9px] text-muted-foreground">Milestone</Label>
+                        <Label className="text-[10px] text-muted-foreground">Milestone</Label>
                         <Input value={w.milestone} onChange={(e) => updateWeek(weekIdx, "milestone", e.target.value)} className="bg-background border-border h-7 text-xs" placeholder="e.g. Project selected · GitHub repo created" />
                       </div>
                     )}
@@ -1256,14 +1250,14 @@ export default function CoursePlanner() {
                               {d.topicsCovered.map((t, topicIdx) => (
                                 editing ? (
                                   <span key={topicIdx} className="inline-flex items-center gap-0.5">
-                                    <Input value={t} onChange={(e) => updateTopic(weekIdx, dayIdx, topicIdx, e.target.value)} className="bg-background border-border h-5 text-[9px] w-28" />
+                                    <Input value={t} onChange={(e) => updateTopic(weekIdx, dayIdx, topicIdx, e.target.value)} className="bg-background border-border h-5 text-[10px] w-28" />
                                     <button onClick={() => deleteTopic(weekIdx, dayIdx, topicIdx)} className="text-destructive"><X className="h-2.5 w-2.5" /></button>
                                   </span>
                                 ) : (
                                   <Badge key={topicIdx} variant="secondary" className="text-[8px] bg-muted">{t}</Badge>
                                 )
                               ))}
-                              {editing && <button onClick={() => addTopic(weekIdx, dayIdx)} className="text-[9px] text-primary hover:underline"><Plus className="h-2.5 w-2.5 inline" /> Add</button>}
+                              {editing && <button onClick={() => addTopic(weekIdx, dayIdx)} className="text-[10px] text-primary hover:underline"><Plus className="h-2.5 w-2.5 inline" /> Add</button>}
                             </div>
                           </div>
                         )}
@@ -1298,8 +1292,8 @@ export default function CoursePlanner() {
                               <div key={resIdx} className="flex items-center gap-1.5">
                                 {editing ? (
                                   <>
-                                    <Input value={r.label} onChange={(e) => updateResource(weekIdx, dayIdx, resIdx, "label", e.target.value)} className="bg-background border-border h-5 text-[9px] w-24" placeholder="Label" />
-                                    <Input value={r.url} onChange={(e) => updateResource(weekIdx, dayIdx, resIdx, "url", e.target.value)} className="bg-background border-border h-5 text-[9px] flex-1" placeholder="URL" />
+                                    <Input value={r.label} onChange={(e) => updateResource(weekIdx, dayIdx, resIdx, "label", e.target.value)} className="bg-background border-border h-5 text-[10px] w-24" placeholder="Label" />
+                                    <Input value={r.url} onChange={(e) => updateResource(weekIdx, dayIdx, resIdx, "url", e.target.value)} className="bg-background border-border h-5 text-[10px] flex-1" placeholder="URL" />
                                     <button onClick={() => deleteResource(weekIdx, dayIdx, resIdx)} className="text-destructive"><X className="h-2.5 w-2.5" /></button>
                                   </>
                                 ) : (
@@ -1309,7 +1303,7 @@ export default function CoursePlanner() {
                                 )}
                               </div>
                             ))}
-                            {editing && <button onClick={() => addResource(weekIdx, dayIdx)} className="text-[9px] text-primary hover:underline"><Plus className="h-2.5 w-2.5 inline" /> Add resource</button>}
+                            {editing && <button onClick={() => addResource(weekIdx, dayIdx)} className="text-[10px] text-primary hover:underline"><Plus className="h-2.5 w-2.5 inline" /> Add resource</button>}
                           </div>
                         )}
                       </div>
@@ -1351,8 +1345,6 @@ export default function CoursePlanner() {
         </div>
       </div>
 
-      {msg && <p className={`text-xs ${msgType === "error" ? "text-destructive" : "text-primary"}`}>{msg}</p>}
-
       {courses.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="p-8 text-center">
@@ -1382,7 +1374,7 @@ export default function CoursePlanner() {
                     {c.description && <CardDescription className="text-xs text-muted-foreground truncate">{c.description}</CardDescription>}
                   </div>
                   <div className="flex flex-col gap-1 items-end ml-2">
-                    <Badge variant="outline" className="text-[9px]">{(c.weeks?.length || 0)}w · {(c.weeks?.reduce((a, w) => a + (w.dayCount || w.days?.length || 0), 0) || 0)}d</Badge>
+                    <Badge variant="outline" className="text-[10px]">{(c.weeks?.length || 0)}w · {(c.weeks?.reduce((a, w) => a + (w.dayCount || w.days?.length || 0), 0) || 0)}d</Badge>
                     {c.projectEnabled && (
                       <Badge variant="outline" className={`text-[8px] ${c.projectRequired ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}>
                         {c.projectRequired ? "Project Required" : "Project Optional"}
@@ -1496,7 +1488,7 @@ export default function CoursePlanner() {
                 {convertPreview.map((w) => (
                   <div key={w.weekNumber} className="text-xs">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="text-[9px]">W{w.weekNumber}</Badge>
+                      <Badge variant="outline" className="text-[10px]">W{w.weekNumber}</Badge>
                       <span className="font-medium text-foreground">{w.phase}</span>
                     </div>
                     {w.milestone && (
@@ -1504,7 +1496,7 @@ export default function CoursePlanner() {
                     )}
                     <div className="flex flex-wrap gap-1 ml-6">
                       {w.days.map((d) => (
-                        <Badge key={d.day} variant="outline" className="text-[9px] font-normal">
+                        <Badge key={d.day} variant="outline" className="text-[10px] font-normal">
                           D{d.day}: {d.title}
                         </Badge>
                       ))}

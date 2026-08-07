@@ -13,6 +13,7 @@ import {
   MARKETPLACE_CATEGORIES,
   MARKETPLACE_LEVELS,
 } from "@/lib/marketplace";
+import { formatPrice } from "@/lib/format";
 import { MarketplaceFilters } from "./MarketplaceFilters";
 import { VisitedCoursesTracker } from "./VisitedCoursesTracker";
 import MarketplaceCourseCard from "./MarketplaceCourseCard";
@@ -147,7 +148,7 @@ export default async function CoursesPage({
               }`}
             >
               All Categories
-              <Badge variant="outline" className="text-[9px] py-0 px-1.5 h-4">
+              <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4">
                 {totalPublished}
               </Badge>
             </Link>
@@ -166,7 +167,7 @@ export default async function CoursesPage({
                   }`}
                 >
                   {c.label}
-                  <Badge variant="outline" className="text-[9px] py-0 px-1.5 h-4">
+                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4">
                     {count}
                   </Badge>
                 </Link>
@@ -420,7 +421,7 @@ function LearningPathCard({
               <span className="text-base font-semibold text-emerald-500">Free</span>
             ) : (
               <span className="text-base font-semibold">
-                {path.currency} {path.price.toFixed(2)}
+                {formatPrice(path.price, path.currency)}
               </span>
             )}
           </div>

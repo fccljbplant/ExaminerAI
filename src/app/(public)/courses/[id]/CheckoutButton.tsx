@@ -12,6 +12,7 @@ import {
   ShieldCheck, Sparkles, Award, X, AlertCircle,
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api-client";
+import { formatPrice } from "@/lib/format";
 
 /**
  * CheckoutButton — B2C checkout flow on the public course detail page.
@@ -167,9 +168,7 @@ export default function CheckoutButton({
   }
 
   // authState === "student"
-  const priceLabel = isFree
-    ? "Free"
-    : `${currency} ${price.toFixed(2)}`;
+  const priceLabel = formatPrice(price, currency);
 
   return (
     <div className="flex flex-col gap-2">

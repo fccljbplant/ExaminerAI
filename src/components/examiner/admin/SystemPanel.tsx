@@ -5,7 +5,20 @@ import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import {
   Users, ShieldAlert, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
@@ -32,6 +45,28 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
   const [featureBusy, setFeatureBusy] = useState<string | null>(null);
   const [cacheStats, setCacheStats] = useState<{ size: number; hits: number; misses: number; hitRate: number; estimatedTokensSaved: number } | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<"overview" | "ai" | "flags" | "actions" | "audit" | "access" | "navconfig" | "maintenance">("overview");
+  // Reseed confirmation dialog — requires the admin to type "RESET" before
+  // the destructive reseed action runs.
+  const [reseedOpen, setReseedOpen] = useState(false);
+  const [reseedConfirm, setReseedConfirm] = useState("");
+  const [reseedBusy, setReseedBusy] = useState(false);
+
+  const canConfirmReseed = reseedConfirm.trim().toUpperCase() === "RESET";
+
+  const runReseed = async () => {
+    if (!canConfirmReseed) return;
+    setReseedBusy(true);
+    try {
+      await api.get("/api/seed");
+      toast.success("Database reseeded.");
+      setReseedOpen(false);
+      setReseedConfirm("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to reseed database");
+    } finally {
+      setReseedBusy(false);
+    }
+  };
 
   const loadAiStats = useCallback(async () => {
     try { const res = await api.get<any>("/api/ai/stats"); setAiStats(res); } catch { /* ignore */ }
@@ -537,7 +572,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
             <CardHeader><CardTitle className="text-base text-foreground flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> Dev Tools</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div className="flex flex-wrap gap-2">
-                <Button onClick={() => window.location.href = "/api/seed"} size="sm" variant="outline" className="border-border">
+                <Button onClick={() => setReseedOpen(true)} size="sm" variant="outline" className="border-border">
                   <RefreshCw className="h-3 w-3" /> Reseed Database
                 </Button>
                 <a href="/api/health" target="_blank" className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-muted text-muted-foreground hover:bg-muted/70">
@@ -548,6 +583,60 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                 </a>
               </div>
               <p className="text-[10px] text-muted-foreground">Reseed creates the admin account + default batch if missing. Safe to run repeatedly.</p>
+
+              {/* Reseed confirmation dialog — destructive action requires typing RESET */}
+              <AlertDialog open={reseedOpen} onOpenChange={(open) => {
+                setReseedOpen(open);
+                if (!open) { setReseedConfirm(""); setReseedBusy(false); }
+              }}>
+                <AlertDialogContent className="sm:max-w-md">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="h-5 w-5" />
+                      Reseed Database
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will DELETE ALL DATA and recreate demo data. This action cannot be undone. Type <strong className="font-mono text-foreground">RESET</strong> to confirm.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="reseed-confirm" className="text-xs text-muted-foreground">
+                      Confirmation code
+                    </Label>
+                    <Input
+                      id="reseed-confirm"
+                      value={reseedConfirm}
+                      onChange={(e) => setReseedConfirm(e.target.value)}
+                      placeholder="Type RESET"
+                      autoComplete="off"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      disabled={reseedBusy}
+                      className="font-mono"
+                    />
+                  </div>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={reseedBusy}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => {
+                        e.preventDefault();
+                        void runReseed();
+                      }}
+                      disabled={!canConfirmReseed || reseedBusy}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {reseedBusy ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Resetting…</>
+                      ) : (
+                        "Confirm Reset"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
 

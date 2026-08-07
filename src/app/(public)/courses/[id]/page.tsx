@@ -13,10 +13,12 @@ import {
   BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { fetchMarketplaceCourseDetail, MARKETPLACE_CATEGORIES, MARKETPLACE_LEVELS } from "@/lib/marketplace";
+import { formatPrice } from "@/lib/format";
 import CheckoutButton from "./CheckoutButton";
 import ReviewSection from "../ReviewSection";
 import FAQSection from "../FAQSection";
 import CourseProgressPreview from "./CourseProgressPreview";
+import CurriculumAccordion from "./CurriculumAccordion";
 import WishlistButton from "../WishlistButton";
 import ShareButtons from "../ShareButtons";
 import CoursePreviewSection from "./CoursePreviewSection";
@@ -231,7 +233,7 @@ export default async function CourseDetailPage({ params }: Params) {
                 {isFree ? (
                   <span className="text-emerald-500">Free</span>
                 ) : (
-                  `${course.currency} ${course.price.toFixed(2)}`
+                  formatPrice(course.price, course.currency)
                 )}
               </span>
               <WishlistButton courseId={course.id} variant="button" />
@@ -297,42 +299,7 @@ export default async function CourseDetailPage({ params }: Params) {
               <p className="text-sm text-muted-foreground mb-4">
                 {course.weeks.length} weeks · {totalDays} lessons · capstone-ready
               </p>
-              <div className="space-y-3">
-                {course.weeks.map((week) => (
-                  <Card key={week.id} className="py-3">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-primary text-xs font-bold">
-                          W{week.weekNumber}
-                        </span>
-                        <span>{week.phase}</span>
-                        {week.milestone && (
-                          <Badge variant="outline" className="ml-auto text-[10px]">
-                            {week.milestone}
-                          </Badge>
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <ul className="space-y-1.5">
-                        {week.days.map((day) => (
-                          <li key={day.id} className="flex items-start gap-2 text-sm">
-                            <span className="text-xs font-mono text-muted-foreground mt-0.5">
-                              D{day.day}
-                            </span>
-                            <div>
-                              <span className="font-medium">{day.title}</span>
-                              {day.objective && (
-                                <span className="text-muted-foreground"> — {day.objective}</span>
-                              )}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <CurriculumAccordion weeks={course.weeks} totalDays={totalDays} />
             </section>
           )}
 

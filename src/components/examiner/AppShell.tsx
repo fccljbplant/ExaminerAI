@@ -542,7 +542,7 @@ export default function AppShell() {
                       >
                         {enr.courseId === activeCourseId && <Check className="h-3 w-3 flex-shrink-0" />}
                         <span className="flex-1 truncate">{enr.courseName}</span>
-                        <Badge variant="outline" className="text-[9px] px-1 py-0">
+                        <Badge variant="outline" className="text-[10px] px-1 py-0">
                           Wk {enr.currentWeek}/{enr.totalWeeks}
                         </Badge>
                       </button>
@@ -636,7 +636,7 @@ export default function AppShell() {
                 </button>
               ))}
             </div>
-            <p className="text-[9px] text-muted-foreground leading-snug">
+            <p className="text-[10px] text-muted-foreground leading-snug">
               Switch to any role to preview their dashboard.
             </p>
           </div>

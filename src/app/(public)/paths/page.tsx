@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { fetchMarketplacePaths } from "@/lib/marketplace";
+import { formatPrice } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Learning Paths — TraineesAI",
@@ -70,7 +71,7 @@ export default async function PathsPage() {
                     <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {path.durationWeeks}w</span>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border mt-auto">
-                    <span className="text-base font-semibold">{path.price === 0 ? <span className="text-emerald-500">Free</span> : `${path.currency} ${path.price.toFixed(2)}`}</span>
+                    <span className="text-base font-semibold">{path.price === 0 ? <span className="text-emerald-500">Free</span> : formatPrice(path.price, path.currency)}</span>
                     <Button asChild size="sm"><Link href={`/paths/${path.id}`}>View Path</Link></Button>
                   </div>
                 </CardContent>

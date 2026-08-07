@@ -35,6 +35,7 @@ import {
   AlertCircle, CheckCircle2, Sparkles, Clock, Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/format";
 import type { EnrollmentResponse } from "@/app/api/enrollments/route";
 import type { MarketplaceCourseListItem } from "@/lib/marketplace";
 
@@ -343,7 +344,7 @@ function ExploreCourseCard({ course }: { course: MarketplaceCourseListItem }) {
             <Badge className="bg-emerald-600 text-white border-transparent text-[10px]">Free</Badge>
           ) : (
             <Badge className="bg-foreground text-background border-transparent text-[10px]">
-              ${course.price.toFixed(0)} {course.currency}
+              {formatPrice(course.price, course.currency)}
             </Badge>
           )}
         </div>
@@ -387,9 +388,9 @@ function ExploreCourseCard({ course }: { course: MarketplaceCourseListItem }) {
 
         {/* Meta: category + level + duration */}
         <div className="flex flex-wrap gap-1">
-          <Badge variant="outline" className="text-[9px] capitalize">{course.category.replace(/-/g, " ")}</Badge>
-          <Badge variant="outline" className="text-[9px] capitalize">{course.level}</Badge>
-          <Badge variant="outline" className="text-[9px]">{course.durationWeeks}w</Badge>
+          <Badge variant="outline" className="text-[10px] capitalize">{course.category.replace(/-/g, " ")}</Badge>
+          <Badge variant="outline" className="text-[10px] capitalize">{course.level}</Badge>
+          <Badge variant="outline" className="text-[10px]">{course.durationWeeks}w</Badge>
         </div>
 
         <Button
@@ -414,7 +415,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-muted/50 py-1.5">
       <div className="text-xs font-bold text-foreground leading-none">{value}</div>
-      <div className="text-[9px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
     </div>
   );
 }
