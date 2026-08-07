@@ -623,6 +623,7 @@ export default function AppShell() {
                   onClick={() => {
                     setAdminAs(r.role);
                     setView(r.view as ViewKey);
+                    setViewHistory([]); // Reset back-button history on role switch
                   }}
                   className={cn(
                     "rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors text-center",

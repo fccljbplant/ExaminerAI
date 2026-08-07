@@ -554,6 +554,8 @@ export default function CoursePlanner() {
 
   // ============ GENERATE VIEW ============
   if (view === "generate") {
+    setView("list");
+    return null;
     return (
       <div className="space-y-4 max-w-3xl mx-auto">
         <div className="flex items-center gap-2">
@@ -1337,7 +1339,7 @@ export default function CoursePlanner() {
           <Button size="sm" variant="outline" onClick={seedDefault} disabled={busy} className="border-border">
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Seed Default
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setView("generate")} className="border-primary/30 text-primary hover:bg-primary/10">
+          <Button size="sm" variant="outline" onClick={() => setWizardOpen(true)} className="border-primary/30 text-primary hover:bg-primary/10">
             <Wand2 className="h-3.5 w-3.5" /> Generate with AI
           </Button>
           <Button size="sm" variant="outline" onClick={() => setWizardOpen(true)} className="border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-300">

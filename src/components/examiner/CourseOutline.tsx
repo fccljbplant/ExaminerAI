@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { api } from "@/lib/api-client";
+import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import {
   BookOpen, ExternalLink, Loader2, ChevronDown, ChevronRight,
   CheckCircle2, Circle, PlayCircle,
@@ -119,8 +119,9 @@ export default function CourseOutline() {
     return data.weeks.find(w => w.week === selected.week)?.phase;
   }, [data, selected]);
 
-  // AIPanel handlers
-  const handleSend = (text: string) => {
+  // AIPanel handlers — wired to real /api/ai/tutor
+  const [aiLoading, setAiLoading] = useState(false);
+  const handleSend = async (text: string) => {
     const slideNum = aiMessages.length > 0
       ? aiMessages[aiMessages.length - 1].slideNum
       : undefined;
@@ -128,19 +129,28 @@ export default function CourseOutline() {
       ...prev,
       { role: "user", content: text, slideNum },
     ]);
-    // In a real deployment this would POST to /api/ai/tutor. For Phase 3 we
-    // ship a deterministic local echo so the panel is usable end-to-end
-    // without wiring up the AI route. A follow-up task can swap this out.
-    setTimeout(() => {
+    setAiLoading(true);
+    try {
+      // Build messages array for the API (expects { messages: [{role, content}] })
+      const allMessages = [
+        ...aiMessages.map(m => ({ role: m.role === "user" ? "user" as const : "assistant" as const, content: m.content })),
+        { role: "user" as const, content: text },
+      ];
+      const res = await api.post<{ reply: string }>("/api/ai/tutor", {
+        messages: allMessages,
+      }, AI_TIMEOUT_MS);
       setAiMessages(prev => [
         ...prev,
-        {
-          role: "assistant",
-          content: `Great question about "${currentSlideLabel}". Here's a starting thought: ${text.length > 80 ? text.slice(0, 80) + "…" : text} — try re-reading the slide and looking for the key concept that connects to your question.`,
-          slideNum,
-        },
+        { role: "assistant", content: res.reply || "I'm having trouble responding right now. Please try again.", slideNum },
       ]);
-    }, 400);
+    } catch {
+      setAiMessages(prev => [
+        ...prev,
+        { role: "assistant", content: "I'm having trouble responding right now. Please try again in a moment.", slideNum },
+      ]);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleQuickAction = (action: string) => {

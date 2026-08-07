@@ -96,6 +96,9 @@ export default async function CoursesPage({
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
+              <Link href="/paths">Learning Paths</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
               <Link href="/app">Sign in</Link>
             </Button>
             <Button asChild size="sm">
