@@ -75,7 +75,8 @@ export type ViewKey =
   | "admin-resets"
   | "admin-system"
   | "course-planner"
-  | "employer-dashboard";
+  | "employer-dashboard"
+  | "my-courses";
 
 interface NavItem {
   key: ViewKey;
@@ -91,6 +92,7 @@ const STAFF_NAV_ROLES = ["instructor", "coordinator", "admin", "administrator", 
 
 const ALL_NAV: NavItem[] = [
   { key: "dashboard", label: "Home", icon: LayoutDashboard, roles: ["student"] },
+  { key: "my-courses", label: "My Courses", icon: BookOpen, roles: ["student"] },
   { key: "checkin", label: "Study", icon: BookOpen, roles: ["student"] },
   { key: "gantt", label: "Project", icon: ClipboardList, roles: ["student"] },
   { key: "report-card", label: "Progress", icon: FileText, roles: ["student"] },
@@ -399,8 +401,9 @@ export default function AppShell() {
 
     // Student nav items gated on enrollment
     if (isStudent && !enrolled) {
-      // Only show Messages and Settings when unenrolled
-      if (n.key !== "messages" && n.key !== "settings") return false;
+      // When unenrolled, show Messages, Settings, and My Courses (so the
+      // student can browse the marketplace and self-enroll in a course).
+      if (n.key !== "messages" && n.key !== "settings" && n.key !== "my-courses") return false;
     }
 
     // Project nav gated on course's projectEnabled
@@ -415,7 +418,7 @@ export default function AppShell() {
     const wrap = (el: React.ReactNode) => <ErrorBoundary key={view}>{el}</ErrorBoundary>;
 
     // Zero-enrollment state for students
-    if (isStudent && !enrolled && view !== "messages" && view !== "settings") {
+    if (isStudent && !enrolled && view !== "messages" && view !== "settings" && view !== "my-courses") {
       return wrap(
         <div className="max-w-lg mx-auto pt-12 text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -426,9 +429,14 @@ export default function AppShell() {
             You haven&apos;t been assigned a course yet. Your instructor or administrator
             will enroll you in a course soon. Check back here once you&apos;re enrolled.
           </p>
-          <Button variant="outline" size="sm" onClick={() => navigateTo("messages")}>
-            <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Contact Instructor
-          </Button>
+          <div className="flex justify-center gap-2">
+            <Button variant="default" size="sm" onClick={() => navigateTo("my-courses")}>
+              <BookOpen className="h-3.5 w-3.5 mr-1.5" /> Browse Courses
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigateTo("messages")}>
+              <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Contact Instructor
+            </Button>
+          </div>
         </div>
       );
     }
@@ -439,6 +447,7 @@ export default function AppShell() {
       case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "credentials": return wrap(<StudentDashboard key={`credentials-${navClickCount}`} initialMode="credentials" enrollments={enrollments} activeCourseId={activeCourseId} />);
+      case "my-courses": return wrap(<StudentDashboard key={`my-courses-${navClickCount}`} initialMode="my-courses" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "instructor-today": return wrap(<InstructorDashboard key={`today-${navClickCount}`} initialTab="today" courseId={activeCourseId} />);
       case "instructor-students": return wrap(<InstructorDashboard key={`students-${navClickCount}`} initialTab="students" courseId={activeCourseId} />);
       case "instructor-assignments": return wrap(<InstructorDashboard key={`assignments-${navClickCount}`} initialTab="assignments" courseId={activeCourseId} />);

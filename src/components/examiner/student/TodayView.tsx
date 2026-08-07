@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, Flame, TrendingUp, TrendingDown, Minus,
   ClipboardList, Layers, GitBranch, FileQuestion, BookOpen,
-  MessageSquare, AlertCircle, Loader2,
+  MessageSquare, AlertCircle, Loader2, LayoutGrid,
 } from "lucide-react";
 
 interface TodayData {
@@ -105,12 +105,22 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
           </h2>
           <p className="text-xs text-muted-foreground">Welcome back, {data.traineeName}.</p>
         </div>
-        {data.streakDays > 0 && (
-          <Badge variant="outline" className="gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-600">
-            <Flame className="h-3.5 w-3.5" />
-            {data.streakDays}-day streak
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {data.streakDays > 0 && (
+            <Badge variant="outline" className="gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-600">
+              <Flame className="h-3.5 w-3.5" />
+              {data.streakDays}-day streak
+            </Badge>
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-primary/30 text-primary hover:bg-primary/10"
+            onClick={() => onNavigate?.("my-courses")}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" /> My Courses
+          </Button>
+        </div>
       </div>
 
       {/* Next action — the answer to "what do I do now?" */}

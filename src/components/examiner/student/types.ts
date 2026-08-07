@@ -135,7 +135,8 @@ export type Mode =
   | "settings"
   | "ai-tutor"
   | "course-outline"
-  | "credentials";
+  | "credentials"
+  | "my-courses";
 
 /** Journey step shape — used by the (now-removed) JourneyWizard. Kept for
  *  backward-compat with any DB rows that still reference journey steps,

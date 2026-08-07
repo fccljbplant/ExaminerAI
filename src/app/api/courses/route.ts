@@ -147,7 +147,18 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { name, description, weeks: rawWeeks, domain, level, assessmentType, toolsUsed, deliverableTypes, subjects, projectEnabled, projectRequired, projectDefaultDurationWeeks } = body as {
+  const {
+    name, description, weeks: rawWeeks, domain, level, assessmentType,
+    toolsUsed, deliverableTypes, subjects, projectEnabled, projectRequired,
+    projectDefaultDurationWeeks,
+    // Phase 6 — marketplace fields. All optional; only persisted when provided.
+    // Used by the CourseCreationWizard to publish a marketplace-ready course in
+    // a single POST call. Legacy callers (CoursePlanner.createEmpty, etc.) omit
+    // these fields and get the schema defaults (published=false, price=0, …).
+    subtitle, category, price, currency, durationWeeks, language, thumbnailUrl,
+    trailerVideoUrl, published, featured, instructorName, instructorBio,
+    whatYouWillLearn, prerequisites, skillsVerified,
+  } = body as {
     name?: string;
     description?: string;
     weeks?: unknown;
@@ -160,6 +171,22 @@ export async function POST(req: NextRequest) {
     projectEnabled?: boolean;
     projectRequired?: boolean;
     projectDefaultDurationWeeks?: number;
+    // Marketplace fields (Phase 6)
+    subtitle?: string;
+    category?: string;
+    price?: number;
+    currency?: string;
+    durationWeeks?: number;
+    language?: string;
+    thumbnailUrl?: string;
+    trailerVideoUrl?: string;
+    published?: boolean;
+    featured?: boolean;
+    instructorName?: string;
+    instructorBio?: string;
+    whatYouWillLearn?: string[];
+    prerequisites?: string[];
+    skillsVerified?: string[];
   };
 
   if (!name?.trim()) {
@@ -228,6 +255,24 @@ export async function POST(req: NextRequest) {
       projectEnabled: finalProjectEnabled,
       projectRequired: finalProjectEnabled && projectRequired === true,
       projectDefaultDurationWeeks: finalProjectDuration,
+      // Phase 6 — marketplace fields. Only persisted when explicitly provided so
+      // legacy callers (which don't send these fields) keep getting the schema
+      // defaults. The CourseCreationWizard passes all of them at once.
+      ...(subtitle !== undefined ? { subtitle: subtitle.trim() || null } : {}),
+      ...(category !== undefined ? { category } : {}),
+      ...(price !== undefined ? { price: Number(price) || 0 } : {}),
+      ...(currency !== undefined ? { currency } : {}),
+      ...(durationWeeks !== undefined ? { durationWeeks: Number(durationWeeks) || 6 } : {}),
+      ...(language !== undefined ? { language } : {}),
+      ...(thumbnailUrl !== undefined ? { thumbnailUrl: thumbnailUrl || null } : {}),
+      ...(trailerVideoUrl !== undefined ? { trailerVideoUrl: trailerVideoUrl || null } : {}),
+      ...(published !== undefined ? { published: published === true } : {}),
+      ...(featured !== undefined ? { featured: featured === true } : {}),
+      ...(instructorName !== undefined ? { instructorName: instructorName?.trim() || null } : {}),
+      ...(instructorBio !== undefined ? { instructorBio: instructorBio?.trim() || null } : {}),
+      ...(whatYouWillLearn !== undefined ? { whatYouWillLearn: JSON.stringify(whatYouWillLearn || []) } : {}),
+      ...(prerequisites !== undefined ? { prerequisites: JSON.stringify(prerequisites || []) } : {}),
+      ...(skillsVerified !== undefined ? { skillsVerified: JSON.stringify(skillsVerified || []) } : {}),
       weeks: weeks?.length
         ? {
             create: (weeks as Array<{

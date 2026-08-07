@@ -18,6 +18,7 @@ import {
   CheckCircle2, Circle, AlertCircle, Copy, ClipboardList, Store,
 } from "lucide-react";
 import CourseThumbnailPicker from "./CourseThumbnailPicker";
+import CourseCreationWizard from "./CourseCreationWizard";
 
 interface CourseDay {
   id?: string; day: number; title: string; objective: string;
@@ -101,6 +102,10 @@ export default function CoursePlanner() {
     return () => { if (genIntervalRef.current) clearInterval(genIntervalRef.current); };
   }, []);
   const [genStatus, setGenStatus] = useState("");
+
+  // CourseCreationWizard dialog state — opens when the user clicks
+  // "Create New Course (Wizard)" in the list view's header.
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -1187,6 +1192,9 @@ export default function CoursePlanner() {
           <Button size="sm" variant="outline" onClick={() => setView("generate")} className="border-primary/30 text-primary hover:bg-primary/10">
             <Wand2 className="h-3.5 w-3.5" /> Generate with AI
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setWizardOpen(true)} className="border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-300">
+            <Store className="h-3.5 w-3.5" /> Create New Course (Wizard)
+          </Button>
           <Button size="sm" onClick={createEmpty} disabled={busy} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <Plus className="h-3.5 w-3.5" /> New Course
           </Button>
@@ -1254,6 +1262,16 @@ export default function CoursePlanner() {
           ))}
         </div>
       )}
+
+      {/* CourseCreationWizard — opens via the "Create New Course (Wizard)"
+          button above. Renders a multi-step Dialog that creates a course
+          with AI-generated curriculum + marketplace metadata, then publishes
+          it. onCreated refreshes this list. */}
+      <CourseCreationWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onCreated={load}
+      />
     </div>
   );
 }
