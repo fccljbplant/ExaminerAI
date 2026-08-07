@@ -298,7 +298,7 @@ function CourseCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <BookOpen className="h-10 w-10 text-muted-foreground/50" />
+          <CategoryGradient category={course.category} name={course.name} />
         )}
         {course.featured && (
           <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
@@ -426,5 +426,31 @@ function LearningPathCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/** Category-based gradient placeholder when no thumbnail is available.
+ *  Uses the course category to pick a professional color scheme. */
+function CategoryGradient({ category, name }: { category: string; name: string }) {
+  const gradients: Record<string, string> = {
+    technology: "from-blue-600 via-indigo-600 to-purple-600",
+    engineering: "from-orange-600 via-amber-600 to-yellow-600",
+    business: "from-emerald-600 via-teal-600 to-cyan-600",
+    finance: "from-green-600 via-emerald-600 to-teal-600",
+    healthcare: "from-rose-600 via-pink-600 to-red-600",
+    manufacturing: "from-slate-600 via-gray-600 to-zinc-600",
+    hr: "from-violet-600 via-purple-600 to-fuchsia-600",
+    compliance: "from-red-600 via-orange-600 to-amber-600",
+    "soft-skills": "from-cyan-600 via-sky-600 to-blue-600",
+    other: "from-indigo-600 via-blue-600 to-cyan-600",
+  };
+  const gradient = gradients[category] || gradients.other;
+  const initials = name.split(" ").slice(0, 3).map(w => w[0]).join("").toUpperCase();
+
+  return (
+    <div className={`h-full w-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center gap-2`}>
+      <span className="text-4xl font-bold text-white/90 drop-shadow-lg">{initials}</span>
+      <span className="text-xs text-white/70 uppercase tracking-wider font-medium">{category.replace("-", " ")}</span>
+    </div>
   );
 }
