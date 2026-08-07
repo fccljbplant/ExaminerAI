@@ -24,6 +24,7 @@ import { InstructorCourseProgressView } from "@/components/examiner/instructor/I
 import { EducationalTab } from "@/components/examiner/instructor/EducationalTab";
 import { UserAuditTab } from "@/components/examiner/instructor/UserAuditTab";
 import { StudentAITools } from "@/components/examiner/instructor/ai/StudentAITools";
+import { StudentBriefing } from "@/components/examiner/instructor/StudentBriefing";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
 
 export function StudentPortfolioPage({
@@ -369,6 +370,12 @@ export function StudentPortfolioPage({
           </Button>
         </div>
       </div>
+
+      {/* AI Mentor Briefing — first thing the instructor sees. */}
+      <StudentBriefing
+        studentId={student.id}
+        onMessage={() => onMessage(student.id)}
+      />
 
       {/* AI Tools — explain, narrative, draft check-in, rehearse */}
       <StudentAITools studentId={student.id} studentName={student.name} onDraftCheckin={(draft) => {

@@ -17,10 +17,11 @@ import { TodayView } from "@/components/examiner/instructor/TodayView";
 import { StudentsRoster } from "@/components/examiner/instructor/StudentsRoster";
 import { AssignmentsTab } from "@/components/examiner/instructor/AssignmentsTab";
 import { InsightsView } from "@/components/examiner/instructor/InsightsView";
+import { CohortAnalyticsView } from "@/components/examiner/instructor/CohortAnalyticsView";
 import { StudentPortfolioPage } from "@/components/examiner/instructor/StudentPortfolioPage";
 import { AIAssistantBox } from "@/components/examiner/instructor/ai/AIAssistantBox";
 
-export type InstructorTab = "today" | "students" | "assignments" | "insights";
+export type InstructorTab = "today" | "students" | "assignments" | "insights" | "analytics";
 
 interface TeacherStats {
   totalStudents: number;
@@ -166,6 +167,7 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
     { key: "students", label: "Students", icon: Users },
     { key: "assignments", label: "Assignments", icon: ClipboardList },
     { key: "insights", label: "Insights", icon: BarChart3 },
+    { key: "analytics", label: "Analytics", icon: BarChart3 },
   ];
 
   return (
@@ -258,6 +260,13 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
           stats={stats}
           alerts={alerts}
           onStudentClick={handleStudentClick}
+        />
+      )}
+
+      {tab === "analytics" && (
+        <CohortAnalyticsView
+          courseId={courseId}
+          onMessageStudent={() => setTab("students")}
         />
       )}
     </div>

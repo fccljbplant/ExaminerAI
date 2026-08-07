@@ -8,6 +8,7 @@ import Login, { type PublicUser } from "./Login";
 import StudentDashboard from "./StudentDashboard";
 import InstructorDashboard from "./InstructorDashboard";
 import AdminDashboard from "./AdminDashboard";
+import { EmployerDashboard } from "./EmployerDashboard";
 import { AITutor } from "@/modules/ai-tutor";
 import { InstructorAITutor } from "@/modules/ai-assistant";
 import Messages from "./Messages";
@@ -42,6 +43,7 @@ import {
   ChevronDown,
   Check,
   Award,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -72,7 +74,8 @@ export type ViewKey =
   | "admin-features"
   | "admin-resets"
   | "admin-system"
-  | "course-planner";
+  | "course-planner"
+  | "employer-dashboard";
 
 interface NavItem {
   key: ViewKey;
@@ -100,6 +103,10 @@ const ALL_NAV: NavItem[] = [
 
   { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "coordinator"] },
   { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "coordinator"] },
+
+  // Employer / B2B dashboard — for company managers sponsoring trainees.
+  // Visible to coordinator + institution/platform admins.
+  { key: "employer-dashboard", label: "Employer", icon: Briefcase, roles: ["coordinator", "institution_admin", "platform_admin", "principal", "administrator", "admin"] },
 
   { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
   { key: "guardian-progress", label: "Report Cards", icon: FileText, roles: ["guardian"] },
@@ -448,6 +455,7 @@ export default function AppShell() {
       case "admin-resets": return wrap(<AdminDashboard initialView="resets" />);
       case "admin-system": return wrap(<AdminDashboard initialView="system" />);
       case "course-planner": return wrap(<CoursePlanner />);
+      case "employer-dashboard": return wrap(<EmployerDashboard />);
       default: return wrap(<StudentDashboard />);
     }
   };
