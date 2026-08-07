@@ -12,11 +12,27 @@ import {
   MARKETPLACE_LEVELS,
 } from "@/lib/marketplace";
 import { MarketplaceFilters } from "./MarketplaceFilters";
+import { VisitedCoursesTracker } from "./VisitedCoursesTracker";
 
 export const metadata: Metadata = {
   title: "Course Marketplace — TraineesAI",
   description:
     "Browse professional, project-based courses. AI-driven curriculum, capstone projects, and verified digital credentials.",
+  alternates: { canonical: "/courses" },
+  openGraph: {
+    title: "Course Marketplace — TraineesAI",
+    description:
+      "Browse professional, project-based courses. AI-driven curriculum, capstone projects, and verified digital credentials.",
+    url: "/courses",
+    type: "website",
+    siteName: "TraineesAI",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Course Marketplace — TraineesAI",
+    description:
+      "Browse professional, project-based courses. AI-driven curriculum, capstone projects, and verified digital credentials.",
+  },
 };
 
 /** /courses — public marketplace listing. */
@@ -66,6 +82,10 @@ export default async function CoursesPage({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Mark "visited /courses" in localStorage so the OnboardingGuide
+          step 1 lights up for new students. */}
+      <VisitedCoursesTracker />
+
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30 sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">

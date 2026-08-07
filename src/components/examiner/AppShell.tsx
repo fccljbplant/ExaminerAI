@@ -50,6 +50,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UnifiedThemeToggle } from "@/modules/theme";
+import { NotificationBell } from "@/components/examiner/NotificationBell";
 
 export type ViewKey =
   | "dashboard"
@@ -684,8 +685,11 @@ export default function AppShell() {
               </Badge>
             )}
           </div>
-          <div className="text-xs text-muted-foreground hidden sm:block">
-            TraineesAI · Training Platform
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <div className="text-xs text-muted-foreground hidden sm:block">
+              TraineesAI · Training Platform
+            </div>
           </div>
         </header>
 

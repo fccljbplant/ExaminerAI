@@ -15,13 +15,85 @@ import ReviewSection from "../ReviewSection";
 
 type Params = { params: Promise<{ id: string }> };
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://examiner-ai-tau.vercel.app";
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
   const course = await fetchMarketplaceCourseDetail(id);
   if (!course) return { title: "Course not found — TraineesAI" };
+
+  const description =
+    course.subtitle || course.description.slice(0, 160) || `${course.name} — professional training with AI-driven curriculum, capstone project, and verified digital credential.`;
+  const url = `/courses/${course.id}`;
+  const images = course.thumbnailUrl ? [course.thumbnailUrl] : undefined;
+  const keywords = [
+    ...course.skillsVerified,
+    course.category,
+    course.level,
+    "TraineesAI",
+    "professional training",
+    "verified credential",
+    "capstone project",
+  ].filter(Boolean);
+
   return {
     title: `${course.name} — TraineesAI`,
-    description: course.subtitle || course.description.slice(0, 160),
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${course.name} — TraineesAI`,
+      description,
+      url,
+      images,
+      type: "website",
+      siteName: "TraineesAI",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${course.name} — TraineesAI`,
+      description,
+      images,
+    },
+    keywords,
+  };
+}
+
+/** Build the JSON-LD Course schema object for the given course. */
+function buildCourseJsonLd(course: NonNullable<Awaited<ReturnType<typeof fetchMarketplaceCourseDetail>>>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: course.name,
+    description: course.description || course.subtitle || `${course.name} — professional training from TraineesAI.`,
+    provider: {
+      "@type": "Organization",
+      name: "TraineesAI",
+      sameAs: SITE_URL,
+    },
+    offers: {
+      "@type": "Offer",
+      price: course.price,
+      priceCurrency: course.currency,
+    },
+    hasCourseInstance: {
+      "@type": "CourseInstance",
+      courseMode: "Online",
+      courseWorkload: `PT${course.durationWeeks * 10}H`,
+    },
+    ...(course.thumbnailUrl ? { image: course.thumbnailUrl } : {}),
+    ...(course.instructorName
+      ? {
+          instructor: {
+            "@type": "Person",
+            name: course.instructorName,
+            ...(course.instructorBio ? { description: course.instructorBio } : {}),
+          },
+        }
+      : {}),
+    ...(course.skillsVerified.length > 0
+      ? { about: course.skillsVerified.map((s) => ({ "@type": "Thing", name: s })) }
+      : {}),
   };
 }
 
@@ -40,6 +112,15 @@ export default async function CourseDetailPage({ params }: Params) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* JSON-LD structured data — schema.org Course so Google rich results
+          can index this course (provider, offer, workload, instructor). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(buildCourseJsonLd(course)),
+        }}
+      />
+
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30 sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">

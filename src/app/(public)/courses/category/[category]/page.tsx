@@ -37,9 +37,32 @@ export async function generateMetadata({
   if (!cat) {
     return { title: "Category not found — TraineesAI" };
   }
+  const description = `Browse professional ${cat.label.toLowerCase()} training courses. Project-based learning, AI tutors, capstone deliverables, and skill-verified digital credentials.`;
+  const url = `/courses/category/${cat.value}`;
   return {
     title: `${cat.label} Courses — TraineesAI`,
-    description: `Browse professional ${cat.label.toLowerCase()} courses. Project-based learning, AI tutors, capstone deliverables, and verified digital credentials.`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${cat.label} Courses — TraineesAI`,
+      description,
+      url,
+      type: "website",
+      siteName: "TraineesAI",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${cat.label} Courses — TraineesAI`,
+      description,
+    },
+    keywords: [
+      cat.label,
+      `${cat.label} courses`,
+      "professional training",
+      "TraineesAI",
+      "verified credential",
+      "capstone project",
+    ],
   };
 }
 

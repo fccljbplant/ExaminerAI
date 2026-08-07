@@ -16,10 +16,32 @@ type Params = { params: Promise<{ credentialId: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { credentialId } = await params;
   const cert = await fetchCertificateForVerification(credentialId);
-  if (!cert) return { title: "Credential not found — TraineesAI" };
+  if (!cert) {
+    return {
+      title: "Verify Credential — TraineesAI",
+      description:
+        "Verify the authenticity of a TraineesAI digital credential. Employers, admissions officers, and verifiers can confirm a candidate's verified skills and grade.",
+      alternates: { canonical: `/verify/${credentialId}` },
+    };
+  }
+  const title = `Verify Credential — ${cert.studentName} · ${cert.courseName} — TraineesAI`;
+  const description = `Verified TraineesAI credential for ${cert.studentName} in ${cert.courseName}. Score: ${cert.score}%. Authenticity confirmed on the public TraineesAI registry.`;
   return {
-    title: `${cert.studentName} — ${cert.courseName} Credential`,
-    description: `Verified TraineesAI credential for ${cert.studentName} in ${cert.courseName}. Score: ${cert.score}%.`,
+    title,
+    description,
+    alternates: { canonical: `/verify/${credentialId}` },
+    openGraph: {
+      title,
+      description,
+      url: `/verify/${credentialId}`,
+      type: "website",
+      siteName: "TraineesAI",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 

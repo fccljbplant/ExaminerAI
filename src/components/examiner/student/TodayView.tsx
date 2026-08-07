@@ -14,6 +14,7 @@ import {
   ClipboardList, Layers, GitBranch, FileQuestion, BookOpen,
   MessageSquare, AlertCircle, Loader2, LayoutGrid,
 } from "lucide-react";
+import OnboardingGuide from "./OnboardingGuide";
 
 interface TodayData {
   traineeName: string;
@@ -97,6 +98,10 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
+      {/* Onboarding guide — only renders for students who haven't
+          completed all steps. Auto-hides once dismissed or finished. */}
+      <OnboardingGuide onNavigate={onNavigate} />
+
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
