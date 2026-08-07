@@ -9,6 +9,7 @@ import StudentDashboard from "./StudentDashboard";
 import InstructorDashboard from "./InstructorDashboard";
 import AdminDashboard from "./AdminDashboard";
 import { EmployerDashboard } from "./EmployerDashboard";
+import OrgAdminDashboard from "./OrgAdminDashboard";
 import { AITutor } from "@/modules/ai-tutor";
 import { InstructorAITutor } from "@/modules/ai-assistant";
 import Messages from "./Messages";
@@ -44,6 +45,7 @@ import {
   Check,
   Award,
   Briefcase,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -76,6 +78,7 @@ export type ViewKey =
   | "admin-system"
   | "course-planner"
   | "employer-dashboard"
+  | "org-dashboard"
   | "my-courses";
 
 interface NavItem {
@@ -108,7 +111,7 @@ const ALL_NAV: NavItem[] = [
 
   // Employer / B2B dashboard — for company managers sponsoring trainees.
   // Visible to org_admin + platform_admin.
-  { key: "employer-dashboard", label: "Employer", icon: Briefcase, roles: ["org_admin", "platform_admin"] },
+  { key: "org-dashboard", label: "Org Dashboard", icon: Building2, roles: ["org_admin"] },
 
   { key: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ADMIN_NAV_ROLES },
   { key: "admin-users", label: "Users", icon: Users, roles: ADMIN_NAV_ROLES },
@@ -444,6 +447,7 @@ export default function AppShell() {
       case "admin-system": return wrap(<AdminDashboard initialView="system" />);
       case "course-planner": return wrap(<CoursePlanner />);
       case "employer-dashboard": return wrap(<EmployerDashboard />);
+      case "org-dashboard": return wrap(<OrgAdminDashboard key={`org-${navClickCount}`} />);
       default: return wrap(<StudentDashboard />);
     }
   };
