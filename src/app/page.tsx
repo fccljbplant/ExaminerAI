@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
-import { ModernLanding } from "@/components/landing/modern-landing";
+import { getAuthUser } from "@/lib/auth";
 
-/** Root page — shows the marketing landing page for non-authenticated visitors.
- *  Authenticated users are redirected to the app dashboard. */
+/** Root page — always useful.
+ *  - Authenticated users are redirected to their dashboard at /app.
+ *  - Visitors (not logged in) are redirected to the marketplace at /courses,
+ *    so the home page IS the course catalog (like Udemy / Coursera). */
 export default async function Page() {
-  const user = await getCurrentUser();
-  if (user) {
-    redirect("/app");
-  }
-  return <ModernLanding />;
+  const user = await getAuthUser();
+  if (user) redirect("/app");
+  redirect("/courses");
 }

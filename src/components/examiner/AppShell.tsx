@@ -48,6 +48,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UnifiedThemeToggle } from "@/modules/theme";
 import { NotificationBell } from "@/components/examiner/NotificationBell";
@@ -337,33 +338,18 @@ export default function AppShell() {
     setView("dashboard");
   }, []);
 
-  if (loading && !timedOut) {
+  if (loading) {
+    // AppShell instant-render: render the sidebar + header chrome immediately
+    // so the user sees a recognizable app frame, not a blank spinner. Only the
+    // main content area shows a loading state. The 10-second timeout is also
+    // applied only to the content area — the shell stays put.
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Sparkles className="h-5 w-5 animate-pulse text-primary" />
-          <span>Loading TraineesAI…</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading && timedOut) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center space-y-4 max-w-sm">
-          <Sparkles className="h-8 w-8 text-primary mx-auto" />
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Taking longer than expected</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              The server might be starting up. Please try again.
-            </p>
-          </div>
-          <Button onClick={refreshUser} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            <RefreshCw className="h-4 w-4" /> Retry
-          </Button>
-        </div>
-      </div>
+      <AppShellSkeleton
+        timedOut={timedOut}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        onRetry={refreshUser}
+      />
     );
   }
 
@@ -710,6 +696,168 @@ export default function AppShell() {
       {effectiveRole === "student" && view !== "messages" && (
         <AskMyInstructor currentView={view} />
       )}
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * AppShellSkeleton
+ *
+ * Renders the sidebar + header chrome immediately on first paint, so the
+ * user sees a recognizable app frame (logo, nav, header) instead of a
+ * blank spinner. Only the main content area shows a loading state.
+ *
+ * Two states:
+ *   - timedOut=false → show a small spinner + "Loading TraineesAI…"
+ *   - timedOut=true  → show "Taking longer than expected" + Retry button
+ *
+ * The shell itself (sidebar + header) is identical in both states, which
+ * gives the perception that the app is alive and only the content is
+ * loading — exactly the behavior the user expects from a desktop app.
+ * ──────────────────────────────────────────────────────────────────── */
+function AppShellSkeleton({
+  timedOut,
+  sidebarOpen,
+  setSidebarOpen,
+  onRetry,
+}: {
+  timedOut: boolean;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  onRetry: () => void;
+}) {
+  // 5 placeholder nav items — enough to look like a real sidebar without
+  // committing to a specific role's nav (which we don't know yet).
+  const NAV_PLACEHOLDERS = 5;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="flex flex-1 min-h-0">
+        {/* Mobile menu toggle (mirrors the real AppShell) */}
+        <button
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border text-foreground shadow-sm"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle navigation"
+        >
+          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+
+        {/* Sidebar — same chrome as the real shell: logo header, skeleton
+            nav items, and a skeleton user card at the bottom. */}
+        <aside
+          className={cn(
+            "fixed lg:sticky top-0 z-40 h-screen w-64 flex-shrink-0 border-r border-border bg-card transition-transform duration-200 flex flex-col",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          )}
+        >
+          {/* Logo header — real logo so the user knows where they are */}
+          <div className="flex h-16 items-center gap-2 border-b border-border px-4 flex-shrink-0">
+            <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <span className="font-bold text-foreground flex-1">TraineesAI</span>
+            <UnifiedThemeToggle />
+          </div>
+
+          {/* Skeleton nav items — gray pulsing bars shaped like the real nav */}
+          <nav className="px-3 py-4 space-y-1 overflow-y-auto flex-1">
+            {Array.from({ length: NAV_PLACEHOLDERS }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-lg px-3 py-2"
+                aria-hidden
+              >
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-3.5 flex-1 max-w-[120px]" />
+              </div>
+            ))}
+            <div className="h-px bg-border my-2 mx-3" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={`sep-${i}`}
+                className="flex items-center gap-3 rounded-lg px-3 py-2"
+                aria-hidden
+              >
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-3.5 flex-1 max-w-[100px]" />
+              </div>
+            ))}
+          </nav>
+
+          {/* Skeleton user card at the bottom — mirrors the real one */}
+          <div className="border-t border-border p-3 flex-shrink-0">
+            <div className="flex items-center gap-2 mb-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-2.5 w-full" />
+              </div>
+            </div>
+            <Skeleton className="h-7 w-full rounded-md" />
+          </div>
+        </aside>
+
+        {/* Mobile backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Main column */}
+        <main
+          id="main-content"
+          className="flex-1 min-w-0 lg:ml-0 flex flex-col overflow-hidden"
+        >
+          {/* Header — real logo + skeleton page title + skeleton avatar */}
+          <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-card/80 backdrop-blur px-4 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-3 ml-12 lg:ml-0">
+              {/* Visible logo on mobile (sidebar is hidden) */}
+              <div className="lg:hidden inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <GraduationCap className="h-4 w-4" />
+              </div>
+              <Skeleton className="h-4 w-28 sm:w-36" />
+            </div>
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-7 w-7 rounded-full" />
+              <span className="text-xs text-muted-foreground hidden sm:block">
+                TraineesAI · Training Platform
+              </span>
+            </div>
+          </header>
+
+          {/* Content area — this is the ONLY place that shows a loading
+              state. The 10-second timeout swaps the spinner for a Retry
+              button. The shell (sidebar + header) stays put. */}
+          <div className="flex-1 min-w-0 w-full min-h-0 p-4 sm:p-6 max-w-7xl mx-auto flex items-center justify-center">
+            {timedOut ? (
+              <div className="text-center space-y-4 max-w-sm">
+                <Sparkles className="h-8 w-8 text-primary mx-auto" />
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Taking longer than expected
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    The server might be starting up. Please try again.
+                  </p>
+                </div>
+                <Button
+                  onClick={onRetry}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <RefreshCw className="h-4 w-4" /> Retry
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Sparkles className="h-5 w-5 animate-pulse text-primary" />
+                <span>Loading TraineesAI…</span>
+              </div>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );

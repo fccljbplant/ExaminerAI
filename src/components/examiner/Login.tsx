@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GraduationCap, Loader2, Sparkles, ShieldCheck, Award } from "lucide-react";
+import { GraduationCap, Loader2, Sparkles, ShieldCheck, Award, Briefcase } from "lucide-react";
+import Link from "next/link";
 import ForgotPassword from "./ForgotPassword";
 import FeaturedCourses from "./FeaturedCourses";
 
@@ -100,10 +101,16 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 relative">
-      {/* Browse Courses link — top right */}
-      <a href="/courses" className="absolute top-4 right-4 sm:top-6 sm:right-6 text-sm font-medium text-primary hover:underline z-10">
-        Browse Courses →
-      </a>
+      {/* Top-right navigation links — visible to all visitors */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-4 text-sm font-medium z-10">
+        <Link href="/courses" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:inline">
+          Browse Courses
+        </Link>
+        <Link href="/for-business" className="inline-flex items-center gap-1.5 text-primary hover:underline">
+          <Briefcase className="h-3.5 w-3.5" />
+          For Business
+        </Link>
+      </div>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* LEFT: login form (existing) */}
         <div className="w-full max-w-md mx-auto space-y-6 text-center lg:text-left">
@@ -114,7 +121,10 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
             </div>
             <h1 className="text-3xl font-bold">TraineesAI</h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-              Professional training with AI tutors, capstone projects, and verified digital credentials.
+              Your experts are busy building. We train the people who&apos;ll build next.
+            </p>
+            <p className="text-xs text-muted-foreground/80 mt-2 max-w-xs">
+              AI-driven training for internees and engineers. B2C for learners · B2B for teams.
             </p>
           </div>
 
