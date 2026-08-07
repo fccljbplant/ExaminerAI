@@ -46,13 +46,14 @@ import { GanttPanel } from "@/components/examiner/student/GanttPanel";
 import { redirectToView } from "@/components/examiner/student/shared";
 import { DailyTestPanel } from "@/components/examiner/student/DailyTestPanel";
 import TodayView from "@/components/examiner/student/TodayView";
+import { CredentialsView } from "@/components/examiner/student/CredentialsView";
 import { CollapsibleCard, CardRefreshButton } from "@/components/shared/collapsible-card";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   AreaChart, Area,
 } from "recharts";
 
-export type StudentView = "home" | "study" | "project" | "progress";
+export type StudentView = "home" | "study" | "project" | "progress" | "credentials";
 
 export default function StudentDashboard({ initialMode = "default", enrollments, activeCourseId }: {
   initialMode?: Mode;
@@ -98,6 +99,8 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
       setView("project");
     } else if (initialMode === "report-card") {
       setView("progress");
+    } else if (initialMode === "credentials") {
+      setView("credentials");
     }
   }, [initialMode]);
 
@@ -171,6 +174,7 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
           <ReportCardPanel reportCards={stats?.reportCards || []} comments={stats?.comments || []} studentId={userId || undefined} />
         </div>
       )}
+      {view === "credentials" && <CredentialsView />}
 
       <DailyTaskReminder
         onChanged={load}

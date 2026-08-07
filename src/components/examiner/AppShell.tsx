@@ -41,6 +41,7 @@ import {
   BarChart3,
   ChevronDown,
   Check,
+  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ export type ViewKey =
   | "checkin"
   | "gantt"
   | "report-card"
+  | "credentials"
   | "course-outline"
   | "ai-tutor"
   | "instructor-ai-tutor"
@@ -89,6 +91,7 @@ const ALL_NAV: NavItem[] = [
   { key: "checkin", label: "Study", icon: BookOpen, roles: ["student"] },
   { key: "gantt", label: "Project", icon: ClipboardList, roles: ["student"] },
   { key: "report-card", label: "Progress", icon: FileText, roles: ["student"] },
+  { key: "credentials", label: "Credentials", icon: Award, roles: ["student"] },
 
   { key: "instructor-today", label: "Today", icon: LayoutDashboard, roles: ["instructor"] },
   { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor"] },
@@ -428,6 +431,7 @@ export default function AppShell() {
       case "checkin": return wrap(<StudentDashboard key={`study-${navClickCount}`} initialMode="checkin" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "gantt": return wrap(<StudentDashboard key={`project-${navClickCount}`} initialMode="gantt" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "report-card": return wrap(<StudentDashboard key={`progress-${navClickCount}`} initialMode="report-card" enrollments={enrollments} activeCourseId={activeCourseId} />);
+      case "credentials": return wrap(<StudentDashboard key={`credentials-${navClickCount}`} initialMode="credentials" enrollments={enrollments} activeCourseId={activeCourseId} />);
       case "instructor-today": return wrap(<InstructorDashboard key={`today-${navClickCount}`} initialTab="today" courseId={activeCourseId} />);
       case "instructor-students": return wrap(<InstructorDashboard key={`students-${navClickCount}`} initialTab="students" courseId={activeCourseId} />);
       case "instructor-assignments": return wrap(<InstructorDashboard key={`assignments-${navClickCount}`} initialTab="assignments" courseId={activeCourseId} />);

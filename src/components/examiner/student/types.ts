@@ -134,7 +134,8 @@ export type Mode =
   | "gantt"
   | "settings"
   | "ai-tutor"
-  | "course-outline";
+  | "course-outline"
+  | "credentials";
 
 /** Journey step shape — used by the (now-removed) JourneyWizard. Kept for
  *  backward-compat with any DB rows that still reference journey steps,

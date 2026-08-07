@@ -52,12 +52,34 @@ model Course {
   projectRequired             Boolean  @default(false)
   projectDefaultDurationWeeks Int      @default(4)
   isDefault                   Boolean  @default(false)
+
+  // Marketplace fields (Phase 6 — professional course platform)
+  subtitle         String?
+  category         String   @default("technology")  // web-dev, cloud, data, mobile, security, soft-skills
+  price            Float    @default(0)              // 0 = free
+  currency         String   @default("USD")
+  durationWeeks    Int      @default(6)
+  language         String   @default("en")
+  thumbnailUrl     String?
+  trailerVideoUrl  String?
+  rating           Float    @default(0)
+  reviewCount      Int      @default(0)
+  enrollmentCount  Int      @default(0)
+  published        Boolean  @default(false)          // visible on marketplace?
+  featured         Boolean  @default(false)          // shown on homepage?
+  instructorName   String?                           // display name for marketing
+  instructorBio    String?                           // short bio
+  skillsVerified   String   @default("[]")           // JSON: ["JavaScript", "React", ...]
+  whatYouWillLearn String   @default("[]")           // JSON: ["Build a REST API", ...]
+  prerequisites    String   @default("[]")           // JSON: ["Basic HTML", ...]
+
   institutionId               String?
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
 
   weeks              CourseWeek[]
   enrollments        CourseEnrollment[]
+  certificates       Certificate[]
   institution        Institution?         @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   events             Event[]
   groupTasks         GroupTask[]
@@ -173,6 +195,7 @@ model User {
   peerAssessmentsGiven    PeerAssessment[]       @relation("PeerAssessor")
   peerAssessmentsReceived PeerAssessment[]       @relation("PeerAssessee")
   instructorRules         InstructorRule[]       @relation("InstructorRuleOwner")
+  milestones              Milestone[]
 }
 
 model PasswordResetRequest {
@@ -456,6 +479,17 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+// Certificate — Verified digital credential.
+//
+// Phase 6 (marketplace): extended with `credentialId` (public, human-readable
+// ID like "TRN-AI-2026-08-NA-87"), `capstonePassed`, `skillsVerified`,
+// `distinction`, and `completedAt`. The legacy `verifyToken` (a 64-char hex
+// string) is kept for backward-compat with certificates issued before Phase 6.
+//
+// Issuance criteria:
+//   - Student completes all weeks of the course
+//   - Final score >= 75
+//   - distinction = true when score >= 85
 model Certificate {
   id            String   @id @default(cuid())
   userId        String
@@ -470,10 +504,36 @@ model Certificate {
   pdfUrl        String?
   institutionId String?
 
+  // Phase 6 — marketplace credential fields
+  credentialId    String?  @unique  // public ID like "TRN-AI-2026-08-NA-87"
+  capstonePassed  Boolean  @default(false)
+  skillsVerified  String   @default("[]")  // JSON: ["JavaScript", "React", ...]
+  completedAt     DateTime @default(now())
+  distinction     Boolean  @default(false)  // "with Distinction" (score >= 85)
+
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)
   institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([courseId])
+}
+
+/// Professional achievement milestones — skill-verified, NOT consumer gamification.
+model Milestone {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // course_completion, distinction, capstone_certified, skill_mastery, consistent_performer, peer_recognized, mentor_endorsed
+  courseId     String?
+  title       String   // "Modern Web Dev & AI Integration — Score: 87"
+  description String   // "Completed 6-week professional training program"
+  evidence    String   @default("{}")  // JSON: { score, capstoneUrl, skills, ... }
+  earnedAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([userId, type, courseId])
 }
 
 model AccessGrant {
