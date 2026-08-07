@@ -89,11 +89,11 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
 
   const handleNextAction = () => {
     const kind = data.nextAction.kind;
-    if (kind === "daily-test") onNavigate?.("checkin");
-    else if (kind === "drill") onNavigate?.("question");
+    if (kind === "daily-test") onNavigate?.("study");
+    else if (kind === "drill") onNavigate?.("study");
     else if (kind === "project-task") onNavigate?.("gantt");
-    else if (kind === "weekly-test") onNavigate?.("weekly-test");
-    else onNavigate?.("journey");
+    else if (kind === "weekly-test") onNavigate?.("study");
+    else onNavigate?.("home");
   };
 
   return (
@@ -208,7 +208,7 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
                   size="sm"
                   variant="outline"
                   className="mt-3 w-full text-xs"
-                  onClick={() => onNavigate?.("question")}
+                  onClick={() => onNavigate?.("study")}
                 >
                   Practice drills <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>

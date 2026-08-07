@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemePresetProvider } from "@/modules/theme";
 
@@ -38,7 +38,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ThemePresetProvider>
             {children}
-            <Toaster />
+            <SonnerToaster position="bottom-right" richColors closeButton />
           </ThemePresetProvider>
         </ThemeProvider>
       </body>

@@ -35,7 +35,7 @@ const DEMO_COURSES = [
       "HTML/CSS", "JavaScript (ES6+)", "React", "API Integration",
       "Database Design", "Git Workflow", "AI API Integration", "Deployment"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?web-development,coding&sig=1",
+    thumbnailUrl: "https://picsum.photos/seed/web-development,coding&sig=1/600/400",
     trailerVideoUrl: null,
   },
   {
@@ -65,7 +65,7 @@ const DEMO_COURSES = [
       "Python", "Pandas", "NumPy", "Data Visualization",
       "ETL Pipelines", "API Integration"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?python,data,analytics&sig=2",
+    thumbnailUrl: "https://picsum.photos/seed/python,data,analytics&sig=2/600/400",
     trailerVideoUrl: null,
   },
   {
@@ -96,7 +96,7 @@ const DEMO_COURSES = [
       "Docker", "CI/CD", "Cloud Deployment", "Linux",
       "Infrastructure as Code", "Monitoring"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?devops,cloud,servers&sig=3",
+    thumbnailUrl: "https://picsum.photos/seed/devops,cloud,servers&sig=3/600/400",
     trailerVideoUrl: null,
   },
   {
@@ -125,7 +125,7 @@ const DEMO_COURSES = [
     skillsVerified: JSON.stringify([
       "Git", "GitHub", "Version Control", "Branching", "Collaboration"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?git,version-control,code&sig=4",
+    thumbnailUrl: "https://picsum.photos/seed/git,version-control,code&sig=4/600/400",
     trailerVideoUrl: null,
   },
   {
@@ -154,7 +154,7 @@ const DEMO_COURSES = [
     skillsVerified: JSON.stringify([
       "SQL", "Database Design", "Query Optimization", "Joins", "Normalization"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?database,sql,data&sig=5",
+    thumbnailUrl: "https://picsum.photos/seed/database,sql,data&sig=5/600/400",
     trailerVideoUrl: null,
   },
   {
@@ -184,7 +184,7 @@ const DEMO_COURSES = [
       "Workplace Safety", "PPE", "Hazard Identification",
       "Emergency Response", "Compliance", "Risk Assessment"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?safety,industrial,workplace&sig=6",
+    thumbnailUrl: "https://picsum.photos/seed/safety,industrial,workplace&sig=6/600/400",
     trailerVideoUrl: null,
   },
   {
@@ -214,7 +214,7 @@ const DEMO_COURSES = [
       "Agile/Scrum", "Sprint Planning", "Stakeholder Communication",
       "Technical Estimation", "Team Leadership"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?project-management,team,business&sig=7",
+    thumbnailUrl: "https://picsum.photos/seed/project-management,team,business&sig=7/600/400",
     trailerVideoUrl: null,
   },
   {
@@ -244,7 +244,7 @@ const DEMO_COURSES = [
       "Financial Modeling", "Excel", "Financial Statements",
       "Ratio Analysis", "Forecasting", "Business Intelligence"
     ]),
-    thumbnailUrl: "https://source.unsplash.com/random/600x400?finance,analysis,excel&sig=8",
+    thumbnailUrl: "https://picsum.photos/seed/finance,analysis,excel&sig=8/600/400",
     trailerVideoUrl: null,
   },
 ];

@@ -24,7 +24,6 @@ const VIEW_LABELS: Record<string, string> = {
 
 export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
   const [open, setOpen] = useState(false);
-  const [instructor, setInstructor] = useState<InstructorInfo | null>(null);
   const [loadingInstructor, setLoadingInstructor] = useState(false);
   const [instructorInfo, setInstructorInfo] = useState<InstructorInfo | null>(null);
   const [subject, setSubject] = useState("");
@@ -112,8 +111,8 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
                 <Label className="text-xs text-muted-foreground">To</Label>
                 {loadingInstructor ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Finding your instructor...</div>
-                ) : instructor ? (
-                  <div className="text-sm text-foreground font-medium">{instructor.name} <span className="text-xs text-muted-foreground font-normal">· {instructor.email}</span></div>
+                ) : instructorInfo ? (
+                  <div className="text-sm text-foreground font-medium">{instructorInfo.name} <span className="text-xs text-muted-foreground font-normal">· {instructorInfo.email}</span></div>
                 ) : (
                   <div className="text-xs text-growth-coral">{error || "No instructor found."}</div>
                 )}
@@ -138,7 +137,7 @@ export function AskMyInstructor({ currentView }: AskMyInstructorProps) {
           {!success && (
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)} className="border-border"><X className="h-3 w-3" /> Cancel</Button>
-              <Button onClick={send} disabled={sending || !instructor || !body.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button onClick={send} disabled={sending || !instructorInfo || !body.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />} Send
               </Button>
             </DialogFooter>

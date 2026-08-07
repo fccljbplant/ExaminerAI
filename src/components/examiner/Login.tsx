@@ -99,7 +99,11 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
   if (showForgot) return <ForgotPassword onBack={() => setShowForgot(false)} />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 relative">
+      {/* Browse Courses link — top right */}
+      <a href="/courses" className="absolute top-4 right-4 sm:top-6 sm:right-6 text-sm font-medium text-primary hover:underline z-10">
+        Browse Courses →
+      </a>
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* LEFT: login form (existing) */}
         <div className="w-full max-w-md mx-auto space-y-6 text-center lg:text-left">

@@ -20,7 +20,7 @@ import {
  *
  *   1. Unsplash Source API — 12 random stock photos for the query. No API
  *      key needed. URL form:
- *        https://source.unsplash.com/random/600x400?{query}&sig={n}
+ *        https://picsum.photos/seed/{query}/600/400{n}
  *      Each `sig` value yields a different image, so we generate 12 sigs.
  *
  *   2. File upload — converted to a base64 data URL on the client so it
@@ -73,7 +73,7 @@ export default function CourseThumbnailPicker({
     const q = encodeURIComponent(query.trim() || "professional training");
     const urls = Array.from(
       { length: 12 },
-      (_, i) => `https://source.unsplash.com/random/600x400?${q}&sig=${i + 1}`
+      (_, i) => `https://picsum.photos/seed/${q}/600/400${i + 1}`
     );
     setImages(urls);
     setSelected(null);

@@ -662,7 +662,7 @@ export default function CoursePlanner() {
   if (view === "detail" && selectedCourse) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border py-2 px-1 -mx-1">
           <div className="flex items-center gap-2 flex-wrap">
             <Button size="sm" variant="ghost" onClick={() => { setView("list"); setEditing(false); }} className="text-muted-foreground">
               <ArrowLeft /> Back

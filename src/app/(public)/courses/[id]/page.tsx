@@ -3,16 +3,22 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   Star, Users, Clock, Award, BookOpen, CheckCircle2, Sparkles,
-  GraduationCap, Globe, ShieldCheck, Code2,
+  GraduationCap, Globe, ShieldCheck, Code2, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink,
+  BreadcrumbPage, BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { fetchMarketplaceCourseDetail, MARKETPLACE_CATEGORIES, MARKETPLACE_LEVELS } from "@/lib/marketplace";
-import EnrollButton from "../EnrollButton";
 import CheckoutButton from "./CheckoutButton";
 import ReviewSection from "../ReviewSection";
 import CourseProgressPreview from "./CourseProgressPreview";
+import WishlistButton from "../WishlistButton";
+import ShareButtons from "../ShareButtons";
+import CoursePreviewSection from "./CoursePreviewSection";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -135,6 +141,35 @@ export default async function CourseDetailPage({ params }: Params) {
         </div>
       </header>
 
+      {/* Breadcrumb */}
+      <section className="border-b border-border bg-card/30">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/courses">Courses</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href={`/courses/category/${course.category}`}>{categoryLabel}</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbPage className="truncate max-w-[200px]">{course.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </section>
+
       {/* Hero */}
       <section className="border-b border-border bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 grid lg:grid-cols-3 gap-8">
@@ -198,6 +233,12 @@ export default async function CourseDetailPage({ params }: Params) {
                   `${course.currency} ${course.price.toFixed(2)}`
                 )}
               </span>
+              <WishlistButton courseId={course.id} variant="button" />
+            </div>
+
+            {/* Share buttons */}
+            <div className="pt-2">
+              <ShareButtons courseName={course.name} courseUrl={`${SITE_URL}/courses/${course.id}`} />
             </div>
           </div>
 
@@ -309,6 +350,9 @@ export default async function CourseDetailPage({ params }: Params) {
             </section>
           )}
 
+          {/* Preview first lesson */}
+          <CoursePreviewSection courseId={course.id} />
+
           {/* Reviews */}
           <ReviewSection courseId={course.id} />
         </div>
@@ -371,7 +415,9 @@ export default async function CourseDetailPage({ params }: Params) {
                 <li>Distinct grade if score ≥ 85</li>
               </ul>
               <div className="mt-3">
-                <EnrollButton courseId={course.id} />
+                <Button asChild size="sm" className="w-full">
+                  <Link href="#enroll">Enroll Now</Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
