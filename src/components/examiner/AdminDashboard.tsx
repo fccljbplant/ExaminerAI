@@ -5,11 +5,10 @@ import { AdminOverview } from "@/components/examiner/admin/AdminOverview";
 import { OverviewStat } from "@/components/examiner/admin/OverviewStat";
 import { QuickAction } from "@/components/examiner/admin/QuickAction";
 import { FeaturesPanel } from "@/components/examiner/admin/FeaturesPanel";
-import { AdminCoordinatorTab } from "@/components/examiner/admin/AdminCoordinatorTab";
 import { AdminPMTab } from "@/components/examiner/admin/AdminPMTab";
 import { CourseManagementPanel } from "@/components/examiner/admin/CourseManagementPanel";
 import { SystemPanel } from "@/components/examiner/admin/SystemPanel";
-import { hasAdminRole, hasPrincipalRole } from "@/lib/client-rbac";
+import { hasAdminRole, hasPrincipalRole, normalizeRole } from "@/lib/client-rbac";
 import { AILimitsPanel } from "@/components/examiner/admin/AILimitsPanel";
 import { UserAuditTab } from "@/components/examiner/instructor/UserAuditTab";
 import { AuditLogPanel } from "@/components/examiner/admin/AuditLogPanel";
@@ -37,17 +36,16 @@ import {
 } from "lucide-react";
 
 interface Props {
-  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "coordinator" | "pm" | "ai-limits" | "user-audit";
+  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "pm" | "ai-limits" | "user-audit";
 }
 
 export default function AdminDashboard({ initialView = "overview" }: Props) {
-  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "coordinator" | "pm" | "ai-limits" | "user-audit">(
+  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "pm" | "ai-limits" | "user-audit">(
     initialView === "users" ? "users" :
     initialView === "courses" ? "courses" :
     initialView === "features" ? "features" :
     initialView === "resets" ? "resets" :
     initialView === "system" ? "system" :
-    initialView === "coordinator" ? "coordinator" :
     initialView === "pm" ? "pm" :
     initialView === "ai-limits" ? "ai-limits" :
     initialView === "user-audit" ? "user-audit" :
@@ -97,7 +95,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       setUsers(usersRes.users);
       if (usersRes.pagination) setPagination(usersRes.pagination);
       // Fetch enrollments for students to show in Courses column
-      const studentIds = usersRes.users.filter(u => u.role === "student").map(u => u.id);
+      const studentIds = usersRes.users.filter(u => normalizeRole(u.role) === "learner").map(u => u.id);
       if (studentIds.length > 0) {
         const enrollMap: Record<string, Array<{ courseId: string; courseName: string; role: string }>> = {};
         for (const sid of studentIds) {
@@ -180,7 +178,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
 
   // Batch-approve all pending users — useful when onboarding a batch.
   const approveAllPending = async () => {
-    const pendingIds = users.filter(u => u.role === "pending").map(u => u.id);
+    const pendingIds = users.filter(u => u.role === "pending" || (u as UserRow & { status?: string }).status === "pending").map(u => u.id);
     if (pendingIds.length === 0) return;
     setBusy("batch-approve");
     try {
@@ -196,9 +194,9 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
     return <div className="flex items-center justify-center h-96"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
-  const pending = users.filter(u => u.role === "pending");
-  const students = users.filter(u => u.role === "student");
-  const teachers = users.filter(u => u.role === "instructor");
+  const pending = users.filter(u => u.role === "pending" || (u as UserRow & { status?: string }).status === "pending");
+  const students = users.filter(u => normalizeRole(u.role) === "learner");
+  const teachers = users.filter(u => normalizeRole(u.role) === "instructor");
   const blocked = users.filter(u => u.blocked);
 
   return (
@@ -208,10 +206,6 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-1">
         <Button onClick={() => setView("overview")} variant={view === "overview" ? "default" : "outline"} className={cn(view === "overview" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
           <LayoutDashboard className="h-4 w-4" /> Overview
-        </Button>
-        {/* Coordinator tab — visible to all admin-equivalent roles */}
-        <Button onClick={() => setView("coordinator")} variant={view === "coordinator" ? "default" : "outline"} className={cn(view === "coordinator" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
-          <BookOpen className="h-4 w-4" /> Coordinator
         </Button>
         {/* Operations tab — visible to all admin-equivalent roles */}
         <Button onClick={() => setView("pm")} variant={view === "pm" ? "default" : "outline"} className={cn(view === "pm" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
@@ -266,9 +260,6 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
         <AdminOverview users={users} pending={pending} students={students} teachers={teachers} blocked={blocked} onTab={setView} />
       )}
 
-      {/* Phase 8: Coordinator tab — curriculum management */}
-      {view === "coordinator" && <AdminCoordinatorTab />}
-
       {/* Phase 8: PM tab — operations + delivery */}
       {view === "pm" && <AdminPMTab users={users} students={students} pending={pending} />}
 
@@ -314,15 +305,10 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                 className="px-2 py-1.5 text-xs rounded-md bg-background border border-border focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="">All roles</option>
-                <option value="pending">Pending</option>
-                <option value="student">Student</option>
+                <option value="learner">Learner</option>
                 <option value="instructor">Instructor</option>
-                <option value="teacher">Teacher (legacy)</option>
-                <option value="coordinator">Coordinator</option>
-                <option value="counselor">Counselor</option>
-                <option value="guardian">Guardian</option>
-                <option value="principal">Principal</option>
-                <option value="administrator">Administrator</option>
+                <option value="org_admin">Org Admin</option>
+                <option value="platform_admin">Platform Admin</option>
                 <option value="demo">Demo</option>
               </select>
               {(searchQuery || roleFilter) && (
@@ -360,25 +346,20 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                       </td>
                       <td className="py-2 px-3 text-muted-foreground hidden sm:table-cell">{u.email}</td>
                       <td className="py-2 px-3">
-                        <Select value={u.role || "pending"} onValueChange={(r) => changeRole(u.id, r)} disabled={busy === u.id || u.email === "admin@examiner.ai" || currentUserRole === "demo"}>
+                        <Select value={u.role || "learner"} onValueChange={(r) => changeRole(u.id, r)} disabled={busy === u.id || u.email === "admin@examiner.ai" || currentUserRole === "demo"}>
                           <SelectTrigger className="bg-muted border-border h-7 text-xs w-36"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="student">Student</SelectItem>
+                            <SelectItem value="learner">Learner</SelectItem>
                             <SelectItem value="instructor">Instructor / Mentor</SelectItem>
-                            <SelectItem value="teacher">Teacher (legacy)</SelectItem>
-                            <SelectItem value="coordinator">Coordinator</SelectItem>
-                            <SelectItem value="counselor">Counselor</SelectItem>
-                            <SelectItem value="guardian">Guardian</SelectItem>
-                            <SelectItem value="principal">Principal</SelectItem>
-                            <SelectItem value="administrator">Administrator</SelectItem>
+                            <SelectItem value="org_admin">Org Admin</SelectItem>
+                            <SelectItem value="platform_admin">Platform Admin</SelectItem>
                             <SelectItem value="demo">Demo (read-only)</SelectItem>
                           </SelectContent>
                         </Select>
                       </td>
                       <td className="py-2 px-3 hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
-                          {u.role === "student" && enrollmentsMap[u.id]?.length > 0 ? (
+                          {normalizeRole(u.role) === "learner" && enrollmentsMap[u.id]?.length > 0 ? (
                             enrollmentsMap[u.id].map((enr, ei) => (
                               <Badge key={ei} variant="secondary" className="text-[9px] px-1.5 py-0">
                                 {enr.courseName}
@@ -393,12 +374,12 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                                 )}
                               </Badge>
                             ))
-                          ) : u.role === "student" ? (
+                          ) : normalizeRole(u.role) === "learner" ? (
                             <span className="text-xs text-muted-foreground">—</span>
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
-                          {u.role === "student" && isAdminRole && (
+                          {normalizeRole(u.role) === "learner" && isAdminRole && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -416,7 +397,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                         <div className="flex gap-1">
                           {u.email !== "admin@examiner.ai" && currentUserRole !== "demo" && (
                             <>
-                              {u.role === "pending" && (
+                              {(u.role === "pending" || (u as UserRow & { status?: string }).status === "pending") && (
                                 <Button size="sm" variant="ghost" onClick={() => approve(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-emerald-600" title="Approve" aria-label="Approve user">
                                   {busy === u.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserCheck className="h-3 w-3" />}
                                 </Button>
@@ -491,7 +472,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       {view === "ai-limits" && <AILimitsPanel />}
 
       {/* User Audit tab — search any user + view their full audit trail.
-          Admin/principal only. Lets admins audit teachers, counselors,
+          Admin/principal only. Lets admins audit teachers, org admins,
           other admins — not just students. */}
       {view === "user-audit" && <UserAuditSearchPanel />}
 
@@ -554,7 +535,7 @@ function UserAuditSearchPanel() {
           <ShieldCheck className="h-4 w-4 text-primary" /> User Audit Trail
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Search for any user (student, instructor, counselor, admin) to view their complete audit trail — all actions they performed and all actions taken about them.
+          Search for any user (learner, instructor, org admin) to view their complete audit trail — all actions they performed and all actions taken about them.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -608,7 +589,7 @@ function UserAuditSearchPanel() {
           <div className="text-center py-8">
             <ShieldCheck className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Start typing to search for a user.</p>
-            <p className="text-xs text-muted-foreground mt-1">You can view the audit trail for any user — students, teachers, counselors, and admins.</p>
+            <p className="text-xs text-muted-foreground mt-1">You can view the audit trail for any user — learners, instructors, and admins.</p>
           </div>
         )}
       </CardContent>
@@ -626,11 +607,6 @@ function UserAuditSearchPanel() {
 // Phase 8: Principal Tab — institutional health from the school
 // principal's perspective. Enrollment funnel, completion rates,
 // certificates, wellbeing summary.
-// ============================================================
-// ============================================================
-// Phase 8: Coordinator Tab — curriculum management from the
-// course coordinator's perspective. Course catalog, batch
-// assignments, content quality.
 // ============================================================
 // ============================================================
 // Phase 8: PM Tab — operations + delivery from the project
@@ -665,9 +641,8 @@ function UserAuditSearchPanel() {
 // Changes take effect immediately (AppShell re-fetches on next load).
 // A "Reset to defaults" button restores the hardcoded defaults.
 //
-// Use case: "I want TA to see only educational data, guardians just
-// to see overview of student progress, counselor to just see data
-// important for counselor, etc."
+// Use case: "I want instructors to see only educational data, org admins
+// to see overview of student progress, etc."
 // ============================================================
 
 // ============================================================

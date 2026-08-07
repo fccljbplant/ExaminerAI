@@ -2,16 +2,27 @@
  * rbac — Centralized Role-Based Access Control + AccessGrant scoping.
  * This is the SINGLE PLACE in the codebase where role checks happen.
  *
- * Role values (course-centric architecture):
- *   pending | student | instructor | coordinator
- *   | counselor | guardian | principal | administrator | demo
+ * Role values (4-role model + demo, post-purge 2026-08):
+ *   learner | instructor | org_admin | platform_admin | demo
  *
- * Backward-compat aliases (normalized transparently):
- *   "institution_admin" → "principal"
- *   "platform_admin"    → "administrator"
+ * `pending` is no longer a role — it is now a `User.status` field
+ * (one of: pending | active | suspended).
+ *
+ * Backward-compat aliases (normalized transparently via normalizeRole):
+ *   "student"           → "learner"
+ *   "pending"           → "learner" (pending is now a status, not a role)
+ *   "coordinator"       → "org_admin"
+ *   "principal"         → "org_admin"
+ *   "institution_admin" → "org_admin"
+ *   "administrator"     → "platform_admin"
+ *   "platform_admin"    → "platform_admin"
+ *   "admin"             → "platform_admin" (legacy 4-role model)
  *   "teacher"           → "instructor" (legacy pre-July 2026)
  *   "teaching_assistant" → "instructor" (legacy pre-July 2026)
- *   "admin"             → "administrator" (legacy 4-role model)
+ *   "course_coordinator" → "org_admin"
+ *   "counselor"         → "learner" (orphaned, default to learner)
+ *   "guardian"          → "learner" (orphaned, default to learner)
+ *   "demo"              → "demo"
  *
  * Course-Centric Architecture:
  *   - Students are enrolled in courses via CourseEnrollment
@@ -38,84 +49,83 @@ export function normalizeSeverity(severity: string | null | undefined): string {
 import type { NextRequest } from "next/server";
 
 export const UserRole = {
-  PENDING: "pending",
-  STUDENT: "student",
+  LEARNER: "learner",
   INSTRUCTOR: "instructor",
-  COORDINATOR: "coordinator",
-  COUNSELOR: "counselor",
-  GUARDIAN: "guardian",
-  PRINCIPAL: "principal",
-  ADMINISTRATOR: "administrator",
+  ORG_ADMIN: "org_admin",
+  PLATFORM_ADMIN: "platform_admin",
   DEMO: "demo",
 } as const;
 
 export type UserRoleValue = typeof UserRole[keyof typeof UserRole];
 
 export const ADMIN_ROLES: UserRoleValue[] = [
-  UserRole.PRINCIPAL,
-  UserRole.ADMINISTRATOR,
+  UserRole.ORG_ADMIN,
+  UserRole.PLATFORM_ADMIN,
   UserRole.DEMO,
 ];
 
 export const TECHNICAL_ROLES: UserRoleValue[] = [
-  UserRole.ADMINISTRATOR,
+  UserRole.PLATFORM_ADMIN,
 ];
 
 export const STAFF_ROLES: UserRoleValue[] = [
   UserRole.INSTRUCTOR,
-  UserRole.COORDINATOR,
-  UserRole.COUNSELOR,
-  UserRole.PRINCIPAL,
-  UserRole.ADMINISTRATOR,
+  UserRole.ORG_ADMIN,
+  UserRole.PLATFORM_ADMIN,
   UserRole.DEMO,
 ];
 
 export function isStaffRole(role: string): boolean {
-  return hasRole(role, STAFF_ROLES) || role === "admin";
+  return hasRole(role, STAFF_ROLES);
 }
 
 export const USER_MANAGEMENT_ROLES: UserRoleValue[] = [
-  UserRole.PRINCIPAL,
-  UserRole.ADMINISTRATOR,
+  UserRole.ORG_ADMIN,
+  UserRole.PLATFORM_ADMIN,
   UserRole.INSTRUCTOR,
 ];
 
 export { getAuthUser, getCurrentUser };
 
 export const ROLE_LABELS: Record<string, string> = {
-  pending: "Pending",
-  student: "Student",
+  learner: "Learner",
+  student: "Learner", // legacy alias
   instructor: "Instructor / Mentor",
-  coordinator: "Coordinator",
-  course_coordinator: "Coordinator", // legacy alias
-  counselor: "Counselor",
-  guardian: "Guardian",
-  principal: "Principal",
-  administrator: "Administrator",
+  org_admin: "Org Admin",
+  coordinator: "Org Admin", // legacy alias
+  principal: "Org Admin", // legacy alias
+  institution_admin: "Org Admin", // legacy alias
+  platform_admin: "Platform Admin",
+  administrator: "Platform Admin", // legacy alias
+  admin: "Platform Admin", // legacy alias
   demo: "Demo (Read-Only)",
 };
 
 export function normalizeRole(role: string): UserRoleValue | null {
   const r = role?.toLowerCase();
   switch (r) {
-    case "pending": return UserRole.PENDING;
-    case "student": return UserRole.STUDENT;
+    case "learner":
+    case "student":
+    case "pending": // pending is now a status, not a role — default to learner
+    case "counselor": // orphaned role — default to learner
+    case "guardian": // orphaned role — default to learner
+      return UserRole.LEARNER;
     case "instructor":
+    case "teacher": // legacy alias
     case "teaching_assistant": // legacy alias
       return UserRole.INSTRUCTOR;
-    case "coordinator": return UserRole.COORDINATOR;
-    case "course_coordinator": return UserRole.COORDINATOR; // legacy alias
-    case "counselor": return UserRole.COUNSELOR;
-    case "guardian": return UserRole.GUARDIAN;
-    case "principal":
-    case "institution_admin":
+    case "org_admin":
+    case "coordinator": // legacy alias
+    case "course_coordinator": // legacy alias
+    case "principal": // legacy alias
+    case "institution_admin": // legacy alias
     case "institution administrator":
-      return UserRole.PRINCIPAL;
-    case "administrator":
+      return UserRole.ORG_ADMIN;
     case "platform_admin":
     case "platform administrator":
-    case "admin":
-      return UserRole.ADMINISTRATOR;
+    case "administrator": // legacy alias
+    case "admin": // legacy alias
+      return UserRole.PLATFORM_ADMIN;
     case "demo":
       return UserRole.DEMO;
     default: return null;
@@ -241,12 +251,18 @@ export async function requireAccessGrant(
 
 export async function getVisibleStudentIds(userId: string, userRole: string): Promise<string[]> {
   if (hasRole(userRole, ADMIN_ROLES)) {
-    const allStudents = await db.user.findMany({ where: { role: "student" }, select: { id: true } });
+    // Learners (students) are visible to admins.
+    // Legacy "student" role value is kept in CourseEnrollment/DB rows —
+    // normalizeRole maps it to "learner" but the DB still stores "student".
+    const allStudents = await db.user.findMany({
+      where: { OR: [{ role: "learner" }, { role: "student" }] },
+      select: { id: true },
+    });
     return allStudents.map(u => u.id);
   }
 
   // Instructors see students enrolled in their courses
-  if (userRole === UserRole.INSTRUCTOR || normalizeRole(userRole) === UserRole.INSTRUCTOR) {
+  if (normalizeRole(userRole) === UserRole.INSTRUCTOR) {
     const instructorEnrollments = await db.courseEnrollment.findMany({
       where: { userId, role: "instructor" },
       select: { courseId: true },
@@ -259,14 +275,6 @@ export async function getVisibleStudentIds(userId: string, userRole: string): Pr
       select: { userId: true },
     });
     return [...new Set(studentEnrollments.map(e => e.userId))];
-  }
-
-  if (userRole === UserRole.COUNSELOR) {
-    const grants = await db.accessGrant.findMany({
-      where: { granteeUserId: userId, scopeType: "student", revokedAt: null },
-      select: { scopeId: true },
-    });
-    return grants.map(g => g.scopeId);
   }
 
   return [];

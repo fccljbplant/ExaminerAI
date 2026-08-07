@@ -15,9 +15,9 @@ import { getCourseDurationWeeks } from "@/lib/course-db";
  *  whether they've met the completion criteria) so the instructor can decide
  *  whether to approve.
  *
- *  Auth: staff only (teacher, coordinator, counselor, admin, principal).
- *  Teachers see only requests from students in their batches.
- *  Admins/principals see all requests in their institution.
+ *  Auth: staff only (instructor, org_admin, platform_admin, demo).
+ *  Instructors see only requests from learners in their courses.
+ *  Admins see all requests in their institution.
  */
 export async function GET() {
   const user = await getCurrentUser();

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { requireRole, UserRole, hasRole, ADMIN_ROLES, normalizeRole } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * GET /api/events?courseId=X — list events for a course (or all upcoming).
- *   - Students: see events for their enrolled courses only
+ *   - Learners: see events for their enrolled courses only
  *   - Staff: see events for the specified course (or all if no courseId)
  */
 export async function GET(req: NextRequest) {
@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
   const courseIdParam = req.nextUrl.searchParams.get("courseId");
 
   let where: { courseId?: string } = {};
-  if (user.role === "student" || user.role === "pending") {
-    // Students see events for their enrolled courses only
+  if (normalizeRole(user.role) === UserRole.LEARNER) {
+    // Learners see events for their enrolled courses only
     const enrollments = await db.courseEnrollment.findMany({
       where: { userId: user.id, role: "student" },
       select: { courseId: true },
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("creating events"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("creating events"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

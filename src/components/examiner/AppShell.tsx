@@ -68,8 +68,6 @@ export type ViewKey =
   | "instructor-students"
   | "instructor-assignments"
   | "instructor-insights"
-  | "guardian-dashboard"
-  | "guardian-progress"
   | "admin-dashboard"
   | "admin-users"
   | "admin-courses"
@@ -88,32 +86,29 @@ interface NavItem {
   roles: string[];
 }
 
-const ALL_ROLES_WITH_SHARED = ["student", "instructor", "coordinator", "guardian", "admin", "administrator", "demo"];
-const ADMIN_NAV_ROLES = ["admin", "administrator"];
-const STAFF_NAV_ROLES = ["instructor", "coordinator", "admin", "administrator", "demo"];
+const ALL_ROLES_WITH_SHARED = ["learner", "instructor", "org_admin", "platform_admin", "demo"];
+const ADMIN_NAV_ROLES = ["platform_admin", "demo"];
+const STAFF_NAV_ROLES = ["instructor", "org_admin", "platform_admin", "demo"];
 
 const ALL_NAV: NavItem[] = [
-  { key: "dashboard", label: "Home", icon: LayoutDashboard, roles: ["student"] },
-  { key: "my-courses", label: "My Courses", icon: BookOpen, roles: ["student"] },
-  { key: "checkin", label: "Study", icon: BookOpen, roles: ["student"] },
-  { key: "gantt", label: "Project", icon: ClipboardList, roles: ["student"] },
-  { key: "report-card", label: "Progress", icon: FileText, roles: ["student"] },
-  { key: "credentials", label: "Credentials", icon: Award, roles: ["student"] },
+  { key: "dashboard", label: "Home", icon: LayoutDashboard, roles: ["learner"] },
+  { key: "my-courses", label: "My Courses", icon: BookOpen, roles: ["learner"] },
+  { key: "checkin", label: "Study", icon: BookOpen, roles: ["learner"] },
+  { key: "gantt", label: "Project", icon: ClipboardList, roles: ["learner"] },
+  { key: "report-card", label: "Progress", icon: FileText, roles: ["learner"] },
+  { key: "credentials", label: "Credentials", icon: Award, roles: ["learner"] },
 
   { key: "instructor-today", label: "Today", icon: LayoutDashboard, roles: ["instructor"] },
   { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor"] },
   { key: "instructor-assignments", label: "Assignments", icon: ClipboardList, roles: ["instructor"] },
   { key: "instructor-insights", label: "Insights", icon: BarChart3, roles: ["instructor"] },
 
-  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "coordinator"] },
-  { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "coordinator"] },
+  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "org_admin"] },
+  { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "org_admin"] },
 
   // Employer / B2B dashboard — for company managers sponsoring trainees.
-  // Visible to coordinator + institution/platform admins.
-  { key: "employer-dashboard", label: "Employer", icon: Briefcase, roles: ["coordinator", "institution_admin", "platform_admin", "principal", "administrator", "admin"] },
-
-  { key: "guardian-dashboard", label: "Overview", icon: LayoutDashboard, roles: ["guardian"] },
-  { key: "guardian-progress", label: "Report Cards", icon: FileText, roles: ["guardian"] },
+  // Visible to org_admin + platform_admin.
+  { key: "employer-dashboard", label: "Employer", icon: Briefcase, roles: ["org_admin", "platform_admin"] },
 
   { key: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ADMIN_NAV_ROLES },
   { key: "admin-users", label: "Users", icon: Users, roles: ADMIN_NAV_ROLES },
@@ -122,7 +117,7 @@ const ALL_NAV: NavItem[] = [
   { key: "admin-resets", label: "Passwords", icon: Key, roles: ADMIN_NAV_ROLES },
   { key: "admin-system", label: "System", icon: ShieldAlert, roles: ADMIN_NAV_ROLES },
 
-  { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ["student"] },
+  { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ["learner"] },
   { key: "instructor-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
   { key: "course-outline", label: "Course", icon: BookOpen, roles: ALL_ROLES_WITH_SHARED },
   { key: "messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES_WITH_SHARED },
@@ -193,7 +188,7 @@ export default function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const ADMIN_ROLES_RAW = [...ALL_ADMIN_ROLES];
-  const rawRole = user?.role ?? "student";
+  const rawRole = user?.role ?? "learner";
   const isAdminEquivalent = ADMIN_ROLES_RAW.includes(rawRole);
   const effectiveRole: string = isAdminEquivalent ? adminAs : rawRole;
 
@@ -243,15 +238,13 @@ export default function AppShell() {
             setAdminAs("instructor");
             setView("instructor-today");
           } else {
-            setAdminAs("admin");
+            setAdminAs("platform_admin");
             setView("admin-dashboard");
           }
         } else if (role === "instructor") {
           setView("instructor-today");
-        } else if (role === "coordinator") {
+        } else if (role === "org_admin") {
           setView("course-planner");
-        } else if (role === "guardian") {
-          setView("guardian-dashboard");
         } else {
           setView("dashboard");
         }
@@ -310,8 +303,8 @@ export default function AppShell() {
 
   useEffect(() => {
     if (!user) return;
-    const staffRoles = ["instructor", "coordinator", "admin", "administrator", "demo"];
-    if (!staffRoles.includes(user.role) && user.role !== "admin") return;
+    const staffRoles = ["instructor", "org_admin", "platform_admin", "demo"];
+    if (!staffRoles.includes(user.role)) return;
     const checkAlerts = async () => {
       try {
         const res = await api.get<{ alerts: unknown[] }>("/api/students/alerts");
@@ -362,20 +355,19 @@ export default function AppShell() {
           setAdminAs("instructor");
           setView("instructor-today");
         } else {
-          setAdminAs("admin");
+          setAdminAs("platform_admin");
           setView("admin-dashboard");
         }
       }
       else if (u.role === "instructor") setView("instructor-today");
-      else if (u.role === "coordinator") setView("course-planner");
-      else if (u.role === "guardian") setView("guardian-dashboard");
+      else if (u.role === "org_admin") setView("course-planner");
       else setView("dashboard");
-      // Fetch enrollments for student
-      if (["student", "guardian", "instructor"].includes(u.role)) fetchEnrollments();
+      // Fetch enrollments for learners + instructors
+      if (["learner", "instructor"].includes(u.role)) fetchEnrollments();
     }} />;
   }
 
-  const isStudent = effectiveRole === "student" || effectiveRole === "guardian";
+  const isStudent = effectiveRole === "learner" || effectiveRole === "student";
   const enrolled = isStudent ? enrollments.length > 0 : true;
   const activeEnrollment = enrollments.find(e => e.courseId === activeCourseId);
 
@@ -494,7 +486,7 @@ export default function AppShell() {
         </div>
 
         {/* Course Selector — shown when user has multiple courses */}
-        {(effectiveRole === "student" || effectiveRole === "guardian" || effectiveRole === "instructor") && enrollments.length > 1 && (
+        {(effectiveRole === "learner" || effectiveRole === "student" || effectiveRole === "instructor") && enrollments.length > 1 && (
           <div className="px-3 pt-3 pb-1 flex-shrink-0">
             <div className="relative">
               <button
@@ -598,11 +590,10 @@ export default function AppShell() {
             <div className="text-[10px] uppercase tracking-wider text-primary font-bold">View As Role</div>
             <div className="grid grid-cols-2 gap-1">
               {([
-                { role: "student", label: "Student", view: "dashboard" },
+                { role: "learner", label: "Learner", view: "dashboard" },
                 { role: "instructor", label: "Instructor", view: "instructor-today" },
-                { role: "coordinator", label: "Coordinator", view: "course-planner" },
-                { role: "guardian", label: "Guardian", view: "guardian-dashboard" },
-                { role: "admin", label: "Admin", view: "admin-dashboard" },
+                { role: "org_admin", label: "Org Admin", view: "course-planner" },
+                { role: "platform_admin", label: "Platform Admin", view: "admin-dashboard" },
               ] as const).map((r) => (
                 <button
                   key={r.role}
@@ -687,13 +678,13 @@ export default function AppShell() {
             : view === "course-outline"
             ? "p-2 sm:p-3"
             : "p-4 sm:p-6 max-w-7xl mx-auto",
-          effectiveRole === "student" && view !== "ai-tutor" && "pb-40 sm:pb-40",
+          effectiveRole === "learner" && view !== "ai-tutor" && "pb-40 sm:pb-40",
         )}>
           {renderView()}
         </div>
       </main>
 
-      {effectiveRole === "student" && view !== "messages" && (
+      {(effectiveRole === "learner" || effectiveRole === "student") && view !== "messages" && (
         <AskMyInstructor currentView={view} />
       )}
       </div>

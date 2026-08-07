@@ -3,8 +3,9 @@
  *
  * Creates:
  *  - 1 Institution (FCCL JB Plant IT)
- *  - 1 admin, 1 principal, 2 teachers, 1 counsellor, 1 mentor, 50 students
+ *  - 1 platform_admin, 1 org_admin, 2 instructors, 50 learners
  *  - 1 Demo account (auto-login target)
+ *  - 1 pending-status learner (tests new User.status field)
  *  - 2 Courses with full outlines (CS-301 DSA, MGT-205 Management)
  *  - CourseEnrollments (replacing batches)
  *  - Messages between roles
@@ -158,7 +159,6 @@ async function main() {
   await db.accessGrant.deleteMany()
   await db.passwordResetRequest.deleteMany()
   await db.roleNavConfig.deleteMany()
-  await db.guardianLink.deleteMany()
   await db.instructorRule.deleteMany()
   await db.aICache.deleteMany()
   await db.aIUsageLog.deleteMany()
@@ -181,37 +181,40 @@ async function main() {
   // ---------- create users ----------
   const defaultPwd = await hashPwd('demo123')
 
-  console.log('👤 Creating admin...')
+  console.log('👤 Creating platform_admin...')
   const admin = await db.user.create({
     data: {
       email: 'admin@examiner.ai',
-      name: 'Administrator',
+      name: 'Platform Administrator',
       passwordHash: await hashPwd('helloworld'),
-      role: 'administrator',
+      role: 'platform_admin',
+      status: 'active',
       approvedAt: new Date(),
       institutionId: institution.id
     }
   })
 
-  console.log('👑 Creating principal...')
+  console.log('👑 Creating org_admin...')
   const principal = await db.user.create({
     data: {
-      email: 'principal@fccl.com.pk',
+      email: 'orgadmin@fccl.com.pk',
       name: 'Dr. Asma Rauf',
       passwordHash: defaultPwd,
-      role: 'principal',
+      role: 'org_admin',
+      status: 'active',
       approvedAt: new Date(),
       institutionId: institution.id
     }
   })
 
-  console.log('👩‍🏫 Creating 2 teachers...')
+  console.log('👩‍🏫 Creating 2 instructors...')
   const teacher1 = await db.user.create({
     data: {
       email: 's.khan@fccl.com.pk',
       name: 'Sir Saeed Khan',
       passwordHash: defaultPwd,
       role: 'instructor',
+      status: 'active',
       approvedAt: new Date(),
       institutionId: institution.id
     }
@@ -222,36 +225,16 @@ async function main() {
       name: 'Maam Rabia Ahmed',
       passwordHash: defaultPwd,
       role: 'instructor',
+      status: 'active',
       approvedAt: new Date(),
       institutionId: institution.id
     }
   })
 
-  console.log('🧑‍⚕️ Creating counsellor...')
-  const counsellor = await db.user.create({
-    data: {
-      email: 'counsellor@fccl.com.pk',
-      name: 'Dr. Hina Siddiqui',
-      passwordHash: defaultPwd,
-      role: 'counselor',
-      approvedAt: new Date(),
-      institutionId: institution.id
-    }
-  })
+  // Post-purge 2026-08: counselor + mentor roles removed (orphaned).
+  // The counsellor + mentor demo accounts are gone. The org_admin covers their use cases.
 
-  console.log('🌱 Creating mentor (course_coordinator role)...')
-  const mentor = await db.user.create({
-    data: {
-      email: 'mentor@fccl.com.pk',
-      name: 'Mr. Tariq Mehmood',
-      passwordHash: defaultPwd,
-      role: 'course_coordinator',
-      approvedAt: new Date(),
-      institutionId: institution.id
-    }
-  })
-
-  console.log('🎓 Creating 50 students...')
+  console.log('🎓 Creating 50 learners...')
   const students: { id: string; email: string; name: string }[] = []
   for (let i = 0; i < 50; i++) {
     const fn = firstNames[i % firstNames.length]
@@ -263,7 +246,8 @@ async function main() {
         email,
         name: `${fn} ${ln}`,
         passwordHash: defaultPwd,
-        role: 'student',
+        role: 'learner',
+        status: 'active',
         approvedAt: new Date(),
         institutionId: institution.id,
         currentWeek: rand(3, 12)
@@ -272,6 +256,19 @@ async function main() {
     students.push(s)
   }
 
+  console.log('🕒 Creating one pending-status learner (tests User.status)...')
+  await db.user.create({
+    data: {
+      email: 'pending.learner@fccl.com.pk',
+      name: 'Pending Learner',
+      passwordHash: defaultPwd,
+      role: 'learner',
+      status: 'pending', // tests the new User.status field
+      approvedAt: null,
+      institutionId: institution.id,
+    }
+  }).catch(() => {})
+
   console.log('🧪 Creating DEMO account...')
   const demoUser = await db.user.create({
     data: {
@@ -279,30 +276,13 @@ async function main() {
       name: 'Demo User',
       passwordHash: defaultPwd,
       role: 'demo',
+      status: 'active',
       approvedAt: new Date(),
       institutionId: institution.id
     }
   })
 
-  console.log('👨‍👩‍👧 Creating a guardian account (linked to first student)...')
-  const guardian = await db.user.create({
-    data: {
-      email: 'guardian@fccl.com.pk',
-      name: 'Mr. Khan (Parent)',
-      passwordHash: defaultPwd,
-      role: 'guardian',
-      approvedAt: new Date(),
-      institutionId: institution.id
-    }
-  })
-  // Link guardian to the first student (Aisha Khan)
-  await db.guardianLink.create({
-    data: {
-      guardianId: guardian.id,
-      studentId: students[0].id,
-      relationship: 'parent'
-    }
-  }).catch(() => {})
+  // Post-purge 2026-08: guardian role + GuardianLink model removed.
 
   // ---------- courses ----------
   console.log('📚 Creating 2 courses...')
@@ -382,16 +362,16 @@ async function main() {
   const messagePairs = [
     { from: students[0], to: teacher1, subject: 'Absence today', body: 'Sir, I could not attend today due to illness. Will submit doctor note.' },
     { from: teacher1, to: students[0], subject: 'Re: Absence today', body: 'Noted. Please submit Assignment 2 by Friday with late penalty waived.' },
-    { from: students[5], to: counsellor, subject: 'Appointment request', body: 'Maam, can I book an appointment this week? Feeling overwhelmed.' },
-    { from: counsellor, to: students[5], subject: 'Re: Appointment request', body: 'Of course. Thursday 2pm works? I will send a calendar invite.' },
-    { from: students[10], to: mentor, subject: 'Career discussion', body: 'Sir, I want to discuss career options — software vs data science.' },
-    { from: mentor, to: students[10], subject: 'Re: Career discussion', body: 'Great topic. Let us meet Friday 4pm. I will prep some questions for you.' },
+    { from: students[5], to: principal, subject: 'Appointment request', body: 'Maam, can I book an appointment this week? Feeling overwhelmed.' },
+    { from: principal, to: students[5], subject: 'Re: Appointment request', body: 'Of course. Thursday 2pm works? I will send a calendar invite.' },
+    { from: students[10], to: teacher1, subject: 'Career discussion', body: 'Sir, I want to discuss career options — software vs data science.' },
+    { from: teacher1, to: students[10], subject: 'Re: Career discussion', body: 'Great topic. Let us meet Friday 4pm. I will prep some questions for you.' },
     { from: teacher2, to: principal, subject: 'Additional tutorial slots', body: 'Maam, MGT-205 Section A needs additional tutorial slots — many students struggling with case analysis.' },
     { from: principal, to: teacher2, subject: 'Re: Additional tutorial slots', body: 'Approved. Please coordinate with admin to schedule a Friday 11am slot.' },
     { from: students[15], to: teacher1, subject: 'Assignment clarification', body: 'Sir, can you clarify the Dijkstra assignment requirements?' },
     { from: teacher1, to: students[15], subject: 'Re: Assignment clarification', body: 'Sure. Implement Dijkstra with adjacency list. Bonus marks for A* on grid.' },
-    { from: students[3], to: mentor, subject: 'Box breathing worked!', body: 'I tried the box breathing before Quiz 3. It actually helped!' },
-    { from: mentor, to: students[3], subject: 'Re: Box breathing worked!', body: 'Wonderful! Practice it daily — it compounds. Let us review next Tuesday.' }
+    { from: students[3], to: teacher1, subject: 'Box breathing worked!', body: 'I tried the box breathing before Quiz 3. It actually helped!' },
+    { from: teacher1, to: students[3], subject: 'Re: Box breathing worked!', body: 'Wonderful! Practice it daily — it compounds. Let us review next Tuesday.' }
   ]
   for (let i = 0; i < messagePairs.length; i++) {
     const m = messagePairs[i]
@@ -410,18 +390,16 @@ async function main() {
   // ---------- audit logs ----------
   console.log('📋 Creating audit logs...')
   const userMap: Record<string, { name: string; role: string }> = {
-    [admin.id]: { name: admin.name, role: 'admin' },
+    [admin.id]: { name: admin.name, role: 'platform_admin' },
     [teacher1.id]: { name: teacher1.name, role: 'instructor' },
     [teacher2.id]: { name: teacher2.name, role: 'instructor' },
-    [counsellor.id]: { name: counsellor.name, role: 'counselor' },
-    [mentor.id]: { name: mentor.name, role: 'course_coordinator' },
-    [principal.id]: { name: principal.name, role: 'principal' }
+    [principal.id]: { name: principal.name, role: 'org_admin' }
   }
   const auditActions = [
     { userId: admin.id, action: 'login', targetType: 'auth', targetId: admin.id, meta: 'Web login' },
-    { userId: admin.id, action: 'user_created', targetType: 'user', targetId: teacher1.id, meta: 'Created teacher account' },
+    { userId: admin.id, action: 'user_created', targetType: 'user', targetId: teacher1.id, meta: 'Created instructor account' },
     { userId: admin.id, action: 'course_created', targetType: 'course', targetId: course1.id, meta: 'Created CS-301' },
-    { userId: teacher1.id, action: 'grade_changed', targetType: 'assessment', targetId: 'multiple', meta: 'Graded Quiz 1 for 30 students' },
+    { userId: teacher1.id, action: 'grade_changed', targetType: 'assessment', targetId: 'multiple', meta: 'Graded Quiz 1 for 30 learners' },
     { userId: principal.id, action: 'report_viewed', targetType: 'report_card', targetId: 'multiple', meta: 'Viewed Q3 performance review' },
     { userId: principal.id, action: 'course_approved', targetType: 'course', targetId: course2.id, meta: 'Approved additional MGT-205 tutorial slot' },
     { userId: admin.id, action: 'institution_updated', targetType: 'institution', targetId: institution.id, meta: 'Updated institution contact info' }
@@ -493,23 +471,10 @@ async function main() {
       }
     }).catch(() => {})
   }
-  // Also grant the demo access to all students via the counsellor + mentor too
-  // (so when demo switches to Counsellor/Coordinator view, portfolio still works)
-  for (const staffUser of [counsellor, mentor]) {
-    for (let i = 0; i < students.length; i++) {
-      const s = students[i]
-      await db.accessGrant.create({
-        data: {
-          granteeUserId: staffUser.id,
-          scopeType: 'student',
-          scopeId: s.id,
-          dataScope: 'full',
-          grantedByUserId: admin.id,
-          grantedAt: new Date(Date.now() - 30 * 86400000)
-        }
-      }).catch(() => {})
-    }
-  }
+  // Post-purge 2026-08: counsellor + mentor accounts removed.
+  // The demo account's AccessGrant above is sufficient — the demo
+  // role switches between learner / instructor / org_admin / platform_admin,
+  // all of which work with the demo grants already in place.
 
   // ---------- 3. Competencies for all students ----------
   console.log('   🎯 Competencies for all students...')
@@ -684,7 +649,7 @@ async function main() {
 
   console.log('\n✅ Seed complete!')
   console.log(`   - Institution: 1`)
-  console.log(`   - Users: 57 (admin, principal, 2 teachers, counsellor, mentor, 50 students, demo)`)
+  console.log(`   - Users: 55 (platform_admin, org_admin, 2 instructors, 50 learners, demo + 1 pending)`)
   console.log(`   - Courses: 2 with professional outlines`)
    console.log(`   - CourseEnrollments: ${50 + 2} (50 students + 2 instructors)`)
   console.log(`   - Course weeks: ${csWeeks.length + mgtWeeks.length}`)
@@ -710,15 +675,16 @@ async function ensureCoreAccounts() {
   const adminPwd = await hashPwd('helloworld')
   const demoPwd = await hashPwd('demo123')
 
-  // Ensure admin account
+  // Ensure admin account (platform_admin — 4-role model post-purge 2026-08)
   await db.user.upsert({
     where: { email: 'admin@examiner.ai' },
     update: {}, // don't overwrite existing password/role
     create: {
       email: 'admin@examiner.ai',
-      name: 'Administrator',
+      name: 'Platform Administrator',
       passwordHash: adminPwd,
-      role: 'administrator',
+      role: 'platform_admin',
+      status: 'active',
       approvedAt: new Date(),
     },
   }).catch(() => {})
@@ -732,6 +698,7 @@ async function ensureCoreAccounts() {
       name: 'Demo User',
       passwordHash: demoPwd,
       role: 'demo',
+      status: 'active',
       approvedAt: new Date(),
     },
   }).catch(() => {})

@@ -18,7 +18,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 
 export async function GET() {
   const auth = await requireRole([
-    UserRole.ADMINISTRATOR, UserRole.PRINCIPAL, UserRole.DEMO,
+    UserRole.PLATFORM_ADMIN, UserRole.ORG_ADMIN, UserRole.DEMO,
   ]);
   if (!auth.ok) return auth.response;
 

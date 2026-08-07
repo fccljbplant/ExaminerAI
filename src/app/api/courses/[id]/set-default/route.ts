@@ -12,7 +12,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *
  *  Body: { isDefault: boolean } — pass false to unset the default.
  *
- *  Auth: staff only (coordinator, admin, principal).
+ *  Auth: staff only (org_admin, platform_admin, instructor, demo).
  */
 export async function POST(
   req: NextRequest,

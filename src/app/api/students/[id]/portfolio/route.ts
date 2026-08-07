@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, isStaffRole, UserRole, normalizeRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -28,23 +28,24 @@ export async function GET(
   // the grant's scope (full, wellbeing_only, crisis_only, content_only).
   let portfolioDataScope: string | null = null;
 
-  // Phase 0.4 fix: IDOR protection. Teachers can only access students in
-  // their own batch. Admins can access any student. This prevents a teacher
-  // from reading another teacher's students' data.
-  // H3-security fix: counselor/coordinator/demo now need an AccessGrant
-  // — previously they fell through with no check at all.
+  // Phase 0.4 fix: IDOR protection. Instructors can only access learners in
+  // their own courses. Admins can access any learner. This prevents an
+  // instructor from reading another instructor's learners' data.
+  // Post-purge 2026-08: counselor/coordinator/guardian roles were removed.
+  // Demo + non-staff-with-grant now need an AccessGrant — previously they
+  // fell through with no check at all.
   // N5-fix: legacy teachers (null batch) now also need an AccessGrant —
   // previously they could see all students institution-wide.
   let needsGrantCheck = false;
 
   if (hasRole(payload.role, ADMIN_ROLES)) {
     // Admins — full access, no check needed
-  } else if (payload.role === "instructor") {
+  } else if (normalizeRole(payload.role) === UserRole.INSTRUCTOR) {
     const studentCheck = await db.user.findUnique({
       where: { id },
       select: { role: true },
     });
-    if (!studentCheck || studentCheck.role !== "student") {
+    if (!studentCheck || normalizeRole(studentCheck.role) !== UserRole.LEARNER) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
     // Verify the instructor teaches a course the student is enrolled in
@@ -65,7 +66,7 @@ export async function GET(
       needsGrantCheck = true;
     }
   } else {
-    // counselor, coordinator, demo — need an AccessGrant
+    // Demo or any non-admin/non-instructor staff — need an AccessGrant
     needsGrantCheck = true;
   }
 
@@ -83,8 +84,8 @@ export async function GET(
       return NextResponse.json({ error: "You need an access grant to view this student" }, { status: 403 });
     }
     // N2-fix: capture the grant's dataScope for response filtering below.
-    // A counselor with "content_only" should NOT see psychObs or crisis data.
-    // A counselor with "crisis_only" should NOT see project content.
+    // A demo with "content_only" should NOT see psychObs or crisis data.
+    // A demo with "crisis_only" should NOT see project content.
     portfolioDataScope = grant.dataScope;
   }
 
@@ -104,7 +105,7 @@ export async function GET(
     },
   });
 
-  if (!student || student.role !== "student") {
+  if (!student || normalizeRole(student.role) !== UserRole.LEARNER) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 

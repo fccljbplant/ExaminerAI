@@ -4,11 +4,10 @@ import { requireRole, UserRole, ADMIN_ROLES, hasRole } from "@/lib/rbac";
 import { logger } from "@/lib/logger";
 
 /** GET /api/audit-log — list audit log entries.
- *  Admins see all. Staff see only their own. Students/pending: 403. */
+ *  Admins see all. Staff see only their own. Learners/pending: 403. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.INSTRUCTOR, UserRole.COORDINATOR,
-    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+    UserRole.INSTRUCTOR, UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;
 

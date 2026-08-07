@@ -22,8 +22,8 @@ import {
 // ============================================================
 const ROLES = [
   {
-    id: "student",
-    label: "Student",
+    id: "learner",
+    label: "Learner",
     icon: GraduationCap,
     accent: "from-blue-500 to-cyan-500",
     chip: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
@@ -52,14 +52,14 @@ const ROLES = [
     ],
   },
   {
-    id: "coordinator",
-    label: "Coordinator",
+    id: "org_admin",
+    label: "Org Admin",
     icon: Building2,
     accent: "from-purple-500 to-indigo-500",
     chip: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300",
     screenshot: "/screenshots/dashboard-principal.png",
     tagline: "Run the institution on signal, not gut.",
-    desc: "Institution-wide analytics: academic performance distribution, instructor load, audit log, cohort trends. Coordinator oversees course alignment and instructor coverage.",
+    desc: "Organization-wide analytics: academic performance distribution, instructor load, audit log, cohort trends. Org Admin oversees course alignment and instructor coverage.",
     stats: [
       { label: "Instructor load", value: "Tiered" },
       { label: "Audit log", value: "Full" },
@@ -67,8 +67,8 @@ const ROLES = [
     ],
   },
   {
-    id: "admin",
-    label: "Admin",
+    id: "platform_admin",
+    label: "Platform Admin",
     icon: ShieldCheck,
     accent: "from-slate-600 to-slate-800",
     chip: "bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300",

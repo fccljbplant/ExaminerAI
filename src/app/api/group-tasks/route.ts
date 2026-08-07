@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { requireRole, UserRole, hasRole, ADMIN_ROLES, normalizeRole } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
  * GET /api/group-tasks?courseId=X — list group tasks for a course.
- *   - Teachers/admins: see all tasks + submission counts
- *   - Students: see tasks for their courses + their own submission status
+ *   - Instructors/admins: see all tasks + submission counts
+ *   - Learners: see tasks for their courses + their own submission status
  */
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -17,8 +17,9 @@ export async function GET(req: NextRequest) {
 
   // Determine which course to query
   let targetCourseId = courseIdParam;
-  if (user.role === "student" || user.role === "pending") {
-    // Students see tasks for their enrolled courses
+  const isLearner = normalizeRole(user.role) === UserRole.LEARNER;
+  if (isLearner) {
+    // Learners see tasks for their enrolled courses
     const enrollments = await db.courseEnrollment.findMany({
       where: { userId: user.id, role: "student" },
       select: { courseId: true },
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { submissions: true } },
-      submissions: user.role === "student" || user.role === "pending"
+      submissions: isLearner
         ? { where: { userId: user.id }, select: { id: true, content: true, link: true, score: true, feedback: true, submittedAt: true, gradedAt: true } }
         : false,
     },
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -132,7 +133,7 @@ async function verifyGroupTaskOwnership(payload: { sub: string; role: string }, 
 
 export async function PATCH(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -169,7 +170,7 @@ export async function PATCH(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing group tasks"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.INSTRUCTOR, UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));

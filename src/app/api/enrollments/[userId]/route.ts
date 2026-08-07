@@ -6,15 +6,16 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PATCH /api/enrollments/[userId] — add or remove a course enrollment for a user.
  *  Body: { courseId: string, action: "enroll" | "unenroll", role?: string }
- *  Role defines the enrollment role (default "student").
- *  Admin/principal only.
+ *  Role defines the enrollment role (default "student"; CourseEnrollment uses
+ *  legacy "student"/"instructor" strings, normalized via normalizeRole on read).
+ *  Admin (org_admin / platform_admin) only.
  */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   const _demoBlock = await demoWriteBlock("managing enrollments"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
+  const auth = await requireRole([UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN]);
   if (!auth.ok) return auth.response;
 
   const { userId } = await params;

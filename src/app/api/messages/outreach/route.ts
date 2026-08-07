@@ -11,7 +11,7 @@ import { requireRole, UserRole } from "@/lib/rbac";
 export async function GET() {
   const auth = await requireRole([
     UserRole.INSTRUCTOR,
-    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+    UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const messages = await db.message.findMany({

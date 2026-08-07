@@ -31,24 +31,23 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  * /api/courses/generate so the wizard can swap between the two flows
  * without changing the preview UI.
  *
- * Auth: staff-only (instructor / coordinator / principal / administrator /
- * demo). Students and pending users get 403.
+ * Auth: staff-only (instructor / org_admin / platform_admin / demo).
+ * Learners and pending-status users get 403.
  */
 
 const ALLOWED_ROLES = [
   UserRole.INSTRUCTOR,
-  UserRole.COORDINATOR,
-  UserRole.PRINCIPAL,
-  UserRole.ADMINISTRATOR,
+  UserRole.ORG_ADMIN,
+  UserRole.PLATFORM_ADMIN,
   UserRole.DEMO,
 ] as const;
 
-/** Staff who can convert outlines — instructors, coordinators, admins. */
+/** Staff who can convert outlines — instructors, org_admins, admins. */
 function canConvertOutline(role: string): boolean {
-  // Administrators + principals + demo always pass.
+  // Admins (org_admin / platform_admin) + demo always pass.
   if (hasRole(role, ADMIN_ROLES)) return true;
-  // Instructors + coordinators can also convert outlines.
-  return hasRole(role, [UserRole.INSTRUCTOR, UserRole.COORDINATOR]);
+  // Instructors can also convert outlines.
+  return hasRole(role, [UserRole.INSTRUCTOR]);
 }
 
 interface GeneratedDay {
@@ -82,10 +81,10 @@ export async function POST(req: NextRequest) {
   if (!payload) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  // Staff-only — students + pending users cannot convert outlines.
+  // Staff-only — learners + pending-status users cannot convert outlines.
   if (!isStaffRole(payload.role) || !canConvertOutline(payload.role)) {
     return NextResponse.json(
-      { error: "Forbidden — instructors, coordinators, and admins only." },
+      { error: "Forbidden — instructors and admins only." },
       { status: 403 },
     );
   }

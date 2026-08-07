@@ -11,7 +11,7 @@ import { hasRole, ADMIN_ROLES, normalizeRole } from "@/lib/rbac";
  *
  * The briefing text is generated HEURISTICALLY (no AI call — fast + free).
  *
- * Auth: instructor / coordinator / administrator / principal / demo only.
+ * Auth: instructor / org_admin / platform_admin / demo only.
  */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const normalized = normalizeRole(payload.role);
-  const isInstructor = normalized === "instructor" || payload.role === "instructor" || payload.role === "coordinator";
+  const isInstructor = normalized === "instructor";
   const isAdmin = hasRole(payload.role, ADMIN_ROLES);
   if (!isInstructor && !isAdmin) {
     return NextResponse.json({ error: "Forbidden — staff access required" }, { status: 403 });

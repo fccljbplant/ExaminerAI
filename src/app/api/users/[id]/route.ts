@@ -1,11 +1,11 @@
-import { hasRole, ADMIN_ROLES, UserRole } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, UserRole, normalizeRole } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** DELETE /api/users/[id] — delete a user and ALL their data.
- *  Admin only (principal + administrator). Demo is read-only and
+ *  Admin only (org_admin + platform_admin). Demo is read-only and
  *  explicitly excluded — demo is just for demo, not administration.
  *  Explicitly deletes every related record in a transaction
  *  to guarantee complete cleanup regardless of cascade state. */
@@ -31,14 +31,14 @@ export async function DELETE(
   if (!target) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
-  // Protect all admin accounts (administrator, principal, legacy admin)
+  // Protect all admin accounts (org_admin, platform_admin, legacy admin)
   if (target.email === "admin@examiner.ai" || hasRole(target.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Cannot delete admin accounts" }, { status: 403 });
   }
 
-  // HI-10 fix: principals can only delete users in their own institution.
-  // Administrators (platform-level) can delete any user.
-  if (payload.role === "principal") {
+  // HI-10 fix: org_admins can only delete users in their own institution.
+  // platform_admins (platform-level) can delete any user.
+  if (normalizeRole(payload.role) === UserRole.ORG_ADMIN) {
     const caller = await db.user.findUnique({ where: { id: payload.sub }, select: { institutionId: true } });
     if (caller?.institutionId && target.institutionId !== caller.institutionId) {
       return NextResponse.json({ error: "You can only delete users in your own institution" }, { status: 403 });

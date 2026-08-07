@@ -85,8 +85,8 @@ export async function POST(
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
 
-  // Instructors can only manage FAQs for courses they teach. Admins/principals
-  // can manage any course's FAQs.
+  // Instructors can only manage FAQs for courses they teach. Admins
+  // (org_admin / platform_admin / demo) can manage any course's FAQs.
   if (role === UserRole.INSTRUCTOR && course.instructorName !== payload.name) {
     // Also check by user-to-course enrollment (in case the instructorName
     // field doesn't match the user's display name).

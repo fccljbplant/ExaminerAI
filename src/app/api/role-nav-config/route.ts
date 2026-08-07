@@ -7,50 +7,40 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** All possible nav items (the full menu). Admin picks which ones each role sees.
  *
- *  C10 fix (audit 2026-07-26): the previous version was missing 9 nav keys
- *  that ARE present in AppShell.tsx's ALL_NAV array:
- *    - batch-students, batch-mentorship, batch-assignments, batch-insights (teacher sub-tabs)
- *    - counselor-dashboard (counselor's purpose-built dashboard)
- *    - guardian-dashboard, guardian-progress (guardian's two views)
- *    - principal-dashboard (principal's institution dashboard)
- *    - teacher-ai-tutor (staff AI assistant)
- *
- *  Saving config with a role that had any of these keys would silently drop
- *  them from the saved list (the `filtered = navItems.filter(k => validKeys.has(k))`
- *  line was filtering against an incomplete whitelist), bricking that role's
- *  sidebar until an admin reset the config. This version includes ALL keys.
+ *  Post-purge 2026-08 (4-role model + demo):
+ *    learner, instructor, org_admin, platform_admin, demo
+ *  Legacy nav keys (counselor-dashboard, guardian-dashboard, guardian-progress,
+ *  principal-dashboard) are kept in the whitelist for backward compat with
+ *  any persisted RoleNavConfig rows from the old model. They simply won't be
+ *  shown to anyone because no role defaults to them anymore.
  */
 export const ALL_NAV_KEYS = [
-  // Student (4-view model: Home, Study, Project, Progress)
+  // Learner (4-view model: Home, Study, Project, Progress)
   "dashboard", "checkin", "gantt", "report-card",
-  // Teacher (5 prominent views)
+  // Instructor (5 prominent views)
   "batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights",
-  // Counselor
-  "counselor-dashboard",
-  // Course coordinator / teacher
+  // Course planner (shared: instructor + org_admin)
   "course-planner",
-  // Guardian
-  "guardian-dashboard", "guardian-progress",
-  // Principal
-  "principal-dashboard",
-  // Admin
+  // Org admin
+  "org-admin-dashboard",
+  // Platform admin
   "admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system",
+  // Legacy nav keys (kept for backward compat with persisted RoleNavConfig rows)
+  "counselor-dashboard",
+  "guardian-dashboard", "guardian-progress",
+  "principal-dashboard",
   // Shared
   "ai-tutor", "instructor-ai-tutor", "course-outline", "messages", "settings",
 ] as const;
 
 /** Default nav items per role (used when no DB config exists).
- *  C10 fix: aligned with AppShell.tsx's ALL_NAV array. */
+ *  Post-purge 2026-08: 4-role model + demo. */
 export const DEFAULT_NAV_PER_ROLE: Record<string, string[]> = {
-  student: ["dashboard", "checkin", "gantt", "report-card", "ai-tutor", "course-outline", "messages", "settings"],
-  teacher: ["batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights", "course-planner", "instructor-ai-tutor", "course-outline", "messages", "settings"],
-  coordinator: ["course-planner", "batch-students", "instructor-ai-tutor", "course-outline", "messages", "settings"],
-  counselor: ["counselor-dashboard", "messages", "settings"],
-  guardian: ["guardian-dashboard", "guardian-progress", "ai-tutor", "course-outline", "messages", "settings"],
-  principal: ["principal-dashboard", "admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "settings"],
-  administrator: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
+  learner: ["dashboard", "checkin", "gantt", "report-card", "ai-tutor", "course-outline", "messages", "settings"],
+  instructor: ["batch", "batch-students", "batch-mentorship", "batch-assignments", "batch-insights", "course-planner", "instructor-ai-tutor", "course-outline", "messages", "settings"],
+  org_admin: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-system", "course-outline", "messages", "settings"],
+  platform_admin: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
   demo: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages", "instructor-ai-tutor"],
-  admin: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-resets", "admin-system", "messages"],
 };
 
 /** GET /api/role-nav-config — returns all role nav configs.

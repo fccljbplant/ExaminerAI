@@ -25,13 +25,13 @@ export function RoleNavConfigPanel() {
   const [msg, setMsg] = useState("");
 
   const NAV_LABELS: Record<string, string> = {
-    // Student (4-view model)
-    "dashboard": "Home (Student Dashboard)",
+    // Learner (4-view model)
+    "dashboard": "Home (Learner Dashboard)",
     "checkin": "Study (Practice + Tests + Check-in)",
     "gantt": "Project (Gantt + Tasks)",
     "report-card": "Progress (Reports + Certificates)",
-    // Teacher sub-tabs
-    "batch": "Today (Teacher Dashboard)",
+    // Instructor sub-tabs
+    "batch": "Today (Instructor Dashboard)",
     "batch-students": "Students Roster",
     "batch-assignments": "Assignments",
     "batch-insights": "Insights",
@@ -45,7 +45,7 @@ export function RoleNavConfigPanel() {
     "admin-resets": "Password Resets",
     "admin-system": "System & Dev",
     // Shared
-    "ai-tutor": "AI Tutor (Student Practice)",
+    "ai-tutor": "AI Tutor (Learner Practice)",
     "instructor-ai-tutor": "Instructor AI Assistant",
     "course-outline": "Course Outline",
     "messages": "Messages",
@@ -53,13 +53,11 @@ export function RoleNavConfigPanel() {
   };
 
   const ROLE_LABELS: Record<string, string> = {
-    student: "Student",
+    learner: "Learner",
     instructor: "Instructor / Mentor",
-    coordinator: "Coordinator",
-    institution_admin: "Institution Admin",
+    org_admin: "Org Admin",
     platform_admin: "Platform Admin",
     demo: "Demo (read-only)",
-    admin: "Admin (Legacy)",
   };
 
   const load = useCallback(async () => {
@@ -208,8 +206,7 @@ export function RoleNavConfigPanel() {
         </CardHeader>
         <CardContent className="space-y-2">
           {[
-            { role: "coordinator", label: "Coordinator — Course management", items: ["course-planner", "batch-students", "instructor-ai-tutor", "course-outline", "messages", "settings"], desc: "Sees course planner + student roster + shared resources. No user management." },
-            { role: "institution_admin", label: "Institution Admin — Operational oversight", items: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-system", "course-outline", "messages", "settings"], desc: "Full institutional control: users, courses, feature flags, system health, audit log." },
+            { role: "org_admin", label: "Org Admin — Operational oversight", items: ["admin-dashboard", "admin-users", "admin-courses", "admin-features", "admin-system", "course-outline", "messages", "settings"], desc: "Full organizational control: users, courses, feature flags, system health, audit log." },
           ].map(preset => (
             <div key={preset.role} className="flex items-center justify-between rounded-md border border-border p-2.5">
               <div className="flex-1 min-w-0">

@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES, isStaffRole, UserRole } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, isStaffRole, UserRole, normalizeRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, invalidateAuthCache } from "@/lib/auth";
@@ -6,7 +6,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** PUT /api/users/[id]/block — block or unblock a user.
  *  Body: { blocked: boolean }
- *  Teacher can block/unblock students. Admin can block/unblock anyone except other admins.
+ *  Instructors can block/unblock learners. Admins can block/unblock anyone except other admins.
  *  Demo is read-only and cannot block/unblock anyone. */
 export async function PUT(
   req: NextRequest,
@@ -33,14 +33,14 @@ export async function PUT(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  // Teachers, TAs, coordinators, and counselors can only block
-  // student/pending accounts — they must not be able to block other staff.
-  if ((payload.role === "instructor" || payload.role === "coordinator" || payload.role === "counselor") && target.role !== "student" && target.role !== "pending") {
-    return NextResponse.json({ error: "You can only block student or pending accounts" }, { status: 403 });
+  // Instructors can only block learner accounts — they must not be able
+  // to block other staff.
+  if (normalizeRole(payload.role) === UserRole.INSTRUCTOR && normalizeRole(target.role) !== UserRole.LEARNER) {
+    return NextResponse.json({ error: "You can only block learner accounts" }, { status: 403 });
   }
 
   // Nobody blocks admins
-  // Use hasRole to catch all admin roles (administrator, principal, admin legacy)
+  // Use hasRole to catch all admin roles (org_admin, platform_admin, demo legacy)
   if (hasRole(target.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Cannot block admin accounts" }, { status: 403 });
   }

@@ -24,9 +24,9 @@ export interface PublicUser {
 }
 
 const DEMO_ACCOUNTS = [
-  { email: "student@demo.ai", password: "demo123", label: "Student Demo", color: "bg-blue-500 hover:bg-blue-600" },
+  { email: "learner@demo.ai", password: "demo123", label: "Learner Demo", color: "bg-blue-500 hover:bg-blue-600" },
   { email: "instructor@demo.ai", password: "demo123", label: "Instructor Demo", color: "bg-emerald-500 hover:bg-emerald-600" },
-  { email: "coordinator@demo.ai", password: "demo123", label: "Coordinator Demo", color: "bg-violet-500 hover:bg-violet-600" },
+  { email: "org_admin@demo.ai", password: "demo123", label: "Org Admin Demo", color: "bg-violet-500 hover:bg-violet-600" },
 ] as const;
 
 export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => void }) {

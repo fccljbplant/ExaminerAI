@@ -13,12 +13,13 @@ export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const url = new URL(req.url);
-  const asRole = url.searchParams.get("as"); // student | teacher | instructor — for admin impersonation
-  const role = (asRole === "student" || asRole === "instructor") ? asRole : payload.role;
+  const asRole = url.searchParams.get("as"); // learner | instructor — for admin impersonation
+  const role = (asRole === "learner" || asRole === "student" || asRole === "instructor") ? asRole : payload.role;
 
   // M4 fix (audit 2026-07-26): course_coordinator now has access to teacher
   // stats so they can see students in their institution's courses.
-  if (role === "instructor" || role === "course_coordinator" || (role === "admin" && asRole === "instructor")) {
+  // Post-purge 2026-08: org_admin also has access to instructor stats.
+  if (role === "instructor" || role === "course_coordinator" || role === "org_admin" || (role === "platform_admin" && asRole === "instructor") || (role === "admin" && asRole === "instructor")) {
     // Scale: server-side pagination — don't load ALL students at once.
     // Default page size 100 (renders 4 pages of 25 in the UI). Max 200.
     const page = Math.max(0, parseInt(url.searchParams.get("page") || "0", 10));
@@ -229,27 +230,20 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Student (default) — return current user's progress data.
-  // Admin can impersonate by passing ?as=student — we then return the
-  // demo student's data so they can test the dashboard UI with real content.
-  // Guardians see their linked student's data (read-only — the StudentDashboard
-  // hides action buttons when role === "guardian").
+  // Learner (default) — return current user's progress data.
+  // Admin can impersonate by passing ?as=learner (or legacy ?as=student) —
+  // we then return the demo learner's data so they can test the dashboard
+  // UI with real content. Post-purge 2026-08: guardian role was removed
+  // (orphaned). Any guardian rows in the DB are treated as learners.
   let targetUserId = payload.sub;
-  if (hasRole(payload.role, ADMIN_ROLES) && asRole === "student") {
-    const demoStudent = await db.user.findUnique({ where: { email: "student@examiner.ai" } });
-    if (demoStudent) targetUserId = demoStudent.id;
-  } else if (payload.role === "guardian") {
-    // Load linked student — guardian has read-only access to this student's data
-    const link = await db.guardianLink.findFirst({
-      where: { guardianId: payload.sub },
-      select: { studentId: true },
+  if (hasRole(payload.role, ADMIN_ROLES) && (asRole === "student" || asRole === "learner")) {
+    const demoStudent = await db.user.findUnique({
+      where: { email: "student@examiner.ai" },
+    }).catch(() => null) || await db.user.findFirst({
+      where: { role: { in: ["learner", "student"] } },
+      select: { id: true },
     });
-    if (!link?.studentId) {
-      return NextResponse.json({
-        error: "No student is linked to your guardian account. Please ask an administrator to link you to your child.",
-      }, { status: 403 });
-    }
-    targetUserId = link.studentId;
+    if (demoStudent && "id" in demoStudent) targetUserId = demoStudent.id;
   }
   const courseId = req.nextUrl.searchParams.get("courseId") || undefined;
   if (courseId) {

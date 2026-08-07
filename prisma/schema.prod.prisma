@@ -5,6 +5,9 @@
 // - Role "teacher" renamed to "instructor"
 // - NotebookLM removed
 // - CourseEnrollment replaces batch-based student/instructor assignment
+// - Role purge (2026-08): 8 roles → 4 + demo (learner, instructor,
+//   org_admin, platform_admin, demo). `pending` is now a User.status
+//   field, not a role. GuardianLink removed — guardian role orphaned.
 
 generator client {
   provider = "prisma-client-js"
@@ -233,7 +236,14 @@ model User {
   email                String    @unique
   name                 String
   passwordHash         String
-  role                 String    @default("pending")
+  // Role values (4-role model + demo, post-purge 2026-08):
+  //   learner | instructor | org_admin | platform_admin | demo
+  // `pending` is no longer a role — it's now the `status` field below.
+  // Legacy role values are normalized transparently via normalizeRole().
+  role                 String    @default("learner")
+  // Account status — replaces the legacy "pending" role value.
+  // One of: pending | active | suspended
+  status               String    @default("active")
   blocked              Boolean   @default(false)
   approvedAt           DateTime?
   createdAt            DateTime  @default(now())
@@ -286,8 +296,6 @@ model User {
   institution             Institution?           @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   groupTaskSubmissions    GroupTaskSubmission[]
   instructorGroupTasks    GroupTask[]            @relation("GroupTaskInstructor")
-  guardianLinks           GuardianLink[]         @relation("GuardianLinkGuardian")
-  studentGuardians        GuardianLink[]         @relation("GuardianLinkStudent")
   eventsCreated           Event[]
   peerAssessmentsGiven    PeerAssessment[]       @relation("PeerAssessor")
   peerAssessmentsReceived PeerAssessment[]       @relation("PeerAssessee")
@@ -297,6 +305,8 @@ model User {
   reviewVotes             CourseReviewHelpfulVote[]
   notifications           Notification[]
   payments                Payment[]
+  // Organization membership — multi-org B2B support.
+  organizationMembers     OrgMember[]
 }
 
 model PasswordResetRequest {
@@ -845,21 +855,6 @@ model RoleNavConfig {
   updatedAt DateTime @updatedAt
 }
 
-model GuardianLink {
-  id           String   @id @default(cuid())
-  guardianId   String
-  studentId    String
-  relationship String   @default("parent")
-  createdAt    DateTime @default(now())
-
-  guardian User @relation("GuardianLinkGuardian", fields: [guardianId], references: [id], onDelete: Cascade)
-  student  User @relation("GuardianLinkStudent", fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([guardianId, studentId])
-  @@index([guardianId])
-  @@index([studentId])
-}
-
 model InstructorRule {
   id           String   @id @default(cuid())
   instructorId String
@@ -953,4 +948,37 @@ model Payment {
 
   @@index([courseId])
   @@index([userId])
+}
+
+// ============================================================
+// Organizations — multi-tenant B2B model. A user can belong to
+// multiple orgs with different roles (admin | mentor | member).
+// Replaces the single institutionId for new B2B flows; the legacy
+// Institution model is kept for backward compatibility.
+// ============================================================
+model Organization {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  plan      String     @default("free") // free | team | enterprise
+  seats     Int        @default(5)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  members   OrgMember[]
+}
+
+model OrgMember {
+  id      String   @id @default(cuid())
+  orgId   String
+  userId  String
+  role    String   @default("member") // admin | mentor | member
+  status  String   @default("active") // invited | active | removed
+  seat    Boolean  @default(false)
+  joined  DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([orgId, role])
 }

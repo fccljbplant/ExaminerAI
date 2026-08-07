@@ -19,7 +19,7 @@ import { hasRole, ADMIN_ROLES, normalizeRole } from "@/lib/rbac";
  *   - weeklyProgress (per-week completion rate + avg score)
  *   - topPerformers / studentsAtRisk lists
  *
- * Auth: instructor / coordinator / administrator / principal / demo only.
+ * Auth: instructor / org_admin / platform_admin / demo only.
  */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const normalized = normalizeRole(payload.role);
-  const isInstructor = normalized === "instructor" || payload.role === "instructor" || payload.role === "coordinator";
+  const isInstructor = normalized === "instructor";
   const isAdmin = hasRole(payload.role, ADMIN_ROLES);
   if (!isInstructor && !isAdmin) {
     return NextResponse.json({ error: "Forbidden — staff access required" }, { status: 403 });
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
   // If no courseId provided, use the instructor's first assigned course.
   if (!courseId) {
-    if (normalized === "instructor" || payload.role === "instructor") {
+    if (normalized === "instructor") {
       const enr = await db.courseEnrollment.findFirst({
         where: { userId: payload.sub, role: "instructor" },
         orderBy: { enrolledAt: "asc" },
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
       }
       courseId = enr.courseId;
     } else {
-      // Coordinator / admin without explicit courseId — pick any active course.
+      // Org admin / platform admin without explicit courseId — pick any active course.
       const c = await db.course.findFirst({
         where: { isActive: true },
         orderBy: { createdAt: "asc" },

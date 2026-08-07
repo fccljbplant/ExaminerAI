@@ -49,13 +49,13 @@ export async function POST(req: NextRequest) {
   if (!ok) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
-  if (user.role === "pending") {
+  if (user.role === "pending" || user.status === "pending") {
     return NextResponse.json(
       { error: "Account pending approval. Ask an instructor/admin to approve." },
       { status: 403 }
     );
   }
-  if (user.blocked) {
+  if (user.blocked || user.status === "suspended") {
     return NextResponse.json(
       { error: "Your account has been blocked. Contact your instructor or admin." },
       { status: 403 }
@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
     data: { lastLogin: new Date() },
   }).catch(err => console.error("Failed to update lastLogin:", err instanceof Error ? err.message : String(err)));
 
-  // Normalize the role — legacy aliases like 'admin' → 'administrator',
-  // 'institution_admin' → 'principal', 'platform_admin' → 'administrator'.
+  // Normalize the role — legacy aliases like 'admin' → 'platform_admin',
+  // 'institution_admin' → 'org_admin', 'student' → 'learner'.
   // This ensures the JWT and /api/auth/me always return canonical roles,
   // so role checks throughout the app work correctly.
   const canonicalRole = normalizeRole(user.role) || user.role;
@@ -175,7 +175,8 @@ export async function PUT(req: NextRequest) {
         name,
         email,
         passwordHash: hash,
-        role: "pending",
+        role: "learner",
+        status: "pending",
         securityQuestion: securityQuestion || null,
         securityAnswer: answerHash,
       },

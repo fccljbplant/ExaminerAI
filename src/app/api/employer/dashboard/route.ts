@@ -9,7 +9,7 @@ import { normalizeRole } from "@/lib/rbac";
  * B2B dashboard for company managers / sponsors to track their
  * institution's sponsored trainees.
  *
- * Auth: coordinator | institution_admin | platform_admin only (B2B roles).
+ * Auth: org_admin | platform_admin only (B2B roles).
  *
  * Returns:
  *   - Aggregate ROI/investment metrics
@@ -23,15 +23,15 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // B2B roles: coordinator, institution_admin (normalized → principal),
-  // platform_admin (normalized → administrator).
+  // B2B roles: org_admin (org-level admin), platform_admin (platform-level).
+  // Legacy aliases (coordinator, principal, institution_admin, administrator, admin)
+  // normalize to org_admin / platform_admin.
   const normalized = normalizeRole(payload.role);
-  const isCoordinator = normalized === "coordinator" || payload.role === "coordinator";
-  const isInstitutionAdmin = normalized === "principal" || payload.role === "institution_admin";
-  const isPlatformAdmin = normalized === "administrator" || payload.role === "platform_admin" || payload.role === "admin";
-  if (!isCoordinator && !isInstitutionAdmin && !isPlatformAdmin) {
+  const isOrgAdmin = normalized === "org_admin";
+  const isPlatformAdmin = normalized === "platform_admin";
+  if (!isOrgAdmin && !isPlatformAdmin) {
     return NextResponse.json(
-      { error: "Forbidden — coordinator/institution_admin/platform_admin only" },
+      { error: "Forbidden — org_admin / platform_admin only" },
       { status: 403 },
     );
   }

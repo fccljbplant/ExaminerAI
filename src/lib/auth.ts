@@ -267,19 +267,7 @@ export async function assertCanAccessStudent(
     // Fall through to AccessGrant check
   }
 
-  // Guardians — check GuardianLink
-  if (payload.role === "guardian") {
-    const link = await db.guardianLink.findFirst({
-      where: {
-        guardianId: payload.sub,
-        studentId,
-      },
-    });
-    if (link) return true;
-    throw { status: 403, message: "You can only access your linked children's data" };
-  }
-
-  // Other staff (counselor, coordinator, demo)
+  // Other staff (org_admin, platform_admin, demo)
   // — check AccessGrant
   const grant = await db.accessGrant.findFirst({
     where: {

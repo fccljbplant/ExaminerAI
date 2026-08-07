@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
+import { normalizeRole, UserRole } from "@/lib/rbac";
 
 /** POST /api/students/[id]/draft-checkin — AI drafts a check-in message
  *  in the teacher's own voice, referencing the specific concern.
@@ -27,7 +28,7 @@ export async function POST(
 
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (payload.role === "student") {
+  if (normalizeRole(payload.role) === UserRole.LEARNER) {
     return NextResponse.json({ error: "Only staff can draft check-ins" }, { status: 403 });
   }
 

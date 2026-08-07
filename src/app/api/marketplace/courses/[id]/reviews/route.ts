@@ -77,9 +77,9 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const role = normalizeRole(payload.role);
-  if (role !== UserRole.STUDENT) {
+  if (role !== UserRole.LEARNER) {
     return NextResponse.json(
-      { error: "Only students can review courses." },
+      { error: "Only learners can review courses." },
       { status: 403 }
     );
   }

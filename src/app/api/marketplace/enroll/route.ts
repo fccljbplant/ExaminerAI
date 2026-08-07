@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const role = normalizeRole(payload.role);
-  if (role !== UserRole.STUDENT) {
+  if (role !== UserRole.LEARNER) {
     return NextResponse.json(
-      { error: "Only student accounts can self-enroll. Instructors/admins should assign courses via the admin panel." },
+      { error: "Only learner accounts can self-enroll. Instructors/admins should assign courses via the admin panel." },
       { status: 403 }
     );
   }

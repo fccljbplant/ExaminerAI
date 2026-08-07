@@ -8,8 +8,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 /** GET /api/access-grants — list access grants. Admins see all, staff see own. */
 export async function GET(req: NextRequest) {
   const auth = await requireRole([
-    UserRole.INSTRUCTOR, UserRole.COORDINATOR,
-    UserRole.COUNSELOR, UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+    UserRole.INSTRUCTOR, UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
   const { ctx } = auth;
 
@@ -36,7 +35,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/access-grants — create/update an access grant. Admin only. */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing access grants"); if (_demoBlock) return _demoBlock;
-  const auth = await requireRole([UserRole.PRINCIPAL, UserRole.ADMINISTRATOR, UserRole.DEMO]);
+  const auth = await requireRole([UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
   if (!auth.ok) return auth.response;
 
   const body = await req.json().catch(() => ({}));
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (!grantee) return NextResponse.json({ error: "Grantee user not found" }, { status: 404 });
 
   const GRANTABLE_ROLES: string[] = [
-    UserRole.INSTRUCTOR, UserRole.COORDINATOR, UserRole.COUNSELOR, "instructor",
+    UserRole.INSTRUCTOR, "instructor",
   ];
   if (!GRANTABLE_ROLES.includes(grantee.role)) {
     return NextResponse.json({ error: `Role '${grantee.role}' cannot receive access grants` }, { status: 400 });

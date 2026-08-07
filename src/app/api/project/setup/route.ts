@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
   if (projectConfig.courseAssigned && !projectConfig.projectEnabled) {
     return NextResponse.json(
       {
-        error: `Projects are not enabled for your course "${projectConfig.courseName ?? ""}". Please contact your teacher or course coordinator.`,
+        error: `Projects are not enabled for your course "${projectConfig.courseName ?? ""}". Please contact your instructor or org admin.`,
       },
       { status: 403 }
     );

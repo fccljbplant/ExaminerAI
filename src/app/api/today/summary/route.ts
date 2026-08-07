@@ -69,7 +69,7 @@ export async function GET() {
       where: {
         toId: user.id,
         isRead: false,
-        from: { role: { in: ["instructor", "coordinator", "institution_admin", "platform_admin"] } },
+        from: { role: { in: ["instructor", "org_admin", "platform_admin", "coordinator", "institution_admin", "principal", "administrator", "admin"] } },
       },
       orderBy: { sentAt: "desc" },
       select: {

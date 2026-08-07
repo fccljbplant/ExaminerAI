@@ -5,6 +5,7 @@ import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
+import { normalizeRole, UserRole } from "@/lib/rbac";
 
 /** POST /api/students/[id]/rehearse — practice a hard conversation
  *  against an AI playing a plausible version of the student.
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (payload.role === "student") return NextResponse.json({ error: "Staff only" }, { status: 403 });
+  if (normalizeRole(payload.role) === UserRole.LEARNER) return NextResponse.json({ error: "Staff only" }, { status: 403 });
 
   const { id } = await params;
   try { await assertCanAccessStudent(payload, id); } catch (err: any) {

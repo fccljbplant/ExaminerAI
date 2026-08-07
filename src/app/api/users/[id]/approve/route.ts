@@ -5,7 +5,7 @@ import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
-/** PUT /api/users/[id]/approve — approve a pending user. Teacher/admin only.
+/** PUT /api/users/[id]/approve — approve a pending-status user. Instructor/admin only.
  *  Demo is read-only and deliberately excluded from this list. */
 export async function PUT(
   req: NextRequest,
@@ -14,16 +14,19 @@ export async function PUT(
   const _demoBlock = await demoWriteBlock("approving users"); if (_demoBlock) return _demoBlock;
   const auth = await requireRole([
     UserRole.INSTRUCTOR,
-    UserRole.PRINCIPAL, UserRole.ADMINISTRATOR]);
+    UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN]);
   if (!auth.ok) return auth.response;
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const { courseId } = body as { courseId?: string };
 
-  const target = await db.user.findUnique({ where: { id }, select: { role: true, name: true, email: true } });
+  const target = await db.user.findUnique({ where: { id }, select: { role: true, name: true, email: true, status: true } });
   if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
-  if (target.role !== "pending") {
+  // `pending` is now a User.status, not a role. Treat legacy role="pending"
+  // rows the same as status="pending". Approval promotes the user to learner.
+  const isPending = target.status === "pending" || target.role === "pending";
+  if (!isPending) {
     return NextResponse.json({ error: `Cannot approve: user is already ${target.role}` }, { status: 400 });
   }
 
@@ -55,10 +58,10 @@ export async function PUT(
     }
   }
 
-  // Update user role
+  // Update user role to learner + status to active
   const user = await db.user.update({
     where: { id },
-    data: { role: "student", approvedAt: new Date() },
+    data: { role: "learner", status: "active", approvedAt: new Date() },
   });
 
   // Create CourseEnrollment
@@ -76,7 +79,7 @@ export async function PUT(
     actor: { id: auth.ctx.payload.sub, name: auth.ctx.payload.name, role: auth.ctx.payload.role },
     action: AuditAction.USER_APPROVED, target: { type: "user", id },
     before: { role: "pending", name: target.name, email: target.email },
-    after: { role: "student", name: target.name, email: target.email }, req,
+    after: { role: "learner", name: target.name, email: target.email }, req,
   });
 
   return NextResponse.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role } });

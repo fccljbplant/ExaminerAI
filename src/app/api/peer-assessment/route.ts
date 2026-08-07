@@ -56,8 +56,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ assessments, summary });
   }
 
-  // Teacher viewing all peer assessments for a task
-  const isStaff = ["instructor", "coordinator", "counselor", "principal", "administrator", "demo", "admin"].includes(user.role);
+  // Instructor / admin viewing all peer assessments for a task
+  const isStaff = ["instructor", "org_admin", "platform_admin", "demo", "coordinator", "principal", "administrator", "admin"].includes(user.role);
   if (isStaff && groupTaskId) {
     const assessments = await db.peerAssessment.findMany({
       where: { groupTaskId },

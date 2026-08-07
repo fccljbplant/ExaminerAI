@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getCourseInfo } from "@/lib/course-config";
-import { db } from "@/lib/db";
 import { normalizeRole } from "@/lib/rbac";
 
 /** GET /api/auth/me — return the currently logged-in user's public profile.
  *
- *  For guardians, also returns `linkedStudentId` — the ID of the student
- *  they're linked to (via GuardianLink). The student dashboard uses this
- *  to load the linked student's data in read-only mode.
+ *  Post-purge 2026-08: guardian role was removed (orphaned). The
+ *  `linkedStudentId` field is kept in the response shape for backward compat
+ *  with any frontend code that still reads it, but always returns null now.
  */
 export async function GET() {
   const user = await getCurrentUser();
@@ -16,22 +15,13 @@ export async function GET() {
     return NextResponse.json({ user: null }, { status: 200 });
   }
 
-  // Normalize the role — legacy aliases like 'admin' → 'administrator'
-  // are normalized so the frontend always sees canonical roles.
+  // Normalize the role — legacy aliases like 'admin' → 'platform_admin',
+  // 'student' → 'learner' are normalized so the frontend always sees
+  // canonical roles.
   const canonicalRole = normalizeRole(user.role) || user.role;
 
-  // Load course info (courseId + courseName from the user's batch)
+  // Load course info (courseId + courseName from the user's enrollment)
   const courseInfo = await getCourseInfo(user.id);
-
-  // Guardians — load their linked student (first one if multiple)
-  let linkedStudentId: string | null = null;
-  if (canonicalRole === "guardian") {
-    const link = await db.guardianLink.findFirst({
-      where: { guardianId: user.id },
-      select: { studentId: true },
-    });
-    linkedStudentId = link?.studentId ?? null;
-  }
 
   return NextResponse.json({
     user: {
@@ -46,10 +36,9 @@ export async function GET() {
       hasSecurityQuestion: !!user.securityQuestion,
       courseId: courseInfo.courseId,
       courseName: courseInfo.courseName,
-      // C5 fix (audit 2026-07-26): expose batchId so the instructor AssignmentsTab
-      // can pass it to POST /api/group-tasks (which requires batchId). Without
-      // this, teachers could never create assignments (the API returned 400).
-      linkedStudentId,
+      // Post-purge: guardian role removed — linkedStudentId kept for shape
+      // compat with existing frontend code that reads it.
+      linkedStudentId: null,
     },
   });
 }
