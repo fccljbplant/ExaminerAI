@@ -12,6 +12,7 @@ import { fetchMarketplaceCourseDetail, MARKETPLACE_CATEGORIES, MARKETPLACE_LEVEL
 import EnrollButton from "../EnrollButton";
 import CheckoutButton from "./CheckoutButton";
 import ReviewSection from "../ReviewSection";
+import CourseProgressPreview from "./CourseProgressPreview";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -374,6 +375,9 @@ export default async function CourseDetailPage({ params }: Params) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Per-student progress — only renders for enrolled students */}
+          <CourseProgressPreview courseId={course.id} />
         </aside>
       </main>
 

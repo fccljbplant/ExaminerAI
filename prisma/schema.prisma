@@ -111,6 +111,11 @@ model Course {
 
   institutionId String?
 
+  // Marketplace revenue tracking — aggregates of all Payment rows for this
+  // course. Updated on every successful payment.
+  instructorEarnings Float @default(0)  // total earnings paid out to instructors (80% share)
+  platformFee       Float @default(0)  // platform's 20% cut
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -131,6 +136,7 @@ model Course {
   dailyTests         DailyTest[]
   curriculumProgress CurriculumProgress[]
   learningPathCourses LearningPathCourse[]
+  payments           Payment[]
 }
 
 /// Course reviews — students rate courses after completion.
@@ -319,6 +325,7 @@ model User {
   courseReviews           CourseReview[]
   reviewVotes             CourseReviewHelpfulVote[]
   notifications           Notification[]
+  payments                Payment[]
 }
 
 // Admin-reset workflow: student requests a reset, admin approves + sets temp password
@@ -972,5 +979,29 @@ model Notification {
 
   @@index([userId, read])
   @@index([userId, createdAt])
+}
+
+// ============================================================
+// Payments — every successful marketplace purchase creates a row here.
+// Revenue split: platformFee (20%) + instructorShare (80%) = amount.
+// Course.instructorEarnings / Course.platformFee are running totals
+// derived from this table (incremented on each successful payment).
+// ============================================================
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String   // student who paid
+  courseId        String
+  amount          Float
+  currency        String   @default("USD")
+  platformFee     Float    // 20% of amount
+  instructorShare Float    // 80% of amount
+  status          String   @default("completed") // completed, refunded, pending
+  createdAt       DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([userId])
 }
 

@@ -8,7 +8,9 @@
  *   1. **My Enrolled Courses** — pulled from /api/enrollments. Each card shows
  *      progress %, current week/day, avg score, status (In Progress / Completed),
  *      and a "Continue Learning" button that switches back to the home dashboard
- *      so the student can resume today's action.
+ *      so the student can resume today's action. Each card also fetches its own
+ *      detailed progress from /api/student/course-progress to show an accurate
+ *      week-by-week completion bar.
  *
  *   2. **Explore New Courses** — pulled from /api/marketplace/courses (only
  *      published). Each card shows price (or "Free" badge), rating, enrollment
@@ -23,7 +25,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { api } from "@/lib/api-client";
+import { api, ApiError } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -191,10 +193,51 @@ function EnrolledCourseCard({
   enrollment: EnrollmentResponse["enrollments"][0];
   onContinue: () => void;
 }) {
-  const pct = enrollment.totalWeeks > 0
-    ? Math.round((enrollment.currentWeek / enrollment.totalWeeks) * 100)
-    : 0;
-  const isCompleted = enrollment.totalWeeks > 0 && enrollment.currentWeek >= enrollment.totalWeeks;
+  // Fetch accurate progress from /api/student/course-progress.
+  // Falls back to the enrollment-summary values on error (e.g. 403 when the
+  // student isn't enrolled for that course in the new course-progress query).
+  const [progress, setProgress] = useState<{
+    completionPercent: number;
+    completedWeeks: number;
+    totalWeeks: number;
+    avgScore: number;
+    hasCertificate: boolean;
+    certificateEligible: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<{
+        completionPercent: number;
+        completedWeeks: number;
+        totalWeeks: number;
+        avgScore: number;
+        hasCertificate: boolean;
+        certificateEligible: boolean;
+      }>(`/api/student/course-progress?courseId=${encodeURIComponent(enrollment.courseId)}`)
+      .then((res) => {
+        if (!cancelled) setProgress(res);
+      })
+      .catch((err: unknown) => {
+        // 401 / 403 → just fall back to the enrollment summary below.
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) return;
+        // Other errors: silent fallback — the card still renders with summary data.
+      });
+    return () => { cancelled = true; };
+  }, [enrollment.courseId]);
+
+  // Use accurate progress when available, fall back to enrollment summary.
+  const completedWeeks = progress?.completedWeeks ?? enrollment.currentWeek;
+  const totalWeeks = progress?.totalWeeks ?? enrollment.totalWeeks;
+  const pct = progress?.completionPercent
+    ?? (enrollment.totalWeeks > 0
+      ? Math.round((enrollment.currentWeek / enrollment.totalWeeks) * 100)
+      : 0);
+  const avgScore = progress?.avgScore ?? enrollment.avgScore ?? 0;
+  const isCompleted = totalWeeks > 0 && completedWeeks >= totalWeeks;
+  const hasCertificate = progress?.hasCertificate ?? false;
+  const certificateEligible = progress?.certificateEligible ?? false;
 
   // Gradient fallback thumbnail — deterministic per course name so different
   // courses get different (but stable) colors.
@@ -208,7 +251,11 @@ function EnrolledCourseCard({
           <BookOpen className="h-8 w-8 text-white/40" />
         </div>
         <div className="absolute top-2 right-2">
-          {isCompleted ? (
+          {hasCertificate ? (
+            <Badge className="bg-amber-500 text-white border-transparent text-[10px] gap-1">
+              <Trophy className="h-3 w-3" /> Certified
+            </Badge>
+          ) : isCompleted ? (
             <Badge className="bg-emerald-600 text-white border-transparent text-[10px] gap-1">
               <CheckCircle2 className="h-3 w-3" /> Completed
             </Badge>
@@ -226,22 +273,27 @@ function EnrolledCourseCard({
             {enrollment.courseName}
           </h4>
           <p className="text-[10px] text-muted-foreground mt-0.5">
-            Week {enrollment.currentWeek} of {enrollment.totalWeeks} · Day {enrollment.currentDay}
+            {completedWeeks} of {totalWeeks} weeks completed · Day {enrollment.currentDay}
           </p>
         </div>
 
-        {/* Progress */}
+        {/* Progress — accurate week-by-week completion percentage */}
         <div className="space-y-1">
           <div className="flex justify-between text-[10px] text-muted-foreground">
             <span>Progress</span>
             <span className="font-medium text-foreground">{Math.min(pct, 100)}%</span>
           </div>
           <Progress value={Math.min(pct, 100)} className="h-1.5" />
+          {certificateEligible && !hasCertificate && (
+            <p className="text-[10px] text-primary font-medium mt-0.5">
+              Certificate eligible — claim it on the Credentials tab
+            </p>
+          )}
         </div>
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-1.5 text-center">
-          <Stat label="Avg" value={enrollment.avgScore !== null ? `${enrollment.avgScore}%` : "—"} />
+          <Stat label="Avg" value={avgScore > 0 ? `${avgScore}%` : "—"} />
           <Stat label="Latest" value={enrollment.latestScore !== null ? `${enrollment.latestScore}%` : "—"} />
           <Stat label="Tasks" value={`${enrollment.progress}%`} />
         </div>
@@ -251,7 +303,7 @@ function EnrolledCourseCard({
           onClick={onContinue}
           className="bg-primary hover:bg-primary/90 text-primary-foreground w-full mt-auto"
         >
-          {isCompleted ? "Review Course" : "Continue Learning"} <ArrowRight className="h-3 w-3 ml-1" />
+          {hasCertificate ? "Review Course" : isCompleted ? "Review Course" : "Continue Learning"} <ArrowRight className="h-3 w-3 ml-1" />
         </Button>
       </CardContent>
     </Card>

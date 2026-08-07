@@ -11,6 +11,7 @@ import { ProminentTabs } from "@/components/shared/prominent-tabs";
 import {
   CalendarDays, Users, ClipboardList, BarChart3,
   Loader2, RefreshCw, AlertTriangle, Sparkles, Activity,
+  Wallet,
 } from "lucide-react";
 import type { StudentRow } from "@/components/examiner/instructor/types";
 import { TodayView } from "@/components/examiner/instructor/TodayView";
@@ -20,8 +21,9 @@ import { InsightsView } from "@/components/examiner/instructor/InsightsView";
 import { CohortAnalyticsView } from "@/components/examiner/instructor/CohortAnalyticsView";
 import { StudentPortfolioPage } from "@/components/examiner/instructor/StudentPortfolioPage";
 import { AIAssistantBox } from "@/components/examiner/instructor/ai/AIAssistantBox";
+import EarningsDashboard from "@/components/examiner/instructor/EarningsDashboard";
 
-export type InstructorTab = "today" | "students" | "assignments" | "insights" | "analytics";
+export type InstructorTab = "today" | "students" | "assignments" | "insights" | "analytics" | "earnings";
 
 interface TeacherStats {
   totalStudents: number;
@@ -168,6 +170,7 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
     { key: "assignments", label: "Assignments", icon: ClipboardList },
     { key: "insights", label: "Insights", icon: BarChart3 },
     { key: "analytics", label: "Analytics", icon: BarChart3 },
+    { key: "earnings", label: "Earnings", icon: Wallet },
   ];
 
   return (
@@ -269,6 +272,8 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
           onMessageStudent={() => setTab("students")}
         />
       )}
+
+      {tab === "earnings" && <EarningsDashboard />}
     </div>
   );
 }

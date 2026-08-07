@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,10 +11,11 @@ import {
   Award, ShieldCheck, ExternalLink, Download, Sparkles, Loader2, Star,
   Code2, GitBranch, Rocket, TrendingUp, TrendingDown, Minus, Trophy,
   CheckCircle2, Target, Calendar, GraduationCap, Users,
-  ExternalLink as ExtLink,
+  ExternalLink as ExtLink, Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { gradeColor } from "@/lib/constants";
+import { toast } from "sonner";
 
 // ============================================================
 // Types — mirror the /api/student/credentials response shape
@@ -79,6 +80,31 @@ interface CredentialsResponse {
 }
 
 // ============================================================
+// Enrollment type — mirrors /api/enrollments response shape
+// ============================================================
+interface Enrollment {
+  courseId: string;
+  courseName: string;
+  totalWeeks: number;
+  currentWeek: number;
+  avgScore: number | null;
+}
+
+// ============================================================
+// Check-completion response — mirrors /api/student/check-completion
+// ============================================================
+interface CheckCompletionResponse {
+  eligible: boolean;
+  hasCertificate: boolean;
+  certificate: Certificate | null;
+  avgScore: number;
+  weeksCompleted: number;
+  totalWeeks: number;
+  capstonePassed: boolean;
+  justIssued: boolean;
+}
+
+// ============================================================
 // Milestone type metadata — icon + label per milestone type
 // ============================================================
 const MILESTONE_META: Record<string, { icon: typeof Trophy; label: string; color: string }> = {
@@ -103,15 +129,38 @@ const MASTERY_META: Record<string, { label: string; pct: number; color: string }
 // ============================================================
 export function CredentialsView() {
   const [data, setData] = useState<CredentialsResponse | null>(null);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    api
-      .get<CredentialsResponse>("/api/student/credentials")
-      .then(setData)
+  const load = useCallback(() => {
+    setLoading(true);
+    Promise.all([
+      api.get<CredentialsResponse>("/api/student/credentials"),
+      api.get<{ enrollments: Enrollment[] }>("/api/enrollments").catch(() => ({ enrollments: [] as Enrollment[] })),
+    ])
+      .then(([creds, enr]) => {
+        setData(creds);
+        setEnrollments(enr.enrollments || []);
+      })
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load credentials"))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  // When a new certificate is claimed, prepend it to the data.certificates
+  // list and refresh the credentials fetch from the server so the verify URL
+  // + skills verified are accurate.
+  const handleCertificateIssued = useCallback((courseId: string) => {
+    // Refresh credentials from the server to pick up the new certificate
+    // (and any milestones/notifications that came with it).
+    api.get<CredentialsResponse>("/api/student/credentials")
+      .then(setData)
+      .catch(() => {});
+    toast.success("Certificate issued!", {
+      description: "Your verified credential is now ready to share.",
+    });
   }, []);
 
   if (loading) {
@@ -140,7 +189,13 @@ export function CredentialsView() {
   const hasMastery = data.skillMastery.length > 0;
   const hasCapstone = Boolean(data.capstone.projectName);
 
-  if (!hasCertificates && !hasMilestones && !hasMastery && !hasCapstone) {
+  // Courses the student is enrolled in but hasn't yet earned a certificate for.
+  const certCourseIds = new Set(data.certificates.map(c => c.course?.id).filter(Boolean) as string[]);
+  const inProgressCourses = enrollments.filter(e => !certCourseIds.has(e.courseId));
+
+  const showEmptyState = !hasCertificates && !hasMilestones && !hasMastery && !hasCapstone && inProgressCourses.length === 0;
+
+  if (showEmptyState) {
     return (
       <Card className="border-border">
         <CardContent className="p-8 text-center space-y-2">
@@ -159,6 +214,24 @@ export function CredentialsView() {
 
   return (
     <div className="space-y-6">
+      {/* In-progress courses (no certificate yet) — "Claim your certificate" CTAs */}
+      {inProgressCourses.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <GraduationCap className="h-5 w-5 text-primary" /> In progress
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {inProgressCourses.map((enr) => (
+              <ClaimCertificateCard
+                key={enr.courseId}
+                enrollment={enr}
+                onIssued={() => handleCertificateIssued(enr.courseId)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Earned certificates */}
       {hasCertificates && (
         <section className="space-y-3">
@@ -390,6 +463,133 @@ function CapstoneCard({ capstone }: { capstone: CapstoneInfo }) {
             </Button>
           )}
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================================
+// ClaimCertificateCard — for an enrolled course without a certificate yet.
+// Shows progress + avg score + "Claim Your Certificate" CTA.
+// On click → /api/student/check-completion (which auto-issues if eligible).
+// ============================================================
+function ClaimCertificateCard({
+  enrollment,
+  onIssued,
+}: {
+  enrollment: Enrollment;
+  onIssued: () => void;
+}) {
+  const [checking, setChecking] = useState(false);
+  const [result, setResult] = useState<CheckCompletionResponse | null>(null);
+
+  const handleCheck = async () => {
+    setChecking(true);
+    try {
+      const res = await api.get<CheckCompletionResponse>(
+        `/api/student/check-completion?courseId=${encodeURIComponent(enrollment.courseId)}`,
+      );
+      setResult(res);
+      if (res.justIssued) {
+        onIssued();
+      } else if (res.hasCertificate) {
+        // Already had a cert that wasn't in our list — refresh.
+        onIssued();
+      } else if (!res.eligible) {
+        toast.info("Not eligible yet", {
+          description: `Complete all ${res.totalWeeks} weeks with a 75+ average to earn your certificate.`,
+        });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to check completion");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  // Once we have a server result, use those numbers (more accurate).
+  const displayWeeksCompleted = result?.weeksCompleted ?? enrollment.currentWeek;
+  const displayTotalWeeks = result?.totalWeeks ?? enrollment.totalWeeks;
+  const displayAvg = result?.avgScore ?? enrollment.avgScore ?? 0;
+  const eligible = result?.eligible ?? false;
+  const pct = displayTotalWeeks > 0
+    ? Math.min(100, Math.round((displayWeeksCompleted / displayTotalWeeks) * 100))
+    : 0;
+
+  return (
+    <Card className="border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <GraduationCap className="h-4 w-4 text-primary flex-shrink-0" />
+          <span className="truncate">{enrollment.courseName}</span>
+        </CardTitle>
+        <CardDescription>
+          {displayWeeksCompleted} of {displayTotalWeeks} weeks completed
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Progress bar */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-[10px] text-muted-foreground">
+            <span>Progress</span>
+            <span className="font-medium text-foreground">{pct}%</span>
+          </div>
+          <Progress value={pct} className="h-1.5" />
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <div className="rounded-lg bg-muted/50 p-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Avg score</p>
+            <p className="text-xl font-bold text-foreground">
+              {displayAvg > 0 ? `${displayAvg}/100` : "—"}
+            </p>
+          </div>
+          <div className="rounded-lg bg-muted/50 p-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Weeks</p>
+            <p className="text-xl font-bold text-foreground">
+              {displayWeeksCompleted}/{displayTotalWeeks}
+            </p>
+          </div>
+        </div>
+
+        {/* Status / CTA */}
+        {eligible ? (
+          <Button
+            size="sm"
+            className="w-full bg-primary hover:bg-primary/90"
+            onClick={handleCheck}
+            disabled={checking}
+          >
+            {checking ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Award className="h-3.5 w-3.5" />
+            )}
+            Claim Your Certificate
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full"
+              onClick={handleCheck}
+              disabled={checking}
+            >
+              {checking ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-3.5 w-3.5" />
+              )}
+              Check Eligibility
+            </Button>
+            <p className="text-[11px] text-muted-foreground text-center flex items-center justify-center gap-1">
+              <Lock className="h-3 w-3" />
+              Complete all weeks with a 75+ average to earn your certificate
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

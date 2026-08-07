@@ -12,6 +12,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 import { fallbackGrade, parseQuestionExplanations, type TeachingFeedback, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { issueCertificate } from "@/lib/certificate";
 
 /**
  * POST /api/ai/weekly-test
@@ -551,6 +552,29 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
           },
         }).catch(() => {/* Non-blocking — best-effort logging */});
 
+        // === Phase 6: Certificate pipeline (fire-and-forget) ===
+        // After a weekly test is marked completed, kick off the auto-issuance
+        // check. If this was the final week and the student meets the score
+        // threshold, a verified credential is issued + a notification fired.
+        // Non-blocking — never makes the test response wait on it.
+        void (async () => {
+          try {
+            const enrollment = await db.courseEnrollment.findFirst({
+              where: { userId: user.id, role: "student" },
+              select: { courseId: true },
+            });
+            if (enrollment?.courseId) {
+              await issueCertificate(user.id, enrollment.courseId);
+            }
+          } catch (err) {
+            logger.warn("Auto-issue certificate after weekly test failed", {
+              userId: user.id,
+              week,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        })();
+
         return NextResponse.json({
           conversation, currentQuestion: test.currentQuestion, replyCount: newReplyCount,
           totalQuestions: TOTAL_QUESTIONS, maxReplies: MAX_MESSAGES_PER_QUESTION,
@@ -641,6 +665,26 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
     });
     // Phase Three-Tab Redesign: run analysis pipeline after early-finish too
     // Uses the FINAL (post-deduction) score.
+
+    // === Phase 6: Certificate pipeline (fire-and-forget) — early-finish path ===
+    void (async () => {
+      try {
+        const enrollment = await db.courseEnrollment.findFirst({
+          where: { userId: user.id, role: "student" },
+          select: { courseId: true },
+        });
+        if (enrollment?.courseId) {
+          await issueCertificate(user.id, enrollment.courseId);
+        }
+      } catch (err) {
+        logger.warn("Auto-issue certificate after early-finish failed", {
+          userId: user.id,
+          week,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    })();
+
     return NextResponse.json({
       conversation, isComplete: true, ...analysis,
       score: plagiarismResult.finalScore, // DEDUCTED score
