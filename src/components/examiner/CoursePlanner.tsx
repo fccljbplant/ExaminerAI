@@ -56,14 +56,19 @@ type View = "list" | "generate" | "detail";
 // Marketplace category options — mirror of MARKETPLACE_CATEGORIES from
 // src/lib/marketplace.ts. Inlined here (rather than imported) because the
 // marketplace lib pulls in Prisma (`db`) and cannot run in the browser.
+//
+// Domain-agnostic — covers all professional training domains, not just IT.
 const COURSE_MARKETPLACE_CATEGORIES: { value: string; label: string }[] = [
-  { value: "web-dev", label: "Web Development" },
-  { value: "cloud", label: "Cloud & DevOps" },
-  { value: "data", label: "Data & AI" },
-  { value: "mobile", label: "Mobile" },
-  { value: "security", label: "Security" },
-  { value: "soft-skills", label: "Soft Skills" },
-  { value: "technology", label: "Technology" },
+  { value: "technology", label: "Technology & Software" },
+  { value: "engineering", label: "Engineering" },
+  { value: "business", label: "Business & Management" },
+  { value: "finance", label: "Finance & Accounting" },
+  { value: "healthcare", label: "Healthcare & Safety" },
+  { value: "manufacturing", label: "Manufacturing & Operations" },
+  { value: "hr", label: "Human Resources" },
+  { value: "compliance", label: "Compliance & Regulatory" },
+  { value: "soft-skills", label: "Professional Skills" },
+  { value: "other", label: "Other" },
 ];
 
 export default function CoursePlanner() {

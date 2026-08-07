@@ -7,7 +7,7 @@ import { QuickAction } from "@/components/examiner/admin/QuickAction";
 import { FeaturesPanel } from "@/components/examiner/admin/FeaturesPanel";
 import { AdminCoordinatorTab } from "@/components/examiner/admin/AdminCoordinatorTab";
 import { AdminPMTab } from "@/components/examiner/admin/AdminPMTab";
-import { AdminCoursesPanel } from "@/components/examiner/admin/AdminCoursesPanel";
+import { CourseManagementPanel } from "@/components/examiner/admin/CourseManagementPanel";
 import { SystemPanel } from "@/components/examiner/admin/SystemPanel";
 import { hasAdminRole, hasPrincipalRole } from "@/lib/client-rbac";
 import { AILimitsPanel } from "@/components/examiner/admin/AILimitsPanel";
@@ -282,9 +282,10 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       {/* Phase 8: PM tab — operations + delivery */}
       {view === "pm" && <AdminPMTab users={users} students={students} pending={pending} />}
 
-      {/* Courses tab — Phase fix: admin can now see + manage courses directly
-          from the admin panel without navigating to the separate Course Planner */}
-      {view === "courses" && <AdminCoursesPanel />}
+      {/* Courses tab — replaced with the new CourseManagementPanel which
+          gives admins full control over publishing, featuring, and viewing
+          marketplace + enrollment stats for every course in the catalogue. */}
+      {view === "courses" && <CourseManagementPanel />}
 
       {/* Users tab */}
       {view === "users" && (

@@ -20,11 +20,19 @@ import { getAuthUser } from "./auth";
 
 const DEMO_EMAIL = "demo@examiner.ai";
 
-/** Returns true if the current authenticated user is the demo account. */
+/** Returns true if the current authenticated user is a demo account.
+ *
+ *  Two flavors of demo accounts are blocked:
+ *  1. The legacy "demo@examiner.ai" superuser (read-only across the whole app).
+ *  2. The role-preview demo accounts created by the Login page
+ *     (`student@demo.ai`, `instructor@demo.ai`, `coordinator@demo.ai`,
+ *     `principal@demo.ai`, etc.) — any email ending in `@demo.ai`.
+ */
 export async function isDemoUser(): Promise<boolean> {
   const payload = await getAuthUser();
   if (!payload) return false;
-  return payload.email === DEMO_EMAIL;
+  if (payload.email === DEMO_EMAIL) return true;
+  return payload.email.toLowerCase().endsWith("@demo.ai");
 }
 
 /**

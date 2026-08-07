@@ -3,15 +3,21 @@ import { db } from "@/lib/db";
 /**
  * Marketplace filter options — shared between the public API route and the
  * server-rendered marketplace pages so both stay in sync.
+ *
+ * Domain-agnostic — TraineesAI serves ALL professional training (engineering,
+ * HR, manufacturing, healthcare, finance, etc.), not just IT.
  */
 export const MARKETPLACE_CATEGORIES = [
-  { value: "web-dev", label: "Web Development" },
-  { value: "cloud", label: "Cloud & DevOps" },
-  { value: "data", label: "Data & AI" },
-  { value: "mobile", label: "Mobile" },
-  { value: "security", label: "Security" },
-  { value: "soft-skills", label: "Soft Skills" },
-  { value: "technology", label: "Technology" },
+  { value: "technology", label: "Technology & Software" },
+  { value: "engineering", label: "Engineering" },
+  { value: "business", label: "Business & Management" },
+  { value: "finance", label: "Finance & Accounting" },
+  { value: "healthcare", label: "Healthcare & Safety" },
+  { value: "manufacturing", label: "Manufacturing & Operations" },
+  { value: "hr", label: "Human Resources" },
+  { value: "compliance", label: "Compliance & Regulatory" },
+  { value: "soft-skills", label: "Professional Skills" },
+  { value: "other", label: "Other" },
 ] as const;
 
 export const MARKETPLACE_LEVELS = [

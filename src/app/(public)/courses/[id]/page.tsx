@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   Star, Users, Clock, Award, BookOpen, CheckCircle2, Sparkles,
-  GraduationCap, Globe, ArrowRight, ShieldCheck, Code2,
+  GraduationCap, Globe, ShieldCheck, Code2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMarketplaceCourseDetail, MARKETPLACE_CATEGORIES, MARKETPLACE_LEVELS } from "@/lib/marketplace";
+import EnrollButton from "../EnrollButton";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -100,11 +101,7 @@ export default async function CourseDetailPage({ params }: Params) {
 
             {/* CTA + price */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Button asChild size="lg">
-                <Link href="/app">
-                  {isFree ? "Start free" : "Enroll now"} <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+              <EnrollButton courseId={course.id} />
               <span className="text-2xl font-bold">
                 {isFree ? (
                   <span className="text-emerald-500">Free</span>
@@ -281,9 +278,9 @@ export default async function CourseDetailPage({ params }: Params) {
                 <li>Add-to-LinkedIn button</li>
                 <li>Distinct grade if score ≥ 85</li>
               </ul>
-              <Button asChild size="sm" className="w-full mt-3">
-                <Link href="/app">{isFree ? "Start free" : "Enroll now"}</Link>
-              </Button>
+              <div className="mt-3">
+                <EnrollButton courseId={course.id} />
+              </div>
             </CardContent>
           </Card>
         </aside>
