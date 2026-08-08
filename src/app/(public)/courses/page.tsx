@@ -13,6 +13,11 @@ import {
   MARKETPLACE_CATEGORIES,
   MARKETPLACE_LEVELS,
 } from "@/lib/marketplace";
+
+// Force dynamic rendering — this page queries Prisma at request time.
+// Without this, Next.js tries to statically prerender the page during
+// the build, which exhausts the DB connection pool on Vercel.
+export const dynamic = "force-dynamic";
 import { formatPrice } from "@/lib/format";
 import { MarketplaceFilters } from "./MarketplaceFilters";
 import { VisitedCoursesTracker } from "./VisitedCoursesTracker";

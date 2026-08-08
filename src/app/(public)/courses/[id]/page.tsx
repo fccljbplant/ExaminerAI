@@ -107,6 +107,11 @@ function buildCourseJsonLd(course: NonNullable<Awaited<ReturnType<typeof fetchMa
   };
 }
 
+// Force dynamic rendering — this page queries Prisma at request time.
+// Without this, Next.js tries to statically prerender the page during
+// the build, which exhausts the DB connection pool on Vercel.
+export const dynamic = "force-dynamic";
+
 export default async function CourseDetailPage({ params }: Params) {
   const { id } = await params;
   const course = await fetchMarketplaceCourseDetail(id);

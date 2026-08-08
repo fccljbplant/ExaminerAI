@@ -7,6 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { fetchMarketplacePaths } from "@/lib/marketplace";
 import { formatPrice } from "@/lib/format";
 
+// Force dynamic rendering — this page queries Prisma at request time.
+// Without this, Next.js tries to statically prerender the page during
+// the build, which exhausts the DB connection pool on Vercel.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Learning Paths — TraineesAI",
   description: "Browse professional learning paths — role-based curriculum bundles that take you from beginner to job-ready.",
