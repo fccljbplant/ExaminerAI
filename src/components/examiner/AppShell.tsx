@@ -111,8 +111,13 @@ const ALL_NAV: NavItem[] = [
   // Now its own nav entry so mentors can find it.
   { key: "instructor-certificates", label: "Certificates", icon: Award, roles: ["instructor"] },
 
-  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "org_admin"] },
-  { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "org_admin"] },
+  // Org admin extras — Course Planner + shared Students roster.
+  // NOTE: "instructor-students" is already registered for instructors above
+  // (line 107). Adding it here with roles ["instructor", "org_admin"] caused
+  // a DUPLICATE "Students" entry in the instructor sidebar. Now scoped to
+  // org_admin only — instructors get it from the block above.
+  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["org_admin"] },
+  { key: "instructor-students", label: "Students", icon: Users, roles: ["org_admin"] },
 
   // Employer / B2B dashboard — for company managers sponsoring trainees.
   // Visible to org_admin + platform_admin.
@@ -402,7 +407,11 @@ export default function AppShell() {
       if (!activeEnrollment?.projectEnabled) return false;
     }
     return true;
-  });
+  // Dedupe by key — if the same nav key appears twice (e.g. "instructor-students"
+  // registered for both instructor and org_admin), only keep the first match.
+  // This prevents duplicate sidebar entries when a role matches multiple
+  // registrations of the same key.
+  }).filter((n, i, arr) => arr.findIndex(x => x.key === n.key) === i);
   const currentNav = visibleNav.find((n) => n.key === view) ?? visibleNav[0];
 
   const renderView = () => {
