@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getLearnerXP } from "@/lib/learner-xp";
+import { getLearnerXP } from "@/modules/gamification";
 
 /**
  * GET /api/learner/xp — the learner's current XP, level, and progress.

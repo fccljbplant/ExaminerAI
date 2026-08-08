@@ -17,8 +17,8 @@ import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel
 import { PasswordResetPanel } from "@/components/examiner/admin/PasswordResetPanel";
 import { RoleNavConfigPanel } from "@/components/examiner/admin/RoleNavConfigPanel";
 import { MaintenancePanel } from "@/components/examiner/admin/MaintenancePanel";
-import { B2BPanel } from "@/components/examiner/admin/B2BPanel";
-import { B2CPanel } from "@/components/examiner/admin/B2CPanel";
+import { B2BPanel } from "@/modules/b2b";
+import { B2CPanel } from "@/modules/b2c";
 import { LayoutDashboard } from "@/components/examiner/admin/LayoutDashboard";
 import { DashboardHeader } from "@/components/shared/dashboard-shell";
 import { SkeletonPanel } from "@/components/ui/states";

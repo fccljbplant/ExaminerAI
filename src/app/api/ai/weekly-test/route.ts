@@ -14,8 +14,7 @@ import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { issueCertificate } from "@/lib/certificate";
 import { TEST_QUESTION_COUNT } from "@/lib/constants";
-import { awardXP } from "@/lib/learner-xp";
-import { awardBadge } from "@/lib/learner-badges";
+import { awardXP, awardBadge } from "@/modules/gamification";
 
 /**
  * POST /api/ai/weekly-test

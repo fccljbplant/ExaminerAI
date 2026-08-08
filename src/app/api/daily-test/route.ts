@@ -16,8 +16,7 @@ import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/uni
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { awardXP } from "@/lib/learner-xp";
-import { awardBadge } from "@/lib/learner-badges";
+import { awardXP, awardBadge } from "@/modules/gamification";
 
 /**
  * POST /api/daily-test

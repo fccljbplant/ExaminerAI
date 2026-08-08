@@ -32,7 +32,7 @@ import { DashboardHeader } from "@/components/shared/dashboard-shell";
 import { StatCard, StatStrip } from "@/components/shared/stat-card";
 import { SkeletonPanel, EmptyState } from "@/components/ui/states";
 import { COPY } from "@/content/copy";
-import { OrgCourseAssigner } from "@/components/examiner/admin/OrgCourseAssigner";
+import { OrgCourseAssigner } from "@/modules/b2b";
 
 interface Member {
   id: string;

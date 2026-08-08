@@ -7,7 +7,7 @@ import { ThemePresetProvider } from "@/modules/theme";
 import { CommandRegistryProvider } from "@/components/shared/command-registry";
 import { CommandPalette } from "@/components/shared/command-palette";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
-import { CelebrationOverlay } from "@/components/shared/celebration-overlay";
+import { CelebrationOverlay } from "@/modules/gamification";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

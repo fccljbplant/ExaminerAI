@@ -17,7 +17,7 @@ import {
 import OnboardingGuide from "./OnboardingGuide";
 import StreakCalendar from "./StreakCalendar";
 import DueTodayCard from "./DueTodayCard";
-import { LearnerXPBar } from "@/components/shared/learner-xp-bar";
+import { LearnerXPBar } from "@/modules/gamification";
 
 interface TodayData {
   traineeName: string;

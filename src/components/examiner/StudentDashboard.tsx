@@ -48,8 +48,8 @@ import TodayView from "@/components/examiner/student/TodayView";
 import { CredentialsView } from "@/components/examiner/student/CredentialsView";
 import { CollapsibleCard, CardRefreshButton } from "@/components/shared/collapsible-card";
 import MyCoursesView from "@/components/examiner/student/MyCoursesView";
-import { LearnerXPBar } from "@/components/shared/learner-xp-bar";
-import { LearnerBadgeCollection } from "@/components/shared/learner-badge-collection";
+import { LearnerXPBar } from "@/modules/gamification";
+import { LearnerBadgeCollection } from "@/modules/gamification";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   AreaChart, Area,

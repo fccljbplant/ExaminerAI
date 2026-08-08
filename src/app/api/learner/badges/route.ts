@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getLearnerBadges, getBadgeStats } from "@/lib/learner-badges";
-import { BADGES } from "@/lib/learner-badges";
+import { getLearnerBadges, getBadgeStats, BADGES } from "@/modules/gamification";
 
 /**
  * GET /api/learner/badges — the learner's earned badges + all available badges.

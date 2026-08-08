@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { Sparkles, TrendingUp } from "lucide-react";
-import type { Level } from "@/lib/learner-xp";
+import type { Level } from "../lib/learner-xp";
 
 interface LearnerXPData {
   total: number;
