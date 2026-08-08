@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     const isAdminRole = hasRole(payload.role, ADMIN_ROLES);
     let scopedStudentIds: string[] | null = null;
     if (!isAdminRole && role === "instructor") {
-      const enrollmentWhere: any = { userId: payload.sub, role: "instructor" };
+      const enrollmentWhere: { userId: string; role: string; courseId?: string } = { userId: payload.sub, role: "instructor" };
       if (courseIdFilter) {
         enrollmentWhere.courseId = courseIdFilter;
       }

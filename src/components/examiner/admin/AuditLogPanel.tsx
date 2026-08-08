@@ -49,13 +49,13 @@ export function AuditLogPanel() {
   const renderChange = (entry: any): React.ReactNode => {
     const before = entry.before; const after = entry.after;
     if (!before && !after) return <span className="text-muted-foreground">—</span>;
-    if (entry.action === "grade_changed" && (before as any)?.score !== undefined) {
+    if (entry.action === "grade_changed" && (before as { score?: number })?.score !== undefined) {
       return (
         <div className="text-xs">
           <span className="text-muted-foreground">Score: </span>
-          <span className="text-destructive line-through">{(before as any).score}%</span>
+          <span className="text-destructive line-through">{(before as { score?: number }).score}%</span>
           <span className="mx-1 text-muted-foreground">→</span>
-          <span className="text-growth-sage font-bold">{(after as any)?.score ?? "?"}%</span>
+          <span className="text-growth-sage font-bold">{(after as { score?: number })?.score ?? "?"}%</span>
         </div>
       );
     }
@@ -63,9 +63,9 @@ export function AuditLogPanel() {
       return (
         <div className="text-xs">
           <span className="text-muted-foreground">Role: </span>
-          <span className="text-destructive">{(before as any)?.role ?? "?"}</span>
+          <span className="text-destructive">{(before as { role?: string })?.role ?? "?"}</span>
           <span className="mx-1 text-muted-foreground">→</span>
-          <span className="text-growth-sage font-bold">{(after as any)?.role ?? "?"}</span>
+          <span className="text-growth-sage font-bold">{(after as { role?: string })?.role ?? "?"}</span>
         </div>
       );
     }

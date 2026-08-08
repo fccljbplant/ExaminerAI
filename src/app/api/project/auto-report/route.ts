@@ -155,7 +155,7 @@ Generate the weekly project report:`;
       userId: payload.sub,
     });
 
-    let parsed: { reportText: string; aiAnalysis: any };
+    let parsed: { reportText: string; aiAnalysis: Record<string, unknown> };
     try {
       const jsonMatch = result.text?.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text || "{}");

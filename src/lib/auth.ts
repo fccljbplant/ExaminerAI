@@ -229,7 +229,7 @@ export async function assertCanAccessStudent(
 
   // Admins can access any student
   const { ADMIN_ROLES } = await import("@/lib/rbac");
-  if (ADMIN_ROLES.includes(payload.role as any)) {
+  if ((ADMIN_ROLES as string[]).includes(payload.role)) {
     return true;
   }
 

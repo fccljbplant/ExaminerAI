@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
     // Reject
     if (reject) {
       const body = await req.json().catch(() => ({}));
-      const reason = (body as any)?.reason || "Rejected by staff";
+      const reason = (body as { reason?: string })?.reason || "Rejected by staff";
       await db.certificate.delete({ where: { id: request.id } });
       await logAudit({
         actor: { id: payload.sub, name: payload.name, role: payload.role },

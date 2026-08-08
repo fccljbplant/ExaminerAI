@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       select: { courseId: true },
     });
     const courseIds = enrollments.map(e => e.courseId);
-    where.courseId = courseIds.length > 0 ? { in: courseIds } as any : "none";
+    if (courseIds.length > 0) { where.courseId = { in: courseIds } as unknown as string; }
   } else if (courseIdParam) {
     where.courseId = courseIdParam;
   }

@@ -338,7 +338,7 @@ export async function callAI(
           messages: apiMessages,
           temperature: temp,
           max_tokens: maxTokens,
-        }) as any; // any-typed: DeepSeek V4 returns `reasoning_content` not in OpenAI type
+        }) as any; // DeepSeek V4 returns reasoning_content not in OpenAI type returns reasoning_content
         trackDailyRequest();
         // DeepSeek V4 reasoning models sometimes return content in
         // `reasoning_content` instead of `content` (especially when

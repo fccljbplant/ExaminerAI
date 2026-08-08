@@ -77,7 +77,7 @@ export async function GET() {
         webImages?: { url: string; caption: string; source: string }[];
       };
       return {
-        day: enriched.day || (t as any).day || i + 1,
+        day: enriched.day || (t as { day?: number }).day || i + 1,
         title: t.title,
         objective: t.objective || "",
         whyItMatters: enriched.whyItMatters || "",

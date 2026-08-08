@@ -191,7 +191,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
 
     // 4. Blocked tasks (students with blockedTasks > 0)
     safeStudents.forEach(s => {
-      const blocked = (s as any).blockedTasks || 0;
+      const blocked = (s as { blockedTasks?: number }).blockedTasks || 0;
       if (blocked > 0 && !items.find(i => i.student?.id === s.id)) {
         items.push({
           id: `blocked-${s.id}`,
@@ -416,7 +416,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
 // ============================================================
 
 function HealthPulseCard({ icon: Icon, label, value, subtitle, color, progress, progressColor }: {
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string | number;
   subtitle?: string;
@@ -443,11 +443,11 @@ function HealthPulseCard({ icon: Icon, label, value, subtitle, color, progress, 
 
 function TriageGroup({ label, icon: Icon, color, items, onStudentClick, onAct, actionDialogLoading }: {
   label: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   items: TriageItem[];
   onStudentClick: (s: StudentRow) => void;
-  onAct?: (s: StudentRow, a?: any) => void;
+  onAct?: (s: StudentRow, a?: Record<string, unknown>) => void;
   actionDialogLoading?: boolean;
 }) {
   return (
@@ -462,7 +462,7 @@ function TriageGroup({ label, icon: Icon, color, items, onStudentClick, onAct, a
   );
 }
 
-function TriageRow({ item, onStudentClick, onAct, actionDialogLoading }: { item: TriageItem; onStudentClick: (s: StudentRow) => void; onAct?: (s: StudentRow, a?: any) => void; actionDialogLoading?: boolean }) {
+function TriageRow({ item, onStudentClick, onAct, actionDialogLoading }: { item: TriageItem; onStudentClick: (s: StudentRow) => void; onAct?: (s: StudentRow, a?: Record<string, unknown>) => void; actionDialogLoading?: boolean }) {
   const colorMap = {
     crisis: "border-destructive/30 bg-destructive/5 dark:bg-rose-950/20 dark:border-rose-900",
     alert: "border-growth-amber bg-growth-amber-soft dark:bg-amber-950/20 dark:border-amber-900",

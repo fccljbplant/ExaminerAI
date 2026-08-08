@@ -47,7 +47,7 @@ export async function GET() {
     week: weekTopic.week,
     phase: weekTopic.phase,
     days: weekTopic.topics.map((topic, idx) => ({
-      day: (topic as any).day || idx + 1,
+      day: (topic as { day?: number }).day || idx + 1,
       title: topic.title,
       objective: topic.objective,
       resources: topic.resources,

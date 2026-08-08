@@ -108,7 +108,7 @@ Generate 5 project suggestions:`;
     });
 
     // Parse JSON
-    let parsed: { suggestions: any[] };
+    let parsed: { suggestions: Array<Record<string, unknown>> };
     try {
       const jsonMatch = result.text?.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : result.text || "{}");
