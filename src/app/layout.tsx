@@ -7,6 +7,7 @@ import { ThemePresetProvider } from "@/modules/theme";
 import { CommandRegistryProvider } from "@/components/shared/command-registry";
 import { CommandPalette } from "@/components/shared/command-palette";
 import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
+import { CelebrationOverlay } from "@/components/shared/celebration-overlay";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,10 @@ export default function RootLayout({
               <CommandPalette />
               {/* Press `?` anywhere to see the keyboard shortcut cheat sheet. */}
               <KeyboardShortcutsHelp />
+              {/* Celebration overlay — fires on level-up, badge earned, XP gained.
+                  Listens for `traineesai:celebration` events dispatched from
+                  anywhere in the app. */}
+              <CelebrationOverlay />
               <SonnerToaster position="bottom-right" richColors closeButton />
             </CommandRegistryProvider>
           </ThemePresetProvider>

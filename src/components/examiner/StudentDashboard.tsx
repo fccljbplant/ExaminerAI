@@ -48,6 +48,8 @@ import TodayView from "@/components/examiner/student/TodayView";
 import { CredentialsView } from "@/components/examiner/student/CredentialsView";
 import { CollapsibleCard, CardRefreshButton } from "@/components/shared/collapsible-card";
 import MyCoursesView from "@/components/examiner/student/MyCoursesView";
+import { LearnerXPBar } from "@/components/shared/learner-xp-bar";
+import { LearnerBadgeCollection } from "@/components/shared/learner-badge-collection";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   AreaChart, Area,
@@ -172,6 +174,9 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
       {view === "project" && <GanttPanel stats={stats!} onReload={load} onMode={() => setView("study")} />}
       {view === "progress" && (
         <div className="space-y-6">
+          {/* XP + Badges — the gamification layer */}
+          <LearnerXPBar />
+          <LearnerBadgeCollection />
           {userId && <ComprehensiveReportView studentId={userId} />}
           <ReportCardPanel reportCards={stats?.reportCards || []} comments={stats?.comments || []} studentId={userId || undefined} />
         </div>

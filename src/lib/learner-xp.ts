@@ -207,6 +207,20 @@ export async function awardXP(params: {
 
     logger.info("XP awarded", { userId, reason, amount, newTotal, level: level.level });
 
+    // Create a notification for the XP award (non-blocking).
+    try {
+      await db.notification.create({
+        data: {
+          userId,
+          type: "xp_earned",
+          title: `+${amount} XP earned`,
+          body: `Reason: ${reason.replace(/_/g, " ").toLowerCase()}`,
+          link: "/app?view=progress",
+          read: false,
+        },
+      });
+    } catch { /* non-blocking */ }
+
     return { awarded: amount, newTotal, level };
   } catch (err) {
     logger.warn("XP award failed", {

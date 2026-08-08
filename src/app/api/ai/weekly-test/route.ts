@@ -15,6 +15,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 import { issueCertificate } from "@/lib/certificate";
 import { TEST_QUESTION_COUNT } from "@/lib/constants";
 import { awardXP } from "@/lib/learner-xp";
+import { awardBadge } from "@/lib/learner-badges";
 
 /**
  * POST /api/ai/weekly-test
@@ -579,6 +580,28 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
               testId: test.id,
               error: err instanceof Error ? err.message : String(err),
             });
+          }
+        })();
+
+        // ── Badge awards for weekly test ──────────────────────────
+        void (async () => {
+          try {
+            const finalScore = plagiarismResult.finalScore;
+            // Badge: first weekly test
+            await awardBadge({ userId: user.id, badgeId: "first_weekly" });
+            // Badge: perfect weekly score
+            if (finalScore >= 100) {
+              await awardBadge({ userId: user.id, badgeId: "perfect_weekly" });
+            }
+            // Badge: course complete (if final week + passed)
+            if (week === totalWeeks && finalScore >= 60) {
+              await awardBadge({ userId: user.id, badgeId: "course_complete" });
+              if (finalScore >= 85) {
+                await awardBadge({ userId: user.id, badgeId: "course_distinction" });
+              }
+            }
+          } catch (err) {
+            logger.warn("Weekly test badge award failed", { userId: user.id, testId: test.id, error: err instanceof Error ? err.message : String(err) });
           }
         })();
 

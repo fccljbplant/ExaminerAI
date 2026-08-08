@@ -16,6 +16,8 @@ import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/uni
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { awardXP } from "@/lib/learner-xp";
+import { awardBadge } from "@/lib/learner-badges";
 
 /**
  * POST /api/daily-test
@@ -477,6 +479,29 @@ DAILY TEST — SHORTER FORMAT:
 
     // MODERNIZED: transparent Learning Signal replaces the deleted psych pipeline
     void recordLearningSignal(user.id).catch(() => { /* non-blocking */ });
+
+    // ── Evidence-Locked XP + Badges ──────────────────────────────
+    // Award XP for daily test completion + check for badges.
+    // Fire-and-forget — never blocks the response.
+    void (async () => {
+      try {
+        const finalScore = plagiarismResult.finalScore;
+        if (finalScore >= 60) {
+          await awardXP({ userId: user.id, reason: "DAILY_TEST_PASSED", refId: test.id });
+          if (finalScore >= 90) {
+            await awardXP({ userId: user.id, reason: "DAILY_TEST_ACED", refId: test.id });
+          }
+        }
+        // Badge: first daily test
+        await awardBadge({ userId: user.id, badgeId: "first_test" });
+        // Badge: perfect daily score
+        if (finalScore >= 100) {
+          await awardBadge({ userId: user.id, badgeId: "perfect_daily" });
+        }
+      } catch (err) {
+        logger.warn("Daily test XP/badge award failed", { userId: user.id, testId: test.id, error: err instanceof Error ? err.message : String(err) });
+      }
+    })();
 
     return NextResponse.json({
       conversation, isComplete: true,
