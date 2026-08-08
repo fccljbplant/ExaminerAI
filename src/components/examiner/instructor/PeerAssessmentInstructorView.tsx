@@ -19,7 +19,7 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
 
   useEffect(() => {
     setLoading(true);
-    api.get<{ assessments: any[] }>(`/api/peer-assessment?groupTaskId=${groupTaskId}`)
+    api.get<{ assessments: Array<{ assesseeId: string; assesseeName: string; assessorId: string; assessorName: string; rating?: number; textFeedback?: string }> }>(`/api/peer-assessment?groupTaskId=${groupTaskId}`)
       .then((res) => setAssessments(res.assessments || []))
       .catch((err) => { logger.warn("Operation failed", { err }); })
       .finally(() => setLoading(false));
@@ -29,7 +29,7 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
   if (assessments.length === 0) return null;
 
   // Aggregate per assessee
-  const byAssessee = new Map<string, { name: string; ratings: any[] }>();
+  const byAssessee = new Map<string, { name: string; ratings: Array<{ rating?: number; textFeedback?: string }> }>();
   for (const a of assessments) {
     const key = a.assesseeId;
     if (!byAssessee.has(key)) byAssessee.set(key, { name: a.assessee?.name || "Unknown", ratings: [] });
@@ -71,10 +71,10 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
                 ))}
               </div>
               {/* Text feedback */}
-              {data.ratings.some((r: any) => r.textFeedback) && (
+              {data.ratings.some((r: { rating?: number; textFeedback?: string }) => r.textFeedback) && (
                 <div className="mt-2 pt-2 border-t border-border">
                   <p className="text-[9px] text-muted-foreground mb-1">Feedback (anonymous to student):</p>
-                  {data.ratings.filter((r: any) => r.textFeedback).map((r: any, i: number) => (
+                  {data.ratings.filter((r: { rating?: number; textFeedback?: string }) => r.textFeedback).map((r: any, i: number) => (
                     <p key={i} className="text-[10px] text-foreground italic">"{r.textFeedback}"</p>
                   ))}
                 </div>

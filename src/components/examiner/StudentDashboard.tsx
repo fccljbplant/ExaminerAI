@@ -144,7 +144,7 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
         <div className="space-y-4">
           {enrollments.length === 1 ? (
             /* Single course: show current progress card */
-            <SingleCourseHome enrollment={(enrollments && enrollments.length > 0) ? enrollments[0] : null as any} stats={stats!} onNavigate={setView} onReload={load} />
+            <SingleCourseHome enrollment={(enrollments && enrollments.length > 0) ? enrollments[0] : null as unknown as EnrollmentResponse["enrollments"][0]} stats={stats!} onNavigate={setView} onReload={load} />
           ) : (
             /* Multiple courses: show card grid */
             <div>
@@ -201,9 +201,9 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
 // StudyView — study mode tabs (Practice, Daily Test, Weekly Test, Check-in)
 // ============================================================
 function StudyView({ stats, onReload, onNavigate }: {
-  stats: StatsResponse | null;
+  stats: StatsResponse;
   onReload: () => void;
-  onNavigate: (v: any) => void;
+  onNavigate: (v: StudentView) => void;
 }) {
   const [studyMode, setStudyMode] = useState<string>("checkin");
   const studyTabs = [
@@ -255,7 +255,7 @@ function StudyView({ stats, onReload, onNavigate }: {
 // Shared components
 // ============================================================
 function StatCard({ icon: Icon, label, value, color }: {
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
   color: string;
@@ -274,13 +274,13 @@ function StatCard({ icon: Icon, label, value, color }: {
 }
 
 function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
-  enrollment: EnrollmentResponse["enrollments"][0];
-  stats: StatsResponse | null;
-  onNavigate: (v: any) => void;
+  enrollment: EnrollmentResponse["enrollments"][0] | null;
+  stats: StatsResponse;
+  onNavigate: (v: StudentView) => void;
   onReload: () => void;
 }) {
-  const pct = enrollment.totalWeeks > 0
-    ? Math.round((enrollment.currentWeek / enrollment.totalWeeks) * 100)
+  const pct = enrollment?.totalWeeks ?? 0 > 0
+    ? Math.round(((enrollment?.currentWeek ?? 0) / (enrollment?.totalWeeks ?? 1)) * 100)
     : 0;
 
   return (
@@ -289,14 +289,14 @@ function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">{enrollment.courseName}</h2>
+              <h2 className="text-lg font-semibold text-foreground">{enrollment?.courseName}</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Week {enrollment.currentWeek} of {enrollment.totalWeeks}
-                {enrollment.latestScore !== null && ` · Latest: ${enrollment.latestScore}%`}
+                Week {enrollment?.currentWeek} of {enrollment?.totalWeeks}
+                {enrollment?.latestScore !== null && ` · Latest: ${enrollment?.latestScore}%`}
               </p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-primary">{enrollment.avgScore !== null ? `${enrollment.avgScore}%` : "—"}</div>
+              <div className="text-2xl font-bold text-primary">{enrollment?.avgScore !== null ? `${enrollment?.avgScore}%` : "—"}</div>
               <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg Score</div>
             </div>
           </div>
@@ -305,22 +305,22 @@ function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg bg-muted/50 p-2">
-              <div className="text-sm font-semibold text-foreground">{enrollment.currentWeek}</div>
+              <div className="text-sm font-semibold text-foreground">{enrollment?.currentWeek}</div>
               <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Week</div>
             </div>
             <div className="rounded-lg bg-muted/50 p-2">
-              <div className="text-sm font-semibold text-foreground">{enrollment.currentDay}</div>
+              <div className="text-sm font-semibold text-foreground">{enrollment?.currentDay}</div>
               <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Day</div>
             </div>
             <div className="rounded-lg bg-muted/50 p-2">
-              <div className="text-sm font-semibold text-foreground">{enrollment.progress}%</div>
+              <div className="text-sm font-semibold text-foreground">{enrollment?.progress}%</div>
               <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Tasks</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {stats && (stats.tasks || []).length === 0 && enrollment.projectEnabled && (
+      {stats && (stats.tasks || []).length === 0 && enrollment?.projectEnabled && (
         <Card className="border-growth-amber bg-growth-amber-soft">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -330,7 +330,7 @@ function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
               <div className="flex-1">
                 <p className="text-sm font-semibold text-foreground">
                   Start your capstone project
-                  {enrollment.projectRequired && (
+                  {enrollment?.projectRequired && (
                     <Badge variant="outline" className="ml-2 text-[9px] border-growth-amber bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber">
                       Required
                     </Badge>
@@ -357,8 +357,8 @@ function CourseCard({ enrollment, isActive, onClick }: {
   isActive: boolean;
   onClick: () => void;
 }) {
-  const pct = enrollment.totalWeeks > 0
-    ? Math.round((enrollment.currentWeek / enrollment.totalWeeks) * 100)
+  const pct = enrollment?.totalWeeks ?? 0 > 0
+    ? Math.round(((enrollment?.currentWeek ?? 0) / (enrollment?.totalWeeks ?? 1)) * 100)
     : 0;
 
   return (
@@ -374,12 +374,12 @@ function CourseCard({ enrollment, isActive, onClick }: {
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-foreground truncate">{enrollment.courseName}</h3>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Week {enrollment.currentWeek}/{enrollment.totalWeeks}
+              Week {enrollment?.currentWeek}/{enrollment?.totalWeeks}
             </p>
           </div>
           <div className="text-right flex-shrink-0 ml-2">
             <div className="text-base font-bold text-primary">
-              {enrollment.avgScore !== null ? `${enrollment.avgScore}%` : "—"}
+              {enrollment?.avgScore !== null ? `${enrollment.avgScore}%` : "—"}
             </div>
             <div className="text-[8px] text-muted-foreground uppercase tracking-wider">Avg</div>
           </div>
@@ -391,8 +391,8 @@ function CourseCard({ enrollment, isActive, onClick }: {
           />
         </div>
         <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-          <span>Tasks: {enrollment.progress}%</span>
-          {enrollment.latestScore !== null && <span>Latest: {enrollment.latestScore}%</span>}
+          <span>Tasks: {enrollment?.progress}%</span>
+          {enrollment?.latestScore !== null && <span>Latest: {enrollment.latestScore}%</span>}
         </div>
       </CardContent>
     </Card>

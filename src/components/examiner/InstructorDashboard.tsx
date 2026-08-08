@@ -178,7 +178,7 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
     );
   }
 
-  const TABS: Array<{ key: InstructorTab; label: string; icon: any; badge?: number; badgeColor?: "warning" | "red" }> = [
+  const TABS: Array<{ key: InstructorTab; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number; badgeColor?: "warning" | "red" }> = [
     { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined, badgeColor: "warning" as const },
     { key: "students", label: "Students", icon: Users },
     { key: "assignments", label: "Assignments", icon: ClipboardList },

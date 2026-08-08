@@ -75,8 +75,8 @@ export function MarketplaceFilters({ categories, levels, current }: FilterProps)
             // Debounce-ish: rely on the user pausing. We don't want a network
             // round-trip on every keystroke, so we update on blur OR every 350ms.
             const value = e.target.value;
-            window.clearTimeout((window as any).__marketplaceSearchTimer);
-            (window as any).__marketplaceSearchTimer = window.setTimeout(() => {
+            window.clearTimeout((window as Window & { __marketplaceSearchTimer?: number }).__marketplaceSearchTimer);
+            (window as Window & { __marketplaceSearchTimer?: number }).__marketplaceSearchTimer = window.setTimeout(() => {
               updateParam("search", value || null);
             }, 350);
           }}

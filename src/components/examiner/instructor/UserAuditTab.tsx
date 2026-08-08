@@ -31,9 +31,9 @@ interface AuditEntry {
   action: string;
   targetType: string;
   targetId: string;
-  before: any;
-  after: any;
-  metadata: any;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
   ipAddress: string | null;
   createdAt: string;
   direction: "by" | "about";

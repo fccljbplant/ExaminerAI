@@ -59,7 +59,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
       // C5 fix: fetch the instructor's courseId in parallel with the task list.
       // Without courseId, the create-task form is disabled.
       const [tasksRes, eventsRes, meRes] = await Promise.all([
-        api.get<{ tasks: any[] }>("/api/group-tasks"),
+        api.get<{ tasks: Array<{ id: string; title: string; description?: string }> }>("/api/group-tasks"),
         api.get<{ events: any[] }>("/api/events"),
         api.get<{ user: { courseId: string | null } | null }>("/api/auth/me").catch(() => ({ user: null })),
       ]);
@@ -144,7 +144,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
     } catch (e) { showError(e instanceof Error ? e.message : "Failed to delete event"); }
   };
 
-  const viewSubmissions = async (task: any) => {
+  const viewSubmissions = async (task: { id: string; title?: string }) => {
     setSelectedTask(task);
     try {
       const res = await api.get<{ submissions: any[] }>(`/api/group-tasks/submit?groupTaskId=${task.id}`);

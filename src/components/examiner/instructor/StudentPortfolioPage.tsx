@@ -248,7 +248,7 @@ export function StudentPortfolioPage({
   const generateReportCard = async (studentId: string, week: number) => {
     setRcGenerating(true);
     try {
-      const data = await api.post<{ reportCard?: any; error?: string }>(`/api/students/${studentId}/generate-report-card`, { week });
+      const data = await api.post<{ reportCard?: Record<string, unknown>; error?: string }>(`/api/students/${studentId}/generate-report-card`, { week });
       if (data.error) throw new Error(data.error);
       setRcDialogOpen(false);
       await loadPortfolio(studentId);
@@ -644,7 +644,7 @@ export function StudentPortfolioPage({
                                 if (confirm(`Revoke retake access for Week ${wt.week} test? The student will no longer be able to retake it.`)) {
                                   api.del(`/api/students/${student.id}/allow-retake?week=${wt.week}`)
                                     .then(() => loadPortfolio(student.id))
-                                    .catch((e: any) => showError(e?.message || "Failed to revoke retake"));
+                                    .catch((e: unknown) => showError(e instanceof Error ? e.message : "Failed to revoke retake"));
                                 }
                               }}
                             >
