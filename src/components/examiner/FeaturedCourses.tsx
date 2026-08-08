@@ -102,7 +102,7 @@ export default function FeaturedCourses() {
                     {/* Thumbnail / placeholder */}
                     <div className="hidden sm:block h-12 w-16 flex-shrink-0 rounded-md bg-muted overflow-hidden flex items-center justify-center">
                       {course.thumbnailUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
+                         
                         <img
                           src={course.thumbnailUrl}
                           alt=""

@@ -266,7 +266,7 @@ function VisualSlide({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="rounded-lg overflow-hidden border border-border bg-muted/30">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img
             src={image.url}
             alt={image.caption}
@@ -518,7 +518,7 @@ export default function SlideViewer({
     if (!onSlideChange) return;
     const slide = slides[activeIdx];
     if (slide) onSlideChange(slide.label, activeIdx + 1, total);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [activeIdx, total]);
 
   const goTo = useCallback(

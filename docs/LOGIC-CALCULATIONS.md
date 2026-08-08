@@ -293,6 +293,51 @@ external source. Deduct score, but never below the hard floor.
 
 ---
 
+## 11a. Evidence-Locked XP (learners only)
+
+**Purpose**: give learners a trust signal for employers. XP is earned ONLY
+from verified, AI-graded actions — never from engagement metrics (login,
+posting, commenting). This makes XP a credential, not engagement bait.
+
+**Awards** (single source of truth in `src/lib/learner-xp.ts`):
+
+| Action | XP | Condition |
+|---|---|---|
+| Daily test passed | +20 | Score ≥ 60 |
+| Daily test aced | +30 (bonus) | Score ≥ 90 |
+| Weekly test passed | +50 | Score ≥ 60 |
+| Weekly test aced | +80 (bonus) | Score ≥ 90 |
+| Drill card mastered | +10 | Spaced-repetition mastery |
+| Project week completed | +40 | All week's tasks done |
+| Project milestone signed | +60 | Mentor signs off |
+
+**What does NOT earn XP**: logging in, posting a comment, messaging the
+mentor, watching a video, "engaging" with content. These are important
+but don't demonstrate competence.
+
+**Levels** (casual-yet-professional labels, not LMS-speak):
+
+| Level | XP range | Label | Hint |
+|---|---|---|---|
+| 1 | 0 – 99 | Just started | Welcome. Take your first daily test. |
+| 2 | 100 – 299 | Finding their feet | Daily tests are adding up. |
+| 3 | 300 – 599 | Building confidence | You've passed a weekly test. |
+| 4 | 600 – 999 | Getting solid | Multiple weeks down. |
+| 5 | 1000 – 1499 | Capstone-ready | Present your project with confidence. |
+| 6 | 1500 – 2199 | Job-ready | Capstone signed off. Time to apply. |
+| 7 | 2200+ | Mentor-tier | You could mentor a peer. |
+
+**Idempotency**: `awardXP()` checks for existing `reason` + `refId` before
+awarding. No double-XP on webhook retry or page refresh.
+
+**Storage**: XP awards stored inside `User.journeyProgress` JSON field.
+No schema migration needed.
+
+**Implementation**: `src/lib/learner-xp.ts` → `awardXP()`, `getLearnerXP()`,
+`levelForXp()`, `levelProgress()`. API at `/api/learner/xp`.
+
+---
+
 ## 12. Formula change protocol
 
 Every formula change must:

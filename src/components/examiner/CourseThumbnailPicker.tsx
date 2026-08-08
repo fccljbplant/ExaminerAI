@@ -65,7 +65,7 @@ export default function CourseThumbnailPicker({
       setSearchQuery(q);
       refreshImages(q);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [open]);
 
   // Build 12 Unsplash URLs with different sig values.
@@ -133,7 +133,7 @@ export default function CourseThumbnailPicker({
       <div className="flex items-start gap-3 rounded-md border border-border bg-background/50 p-3">
         <div className="relative h-20 w-32 flex-shrink-0 overflow-hidden rounded-md border border-border bg-muted">
           {currentUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
+             
             <img src={currentUrl} alt="Course thumbnail" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
@@ -207,7 +207,7 @@ export default function CourseThumbnailPicker({
                     : "border-transparent hover:border-primary/40"
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+                { }
                 <img
                   src={url}
                   alt={`Unsplash result ${i + 1}`}

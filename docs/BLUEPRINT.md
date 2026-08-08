@@ -127,26 +127,47 @@ deliberate constraint.
 
 Ordered by ROI. Each item is sized to ship in 1–2 weeks.
 
-### Now (this audit cycle)
+### Shipped (current state — August 2026)
 
-1. PageHeader + CompactCourseHeader rolled out across all course views.
-2. DueTodayCard mounted in TodayView; DailyTaskReminder removed.
-3. States kit adopted in every data panel.
-4. `TEST_QUESTION_COUNT` is the single source of truth for test length.
-5. `ignoreBuildErrors: false` + `reactStrictMode: true` enforced.
-6. Five living docs shipped (this file + 4 others).
+1. ✅ PageHeader + CompactCourseHeader — 96px sticky header standard.
+2. ✅ DueTodayCard mounted in TodayView; DailyTaskReminder popup deleted.
+3. ✅ States kit (SkeletonPanel, EmptyState, ErrorState) adopted across dashboards.
+4. ✅ `TEST_QUESTION_COUNT` is the single source of truth for test length.
+5. ✅ `ignoreBuildErrors: false` + `reactStrictMode: true` enforced.
+6. ✅ Five living docs shipped (BLUEPRINT, ARCHITECTURE, LOGIC-CALCULATIONS, ERROR-HANDLING, UI-STANDARDS).
+7. ✅ Global ⌘K command palette with fuzzy search + `useRegisterCommands()` hook.
+8. ✅ Keyboard shortcuts help dialog (press `?` anywhere).
+9. ✅ Streaming AI tutor (`/api/ai/tutor/stream`) + TypingIndicator + `useStreamingAI()` hook.
+10. ✅ PWA manifest + service worker + offline evidence queue (`/api/offline/sync`).
+11. ✅ Evidence-Locked XP system (learners only, casual-yet-professional, no leaderboards).
+12. ✅ Stripe checkout wired (paid courses redirect to Stripe, no more payment bypass).
+13. ✅ All hardcoded colors migrated to global theme tokens (growth-sage/amber/coral + destructive).
+14. ✅ DashboardHeader + StatCard shared components — all 5 role dashboards unified.
+15. ✅ Insights + Analytics tabs merged (were near-duplicates).
+16. ✅ CertificateApprovals surfaced as its own nav entry (was buried in AssignmentsTab).
+17. ✅ EmployerDashboard wired as "Sponsor ROI" sidebar entry for org_admin.
+18. ✅ OrgAdmin defaults to org overview (was defaulting to course-planner).
+19. ✅ MARKETPLACE_CATEGORIES deduped to single source (`src/lib/constants.ts`).
+20. ✅ Dead code deleted (AdminCoursesPanel, DailyTaskReminder.tsx).
+21. ✅ Casual-yet-professional voice system (`src/content/copy.ts`) — "We share the training burden."
+22. ✅ Tabular numerals globally (stats stop jiggling).
+23. ✅ Border-first depth (no shadows on cards — Linear/Vercel/Stripe pattern).
+24. ✅ Hover-to-reveal chrome (`.chrome-reveal` utility).
+25. ✅ Modern SaaS surface utilities (`.surface-card`, `.surface-muted`, `.surface-hover`, `.kbd`).
 
 ### Next (1–2 quarters)
 
-1. Streaming chat on tutor/examiner routes (ReadableStream).
-2. OnboardingFlow (goal → track → baseline quiz → week-1 plan, 3 min).
-3. Auto-remediation: low score → drill cards + 3-day AI study plan.
-4. AI-drafted mentor replies (mentor edits + approves, 5-min day).
-5. Certificate status timeline (requested → reviewed → signed).
-6. PWA manifest + offline evidence queue for field trainees.
-7. Cmd+K command palette for staff (instructors + admins).
-8. Confirmation dialogs for all destructive actions (project regenerate,
+1. OnboardingFlow (goal → track → baseline quiz → week-1 plan, 3 min).
+2. Auto-remediation: low score → drill cards + 3-day AI study plan.
+3. AI-drafted mentor replies (mentor edits + approves, 5-min day).
+4. Certificate status timeline (requested → reviewed → signed).
+5. Confirmation dialogs for all destructive actions (project regenerate,
   user delete, course archive).
+6. Mentor Triage Inbox (Linear Intake pattern — single-key triage).
+7. Slide-in Learner Drawer (Stripe pattern, shadcn Sheet).
+8. Slash Commands in Lesson Editor (Notion pattern).
+9. Saved Views on Roster + Analytics (Attio pattern).
+10. Per-Course Color Tagging (Height/Linear pattern).
 
 ### Later
 

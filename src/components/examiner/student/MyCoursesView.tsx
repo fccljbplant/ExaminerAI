@@ -324,7 +324,7 @@ function ExploreCourseCard({ course }: { course: MarketplaceCourseListItem }) {
       {/* Thumbnail */}
       <div className={cn("relative h-32 w-full bg-gradient-to-br", gradient)}>
         {course.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+           
           <img
             src={course.thumbnailUrl}
             alt={course.name}

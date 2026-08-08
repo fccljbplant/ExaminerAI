@@ -65,9 +65,35 @@ try {
 - Practice/drill → show `ErrorState` with Retry button.
 - Tutor chat → show inline "AI unavailable" message in the chat thread;
   allow the learner to retry the last message.
+- Streaming tutor → if the stream emits `[stream-degraded: <reason>]`,
+  the `useStreamingAI()` hook calls `onError` and the AITutor component
+  falls back to the non-streaming `/api/ai/tutor` endpoint automatically.
 
 **Never** return a canned "looks good!" reply. That erodes learner trust
 faster than an honest failure.
+
+### 2.1a Streaming AI failures
+
+**What can fail**:
+
+- Provider doesn't support `stream: true` (rare — DeepSeek + Z.ai both do).
+- Stream errors mid-flight (network drop, provider timeout).
+- Rate limit hit mid-stream.
+- Client disconnects (user navigated away, pressed Esc).
+
+**Handling** (`src/modules/assessment/lib/ai-provider.ts` → `streamAI()`):
+
+- Mid-stream error → emit `[stream-degraded: <reason>]` marker, close
+  the stream cleanly. Client detects the marker and falls back.
+- Client disconnect → `cancel()` handler aborts the upstream stream.
+- Usage is logged on stream close (best-effort — never fail the response
+  over logging).
+
+**Client handling** (`src/lib/use-streaming-ai.ts`):
+
+- Detects the `[stream-degraded:` prefix in the accumulated text.
+- Calls `onError(reason)` so the caller can fall back to non-streaming.
+- Auto-cancels on component unmount (no orphan streams).
 
 ### 2.2 Database failures
 
@@ -93,6 +119,32 @@ try {
 
 **UI behavior**: `ErrorState` with Retry. The learner's input is preserved
 in the form (don't clear it on failure).
+
+### 2.2a Offline / PWA failures
+
+**What can fail**:
+
+- Network drops while the learner is mid-test or mid-message.
+- Service worker fails to register (old browser, private browsing).
+- IndexedDB quota exceeded (rare — queue auto-prunes after 10 retries).
+- Sync conflict (same evidence uploaded twice).
+
+**Handling** (`public/sw.js` + `src/app/api/offline/sync/route.ts`):
+
+- POST requests when offline → queued in IndexedDB (`offlineQueue` store).
+- Queue auto-drains on `online` event + Background Sync API.
+- Each item retried up to 10 times; after that, auto-pruned.
+- 4xx responses → item removed (permanent failure, don't retry).
+- 5xx responses → item stays in queue for next sync.
+- Evidence sync endpoint (`/api/offline/sync`) is idempotent — re-uploading
+  the same evidence creates a duplicate Message row but doesn't break.
+
+**Client UI**:
+
+- `usePWA()` hook exposes `pendingSync` count so the UI can show
+  "3 items waiting to sync" badge.
+- Service worker posts `PENDING_COUNT` messages to all open clients
+  when the queue changes.
 
 ### 2.3 Cron failures
 

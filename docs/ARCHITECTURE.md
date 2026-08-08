@@ -61,9 +61,14 @@ abstraction in `src/lib/ai-provider.ts` so other models can be swapped in.
 │  auth.ts            — custom JWT auth (no next-auth)               │
 │  audit-log.ts       — privileged action audit trail                │
 │  logger.ts          — structured logger (warn/error/info)          │
-│  constants.ts       — TEST_QUESTION_COUNT, GRADING, PILLARS        │
+│  constants.ts       — TEST_QUESTION_COUNT, GRADING, PILLARS,       │
+│                       MARKETPLACE_CATEGORIES (single source)       │
 │  feature-flags.ts   — runtime feature toggles                      │
 │  demo-guard.ts      — demo-account write protection                │
+│  learner-xp.ts      — Evidence-Locked XP system (awards, levels)   │
+│  use-streaming-ai.ts — React hook for SSE AI streaming             │
+│  use-pwa.ts         — PWA hook (SW registration, install prompt)   │
+│  content/copy.ts    — Centralized marketing + UI voice constants   │
 └──────────────────────────────┬─────────────────────────────────────┘
                                │
 ┌──────────────────────────────▼─────────────────────────────────────┐
@@ -97,19 +102,40 @@ no bespoke hero sections, no ad-hoc padding.
 
 Role-specific top-level components.
 
-- `AppShell.tsx` — SPA shell, sidebar, theme provider.
+- `AppShell.tsx` — SPA shell, sidebar, theme provider, ⌘K + `?` shortcuts.
 - `StudentDashboard.tsx` — 4 views (Today, Study, Project, Progress) +
   Credentials + My Courses.
-- `InstructorDashboard.tsx` — cohort dashboard.
-- `AdminDashboard.tsx`, `OrgAdminDashboard.tsx`, `EmployerDashboard.tsx`.
-- `DailyTaskReminder.tsx` — **deprecating** (replaced by DueTodayCard).
+- `InstructorDashboard.tsx` — 5 tabs (Today, Students, Assignments, Insights,
+  Earnings). Insights + Analytics merged. Certificates as own nav entry.
+- `AdminDashboard.tsx`, `OrgAdminDashboard.tsx`, `EmployerDashboard.tsx`
+  (now wired as "Sponsor ROI" sidebar entry for org_admin).
+- `AITutor.tsx` — streaming AI tutor (uses `useStreamingAI()` hook).
 - `ErrorBoundary.tsx` — top-level error catch.
+
+### `src/components/shared/`
+
+Shared modernization components — the "modern SaaS baseline" kit.
+
+- `dashboard-shell.tsx` — `DashboardHeader`, `DashboardShell`, `DashboardLoading`,
+  `DashboardError`. Every role dashboard uses these for the 96px sticky header +
+  consistent loading/error states.
+- `stat-card.tsx` — `StatCard` + `StatStrip`. The standard stat card with tone
+  (default/success/warning/danger/info), icon, progress bar, optional onClick.
+- `command-registry.tsx` + `command-palette.tsx` — global ⌘K palette. Pages
+  register commands via `useRegisterCommands()`.
+- `keyboard-shortcuts-help.tsx` — press `?` anywhere to see the cheat sheet.
+- `typing-indicator.tsx` — three bouncing dots for streaming AI responses.
+- `learner-xp-bar.tsx` — Evidence-Locked XP bar (learners only).
+- `prominent-tabs.tsx` — the standard tab bar (pill + underline variants).
+- `action-dialog.tsx` — confirmation dialog for destructive actions.
+- `collapsible-card.tsx` — collapsible card with localStorage persistence.
 
 ### `src/components/examiner/student/`
 
-The 26 student-facing panels — being consolidated around TodayView.
+The student-facing panels — consolidated around TodayView.
 
-- `TodayView.tsx` — the home view, mounts `DueTodayCard` + `StreakCalendar`.
+- `TodayView.tsx` — the home view. Mounts `DueTodayCard` + `LearnerXPBar` +
+  `StreakCalendar` + learning signal + drill count.
 - `DueTodayCard.tsx` — inline due list (replaces DailyTaskReminder popup).
 - `OnboardingGuide.tsx` — first-run guide.
 - `PracticePanel.tsx`, `DailyTestPanel.tsx`, `WeeklyTestPanel.tsx` — tests.
@@ -163,10 +189,16 @@ auto-generated into this section by the audit script when it runs in
 | `/api/daily-tasks` | Legacy reminder data | JWT (student) | no |
 | `/api/enrollments` | B2B + B2C enrollments | JWT | no |
 | `/api/marketplace/*` | Course catalog + checkout | JWT (public read) | yes (checkout) |
+| `/api/stripe/checkout` | Stripe Checkout session creation | JWT | no |
+| `/api/stripe/webhook` | Stripe webhook (enroll after payment) | Stripe signature | no |
 | `/api/admin/*` | Admin operations | JWT (admin) | no |
 | `/api/health/cron` | Cron heartbeat | cron secret | no |
 | `/api/users/*` | User management | JWT + IDOR guard | no |
 | `/api/courses/*` | Course CRUD | JWT (org_admin) | no |
+| `/api/ai/tutor/stream` | Streaming AI tutor (SSE) | JWT (student) | yes (per-user daily) |
+| `/api/offline/sync` | Offline evidence queue sync | JWT (student) | no |
+| `/api/learner/xp` | Learner XP total + level + progress | JWT (learner) | no |
+| `/api/today/summary` | Today view data (due items + signal) | JWT (student) | no |
 
 Every `?userId=` route must run `assertCanAccessStudent` (IDOR guard). The
 audit script flags files in list 1 that don't have a guard.

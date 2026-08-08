@@ -249,7 +249,7 @@ export default async function CourseDetailPage({ params }: Params) {
           <div className="lg:col-span-1">
             <div className="aspect-video rounded-xl border border-border bg-muted overflow-hidden flex items-center justify-center">
               {course.thumbnailUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+                 
                 <img src={course.thumbnailUrl} alt={course.name} className="h-full w-full object-cover" />
               ) : (
                 <BookOpen className="h-12 w-12 text-muted-foreground/40" />

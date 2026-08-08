@@ -160,30 +160,75 @@ tooltip. Never let a title wrap to two lines inside the header.
 
 ## 5. Color system
 
-TraineesAI uses shadcn/ui's HSL-based theme tokens. **Never hardcode
-hex colors** — use the tokens so light/dark mode works.
+TraineesAI uses CSS-variable-based theme tokens. **Never hardcode
+Tailwind palette colors** (`text-emerald-600`, `bg-amber-500`, etc.) —
+use the tokens so light/dark mode works automatically.
+
+### Base tokens (shadcn standard)
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `bg-background` | white | slate-950 | Page background |
-| `bg-card` | white | slate-900 | Card background |
-| `bg-muted` | slate-100 | slate-800 | Subtle backgrounds |
-| `text-foreground` | slate-900 | white | Primary text |
-| `text-muted-foreground` | slate-500 | slate-400 | Secondary text |
-| `border-border` | slate-200 | slate-800 | Borders |
-| `bg-primary` | emerald-500 | emerald-400 | Primary actions |
-| `text-primary` | emerald-600 | emerald-400 | Primary text |
-| `bg-destructive` | red-500 | red-500 | Destructive actions |
-| `text-destructive` | red-600 | red-400 | Destructive text |
+| `bg-background` | #fafafa | #0a0a0f | Page background |
+| `bg-card` | #ffffff | #16161f | Card background |
+| `bg-muted` | #f1f5f9 | #1c1c28 | Subtle backgrounds |
+| `text-foreground` | #0f172a | #fafafa | Primary text |
+| `text-muted-foreground` | #64748b | #9ca3af | Secondary text |
+| `border-border` | #e2e8f0 | #2a2a3a | Borders |
+| `bg-primary` | #0f172a | #fbbf24 | Primary actions |
+| `text-primary` | #0f172a | #fbbf24 | Primary text |
+| `bg-destructive` | #dc2626 | #f87171 | Destructive actions |
+| `text-destructive` | #dc2626 | #f87171 | Destructive text |
 
-**Semantic colors** (for status, not theming):
+### Growth palette (our semantic tokens)
 
-| Status | Color | Use |
+Defined in `globals.css` as CSS variables with light + dark variants.
+These are the **only** colors to use for semantic status. They handle
+both themes automatically — no `dark:` overrides needed.
+
+| Token class | Light value | Dark value | Semantic intent |
+|---|---|---|---|
+| `text-growth-sage` | #5b8a72 | #7eb39a | Success, progress, growth |
+| `text-growth-sage-foreground` | #2f5d4a | #b5d9c2 | Success text on soft bg |
+| `bg-growth-sage-soft` | #d8ebe0 | #2c4035 | Success background tint |
+| `border-growth-sage` | var | var | Success border |
+| `text-growth-amber` | #c98a2b | #e3b062 | Attention, warning, in-progress |
+| `text-growth-amber-foreground` | #6b4a14 | #f1d49a | Warning text on soft bg |
+| `bg-growth-amber-soft` | #fbe8c4 | #4a3818 | Warning background tint |
+| `border-growth-amber` | var | var | Warning border |
+| `text-growth-coral` | #d97766 | #e59a8a | Alerts, needs-care (soft) |
+| `bg-growth-coral-soft` | #fadcd5 | #4a2620 | Alert background tint |
+| `text-destructive` | #dc2626 | #f87171 | Danger, error, destructive |
+
+### Mapping (what replaces what)
+
+| Old hardcoded | New theme token | When |
 |---|---|---|
-| Success | emerald | "All clear", "Passed", "Completed" |
-| Warning | amber | "Due soon", "Calibration flag" |
-| Danger | rose | "Overdue", "Failed", "Urgent" |
-| Info | sky | "New", "Tip", "Notice" |
+| `text-emerald-600` | `text-growth-sage` | Success, passed, completed |
+| `bg-emerald-500/15` | `bg-growth-sage-soft` | Success background tint |
+| `border-emerald-500/30` | `border-growth-sage` | Success border |
+| `text-amber-600` | `text-growth-amber` | Warning, due soon, attention |
+| `bg-amber-500/15` | `bg-growth-amber-soft` | Warning background tint |
+| `text-rose-600` / `text-red-600` | `text-destructive` | Danger, failed, urgent |
+| `bg-rose-500/15` / `bg-red-500/15` | `bg-destructive/5` | Danger background tint |
+| `border-rose-500/30` | `border-destructive/30` | Danger border |
+| `bg-emerald-600 hover:bg-emerald-700` | `bg-primary text-primary-foreground hover:bg-primary/90` | Primary button |
+
+**Rule**: if you're tempted to write `text-emerald-*`, `text-amber-*`,
+`text-rose-*`, `text-red-*`, `text-orange-*`, or `text-lime-*`, use the
+growth palette tokens instead. The migration script
+(`scripts/migrate-colors.py`) enforces this automatically.
+
+### Modern SaaS surface utilities
+
+Defined in `globals.css` under `@layer utilities`:
+
+| Utility | Use |
+|---|---|
+| `.surface-card` | `rounded-xl border border-border bg-card` — no shadow |
+| `.surface-muted` | `rounded-xl border border-border bg-muted/40` |
+| `.surface-hover` | `transition hover:border-foreground/20 hover:bg-muted/50` |
+| `.chrome-reveal` | `opacity-0 group-hover:opacity-100` — hover-to-reveal |
+| `.kbd` | Keyboard hint chip (⌘K, ↵, etc.) |
 
 ---
 

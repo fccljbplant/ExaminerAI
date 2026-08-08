@@ -49,7 +49,7 @@ export default function MarketplaceCourseCard({
       {/* Thumbnail */}
       <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden">
         {course.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+           
           <img
             src={course.thumbnailUrl}
             alt={course.name}
