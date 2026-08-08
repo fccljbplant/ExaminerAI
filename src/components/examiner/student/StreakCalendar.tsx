@@ -106,8 +106,15 @@ export function StreakCalendar() {
   }
 
   if (failed || !data) {
-    // Render nothing on failure — fail silently so it doesn't disrupt TodayView.
-    return null;
+    // Show a minimal error state instead of returning null (which leaves
+    // the learner confused about why the calendar vanished).
+    return (
+      <Card className="border-border">
+        <CardContent className="p-4 text-center">
+          <p className="text-xs text-muted-foreground">Couldn&apos;t load streak data.</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   // Build a 7×12 grid: rows = day-of-week (Sun..Sat), cols = weeks.

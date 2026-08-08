@@ -5,6 +5,7 @@ import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -282,7 +283,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" checked={taskIsMilestone} onChange={(e) => setTaskIsMilestone(e.target.checked)} className="h-3.5 w-3.5 rounded border-border" />
+            <Checkbox checked={taskIsMilestone} onCheckedChange={(v) => setTaskIsMilestone(v === true)} className="h-3.5 w-3.5" />
             <span className="text-[10px] text-muted-foreground">★ Milestone</span>
           </label>
           <div className="flex-1">

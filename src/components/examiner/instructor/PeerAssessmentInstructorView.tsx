@@ -25,8 +25,14 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
       .finally(() => setLoading(false));
   }, [groupTaskId]);
 
-  if (loading) return null;
-  if (assessments.length === 0) return null;
+  if (loading) return <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>;
+  if (assessments.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-border p-6 text-center">
+        <p className="text-sm text-muted-foreground">No peer assessments submitted yet.</p>
+      </div>
+    );
+  }
 
   // Aggregate per assessee
   const byAssessee = new Map<string, { name: string; ratings: Array<{ rating?: number; textFeedback?: string }> }>();

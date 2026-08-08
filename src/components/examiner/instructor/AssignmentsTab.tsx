@@ -6,8 +6,9 @@ import { api } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -209,7 +210,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
           {showTaskForm && (
             <div className="rounded-md bg-muted/30 border border-border p-3 space-y-2">
               <Input value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Assignment title (e.g. 'Week 3 Project Milestone')" className="bg-background border-border text-sm" />
-              <textarea value={taskDesc} onChange={(e) => setTaskDesc(e.target.value)} placeholder="Description / instructions..." className="w-full min-h-16 rounded-md bg-background border border-border p-2 text-sm text-foreground resize-y" />
+              <Textarea value={taskDesc} onChange={(e) => setTaskDesc(e.target.value)} placeholder="Description / instructions..." className="w-full min-h-16 resize-y" />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <Select value={taskType} onValueChange={setTaskType}>
                   <SelectTrigger className="bg-background border-border h-8 text-xs"><SelectValue /></SelectTrigger>
@@ -350,7 +351,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
           {showEventForm && (
             <div className="rounded-md bg-muted/30 border border-border p-3 space-y-2">
               <Input value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} placeholder="Event title (e.g. 'Midterm Exam')" className="bg-background border-border text-sm" />
-              <textarea value={eventDesc} onChange={(e) => setEventDesc(e.target.value)} placeholder="Description..." className="w-full min-h-12 rounded-md bg-background border border-border p-2 text-sm text-foreground resize-y" />
+              <Textarea value={eventDesc} onChange={(e) => setEventDesc(e.target.value)} placeholder="Description..." className="w-full min-h-12 resize-y" />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <Select value={eventType} onValueChange={setEventType}>
                   <SelectTrigger className="bg-background border-border h-8 text-xs"><SelectValue /></SelectTrigger>

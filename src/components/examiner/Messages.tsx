@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -252,7 +253,7 @@ export default function Messages() {
             </div>
             <div className="space-y-2">
               <Label className="text-foreground">Message</Label>
-              <textarea value={body} onChange={(e) => setBody(e.target.value)} className="w-full min-h-32 rounded-md bg-muted border border-border p-3 text-sm text-foreground" />
+              <Textarea value={body} onChange={(e) => setBody(e.target.value)} className="w-full min-h-32" />
             </div>
           </div>
           <DialogFooter>
