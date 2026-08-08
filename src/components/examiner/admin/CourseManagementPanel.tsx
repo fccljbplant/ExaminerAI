@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api-client";
+import { MARKETPLACE_CATEGORIES as COURSE_CATEGORIES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,20 +37,9 @@ import {
  *   - "View" opens the public marketplace page (/courses/[id]) in a new tab.
  */
 
-// Mirror of MARKETPLACE_CATEGORIES from src/lib/marketplace.ts. Inlined here
-// because the marketplace lib imports Prisma (`db`) and cannot run client-side.
-const COURSE_CATEGORIES: { value: string; label: string }[] = [
-  { value: "technology", label: "Technology & Software" },
-  { value: "engineering", label: "Engineering" },
-  { value: "business", label: "Business & Management" },
-  { value: "finance", label: "Finance & Accounting" },
-  { value: "healthcare", label: "Healthcare & Safety" },
-  { value: "manufacturing", label: "Manufacturing & Operations" },
-  { value: "hr", label: "Human Resources" },
-  { value: "compliance", label: "Compliance & Regulatory" },
-  { value: "soft-skills", label: "Professional Skills" },
-  { value: "other", label: "Other" },
-];
+// Marketplace categories — imported from the browser-safe constants file
+// (src/lib/constants.ts, line 6). The marketplace lib (src/lib/marketplace.ts)
+// also has these but it imports Prisma so it can't run client-side.
 
 function categoryLabel(value: string | undefined | null): string {
   if (!value) return "—";

@@ -15,6 +15,7 @@ import { InstructorAITutor } from "@/modules/ai-assistant";
 import Messages from "./Messages";
 import CourseOutline from "./CourseOutline";
 import CoursePlanner from "./CoursePlanner";
+import { CertificateApprovals } from "@/components/examiner/instructor/CertificateApprovals";
 import { SettingsPanel } from "./SettingsPanel";
 import { AskMyInstructor } from "./AskMyInstructor";
 import ErrorBoundary from "./ErrorBoundary";
@@ -70,6 +71,7 @@ export type ViewKey =
   | "instructor-students"
   | "instructor-assignments"
   | "instructor-insights"
+  | "instructor-certificates"
   | "admin-dashboard"
   | "admin-users"
   | "admin-courses"
@@ -105,6 +107,9 @@ const ALL_NAV: NavItem[] = [
   { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor"] },
   { key: "instructor-assignments", label: "Assignments", icon: ClipboardList, roles: ["instructor"] },
   { key: "instructor-insights", label: "Insights", icon: BarChart3, roles: ["instructor"] },
+  // Certificate approvals — was buried at the bottom of AssignmentsTab.
+  // Now its own nav entry so mentors can find it.
+  { key: "instructor-certificates", label: "Certificates", icon: Award, roles: ["instructor"] },
 
   { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "org_admin"] },
   { key: "instructor-students", label: "Students", icon: Users, roles: ["instructor", "org_admin"] },
@@ -112,6 +117,7 @@ const ALL_NAV: NavItem[] = [
   // Employer / B2B dashboard — for company managers sponsoring trainees.
   // Visible to org_admin + platform_admin.
   { key: "org-dashboard", label: "Org Dashboard", icon: Building2, roles: ["org_admin"] },
+  { key: "employer-dashboard", label: "Sponsor ROI", icon: TrendingUp, roles: ["org_admin"] },
 
   { key: "admin-dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ADMIN_NAV_ROLES },
   { key: "admin-users", label: "Users", icon: Users, roles: ADMIN_NAV_ROLES },
@@ -247,7 +253,10 @@ export default function AppShell() {
         } else if (role === "instructor") {
           setView("instructor-today");
         } else if (role === "org_admin") {
-          setView("course-planner");
+          // Default to the org overview dashboard (team + seats) instead of
+          // course-planner. Org admins need to see their team first, not the
+          // course authoring tool.
+          setView("org-dashboard");
         } else {
           setView("dashboard");
         }
@@ -434,6 +443,11 @@ export default function AppShell() {
       case "instructor-students": return wrap(<InstructorDashboard key={`students-${navClickCount}`} initialTab="students" courseId={activeCourseId} />);
       case "instructor-assignments": return wrap(<InstructorDashboard key={`assignments-${navClickCount}`} initialTab="assignments" courseId={activeCourseId} />);
       case "instructor-insights": return wrap(<InstructorDashboard key={`insights-${navClickCount}`} initialTab="insights" courseId={activeCourseId} />);
+      case "instructor-certificates": return wrap(
+        <div className="p-4 sm:p-6">
+          <CertificateApprovals />
+        </div>
+      );
       case "ai-tutor": return wrap(<AITutor />);
       case "instructor-ai-tutor": return wrap(<InstructorAITutor />);
       case "course-outline": return wrap(<CourseOutline />);

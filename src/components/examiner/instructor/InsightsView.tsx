@@ -29,17 +29,22 @@ import {
 import { cn } from "@/lib/utils";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import type { StudentRow } from "@/components/examiner/instructor/types";
+import { CohortAnalyticsView } from "@/components/examiner/instructor/CohortAnalyticsView";
 
 interface InsightsViewProps {
   students: StudentRow[];
   stats: any;
   alerts: any[];
   onStudentClick: (student: StudentRow) => void;
+  /** Optional courseId — passed through to CohortAnalyticsView. */
+  courseId?: string;
+  /** Optional callback — passed through to CohortAnalyticsView. */
+  onMessageStudent?: () => void;
 }
 
 const WELLBEING_COLORS = { green: "#10b981", amber: "#f59e0b", red: "#ef4444" };
 
-export function InsightsView({ students, stats, alerts, onStudentClick }: InsightsViewProps) {
+export function InsightsView({ students, stats, alerts, onStudentClick, courseId, onMessageStudent }: InsightsViewProps) {
   const [assistantQuery, setAssistantQuery] = useState("");
   const [assistantAnswer, setAssistantAnswer] = useState<string | null>(null);
   const [assistantLoading, setAssistantLoading] = useState(false);
@@ -352,6 +357,26 @@ export function InsightsView({ students, stats, alerts, onStudentClick }: Insigh
               <div className="text-lg font-semibold mt-1">{stats?.totalActiveToday || 0}</div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* MERGED: Cohort Analytics used to be a separate tab. Now it lives
+          here as a section so the instructor sees strategic trends + cohort
+          performance in one scroll. The AI Assistant above answers
+          "who's likely to drop off?"; this section answers "which week
+          was hardest, which topics need reteaching." */}
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            Cohort Analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CohortAnalyticsView
+            courseId={courseId}
+            onMessageStudent={onMessageStudent}
+          />
         </CardContent>
       </Card>
     </div>

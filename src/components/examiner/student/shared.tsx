@@ -6,15 +6,25 @@ import { Card, CardContent } from "@/components/ui/card";
  *
  *  Phase 5.1: Extracted from StudentDashboard.tsx.
  */
-export function StatSquareCard({ label, value, icon, accent }: { label: string; value: string; icon: React.ReactNode; accent: "emerald" | "cyan" | "warning" | "rose" | "violet"; }) {
-  const accents = {
+export type StatSquareAccent = "emerald" | "cyan" | "amber" | "rose" | "violet";
+
+export function StatSquareCard({ label, value, icon, accent = "emerald" }: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  accent?: StatSquareAccent;
+}) {
+  // BUG FIX: type union previously had "warning" but the accents object
+  // keyed on "amber". Calling <StatSquareCard accent="warning"> returned
+  // undefined → broken CSS. Fixed: type and keys now match.
+  const accents: Record<StatSquareAccent, string> = {
     emerald: "from-primary/15 to-primary/5 border-primary/30",
     cyan: "from-secondary/20 to-secondary/5 border-secondary-foreground/30",
     amber: "from-amber-500/15 to-amber-500/5 border-amber-500/30",
     rose: "from-destructive/15 to-destructive/5 border-destructive/30",
     violet: "from-violet-500/15 to-violet-500/5 border-violet-500/30",
   };
-  const iconColors = {
+  const iconColors: Record<StatSquareAccent, string> = {
     emerald: "text-primary",
     cyan: "text-secondary-foreground",
     amber: "text-amber-500",

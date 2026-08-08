@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Loader2, LogIn, ArrowRight, CheckCircle2, GraduationCap, CreditCard,
-  ShieldCheck, Sparkles, Award, X, AlertCircle,
+  ShieldCheck, Sparkles, Award, X,
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api-client";
 import { formatPrice } from "@/lib/format";
@@ -99,6 +99,20 @@ export default function CheckoutButton({
     setError(null);
     setBusy(true);
     try {
+      // ── PAID COURSES: redirect to Stripe Checkout ────────────────
+      // The previous implementation called /api/marketplace/enroll directly
+      // for ALL courses — paid courses bypassed payment entirely. Now we
+      // check the price: free → direct enroll, paid → Stripe checkout
+      // (which enrolls via webhook after successful payment).
+      if (!isFree) {
+        const res = await api.post<{ url: string }>("/api/stripe/checkout", { courseId });
+        if (res.url) {
+          // Redirect to Stripe-hosted checkout page.
+          window.location.href = res.url;
+          return;
+        }
+      }
+      // Free course — direct enrollment, no payment.
       await api.post(`/api/marketplace/enroll`, { courseId });
       setJustEnrolled(true);
       setAuthState("student-enrolled");
@@ -119,7 +133,7 @@ export default function CheckoutButton({
     } finally {
       setBusy(false);
     }
-  }, [courseId]);
+  }, [courseId, isFree]);
 
   // ---- Render branches --------------------------------------------------
 
@@ -230,15 +244,14 @@ export default function CheckoutButton({
                   </ul>
                 </div>
 
-                {/* Payment integration notice */}
-                <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5">
-                  <p className="text-[11px] text-amber-700 dark:text-amber-300 flex items-start gap-1.5 leading-snug">
-                    <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                {/* Payment security notice */}
+                <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2.5">
+                  <p className="text-[11px] text-emerald-700 dark:text-emerald-300 flex items-start gap-1.5 leading-snug">
+                    <ShieldCheck className="h-3 w-3 mt-0.5 flex-shrink-0" />
                     <span>
-                      <strong>Payment integration coming soon.</strong> Clicking
-                      &quot;Proceed to Payment&quot; will enroll you now (no charge) so you
-                      can start learning immediately. Stripe checkout will be added in a
-                      future release.
+                      <strong>Secure Stripe checkout.</strong> You&apos;ll be
+                      redirected to Stripe to complete payment. Enrolled
+                      automatically after payment succeeds.
                     </span>
                   </p>
                 </div>

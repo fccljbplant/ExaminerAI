@@ -56,9 +56,9 @@ export default function DueTodayCard({ onNavigate, items }: DueTodayCardProps) {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-rose-400/30 bg-rose-400/5 p-5 text-center">
-        <p className="text-sm font-bold text-rose-200">Couldn&apos;t load today&apos;s tasks</p>
-        <p className="mt-1 text-xs text-rose-200/70">{error}</p>
+      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 text-center">
+        <p className="text-sm font-bold text-destructive">Couldn&apos;t load today&apos;s tasks</p>
+        <p className="mt-1 text-xs text-destructive/70">{error}</p>
       </div>
     );
   }

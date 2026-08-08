@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { api, AI_TIMEOUT_MS, ApiError } from "@/lib/api-client";
+import { MARKETPLACE_CATEGORIES as COURSE_MARKETPLACE_CATEGORIES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,23 +65,9 @@ interface Batch { id: string; name: string; courseId: string | null; courseName:
 
 type View = "list" | "generate" | "detail";
 
-// Marketplace category options — mirror of MARKETPLACE_CATEGORIES from
-// src/lib/marketplace.ts. Inlined here (rather than imported) because the
-// marketplace lib pulls in Prisma (`db`) and cannot run in the browser.
-//
-// Domain-agnostic — covers all professional training domains, not just IT.
-const COURSE_MARKETPLACE_CATEGORIES: { value: string; label: string }[] = [
-  { value: "technology", label: "Technology & Software" },
-  { value: "engineering", label: "Engineering" },
-  { value: "business", label: "Business & Management" },
-  { value: "finance", label: "Finance & Accounting" },
-  { value: "healthcare", label: "Healthcare & Safety" },
-  { value: "manufacturing", label: "Manufacturing & Operations" },
-  { value: "hr", label: "Human Resources" },
-  { value: "compliance", label: "Compliance & Regulatory" },
-  { value: "soft-skills", label: "Professional Skills" },
-  { value: "other", label: "Other" },
-];
+// Marketplace categories — imported from src/lib/constants.ts (browser-safe).
+// The marketplace lib (src/lib/marketplace.ts) has the same list but imports
+// Prisma, so it can't run client-side.
 
 export default function CoursePlanner() {
   const [courses, setCourses] = useState<Course[]>([]);

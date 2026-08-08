@@ -22,12 +22,11 @@ import { TodayView } from "@/components/examiner/instructor/TodayView";
 import { StudentsRoster } from "@/components/examiner/instructor/StudentsRoster";
 import { AssignmentsTab } from "@/components/examiner/instructor/AssignmentsTab";
 import { InsightsView } from "@/components/examiner/instructor/InsightsView";
-import { CohortAnalyticsView } from "@/components/examiner/instructor/CohortAnalyticsView";
 import { StudentPortfolioPage } from "@/components/examiner/instructor/StudentPortfolioPage";
 import { AIAssistantBox } from "@/components/examiner/instructor/ai/AIAssistantBox";
 import EarningsDashboard from "@/components/examiner/instructor/EarningsDashboard";
 
-export type InstructorTab = "today" | "students" | "assignments" | "insights" | "analytics" | "earnings";
+export type InstructorTab = "today" | "students" | "assignments" | "insights" | "earnings";
 
 interface TeacherStats {
   totalStudents: number;
@@ -183,8 +182,11 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
     { key: "today", label: "Today", icon: CalendarDays, badge: openAlertCount || undefined, badgeColor: "warning" as const },
     { key: "students", label: "Students", icon: Users },
     { key: "assignments", label: "Assignments", icon: ClipboardList },
+    // MERGED: Insights + Analytics were near-duplicates (both showed cohort
+    // performance, top performers, at-risk students). Analytics is now a
+    // section inside Insights (which also has the AI Assistant + trend
+    // charts). One tab, not two.
     { key: "insights", label: "Insights", icon: BarChart3 },
-    { key: "analytics", label: "Analytics", icon: BarChart3 },
     { key: "earnings", label: "Earnings", icon: Wallet },
   ];
 
@@ -303,11 +305,6 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
           stats={stats}
           alerts={alerts}
           onStudentClick={handleStudentClick}
-        />
-      )}
-
-      {tab === "analytics" && (
-        <CohortAnalyticsView
           courseId={courseId}
           onMessageStudent={() => setTab("students")}
         />

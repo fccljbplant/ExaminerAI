@@ -36,6 +36,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
+import { MARKETPLACE_CATEGORIES as CATEGORIES } from "@/lib/constants";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -56,23 +57,10 @@ import { cn } from "@/lib/utils";
 import CourseThumbnailPicker from "./CourseThumbnailPicker";
 
 // ============================================================
-// Static option lists — mirror of MARKETPLACE_CATEGORIES / LEVELS
-// in src/lib/marketplace.ts. Inlined here (not imported) because the
-// marketplace lib pulls Prisma (`db`) and cannot run in the browser.
-// Domain-agnostic — covers all professional training, not just IT.
+// Marketplace categories — imported from src/lib/constants.ts (browser-safe).
+// The marketplace lib (src/lib/marketplace.ts) has the same list but imports
+// Prisma, so it can't run client-side.
 // ============================================================
-const CATEGORIES: { value: string; label: string }[] = [
-  { value: "technology", label: "Technology & Software" },
-  { value: "engineering", label: "Engineering" },
-  { value: "business", label: "Business & Management" },
-  { value: "finance", label: "Finance & Accounting" },
-  { value: "healthcare", label: "Healthcare & Safety" },
-  { value: "manufacturing", label: "Manufacturing & Operations" },
-  { value: "hr", label: "Human Resources" },
-  { value: "compliance", label: "Compliance & Regulatory" },
-  { value: "soft-skills", label: "Professional Skills" },
-  { value: "other", label: "Other" },
-];
 
 const LEVELS: { value: string; label: string }[] = [
   { value: "beginner", label: "Beginner" },
