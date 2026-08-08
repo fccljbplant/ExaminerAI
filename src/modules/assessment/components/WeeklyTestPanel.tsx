@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { scoreToGrade, gradeColor } from "@/lib/constants";
+import { scoreToGrade, gradeColor, TEST_QUESTION_COUNT } from "@/lib/constants";
 import { showError } from "@/lib/toast-helpers";
 import type { WeeklyTest, StatsResponse, Mode } from "@/components/examiner/student/types";
 import { PostTestReflection } from "@/components/examiner/student/PostTestReflection";
@@ -77,9 +77,10 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
   // the WeeklyTest row, surfaced to the student after completion.
   const [feedback, setFeedback] = useState<TeachingFeedback | null>(null);
   const [chatLoaded, setChatLoaded] = useState(false);
-  // Course-configured test length (read from API response — was hardcoded to
-  // 15 questions / 5 replies, which ignored course-level test config).
-  const [totalQuestions, setTotalQuestions] = useState(15);
+  // Course-configured test length. The server may override this per course
+  // (some courses want 8, 10, or 12 questions). Default to TEST_QUESTION_COUNT.weekly
+  // (single source of truth) so the UI never disagrees with the constants file.
+  const [totalQuestions, setTotalQuestions] = useState<number>(TEST_QUESTION_COUNT.weekly);
   const [maxReplies, setMaxReplies] = useState(5);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);

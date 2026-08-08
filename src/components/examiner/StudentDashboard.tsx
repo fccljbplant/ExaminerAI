@@ -35,7 +35,6 @@ import {
 } from "lucide-react";
 import type { StatsResponse, Mode } from "@/components/examiner/student/types";
 import type { EnrollmentResponse } from "@/app/api/enrollments/route";
-import { DailyTaskReminder } from "@/components/examiner/DailyTaskReminder";
 import { WeeklyTestPanel } from "@/components/examiner/student/WeeklyTestPanel";
 import { QuestionPanel } from "@/components/examiner/student/PracticePanel";
 import { CheckInPanel } from "@/components/examiner/student/CheckInPanel";
@@ -182,17 +181,10 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
         <MyCoursesView onNavigate={(v) => setView(v as StudentView)} />
       )}
 
-      <DailyTaskReminder
-        onChanged={load}
-        onNavigate={(mode) => {
-          // Map the reminder's navigation target to the correct StudentView.
-          // Previously this ALWAYS went to "study" regardless of the mode —
-          // clicking "Open Project Plan" navigated to Study instead of Project.
-          if (mode === "gantt") setView("project");
-          else if (mode === "checkin") setView("study");
-          else if (mode === "study") setView("study");
-        }}
-      />
+      {/* DailyTaskReminder popup removed — replaced by the inline DueTodayCard
+          mounted inside TodayView. Popups are now reserved for red-tier alerts
+          only. The DailyTaskReminder.tsx file is kept for now as a "remove
+          candidate" — see scripts/ui-backend-audit.sh section E. */}
     </div>
   );
 }

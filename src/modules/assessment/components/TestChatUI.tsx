@@ -8,7 +8,7 @@
  *     not "Q3 of 10" and not "Reply 2 of 5". Students are intelligent enough
  *     to know how many are left once they've been told up front.
  *   - A small line above the chat box tells them how many questions the test
- *     will ask ("This test asks 3 questions" / "15 questions"). This is set
+ *     will ask ("This test asks 3 questions" / "10 questions"). This is set
  *     ONCE at test start, not on every reply.
  *   - No progress bar — it added visual noise without adding information.
  *

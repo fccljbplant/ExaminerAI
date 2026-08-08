@@ -136,6 +136,62 @@ export async function GET() {
     };
   }
 
+  // Build a `due` array for inline rendering on the Today screen.
+  // Each item maps to a real dashboard view the trainee can jump to with one tap.
+  // The dashboard's DueTodayCard calls onNavigate(view) — no real routes needed.
+  const due: Array<{
+    kind: "daily-test" | "drill" | "project-task" | "weekly-test";
+    title: string;
+    meta: string;
+    view: string;
+    urgent?: boolean;
+  }> = [];
+
+  if (todayDailyTest && todayDailyTest.status === "in_progress") {
+    due.push({
+      kind: "daily-test",
+      title: `Resume daily test — ${todayDailyTest.topic || "today"}`,
+      meta: `Question ${(todayDailyTest.currentQuestion ?? 0) + 1} of 3`,
+      view: "study",
+      urgent: true,
+    });
+  } else if (!todayDailyTest) {
+    due.push({
+      kind: "daily-test",
+      title: "Start today's daily test",
+      meta: "3 Socratic questions · ~5 min",
+      view: "study",
+    });
+  }
+
+  if (dueDrills > 0) {
+    due.push({
+      kind: "drill",
+      title: `${dueDrills} drill${dueDrills === 1 ? "" : "s"} due`,
+      meta: "Spaced repetition · wrong answers come back",
+      view: "study",
+    });
+  }
+
+  if (pendingTasks) {
+    due.push({
+      kind: "project-task",
+      title: "Capstone project task",
+      meta: pendingTasks.description?.slice(0, 80) || `Week ${pendingTasks.week} task`,
+      view: "project",
+    });
+  }
+
+  if (weeklyTestAvailable && weeklyTestAvailable.status !== "completed") {
+    due.push({
+      kind: "weekly-test",
+      title: `Week ${user.currentWeek ?? 1} weekly test`,
+      meta: "Full Socratic assessment · 10 questions",
+      view: "study",
+      urgent: true,
+    });
+  }
+
   return NextResponse.json({
     traineeName: user.name,
     week: user.currentWeek ?? 1,
@@ -143,6 +199,7 @@ export async function GET() {
     streakDays,
     learningSignal: learningSignal ?? null,
     nextAction,
+    due,
     dueDrills,
     mentorMessage: latestMessage
       ? {

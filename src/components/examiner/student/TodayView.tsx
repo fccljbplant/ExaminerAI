@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import OnboardingGuide from "./OnboardingGuide";
 import StreakCalendar from "./StreakCalendar";
+import DueTodayCard from "./DueTodayCard";
 
 interface TodayData {
   traineeName: string;
@@ -148,6 +149,12 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
           <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 mt-3" />
         </div>
       </button>
+
+      {/* Due today — inline card replacing the interrupting DailyTaskReminder
+          popup. Surfaces ALL due items (not just the single most urgent) so
+          the learner can pick what to work on. One tap → jump to the right
+          view. Popups are now reserved for red-tier alerts only. */}
+      <DueTodayCard onNavigate={(view) => onNavigate?.(view)} />
 
       {/* Streak calendar — GitHub-style contribution grid showing the last
           12 weeks of study activity. Visible to any logged-in student. */}

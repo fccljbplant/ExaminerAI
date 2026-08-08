@@ -13,6 +13,7 @@ import { fallbackGrade, parseQuestionExplanations, type TeachingFeedback, type Q
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { issueCertificate } from "@/lib/certificate";
+import { TEST_QUESTION_COUNT } from "@/lib/constants";
 
 /**
  * POST /api/ai/weekly-test
@@ -25,14 +26,14 @@ import { issueCertificate } from "@/lib/certificate";
  *   { week, message, action: "start" | "reply" | "finish", projectName? }
  */
 
-// Default constants — overridden by course-specific test config
-// Phase Psychological: increased to 15 questions to include both conceptual
-// AND implementation questions. The weekly test now covers:
-// Q1-5: Conceptual (what is it, why it matters) — uses Socratic pillars
-// Q6-10: Implementation (how to use it, configure, deploy) — practical
-// Q11-15: Applied/Edge cases (what breaks, troubleshooting, optimization)
+// Default constants — overridden by course-specific test config.
+// Total weekly questions is sourced from TEST_QUESTION_COUNT.weekly (single source
+// of truth in src/lib/constants.ts). Used to be hardcoded to 15, which silently
+// disagreed with the constants file and the UI copy — that bug is now closed.
+// The prompt template below interpolates the same number, so config and prompt
+// can never drift again.
 const DEFAULT_MAX_MESSAGES = 5;
-const DEFAULT_TOTAL_QUESTIONS = 15;
+const DEFAULT_TOTAL_QUESTIONS = TEST_QUESTION_COUNT.weekly;
 
 interface ChatMessage {
   role: "examiner" | "student";
@@ -110,12 +111,12 @@ ${topics.map((t, i) => `Day ${i + 1}: ${t}`).join("\n")}
 
 IMPORTANT: Only ask questions about these topics. Use simple, beginner-level language. The student is a complete beginner (noob). Do NOT use advanced terminology without explaining it first.
 
-QUESTION STRUCTURE (15 questions total):
-- Questions 1-5: CONCEPTUAL — what is this topic? Why does it matter? How does it work at a high level?
-- Questions 6-10: IMPLEMENTATION — how do you actually USE this? Configuration, setup, common workflows. Ask "how would you..." not just "what is..."
-- Questions 11-15: APPLIED/EDGE CASES — what happens when things go wrong? Troubleshooting, optimization, real-world scenarios. Ask "what if..." and "how would you debug..."
+QUESTION STRUCTURE (${DEFAULT_TOTAL_QUESTIONS} questions total):
+- Questions 1-${Math.ceil(DEFAULT_TOTAL_QUESTIONS / 3)}: CONCEPTUAL — what is this topic? Why does it matter? How does it work at a high level?
+- Questions ${Math.ceil(DEFAULT_TOTAL_QUESTIONS / 3) + 1}-${Math.ceil((DEFAULT_TOTAL_QUESTIONS * 2) / 3)}: IMPLEMENTATION — how do you actually USE this? Configuration, setup, common workflows. Ask "how would you..." not just "what is..."
+- Questions ${Math.ceil((DEFAULT_TOTAL_QUESTIONS * 2) / 3) + 1}-${DEFAULT_TOTAL_QUESTIONS}: APPLIED/EDGE CASES — what happens when things go wrong? Troubleshooting, optimization, real-world scenarios. Ask "what if..." and "how would you debug..."
 
-Mix the 4 Socratic pillars (Why Probe, Break-It Scenario, Client Translation, Edge Case Test) across all 15 questions. Adapt the question type to the topic — some topics are more conceptual, others more practical.`;
+Mix the 4 Socratic pillars (Why Probe, Break-It Scenario, Client Translation, Edge Case Test) across all ${DEFAULT_TOTAL_QUESTIONS} questions. Adapt the question type to the topic — some topics are more conceptual, others more practical.`;
 }
 
 export async function POST(req: NextRequest) {

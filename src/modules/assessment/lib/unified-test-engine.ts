@@ -5,7 +5,7 @@
  * ONE chatbot, ONE set of rules, ONE grading contract, ONE behavioral
  * logging pipeline. The only differences between test types are:
  *
- *   - totalQuestions: 3 for practice/daily, 15 for weekly
+ *   - totalQuestions: 3 for practice/daily, 10 for weekly (TEST_QUESTION_COUNT)
  *   - maxRepliesPerQuestion: 2-3 for practice/daily, 5 for weekly
  *   - testKind: "practice" | "daily_test" | "weekly_test" (affects grading prompt framing)
  *
@@ -29,11 +29,12 @@
 
 import { callAI } from "@/lib/ai-provider";
 import { logger } from "@/lib/logger";
+import { TEST_QUESTION_COUNT } from "@/lib/constants";
 import type { QuestionExplanation, TestKind } from "./unified-grader";
 import { parseQuestionExplanations } from "./unified-grader";
 
 /** Test-type configuration. Practice/daily are short (3 questions),
- *  weekly is the full exam (15 questions). */
+ *  weekly is the full exam (10 questions — see TEST_QUESTION_COUNT). */
 export interface TestTypeConfig {
   testKind: TestKind;
   totalQuestions: number;
@@ -66,7 +67,7 @@ export const DAILY_TEST_CONFIG: TestTypeConfig = {
 
 export const WEEKLY_TEST_CONFIG: TestTypeConfig = {
   testKind: "weekly_test",
-  totalQuestions: 15,
+  totalQuestions: TEST_QUESTION_COUNT.weekly,
   maxRepliesPerQuestion: 5,
   questionTypes: [
     // Q1-5: Conceptual
