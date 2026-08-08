@@ -193,7 +193,7 @@ export function RoleNavConfigPanel() {
               {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
               Save navigation for {ROLE_LABELS[selectedRole]}
             </Button>
-            {msg && <span className={`text-xs ${msg.includes("Failed") ? "text-red-600" : "text-emerald-600"}`}>{msg}</span>}
+            {msg && <span className={`text-xs ${msg.includes("Failed") ? "text-destructive" : "text-growth-sage"}`}>{msg}</span>}
           </div>
         </CardContent>
       </Card>

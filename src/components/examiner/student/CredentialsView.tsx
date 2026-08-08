@@ -109,18 +109,18 @@ interface CheckCompletionResponse {
 // ============================================================
 const MILESTONE_META: Record<string, { icon: typeof Trophy; label: string; color: string }> = {
   course_completion: { icon: GraduationCap, label: "Course Completion", color: "text-blue-500" },
-  distinction: { icon: Star, label: "With Distinction", color: "text-amber-500" },
-  capstone_certified: { icon: Code2, label: "Capstone Certified", color: "text-emerald-500" },
+  distinction: { icon: Star, label: "With Distinction", color: "text-growth-amber" },
+  capstone_certified: { icon: Code2, label: "Capstone Certified", color: "text-growth-sage" },
   skill_mastery: { icon: ShieldCheck, label: "Skill Mastery", color: "text-purple-500" },
   consistent_performer: { icon: TrendingUp, label: "Consistent Performer", color: "text-cyan-500" },
   peer_recognized: { icon: Users, label: "Peer Recognized", color: "text-pink-500" },
-  mentor_endorsed: { icon: Trophy, label: "Mentor Endorsed", color: "text-orange-500" },
+  mentor_endorsed: { icon: Trophy, label: "Mentor Endorsed", color: "text-growth-amber" },
 };
 
 const MASTERY_META: Record<string, { label: string; pct: number; color: string }> = {
-  mastered: { label: "Mastered", pct: 100, color: "text-emerald-500" },
-  proficient: { label: "Proficient", pct: 80, color: "text-lime-500" },
-  developing: { label: "Developing", pct: 50, color: "text-amber-500" },
+  mastered: { label: "Mastered", pct: 100, color: "text-growth-sage" },
+  proficient: { label: "Proficient", pct: 80, color: "text-growth-sage" },
+  developing: { label: "Developing", pct: 50, color: "text-growth-amber" },
   "not-started": { label: "Not Started", pct: 10, color: "text-muted-foreground" },
 };
 
@@ -282,7 +282,7 @@ export function CredentialsView() {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={cn("text-xs font-medium", meta.color)}>{meta.label}</span>
-                        <TrendIcon className={cn("h-3.5 w-3.5", sm.trend === "improving" ? "text-emerald-500" : sm.trend === "declining" ? "text-destructive" : "text-muted-foreground")} />
+                        <TrendIcon className={cn("h-3.5 w-3.5", sm.trend === "improving" ? "text-growth-sage" : sm.trend === "declining" ? "text-destructive" : "text-muted-foreground")} />
                       </div>
                     </div>
                     <Progress value={meta.pct} className="h-1.5" />
@@ -355,7 +355,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
     `&certId=${encodeURIComponent(certIdForLinkedIn)}`;
 
   return (
-    <Card className={cn("overflow-hidden", cert.distinction && "border-amber-500/40 ring-1 ring-amber-500/20")}>
+    <Card className={cn("overflow-hidden", cert.distinction && "border-growth-amber ring-1 ring-growth-amber/20")}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -368,8 +368,8 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             </CardDescription>
           </div>
           {cert.distinction && (
-            <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/30 flex-shrink-0">
-              <Star className="h-3 w-3 mr-1 fill-amber-500 text-amber-500" /> Distinction
+            <Badge className="bg-growth-amber/20 text-growth-amber dark:text-growth-amber border-growth-amber flex-shrink-0">
+              <Star className="h-3 w-3 mr-1 fill-amber-500 text-growth-amber" /> Distinction
             </Badge>
           )}
         </div>
@@ -389,7 +389,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
 
         {/* Capstone */}
         {cert.capstonePassed && (
-          <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center gap-2 text-xs text-growth-sage dark:text-growth-sage">
             <CheckCircle2 className="h-3.5 w-3.5" /> Capstone defended
           </div>
         )}
@@ -401,7 +401,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             <div className="flex flex-wrap gap-1">
               {cert.skillsVerified.map((s) => (
                 <Badge key={s} variant="secondary" className="text-[10px]">
-                  <ShieldCheck className="h-2.5 w-2.5 mr-1 text-emerald-500" />
+                  <ShieldCheck className="h-2.5 w-2.5 mr-1 text-growth-sage" />
                   {s}
                 </Badge>
               ))}

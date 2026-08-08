@@ -148,7 +148,7 @@ export default function CheckoutButton({
   if (justEnrolled || authState === "student-enrolled") {
     return (
       <div className="flex flex-col gap-2">
-        <Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+        <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Link href="/app">
             <CheckCircle2 className="h-4 w-4" />
             {justEnrolled ? "Enrolled! Continue Learning" : "Continue Learning"}
@@ -230,7 +230,7 @@ export default function CheckoutButton({
                   </p>
                   <ul className="space-y-1.5 text-xs text-foreground/80">
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-emerald-500 flex-shrink-0" />
+                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-growth-sage flex-shrink-0" />
                       <span>Full course access — every lesson, every week</span>
                     </li>
                     <li className="flex items-start gap-2">
@@ -238,15 +238,15 @@ export default function CheckoutButton({
                       <span>AI tutor — Socratic guidance, practice tests, weekly assessments</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Award className="h-3.5 w-3.5 mt-0.5 text-amber-500 flex-shrink-0" />
+                      <Award className="h-3.5 w-3.5 mt-0.5 text-growth-amber flex-shrink-0" />
                       <span>Verified certificate on completion (score ≥ 75) — public verification URL</span>
                     </li>
                   </ul>
                 </div>
 
                 {/* Payment security notice */}
-                <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2.5">
-                  <p className="text-[11px] text-emerald-700 dark:text-emerald-300 flex items-start gap-1.5 leading-snug">
+                <div className="rounded-md border border-growth-sage bg-growth-sage-soft p-2.5">
+                  <p className="text-[11px] text-growth-sage-foreground flex items-start gap-1.5 leading-snug">
                     <ShieldCheck className="h-3 w-3 mt-0.5 flex-shrink-0" />
                     <span>
                       <strong>Secure Stripe checkout.</strong> You&apos;ll be

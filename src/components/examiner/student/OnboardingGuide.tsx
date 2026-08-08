@@ -251,7 +251,7 @@ export default function OnboardingGuide({
                     className={cn(
                       "flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
                       step.completed
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-growth-sage-soft text-growth-sage dark:text-growth-sage"
                         : "bg-muted text-muted-foreground border border-border"
                     )}
                   >
@@ -265,7 +265,7 @@ export default function OnboardingGuide({
                     className={cn(
                       "flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md",
                       step.completed
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-growth-sage-soft text-growth-sage dark:text-growth-sage"
                         : "bg-primary/10 text-primary"
                     )}
                   >
@@ -296,7 +296,7 @@ export default function OnboardingGuide({
         </ol>
 
         {allComplete && (
-          <p className="mt-3 text-center text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+          <p className="mt-3 text-center text-[11px] font-medium text-growth-sage dark:text-growth-sage">
             <Sparkles className="inline h-3 w-3 mr-1" />
             You&apos;re all set — happy learning!
           </p>

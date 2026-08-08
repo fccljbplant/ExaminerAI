@@ -45,15 +45,15 @@ interface Props {
 const STATUS_META: Record<BriefingData["status"], { label: string; className: string }> = {
   on_track: {
     label: "On Track",
-    className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+    className: "bg-growth-sage-soft text-growth-sage dark:text-growth-sage border-growth-sage",
   },
   needs_attention: {
     label: "Needs Attention",
-    className: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+    className: "bg-growth-amber-soft text-growth-amber dark:text-growth-amber border-growth-amber",
   },
   at_risk: {
     label: "At Risk",
-    className: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
+    className: "bg-destructive/5 text-destructive dark:text-destructive border-destructive/30",
   },
 };
 
@@ -121,10 +121,10 @@ export function StudentBriefing({ studentId, onMessage }: Props) {
   // Error state — compact, with retry.
   if (error && !data) {
     return (
-      <Card className="border-amber-500/30 bg-amber-500/5">
+      <Card className="border-growth-amber bg-growth-amber-soft">
         <CardContent className="p-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+            <AlertTriangle className="h-4 w-4 text-growth-amber flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-xs font-medium text-foreground">Briefing unavailable</p>
               <p className="text-[10px] text-muted-foreground truncate">{error}</p>
@@ -204,7 +204,7 @@ export function StudentBriefing({ studentId, onMessage }: Props) {
             {status.label}
           </Badge>
           {data.weakTopics.length > 0 && (
-            <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30">
+            <Badge variant="outline" className="text-[10px] bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber border-growth-amber">
               Weak: {data.weakTopics.join(", ")}
             </Badge>
           )}

@@ -164,10 +164,10 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
   };
 
   const eventTypeColor = (type: string) =>
-    type === "exam" ? "bg-red-500/10 text-red-600 border-red-500/30"
-    : type === "deadline" ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+    type === "exam" ? "bg-destructive/5 text-destructive border-destructive/30"
+    : type === "deadline" ? "bg-growth-amber-soft text-growth-amber border-growth-amber"
     : type === "meeting" ? "bg-blue-500/10 text-blue-600 border-blue-500/30"
-    : type === "activity" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+    : type === "activity" ? "bg-growth-sage-soft text-growth-sage border-growth-sage"
     : type === "holiday" ? "bg-violet-500/10 text-violet-600 border-violet-500/30"
     : type === "vocational" ? "bg-cyan-500/10 text-cyan-600 border-cyan-500/30"
     : type === "extracurricular" ? "bg-pink-500/10 text-pink-600 border-pink-500/30"
@@ -199,7 +199,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
         <CardContent className="space-y-3">
           {/* C5 fix: show a clear error when the instructor has no course assigned */}
           {courseError && (
-            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
+            <div className="rounded-md border border-growth-amber bg-growth-amber-soft p-3 text-xs text-growth-amber-foreground dark:text-growth-amber flex items-start gap-2">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
               <p>{courseError}</p>
             </div>
@@ -243,7 +243,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-foreground">{task.title}</p>
                       <Badge variant="outline" className="text-[9px] capitalize">{task.type}</Badge>
-                      <Badge variant="outline" className={`text-[9px] ${task.status === "open" ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"}`}>{task.status}</Badge>
+                      <Badge variant="outline" className={`text-[9px] ${task.status === "open" ? "bg-growth-sage-soft text-growth-sage" : "bg-muted text-muted-foreground"}`}>{task.status}</Badge>
                     </div>
                     {task.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>}
                     <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
@@ -257,7 +257,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
                       <Users className="h-3 w-3" /> View submissions
                     </Button>
                     {task.status === "open" && (
-                      <Button onClick={() => closeTask(task.id)} size="sm" variant="ghost" className="h-7 text-xs text-amber-600" title="Close">
+                      <Button onClick={() => closeTask(task.id)} size="sm" variant="ghost" className="h-7 text-xs text-growth-amber" title="Close">
                         <Lock className="h-3 w-3" />
                       </Button>
                     )}
@@ -296,7 +296,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
                     {sub.link && <a href={sub.link} target="_blank" rel="noopener noreferrer" className="text-primary text-[10px] hover:underline">{sub.link}</a>}
                     <div className="flex items-center gap-2 mt-2">
                       {sub.score !== null ? (
-                        <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-600">Scored: {sub.score}/{selectedTask.maxScore}</Badge>
+                        <Badge variant="outline" className="text-[9px] bg-growth-sage-soft text-growth-sage">Scored: {sub.score}/{selectedTask.maxScore}</Badge>
                       ) : (
                         <div className="flex items-center gap-1">
                           <Input

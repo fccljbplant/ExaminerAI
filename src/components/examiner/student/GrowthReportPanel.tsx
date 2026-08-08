@@ -149,16 +149,16 @@ export function GrowthReportPanel({ studentId }: GrowthReportPanelProps) {
         {report && (
           <>
             {/* Strengths */}
-            <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
-              <p className="text-[10px] text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+            <div className="rounded-md border border-growth-sage bg-growth-sage-soft p-3">
+              <p className="text-[10px] text-growth-sage-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" /> Strengths
               </p>
               <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">{report.strengths}</p>
             </div>
 
             {/* Growth areas */}
-            <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
-              <p className="text-[10px] text-amber-700 dark:text-amber-300 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+            <div className="rounded-md border border-growth-amber bg-growth-amber-soft p-3">
+              <p className="text-[10px] text-growth-amber-foreground dark:text-growth-amber uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <TrendingDown className="h-3 w-3" /> Growth Areas
               </p>
               <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">{report.growthAreas}</p>

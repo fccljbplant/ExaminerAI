@@ -273,7 +273,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
           label="Active Today"
           value={healthPulse.activeToday}
           subtitle={`${healthPulse.activePct}% engagement`}
-          color="text-emerald-600"
+          color="text-growth-sage"
           progress={healthPulse.activePct}
         />
         <HealthPulseCard
@@ -281,16 +281,16 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
           label="Need Attention"
           value={healthPulse.needingAttention}
           subtitle={`${healthPulse.attentionPct}% of class`}
-          color={healthPulse.needingAttention > 10 ? "text-rose-600" : "text-amber-600"}
+          color={healthPulse.needingAttention > 10 ? "text-destructive" : "text-growth-amber"}
           progress={healthPulse.attentionPct}
-          progressColor={healthPulse.needingAttention > 10 ? "bg-rose-500" : "bg-amber-500"}
+          progressColor={healthPulse.needingAttention > 10 ? "bg-rose-500" : "bg-growth-amber"}
         />
         <HealthPulseCard
           icon={TrendingUp}
           label="Avg Score"
           value={`${healthPulse.avgScore}%`}
           subtitle={`${healthPulse.scoredCount} tested`}
-          color={healthPulse.avgScore >= 70 ? "text-emerald-600" : "text-amber-600"}
+          color={healthPulse.avgScore >= 70 ? "text-growth-sage" : "text-growth-amber"}
         />
       </div>
 
@@ -316,7 +316,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500" />
+              <Zap className="w-4 h-4 text-growth-amber" />
               Triage Queue
               {triageQueue.length > 0 && (
                 <Badge variant="secondary" className="text-[10px]">{triageQueue.length}</Badge>
@@ -327,20 +327,20 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
         <CardContent className="pt-0">
           {triageQueue.length === 0 ? (
             <div className="py-8 text-center">
-              <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+              <CheckCircle2 className="w-10 h-10 text-growth-sage mx-auto mb-2" />
               <p className="text-sm font-medium">All clear!</p>
               <p className="text-xs text-muted-foreground mt-1">No students need immediate attention right now.</p>
             </div>
           ) : (
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {crisisItems.length > 0 && (
-                <TriageGroup label="Crisis" icon={AlertCircle} color="text-rose-600" items={crisisItems} onStudentClick={onStudentClick} onAct={openActionDialog} actionDialogLoading={actionDialogLoading} />
+                <TriageGroup label="Crisis" icon={AlertCircle} color="text-destructive" items={crisisItems} onStudentClick={onStudentClick} onAct={openActionDialog} actionDialogLoading={actionDialogLoading} />
               )}
               {alertItems.length > 0 && (
-                <TriageGroup label="Alerts" icon={Bell} color="text-amber-600" items={alertItems} onStudentClick={onStudentClick} onAct={openActionDialog} actionDialogLoading={actionDialogLoading} />
+                <TriageGroup label="Alerts" icon={Bell} color="text-growth-amber" items={alertItems} onStudentClick={onStudentClick} onAct={openActionDialog} actionDialogLoading={actionDialogLoading} />
               )}
               {blockedItems.length > 0 && (
-                <TriageGroup label="Blocked Tasks" icon={Ban} color="text-orange-600" items={blockedItems} onStudentClick={onStudentClick} />
+                <TriageGroup label="Blocked Tasks" icon={Ban} color="text-growth-amber" items={blockedItems} onStudentClick={onStudentClick} />
               )}
               {silentItems.length > 0 && (
                 <TriageGroup label="Silent / Warning Signs" icon={Clock} color="text-slate-500" items={silentItems.slice(0, 10)} onStudentClick={onStudentClick} />
@@ -361,7 +361,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <Sparkles className="w-4 h-4 text-growth-amber" />
             Wins to Celebrate
           </CardTitle>
         </CardHeader>
@@ -378,8 +378,8 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
                   onClick={() => onStudentClick(w.student)}
                   className="w-full flex items-center gap-3 p-2.5 rounded-lg border bg-card hover:bg-accent transition-colors text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  <div className="w-8 h-8 rounded-full bg-growth-sage-soft flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-4 h-4 text-growth-sage" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{w.student.name}</div>
@@ -463,8 +463,8 @@ function TriageGroup({ label, icon: Icon, color, items, onStudentClick, onAct, a
 
 function TriageRow({ item, onStudentClick, onAct, actionDialogLoading }: { item: TriageItem; onStudentClick: (s: StudentRow) => void; onAct?: (s: StudentRow, a?: any) => void; actionDialogLoading?: boolean }) {
   const colorMap = {
-    crisis: "border-rose-300 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900",
-    alert: "border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900",
+    crisis: "border-destructive/30 bg-destructive/5 dark:bg-rose-950/20 dark:border-rose-900",
+    alert: "border-growth-amber bg-growth-amber-soft dark:bg-amber-950/20 dark:border-amber-900",
     silent: "border-slate-200 bg-slate-50 dark:bg-slate-900/30 dark:border-slate-800",
     blocked: "border-orange-300 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900",
     plagiarism: "border-purple-300 bg-purple-50 dark:bg-purple-950/20 dark:border-purple-900",
@@ -480,7 +480,7 @@ function TriageRow({ item, onStudentClick, onAct, actionDialogLoading }: { item:
 
   return (
     <div className={cn("flex items-center gap-3 p-3 rounded-lg border", colorMap[item.type])}>
-      <Icon className={cn("w-5 h-5 flex-shrink-0", item.type === "crisis" ? "text-rose-600" : item.type === "alert" ? "text-amber-600" : item.type === "blocked" ? "text-orange-600" : "text-slate-500")} />
+      <Icon className={cn("w-5 h-5 flex-shrink-0", item.type === "crisis" ? "text-destructive" : item.type === "alert" ? "text-growth-amber" : item.type === "blocked" ? "text-growth-amber" : "text-slate-500")} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium truncate">{item.student?.name || "Unknown"}</span>

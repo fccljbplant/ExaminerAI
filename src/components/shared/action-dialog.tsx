@@ -100,9 +100,9 @@ export function ActionDialog({
   };
 
   const tierConfig = {
-    green: { color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/20", border: "border-emerald-300 dark:border-emerald-800", icon: CheckCircle2 },
-    amber: { color: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-950/20", border: "border-amber-300 dark:border-amber-800", icon: AlertTriangle },
-    red: { color: "text-rose-600", bg: "bg-rose-50 dark:bg-rose-950/20", border: "border-rose-300 dark:border-rose-800", icon: AlertCircle },
+    green: { color: "text-growth-sage", bg: "bg-growth-sage-soft dark:bg-emerald-950/20", border: "border-growth-sage dark:border-emerald-800", icon: CheckCircle2 },
+    amber: { color: "text-growth-amber", bg: "bg-growth-amber-soft dark:bg-amber-950/20", border: "border-growth-amber dark:border-amber-800", icon: AlertTriangle },
+    red: { color: "text-destructive", bg: "bg-destructive/5 dark:bg-rose-950/20", border: "border-destructive/30", icon: AlertCircle },
   };
 
   const config = tierConfig[data.tier];
@@ -142,7 +142,7 @@ export function ActionDialog({
           {/* Your note (REQUIRED) */}
           <div>
             <Label className="text-xs font-semibold text-muted-foreground">
-              Your note <span className="text-rose-500">*</span> (required)
+              Your note <span className="text-destructive">*</span> (required)
             </Label>
 
             {/* One-tap presets */}
@@ -191,7 +191,7 @@ export function ActionDialog({
                 className="w-full flex items-center gap-2 p-2.5 text-left hover:bg-accent/50 transition-colors"
               >
                 {showGuidance ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
-                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                <Lightbulb className="w-3.5 h-3.5 text-growth-amber" />
                 <span className="text-xs font-medium text-muted-foreground">Guidance for this situation</span>
               </button>
               {showGuidance && (
@@ -228,7 +228,7 @@ export function ActionDialog({
           <Button
             onClick={handleConfirm}
             disabled={!canConfirm}
-            className={cn(data.tier === "red" && "bg-rose-600 hover:bg-rose-700 text-white")}
+            className={cn(data.tier === "red" && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
           >
             {busy ? (
               <>Processing...</>

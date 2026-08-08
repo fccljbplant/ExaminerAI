@@ -52,15 +52,15 @@ interface Report {
 }
 
 const priorityColor = (priority: string) => {
-  if (priority === "high") return "text-rose-600 bg-rose-50 dark:bg-rose-950/30 border-rose-500/30";
-  if (priority === "medium") return "text-amber-600 bg-amber-50 dark:bg-amber-950/30 border-amber-500/30";
-  return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500/30";
+  if (priority === "high") return "text-destructive bg-destructive/5 border-destructive/30";
+  if (priority === "medium") return "text-growth-amber bg-growth-amber-soft dark:bg-amber-950/30 border-growth-amber";
+  return "text-growth-sage bg-growth-sage-soft dark:bg-emerald-950/30 border-growth-sage";
 };
 
 const readinessColor = (readiness: string) => {
-  if (readiness === "Strong" || readiness === "Ready") return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30";
-  if (readiness === "Almost Ready") return "text-amber-600 bg-amber-50 dark:bg-amber-950/30";
-  return "text-rose-600 bg-rose-50 dark:bg-rose-950/30";
+  if (readiness === "Strong" || readiness === "Ready") return "text-growth-sage bg-growth-sage-soft dark:bg-emerald-950/30";
+  if (readiness === "Almost Ready") return "text-growth-amber bg-growth-amber-soft dark:bg-amber-950/30";
+  return "text-destructive bg-destructive/5";
 };
 
 export function ComprehensiveReportView({ studentId }: { studentId: string }) {
@@ -206,10 +206,10 @@ export function ComprehensiveReportView({ studentId }: { studentId: string }) {
 
       {/* Section 3: Accomplishments + Areas to Improve */}
       <div className="grid md:grid-cols-2 gap-4">
-        <Card className="border-emerald-500/30 bg-emerald-500/5">
+        <Card className="border-growth-sage bg-growth-sage-soft">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Award className="h-4 w-4 text-emerald-600" /> Accomplishments
+              <Award className="h-4 w-4 text-growth-sage" /> Accomplishments
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -219,7 +219,7 @@ export function ComprehensiveReportView({ studentId }: { studentId: string }) {
               <ul className="space-y-1">
                 {report.accomplishments.map((a, i) => (
                   <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
-                    <span className="text-emerald-600 mt-0.5">✓</span> {a}
+                    <span className="text-growth-sage mt-0.5">✓</span> {a}
                   </li>
                 ))}
               </ul>
@@ -227,10 +227,10 @@ export function ComprehensiveReportView({ studentId }: { studentId: string }) {
           </CardContent>
         </Card>
 
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-growth-amber bg-growth-amber-soft">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Target className="h-4 w-4 text-amber-600" /> Areas to Improve
+              <Target className="h-4 w-4 text-growth-amber" /> Areas to Improve
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -276,7 +276,7 @@ export function ComprehensiveReportView({ studentId }: { studentId: string }) {
               <ul className="space-y-0.5">
                 {report.managementAttitude.productivitySignals.map((s, i) => (
                   <li key={i} className="text-[10px] text-muted-foreground flex items-start gap-1">
-                    <span className="text-emerald-600">•</span> {s}
+                    <span className="text-growth-sage">•</span> {s}
                   </li>
                 ))}
               </ul>
@@ -286,7 +286,7 @@ export function ComprehensiveReportView({ studentId }: { studentId: string }) {
               <ul className="space-y-0.5">
                 {report.managementAttitude.professionalismSignals.map((s, i) => (
                   <li key={i} className="text-[10px] text-muted-foreground flex items-start gap-1">
-                    <span className="text-emerald-600">•</span> {s}
+                    <span className="text-growth-sage">•</span> {s}
                   </li>
                 ))}
               </ul>

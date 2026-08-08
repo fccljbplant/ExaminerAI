@@ -41,7 +41,7 @@ export default function CompactCourseHeader({
         chips={
           <div className="hidden sm:flex items-center gap-1.5">
             {data.nextDeadline && (
-              <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-300">
+              <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-growth-amber">
                 ⏰ {data.nextDeadline}
               </span>
             )}

@@ -78,8 +78,8 @@ export function CompactGantt({ stats }: { stats: StatsResponse }) {
   const statusColors: Record<string, string> = {
     "planned": "bg-muted-foreground/40",
     "in-progress": "bg-blue-500/70",
-    "completed": "bg-emerald-500/80",
-    "blocked": "bg-amber-500/70",
+    "completed": "bg-growth-sage/80",
+    "blocked": "bg-growth-amber/70",
   };
 
   // Column width: each week gets equal share of the bar area
@@ -93,10 +93,10 @@ export function CompactGantt({ stats }: { stats: StatsResponse }) {
             <TrendingUp className="h-4 w-4 text-primary" /> Project Timeline
           </CardTitle>
           <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> Done</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-growth-sage" /> Done</span>
             <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-500" /> Active</span>
             <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-muted-foreground/40" /> Planned</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber-500" /> Blocked</span>
+            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-growth-amber" /> Blocked</span>
             <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500" /> Today</span>
           </div>
         </div>
@@ -116,7 +116,7 @@ export function CompactGantt({ stats }: { stats: StatsResponse }) {
                 {Array.from({ length: maxWeek }, (_, i) => i + 1).map(weekNum => (
                   <div
                     key={weekNum}
-                    className={`absolute top-0 text-[9px] font-medium ${weekNum === currentWeek ? "text-red-500" : "text-muted-foreground"}`}
+                    className={`absolute top-0 text-[9px] font-medium ${weekNum === currentWeek ? "text-destructive" : "text-muted-foreground"}`}
                     style={{ left: `${(weekNum - 1) * weekColumnWidth}%`, width: `${weekColumnWidth}%` }}
                   >
                     W{weekNum}
@@ -152,7 +152,7 @@ export function CompactGantt({ stats }: { stats: StatsResponse }) {
                     <div className="min-w-0 pr-1">
                       <div className="flex items-center gap-1">
                         {task.status === "completed"
-                          ? <CheckCircle2 className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+                          ? <CheckCircle2 className="h-3 w-3 text-growth-sage flex-shrink-0" />
                           : task.status === "in-progress"
                           ? <Loader2 className="h-3 w-3 text-blue-500 flex-shrink-0" />
                           : <Circle className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
@@ -207,7 +207,7 @@ export function CompactGantt({ stats }: { stats: StatsResponse }) {
               return (
                 <div
                   key={weekNum}
-                  className={`absolute top-0 text-[8px] ${weekNum === currentWeek ? "text-red-500 font-bold" : "text-muted-foreground"}`}
+                  className={`absolute top-0 text-[8px] ${weekNum === currentWeek ? "text-destructive font-bold" : "text-muted-foreground"}`}
                   style={{ left: `${(weekNum - 1) * weekColumnWidth}%`, width: `${weekColumnWidth}%` }}
                   title={`Week ${weekNum}: ${weekSpans.length} active task${weekSpans.length !== 1 ? "s" : ""}, ${completed} done`}
                 >

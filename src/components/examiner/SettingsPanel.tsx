@@ -180,7 +180,7 @@ export function SettingsPanel({ user }: SettingsPanelProps) {
             />
           </div>
           {passwordChanged && (
-            <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+            <div className="rounded-md border border-growth-sage bg-growth-sage-soft p-2 text-xs text-growth-sage-foreground flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5" /> Password changed. Use your new password next time you sign in.
             </div>
           )}
@@ -204,7 +204,7 @@ export function SettingsPanel({ user }: SettingsPanelProps) {
           <CardDescription className="text-xs">
             Used for self-service password reset if you forget yours. Set one if you haven&apos;t already.
             {!user.hasSecurityQuestion && (
-              <span className="block mt-1 text-amber-600 dark:text-amber-400">
+              <span className="block mt-1 text-growth-amber dark:text-growth-amber">
                 ⚠ No security question set — you won&apos;t be able to reset your password without an admin&apos;s help.
               </span>
             )}

@@ -253,7 +253,7 @@ function EnrolledCourseCard({
         </div>
         <div className="absolute top-2 right-2">
           {hasCertificate ? (
-            <Badge className="bg-amber-500 text-white border-transparent text-[10px] gap-1">
+            <Badge className="bg-growth-amber text-white border-transparent text-[10px] gap-1">
               <Trophy className="h-3 w-3" /> Certified
             </Badge>
           ) : isCompleted ? (
@@ -350,7 +350,7 @@ function ExploreCourseCard({ course }: { course: MarketplaceCourseListItem }) {
         </div>
         {course.featured && (
           <div className="absolute top-2 left-2">
-            <Badge className="bg-amber-500 text-white border-transparent text-[10px] gap-1">
+            <Badge className="bg-growth-amber text-white border-transparent text-[10px] gap-1">
               <Sparkles className="h-3 w-3" /> Featured
             </Badge>
           </div>
@@ -371,7 +371,7 @@ function ExploreCourseCard({ course }: { course: MarketplaceCourseListItem }) {
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
           {course.rating > 0 ? (
             <span className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <Star className="h-3 w-3 fill-amber-400 text-growth-amber" />
               <span className="font-medium text-foreground">{course.rating.toFixed(1)}</span>
               <span>({course.reviewCount})</span>
             </span>

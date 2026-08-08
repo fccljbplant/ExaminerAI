@@ -152,7 +152,7 @@ export function TestChatUI({
                       <BookOpen className="h-3 w-3 mt-0.5 text-primary/70 flex-shrink-0" />
                       <span>{m.questionExplanation.explanation}</span>
                     </div>
-                    <div className="flex items-start gap-1.5 text-emerald-700 dark:text-emerald-300">
+                    <div className="flex items-start gap-1.5 text-growth-sage-foreground">
                       <CheckCircle2 className="h-3 w-3 mt-0.5 flex-shrink-0" />
                       <span>{m.questionExplanation.encouragement}</span>
                     </div>

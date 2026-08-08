@@ -71,10 +71,10 @@ function CertificateCard() {
 
   if (certificate) {
     return (
-      <Card className="border-amber-500/40 bg-amber-500/5">
+      <Card className="border-growth-amber bg-growth-amber-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-amber-600" /> Certificate of Completion
+            <Award className="h-5 w-5 text-growth-amber" /> Certificate of Completion
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -107,9 +107,9 @@ function CertificateCard() {
 
   if (requested) {
     return (
-      <Card className="border-amber-500/40 bg-amber-500/5">
+      <Card className="border-growth-amber bg-growth-amber-soft">
         <CardContent className="p-6 text-center">
-          <Loader2 className="h-8 w-8 text-amber-500 mx-auto mb-2 animate-spin" style={{ animationDuration: "3s" }} />
+          <Loader2 className="h-8 w-8 text-growth-amber mx-auto mb-2 animate-spin" style={{ animationDuration: "3s" }} />
           <h3 className="text-sm font-semibold text-foreground mb-1">Certificate Requested</h3>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">{requestMessage}</p>
           <p className="text-xs text-muted-foreground/70 mt-2">Your instructor will review your completion and approve it.</p>
@@ -126,7 +126,7 @@ function CertificateCard() {
         <p className="text-xs text-muted-foreground mb-3 max-w-xs mx-auto">
           Complete all weekly tests to request your certificate. Your instructor will review and approve it. It's publicly verifiable via a shareable URL.
         </p>
-        <Button onClick={generate} disabled={loading} size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
+        <Button onClick={generate} disabled={loading} size="sm" className="bg-growth-amber hover:bg-amber-600 text-white">
           {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Award className="h-3 w-3" />}
           Request Certificate
         </Button>

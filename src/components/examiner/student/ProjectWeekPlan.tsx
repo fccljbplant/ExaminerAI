@@ -179,8 +179,8 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
   const statusColors: Record<string, string> = {
     "planned": "bg-muted text-muted-foreground border-border",
     "in-progress": "bg-blue-500/10 text-blue-600 border-blue-500/30",
-    "completed": "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
-    "blocked": "bg-amber-500/10 text-amber-600 border-amber-500/30",
+    "completed": "bg-growth-sage-soft text-growth-sage border-growth-sage",
+    "blocked": "bg-growth-amber-soft text-growth-amber border-growth-amber",
   };
 
   if (loading) {
@@ -413,7 +413,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
                       {!isExpanded && milestones.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-0.5">
                           {milestones.slice(0, 3).map((m, i) => (
-                            <span key={i} className="text-[8px] text-emerald-600">★ {m}</span>
+                            <span key={i} className="text-[8px] text-growth-sage">★ {m}</span>
                           ))}
                         </div>
                       )}
@@ -432,7 +432,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
                   {milestones.length > 0 && (
                     <div className="flex flex-wrap gap-1 pl-6">
                       {milestones.map((m, i) => (
-                        <Badge key={i} variant="outline" className="text-[8px] text-emerald-600 border-emerald-500/30 bg-emerald-500/5">
+                        <Badge key={i} variant="outline" className="text-[8px] text-growth-sage border-growth-sage bg-growth-sage-soft">
                           <CheckCircle2 className="h-2 w-2 mr-0.5" /> {m}
                         </Badge>
                       ))}
@@ -461,7 +461,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
                                   </Badge>
                                 )}
                                 {t.dueDate && (
-                                  <Badge variant="outline" className="text-[9px] text-amber-600">
+                                  <Badge variant="outline" className="text-[9px] text-growth-amber">
                                     Due {new Date(t.dueDate).toLocaleDateString()}
                                   </Badge>
                                 )}

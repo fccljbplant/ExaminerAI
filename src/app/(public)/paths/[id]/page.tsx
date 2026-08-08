@@ -101,7 +101,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold">
                   {isFree ? (
-                    <span className="text-emerald-500">Free</span>
+                    <span className="text-growth-sage">Free</span>
                   ) : (
                     formatPrice(path.price, path.currency)
                   )}
@@ -113,7 +113,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                 )}
               </div>
               {hasSavings && (
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
+                <Badge variant="outline" className="bg-growth-sage-soft text-growth-sage-foreground border-growth-sage">
                   Save {formatPrice(savings, path.currency)}
                 </Badge>
               )}
@@ -144,7 +144,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                   </span>
                 </div>
                 {hasSavings && (
-                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                  <div className="flex justify-between text-growth-sage dark:text-growth-sage">
                     <span>You save</span>
                     <span className="font-medium">
                       {formatPrice(savings, path.currency)}
@@ -225,7 +225,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                             </span>
                             <span>
                               {c.price === 0 ? (
-                                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Free</span>
+                                <span className="text-growth-sage dark:text-growth-sage font-medium">Free</span>
                               ) : (
                                 formatPrice(c.price, path.currency)
                               )}
@@ -260,7 +260,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                 <li>Public verification URL for employers</li>
               </ul>
               {hasSavings && (
-                <p className="mt-3 text-emerald-600 dark:text-emerald-400 font-medium">
+                <p className="mt-3 text-growth-sage dark:text-growth-sage font-medium">
                   Bundle saves you {formatPrice(savings, path.currency)} vs. buying each course separately.
                 </p>
               )}

@@ -205,28 +205,28 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
         <div className="space-y-4">
           {/* System health summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className={health?.checks.db ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}>
+            <Card className={health?.checks.db ? "border-growth-sage bg-growth-sage-soft" : "border-destructive/30 bg-destructive/5"}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className={`h-3 w-3 rounded-full ${health?.checks.db ? "bg-emerald-500" : "bg-red-500"}`} />
+                  <div className={`h-3 w-3 rounded-full ${health?.checks.db ? "bg-growth-sage" : "bg-red-500"}`} />
                   <span className="text-xs text-muted-foreground">Database</span>
                 </div>
                 <p className="text-sm font-bold text-foreground">{health?.checks.db ? "Connected" : "Down"}</p>
               </CardContent>
             </Card>
-            <Card className={health?.checks.ai ? "border-emerald-500/30 bg-emerald-500/5" : "border-amber-500/30 bg-amber-500/5"}>
+            <Card className={health?.checks.ai ? "border-growth-sage bg-growth-sage-soft" : "border-growth-amber bg-growth-amber-soft"}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className={`h-3 w-3 rounded-full ${health?.checks.ai ? "bg-emerald-500" : "bg-amber-500"}`} />
+                  <div className={`h-3 w-3 rounded-full ${health?.checks.ai ? "bg-growth-sage" : "bg-growth-amber"}`} />
                   <span className="text-xs text-muted-foreground">AI Provider</span>
                 </div>
                 <p className="text-sm font-bold text-foreground">{health?.checks.ai ? "Configured" : "Not set"}</p>
               </CardContent>
             </Card>
-            <Card className={health?.checks.jwt ? "border-emerald-500/30 bg-emerald-500/5" : "border-amber-500/30 bg-amber-500/5"}>
+            <Card className={health?.checks.jwt ? "border-growth-sage bg-growth-sage-soft" : "border-growth-amber bg-growth-amber-soft"}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className={`h-3 w-3 rounded-full ${health?.checks.jwt ? "bg-emerald-500" : "bg-amber-500"}`} />
+                  <div className={`h-3 w-3 rounded-full ${health?.checks.jwt ? "bg-growth-sage" : "bg-growth-amber"}`} />
                   <span className="text-xs text-muted-foreground">JWT Secret</span>
                 </div>
                 <p className="text-sm font-bold text-foreground">{health?.checks.jwt ? "Secure" : "Dev default"}</p>
@@ -235,7 +235,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
             <Card className="border-border bg-card">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className={`h-3 w-3 rounded-full ${okCount > 0 && failCount === 0 ? "bg-emerald-500" : failCount > 0 ? "bg-amber-500" : "bg-muted-foreground"}`} />
+                  <div className={`h-3 w-3 rounded-full ${okCount > 0 && failCount === 0 ? "bg-growth-sage" : failCount > 0 ? "bg-growth-amber" : "bg-muted-foreground"}`} />
                   <span className="text-xs text-muted-foreground">API Health</span>
                 </div>
                 <p className="text-sm font-bold text-foreground">{okCount}/{apiChecks.length} OK</p>
@@ -253,22 +253,22 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
               <div className="space-y-1.5">
                 {envVars.map(v => (
                   <div key={v.key} className="flex items-center gap-3 rounded-md bg-muted p-2.5 text-sm">
-                    <div className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${v.set ? "bg-emerald-500" : "bg-red-500"}`} />
+                    <div className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${v.set ? "bg-growth-sage" : "bg-red-500"}`} />
                     <code className="text-xs font-mono text-foreground flex-1">{v.key}</code>
                     {v.set ? (
-                      <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30">Set</Badge>
+                      <Badge variant="outline" className="text-[9px] bg-growth-sage-soft text-growth-sage border-growth-sage">Set</Badge>
                     ) : (
-                      <Badge variant="outline" className="text-[9px] bg-red-500/10 text-red-600 border-red-500/30">Missing</Badge>
+                      <Badge variant="outline" className="text-[9px] bg-destructive/5 text-destructive border-destructive/30">Missing</Badge>
                     )}
                     {!v.set && <span className="text-[10px] text-muted-foreground">{v.hint}</span>}
                   </div>
                 ))}
               </div>
               {(health && !health.checks.jwt) && (
-                <p className="text-[10px] text-amber-600 mt-2">⚠ Set JWT_SECRET in Vercel env vars — the app currently uses an insecure dev default.</p>
+                <p className="text-[10px] text-growth-amber mt-2">⚠ Set JWT_SECRET in Vercel env vars — the app currently uses an insecure dev default.</p>
               )}
               {(health && !health.checks.ai) && (
-                <p className="text-[10px] text-amber-600 mt-1">⚠ Set DEEPSEEK_API_KEY — AI features (tests, tutor, course generation) won't work without it.</p>
+                <p className="text-[10px] text-growth-amber mt-1">⚠ Set DEEPSEEK_API_KEY — AI features (tests, tutor, course generation) won't work without it.</p>
               )}
             </CardContent>
           </Card>
@@ -286,7 +286,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                 </div>
                 <div className="rounded-md bg-muted p-2.5">
                   <p className="text-[10px] text-muted-foreground">System Status</p>
-                  <p className={`text-sm font-bold ${health?.status === "ok" ? "text-emerald-600" : health?.status === "degraded" ? "text-amber-600" : "text-red-600"}`}>
+                  <p className={`text-sm font-bold ${health?.status === "ok" ? "text-growth-sage" : health?.status === "degraded" ? "text-growth-amber" : "text-destructive"}`}>
                     {health?.status?.toUpperCase() || "Unknown"}
                   </p>
                 </div>
@@ -319,10 +319,10 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
                 {apiChecks.map(c => (
                   <div key={c.name} className="flex items-center gap-3 rounded-md bg-muted p-2 text-sm">
-                    {c.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" /> : <Bug className="h-4 w-4 text-red-500 flex-shrink-0" />}
+                    {c.ok ? <CheckCircle2 className="h-4 w-4 text-growth-sage flex-shrink-0" /> : <Bug className="h-4 w-4 text-destructive flex-shrink-0" />}
                     <span className="font-mono text-xs text-foreground/80 flex-1">{c.name}</span>
-                    <Badge variant="outline" className={`text-[10px] ${c.ms > 1000 ? "text-amber-600" : "text-muted-foreground"}`}>{c.ms}ms</Badge>
-                    {c.error && <span className="text-xs text-red-500">{c.error}</span>}
+                    <Badge variant="outline" className={`text-[10px] ${c.ms > 1000 ? "text-growth-amber" : "text-muted-foreground"}`}>{c.ms}ms</Badge>
+                    {c.error && <span className="text-xs text-destructive">{c.error}</span>}
                   </div>
                 ))}
               </div>
@@ -357,7 +357,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                   <div key={u.id} className="flex items-center justify-between rounded-md bg-muted p-2 text-xs">
                     <span className="text-foreground font-medium">{u.name}</span>
                     <span className="text-muted-foreground hidden sm:inline">{u.email}</span>
-                    <Badge variant="outline" className={`text-[10px] capitalize ${u.blocked ? "text-red-500" : u.role === "admin" ? "text-primary" : ""}`}>{u.blocked ? "blocked" : u.role}</Badge>
+                    <Badge variant="outline" className={`text-[10px] capitalize ${u.blocked ? "text-destructive" : u.role === "admin" ? "text-primary" : ""}`}>{u.blocked ? "blocked" : u.role}</Badge>
                     <span className="text-muted-foreground text-[10px]">{u.lastLogin ? `${new Date(u.lastLogin).toLocaleDateString()}` : "never"}</span>
                   </div>
                 ))}
@@ -382,7 +382,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   <div className="rounded-md bg-muted p-3">
                     <p className="text-xs text-muted-foreground">Cache Hit Rate</p>
-                    <p className="text-xl font-bold text-emerald-500">{aiStats.cache?.hitRate ?? 0}%</p>
+                    <p className="text-xl font-bold text-growth-sage">{aiStats.cache?.hitRate ?? 0}%</p>
                     <p className="text-[10px] text-muted-foreground">{aiStats.cache?.totalHits ?? 0} hits · {aiStats.cache?.totalMisses ?? 0} misses</p>
                   </div>
                   <div className="rounded-md bg-muted p-3">
@@ -393,7 +393,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                   <div className="rounded-md bg-muted p-3">
                     <p className="text-xs text-muted-foreground">Calls (24h)</p>
                     <p className="text-xl font-bold text-foreground">{aiStats.usage24h?.calls ?? 0}</p>
-                    <p className="text-[10px] text-emerald-600">{aiStats.usage24h?.successRate ?? 100}% success</p>
+                    <p className="text-[10px] text-growth-sage">{aiStats.usage24h?.successRate ?? 100}% success</p>
                   </div>
                   <div className="rounded-md bg-muted p-3">
                     <p className="text-xs text-muted-foreground">Total Calls</p>
@@ -423,9 +423,9 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                     <div className="space-y-1.5">
                       {Object.entries(aiStats.providerBreakdown).map(([provider, data]: [string, any]) => (
                         <div key={provider} className="flex items-center justify-between rounded-md bg-muted/60 p-2 text-xs">
-                          <span className={provider === "deepseek" ? "text-emerald-600 font-medium" : provider === "z-ai" ? "text-amber-600 font-medium" : "text-red-500 font-medium"}>{provider}</span>
+                          <span className={provider === "deepseek" ? "text-growth-sage font-medium" : provider === "z-ai" ? "text-growth-amber font-medium" : "text-destructive font-medium"}>{provider}</span>
                           <span className="text-muted-foreground font-mono">{data.calls} calls · {data.tokens?.toLocaleString() ?? 0} tok</span>
-                          <span className="text-emerald-600 text-[10px]">{data.calls > 0 ? Math.round((data.successes / data.calls) * 100) : 0}% ok</span>
+                          <span className="text-growth-sage text-[10px]">{data.calls > 0 ? Math.round((data.successes / data.calls) * 100) : 0}% ok</span>
                         </div>
                       ))}
                     </div>
@@ -486,7 +486,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                 <div className="rounded-md border border-border bg-muted p-3 space-y-2">
                   <div className="flex items-center gap-3 text-sm">
                     <Badge variant="outline" className="text-[10px]">{alertResult.studentsScanned} scanned</Badge>
-                    <Badge variant="outline" className={`text-[10px] ${alertResult.messagesCreated > 0 ? "bg-amber-500/10 text-amber-600 border-amber-500/30" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"}`}>
+                    <Badge variant="outline" className={`text-[10px] ${alertResult.messagesCreated > 0 ? "bg-growth-amber-soft text-growth-amber border-growth-amber" : "bg-growth-sage-soft text-growth-sage border-growth-sage"}`}>
                       {alertResult.messagesCreated} message{alertResult.messagesCreated === 1 ? "" : "s"}
                     </Badge>
                   </div>
@@ -495,7 +495,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                       {alertResult.messages.map((m, i) => (
                         <div key={i} className="text-xs rounded bg-background/50 p-2 border border-border">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <Badge variant="outline" className={`text-[9px] ${m.type === "teacher_alert" ? "bg-red-500/10 text-red-600 border-red-500/30" : "bg-amber-500/10 text-amber-600 border-amber-500/30"}`}>
+                            <Badge variant="outline" className={`text-[9px] ${m.type === "teacher_alert" ? "bg-destructive/5 text-destructive border-destructive/30" : "bg-growth-amber-soft text-growth-amber border-growth-amber"}`}>
                               {m.type === "teacher_alert" ? "Teacher alert" : "Student nudge"}
                             </Badge>
                             <span className="text-foreground font-medium">{m.toName}</span>
@@ -506,7 +506,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                     </div>
                   )}
                   {alertResult.messagesCreated === 0 && (
-                    <p className="text-xs text-emerald-600">All students are on track — no alerts needed.</p>
+                    <p className="text-xs text-growth-sage">All students are on track — no alerts needed.</p>
                   )}
                 </div>
               )}
@@ -648,7 +648,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
                 <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Total users</p><p className="text-lg font-bold text-foreground">{users.length}</p></div>
                 <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Students</p><p className="text-lg font-bold text-primary">{users.filter(u => u.role === "student").length}</p></div>
                 <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Teachers</p><p className="text-lg font-bold text-blue-500">{users.filter(u => u.role === "instructor").length}</p></div>
-                <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Blocked</p><p className="text-lg font-bold text-red-500">{users.filter(u => u.blocked).length}</p></div>
+                <div className="rounded-md bg-muted p-2"><p className="text-xs text-muted-foreground">Blocked</p><p className="text-lg font-bold text-destructive">{users.filter(u => u.blocked).length}</p></div>
               </div>
             </CardContent>
           </Card>
@@ -683,7 +683,7 @@ export function SystemPanel({ users }: { users: UserRow[] }) {
               {cacheStats && (
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                   <div className="rounded border border-border p-2"><p className="text-muted-foreground text-[10px]">Entries</p><p className="font-bold text-foreground">{cacheStats.size}</p></div>
-                  <div className="rounded border border-border p-2"><p className="text-muted-foreground text-[10px]">Hit Rate</p><p className="font-bold text-emerald-500">{cacheStats.hitRate}%</p></div>
+                  <div className="rounded border border-border p-2"><p className="text-muted-foreground text-[10px]">Hit Rate</p><p className="font-bold text-growth-sage">{cacheStats.hitRate}%</p></div>
                   <div className="rounded border border-border p-2"><p className="text-muted-foreground text-[10px]">Tokens Saved</p><p className="font-bold text-primary">{cacheStats.estimatedTokensSaved}</p></div>
                 </div>
               )}

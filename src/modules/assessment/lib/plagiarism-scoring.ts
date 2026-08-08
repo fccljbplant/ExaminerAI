@@ -60,9 +60,9 @@ export function plagiarismLabel(score: number): string {
 
 /** Get the color class for a plagiarism score badge. */
 export function plagiarismColor(score: number): string {
-  if (score <= 10) return "bg-emerald-500/10 text-emerald-600 border-emerald-500/30";
-  if (score <= 30) return "bg-lime-500/10 text-lime-600 border-lime-500/30";
-  if (score <= 50) return "bg-amber-500/10 text-amber-600 border-amber-500/30";
-  if (score <= 70) return "bg-orange-500/10 text-orange-600 border-orange-500/30";
-  return "bg-red-500/10 text-red-600 border-red-500/30";
+  if (score <= 10) return "bg-growth-sage-soft text-growth-sage border-growth-sage";
+  if (score <= 30) return "bg-growth-sage-soft text-growth-sage border-growth-sage";
+  if (score <= 50) return "bg-growth-amber-soft text-growth-amber border-growth-amber";
+  if (score <= 70) return "bg-growth-amber-soft text-growth-amber border-growth-amber";
+  return "bg-destructive/5 text-destructive border-destructive/30";
 }

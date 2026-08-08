@@ -106,7 +106,7 @@ function ExplainStudent({ studentId }: { studentId: string }) {
           <p className="text-sm text-foreground whitespace-pre-wrap">{narrative}</p>
           <div className="flex items-center gap-2">
             <Button onClick={load} size="sm" variant="outline" className="border-border text-xs h-7">Refresh</Button>
-            {cached && <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-600">cached</Badge>}
+            {cached && <Badge variant="outline" className="text-[9px] bg-growth-sage-soft text-growth-sage">cached</Badge>}
           </div>
         </div>
       )}
@@ -248,9 +248,9 @@ function RehearsalMode({ studentId, studentName }: { studentId: string; studentN
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/30">
-        <AlertCircle className="h-3 w-3 text-amber-600 flex-shrink-0" />
-        <p className="text-[10px] text-amber-700">
+      <div className="flex items-center gap-2 p-2 rounded-md bg-growth-amber-soft border border-growth-amber">
+        <AlertCircle className="h-3 w-3 text-growth-amber flex-shrink-0" />
+        <p className="text-[10px] text-growth-amber-foreground">
           This is a <strong>simulation for practice</strong>, not a prediction. The real student may respond differently.
         </p>
       </div>

@@ -56,7 +56,7 @@ export function PostTestReflection({ score, testType }: { score: number; testTyp
       <CardContent className="space-y-3">
         {data.reflections.map((r, i) => {
           const Icon = r.type === "strength" ? CheckCircle2 : Lightbulb;
-          const color = r.type === "strength" ? "text-emerald-600" : "text-amber-600";
+          const color = r.type === "strength" ? "text-growth-sage" : "text-growth-amber";
           return (
             <div key={i} className="flex items-start gap-2">
               <Icon className={`h-4 w-4 ${color} flex-shrink-0 mt-0.5`} />

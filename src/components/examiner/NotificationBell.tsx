@@ -65,8 +65,8 @@ const TYPE_ICON: Record<NotificationType, React.ComponentType<{ className?: stri
 
 const TYPE_TINT: Record<NotificationType, string> = {
   enrollment: "bg-primary/15 text-primary",
-  course_completed: "bg-emerald-500/15 text-emerald-500",
-  credential_earned: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  course_completed: "bg-growth-sage-soft text-growth-sage",
+  credential_earned: "bg-growth-amber-soft text-growth-amber dark:text-growth-amber",
   message_received: "bg-sky-500/15 text-sky-500",
   milestone_earned: "bg-violet-500/15 text-violet-500",
 };

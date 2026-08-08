@@ -20,19 +20,19 @@ const TONE_STYLES: Record<StatTone, { value: string; icon: string; ring: string 
     ring: "",
   },
   success: {
-    value: "text-emerald-600 dark:text-emerald-400",
-    icon: "text-emerald-500",
-    ring: "ring-emerald-500/20",
+    value: "text-growth-sage dark:text-growth-sage",
+    icon: "text-growth-sage",
+    ring: "ring-growth-sage/20",
   },
   warning: {
-    value: "text-amber-600 dark:text-amber-400",
-    icon: "text-amber-500",
-    ring: "ring-amber-500/20",
+    value: "text-growth-amber dark:text-growth-amber",
+    icon: "text-growth-amber",
+    ring: "ring-growth-amber/20",
   },
   danger: {
-    value: "text-rose-600 dark:text-rose-400",
-    icon: "text-rose-500",
-    ring: "ring-rose-500/20",
+    value: "text-destructive dark:text-destructive",
+    icon: "text-destructive",
+    ring: "ring-destructive/20",
   },
   info: {
     value: "text-sky-600 dark:text-sky-400",

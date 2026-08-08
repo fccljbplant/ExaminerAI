@@ -49,9 +49,9 @@ export function EducationalTab({ portfolio }: { portfolio: PortfolioData }) {
 
   // Mastery level colors
   const masteryColor = (level: string) =>
-    level === "mastered" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+    level === "mastered" ? "bg-growth-sage-soft text-growth-sage border-growth-sage"
     : level === "proficient" ? "bg-blue-500/10 text-blue-600 border-blue-500/30"
-    : level === "developing" ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+    : level === "developing" ? "bg-growth-amber-soft text-growth-amber border-growth-amber"
     : "bg-muted text-muted-foreground";
 
   // Score trend chart (migrated from BehavioralTrendsTab)
@@ -106,8 +106,8 @@ export function EducationalTab({ portfolio }: { portfolio: PortfolioData }) {
                   <p className="text-xs font-medium text-foreground truncate">{m.topic}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Badge variant="outline" className={`text-[9px] ${masteryColor(m.masteryLevel)}`}>{m.masteryLevel}</Badge>
-                    {m.trend === "improving" && <span className="text-[10px] text-emerald-600">↗</span>}
-                    {m.trend === "declining" && <span className="text-[10px] text-red-600">↘</span>}
+                    {m.trend === "improving" && <span className="text-[10px] text-growth-sage">↗</span>}
+                    {m.trend === "declining" && <span className="text-[10px] text-destructive">↘</span>}
                     {m.trend === "stable" && <span className="text-[10px] text-muted-foreground">→</span>}
                   </div>
                 </button>
@@ -138,7 +138,7 @@ export function EducationalTab({ portfolio }: { portfolio: PortfolioData }) {
                       <div key={i.id} className="text-xs rounded bg-background p-1.5">
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground">Week {i.week} · {i.level}</span>
-                          <span className={`font-bold ${i.correctness >= 80 ? "text-emerald-600" : i.correctness >= 60 ? "text-amber-600" : "text-red-600"}`}>{i.correctness}%</span>
+                          <span className={`font-bold ${i.correctness >= 80 ? "text-growth-sage" : i.correctness >= 60 ? "text-growth-amber" : "text-destructive"}`}>{i.correctness}%</span>
                         </div>
                         <p className="text-foreground mt-0.5 line-clamp-2">{i.question}</p>
                       </div>
@@ -220,9 +220,9 @@ export function EducationalTab({ portfolio }: { portfolio: PortfolioData }) {
                   >
                     <span className="text-sm font-medium text-foreground">{pillar}</span>
                     <div className="flex items-center gap-1 text-[10px]">
-                      {mastered > 0 && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">{mastered} mastered</Badge>}
+                      {mastered > 0 && <Badge variant="outline" className="bg-growth-sage-soft text-growth-sage border-growth-sage">{mastered} mastered</Badge>}
                       {proficient > 0 && <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">{proficient} proficient</Badge>}
-                      {developing > 0 && <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">{developing} developing</Badge>}
+                      {developing > 0 && <Badge variant="outline" className="bg-growth-amber-soft text-growth-amber border-growth-amber">{developing} developing</Badge>}
                       {notStarted > 0 && <Badge variant="outline" className="bg-muted text-muted-foreground">{notStarted} not started</Badge>}
                     </div>
                   </button>

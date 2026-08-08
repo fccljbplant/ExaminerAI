@@ -19,9 +19,9 @@ export function StatCard({ label, value, sub, icon, accent = "emerald" }: {
   const accents: Record<StatCardAccent, string> = {
     emerald: "from-primary/15 to-primary/5 text-primary border-primary/30",
     cyan: "from-secondary/20 to-secondary/5 text-secondary-foreground border-secondary-foreground/30",
-    amber: "from-amber-500/15 to-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/30",
+    amber: "from-amber-500/15 to-amber-500/5 text-growth-amber dark:text-growth-amber border-growth-amber",
     violet: "from-violet-500/15 to-violet-500/5 text-violet-600 dark:text-violet-400 border-violet-500/30",
-    red: "from-red-500/15 to-red-500/5 text-red-600 dark:text-red-400 border-red-500/30",
+    red: "from-red-500/15 to-red-500/5 text-destructive dark:text-destructive border-destructive/30",
   };
   return (
     <Card className={`bg-gradient-to-br ${accents[accent]} border`}>

@@ -250,7 +250,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                 key={s}
                 className={`h-4 w-4 ${
                   s <= Math.round(avgRating)
-                    ? "fill-amber-400 text-amber-400"
+                    ? "fill-amber-400 text-growth-amber"
                     : "text-muted-foreground/30"
                 }`}
               />
@@ -301,8 +301,8 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                         <Star
                           className={`h-6 w-6 transition-colors ${
                             s <= rating
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-muted-foreground/40 hover:text-amber-300"
+                              ? "fill-amber-400 text-growth-amber"
+                              : "text-muted-foreground/40 hover:text-growth-amber"
                           }`}
                         />
                       </button>
@@ -347,7 +347,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
           </Dialog>
         )}
         {hasReviewed && (
-          <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-500/40">
+          <Badge variant="outline" className="text-growth-sage dark:text-growth-sage border-growth-sage">
             <CheckCircle2 className="h-3 w-3 mr-1" /> You've reviewed this course
           </Badge>
         )}
@@ -379,7 +379,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                               key={s}
                               className={`h-3 w-3 ${
                                 s <= r.rating
-                                  ? "fill-amber-400 text-amber-400"
+                                  ? "fill-amber-400 text-growth-amber"
                                   : "text-muted-foreground/30"
                               }`}
                             />

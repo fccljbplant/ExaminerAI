@@ -440,7 +440,7 @@ export function StudentPortfolioPage({
             ) : (
               <>
                 {portfolio.taskSummary.blocked > 0 && (
-                  <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-2 text-xs text-amber-700 mb-2">
+                  <div className="rounded-md bg-growth-amber-soft border border-growth-amber p-2 text-xs text-growth-amber-foreground mb-2">
                     <strong>{portfolio.taskSummary.blocked} blocked task{portfolio.taskSummary.blocked > 1 ? "s" : ""}</strong> — consider reviewing these with the student.
                   </div>
                 )}
@@ -451,9 +451,9 @@ export function StudentPortfolioPage({
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <Badge variant="outline" className="text-[10px]">Week {t.week}</Badge>
                           <Badge variant="outline" className={`text-[10px] capitalize ${
-                            t.status === "completed" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" :
+                            t.status === "completed" ? "bg-growth-sage-soft text-growth-sage border-growth-sage" :
                             t.status === "in-progress" ? "bg-blue-500/10 text-blue-600 border-blue-500/30" :
-                            t.status === "blocked" ? "bg-amber-500/10 text-amber-600 border-amber-500/30" :
+                            t.status === "blocked" ? "bg-growth-amber-soft text-growth-amber border-growth-amber" :
                             "bg-muted text-muted-foreground"
                           }`}>{t.status}</Badge>
                         </div>
@@ -568,7 +568,7 @@ export function StudentPortfolioPage({
                         <Badge variant="secondary" className="text-[10px] bg-primary/20 text-primary">Week {wt.week}</Badge>
                         <Badge variant="outline" className="text-[10px] capitalize">{wt.status}</Badge>
                         {wt.retakeAllowed && (
-                          <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600 bg-amber-500/10">Retake allowed</Badge>
+                          <Badge variant="outline" className="text-[10px] border-growth-amber text-growth-amber bg-growth-amber-soft">Retake allowed</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -599,8 +599,8 @@ export function StudentPortfolioPage({
                     {wt.completedAt && <p className="text-[10px] text-muted-foreground mt-1">Completed {new Date(wt.completedAt).toLocaleDateString()}</p>}
                     {/* Plagiarism score for weekly test */}
                     {(wt as { plagiarismScore?: number | null }).plagiarismScore != null && (wt as { plagiarismScore?: number | null }).plagiarismScore! > 0 && (
-                      <div className={"rounded-md p-1.5 mt-1 " + ((wt as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "bg-red-500/10 border border-red-500/30" : "bg-amber-500/10 border border-amber-500/30")}>
-                        <p className={"text-[10px] font-bold " + ((wt as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "text-red-600" : "text-amber-600")}>
+                      <div className={"rounded-md p-1.5 mt-1 " + ((wt as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "bg-destructive/5 border border-destructive/30" : "bg-growth-amber-soft border border-growth-amber")}>
+                        <p className={"text-[10px] font-bold " + ((wt as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "text-destructive" : "text-growth-amber")}>
                           Plagiarism Risk: {(wt as { plagiarismScore?: number | null }).plagiarismScore}%
                         </p>
                       </div>
@@ -623,7 +623,7 @@ export function StudentPortfolioPage({
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-[10px] border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                              className="h-7 text-[10px] border-growth-amber text-growth-amber hover:bg-growth-amber-soft"
                               onClick={() => {
                                 if (confirm(`Allow ${student.name} to retake Week ${wt.week} test? Their previous result will be replaced when they start the retake.`)) {
                                   api.post(`/api/students/${student.id}/allow-retake`, { week: wt.week })
@@ -781,8 +781,8 @@ export function StudentPortfolioPage({
                     {i.feedback && <p className="text-xs text-primary mt-1 break-words">{i.feedback}</p>}
                     {/* Plagiarism score */}
                     {(i as { plagiarismScore?: number | null }).plagiarismScore != null && (i as { plagiarismScore?: number | null }).plagiarismScore! > 0 && (
-                      <div className={"rounded-md p-1.5 mt-1 " + ((i as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "bg-red-500/10 border border-red-500/30" : "bg-amber-500/10 border border-amber-500/30")}>
-                        <p className={"text-[10px] font-bold " + ((i as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "text-red-600" : "text-amber-600")}>
+                      <div className={"rounded-md p-1.5 mt-1 " + ((i as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "bg-destructive/5 border border-destructive/30" : "bg-growth-amber-soft border border-growth-amber")}>
+                        <p className={"text-[10px] font-bold " + ((i as { plagiarismScore?: number | null }).plagiarismScore! > 40 ? "text-destructive" : "text-growth-amber")}>
                           Plagiarism Risk: {(i as { plagiarismScore?: number | null }).plagiarismScore}%
                         </p>
                       </div>
@@ -798,7 +798,7 @@ export function StudentPortfolioPage({
                           </div>
                         </div>
                         {c.body && <p className="text-foreground/80 break-words">{c.body}</p>}
-                        {c.marksOverride !== null && <p className="text-[10px] text-amber-600 mt-0.5">Score: {c.marksOverride}%</p>}
+                        {c.marksOverride !== null && <p className="text-[10px] text-growth-amber mt-0.5">Score: {c.marksOverride}%</p>}
                       </div>
                     ))}
                   </div>
@@ -845,7 +845,7 @@ export function StudentPortfolioPage({
                         </div>
                         {c.body && <p className="text-foreground/80 break-words">{c.body}</p>}
                         {c.marksOverride !== null && (
-                          <p className="text-[10px] text-amber-600 mt-1">Grade: {c.marksOverride}%</p>
+                          <p className="text-[10px] text-growth-amber mt-1">Grade: {c.marksOverride}%</p>
                         )}
                       </div>
                     ))}
@@ -964,7 +964,7 @@ export function StudentPortfolioPage({
                             </div>
                           </div>
                           {c.body && <p className="text-foreground/80 break-words">{c.body}</p>}
-                          {c.marksOverride !== null && <p className="text-[10px] text-amber-600 mt-1">Score: {c.marksOverride}%</p>}
+                          {c.marksOverride !== null && <p className="text-[10px] text-growth-amber mt-1">Score: {c.marksOverride}%</p>}
                         </div>
                       ))}
                     </div>
@@ -1119,7 +1119,7 @@ export function StudentPortfolioPage({
                     try { return JSON.parse(rc.strengths); } catch { return []; }
                   })().length > 0 && (
                     <div className="mb-1.5">
-                      <p className="text-[10px] font-medium text-emerald-600 mb-0.5">Strengths</p>
+                      <p className="text-[10px] font-medium text-growth-sage mb-0.5">Strengths</p>
                       <ul className="text-xs text-foreground/80 list-disc list-inside">
                         {(() => { try { return JSON.parse(rc.strengths); } catch { return []; } })().map((s: string, i: number) => <li key={i}>{s}</li>)}
                       </ul>
@@ -1130,7 +1130,7 @@ export function StudentPortfolioPage({
                     try { return JSON.parse(rc.weaknesses); } catch { return []; }
                   })().length > 0 && (
                     <div className="mb-1.5">
-                      <p className="text-[10px] font-medium text-amber-600 mb-0.5">Weaknesses</p>
+                      <p className="text-[10px] font-medium text-growth-amber mb-0.5">Weaknesses</p>
                       <ul className="text-xs text-foreground/80 list-disc list-inside">
                         {(() => { try { return JSON.parse(rc.weaknesses); } catch { return []; } })().map((w: string, i: number) => <li key={i}>{w}</li>)}
                       </ul>
@@ -1203,7 +1203,7 @@ export function StudentPortfolioPage({
                       <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
                     </div>
                     {c.body && <p className="text-foreground/80 text-xs break-words">{c.body}</p>}
-                    {c.marksOverride !== null && <p className="text-[10px] text-amber-600 mt-1">Marks override: {c.marksOverride}%</p>}
+                    {c.marksOverride !== null && <p className="text-[10px] text-growth-amber mt-1">Marks override: {c.marksOverride}%</p>}
                     {c.interactionId && <Badge variant="outline" className="text-[9px] mt-1">on assessment</Badge>}
                     {c.taskId && <Badge variant="outline" className="text-[9px] mt-1">on task</Badge>}
                   </div>

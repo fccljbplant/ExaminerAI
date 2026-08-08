@@ -327,7 +327,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                 selectedWeek === w
                   ? "bg-primary text-primary-foreground border-primary"
                   : isDone
-                  ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20"
+                  ? "border-growth-sage text-growth-sage bg-growth-sage-soft hover:bg-growth-sage/20"
                   : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
@@ -341,7 +341,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-primary" /> Weekly Test — Week {selectedWeek}
-            {isFinalWeek && <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30 bg-amber-500/10">Final Capstone — No task lock</Badge>}
+            {isFinalWeek && <Badge variant="outline" className="text-[10px] text-growth-amber border-growth-amber bg-growth-amber-soft">Final Capstone — No task lock</Badge>}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             A Socratic conversation with the AI examiner. {totalQuestions} questions, max {maxReplies} replies each.
@@ -350,8 +350,8 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         </CardHeader>
         <CardContent className="space-y-4">
           {!allTasksDone && !isCompleted && !hasStarted ? (
-            <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-4">
-              <p className="text-amber-700 dark:text-amber-400 flex items-center gap-2 font-medium">
+            <div className="rounded-md bg-growth-amber-soft border border-growth-amber p-4">
+              <p className="text-growth-amber-foreground dark:text-growth-amber flex items-center gap-2 font-medium">
                 <AlertTriangle className="h-4 w-4" /> Complete all Week {selectedWeek} tasks first to unlock the test.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -365,14 +365,14 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                 }).map((t) => (
                   <li key={t.id} className={`flex items-center gap-2 ${t.status === "completed" ? "text-muted-foreground" : "text-foreground font-medium"}`}>
                     {t.status === "completed"
-                      ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
-                      : <Circle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />}
+                      ? <CheckCircle2 className="h-3.5 w-3.5 text-growth-sage flex-shrink-0" />
+                      : <Circle className="h-3.5 w-3.5 text-growth-amber flex-shrink-0" />}
                     <span className={t.status === "completed" ? "line-through" : ""}>{t.description}</span>
-                    {t.status !== "completed" && <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-500/30 ml-auto">{t.status}</Badge>}
+                    {t.status !== "completed" && <Badge variant="outline" className="text-[9px] text-growth-amber border-growth-amber ml-auto">{t.status}</Badge>}
                   </li>
                 ))}
               </ul>
-              <Button onClick={() => onMode("gantt")} variant="outline" size="sm" className="mt-3 border-amber-500/30 text-amber-600">
+              <Button onClick={() => onMode("gantt")} variant="outline" size="sm" className="mt-3 border-growth-amber text-growth-amber">
                 Go to Project →
               </Button>
             </div>
@@ -417,7 +417,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                     <span className="text-2xl font-bold text-primary">{score}%</span>
                   )}
                   {score !== null && needsStudyPlan && (
-                    <span className="text-2xl font-bold text-amber-600">Keep Going</span>
+                    <span className="text-2xl font-bold text-growth-amber">Keep Going</span>
                   )}
                 </div>
                 <p className="text-[10px] text-muted-foreground mb-2">Based on {currentQuestion + 1} questions answered</p>
@@ -425,15 +425,15 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                 {/* Phase 1.1 + 1.6: Study plan for low scores. Replaces the
                     harsh "you failed" feeling with actionable guidance. */}
                 {needsStudyPlan && (
-                  <div className="rounded-md p-3 mb-3 bg-amber-500/10 border border-amber-500/30">
+                  <div className="rounded-md p-3 mb-3 bg-growth-amber-soft border border-growth-amber">
                     {/* SDT: Lead with the strength, then offer the gap as a choice */}
-                    <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-1">
+                    <p className="text-sm font-medium text-growth-sage-foreground dark:text-growth-sage mb-1">
                       What you're already doing well:
                     </p>
                     <p className="text-xs text-foreground/80 mb-3">
                       You showed up and engaged with every question — that's the foundation everything else builds on. Showing up consistently is the hardest part, and you're already doing it.
                     </p>
-                    <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-1">
+                    <p className="text-sm font-medium text-growth-amber-foreground dark:text-growth-amber mb-1">
                       Want to strengthen these areas?
                     </p>
                     <p className="text-xs text-muted-foreground mb-2">
@@ -444,7 +444,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                       <ul className="space-y-1 mt-2">
                         {weaknesses.map((w, i) => (
                           <li key={i} className="text-xs text-foreground flex items-start gap-2">
-                            <span className="text-amber-500 mt-0.5">→</span>
+                            <span className="text-growth-amber mt-0.5">→</span>
                             <span>{w}</span>
                           </li>
                         ))}
@@ -482,9 +482,9 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               {engagementFeedback && engagementFeedback.studentFeedback && (
                 <div className={`rounded-lg border p-4 ${
                   engagementFeedback.overallEngagement === "high"
-                    ? "border-emerald-500/30 bg-emerald-500/5"
+                    ? "border-growth-sage bg-growth-sage-soft"
                     : engagementFeedback.overallEngagement === "low"
-                    ? "border-amber-500/30 bg-amber-500/5"
+                    ? "border-growth-amber bg-growth-amber-soft"
                     : "border-border bg-muted"
                 }`}>
                   <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1">
@@ -492,13 +492,13 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                   </p>
                   {/* Quick stats row */}
                   <div className="flex flex-wrap gap-2 mb-2">
-                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.subjectChanges > 0 ? "border-amber-500/30 text-amber-600" : "border-emerald-500/30 text-emerald-600"}`}>
+                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.subjectChanges > 0 ? "border-growth-amber text-growth-amber" : "border-growth-sage text-growth-sage"}`}>
                       {engagementFeedback.subjectChanges} subject change{engagementFeedback.subjectChanges === 1 ? "" : "s"}
                     </Badge>
-                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.avoidanceCount > 0 ? "border-amber-500/30 text-amber-600" : "border-emerald-500/30 text-emerald-600"}`}>
+                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.avoidanceCount > 0 ? "border-growth-amber text-growth-amber" : "border-growth-sage text-growth-sage"}`}>
                       {engagementFeedback.avoidanceCount} avoidance{engagementFeedback.avoidanceCount === 1 ? "" : "s"}
                     </Badge>
-                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.overallEngagement === "high" ? "border-emerald-500/30 text-emerald-600" : engagementFeedback.overallEngagement === "low" ? "border-amber-500/30 text-amber-600" : "border-border text-muted-foreground"}`}>
+                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.overallEngagement === "high" ? "border-growth-sage text-growth-sage" : engagementFeedback.overallEngagement === "low" ? "border-growth-amber text-growth-amber" : "border-border text-muted-foreground"}`}>
                       Engagement: {engagementFeedback.overallEngagement}
                     </Badge>
                   </div>
@@ -509,20 +509,20 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               {/* Plagiarism score — NOW SHOWN TO STUDENTS with mark deduction */}
               {plagiarismScore !== null && (
                 <div className={`rounded-lg border p-4 ${
-                  plagiarismScore > 70 ? "border-red-500/30 bg-red-500/5"
-                  : plagiarismScore > 40 ? "border-amber-500/30 bg-amber-500/5"
+                  plagiarismScore > 70 ? "border-destructive/30 bg-destructive/5"
+                  : plagiarismScore > 40 ? "border-growth-amber bg-growth-amber-soft"
                   : plagiarismScore > 10 ? "border-lime-500/30 bg-lime-500/5"
-                  : "border-emerald-500/30 bg-emerald-500/5"
+                  : "border-growth-sage bg-growth-sage-soft"
                 }`}>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-medium text-foreground flex items-center gap-1">
                       <ShieldAlert className="h-3 w-3" /> Academic Integrity
                     </p>
                     <Badge variant="outline" className={`text-[10px] ${
-                      plagiarismScore > 70 ? "bg-red-500/10 text-red-600 border-red-500/30"
-                      : plagiarismScore > 40 ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
-                      : plagiarismScore > 10 ? "bg-lime-500/10 text-lime-600 border-lime-500/30"
-                      : "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                      plagiarismScore > 70 ? "bg-destructive/5 text-destructive border-destructive/30"
+                      : plagiarismScore > 40 ? "bg-growth-amber-soft text-growth-amber border-growth-amber"
+                      : plagiarismScore > 10 ? "bg-growth-sage-soft text-growth-sage border-growth-sage"
+                      : "bg-growth-sage-soft text-growth-sage border-growth-sage"
                     }`}>
                       Plagiarism: {plagiarismScore}%
                     </Badge>
@@ -537,11 +537,11 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                       </div>
                       <div className="rounded-md bg-background/50 p-2">
                         <p className="text-[9px] text-muted-foreground">Plagiarism</p>
-                        <p className="text-sm font-bold text-amber-600">{plagiarismScore}%</p>
+                        <p className="text-sm font-bold text-growth-amber">{plagiarismScore}%</p>
                       </div>
                       <div className="rounded-md bg-background/50 p-2">
                         <p className="text-[9px] text-muted-foreground">Marks Deducted</p>
-                        <p className="text-sm font-bold text-red-600">-{Math.round((plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score) * plagiarismScore / 100)}</p>
+                        <p className="text-sm font-bold text-destructive">-{Math.round((plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score) * plagiarismScore / 100)}</p>
                       </div>
                       <div className="rounded-md bg-background/50 p-2">
                         <p className="text-[9px] text-muted-foreground">Final Score</p>
@@ -575,7 +575,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               {/* Retake button ONLY shows if the instructor has explicitly allowed it.
                   Otherwise the student sees the results only — no retake option. */}
               {currentTest?.retakeAllowed && (
-                <Button onClick={() => { if (confirm("Retake the test? Your previous result will be replaced.")) startTest(); }} variant="outline" className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10">
+                <Button onClick={() => { if (confirm("Retake the test? Your previous result will be replaced.")) startTest(); }} variant="outline" className="border-growth-amber text-growth-amber hover:bg-growth-amber-soft">
                   <RefreshCw className="h-4 w-4" /> Retake Test (instructor-approved)
                 </Button>
               )}
@@ -628,7 +628,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                     </div>
                   )}
                   {currentTest?.retakeAllowed && (
-                    <Button onClick={() => { if (confirm("Retake the test? Your previous result will be replaced.")) startTest(); }} variant="outline" className="border-amber-500/30 text-amber-600 hover:bg-amber-500/10">
+                    <Button onClick={() => { if (confirm("Retake the test? Your previous result will be replaced.")) startTest(); }} variant="outline" className="border-growth-amber text-growth-amber hover:bg-growth-amber-soft">
                       <RefreshCw className="h-4 w-4" /> Retake Test (instructor-approved)
                     </Button>
                   )}

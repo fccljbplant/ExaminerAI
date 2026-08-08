@@ -155,7 +155,7 @@ export default async function InstructorProfilePage({
                 </span>
                 {avgRating > 0 && (
                   <span className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star className="h-4 w-4 fill-amber-400 text-growth-amber" />
                     <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
                     <span>({reviewCount} review{reviewCount === 1 ? "" : "s"})</span>
                   </span>

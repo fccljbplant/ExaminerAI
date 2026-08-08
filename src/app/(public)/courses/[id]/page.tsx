@@ -198,7 +198,7 @@ export default async function CourseDetailPage({ params }: Params) {
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
               {course.rating > 0 && (
                 <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <Star className="h-4 w-4 fill-amber-400 text-growth-amber" />
                   <span className="font-semibold text-foreground">{course.rating.toFixed(1)}</span>
                   <span>({course.reviewCount} reviews)</span>
                 </span>
@@ -231,7 +231,7 @@ export default async function CourseDetailPage({ params }: Params) {
               />
               <span className="text-2xl font-bold">
                 {isFree ? (
-                  <span className="text-emerald-500">Free</span>
+                  <span className="text-growth-sage">Free</span>
                 ) : (
                   formatPrice(course.price, course.currency)
                 )}
@@ -272,7 +272,7 @@ export default async function CourseDetailPage({ params }: Params) {
               <div className="grid sm:grid-cols-2 gap-3">
                 {course.whatYouWillLearn.map((item, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-500 flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-growth-sage flex-shrink-0" />
                     <span>{item}</span>
                   </div>
                 ))}

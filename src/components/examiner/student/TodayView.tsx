@@ -40,9 +40,9 @@ interface TodayData {
 }
 
 const TIER_STYLES = {
-  green: { text: "text-emerald-600", border: "border-emerald-500/40", bg: "bg-emerald-500/10", dot: "bg-emerald-500" },
-  amber: { text: "text-amber-600", border: "border-amber-500/40", bg: "bg-amber-500/10", dot: "bg-amber-500" },
-  red:   { text: "text-rose-600", border: "border-rose-500/40", bg: "bg-rose-500/10", dot: "bg-rose-500" },
+  green: { text: "text-growth-sage", border: "border-growth-sage", bg: "bg-growth-sage-soft", dot: "bg-growth-sage" },
+  amber: { text: "text-growth-amber", border: "border-growth-amber", bg: "bg-growth-amber-soft", dot: "bg-growth-amber" },
+  red:   { text: "text-destructive", border: "border-destructive/30", bg: "bg-destructive/5", dot: "bg-rose-500" },
 };
 
 const ACTION_ICONS = {
@@ -70,10 +70,10 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
   if (loading) return <TodaySkeleton />;
   if (failed || !data) {
     return (
-      <Card className="border-rose-500/30 bg-rose-500/5">
+      <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="p-6 text-center">
-          <AlertCircle className="h-8 w-8 text-rose-500 mx-auto mb-2" />
-          <p className="text-sm text-rose-700 dark:text-rose-300">Couldn't load today's plan.</p>
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+          <p className="text-sm text-destructive">Couldn't load today's plan.</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={() => location.reload()}>
             Retry
           </Button>
@@ -115,7 +115,7 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
         </div>
         <div className="flex items-center gap-2">
           {data.streakDays > 0 && (
-            <Badge variant="outline" className="gap-1.5 border-amber-500/40 bg-amber-500/10 text-amber-600">
+            <Badge variant="outline" className="gap-1.5 border-growth-amber bg-growth-amber-soft text-growth-amber">
               <Flame className="h-3.5 w-3.5" />
               {data.streakDays}-day streak
             </Badge>
@@ -209,8 +209,8 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
           <Card className="border-border">
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-                  <Layers className="h-5 w-5 text-amber-600" />
+                <div className="h-10 w-10 rounded-lg bg-growth-amber-soft flex items-center justify-center flex-shrink-0">
+                  <Layers className="h-5 w-5 text-growth-amber" />
                 </div>
                 <div className="flex-1">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -236,14 +236,14 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
           </Card>
 
           {data.mentorMessage && (
-            <Card className="border-amber-500/30 bg-amber-500/5">
+            <Card className="border-growth-amber bg-growth-amber-soft">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-                    <MessageSquare className="h-5 w-5 text-amber-600" />
+                  <div className="h-10 w-10 rounded-lg bg-growth-amber-soft flex items-center justify-center flex-shrink-0">
+                    <MessageSquare className="h-5 w-5 text-growth-amber" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-growth-amber">
                       Mentor message {data.mentorMessage.unread && "· new"}
                     </p>
                     <p className="mt-1 text-xs text-foreground line-clamp-2">

@@ -49,7 +49,7 @@ export default function ShareButtons({ courseName, courseUrl }: { courseName: st
         className="rounded-md border border-border bg-background p-2 hover:bg-accent transition-colors"
         aria-label="Copy link"
       >
-        {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+        {copied ? <Check className="h-4 w-4 text-growth-sage" /> : <Copy className="h-4 w-4" />}
       </button>
     </div>
   );

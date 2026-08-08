@@ -137,9 +137,9 @@ export function AIAssistantBox({ students, onStudentClick }: AIAssistantBoxProps
                         <span className="text-sm font-medium text-foreground">{ref.name}</span>
                         {ref.tier && (
                           <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
-                            ref.tier === "red" ? "bg-red-500/10 text-red-600" :
-                            ref.tier === "warning" ? "bg-amber-500/10 text-amber-600" :
-                            "bg-emerald-500/10 text-emerald-600"
+                            ref.tier === "red" ? "bg-destructive/5 text-destructive" :
+                            ref.tier === "warning" ? "bg-growth-amber-soft text-growth-amber" :
+                            "bg-growth-sage-soft text-growth-sage"
                           }`}>
                             {ref.tier}
                           </span>

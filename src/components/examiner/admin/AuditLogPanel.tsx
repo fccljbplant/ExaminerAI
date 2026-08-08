@@ -36,13 +36,13 @@ export function AuditLogPanel() {
   useEffect(() => { load(); }, [load]);
 
   const actionLabel = (action: string): { label: string; color: string } => {
-    if (action === "grade_changed") return { label: "Grade Override", color: "bg-amber-500/10 text-amber-600 border-amber-500/30" };
-    if (action === "role_assigned") return { label: "Role Change", color: "bg-red-500/10 text-red-600 border-red-500/30" };
-    if (action === "user_approved") return { label: "User Approved", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" };
-    if (action === "user_blocked") return { label: "User Blocked", color: "bg-red-500/10 text-red-600 border-red-500/30" };
+    if (action === "grade_changed") return { label: "Grade Override", color: "bg-growth-amber-soft text-growth-amber border-growth-amber" };
+    if (action === "role_assigned") return { label: "Role Change", color: "bg-destructive/5 text-destructive border-destructive/30" };
+    if (action === "user_approved") return { label: "User Approved", color: "bg-growth-sage-soft text-growth-sage border-growth-sage" };
+    if (action === "user_blocked") return { label: "User Blocked", color: "bg-destructive/5 text-destructive border-destructive/30" };
     if (action === "user_created") return { label: "User Created", color: "bg-blue-500/10 text-blue-600 border-blue-500/30" };
     if (action === "access_grant_created") return { label: "Access Grant", color: "bg-violet-500/10 text-violet-600 border-violet-500/30" };
-    if (action === "crisis_flag_viewed" || action === "wellbeing_alert_viewed") return { label: "Sensitive View", color: "bg-red-500/10 text-red-600 border-red-500/30" };
+    if (action === "crisis_flag_viewed" || action === "wellbeing_alert_viewed") return { label: "Sensitive View", color: "bg-destructive/5 text-destructive border-destructive/30" };
     return { label: action, color: "bg-muted text-muted-foreground" };
   };
 
@@ -53,9 +53,9 @@ export function AuditLogPanel() {
       return (
         <div className="text-xs">
           <span className="text-muted-foreground">Score: </span>
-          <span className="text-red-600 line-through">{(before as any).score}%</span>
+          <span className="text-destructive line-through">{(before as any).score}%</span>
           <span className="mx-1 text-muted-foreground">→</span>
-          <span className="text-emerald-600 font-bold">{(after as any)?.score ?? "?"}%</span>
+          <span className="text-growth-sage font-bold">{(after as any)?.score ?? "?"}%</span>
         </div>
       );
     }
@@ -63,9 +63,9 @@ export function AuditLogPanel() {
       return (
         <div className="text-xs">
           <span className="text-muted-foreground">Role: </span>
-          <span className="text-red-600">{(before as any)?.role ?? "?"}</span>
+          <span className="text-destructive">{(before as any)?.role ?? "?"}</span>
           <span className="mx-1 text-muted-foreground">→</span>
-          <span className="text-emerald-600 font-bold">{(after as any)?.role ?? "?"}</span>
+          <span className="text-growth-sage font-bold">{(after as any)?.role ?? "?"}</span>
         </div>
       );
     }
@@ -105,7 +105,7 @@ export function AuditLogPanel() {
           {loading ? (
             <div className="flex items-center justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
           ) : error ? (
-            <div className="text-sm text-red-600 text-center py-4">{error}</div>
+            <div className="text-sm text-destructive text-center py-4">{error}</div>
           ) : entries.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-8">
               <ClipboardList className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />

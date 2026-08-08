@@ -348,7 +348,7 @@ export default function CourseOutline() {
                           {/* Slide hints — show what kind of content this day has */}
                           <div className="flex flex-wrap gap-1 mt-1.5">
                             {hasVideo && (
-                              <Badge variant="secondary" className="text-[9px] bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-500/20">
+                              <Badge variant="secondary" className="text-[9px] bg-destructive/5 text-destructive border border-destructive/20">
                                 <PlayCircle className="h-2.5 w-2.5" /> Video
                               </Badge>
                             )}

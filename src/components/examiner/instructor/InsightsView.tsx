@@ -258,7 +258,7 @@ export function InsightsView({ students, stats, alerts, onStudentClick, courseId
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
+              <TrendingUp className="w-4 h-4 text-growth-sage" />
               Top Performers
             </CardTitle>
           </CardHeader>
@@ -273,14 +273,14 @@ export function InsightsView({ students, stats, alerts, onStudentClick, courseId
                     onClick={() => onStudentClick(s)}
                     className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors text-left"
                   >
-                    <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    <div className="w-6 h-6 rounded-full bg-growth-sage-soft flex items-center justify-center text-xs font-bold text-growth-sage-foreground">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{s.name}</div>
                       <div className="text-[10px] text-muted-foreground">Week {s.currentWeek}</div>
                     </div>
-                    <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <Badge variant="secondary" className="text-xs bg-growth-sage-soft text-growth-sage-foreground">
                       {s.latestScore}%
                     </Badge>
                   </button>
@@ -293,14 +293,14 @@ export function InsightsView({ students, stats, alerts, onStudentClick, courseId
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600" />
+              <AlertTriangle className="w-4 h-4 text-growth-amber" />
               Need Most Attention
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {strugglingStudents.length === 0 ? (
               <div className="py-6 text-center">
-                <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-1" />
+                <CheckCircle2 className="w-8 h-8 text-growth-sage mx-auto mb-1" />
                 <div className="text-xs text-muted-foreground">All students on track!</div>
               </div>
             ) : (
@@ -311,7 +311,7 @@ export function InsightsView({ students, stats, alerts, onStudentClick, courseId
                     onClick={() => onStudentClick(s)}
                     className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors text-left"
                   >
-                    <div className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center text-xs font-bold text-amber-700 dark:text-amber-300">
+                    <div className="w-6 h-6 rounded-full bg-growth-amber-soft dark:bg-amber-950/40 flex items-center justify-center text-xs font-bold text-growth-amber-foreground dark:text-growth-amber">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -320,7 +320,7 @@ export function InsightsView({ students, stats, alerts, onStudentClick, courseId
                         {(s.attentionReasons || []).slice(0, 2).join("; ")}
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-xs text-amber-700 border-amber-300">
+                    <Badge variant="outline" className="text-xs text-growth-amber-foreground border-growth-amber">
                       {s.attentionScore}
                     </Badge>
                   </button>

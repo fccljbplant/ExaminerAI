@@ -41,7 +41,7 @@ const ROLES = [
     label: "Instructor",
     icon: BookOpen,
     accent: "from-emerald-500 to-teal-500",
-    chip: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+    chip: "bg-growth-sage-soft text-growth-sage-foreground dark:text-emerald-300",
     screenshot: "/screenshots/dashboard-teacher.png",
     tagline: "See every student. Know what to do next.",
     desc: "Batch dashboard with attention-scored triage queue, per-student academic portfolio, AI Assistant for natural-language batch queries, and automated alerts for inactivity and score drops.",
@@ -99,14 +99,14 @@ const AI_SECTIONS = [
     icon: Gauge,
     title: "Data Efficiency",
     desc: "Per-entity summaries cached 7 days. Aggregate-first queries return counts and distributions, never raw records. Soft query budget per role. Max 50 raw records per AI call.",
-    color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30",
+    color: "text-growth-sage bg-growth-sage-soft dark:bg-emerald-950/30",
   },
   {
     num: "03",
     icon: TrendingUp,
     title: "Attention Score",
     desc: "Students auto-ranked by who needs help most: inactivity (3d = +30), score drop (+20), low practice (+20), blocked tasks (+10). The batch tells you who to talk to today.",
-    color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30",
+    color: "text-growth-amber bg-growth-amber-soft dark:bg-amber-950/30",
   },
   {
     num: "04",
@@ -151,7 +151,7 @@ const MENTOR_LOOP_STAGES = [
     short: "Attention-scored queue",
     desc: "Students auto-ranked by who needs help most. Attention score = inactivity (3d = +30) + score drop (+20) + low practice (+20) + blocked tasks (+10). The batch tells you who to talk to today.",
     color: "from-amber-500/10 to-rose-500/10",
-    iconColor: "text-amber-600",
+    iconColor: "text-growth-amber",
   },
   {
     num: "3",
@@ -160,7 +160,7 @@ const MENTOR_LOOP_STAGES = [
     short: "Actionable notifications",
     desc: "Inactivity, score drops, and blocked tasks trigger alerts. AI Assistant drafts the check-in message. Teacher confirms, edits, and sends. Every action recorded.",
     color: "from-rose-500/10 to-pink-500/10",
-    iconColor: "text-rose-600",
+    iconColor: "text-destructive",
   },
   {
     num: "4",
@@ -169,7 +169,7 @@ const MENTOR_LOOP_STAGES = [
     short: "AI-drafted, human-sent",
     desc: "AI Assistant drafts: headline, why, suggested action, 3 one-tap note presets. Confirm disabled until teacher writes a note. Every intervention auditable.",
     color: "from-emerald-500/10 to-teal-500/10",
-    iconColor: "text-emerald-600",
+    iconColor: "text-growth-sage",
   },
 ];
 
@@ -229,7 +229,7 @@ const PROJECT_LOOP = [
     title: "Day 1: Define the capstone",
     desc: "Student describes their project — name, type (web app / mobile / data pipeline / research paper), scope, objectives, requirements, business case. The AI generates a project summary + key features.",
     color: "from-amber-500/10 to-rose-500/10",
-    iconColor: "text-amber-600",
+    iconColor: "text-growth-amber",
   },
   {
     num: "02",
@@ -245,7 +245,7 @@ const PROJECT_LOOP = [
     title: "Daily task execution",
     desc: "Every day the student sees today's task alongside today's topic. They move tasks through planned → in-progress → completed | blocked. Status updates feed the teacher's attention-score algorithm.",
     color: "from-emerald-500/10 to-teal-500/10",
-    iconColor: "text-emerald-600",
+    iconColor: "text-growth-sage",
   },
   {
     num: "04",
@@ -261,7 +261,7 @@ const PROJECT_LOOP = [
     title: "Weekly project reports",
     desc: "Student submits a short weekly report: what they did, what blocked them, what's next. The AI analyzes it on 4 dimensions — project understanding, technical depth, progress, clarity — and returns score + strengths + weaknesses + feedback.",
     color: "from-rose-500/10 to-pink-500/10",
-    iconColor: "text-rose-600",
+    iconColor: "text-destructive",
   },
   {
     num: "06",
@@ -292,7 +292,7 @@ const TEST_TYPES = [
     questions: "1 question, 4 pillars rotated",
     desc: "Low-stakes formative practice. Four Socratic pillars rotate: Why Probe, Break-It, Client Translation, Edge Case. No scoring pressure — just learning.",
     accent: "from-amber-500/10 to-rose-500/10",
-    iconColor: "text-amber-600",
+    iconColor: "text-growth-amber",
   },
   {
     icon: ClipboardCheck,
@@ -392,7 +392,7 @@ export function ModernLanding() {
         <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
           <a href="#top" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center transition-transform group-hover:scale-105">
-              <GraduationCap className="w-5 h-5 text-amber-400" />
+              <GraduationCap className="w-5 h-5 text-growth-amber" />
             </div>
             <div>
               <div className="text-base font-bold leading-tight tracking-tight">TraineesAI</div>
@@ -415,7 +415,7 @@ export function ModernLanding() {
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Sign in</Button>
             </Link>
             <Link href="/app">
-              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white shadow-sm">
+              <Button size="sm" className="bg-growth-amber hover:bg-amber-600 text-white shadow-sm">
                 <Sparkles className="w-4 h-4 mr-1.5" /> Try Demo
               </Button>
             </Link>
@@ -451,9 +451,9 @@ export function ModernLanding() {
           backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
           backgroundSize: '32px 32px',
         }} />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-amber-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-growth-amber/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-fuchsia-500/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-growth-sage-soft rounded-full blur-3xl" />
 
         <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24 relative">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
@@ -473,12 +473,12 @@ export function ModernLanding() {
               </h1>
 
               <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed">
-                TraineesAI is the AI-powered bootcamp platform where students learn software by building real capstone projects. The AI teaches, the Socratic test chatbot probes reasoning — <span className="text-amber-300 font-medium">never MCQs</span> — and every interaction feeds per-topic skill mastery plus attention-scored triage. Teachers mentor at scale. Institutions see signal, not noise.
+                TraineesAI is the AI-powered bootcamp platform where students learn software by building real capstone projects. The AI teaches, the Socratic test chatbot probes reasoning — <span className="text-growth-amber font-medium">never MCQs</span> — and every interaction feeds per-topic skill mastery plus attention-scored triage. Teachers mentor at scale. Institutions see signal, not noise.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mb-10">
                 <Link href="/app">
-                  <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white text-base h-12 px-6 shadow-lg shadow-amber-500/20">
+                  <Button size="lg" className="bg-growth-amber hover:bg-amber-600 text-white text-base h-12 px-6 shadow-lg shadow-amber-500/20">
                     <Sparkles className="w-5 h-5 mr-2" /> Launch Live Demo
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
@@ -494,7 +494,7 @@ export function ModernLanding() {
               <div className="grid grid-cols-4 gap-4 pt-8 border-t border-white/10">
                 {TRUST_STATS.map((s, i) => (
                   <div key={s.label} className={heroIn ? "transition-all duration-700" : "opacity-0"} style={{ transitionDelay: `${i * 100}ms` }}>
-                    <div className="text-2xl md:text-3xl font-bold text-amber-300">{s.value}</div>
+                    <div className="text-2xl md:text-3xl font-bold text-growth-amber">{s.value}</div>
                     <div className="text-[10px] md:text-xs text-slate-400 mt-1 leading-tight">{s.label}</div>
                   </div>
                 ))}
@@ -557,7 +557,7 @@ export function ModernLanding() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-center md:text-left">
             <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Built &amp; operated by</span>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center text-amber-400 font-bold text-lg shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center text-growth-amber font-bold text-lg shadow-sm">
                 iE
               </div>
               <div>
@@ -593,7 +593,7 @@ export function ModernLanding() {
                 title: "Build first. Always.",
                 desc: "Every student defines a capstone project on day one. The AI generates a custom week-by-week task plan with milestones, daily tasks, and a Gantt chart. No more 'watch this video, take this quiz'. Students learn software by building software — and we track every step.",
                 gradient: "from-amber-500/10 to-rose-500/10",
-                iconColor: "text-amber-600",
+                iconColor: "text-growth-amber",
               },
               {
                 num: "02",
@@ -687,11 +687,11 @@ export function ModernLanding() {
           {/* Why Socratic, not MCQ */}
           <div className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-rose-500/10 border">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                <Brain className="w-6 h-6 text-amber-600 dark:text-amber-300" />
+              <div className="w-12 h-12 rounded-xl bg-growth-amber/20 flex items-center justify-center flex-shrink-0">
+                <Brain className="w-6 h-6 text-growth-amber dark:text-growth-amber" />
               </div>
               <div>
-                <div className="text-xs uppercase tracking-wider text-amber-600 dark:text-amber-300 font-bold mb-1">Why Socratic, not MCQ</div>
+                <div className="text-xs uppercase tracking-wider text-growth-amber dark:text-growth-amber font-bold mb-1">Why Socratic, not MCQ</div>
                 <h3 className="text-lg font-semibold mb-2">A score without reasoning is just a number.</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Multiple-choice tests measure recognition, not understanding. They can't detect overconfidence, surface answers, AI-generated responses, or fading recall. Socratic dialogue can. Every conversation becomes evidence — feeding per-topic mastery, the attention score, the AI Assistant's action dialog, and the mentoring loop that follows.
@@ -706,7 +706,7 @@ export function ModernLanding() {
       {/* PROJECT-BASED LEARNING — the differentiator */}
       {/* ============================================ */}
       <section id="projects" className="py-20 lg:py-28 bg-slate-950 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-growth-amber-soft rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-fuchsia-500/10 rounded-full blur-3xl" />
         <div className="container mx-auto px-4 lg:px-8 relative">
           <div className="grid lg:grid-cols-12 gap-10 items-start mb-14">
@@ -724,7 +724,7 @@ export function ModernLanding() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
                 {PROJECT_METRICS.map(m => (
                   <div key={m.label} className="p-3 rounded-lg bg-white/5 border border-white/10">
-                    <m.icon className="w-4 h-4 text-amber-300 mb-1.5" />
+                    <m.icon className="w-4 h-4 text-growth-amber mb-1.5" />
                     <div className="text-sm font-semibold">{m.value}</div>
                     <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">{m.label}</div>
                   </div>
@@ -750,7 +750,7 @@ export function ModernLanding() {
                     <step.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">Step {step.num}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-growth-amber font-bold">Step {step.num}</div>
                     <h3 className="font-semibold text-sm text-white">{step.title}</h3>
                   </div>
                 </div>
@@ -762,11 +762,11 @@ export function ModernLanding() {
           {/* Final analysis callout */}
           <div className="mt-10 p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-fuchsia-500/10 border border-white/10">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                <Presentation className="w-6 h-6 text-amber-300" />
+              <div className="w-12 h-12 rounded-xl bg-growth-amber/20 flex items-center justify-center flex-shrink-0">
+                <Presentation className="w-6 h-6 text-growth-amber" />
               </div>
               <div>
-                <div className="text-xs uppercase tracking-wider text-amber-300 font-bold mb-1">Final capstone analysis</div>
+                <div className="text-xs uppercase tracking-wider text-growth-amber font-bold mb-1">Final capstone analysis</div>
                 <h3 className="text-lg font-semibold text-white mb-2">Career-ready portfolio piece, graded by AI.</h3>
                 <p className="text-sm text-slate-300 leading-relaxed">
                   At course end, the teacher triggers a comprehensive AI analysis across 4 dimensions: <span className="text-white font-medium">project execution, technical competence, project quality, career readiness</span>. The result becomes the basis for the student's auto-generated certificate and their portfolio — ready to show employers.
@@ -861,7 +861,7 @@ export function ModernLanding() {
       {/* AI ASSISTANT — the 7 systems (NEW section) */}
       {/* ============================================ */}
       <section id="ai-assistant" className="py-20 lg:py-28 bg-slate-950 text-white relative overflow-hidden">
-        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-growth-amber-soft rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-fuchsia-500/10 rounded-full blur-3xl" />
 
         <div className="container mx-auto px-4 lg:px-8 relative">
@@ -900,7 +900,7 @@ export function ModernLanding() {
                     <s.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider text-amber-300 font-bold">System {s.num}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-growth-amber font-bold">System {s.num}</div>
                     <h3 className="font-semibold text-sm">{s.title}</h3>
                   </div>
                 </div>
@@ -912,9 +912,9 @@ export function ModernLanding() {
           {/* Real example */}
           <div className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-rose-500/10 border border-white/10">
             <div className="flex items-start gap-3 mb-4">
-              <Quote className="w-5 h-5 text-amber-300 flex-shrink-0 mt-1" />
+              <Quote className="w-5 h-5 text-growth-amber flex-shrink-0 mt-1" />
               <div>
-                <div className="text-xs uppercase tracking-wider text-amber-300 font-bold mb-1">Real example</div>
+                <div className="text-xs uppercase tracking-wider text-growth-amber font-bold mb-1">Real example</div>
                 <p className="text-lg text-white font-medium mb-3">"Who's likely to drop off in the next two weeks?"</p>
                 <p className="text-sm text-slate-300 leading-relaxed">
                   Sam Ali and Maria Cruz appear most likely to drop off. Both have low progress and low latest scores. Sam hasn&apos;t logged in for 14 days and has a blocked task; Maria has the longest gap (21 days), declining database queries, and a recent score drop on the Week 3 test.
@@ -978,16 +978,16 @@ export function ModernLanding() {
                 Teacher is the first responder. Coordinator sees institution-wide academics. The AI Assistant surfaces who needs help today and drafts the check-in message — the teacher sends it.
               </p>
               <ul className="space-y-2 text-xs text-muted-foreground">
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Attention-scored triage queue ranks who needs help today</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> AI-drafted check-in messages with one-tap note presets</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Per-topic skill mastery highlights exactly what to review</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Every action recorded with note + outcome + follow-up</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Attention-scored triage queue ranks who needs help today</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> AI-drafted check-in messages with one-tap note presets</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Per-topic skill mastery highlights exactly what to review</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Every action recorded with note + outcome + follow-up</li>
               </ul>
             </div>
 
             <div className="p-6 rounded-2xl border bg-card">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-growth-sage-soft dark:bg-emerald-950/30 text-growth-sage">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
@@ -999,10 +999,10 @@ export function ModernLanding() {
                 Teachers are people too. Burned-out teachers fail students. Load score = students × 1 + batches × 15 + alerts × 5 + overdue × 3. Green &lt; 50, amber 50–99, red ≥ 100.
               </p>
               <ul className="space-y-2 text-xs text-muted-foreground">
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Teacher sees their own load tier — full transparency</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Coordinator sees staff load distribution + can reassign</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> AI suggests co-teachers — never proposes warning/red candidates</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" /> Red-tier load auto-escalates — no 7-day timer</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Teacher sees their own load tier — full transparency</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Coordinator sees staff load distribution + can reassign</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> AI suggests co-teachers — never proposes warning/red candidates</li>
+                <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Red-tier load auto-escalates — no 7-day timer</li>
               </ul>
             </div>
           </div>
@@ -1163,7 +1163,7 @@ export function ModernLanding() {
               <div className="space-y-2">
                 {["Per-topic mastery levels", "Trend tracking per topic", "Attention flags with reasons", "Per-week trajectory analysis", "Full assessment history"].map(item => (
                   <div key={item} className="flex items-center gap-2 text-sm text-slate-300">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-growth-sage flex-shrink-0" />
                     {item}
                   </div>
                 ))}
@@ -1206,9 +1206,9 @@ export function ModernLanding() {
 
               <div className="space-y-3 mb-8">
                 {[
-                  { letter: "1", title: "Alert surfaces", desc: "Inactivity, score drop, or blocked task triggers a notification with cited evidence.", color: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" },
+                  { letter: "1", title: "Alert surfaces", desc: "Inactivity, score drop, or blocked task triggers a notification with cited evidence.", color: "bg-growth-amber-soft text-growth-amber-foreground dark:bg-amber-950/40 dark:text-growth-amber" },
                   { letter: "2", title: "AI drafts check-in", desc: "Suggested message + 3 one-tap note presets, grounded in the student's actual data.", color: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" },
-                  { letter: "3", title: "Teacher confirms", desc: "Confirm disabled until teacher writes a note. Every action is logged with reason.", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" },
+                  { letter: "3", title: "Teacher confirms", desc: "Confirm disabled until teacher writes a note. Every action is logged with reason.", color: "bg-growth-sage-soft text-growth-sage-foreground dark:text-emerald-300" },
                   { letter: "4", title: "Outcome + follow-up", desc: "Teacher records outcome + optional follow-up date. Closes the loop.", color: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" },
                 ].map(item => (
                   <div key={item.letter} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
@@ -1340,7 +1340,7 @@ export function ModernLanding() {
       {/* PLATFORM / TECH FEATURES */}
       {/* ============================================ */}
       <section id="tech" className="py-20 lg:py-28 bg-slate-950 text-white relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-growth-amber-soft rounded-full blur-3xl" />
         <div className="container mx-auto px-4 lg:px-8 relative">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <Badge variant="outline" className="mb-3 bg-white/10 border-white/20 text-white">Platform</Badge>
@@ -1355,7 +1355,7 @@ export function ModernLanding() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
             {PLATFORM_FEATURES.map(f => (
               <div key={f.title} className="p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-amber-500/20 text-amber-300">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-growth-amber/20 text-growth-amber">
                   <f.icon className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold text-sm mb-1.5">{f.title}</h3>
@@ -1368,7 +1368,7 @@ export function ModernLanding() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 p-8 rounded-2xl bg-gradient-to-br from-amber-500/10 to-fuchsia-500/10 border border-white/10">
             {TRUST_STATS.map(s => (
               <div key={s.label} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-amber-300 mb-1">{s.value}</div>
+                <div className="text-3xl md:text-4xl font-bold text-growth-amber mb-1">{s.value}</div>
                 <div className="text-xs text-slate-400">{s.label}</div>
               </div>
             ))}

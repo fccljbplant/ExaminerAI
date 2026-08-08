@@ -185,12 +185,12 @@ export function DailyTestPanel() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        {error && <div className="text-xs text-red-600 bg-red-500/10 rounded-md p-2">{error}</div>}
+        {error && <div className="text-xs text-destructive bg-destructive/5 rounded-md p-2">{error}</div>}
 
         {/* Already completed today */}
         {todays?.status === "completed" && !dailyTestId && (
           <div className="text-center py-4">
-            <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+            <CheckCircle2 className="h-8 w-8 text-growth-sage mx-auto mb-2" />
             <p className="text-sm font-medium text-foreground">Today's daily test complete!</p>
             <p className="text-xl font-bold text-foreground mt-1">{todays.score ?? "—"}%</p>
             <p className="text-[10px] text-muted-foreground mt-2">Come back tomorrow for the next one.</p>
@@ -201,7 +201,7 @@ export function DailyTestPanel() {
         {isComplete && score !== null && (
           <>
             <div className="text-center py-4 animate-success-burst">
-              <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
+              <CheckCircle2 className="h-10 w-10 text-growth-sage mx-auto mb-2" />
               <p className="text-sm font-medium text-foreground">Daily test complete!</p>
               <p className="text-3xl font-bold text-foreground mt-1">{score}%</p>
               <Button onClick={() => {
@@ -256,9 +256,9 @@ export function DailyTestPanel() {
                     className={cn(
                       "px-2 py-0.5 text-[10px] rounded-md border transition-colors capitalize disabled:opacity-50",
                       confidence === c
-                        ? c === "low" ? "bg-red-500/20 text-red-600 border-red-500/40"
-                        : c === "medium" ? "bg-amber-500/20 text-amber-600 border-amber-500/40"
-                        : "bg-emerald-500/20 text-emerald-600 border-emerald-500/40"
+                        ? c === "low" ? "bg-red-500/20 text-destructive border-red-500/40"
+                        : c === "medium" ? "bg-growth-amber/20 text-growth-amber border-growth-amber"
+                        : "bg-growth-sage/20 text-growth-sage border-growth-sage"
                         : "bg-muted text-muted-foreground border-border"
                     )}
                   >

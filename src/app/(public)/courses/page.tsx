@@ -418,7 +418,7 @@ function LearningPathCard({
         <div className="flex items-center justify-between pt-2 border-t border-border mt-auto">
           <div>
             {isFree ? (
-              <span className="text-base font-semibold text-emerald-500">Free</span>
+              <span className="text-base font-semibold text-growth-sage">Free</span>
             ) : (
               <span className="text-base font-semibold">
                 {formatPrice(path.price, path.currency)}

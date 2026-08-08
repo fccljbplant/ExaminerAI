@@ -86,12 +86,12 @@ function actionLabel(action: string): string {
 function roleColor(role: string): string {
   const colors: Record<string, string> = {
     student: "text-blue-600 bg-blue-50 dark:bg-blue-950/30",
-    instructor: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30",
+    instructor: "text-growth-sage bg-growth-sage-soft dark:bg-emerald-950/30",
     coordinator: "text-purple-600 bg-purple-50 dark:bg-purple-950/30",
     administrator: "text-slate-600 bg-slate-100 dark:bg-slate-800/50",
     institution_admin: "text-slate-600 bg-slate-100 dark:bg-slate-800/50",
     platform_admin: "text-slate-600 bg-slate-100 dark:bg-slate-800/50",
-    demo: "text-amber-600 bg-amber-50 dark:bg-amber-950/30",
+    demo: "text-growth-amber bg-growth-amber-soft dark:bg-amber-950/30",
   };
   return colors[role] || "text-muted-foreground bg-muted";
 }
@@ -195,8 +195,8 @@ export function UserAuditTab({ userId }: { userId: string }) {
                       <Badge variant="outline" className="text-[9px]">{stats.total}</Badge>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                      <span className="text-emerald-600">{stats.success} ok</span>
-                      {stats.failed > 0 && <span className="text-rose-600">{stats.failed} failed</span>}
+                      <span className="text-growth-sage">{stats.success} ok</span>
+                      {stats.failed > 0 && <span className="text-destructive">{stats.failed} failed</span>}
                       <span>· {stats.tokens.toLocaleString()} tokens</span>
                     </div>
                   </div>
@@ -247,7 +247,7 @@ export function UserAuditTab({ userId }: { userId: string }) {
                       {log.direction === "by" ? (
                         <User className="h-3.5 w-3.5 text-blue-600 flex-shrink-0" />
                       ) : (
-                        <Target className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                        <Target className="h-3.5 w-3.5 text-growth-amber flex-shrink-0" />
                       )}
                       <span className="text-xs font-medium text-foreground">{log.actorName}</span>
                       <Badge variant="outline" className={`text-[9px] ${roleColor(log.actorRole)}`}>
@@ -337,7 +337,7 @@ export function UserAuditTab({ userId }: { userId: string }) {
               {aiUsage.recent.map((call, i) => (
                 <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-border last:border-0">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${call.success ? "bg-emerald-500" : "bg-rose-500"}`} />
+                    <span className={`w-2 h-2 rounded-full ${call.success ? "bg-growth-sage" : "bg-rose-500"}`} />
                     <span className="text-foreground">{call.feature}</span>
                     <Badge variant="outline" className="text-[9px]">{call.provider}</Badge>
                   </div>

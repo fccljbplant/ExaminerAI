@@ -64,17 +64,17 @@ interface EmployerData {
 const STATUS_META: Record<TraineeStatus, { label: string; className: string; dot: string }> = {
   on_track: {
     label: "On Track",
-    className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-    dot: "bg-emerald-500",
+    className: "bg-growth-sage-soft text-growth-sage dark:text-growth-sage border-growth-sage",
+    dot: "bg-growth-sage",
   },
   needs_attention: {
     label: "Needs Attention",
-    className: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-    dot: "bg-amber-500",
+    className: "bg-growth-amber-soft text-growth-amber dark:text-growth-amber border-growth-amber",
+    dot: "bg-growth-amber",
   },
   at_risk: {
     label: "At Risk",
-    className: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
+    className: "bg-destructive/5 text-destructive dark:text-destructive border-destructive/30",
     dot: "bg-red-500",
   },
   completed: {
@@ -181,14 +181,14 @@ export function EmployerDashboard() {
       value: fmtMoney(data.estimatedProductivityGain),
       icon: <TrendingUp className="h-4 w-4" />,
       sub: "skill-based valuation",
-      accent: "text-emerald-500",
+      accent: "text-growth-sage",
     },
     {
       label: "ROI Multiplier",
       value: `${data.roiMultiplier}×`,
       icon: <Gauge className="h-4 w-4" />,
       sub: "gain vs investment",
-      accent: data.roiMultiplier >= 1 ? "text-emerald-500" : "text-amber-500",
+      accent: data.roiMultiplier >= 1 ? "text-growth-sage" : "text-growth-amber",
     },
     {
       label: "Time Saved",
@@ -290,9 +290,9 @@ export function EmployerDashboard() {
                       </TableCell>
                       <TableCell className="text-right">
                         <span className={
-                          t.avgScore >= 75 ? "text-emerald-600 dark:text-emerald-400 font-semibold" :
-                          t.avgScore >= 50 ? "text-amber-600 dark:text-amber-400 font-semibold" :
-                          "text-red-600 dark:text-red-400 font-semibold"
+                          t.avgScore >= 75 ? "text-growth-sage dark:text-growth-sage font-semibold" :
+                          t.avgScore >= 50 ? "text-growth-amber dark:text-growth-amber font-semibold" :
+                          "text-destructive dark:text-destructive font-semibold"
                         }>
                           {t.avgScore > 0 ? `${t.avgScore}%` : "—"}
                         </span>
@@ -317,7 +317,7 @@ export function EmployerDashboard() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Lightbulb className="h-4 w-4 text-amber-500" />
+            <Lightbulb className="h-4 w-4 text-growth-amber" />
             Skill Gap Analysis
           </CardTitle>
         </CardHeader>
@@ -335,13 +335,13 @@ export function EmployerDashboard() {
                   key={g.skill}
                   className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/40"
                 >
-                  <div className="w-8 h-8 rounded-md bg-amber-500/15 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                  <div className="w-8 h-8 rounded-md bg-growth-amber-soft border border-growth-amber flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="h-3.5 w-3.5 text-growth-amber" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-foreground truncate">{g.skill}</div>
                     <div className="text-[10px] text-muted-foreground flex items-center gap-2 mt-0.5">
-                      <span>Avg mastery: <span className="text-amber-600 dark:text-amber-400 font-medium">{g.avgMastery}%</span></span>
+                      <span>Avg mastery: <span className="text-growth-amber dark:text-growth-amber font-medium">{g.avgMastery}%</span></span>
                     </div>
                     <div className="mt-1.5">
                       <Progress value={g.avgMastery} className="h-1 w-32" />

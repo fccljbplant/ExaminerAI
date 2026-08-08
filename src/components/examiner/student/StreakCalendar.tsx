@@ -160,7 +160,7 @@ export function StreakCalendar() {
       label: "Current",
       value: data.currentStreak,
       suffix: data.currentStreak === 1 ? " day" : " days",
-      color: "text-amber-500",
+      color: "text-growth-amber",
     },
     {
       icon: Award,
@@ -174,7 +174,7 @@ export function StreakCalendar() {
       label: "Active days",
       value: data.totalActiveDays,
       suffix: "/ 84",
-      color: "text-emerald-500",
+      color: "text-growth-sage",
     },
     {
       icon: Activity,
@@ -191,11 +191,11 @@ export function StreakCalendar() {
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-            <Flame className="h-4 w-4 text-amber-500" />
+            <Flame className="h-4 w-4 text-growth-amber" />
             Study activity
           </h3>
           {data.currentStreak > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+            <span className="inline-flex items-center gap-1 rounded-full bg-growth-amber-soft px-2 py-0.5 text-[10px] font-bold text-growth-amber">
               <Flame className="h-3 w-3" />
               {data.currentStreak}-day streak
             </span>

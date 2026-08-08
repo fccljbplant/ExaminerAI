@@ -632,7 +632,7 @@ export default function CourseCreationWizard({
 
             {generated && !generating && (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-center gap-2 text-growth-sage dark:text-growth-sage">
                   <CheckCircle2 className="h-4 w-4" />
                   <span className="text-sm font-medium">Curriculum generated!</span>
                   <Badge variant="secondary" className="text-[10px]">
@@ -681,8 +681,8 @@ export default function CourseCreationWizard({
         {/* ============== STEP 4: Success ============== */}
         {step === 4 && createdCourse && (
           <div className="space-y-4 py-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+            <div className="w-16 h-16 rounded-full bg-growth-sage-soft flex items-center justify-center mx-auto">
+              <CheckCircle2 className="h-8 w-8 text-growth-sage" />
             </div>
             <div>
               <h3 className="text-base font-bold text-foreground">Course created & published!</h3>
@@ -745,7 +745,7 @@ export default function CourseCreationWizard({
                   size="sm"
                   onClick={createCourse}
                   disabled={creating || generating}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {creating ? (
                     <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Creating…</>

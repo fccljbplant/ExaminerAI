@@ -183,7 +183,7 @@ export function ProjectReportPanel() {
                     <span className="text-[10px] text-muted-foreground">{new Date(r.submittedAt).toLocaleDateString()}</span>
                   </div>
                   {r.aiAnalysis && (
-                    <Badge variant="outline" className={`text-[10px] ${r.aiAnalysis.score >= 70 ? "text-emerald-600 border-emerald-500/30" : r.aiAnalysis.score >= 50 ? "text-amber-600 border-amber-500/30" : "text-destructive border-destructive/30"}`}>
+                    <Badge variant="outline" className={`text-[10px] ${r.aiAnalysis.score >= 70 ? "text-growth-sage border-growth-sage" : r.aiAnalysis.score >= 50 ? "text-growth-amber border-growth-amber" : "text-destructive border-destructive/30"}`}>
                       Score: {r.aiAnalysis.score}%
                     </Badge>
                   )}
@@ -201,13 +201,13 @@ export function ProjectReportPanel() {
                       ].map(s => (
                         <div key={s.label} className="text-center">
                           <p className="text-[8px] text-muted-foreground uppercase">{s.label}</p>
-                          <p className={`text-xs font-bold ${s.val >= 70 ? "text-emerald-600" : s.val >= 50 ? "text-amber-600" : "text-destructive"}`}>{s.val}</p>
+                          <p className={`text-xs font-bold ${s.val >= 70 ? "text-growth-sage" : s.val >= 50 ? "text-growth-amber" : "text-destructive"}`}>{s.val}</p>
                         </div>
                       ))}
                     </div>
                     {r.aiAnalysis.strengths.length > 0 && (
                       <div>
-                        <p className="text-[10px] font-medium text-emerald-600 mb-0.5">✓ Strengths</p>
+                        <p className="text-[10px] font-medium text-growth-sage mb-0.5">✓ Strengths</p>
                         <ul className="text-[11px] text-foreground/70 space-y-0.5 ml-3">
                           {r.aiAnalysis.strengths.map((s, i) => <li key={i}>• {s}</li>)}
                         </ul>
@@ -215,7 +215,7 @@ export function ProjectReportPanel() {
                     )}
                     {r.aiAnalysis.weaknesses.length > 0 && (
                       <div>
-                        <p className="text-[10px] font-medium text-amber-600 mb-0.5">⚠ Areas to Improve</p>
+                        <p className="text-[10px] font-medium text-growth-amber mb-0.5">⚠ Areas to Improve</p>
                         <ul className="text-[11px] text-foreground/70 space-y-0.5 ml-3">
                           {r.aiAnalysis.weaknesses.map((s, i) => <li key={i}>• {s}</li>)}
                         </ul>

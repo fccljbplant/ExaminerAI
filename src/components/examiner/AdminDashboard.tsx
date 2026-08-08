@@ -228,12 +228,12 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
           <div className="hidden sm:flex items-center gap-1.5">
             <Badge variant="outline" className="text-xs">{users.length} users</Badge>
             {pending.length > 0 && (
-              <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800">
+              <Badge variant="outline" className="text-xs bg-growth-amber-soft text-growth-amber-foreground border-growth-amber dark:bg-amber-950/30 dark:text-growth-amber dark:border-amber-800">
                 {pending.length} pending
               </Badge>
             )}
             {blocked.length > 0 && (
-              <Badge variant="outline" className="text-xs bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800">
+              <Badge variant="outline" className="text-xs bg-destructive/5 text-destructive border-destructive/30">
                 {blocked.length} blocked
               </Badge>
             )}
@@ -325,7 +325,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
               </div>
               <div className="flex gap-2">
                 {pending.length > 0 && (
-                  <Button onClick={approveAllPending} disabled={busy === "batch-approve"} variant="outline" size="sm" className="border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10">
+                  <Button onClick={approveAllPending} disabled={busy === "batch-approve"} variant="outline" size="sm" className="border-growth-sage text-growth-sage hover:bg-growth-sage-soft">
                     {busy === "batch-approve" ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserCheck className="h-3 w-3" />} Approve All Pending ({pending.length})
                   </Button>
                 )}
@@ -388,7 +388,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                     <tr key={u.id} className={`border-b border-border hover:bg-muted/50 ${u.blocked ? "opacity-50" : ""}`}>
                       <td className="py-2 px-3 text-foreground font-medium">
                         {u.name}
-                        {u.blocked && <Badge variant="outline" className="ml-2 text-[9px] text-red-500 border-red-500/30 bg-red-500/10">Blocked</Badge>}
+                        {u.blocked && <Badge variant="outline" className="ml-2 text-[9px] text-destructive border-destructive/30 bg-destructive/5">Blocked</Badge>}
                       </td>
                       <td className="py-2 px-3 text-muted-foreground hidden sm:table-cell">{u.email}</td>
                       <td className="py-2 px-3">
@@ -444,11 +444,11 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                           {u.email !== "admin@examiner.ai" && currentUserRole !== "demo" && (
                             <>
                               {(u.role === "pending" || (u as UserRow & { status?: string }).status === "pending") && (
-                                <Button size="sm" variant="ghost" onClick={() => approve(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-emerald-600" title="Approve" aria-label="Approve user">
+                                <Button size="sm" variant="ghost" onClick={() => approve(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-growth-sage" title="Approve" aria-label="Approve user">
                                   {busy === u.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserCheck className="h-3 w-3" />}
                                 </Button>
                               )}
-                              <Button size="sm" variant="ghost" onClick={() => toggleBlock(u.id, u.blocked)} disabled={busy === u.id} className={`h-7 w-7 p-0 ${u.blocked ? "text-emerald-600" : "text-amber-600"}`} title={u.blocked ? "Unblock" : "Block"}>
+                              <Button size="sm" variant="ghost" onClick={() => toggleBlock(u.id, u.blocked)} disabled={busy === u.id} className={`h-7 w-7 p-0 ${u.blocked ? "text-growth-sage" : "text-growth-amber"}`} title={u.blocked ? "Unblock" : "Block"}>
                                 <Ban className="h-3 w-3" />
                               </Button>
                               <Button size="sm" variant="ghost" onClick={() => remove(u.id)} disabled={busy === u.id} className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Delete" aria-label="Delete user">

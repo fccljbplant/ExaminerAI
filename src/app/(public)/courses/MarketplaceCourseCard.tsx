@@ -95,7 +95,7 @@ export default function MarketplaceCourseCard({
           </span>
           {course.rating > 0 && (
             <span className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <Star className="h-3 w-3 fill-amber-400 text-growth-amber" />
               {course.rating.toFixed(1)} ({course.reviewCount})
             </span>
           )}
@@ -110,7 +110,7 @@ export default function MarketplaceCourseCard({
         <div className="flex items-center justify-between pt-2 border-t border-border">
           <div>
             {isFree ? (
-              <span className="text-base font-semibold text-emerald-500">Free</span>
+              <span className="text-base font-semibold text-growth-sage">Free</span>
             ) : (
               <span className="text-base font-semibold">
                 {formatPrice(course.price, course.currency)}

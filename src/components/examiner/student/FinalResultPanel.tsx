@@ -126,9 +126,9 @@ export function FinalResultPanel() {
         {data.weeklyTestsCompleted >= Math.ceil(data.totalPossibleQuestions / 20) && (
           <div className="flex items-center justify-center">
             <Badge variant="outline" className={"text-sm font-bold px-4 py-1.5 " + (
-              data.careerReadiness === "Ready" ? "border-emerald-500/40 text-emerald-600 bg-emerald-500/10" :
-              data.careerReadiness === "Almost Ready" ? "border-amber-500/40 text-amber-600 bg-amber-500/10" :
-              "border-amber-500/40 text-amber-600 bg-amber-500/10"
+              data.careerReadiness === "Ready" ? "border-growth-sage text-growth-sage bg-growth-sage-soft" :
+              data.careerReadiness === "Almost Ready" ? "border-growth-amber text-growth-amber bg-growth-amber-soft" :
+              "border-growth-amber text-growth-amber bg-growth-amber-soft"
             )}>
               {data.careerReadiness || "Pending"}
             </Badge>
@@ -150,12 +150,12 @@ export function FinalResultPanel() {
 
         {/* Areas to Improve */}
         {(data.areasToImprove || []).length > 0 && (
-          <div className="rounded-md bg-amber-500/5 border border-amber-500/20 p-3">
-            <p className="text-xs font-bold text-amber-600 mb-1.5">What to Try Next</p>
+          <div className="rounded-md bg-growth-amber-soft border border-growth-amber p-3">
+            <p className="text-xs font-bold text-growth-amber mb-1.5">What to Try Next</p>
             <ul className="space-y-1">
               {(data.areasToImprove || []).map((area, i) => (
                 <li key={i} className="text-sm text-foreground/80 flex items-start gap-1.5">
-                  <span className="text-amber-600 mt-0.5">→</span>
+                  <span className="text-growth-amber mt-0.5">→</span>
                   <span>{area}</span>
                 </li>
               ))}
@@ -198,9 +198,9 @@ export function FinalResultPanel() {
                     </td>
                     <td className="py-1.5 px-2">
                       {w.plagiarismScore != null && w.plagiarismScore > 0 ? (
-                        <span className={"font-bold " + (w.plagiarismScore > 40 ? "text-red-600" : "text-amber-600")}>{w.plagiarismScore}%</span>
+                        <span className={"font-bold " + (w.plagiarismScore > 40 ? "text-destructive" : "text-growth-amber")}>{w.plagiarismScore}%</span>
                       ) : (
-                        <span className="text-emerald-600 text-[10px]">Clean</span>
+                        <span className="text-growth-sage text-[10px]">Clean</span>
                       )}
                     </td>
                   </tr>

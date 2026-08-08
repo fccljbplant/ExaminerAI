@@ -684,7 +684,7 @@ export default function CoursePlanner() {
                   }
                 }}
                 className={selectedCourse.isDefault
-                  ? "border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                  ? "border-growth-amber text-growth-amber-foreground dark:text-growth-amber hover:bg-growth-amber-soft"
                   : "border-violet-500/40 text-violet-700 dark:text-violet-300 hover:bg-violet-500/10"
                 }
                 title={selectedCourse.isDefault
@@ -776,10 +776,10 @@ export default function CoursePlanner() {
             can't see the course until it's assigned to at least one batch.
             Shows a quick-assign button for each available batch. */}
         {selectedCourse.batches && selectedCourse.batches.length === 0 && batches.length > 0 && (
-          <Card className="border-amber-500/40 bg-amber-500/5">
+          <Card className="border-growth-amber bg-growth-amber-soft">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-growth-amber flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">
                     This course isn&apos;t assigned to any batch yet
@@ -820,7 +820,7 @@ export default function CoursePlanner() {
             <CardDescription className="text-xs text-muted-foreground">
               Decide whether students in this course build a capstone project.
               {selectedCourse.weeks.length < 4 ? (
-                <span className="block mt-1 text-amber-600">
+                <span className="block mt-1 text-growth-amber">
                   Projects require a minimum of 4 weeks. This course has {selectedCourse.weeks.length} week{selectedCourse.weeks.length === 1 ? "" : "s"} — add more weeks to enable.
                 </span>
               ) : (
@@ -857,7 +857,7 @@ export default function CoursePlanner() {
                   <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${selectedCourse.projectEnabled ? "translate-x-4" : "translate-x-1"}`} />
                 </button>
               ) : (
-                <Badge variant={selectedCourse.projectEnabled ? "default" : "secondary"} className={selectedCourse.projectEnabled ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : ""}>
+                <Badge variant={selectedCourse.projectEnabled ? "default" : "secondary"} className={selectedCourse.projectEnabled ? "bg-growth-sage-soft text-growth-sage-foreground" : ""}>
                   {selectedCourse.projectEnabled ? "Enabled" : "Disabled"}
                 </Badge>
               )}
@@ -886,7 +886,7 @@ export default function CoursePlanner() {
                     <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${selectedCourse.projectRequired ? "translate-x-4" : "translate-x-1"}`} />
                   </button>
                 ) : (
-                  <Badge variant={selectedCourse.projectRequired ? "default" : "secondary"} className={selectedCourse.projectRequired ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : ""}>
+                  <Badge variant={selectedCourse.projectRequired ? "default" : "secondary"} className={selectedCourse.projectRequired ? "bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber" : ""}>
                     {selectedCourse.projectRequired ? "Required" : "Optional"}
                   </Badge>
                 )}
@@ -972,7 +972,7 @@ export default function CoursePlanner() {
                   aria-label="Publish to marketplace"
                 />
               ) : (
-                <Badge variant={selectedCourse.published ? "default" : "secondary"} className={selectedCourse.published ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : ""}>
+                <Badge variant={selectedCourse.published ? "default" : "secondary"} className={selectedCourse.published ? "bg-growth-sage-soft text-growth-sage-foreground" : ""}>
                   {selectedCourse.published ? "Published" : "Draft"}
                 </Badge>
               )}
@@ -994,7 +994,7 @@ export default function CoursePlanner() {
                   aria-label="Feature on homepage"
                 />
               ) : (
-                <Badge variant={selectedCourse.featured ? "default" : "secondary"} className={selectedCourse.featured ? "bg-amber-500/15 text-amber-700 dark:text-amber-300" : ""}>
+                <Badge variant={selectedCourse.featured ? "default" : "secondary"} className={selectedCourse.featured ? "bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber" : ""}>
                   {selectedCourse.featured ? "Featured" : "Not featured"}
                 </Badge>
               )}
@@ -1016,7 +1016,7 @@ export default function CoursePlanner() {
                 ) : (
                   <p className="text-xs font-medium text-foreground">
                     {(selectedCourse.price ?? 0) === 0 ? (
-                      <span className="text-emerald-600 dark:text-emerald-400">Free</span>
+                      <span className="text-growth-sage dark:text-growth-sage">Free</span>
                     ) : (
                       formatPrice(selectedCourse.price ?? 0, "USD")
                     )}
@@ -1323,7 +1323,7 @@ export default function CoursePlanner() {
           <Button size="sm" variant="outline" onClick={() => setWizardOpen(true)} className="border-primary/30 text-primary hover:bg-primary/10">
             <Wand2 className="h-3.5 w-3.5" /> Generate with AI
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setWizardOpen(true)} className="border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-300">
+          <Button size="sm" variant="outline" onClick={() => setWizardOpen(true)} className="border-growth-sage text-growth-sage hover:bg-growth-sage-soft">
             <Store className="h-3.5 w-3.5" /> Create New Course (Wizard)
           </Button>
           <Button size="sm" onClick={createEmpty} disabled={busy} className="bg-primary hover:bg-primary/90 text-primary-foreground">
@@ -1363,7 +1363,7 @@ export default function CoursePlanner() {
                   <div className="flex flex-col gap-1 items-end ml-2">
                     <Badge variant="outline" className="text-[10px]">{(c.weeks?.length || 0)}w · {(c.weeks?.reduce((a, w) => a + (w.dayCount || w.days?.length || 0), 0) || 0)}d</Badge>
                     {c.projectEnabled && (
-                      <Badge variant="outline" className={`text-[8px] ${c.projectRequired ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}>
+                      <Badge variant="outline" className={`text-[8px] ${c.projectRequired ? "border-growth-amber bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber" : "border-growth-sage bg-growth-sage-soft text-growth-sage-foreground"}`}>
                         {c.projectRequired ? "Project Required" : "Project Optional"}
                       </Badge>
                     )}
@@ -1464,7 +1464,7 @@ export default function CoursePlanner() {
 
           {convertPreview && !converting && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center gap-2 text-growth-sage dark:text-growth-sage">
                 <CheckCircle2 className="h-4 w-4" />
                 <span className="text-sm font-medium">Outline converted!</span>
                 <Badge variant="secondary" className="text-[10px]">
@@ -1491,7 +1491,7 @@ export default function CoursePlanner() {
                   </div>
                 ))}
               </div>
-              <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
+              <div className="rounded-md border border-growth-amber bg-growth-amber-soft p-3 text-[10px] text-growth-amber-foreground dark:text-growth-amber leading-relaxed">
                 <AlertCircle className="h-3.5 w-3.5 inline mr-1" />
                 Clicking "Replace Current Outline" will DELETE the existing {selectedCourse?.weeks.length ?? 0} weeks and create {convertPreview.length} new weeks. This cannot be undone.
               </div>
@@ -1524,7 +1524,7 @@ export default function CoursePlanner() {
                   size="sm"
                   onClick={applyConvertedOutline}
                   disabled={busy}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {busy ? (
                     <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</>

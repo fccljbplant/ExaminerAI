@@ -210,7 +210,7 @@ export default function AITutor() {
           )}
 
           {streamError && (
-            <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 rounded-md p-2">
+            <div className="text-xs text-growth-amber dark:text-growth-amber bg-growth-amber-soft rounded-md p-2">
               Connection slowed — retrying…
             </div>
           )}

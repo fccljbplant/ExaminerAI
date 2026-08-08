@@ -592,7 +592,7 @@ export default function AppShell() {
                     </span>
                   )}
                   {(item.key === "instructor-today") && alertCount > 0 && (
-                    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+                    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-growth-amber px-1 text-[10px] font-bold text-white">
                       {alertCount > 9 ? "9+" : alertCount}
                     </span>
                   )}

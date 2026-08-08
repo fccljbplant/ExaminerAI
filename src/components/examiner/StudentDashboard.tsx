@@ -315,17 +315,17 @@ function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
       </Card>
 
       {stats && (stats.tasks || []).length === 0 && enrollment.projectEnabled && (
-        <Card className="border-amber-500/40 bg-amber-500/5">
+        <Card className="border-growth-amber bg-growth-amber-soft">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                <Target className="h-5 w-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-lg bg-growth-amber/20 flex items-center justify-center flex-shrink-0">
+                <Target className="h-5 w-5 text-growth-amber" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-foreground">
                   Start your capstone project
                   {enrollment.projectRequired && (
-                    <Badge variant="outline" className="ml-2 text-[9px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                    <Badge variant="outline" className="ml-2 text-[9px] border-growth-amber bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber">
                       Required
                     </Badge>
                   )}
@@ -334,7 +334,7 @@ function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
                   Define your project to get AI-generated weekly tasks, milestones, and a Gantt chart.
                 </p>
               </div>
-              <Button onClick={() => onNavigate("project")} size="sm" className="bg-amber-500 hover:bg-amber-600 text-white flex-shrink-0">
+              <Button onClick={() => onNavigate("project")} size="sm" className="bg-growth-amber hover:bg-amber-600 text-white flex-shrink-0">
                 Set Up Project <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
             </div>

@@ -28,9 +28,9 @@ export function AccessGrantsPanel() {
 
   const dataScopeLabel = (scope: string): { label: string; color: string } => {
     switch (scope) {
-      case "full": return { label: "Full access", color: "bg-red-500/10 text-red-600 border-red-500/30" };
-      case "wellbeing_only": return { label: "Wellbeing only", color: "bg-amber-500/10 text-amber-600 border-amber-500/30" };
-      case "crisis_only": return { label: "Crisis only", color: "bg-red-500/10 text-red-600 border-red-500/30" };
+      case "full": return { label: "Full access", color: "bg-destructive/5 text-destructive border-destructive/30" };
+      case "wellbeing_only": return { label: "Wellbeing only", color: "bg-growth-amber-soft text-growth-amber border-growth-amber" };
+      case "crisis_only": return { label: "Crisis only", color: "bg-destructive/5 text-destructive border-destructive/30" };
       case "content_only": return { label: "Content only", color: "bg-blue-500/10 text-blue-600 border-blue-500/30" };
       default: return { label: scope, color: "bg-muted text-muted-foreground" };
     }
@@ -49,7 +49,7 @@ export function AccessGrantsPanel() {
           {loading ? (
             <div className="flex items-center justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
           ) : error ? (
-            <div className="text-sm text-red-600 text-center py-4">{error}</div>
+            <div className="text-sm text-destructive text-center py-4">{error}</div>
           ) : grants.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-8">
               <ShieldCheck className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />

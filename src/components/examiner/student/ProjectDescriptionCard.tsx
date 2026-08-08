@@ -155,21 +155,21 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
           <div className={`rounded-md p-2.5 text-xs ${
             genMsgType === "error"
               ? "border border-destructive/30 bg-destructive/5 text-destructive"
-              : "border border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300"
+              : "border border-growth-sage bg-growth-sage-soft text-growth-sage-foreground"
           }`}>
             {genMsg}
           </div>
         )}
         {showGenConfirm && (
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 space-y-2">
+          <div className="rounded-md border border-growth-amber bg-growth-amber-soft p-3 space-y-2">
             <p className="text-xs text-foreground">
-              <AlertCircle className="h-3.5 w-3.5 inline mr-1 text-amber-500" />
+              <AlertCircle className="h-3.5 w-3.5 inline mr-1 text-growth-amber" />
               You already have tasks. Regenerating will <strong>delete all existing tasks and their comments</strong>, then create new AI-generated ones. This cannot be undone.
             </p>
             <div className="flex gap-2">
               <Button
                 size="sm"
-                className="bg-amber-500 hover:bg-amber-600 text-white h-7 text-xs"
+                className="bg-growth-amber hover:bg-amber-600 text-white h-7 text-xs"
                 disabled={generating}
                 onClick={() => generateTasks(true)}
               >
@@ -256,7 +256,7 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
               href={project.projectDeployUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 text-[11px] text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md bg-growth-sage-soft border border-growth-sage px-3 py-1.5 text-[11px] text-growth-sage-foreground hover:bg-growth-sage/20 transition-colors"
             >
               <TrendingUp className="h-3 w-3" /> Live Demo
             </a>

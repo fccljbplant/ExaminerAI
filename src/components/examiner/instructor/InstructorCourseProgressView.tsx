@@ -20,13 +20,13 @@ import type { PortfolioData, StudentRow } from "@/components/examiner/instructor
 
 /** Dynamic accent palette — cycles through these for any number of weeks. */
 const ACCENT_PALETTE = [
-  { text: "text-emerald-600", bg: "bg-emerald-500/10", bar: "bg-emerald-500" },
+  { text: "text-growth-sage", bg: "bg-growth-sage-soft", bar: "bg-growth-sage" },
   { text: "text-blue-600",    bg: "bg-blue-500/10",    bar: "bg-blue-500" },
-  { text: "text-amber-600",   bg: "bg-amber-500/10",   bar: "bg-amber-500" },
+  { text: "text-growth-amber",   bg: "bg-growth-amber-soft",   bar: "bg-growth-amber" },
   { text: "text-violet-600",  bg: "bg-violet-500/10",  bar: "bg-violet-500" },
-  { text: "text-rose-600",    bg: "bg-rose-500/10",    bar: "bg-rose-500" },
+  { text: "text-destructive",    bg: "bg-destructive/5",    bar: "bg-rose-500" },
   { text: "text-cyan-600",    bg: "bg-cyan-500/10",    bar: "bg-cyan-500" },
-  { text: "text-orange-600",  bg: "bg-orange-500/10",  bar: "bg-orange-500" },
+  { text: "text-growth-amber",  bg: "bg-growth-amber-soft",  bar: "bg-growth-amber" },
   { text: "text-teal-600",    bg: "bg-teal-500/10",    bar: "bg-teal-500" },
 ];
 
@@ -79,7 +79,7 @@ export function InstructorCourseProgressView({ portfolio, student }: { portfolio
               <div className="flex items-center gap-1 mb-0.5">
                 <span className={`text-[10px] font-bold ${isCurrent ? "text-primary" : acc.text}`}>W{plan.week}</span>
                 {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />}
-                {isPast && progress === 100 && <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />}
+                {isPast && progress === 100 && <CheckCircle2 className="h-2.5 w-2.5 text-growth-sage" />}
               </div>
               <p className="text-[10px] font-medium text-foreground leading-tight mb-1">{plan.phase}</p>
               <Progress value={progress} className="h-1" />
@@ -124,7 +124,7 @@ export function InstructorCourseProgressView({ portfolio, student }: { portfolio
 
       {/* Empty state */}
       {portfolio.tasks.length === 0 && (
-        <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-3 text-xs text-amber-700">
+        <div className="rounded-md bg-growth-amber-soft border border-growth-amber p-3 text-xs text-growth-amber-foreground">
           This student hasn&apos;t added any project tasks yet. Consider messaging them to start with the Project Plan tab.
         </div>
       )}

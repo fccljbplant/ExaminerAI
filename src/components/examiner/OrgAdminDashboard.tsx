@@ -269,7 +269,7 @@ export default function OrgAdminDashboard() {
                             title={m.seat ? "Remove seat" : "Assign seat"}
                           >
                             {m.seat
-                              ? <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              ? <CheckCircle2 className="h-4 w-4 text-growth-sage" />
                               : <XCircle className="h-4 w-4 text-muted-foreground" />}
                           </button>
                         </td>

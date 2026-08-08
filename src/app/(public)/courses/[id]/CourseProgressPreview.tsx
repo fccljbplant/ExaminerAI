@@ -110,7 +110,7 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 {w.completed ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-growth-sage flex-shrink-0" />
                 ) : (
                   <Circle className="h-3.5 w-3.5 text-muted-foreground/50 flex-shrink-0" />
                 )}
@@ -171,8 +171,8 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
 
 /** Tailwind color class for a 0-100 score. */
 function scoreColor(score: number): string {
-  if (score >= 85) return "text-emerald-500";
-  if (score >= 75) return "text-lime-500";
-  if (score >= 60) return "text-amber-500";
-  return "text-red-500";
+  if (score >= 85) return "text-growth-sage";
+  if (score >= 75) return "text-growth-sage";
+  if (score >= 60) return "text-growth-amber";
+  return "text-destructive";
 }

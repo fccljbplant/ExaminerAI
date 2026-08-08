@@ -40,14 +40,14 @@ export function AdminPMTab({ users, students, pending }: { users: UserRow[]; stu
         <CardContent>
           {actionItems.length === 0 ? (
             <div className="text-center py-4">
-              <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+              <CheckCircle2 className="h-8 w-8 text-growth-sage mx-auto mb-2" />
               <p className="text-sm text-foreground">All caught up — no pending action items.</p>
             </div>
           ) : (
             <div className="space-y-2">
               {actionItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-3 rounded-md border border-border p-3">
-                  <Badge variant="outline" className={`text-[9px] ${item.priority === "high" ? "bg-red-500/10 text-red-600 border-red-500/30" : "bg-amber-500/10 text-amber-600 border-amber-500/30"}`}>
+                  <Badge variant="outline" className={`text-[9px] ${item.priority === "high" ? "bg-destructive/5 text-destructive border-destructive/30" : "bg-growth-amber-soft text-growth-amber border-growth-amber"}`}>
                     {item.priority}
                   </Badge>
                   <span className="text-sm text-foreground flex-1">{item.task}</span>
@@ -70,15 +70,15 @@ export function AdminPMTab({ users, students, pending }: { users: UserRow[]; stu
           {healthStatus ? (
             <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col items-center">
-                <div className={`h-3 w-3 rounded-full ${healthStatus.checks.db ? "bg-emerald-500" : "bg-red-500"}`} />
+                <div className={`h-3 w-3 rounded-full ${healthStatus.checks.db ? "bg-growth-sage" : "bg-red-500"}`} />
                 <span className="text-[10px] text-muted-foreground mt-1">Database</span>
               </div>
               <div className="flex flex-col items-center">
-                <div className={`h-3 w-3 rounded-full ${healthStatus.checks.ai ? "bg-emerald-500" : "bg-amber-500"}`} />
+                <div className={`h-3 w-3 rounded-full ${healthStatus.checks.ai ? "bg-growth-sage" : "bg-growth-amber"}`} />
                 <span className="text-[10px] text-muted-foreground mt-1">AI Provider</span>
               </div>
               <div className="flex flex-col items-center">
-                <div className={`h-3 w-3 rounded-full ${healthStatus.checks.jwt ? "bg-emerald-500" : "bg-amber-500"}`} />
+                <div className={`h-3 w-3 rounded-full ${healthStatus.checks.jwt ? "bg-growth-sage" : "bg-growth-amber"}`} />
                 <span className="text-[10px] text-muted-foreground mt-1">JWT Secret</span>
               </div>
             </div>
@@ -86,10 +86,10 @@ export function AdminPMTab({ users, students, pending }: { users: UserRow[]; stu
             <p className="text-sm text-muted-foreground">Loading health status…</p>
           )}
           {!healthStatus?.checks.ai && (
-            <p className="text-[10px] text-amber-600 mt-2">⚠ AI provider not configured — set DEEPSEEK_API_KEY in Vercel env vars</p>
+            <p className="text-[10px] text-growth-amber mt-2">⚠ AI provider not configured — set DEEPSEEK_API_KEY in Vercel env vars</p>
           )}
           {!healthStatus?.checks.jwt && (
-            <p className="text-[10px] text-amber-600 mt-1">⚠ JWT secret not set — set JWT_SECRET in Vercel env vars</p>
+            <p className="text-[10px] text-growth-amber mt-1">⚠ JWT secret not set — set JWT_SECRET in Vercel env vars</p>
           )}
         </CardContent>
       </Card>

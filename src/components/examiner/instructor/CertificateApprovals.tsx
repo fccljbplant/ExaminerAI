@@ -114,7 +114,7 @@ export function CertificateApprovals({ onChanged }: CertificateApprovalsProps) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base text-foreground flex items-center gap-2">
-              <Award className="h-4 w-4 text-amber-500" /> Certificate Approvals
+              <Award className="h-4 w-4 text-growth-amber" /> Certificate Approvals
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground mt-0.5">
               Review and approve student requests for completion certificates.
@@ -133,7 +133,7 @@ export function CertificateApprovals({ onChanged }: CertificateApprovalsProps) {
           </div>
         ) : requests.length === 0 ? (
           <div className="text-center py-8">
-            <CheckCircle2 className="h-10 w-10 text-emerald-500/40 mx-auto mb-2" />
+            <CheckCircle2 className="h-10 w-10 text-growth-sage/40 mx-auto mb-2" />
             <p className="text-sm font-medium text-foreground">No pending requests</p>
             <p className="text-xs text-muted-foreground mt-1">
               When students request certificates, they&apos;ll appear here for your review.
@@ -149,11 +149,11 @@ export function CertificateApprovals({ onChanged }: CertificateApprovalsProps) {
                       <p className="text-sm font-medium text-foreground">{req.studentName}</p>
                       <Badge variant="outline" className="text-[9px]">{req.studentEmail}</Badge>
                       {req.eligible ? (
-                        <Badge variant="outline" className="text-[9px] border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                        <Badge variant="outline" className="text-[9px] border-growth-sage bg-growth-sage-soft text-growth-sage-foreground">
                           Eligible
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-[9px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                        <Badge variant="outline" className="text-[9px] border-growth-amber bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber">
                           Not eligible
                         </Badge>
                       )}
@@ -168,7 +168,7 @@ export function CertificateApprovals({ onChanged }: CertificateApprovalsProps) {
                       {req.avgScore !== null && ` · avg score ${req.avgScore}%`}
                     </p>
                     {!req.eligible && req.ineligibleReason && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
+                      <p className="text-[10px] text-growth-amber dark:text-growth-amber mt-1">
                         ⚠ {req.ineligibleReason}
                       </p>
                     )}
@@ -178,7 +178,7 @@ export function CertificateApprovals({ onChanged }: CertificateApprovalsProps) {
                       size="sm"
                       onClick={() => approve(req)}
                       disabled={busy === req.id || !req.eligible}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white h-7 text-xs"
+                      className="bg-growth-sage hover:bg-emerald-600 text-white h-7 text-xs"
                       title={req.eligible ? "Approve + issue certificate" : "Student is not eligible — ask them to complete all weekly tests first"}
                     >
                       {busy === req.id && rejectingId !== req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}

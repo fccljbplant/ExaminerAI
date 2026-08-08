@@ -22,29 +22,29 @@ export function AdminOverview({ users, pending, students, teachers, blocked, onT
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <OverviewStat label="Total Users" value={users.length} icon={<Users className="h-4 w-4" />} color="text-primary" />
-        <OverviewStat label="Students" value={students.length} icon={<UserCheck className="h-4 w-4" />} color="text-emerald-500" />
-        <OverviewStat label="Pending" value={pending.length} icon={<Clock className="h-4 w-4" />} color="text-amber-500" />
+        <OverviewStat label="Students" value={students.length} icon={<UserCheck className="h-4 w-4" />} color="text-growth-sage" />
+        <OverviewStat label="Pending" value={pending.length} icon={<Clock className="h-4 w-4" />} color="text-growth-amber" />
         <OverviewStat label="Teachers" value={teachers.length} icon={<Users className="h-4 w-4" />} color="text-blue-500" />
-        <OverviewStat label="Blocked" value={blocked.length} icon={<Ban className="h-4 w-4" />} color="text-red-500" />
+        <OverviewStat label="Blocked" value={blocked.length} icon={<Ban className="h-4 w-4" />} color="text-destructive" />
       </div>
 
       {/* Pending approvals — quick action */}
       {pending.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-growth-amber bg-growth-amber-soft">
           <CardHeader>
             <CardTitle className="text-base text-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-500" /> Pending Approvals ({pending.length})
+              <Clock className="h-4 w-4 text-growth-amber" /> Pending Approvals ({pending.length})
             </CardTitle>
             <CardDescription className="text-muted-foreground">Students waiting for approval — teachers can also approve these</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {pending.map(u => (
-              <div key={u.id} className="flex items-center justify-between rounded-md bg-amber-500/10 p-2">
+              <div key={u.id} className="flex items-center justify-between rounded-md bg-growth-amber-soft p-2">
                 <div>
                   <p className="text-sm font-medium text-foreground">{u.name}</p>
                   <p className="text-xs text-muted-foreground">{u.email} · joined {new Date(u.createdAt).toLocaleDateString()}</p>
                 </div>
-                <Button onClick={() => onTab("users")} size="sm" variant="outline" className="border-amber-500/30 text-amber-600">
+                <Button onClick={() => onTab("users")} size="sm" variant="outline" className="border-growth-amber text-growth-amber">
                   Go to Users →
                 </Button>
               </div>
@@ -71,7 +71,7 @@ export function AdminOverview({ users, pending, students, teachers, blocked, onT
               <div key={u.id} className="flex items-center justify-between rounded-md bg-muted p-2 text-xs">
                 <span className="text-foreground font-medium">{u.name}</span>
                 <span className="text-muted-foreground">{u.email}</span>
-                <Badge variant="outline" className={`text-[10px] capitalize ${u.blocked ? "text-red-500" : u.role === "pending" ? "text-amber-500" : ""}`}>
+                <Badge variant="outline" className={`text-[10px] capitalize ${u.blocked ? "text-destructive" : u.role === "pending" ? "text-growth-amber" : ""}`}>
                   {u.blocked ? "blocked" : u.role}
                 </Badge>
                 <span className="text-muted-foreground">{u.lastLogin ? `last seen ${new Date(u.lastLogin).toLocaleDateString()}` : "never logged in"}</span>

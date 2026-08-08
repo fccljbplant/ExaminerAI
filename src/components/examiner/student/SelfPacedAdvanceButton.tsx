@@ -81,11 +81,11 @@ export function SelfPacedAdvanceButton() {
   }
 
   return (
-    <Card className="border-emerald-500/30 bg-emerald-500/5">
+    <Card className="border-growth-sage bg-growth-sage-soft">
       <CardContent className="p-3 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <CheckCircle2 className="h-4 w-4 text-growth-sage" />
             <span className="text-sm font-medium text-foreground">
               All Day {status.currentDay} tasks complete!
             </span>
@@ -94,7 +94,7 @@ export function SelfPacedAdvanceButton() {
             onClick={advance}
             disabled={advancing}
             size="sm"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {advancing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ChevronRight className="h-3 w-3" />}
             Advance to {status.currentDay >= 5 ? `Week ${status.currentWeek + 1}, Day 1` : `Day ${status.currentDay + 1}`}
@@ -103,10 +103,10 @@ export function SelfPacedAdvanceButton() {
 
         {/* Anti-cheat flags (informational — don't block advancement) */}
         {status.antiCheatFlags.length > 0 && (
-          <div className="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/30">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 p-2 rounded-md bg-growth-amber-soft border border-growth-amber">
+            <AlertTriangle className="w-3.5 h-3.5 text-growth-amber flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-[10px] font-medium text-amber-700 dark:text-amber-300">Review flags (your instructor may be notified):</p>
+              <p className="text-[10px] font-medium text-growth-amber-foreground dark:text-growth-amber">Review flags (your instructor may be notified):</p>
               <ul className="text-[10px] text-muted-foreground">
                 {status.antiCheatFlags.map((flag, i) => <li key={i}>• {flag}</li>)}
               </ul>
@@ -116,8 +116,8 @@ export function SelfPacedAdvanceButton() {
 
         {/* Early weekly test notice */}
         {status.canTakeWeeklyTestEarly && (
-          <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
-            <Badge variant="outline" className="text-[9px] bg-emerald-500/10 border-emerald-500/30">
+          <div className="flex items-center gap-2 text-xs text-growth-sage-foreground">
+            <Badge variant="outline" className="text-[9px] bg-growth-sage-soft border-growth-sage">
               Weekly test unlocked!
             </Badge>
             All Week {status.currentWeek} tasks complete — you can take the weekly test now.

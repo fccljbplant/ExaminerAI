@@ -138,7 +138,7 @@ export default function FeaturedCourses() {
                         </span>
                         {course.rating > 0 && (
                           <span className="flex items-center gap-1">
-                            <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+                            <Star className="h-2.5 w-2.5 fill-amber-400 text-growth-amber" />
                             {course.rating.toFixed(1)}
                           </span>
                         )}
@@ -152,7 +152,7 @@ export default function FeaturedCourses() {
                     </div>
                     <div className="flex-shrink-0 text-right">
                       {isFree ? (
-                        <span className="text-sm font-semibold text-emerald-500">Free</span>
+                        <span className="text-sm font-semibold text-growth-sage">Free</span>
                       ) : (
                         <span className="text-sm font-semibold text-foreground">
                           {formatPrice(course.price, course.currency)}

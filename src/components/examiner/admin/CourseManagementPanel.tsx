@@ -198,10 +198,10 @@ export function CourseManagementPanel() {
           value={stats.total}
         />
         <StatCard
-          icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+          icon={<CheckCircle2 className="h-4 w-4 text-growth-sage" />}
           label="Published"
           value={stats.published}
-          accent="text-emerald-500"
+          accent="text-growth-sage"
         />
         <StatCard
           icon={<Users className="h-4 w-4 text-blue-500" />}
@@ -209,10 +209,10 @@ export function CourseManagementPanel() {
           value={stats.totalEnrollments.toLocaleString()}
         />
         <StatCard
-          icon={<Star className="h-4 w-4 text-amber-500" />}
+          icon={<Star className="h-4 w-4 text-growth-amber" />}
           label="Avg Rating"
           value={stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—"}
-          accent="text-amber-500"
+          accent="text-growth-amber"
         />
       </div>
 
@@ -301,7 +301,7 @@ export function CourseManagementPanel() {
                       </TableCell>
                       <TableCell className="py-3 px-3">
                         {isFree ? (
-                          <span className="text-xs font-medium text-emerald-500">Free</span>
+                          <span className="text-xs font-medium text-growth-sage">Free</span>
                         ) : (
                           <span className="text-xs font-medium">
                             {c.currency || "USD"} {(c.price || 0).toFixed(0)}
@@ -340,7 +340,7 @@ export function CourseManagementPanel() {
                       <TableCell className="py-3 px-3 text-center hidden lg:table-cell">
                         {(c.rating || 0) > 0 ? (
                           <span className="text-xs inline-flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                            <Star className="h-3 w-3 fill-amber-400 text-growth-amber" />
                             {(c.rating || 0).toFixed(1)}
                             <span className="text-muted-foreground">({c.reviewCount || 0})</span>
                           </span>

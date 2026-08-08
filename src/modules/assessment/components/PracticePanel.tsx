@@ -235,7 +235,7 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
           {isComplete && (
             <>
               <div className="text-center py-4 animate-success-burst">
-                <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
+                <CheckCircle2 className="h-10 w-10 text-growth-sage mx-auto mb-2" />
                 <p className="text-sm font-medium text-foreground">Practice complete!</p>
                 {score !== null && <p className="text-3xl font-bold text-foreground mt-1">{score}%</p>}
               </div>

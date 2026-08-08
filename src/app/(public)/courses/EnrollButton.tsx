@@ -128,7 +128,7 @@ export default function EnrollButton({ courseId }: { courseId: string }) {
   if (justEnrolled || authState === "student-enrolled") {
     return (
       <div className="flex flex-col gap-2">
-        <Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+        <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Link href="/app">
             <CheckCircle2 className="h-4 w-4" />
             {justEnrolled ? "Enrolled! Continue Learning" : "Continue Learning"}

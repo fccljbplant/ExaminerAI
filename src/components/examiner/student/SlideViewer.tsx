@@ -221,8 +221,8 @@ function CodeSlide({
           {/* Filename header strip */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border bg-muted/40">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-500/60" />
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-500/60" />
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-growth-amber/60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-growth-sage/60" />
             <span className="ml-2 text-[10px] font-mono text-muted-foreground truncate">
               {example.filename}
             </span>
@@ -338,10 +338,10 @@ function ActivitySlide({
         )}
 
         {deliverable && (
-          <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+          <div className="rounded-lg border border-growth-sage bg-growth-sage-soft p-3">
             <div className="flex items-center gap-1.5 mb-1">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5 text-growth-sage" />
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-growth-sage dark:text-growth-sage">
                 Deliverable
               </span>
             </div>

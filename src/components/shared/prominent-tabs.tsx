@@ -44,11 +44,11 @@ interface ProminentTabsProps {
 }
 
 const BADGE_COLORS: Record<string, string> = {
-  amber: "bg-amber-500 text-white", // legacy alias
-  warning: "bg-amber-500 text-white",
-  red: "bg-rose-500 text-white",
+  amber: "bg-growth-amber text-white", // legacy alias
+  warning: "bg-growth-amber text-white",
+  red: "bg-destructive text-destructive-foreground",
   blue: "bg-blue-500 text-white",
-  green: "bg-emerald-500 text-white",
+  green: "bg-growth-sage text-white",
 };
 
 const SIZE_CLASSES = {

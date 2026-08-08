@@ -44,11 +44,14 @@ export function scoreToGrade(score: number): string {
   return "F";
 }
 
-/** Tailwind text color class for a letter grade. */
+/** Tailwind text color class for a letter grade.
+ *  Uses the global theme tokens (growth-sage for A/B, growth-amber for C,
+ *  destructive for D/F) so grades are colored consistently across both
+ *  light and dark themes. */
 export function gradeColor(grade: string): string {
-  if (grade === "A") return "text-emerald-500";
-  if (grade === "B") return "text-lime-500";
-  if (grade === "C") return "text-amber-500";
-  if (grade === "D") return "text-orange-500";
-  return "text-red-500";
+  if (grade === "A") return "text-growth-sage";
+  if (grade === "B") return "text-growth-sage";
+  if (grade === "C") return "text-growth-amber";
+  if (grade === "D") return "text-destructive";
+  return "text-destructive";
 }

@@ -59,7 +59,7 @@ export function AIConnectionPanel() {
           {testing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />} Test AI Now
         </Button>
         {testResult && (
-          <div className={`rounded-md p-3 text-xs ${testResult.ok ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-700" : "bg-destructive/10 border border-destructive/30 text-destructive"}`}>
+          <div className={`rounded-md p-3 text-xs ${testResult.ok ? "bg-growth-sage-soft border border-growth-sage text-growth-sage-foreground" : "bg-destructive/10 border border-destructive/30 text-destructive"}`}>
             <div className="flex items-center gap-2 mb-1">
               {testResult.ok ? <CheckCircle2 className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
               <strong>{testResult.ok ? "AI is working" : "AI test failed"}</strong>
@@ -79,7 +79,7 @@ export function AIConnectionPanel() {
                 {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />} Save &amp; Test
               </Button>
             </div>
-            {keyStatus && <p className={`text-xs ${keyStatus.startsWith("✓") ? "text-emerald-600" : keyStatus.startsWith("⚠") ? "text-amber-600" : "text-destructive"}`}>{keyStatus}</p>}
+            {keyStatus && <p className={`text-xs ${keyStatus.startsWith("✓") ? "text-growth-sage" : keyStatus.startsWith("⚠") ? "text-growth-amber" : "text-destructive"}`}>{keyStatus}</p>}
             <p className="text-[10px] text-muted-foreground">Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer" className="underline">DeepSeek Platform</a></p>
           </div>
         )}

@@ -66,13 +66,13 @@ export function TeachingFeedbackCard({ feedback }: { feedback: TeachingFeedback 
       {feedback.missedPoints.length > 0 && (
         <>
           <div className="flex items-center gap-2 pt-1">
-            <Lightbulb className="h-4 w-4 text-amber-600" />
+            <Lightbulb className="h-4 w-4 text-growth-amber" />
             <p className="text-xs font-semibold text-foreground">What you could have added</p>
           </div>
           <ul className="space-y-1.5">
             {feedback.missedPoints.map((p, i) => (
               <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                <ArrowRight className="h-3 w-3 text-amber-600 flex-shrink-0 mt-0.5" />
+                <ArrowRight className="h-3 w-3 text-growth-amber flex-shrink-0 mt-0.5" />
                 <span>{p}</span>
               </li>
             ))}
@@ -169,10 +169,10 @@ function PerQuestionExplanations({ explanations }: { explanations: QuestionExpla
                   </div>
 
                   {/* Right answer */}
-                  <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 p-2">
+                  <div className="rounded-md bg-growth-sage-soft border border-growth-sage p-2">
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                      <p className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">Right answer</p>
+                      <CheckCircle2 className="h-3 w-3 text-growth-sage" />
+                      <p className="text-[10px] font-semibold text-growth-sage-foreground uppercase tracking-wider">Right answer</p>
                     </div>
                     <p className="text-xs text-foreground">{q.correctAnswer}</p>
                   </div>

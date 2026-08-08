@@ -113,7 +113,7 @@ export function AILimitsPanel() {
             <div className="grid sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="test-limit" className="text-xs flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-amber-600" /> AI Test messages
+                  <FileText className="w-3.5 h-3.5 text-growth-amber" /> AI Test messages
                 </Label>
                 <Input
                   id="test-limit"
@@ -143,7 +143,7 @@ export function AILimitsPanel() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="assistant-limit" className="text-xs flex items-center gap-1.5">
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" /> AI Assistant messages
+                  <MessageCircle className="w-3.5 h-3.5 text-growth-sage" /> AI Assistant messages
                 </Label>
                 <Input
                   id="assistant-limit"
@@ -189,9 +189,9 @@ export function AILimitsPanel() {
               <p className="text-sm font-medium text-foreground flex items-center gap-2">
                 Demo AI Access
                 {config.demo_ai_enabled ? (
-                  <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/30 bg-emerald-500/10">Enabled</Badge>
+                  <Badge variant="outline" className="text-[10px] text-growth-sage border-growth-sage bg-growth-sage-soft">Enabled</Badge>
                 ) : (
-                  <Badge variant="outline" className="text-[10px] text-rose-600 border-rose-500/30 bg-rose-500/10">Disabled</Badge>
+                  <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30 bg-destructive/5">Disabled</Badge>
                 )}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -211,9 +211,9 @@ export function AILimitsPanel() {
             </Button>
           </div>
           {!config.demo_ai_enabled && (
-            <div className="mt-3 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-700 dark:text-amber-300">
+            <div className="mt-3 p-3 rounded-md bg-growth-amber-soft border border-growth-amber flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-growth-amber flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-growth-amber-foreground dark:text-growth-amber">
                 Demo AI is currently disabled. The demo account will see "AI access for demo accounts is currently disabled" when trying to use any AI feature.
               </p>
             </div>

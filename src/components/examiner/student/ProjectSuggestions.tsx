@@ -111,9 +111,9 @@ export function ProjectSuggestions() {
                   <Badge
                     variant="outline"
                     className={`text-[8px] flex-shrink-0 ${
-                      s.difficulty === "beginner" ? "text-emerald-600" :
-                      s.difficulty === "intermediate" ? "text-amber-600" :
-                      "text-rose-600"
+                      s.difficulty === "beginner" ? "text-growth-sage" :
+                      s.difficulty === "intermediate" ? "text-growth-amber" :
+                      "text-destructive"
                     }`}
                   >
                     {s.difficulty}

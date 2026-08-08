@@ -26,7 +26,7 @@ export interface PublicUser {
 
 const DEMO_ACCOUNTS = [
   { email: "learner@demo.ai", password: "demo123", label: "Learner Demo", color: "bg-blue-500 hover:bg-blue-600" },
-  { email: "instructor@demo.ai", password: "demo123", label: "Instructor Demo", color: "bg-emerald-500 hover:bg-emerald-600" },
+  { email: "instructor@demo.ai", password: "demo123", label: "Instructor Demo", color: "bg-growth-sage hover:bg-emerald-600" },
   { email: "org_admin@demo.ai", password: "demo123", label: "Org Admin Demo", color: "bg-violet-500 hover:bg-violet-600" },
 ] as const;
 

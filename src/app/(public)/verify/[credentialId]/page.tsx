@@ -93,8 +93,8 @@ export default async function VerifyCredentialPage({ params }: Params) {
       <div className="w-full max-w-3xl">
         {/* Verification banner */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <ShieldCheck className="h-5 w-5 text-emerald-500" />
-          <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          <ShieldCheck className="h-5 w-5 text-growth-sage" />
+          <span className="text-sm font-medium text-growth-sage dark:text-growth-sage">
             Verified TraineesAI Credential
           </span>
         </div>
@@ -111,8 +111,8 @@ export default async function VerifyCredentialPage({ params }: Params) {
             </h1>
             <p className="text-sm text-muted-foreground mt-1">This certifies that</p>
             {certificate.distinction && (
-              <Badge className="mt-3 bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/30">
-                <Star className="h-3 w-3 mr-1 fill-amber-500 text-amber-500" /> With Distinction
+              <Badge className="mt-3 bg-growth-amber/20 text-growth-amber dark:text-growth-amber border-growth-amber">
+                <Star className="h-3 w-3 mr-1 fill-amber-500 text-growth-amber" /> With Distinction
               </Badge>
             )}
           </div>
@@ -170,12 +170,12 @@ export default async function VerifyCredentialPage({ params }: Params) {
 
             {/* Capstone */}
             {certificate.capstonePassed && (
-              <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
-                <Code2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+              <div className="flex items-center gap-3 rounded-lg border border-growth-sage bg-growth-sage-soft p-4">
+                <Code2 className="h-5 w-5 text-growth-sage flex-shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">Capstone project</p>
                   <p className="text-sm font-medium text-foreground flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Defended and approved
+                    <CheckCircle2 className="h-3.5 w-3.5 text-growth-sage" /> Defended and approved
                   </p>
                 </div>
               </div>
@@ -188,7 +188,7 @@ export default async function VerifyCredentialPage({ params }: Params) {
                 <div className="flex flex-wrap gap-1.5">
                   {skillsVerified.map((skill) => (
                     <Badge key={skill} variant="secondary" className="text-xs">
-                      <ShieldCheck className="h-3 w-3 mr-1 text-emerald-500" />
+                      <ShieldCheck className="h-3 w-3 mr-1 text-growth-sage" />
                       {skill}
                     </Badge>
                   ))}

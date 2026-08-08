@@ -261,10 +261,10 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
           friendly notice explaining what to do instead. The student can still
           fill in the daily check-in form below. */}
       {!hasCourse && (
-        <Card className="border-amber-500/40 bg-amber-500/5">
+        <Card className="border-growth-amber bg-growth-amber-soft">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-growth-amber flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">No course assigned yet</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -336,8 +336,8 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                 variant={currentWeekCurriculum?.days.find(d => d.day === todayDay)?.isCompleted ? "outline" : "default"}
                 className={
                   currentWeekCurriculum?.days.find(d => d.day === todayDay)?.isCompleted
-                    ? "border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 h-7 text-xs"
-                    : "bg-emerald-500 hover:bg-emerald-600 text-white h-7 text-xs"
+                    ? "border-growth-sage text-growth-sage hover:bg-growth-sage-soft h-7 text-xs"
+                    : "bg-growth-sage hover:bg-emerald-600 text-white h-7 text-xs"
                 }
                 onClick={() => toggleDay(currentWeek, todayDay, !!currentWeekCurriculum?.days.find(d => d.day === todayDay)?.isCompleted)}
               >
@@ -346,7 +346,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                   : <><Circle className="h-3 w-3" /> Mark as complete</>}
               </Button>
               {currentWeekCurriculum?.days.find(d => d.day === todayDay)?.isCompleted && (
-                <span className="text-[10px] text-emerald-600">Great job! You can still practice this topic.</span>
+                <span className="text-[10px] text-growth-sage">Great job! You can still practice this topic.</span>
               )}
             </div>
           </CardContent>
@@ -408,7 +408,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                 onClick={() => toggleDay(currentWeek, d.day, d.isCompleted)}
                 className={`w-full text-left rounded-md border p-2.5 transition-all ${
                   d.isCompleted
-                    ? "border-emerald-500/30 bg-emerald-500/5"
+                    ? "border-growth-sage bg-growth-sage-soft"
                     : d.day === todayDay
                     ? "border-primary/40 bg-primary/5 ring-1 ring-primary/30"
                     : "border-border bg-background hover:bg-muted/50"
@@ -416,13 +416,13 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
               >
                 <div className="flex items-start gap-2">
                   {d.isCompleted
-                    ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    ? <CheckCircle2 className="h-4 w-4 text-growth-sage mt-0.5 flex-shrink-0" />
                     : <Circle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${d.day === todayDay ? "text-primary" : "text-muted-foreground"}`} />}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <Badge variant="outline" className="text-[9px]">Day {d.day}</Badge>
                       {d.day === todayDay && <Badge variant="secondary" className="text-[9px] bg-primary/15 text-primary">Today</Badge>}
-                      {d.isCompleted && <Badge variant="outline" className="text-[9px] text-emerald-600 border-emerald-500/30">Done</Badge>}
+                      {d.isCompleted && <Badge variant="outline" className="text-[9px] text-growth-sage border-growth-sage">Done</Badge>}
                     </div>
                     <p className={`text-xs font-medium ${d.isCompleted ? "text-muted-foreground line-through" : "text-foreground"} leading-snug`}>
                       {d.title}
@@ -449,7 +449,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                 <CardTitle className="text-base text-foreground flex items-center gap-2">
                   <Target className="h-4 w-4 text-violet-500" /> Today&apos;s Project Task
                   {projectRequired && (
-                    <Badge variant="outline" className="text-[9px] border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 ml-1">
+                    <Badge variant="outline" className="text-[9px] border-growth-amber bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber ml-1">
                       Required
                     </Badge>
                   )}
@@ -479,9 +479,9 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
               </div>
             )}
             {todayProjectTasks.length === 0 ? (
-              <div className="rounded-md bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+              <div className="rounded-md bg-growth-sage-soft border border-growth-sage p-3 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-growth-sage flex-shrink-0" />
+                <p className="text-xs text-growth-sage-foreground">
                   No pending project tasks for today — you&apos;re all caught up, or no task is scheduled for today&apos;s day.
                 </p>
               </div>
@@ -507,7 +507,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                           )}
                           <button
                             onClick={() => markProjectTaskDone(task.id)}
-                            className="text-[10px] font-medium text-emerald-600 hover:text-emerald-700 hover:underline ml-auto"
+                            className="text-[10px] font-medium text-growth-sage hover:text-growth-sage-foreground hover:underline ml-auto"
                           >
                             Mark done →
                           </button>
@@ -531,17 +531,17 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
           <CardDescription className="text-muted-foreground">
             2-minute habit. Track what you did, blockers, and your confidence. Reflection questions are optional but recommended.
             {projectEnabled && projectRequired && (
-              <span className="block mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+              <span className="block mt-1 text-[10px] text-growth-amber dark:text-growth-amber">
                 Your course requires a capstone project — mention what you worked on for it today (if anything).
               </span>
             )}
             {projectEnabled && !projectRequired && (
-              <span className="block mt-1 text-[10px] text-emerald-600 dark:text-emerald-400">
+              <span className="block mt-1 text-[10px] text-growth-sage dark:text-growth-sage">
                 Your course offers an optional capstone project — feel free to log project work here too.
               </span>
             )}
             {!hasCourse && (
-              <span className="block mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+              <span className="block mt-1 text-[10px] text-growth-amber dark:text-growth-amber">
                 You don&apos;t have a course assigned yet — log any learning you did today (reading, practice, side projects, etc.).
               </span>
             )}
@@ -674,7 +674,7 @@ export function CheckInPanel({ currentWeek, onSaved, stats, onMode, courseId }: 
                   <p className="text-xs text-primary mt-1"><strong>Learned:</strong> {log.learningReflection}</p>
                 )}
                 {log.confusionNotes && (
-                  <p className="text-xs text-amber-600 mt-1"><strong>Confused:</strong> {log.confusionNotes}</p>
+                  <p className="text-xs text-growth-amber mt-1"><strong>Confused:</strong> {log.confusionNotes}</p>
                 )}
                 {log.nextQuestion && (
                   <p className="text-xs text-violet-600 mt-1"><strong>Next question:</strong> {log.nextQuestion}</p>

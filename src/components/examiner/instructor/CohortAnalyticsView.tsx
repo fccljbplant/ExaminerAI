@@ -70,8 +70,8 @@ interface Props {
 }
 
 const TREND_ICONS = {
-  up: <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />,
-  down: <TrendingDown className="h-3.5 w-3.5 text-red-500" />,
+  up: <TrendingUp className="h-3.5 w-3.5 text-growth-sage" />,
+  down: <TrendingDown className="h-3.5 w-3.5 text-destructive" />,
   steady: <Minus className="h-3.5 w-3.5 text-muted-foreground" />,
 };
 
@@ -144,7 +144,7 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
       label: "Active This Week",
       value: data.activeThisWeek,
       icon: <Activity className="h-4 w-4" />,
-      accent: "text-emerald-500",
+      accent: "text-growth-sage",
     },
     {
       label: "Avg Score",
@@ -164,7 +164,7 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
       label: "Needing Attention",
       value: data.studentsNeedingAttention,
       icon: <AlertTriangle className="h-4 w-4" />,
-      accent: data.studentsNeedingAttention > 0 ? "text-amber-500" : "text-emerald-500",
+      accent: data.studentsNeedingAttention > 0 ? "text-growth-amber" : "text-growth-sage",
     },
   ];
 
@@ -239,7 +239,7 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
           )}
           <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground justify-center">
             <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm bg-blue-500" /> Completion %</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm bg-emerald-500" /> Avg Score</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm bg-growth-sage" /> Avg Score</span>
           </div>
         </CardContent>
       </Card>
@@ -248,7 +248,7 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertTriangle className="h-4 w-4 text-growth-amber" />
             Topic Difficulty — Hardest First
           </CardTitle>
         </CardHeader>
@@ -296,7 +296,7 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Award className="h-4 w-4 text-emerald-500" />
+              <Award className="h-4 w-4 text-growth-sage" />
               Top Performers
             </CardTitle>
           </CardHeader>
@@ -312,14 +312,14 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
                     key={s.userId}
                     className="flex items-center gap-3 p-2 rounded-lg bg-muted/40"
                   >
-                    <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    <div className="w-6 h-6 rounded-full bg-growth-sage-soft flex items-center justify-center text-xs font-bold text-growth-sage-foreground">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-foreground truncate">{s.name}</div>
                       <div className="text-[10px] text-muted-foreground">{s.completionRate}% completion</div>
                     </div>
-                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                    <Badge className="bg-growth-sage-soft text-growth-sage dark:text-growth-sage border-growth-sage">
                       {s.avgScore}%
                     </Badge>
                   </div>
@@ -332,14 +332,14 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-growth-amber" />
               Students at Risk
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             {data.studentsAtRisk.length === 0 ? (
               <div className="py-6 text-center text-xs text-muted-foreground">
-                <CheckCircle2 className="h-6 w-6 text-emerald-500 mx-auto mb-1" />
+                <CheckCircle2 className="h-6 w-6 text-growth-sage mx-auto mb-1" />
                 No students at risk. Cohort looks healthy.
               </div>
             ) : (
@@ -349,13 +349,13 @@ export function CohortAnalyticsView({ courseId, onMessageStudent }: Props) {
                     key={s.userId}
                     className="flex items-center gap-3 p-2 rounded-lg bg-muted/40"
                   >
-                    <div className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center text-xs font-bold text-amber-700 dark:text-amber-300">
+                    <div className="w-6 h-6 rounded-full bg-growth-amber-soft dark:bg-amber-950/40 flex items-center justify-center text-xs font-bold text-growth-amber-foreground dark:text-growth-amber">
                       !
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-foreground truncate">{s.name}</div>
                       <div className="text-[10px] text-muted-foreground flex flex-wrap gap-x-2">
-                        <span>Avg: <span className="text-amber-600 dark:text-amber-400 font-medium">{s.avgScore}%</span></span>
+                        <span>Avg: <span className="text-growth-amber dark:text-growth-amber font-medium">{s.avgScore}%</span></span>
                         <span>Last active: {s.lastActiveDays >= 999 ? "never" : `${s.lastActiveDays}d ago`}</span>
                         <span>Missed tests: {s.missedTests}</span>
                       </div>

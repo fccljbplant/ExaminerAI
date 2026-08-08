@@ -57,7 +57,7 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
             <div key={userId} className="rounded-md bg-background border border-border p-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium text-foreground">{data.name}</p>
-                <Badge variant="outline" className={`text-[9px] ${overall >= 4 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : overall >= 3 ? "bg-amber-500/10 text-amber-600 border-amber-500/30" : "bg-red-500/10 text-red-600 border-red-500/30"}`}>
+                <Badge variant="outline" className={`text-[9px] ${overall >= 4 ? "bg-growth-sage-soft text-growth-sage border-growth-sage" : overall >= 3 ? "bg-growth-amber-soft text-growth-amber border-growth-amber" : "bg-destructive/5 text-destructive border-destructive/30"}`}>
                   Overall: {overall}/5
                 </Badge>
               </div>
@@ -65,7 +65,7 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
                 {dims.map(d => (
                   <div key={d} className="text-center">
                     <p className="text-[9px] text-muted-foreground capitalize">{d.slice(0, 4)}</p>
-                    <p className={`text-sm font-bold ${avg(d) >= 4 ? "text-emerald-600" : avg(d) >= 3 ? "text-amber-600" : "text-red-600"}`}>{avg(d)}</p>
+                    <p className={`text-sm font-bold ${avg(d) >= 4 ? "text-growth-sage" : avg(d) >= 3 ? "text-growth-amber" : "text-destructive"}`}>{avg(d)}</p>
                   </div>
                 ))}
               </div>

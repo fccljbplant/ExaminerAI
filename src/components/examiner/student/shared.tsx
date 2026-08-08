@@ -20,14 +20,14 @@ export function StatSquareCard({ label, value, icon, accent = "emerald" }: {
   const accents: Record<StatSquareAccent, string> = {
     emerald: "from-primary/15 to-primary/5 border-primary/30",
     cyan: "from-secondary/20 to-secondary/5 border-secondary-foreground/30",
-    amber: "from-amber-500/15 to-amber-500/5 border-amber-500/30",
+    amber: "from-amber-500/15 to-amber-500/5 border-growth-amber",
     rose: "from-destructive/15 to-destructive/5 border-destructive/30",
     violet: "from-violet-500/15 to-violet-500/5 border-violet-500/30",
   };
   const iconColors: Record<StatSquareAccent, string> = {
     emerald: "text-primary",
     cyan: "text-secondary-foreground",
-    amber: "text-amber-500",
+    amber: "text-growth-amber",
     rose: "text-destructive",
     violet: "text-violet-500",
   };

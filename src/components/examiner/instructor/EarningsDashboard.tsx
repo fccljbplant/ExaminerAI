@@ -373,12 +373,12 @@ function RevenueCard({
   const toneClasses = {
     primary: "border-primary/30 bg-primary/5",
     muted: "border-border bg-muted/30",
-    success: "border-emerald-500/30 bg-emerald-500/5",
+    success: "border-growth-sage bg-growth-sage-soft",
   }[tone];
   const iconClass = {
     primary: "text-primary",
     muted: "text-muted-foreground",
-    success: "text-emerald-500",
+    success: "text-growth-sage",
   }[tone];
 
   return (
