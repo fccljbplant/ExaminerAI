@@ -14,6 +14,11 @@ import { logger } from "./logger";
  *  on the first authed request — which only happens at runtime. */
 const DEV_JWT_SECRET = "examiner-ai-dev-secret-change-me";
 
+// JWT expiry — short-lived access tokens (4 hours) for security.
+// The frontend auto-refreshes by calling /api/auth/me on 401 responses.
+// Previously 7 days — too long; a stolen token gave week-long access.
+const JWT_EXPIRY = "4h";
+
 /** Returns the JWT secret, or throws if missing in production.
  *  Called lazily by signToken/verifyToken — never at module load. */
 function getJwtSecret(): string {
@@ -29,7 +34,6 @@ function getJwtSecret(): string {
   return DEV_JWT_SECRET;
 }
 
-const JWT_EXPIRY = "7d";
 export const TOKEN_COOKIE = "examiner_token";
 
 /** Whether the request is over HTTPS — determines cookie `secure` flag. */
