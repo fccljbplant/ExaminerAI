@@ -16,6 +16,7 @@ import { AccessGrantsPanel } from "@/components/examiner/admin/AccessGrantsPanel
 import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel";
 import { PasswordResetPanel } from "@/components/examiner/admin/PasswordResetPanel";
 import { RoleNavConfigPanel } from "@/components/examiner/admin/RoleNavConfigPanel";
+import { MaintenancePanel } from "@/components/examiner/admin/MaintenancePanel";
 import { LayoutDashboard } from "@/components/examiner/admin/LayoutDashboard";
 import { DashboardHeader } from "@/components/shared/dashboard-shell";
 import { SkeletonPanel } from "@/components/ui/states";
@@ -37,12 +38,16 @@ import {
   ShieldCheck, Save, Gauge, Search, ChevronLeft, ChevronRight,
 } from "lucide-react";
 
+type AdminView =
+  | "overview" | "users" | "courses" | "features" | "resets" | "system" | "pm"
+  | "ai-limits" | "user-audit" | "ai-connection" | "audit-log" | "access-grants" | "nav-config" | "maintenance";
+
 interface Props {
-  initialView?: "overview" | "users" | "courses" | "features" | "resets" | "system" | "pm" | "ai-limits" | "user-audit";
+  initialView?: AdminView;
 }
 
 export default function AdminDashboard({ initialView = "overview" }: Props) {
-  const [view, setView] = useState<"overview" | "users" | "courses" | "features" | "resets" | "system" | "pm" | "ai-limits" | "user-audit">(
+  const [view, setView] = useState<AdminView>(
     initialView === "users" ? "users" :
     initialView === "courses" ? "courses" :
     initialView === "features" ? "features" :
@@ -96,19 +101,19 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       })();
       setUsers(usersRes.users);
       if (usersRes.pagination) setPagination(usersRes.pagination);
-      // Fetch enrollments for students to show in Courses column
+      // BATCH fetch enrollments for all students in ONE request.
+      // The old code called /api/enrollments?userId=X in a loop for every
+      // student (50 students = 50 DB connections = pool exhaustion = 500s).
       const studentIds = usersRes.users.filter(u => normalizeRole(u.role) === "learner").map(u => u.id);
       if (studentIds.length > 0) {
-        const enrollMap: Record<string, Array<{ courseId: string; courseName: string; role: string }>> = {};
-        for (const sid of studentIds) {
-          try {
-            const res = await api.get<{ enrollments: Array<{ courseId: string; courseName: string; role: string }> }>(`/api/enrollments?userId=${encodeURIComponent(sid)}`);
-            enrollMap[sid] = res.enrollments || [];
-          } catch {
-            enrollMap[sid] = [];
-          }
+        try {
+          const batchRes = await api.get<{ map: Record<string, Array<{ courseId: string; courseName: string; role: string }>> }>(
+            `/api/enrollments/batch?userIds=${encodeURIComponent(studentIds.join(","))}`,
+          );
+          setEnrollmentsMap(batchRes.map || {});
+        } catch {
+          setEnrollmentsMap({});
         }
-        setEnrollmentsMap(enrollMap);
       }
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -293,11 +298,37 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
           </Button>
         )}
         {/* System & Dev tab — visible to administrator only (NOT demo).
-            Demo is read-only and has no system-level authority. */}
+            Demo is read-only and has no system-level authority.
+            NOTE: System panel now only contains dev tools (reseed, health
+            check, admin credentials). The useful sub-panels that were
+            buried inside System are now promoted to top-level tabs below. */}
         {isAdminRole && (
           <Button onClick={() => setView("system")} variant={view === "system" ? "default" : "outline"} className={cn(view === "system" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
             <Server className="h-4 w-4" /> System
           </Button>
+        )}
+        {/* ── Promoted from SystemPanel sub-tabs → top-level ──────────
+            These were buried 2 levels deep (System → sub-tab). Now they're
+            one click away. Each is admin-only. */}
+        {isAdminRole && (
+          <>
+            <div className="w-px h-8 bg-border mx-1 flex-shrink-0" />
+            <Button onClick={() => setView("ai-connection")} variant={view === "ai-connection" ? "default" : "outline"} className={cn(view === "ai-connection" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
+              <Zap className="h-4 w-4" /> AI Connection
+            </Button>
+            <Button onClick={() => setView("audit-log")} variant={view === "audit-log" ? "default" : "outline"} className={cn(view === "audit-log" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
+              <Database className="h-4 w-4" /> Audit Log
+            </Button>
+            <Button onClick={() => setView("access-grants")} variant={view === "access-grants" ? "default" : "outline"} className={cn(view === "access-grants" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
+              <Key className="h-4 w-4" /> Access Grants
+            </Button>
+            <Button onClick={() => setView("nav-config")} variant={view === "nav-config" ? "default" : "outline"} className={cn(view === "nav-config" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
+              <SettingsIcon className="h-4 w-4" /> Nav Config
+            </Button>
+            <Button onClick={() => setView("maintenance")} variant={view === "maintenance" ? "default" : "outline"} className={cn(view === "maintenance" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
+              <RefreshCw className="h-4 w-4" /> Maintenance
+            </Button>
+          </>
         )}
       </div>
 
@@ -522,9 +553,18 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
           other admins — not just students. */}
       {view === "user-audit" && <UserAuditSearchPanel />}
 
-      {/* System & Dev tab — ALL dev stuff here, nowhere else.
-          Admin-only (NOT demo) — the tab button is hidden from demo above. */}
+      {/* System & Dev tab — now contains ONLY dev tools (reseed, health
+          check, admin credentials, user stats). The useful sub-panels
+          (AI Connection, Audit Log, Access Grants, Nav Config, Maintenance)
+          are now top-level tabs below. */}
       {view === "system" && <SystemPanel users={users} />}
+
+      {/* ── Promoted from SystemPanel sub-tabs → top-level rendering ── */}
+      {view === "ai-connection" && <AIConnectionPanel />}
+      {view === "audit-log" && <AuditLogPanel />}
+      {view === "access-grants" && <AccessGrantsPanel />}
+      {view === "nav-config" && <RoleNavConfigPanel />}
+      {view === "maintenance" && <MaintenancePanel />}
 
       {/* Enroll Dialog — assign a student to a course */}
       {enrollDialog.open && enrollDialog.userId && (

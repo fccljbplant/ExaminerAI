@@ -67,7 +67,6 @@ abstraction in `src/lib/ai-provider.ts` so other models can be swapped in.
 │  demo-guard.ts      — demo-account write protection                │
 │  learner-xp.ts      — Evidence-Locked XP system (awards, levels)   │
 │  use-streaming-ai.ts — React hook for SSE AI streaming             │
-│  use-pwa.ts         — PWA hook (SW registration, install prompt)   │
 │  content/copy.ts    — Centralized marketing + UI voice constants   │
 └──────────────────────────────┬─────────────────────────────────────┘
                                │
@@ -196,7 +195,6 @@ auto-generated into this section by the audit script when it runs in
 | `/api/users/*` | User management | JWT + IDOR guard | no |
 | `/api/courses/*` | Course CRUD | JWT (org_admin) | no |
 | `/api/ai/tutor/stream` | Streaming AI tutor (SSE) | JWT (student) | yes (per-user daily) |
-| `/api/offline/sync` | Offline evidence queue sync | JWT (student) | no |
 | `/api/learner/xp` | Learner XP total + level + progress | JWT (learner) | no |
 | `/api/today/summary` | Today view data (due items + signal) | JWT (student) | no |
 

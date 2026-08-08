@@ -336,12 +336,6 @@ Every deep page (more than 2 levels from home) has breadcrumbs in
 - **Forms**: stack labels above inputs on mobile; side-by-side only on
   `sm:` and up.
 
-### PWA (planned)
-
-- Manifest + icons for add-to-home-screen.
-- Offline evidence queue (DB writes queued locally, synced when online).
-- Field mode for HSE / lab / site trainees (phone-primary UI).
-
 ---
 
 ## 11. Accessibility

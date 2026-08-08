@@ -120,32 +120,6 @@ try {
 **UI behavior**: `ErrorState` with Retry. The learner's input is preserved
 in the form (don't clear it on failure).
 
-### 2.2a Offline / PWA failures
-
-**What can fail**:
-
-- Network drops while the learner is mid-test or mid-message.
-- Service worker fails to register (old browser, private browsing).
-- IndexedDB quota exceeded (rare — queue auto-prunes after 10 retries).
-- Sync conflict (same evidence uploaded twice).
-
-**Handling** (`public/sw.js` + `src/app/api/offline/sync/route.ts`):
-
-- POST requests when offline → queued in IndexedDB (`offlineQueue` store).
-- Queue auto-drains on `online` event + Background Sync API.
-- Each item retried up to 10 times; after that, auto-pruned.
-- 4xx responses → item removed (permanent failure, don't retry).
-- 5xx responses → item stays in queue for next sync.
-- Evidence sync endpoint (`/api/offline/sync`) is idempotent — re-uploading
-  the same evidence creates a duplicate Message row but doesn't break.
-
-**Client UI**:
-
-- `usePWA()` hook exposes `pendingSync` count so the UI can show
-  "3 items waiting to sync" badge.
-- Service worker posts `PENDING_COUNT` messages to all open clients
-  when the queue changes.
-
 ### 2.3 Cron failures
 
 **What can fail**:

@@ -138,22 +138,21 @@ Ordered by ROI. Each item is sized to ship in 1–2 weeks.
 7. ✅ Global ⌘K command palette with fuzzy search + `useRegisterCommands()` hook.
 8. ✅ Keyboard shortcuts help dialog (press `?` anywhere).
 9. ✅ Streaming AI tutor (`/api/ai/tutor/stream`) + TypingIndicator + `useStreamingAI()` hook.
-10. ✅ PWA manifest + service worker + offline evidence queue (`/api/offline/sync`).
+10. ✅ Stripe checkout wired (paid courses redirect to Stripe, no more payment bypass).
 11. ✅ Evidence-Locked XP system (learners only, casual-yet-professional, no leaderboards).
-12. ✅ Stripe checkout wired (paid courses redirect to Stripe, no more payment bypass).
-13. ✅ All hardcoded colors migrated to global theme tokens (growth-sage/amber/coral + destructive).
-14. ✅ DashboardHeader + StatCard shared components — all 5 role dashboards unified.
-15. ✅ Insights + Analytics tabs merged (were near-duplicates).
-16. ✅ CertificateApprovals surfaced as its own nav entry (was buried in AssignmentsTab).
-17. ✅ EmployerDashboard wired as "Sponsor ROI" sidebar entry for org_admin.
-18. ✅ OrgAdmin defaults to org overview (was defaulting to course-planner).
-19. ✅ MARKETPLACE_CATEGORIES deduped to single source (`src/lib/constants.ts`).
-20. ✅ Dead code deleted (AdminCoursesPanel, DailyTaskReminder.tsx).
-21. ✅ Casual-yet-professional voice system (`src/content/copy.ts`) — "We share the training burden."
-22. ✅ Tabular numerals globally (stats stop jiggling).
-23. ✅ Border-first depth (no shadows on cards — Linear/Vercel/Stripe pattern).
-24. ✅ Hover-to-reveal chrome (`.chrome-reveal` utility).
-25. ✅ Modern SaaS surface utilities (`.surface-card`, `.surface-muted`, `.surface-hover`, `.kbd`).
+12. ✅ All hardcoded colors migrated to global theme tokens (growth-sage/amber/coral + destructive).
+13. ✅ DashboardHeader + StatCard shared components — all 5 role dashboards unified.
+14. ✅ Insights + Analytics tabs merged (were near-duplicates).
+15. ✅ CertificateApprovals surfaced as its own nav entry (was buried in AssignmentsTab).
+16. ✅ EmployerDashboard wired as "Sponsor ROI" sidebar entry for org_admin.
+17. ✅ OrgAdmin defaults to org overview (was defaulting to course-planner).
+18. ✅ MARKETPLACE_CATEGORIES deduped to single source (`src/lib/constants.ts`).
+19. ✅ Dead code deleted (AdminCoursesPanel, DailyTaskReminder.tsx).
+20. ✅ Casual-yet-professional voice system (`src/content/copy.ts`) — "We share the training burden."
+21. ✅ Tabular numerals globally (stats stop jiggling).
+22. ✅ Border-first depth (no shadows on cards — Linear/Vercel/Stripe pattern).
+23. ✅ Hover-to-reveal chrome (`.chrome-reveal` utility).
+24. ✅ Modern SaaS surface utilities (`.surface-card`, `.surface-muted`, `.surface-hover`, `.kbd`).
 
 ### Next (1–2 quarters)
 
