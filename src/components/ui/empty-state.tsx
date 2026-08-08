@@ -89,3 +89,64 @@ export function EmptyState({
     </div>
   );
 }
+
+/**
+ * EmptyStateCard — wraps EmptyState in the modern SaaS "single primary
+ * action" pattern (Stripe / Linear / Resend).
+ *
+ * The research was clear: every empty state should have ONE primary CTA.
+ * This wrapper enforces that — pass `primaryAction` (required) and an
+ * optional `secondaryAction`. The card chrome + tone + illustration are
+ * handled for you.
+ *
+ * Voice (per docs/UI-STANDARDS.md):
+ *   - Title: 3-6 words, action-oriented ("Send your first email").
+ *   - Description: 1 sentence, starts with the next action, not the state.
+ *   - Use contractions. Drop "please." Be specific about numbers.
+ *
+ * Usage:
+ *   <EmptyStateCard
+ *     icon={Users}
+ *     title="No students yet"
+ *     description="Once an admin enrolls students, they'll show up here."
+ *     primaryAction={<Button>Invite students</Button>}
+ *   />
+ */
+export interface EmptyStateCardProps {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+  /** Required — the single primary next action (Stripe / Linear rule). */
+  primaryAction: React.ReactNode;
+  /** Optional secondary "learn more" link (text-only, no button chrome). */
+  secondaryAction?: React.ReactNode;
+  tone?: "sage" | "warning" | "coral" | "muted";
+  size?: "sm" | "md" | "lg";
+}
+
+export function EmptyStateCard({
+  icon,
+  title,
+  description,
+  primaryAction,
+  secondaryAction,
+  tone = "muted",
+  size = "md",
+}: EmptyStateCardProps) {
+  return (
+    <div className="surface-card flex flex-col items-center justify-center py-12 px-6 text-center animate-fade-in-up">
+      <EmptyState
+        icon={icon}
+        title={title}
+        description={description}
+        tone={tone}
+        size={size}
+        noFloat
+      />
+      <div className="mt-5 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+        {primaryAction}
+        {secondaryAction}
+      </div>
+    </div>
+  );
+}

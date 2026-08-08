@@ -163,11 +163,54 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  /* ── Modern SaaS baseline (Linear/Vercel/Stripe) ───────────────
+     1. Tabular numerals everywhere — stats stop jiggling as they update.
+     2. Default to subtle 1px borders instead of shadows. Reserved
+        shadow-lg for genuinely elevated surfaces (modals, popovers,
+        command palette). See .surface-card utility below.
+     3. Geist Sans + Mono already wired via layout.tsx; cv11 + ss01
+        enable Geist's stylistic alternates (single-story a, etc.).
+     ──────────────────────────────────────────────────────────── */
+  body {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* ---- TraineesAI custom utilities & polish ---- */
 
 @layer utilities {
+  /* ── Modern SaaS surface utilities ─────────────────────────────
+     The Linear/Vercel/Stripe visual baseline: depth comes from a
+     1px hairline border + a 1-step background tint, never from
+     box-shadow. Reserve shadow for genuinely elevated surfaces
+     (modals, popovers, command palette, hover lift). */
+
+  .surface-card {
+    @apply rounded-xl border border-border bg-card;
+    /* no shadow — depth comes from the border + bg tint */
+  }
+
+  .surface-muted {
+    @apply rounded-xl border border-border bg-muted/40;
+  }
+
+  .surface-hover {
+    @apply transition-colors hover:border-foreground/20 hover:bg-muted/50;
+  }
+
+  /* Hover-to-reveal UI chrome (Notion / Linear pattern).
+     Wrap a row in `group`, then put `.chrome-reveal` on actions.
+     They stay invisible until the user hovers. */
+  .chrome-reveal {
+    @apply opacity-0 transition-opacity duration-150 group-hover:opacity-100;
+  }
+
+  /* Keyboard hint chip — shown next to a button label to surface the
+     shortcut. Linear/Superhuman/Raycast all do this. */
+  .kbd {
+    @apply inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground;
+  }
+
   .animate-pulse-slow {
     animation: pulse-slow 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }

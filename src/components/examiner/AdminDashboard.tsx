@@ -17,6 +17,8 @@ import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel
 import { PasswordResetPanel } from "@/components/examiner/admin/PasswordResetPanel";
 import { RoleNavConfigPanel } from "@/components/examiner/admin/RoleNavConfigPanel";
 import { LayoutDashboard } from "@/components/examiner/admin/LayoutDashboard";
+import { DashboardHeader } from "@/components/shared/dashboard-shell";
+import { SkeletonPanel } from "@/components/ui/states";
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
@@ -191,7 +193,24 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-96"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+    return (
+      <div className="space-y-4">
+        <DashboardHeader
+          crumbs={[{ label: "Admin" }]}
+          title="Loading admin dashboard…"
+          subtitle="Fetching users, courses, and feature flags"
+        />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonPanel key={i} lines={2} className="h-24" />
+            ))}
+          </div>
+          <SkeletonPanel lines={1} className="h-12" />
+          <SkeletonPanel lines={6} className="h-96" />
+        </div>
+      </div>
+    );
   }
 
   const pending = users.filter(u => u.role === "pending" || (u as UserRow & { status?: string }).status === "pending");
@@ -201,6 +220,33 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
 
   return (
     <div className="space-y-6">
+      <DashboardHeader
+        crumbs={[{ label: "Admin" }]}
+        title="Admin Dashboard"
+        subtitle="Platform-wide users, courses, features, and system health."
+        chips={
+          <div className="hidden sm:flex items-center gap-1.5">
+            <Badge variant="outline" className="text-xs">{users.length} users</Badge>
+            {pending.length > 0 && (
+              <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800">
+                {pending.length} pending
+              </Badge>
+            )}
+            {blocked.length > 0 && (
+              <Badge variant="outline" className="text-xs bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800">
+                {blocked.length} blocked
+              </Badge>
+            )}
+          </div>
+        }
+        actions={
+          <Button variant="outline" size="sm" onClick={() => load()}>
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
+          </Button>
+        }
+      />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
       {/* Tab switcher — P1.3: role-based visibility.
           Horizontally scrolls on mobile instead of wrapping. */}
       <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-1">
@@ -488,6 +534,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
           onEnrolled={() => { setEnrollDialog({ userId: "", open: false }); load(); }}
         />
       )}
+      </div>
     </div>
   );
 }

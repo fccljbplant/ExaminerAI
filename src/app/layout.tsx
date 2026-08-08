@@ -4,6 +4,9 @@ import "./globals.css";
 import { Toaster as SonnerToaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemePresetProvider } from "@/modules/theme";
+import { CommandRegistryProvider } from "@/components/shared/command-registry";
+import { CommandPalette } from "@/components/shared/command-palette";
+import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,8 +40,15 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <ThemePresetProvider>
-            {children}
-            <SonnerToaster position="bottom-right" richColors closeButton />
+            <CommandRegistryProvider>
+              {children}
+              {/* ⌘K command palette — global. Press ⌘K (or Ctrl+K) anywhere.
+                  Pages can register their own commands via useRegisterCommands(). */}
+              <CommandPalette />
+              {/* Press `?` anywhere to see the keyboard shortcut cheat sheet. */}
+              <KeyboardShortcutsHelp />
+              <SonnerToaster position="bottom-right" richColors closeButton />
+            </CommandRegistryProvider>
           </ThemePresetProvider>
         </ThemeProvider>
       </body>
