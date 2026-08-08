@@ -407,6 +407,42 @@ DAILY TEST — SHORTER FORMAT:
       // MODERNIZED: transparent Learning Signal replaces the deleted psych pipeline
       void recordLearningSignal(user.id).catch((err) => { logger.warn("Operation failed", { err }); });
 
+      // ── Evidence-Locked XP + Badges (natural completion path) ────
+      const celebrationNat = { xpAwarded: 0, newTotal: 0, level: null as number | null, levelLabel: null as string | null, badges: [] as Array<{ id: string; name: string; icon: string; description: string }> };
+      try {
+        const finalScoreNat = plagiarismResult.finalScore;
+        if (finalScoreNat >= 60) {
+          const xpResult = await awardXP({ userId: user.id, reason: "DAILY_TEST_PASSED", refId: test.id });
+          if (xpResult) {
+            celebrationNat.xpAwarded += xpResult.awarded;
+            celebrationNat.newTotal = xpResult.newTotal;
+            celebrationNat.level = xpResult.level.level;
+            celebrationNat.levelLabel = xpResult.level.label;
+          }
+          if (finalScoreNat >= 90) {
+            const aceResult = await awardXP({ userId: user.id, reason: "DAILY_TEST_ACED", refId: test.id });
+            if (aceResult) {
+              celebrationNat.xpAwarded += aceResult.awarded;
+              celebrationNat.newTotal = aceResult.newTotal;
+              celebrationNat.level = aceResult.level.level;
+              celebrationNat.levelLabel = aceResult.level.label;
+            }
+          }
+        }
+        const firstBadgeNat = await awardBadge({ userId: user.id, badgeId: "first_test" });
+        if (firstBadgeNat?.newlyAwarded) {
+          celebrationNat.badges.push({ id: firstBadgeNat.badge.id, name: firstBadgeNat.badge.name, icon: firstBadgeNat.badge.icon, description: firstBadgeNat.badge.description });
+        }
+        if (finalScoreNat >= 100) {
+          const perfectBadgeNat = await awardBadge({ userId: user.id, badgeId: "perfect_daily" });
+          if (perfectBadgeNat?.newlyAwarded) {
+            celebrationNat.badges.push({ id: perfectBadgeNat.badge.id, name: perfectBadgeNat.badge.name, icon: perfectBadgeNat.badge.icon, description: perfectBadgeNat.badge.description });
+          }
+        }
+      } catch (err) {
+        logger.warn("Daily test XP/badge award failed (natural)", { userId: user.id, testId: test.id, error: err instanceof Error ? err.message : String(err) });
+      }
+
       return NextResponse.json({
         conversation, isComplete: true,
         score: plagiarismResult.finalScore, // DEDUCTED score
@@ -418,6 +454,7 @@ DAILY TEST — SHORTER FORMAT:
         maxReplies: MAX_REPLIES_PER_QUESTION,
         topic: test.topic, week: test.week,
         difficulty: diffState,
+        celebration: celebrationNat,
       });
     }
 
@@ -480,27 +517,51 @@ DAILY TEST — SHORTER FORMAT:
     void recordLearningSignal(user.id).catch((err) => { logger.warn("Operation failed", { err }); });
 
     // ── Evidence-Locked XP + Badges ──────────────────────────────
-    // Award XP for daily test completion + check for badges.
-    // Fire-and-forget — never blocks the response.
-    void (async () => {
-      try {
-        const finalScore = plagiarismResult.finalScore;
-        if (finalScore >= 60) {
-          await awardXP({ userId: user.id, reason: "DAILY_TEST_PASSED", refId: test.id });
-          if (finalScore >= 90) {
-            await awardXP({ userId: user.id, reason: "DAILY_TEST_ACED", refId: test.id });
+    // Award XP + badges and COLLECT the results so we can return them
+    // to the client. The client uses these to fire celebration animations.
+    interface CelebrationData {
+      xpAwarded: number;
+      newTotal: number;
+      level: number | null;
+      levelLabel: string | null;
+      badges: Array<{ id: string; name: string; icon: string; description: string }>;
+    }
+    const celebration: CelebrationData = { xpAwarded: 0, newTotal: 0, level: null, levelLabel: null, badges: [] };
+    try {
+      const finalScore = plagiarismResult.finalScore;
+      if (finalScore >= 60) {
+        const xpResult = await awardXP({ userId: user.id, reason: "DAILY_TEST_PASSED", refId: test.id });
+        if (xpResult) {
+          celebration.xpAwarded += xpResult.awarded;
+          celebration.newTotal = xpResult.newTotal;
+          celebration.level = xpResult.level.level;
+          celebration.levelLabel = xpResult.level.label;
+        }
+        if (finalScore >= 90) {
+          const aceResult = await awardXP({ userId: user.id, reason: "DAILY_TEST_ACED", refId: test.id });
+          if (aceResult) {
+            celebration.xpAwarded += aceResult.awarded;
+            celebration.newTotal = aceResult.newTotal;
+            celebration.level = aceResult.level.level;
+            celebration.levelLabel = aceResult.level.label;
           }
         }
-        // Badge: first daily test
-        await awardBadge({ userId: user.id, badgeId: "first_test" });
-        // Badge: perfect daily score
-        if (finalScore >= 100) {
-          await awardBadge({ userId: user.id, badgeId: "perfect_daily" });
-        }
-      } catch (err) {
-        logger.warn("Daily test XP/badge award failed", { userId: user.id, testId: test.id, error: err instanceof Error ? err.message : String(err) });
       }
-    })();
+      // Badge: first daily test
+      const firstBadge = await awardBadge({ userId: user.id, badgeId: "first_test" });
+      if (firstBadge?.newlyAwarded) {
+        celebration.badges.push({ id: firstBadge.badge.id, name: firstBadge.badge.name, icon: firstBadge.badge.icon, description: firstBadge.badge.description });
+      }
+      // Badge: perfect daily score
+      if (finalScore >= 100) {
+        const perfectBadge = await awardBadge({ userId: user.id, badgeId: "perfect_daily" });
+        if (perfectBadge?.newlyAwarded) {
+          celebration.badges.push({ id: perfectBadge.badge.id, name: perfectBadge.badge.name, icon: perfectBadge.badge.icon, description: perfectBadge.badge.description });
+        }
+      }
+    } catch (err) {
+      logger.warn("Daily test XP/badge award failed", { userId: user.id, testId: test.id, error: err instanceof Error ? err.message : String(err) });
+    }
 
     return NextResponse.json({
       conversation, isComplete: true,
@@ -510,6 +571,7 @@ DAILY TEST — SHORTER FORMAT:
       feedback: grade.feedback,
       topic: test.topic, week: test.week,
       difficulty: diffState,
+      celebration, // XP + badge data for client-side animations
     });
   }
 

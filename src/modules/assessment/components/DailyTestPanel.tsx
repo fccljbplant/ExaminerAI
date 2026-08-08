@@ -122,6 +122,13 @@ export function DailyTestPanel() {
         currentQuestion: number; replyCount: number;
         isComplete: boolean; score?: number;
         feedback?: TeachingFeedback;
+        celebration?: {
+          xpAwarded: number;
+          newTotal: number;
+          level: number | null;
+          levelLabel: string | null;
+          badges: Array<{ id: string; name: string; icon: string; description: string }>;
+        };
       }>("/api/daily-test", {
         action: "reply",
         dailyTestId,
@@ -135,6 +142,12 @@ export function DailyTestPanel() {
         setIsComplete(true);
         setScore(res.score ?? null);
         setFeedback(res.feedback ?? null);
+        // Fire celebration animations if XP/badges were awarded
+        if (res.celebration) {
+          import("@/hooks/use-celebration").then(({ fireCelebrations }) => {
+            fireCelebrations(res.celebration!);
+          });
+        }
         await load();
       }
     } catch (e) {
@@ -149,7 +162,19 @@ export function DailyTestPanel() {
     if (!confirm("End the daily test early? You'll be graded on what you've answered so far.")) return;
     setBusy(true); setError("");
     try {
-      const res = await api.post<{ conversation: ChatMessage[]; isComplete: boolean; score: number; feedback?: TeachingFeedback }>(
+      const res = await api.post<{
+        conversation: ChatMessage[];
+        isComplete: boolean;
+        score: number;
+        feedback?: TeachingFeedback;
+        celebration?: {
+          xpAwarded: number;
+          newTotal: number;
+          level: number | null;
+          levelLabel: string | null;
+          badges: Array<{ id: string; name: string; icon: string; description: string }>;
+        };
+      }>(
         "/api/daily-test",
         { action: "finish", dailyTestId },
         AI_TIMEOUT_MS,
@@ -158,6 +183,12 @@ export function DailyTestPanel() {
       setIsComplete(true);
       setScore(res.score);
       setFeedback(res.feedback ?? null);
+      // Fire celebration animations if XP/badges were awarded
+      if (res.celebration) {
+        import("@/hooks/use-celebration").then(({ fireCelebrations }) => {
+          fireCelebrations(res.celebration!);
+        });
+      }
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to finish test");
