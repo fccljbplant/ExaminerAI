@@ -10,6 +10,7 @@ import { GraduationCap, Loader2, Sparkles, ShieldCheck, Award, Briefcase } from 
 import Link from "next/link";
 import ForgotPassword from "./ForgotPassword";
 import FeaturedCourses from "./FeaturedCourses";
+import { COPY } from "@/content/copy";
 
 export interface PublicUser {
   id: string;
@@ -121,10 +122,10 @@ export default function Login({ onLoggedIn }: { onLoggedIn: (u: PublicUser) => v
             </div>
             <h1 className="text-3xl font-bold">TraineesAI</h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-              Your experts are busy building. We train the people who&apos;ll build next.
+              We don&apos;t replace your engineers. We share the training burden.
             </p>
             <p className="text-xs text-muted-foreground/80 mt-2 max-w-xs">
-              AI-driven training for internees and engineers. B2C for learners · B2B for teams.
+              {COPY.heroEyebrow}
             </p>
           </div>
 

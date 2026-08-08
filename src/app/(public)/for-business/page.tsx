@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { COPY } from "@/content/copy";
 import {
   Sparkles,
   Briefcase,
@@ -33,12 +34,12 @@ import {
 } from "@/components/ui/accordion";
 
 export const metadata: Metadata = {
-  title: "TraineesAI for Business — Train the People Who'll Build Next",
-  description:
-    "Your experts are busy building. We train the people who'll build next. AI-driven training for interns and engineers — seat management, course assignment, team analytics, verified certificates, and mentor triage.",
+  title: "TraineesAI for Business — Share the Training Burden",
+  description: COPY.b2bStrip +
+    " AI-driven training for interns and engineers — seat management, course assignment, team analytics, verified certificates, and mentor triage.",
   alternates: { canonical: "/for-business" },
   openGraph: {
-    title: "TraineesAI for Business — Train the People Who'll Build Next",
+    title: "TraineesAI for Business — Share the Training Burden",
     description:
       "AI-driven training for interns and engineers. 60% completion vs 15% industry average. Book a demo or start a 10-seat pilot today.",
     url: "/for-business",
@@ -48,8 +49,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "TraineesAI for Business",
-    description:
-      "Your experts are busy building. We train the people who'll build next. AI-driven training for interns and engineers.",
+    description: COPY.b2bStrip,
   },
   keywords: [
     "B2B training platform",
@@ -74,7 +74,7 @@ const HOW_IT_WORKS = [
   {
     step: "01",
     title: "AI trains daily",
-    desc: "Each trainee gets a personalized curriculum, daily tasks, and an AI tutor that teaches in their language. No senior engineer time required for routine instruction.",
+    desc: "Each trainee gets a personalized curriculum, daily tasks, and an AI tutor that teaches in their language. Your senior engineers are freed from routine instruction — they step in where the AI flags struggle.",
     icon: Bot,
   },
   {
@@ -264,14 +264,12 @@ export default function ForBusinessPage() {
               TraineesAI for Business
             </Badge>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
-              Your experts are busy building.
+              We don&apos;t replace your engineers.
               <br />
-              <span className="text-primary">We train the people who&apos;ll build next.</span>
+              <span className="text-primary">We share the training burden.</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl">
-              AI-driven training for internees and engineers. The platform trains
-              daily, tests Socratically, and triages only the strugglers to your
-              senior team — so your shippers keep shipping.
+              {COPY.heroSub}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3" id="cta">
               <Button asChild size="lg" className="h-12 px-6 text-base">
@@ -304,11 +302,11 @@ export default function ForBusinessPage() {
               The Problem
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
-              Every hour a senior engineer spends on basic training is an hour not shipped.
+              {COPY.problemLine}
             </h2>
             <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
               Interns wait. Projects slip. Your most expensive people end up
-              tutoring the newest ones — and the codebase pays for it.
+              tutoring the newest ones — alone — and the codebase pays for it.
             </p>
             <ul className="mt-8 space-y-3">
               {PROBLEM_POINTS.map((p, i) => (
