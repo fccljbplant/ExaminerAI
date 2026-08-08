@@ -29,7 +29,7 @@ import AIPanel, { type AIMessage } from "@/components/examiner/student/AIPanel";
  *  - Falls back to a loading state, then an error state if the API fails
  */
 
-interface CourseDay extends SlideViewerCourseDay {}
+type CourseDay = SlideViewerCourseDay;
 interface CourseWeek {
   week: number;
   phase: string;

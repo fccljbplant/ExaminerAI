@@ -55,19 +55,6 @@ export default function CourseThumbnailPicker({
   const [loadingRefresh, setLoadingRefresh] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-populate the search box with courseName + category label.
-  useEffect(() => {
-    if (open && !searchQuery) {
-      const catLabel = category
-        ? category.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-        : "";
-      const q = [courseName, catLabel].filter(Boolean).join(" ").trim();
-      setSearchQuery(q);
-      refreshImages(q);
-    }
-     
-  }, [open]);
-
   // Build 12 Unsplash URLs with different sig values.
   const refreshImages = (query: string) => {
     const q = encodeURIComponent(query.trim() || "professional training");
@@ -81,6 +68,18 @@ export default function CourseThumbnailPicker({
     // Brief loading indicator — the images themselves stream in async.
     setTimeout(() => setLoadingRefresh(false), 800);
   };
+
+  // Auto-populate the search box with courseName + category label.
+  useEffect(() => {
+    if (open && !searchQuery) {
+      const catLabel = category
+        ? category.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+        : "";
+      const q = [courseName, catLabel].filter(Boolean).join(" ").trim();
+      setSearchQuery(q);
+      refreshImages(q);
+    }
+  }, [open]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

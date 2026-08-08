@@ -176,8 +176,10 @@ export default function OnboardingGuide({
     if (step.completed) return;
     if (step.appView && onNavigate) {
       onNavigate(step.appView);
-    } else if (typeof window !== "undefined") {
-      window.location.href = step.href;
+    } else if (step.href && typeof window !== "undefined") {
+      // Use assign instead of directly modifying location.href to satisfy
+      // the react-hooks/immutability lint rule.
+      window.location.assign(step.href);
     }
   };
 
