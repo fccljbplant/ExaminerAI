@@ -1,5 +1,6 @@
 "use client";
 
+import type { GroupTask, CourseEvent, GroupTaskSubmission } from "@/lib/api-types";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
@@ -60,7 +61,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
       // Without courseId, the create-task form is disabled.
       const [tasksRes, eventsRes, meRes] = await Promise.all([
         api.get<{ tasks: Array<{ id: string; title: string; description?: string }> }>("/api/group-tasks"),
-        api.get<{ events: any[] }>("/api/events"),
+        api.get<{ events: CourseEvent[] }>("/api/events"),
         api.get<{ user: { courseId: string | null } | null }>("/api/auth/me").catch(() => ({ user: null })),
       ]);
       setGroupTasks(tasksRes.tasks || []);
@@ -147,7 +148,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
   const viewSubmissions = async (task: { id: string; title?: string }) => {
     setSelectedTask(task);
     try {
-      const res = await api.get<{ submissions: any[] }>(`/api/group-tasks/submit?groupTaskId=${task.id}`);
+      const res = await api.get<{ submissions: GroupTaskSubmission[] }>(`/api/group-tasks/submit?groupTaskId=${task.id}`);
       setSubmissions(res.submissions || []);
     } catch { setSubmissions([]); }
   };
@@ -157,7 +158,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
       await api.patch("/api/group-tasks/submit", { submissionId, score });
       // Refresh submissions
       if (selectedTask) {
-        const res = await api.get<{ submissions: any[] }>(`/api/group-tasks/submit?groupTaskId=${selectedTask.id}`);
+        const res = await api.get<{ submissions: GroupTaskSubmission[] }>(`/api/group-tasks/submit?groupTaskId=${selectedTask.id}`);
         setSubmissions(res.submissions || []);
       }
     } catch (e) { showError(e instanceof Error ? e.message : "Failed to grade submission"); }
@@ -286,7 +287,7 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
               <p className="text-sm text-muted-foreground text-center py-4">No submissions yet.</p>
             ) : (
               <div className="space-y-2 max-h-[40vh] overflow-y-auto">
-                {submissions.map((sub: any) => (
+                {submissions.map((sub: GroupTaskSubmission) => (
                   <div key={sub.id} className="rounded-md bg-background border border-border p-2 text-xs">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-foreground">{sub.user?.name ?? "Unknown"}</span>
@@ -410,16 +411,16 @@ export function AssignmentsTab({ students, courseId: propCourseId }: { students:
             <p className="text-sm text-muted-foreground text-center py-4">No events scheduled. Click "New Event" to add one.</p>
           ) : (
             <div className="space-y-1.5">
-              {events.map((ev: any) => (
+              {events.map((ev: CourseEvent) => (
                 <div key={ev.id} className="flex items-center justify-between rounded-md border border-border p-2 hover:bg-muted/30">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Badge variant="outline" className={`text-[9px] capitalize flex-shrink-0 ${eventTypeColor(ev.type)}`}>{ev.type}</Badge>
+                    <Badge variant="outline" className={`text-[9px] capitalize flex-shrink-0 ${eventTypeColor(ev.type ?? "")}`}>{ev.type}</Badge>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{ev.title}</p>
                       <p className="text-[10px] text-muted-foreground">
-                        {new Date(ev.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
-                        {ev.endDate && ` → ${new Date(ev.endDate).toLocaleDateString()}`}
-                        {ev.location && ` · ${ev.location}`}
+                        {new Date(ev.startDate ?? ev.date ?? "").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                        {ev.endDate && ` → ${new Date(ev.endDate ?? "").toLocaleDateString()}`}
+                        {typeof ev.location === "string" && ` · ${ev.location}`}
                       </p>
                       {ev.description && <p className="text-[10px] text-muted-foreground truncate">{ev.description}</p>}
                     </div>

@@ -13,6 +13,7 @@
  */
 
 import { useState, useMemo } from "react";
+import type { TeacherStats } from "@/lib/api-types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,7 @@ type FilterType = "all" | "struggling_academic" | "overdue" | "ontrack";
 
 interface StudentsRosterProps {
   students: StudentRow[];
-  stats?: any;
+  stats?: TeacherStats | null;
   onStudentClick: (student: StudentRow) => void;
 }
 

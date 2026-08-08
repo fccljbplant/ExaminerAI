@@ -1,5 +1,6 @@
 "use client";
 
+import type { AccessGrant } from "@/lib/api-types";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,20 +20,20 @@ export function AccessGrantsPanel() {
   const load = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const res = await api.get<{ grants: any[] }>("/api/access-grants");
+      const res = await api.get<{ grants: AccessGrant[] }>("/api/access-grants");
       setGrants(res.grants);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load access grants"); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const dataScopeLabel = (scope: string): { label: string; color: string } => {
+  const dataScopeLabel = (scope: string | undefined): { label: string; color: string } => {
     switch (scope) {
       case "full": return { label: "Full access", color: "bg-destructive/5 text-destructive border-destructive/30" };
       case "wellbeing_only": return { label: "Wellbeing only", color: "bg-growth-amber-soft text-growth-amber border-growth-amber" };
       case "crisis_only": return { label: "Crisis only", color: "bg-destructive/5 text-destructive border-destructive/30" };
       case "content_only": return { label: "Content only", color: "bg-blue-500/10 text-blue-600 border-blue-500/30" };
-      default: return { label: scope, color: "bg-muted text-muted-foreground" };
+      default: return { label: scope ?? "Unknown", color: "bg-muted text-muted-foreground" };
     }
   };
 
@@ -68,7 +69,7 @@ export function AccessGrantsPanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {grants.map((g: any) => {
+                  {grants.map((g: AccessGrant) => {
                     const scope = dataScopeLabel(g.dataScope);
                     return (
                       <tr key={g.id} className="border-b border-border hover:bg-muted/30">
@@ -82,7 +83,7 @@ export function AccessGrantsPanel() {
                           <div className="text-[10px] text-muted-foreground font-mono">{g.scopeId.slice(0, 12)}…</div>
                         </td>
                         <td className="py-2 px-2"><Badge variant="outline" className={`text-[9px] ${scope.color}`}>{scope.label}</Badge></td>
-                        <td className="py-2 px-2 text-xs text-muted-foreground hidden md:table-cell">{new Date(g.grantedAt).toLocaleDateString()}</td>
+                        <td className="py-2 px-2 text-xs text-muted-foreground hidden md:table-cell">{new Date(String(g.grantedAt || g.createdAt)).toLocaleDateString()}</td>
                       </tr>
                     );
                   })}

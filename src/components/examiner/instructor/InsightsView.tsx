@@ -29,12 +29,13 @@ import {
 import { cn } from "@/lib/utils";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import type { StudentRow } from "@/components/examiner/instructor/types";
+import type { TeacherStats, AlertItem } from "@/lib/api-types";
 import { CohortAnalyticsView } from "@/components/examiner/instructor/CohortAnalyticsView";
 
 interface InsightsViewProps {
   students: StudentRow[];
-  stats: any;
-  alerts: any[];
+  stats: TeacherStats | null;
+  alerts: AlertItem[];
   onStudentClick: (student: StudentRow) => void;
   /** Optional courseId — passed through to CohortAnalyticsView. */
   courseId?: string;

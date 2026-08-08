@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StudentRow } from "@/components/examiner/instructor/types";
+import type { TeacherStats, AlertItem } from "@/lib/api-types";
 import { ActionDialog, type ActionDialogData } from "@/components/shared/action-dialog";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
@@ -31,8 +32,8 @@ import { logger } from "@/lib/logger";
 
 interface TodayViewProps {
   students: StudentRow[];
-  stats: any;
-  alerts: any[];
+  stats: TeacherStats | null;
+  alerts: AlertItem[];
   onStudentClick: (student: StudentRow) => void;
   onViewChange: (view: "students" | "messages" | "mentorship") => void;
 }
@@ -49,7 +50,7 @@ interface TriageItem {
   action: () => void;
   /** The original alert object (if this triage item came from an alert) —
    *  passed to the ActionDialog so it can acknowledge the alert on confirm. */
-  alert?: any;
+  alert?: AlertItem | undefined;
 }
 
 export function TodayView({ students, stats, alerts, onStudentClick, onViewChange }: TodayViewProps) {
@@ -65,7 +66,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
   const [actionDialogLoading, setActionDialogLoading] = useState(false);
   const [actionDialogContext, setActionDialogContext] = useState<{ studentId: string; alertId?: string } | null>(null);
 
-  const openActionDialog = async (student: StudentRow, alert?: any) => {
+  const openActionDialog = async (student: StudentRow, alert?: AlertItem) => {
     setActionDialogLoading(true);
     setActionDialogContext({ studentId: student.id, alertId: alert?.id });
     try {
@@ -296,12 +297,12 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
       </div>
 
       {/* Pending approvals banner */}
-      {stats?.pendingApprovals > 0 && (
+      {(stats?.pendingApprovals ?? 0) > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-300 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800">
           <Users className="w-5 h-5 text-blue-600 flex-shrink-0" />
           <div className="flex-1">
             <span className="text-sm font-medium text-blue-900 dark:text-blue-200">
-              {stats.pendingApprovals} student{stats.pendingApprovals > 1 ? "s" : ""} pending approval
+              {(stats?.pendingApprovals ?? 0)} student{(stats?.pendingApprovals ?? 0) > 1 ? "s" : ""} pending approval
             </span>
           </div>
           <Button size="sm" variant="outline" onClick={() => onViewChange("students")}>
@@ -447,7 +448,7 @@ function TriageGroup({ label, icon: Icon, color, items, onStudentClick, onAct, a
   color: string;
   items: TriageItem[];
   onStudentClick: (s: StudentRow) => void;
-  onAct?: (s: StudentRow, a?: Record<string, unknown>) => void;
+  onAct?: (s: StudentRow, a?: AlertItem) => void;
   actionDialogLoading?: boolean;
 }) {
   return (
@@ -462,7 +463,7 @@ function TriageGroup({ label, icon: Icon, color, items, onStudentClick, onAct, a
   );
 }
 
-function TriageRow({ item, onStudentClick, onAct, actionDialogLoading }: { item: TriageItem; onStudentClick: (s: StudentRow) => void; onAct?: (s: StudentRow, a?: Record<string, unknown>) => void; actionDialogLoading?: boolean }) {
+function TriageRow({ item, onStudentClick, onAct, actionDialogLoading }: { item: TriageItem; onStudentClick: (s: StudentRow) => void; onAct?: (s: StudentRow, a?: AlertItem) => void; actionDialogLoading?: boolean }) {
   const colorMap = {
     crisis: "border-destructive/30 bg-destructive/5 dark:bg-rose-950/20 dark:border-rose-900",
     alert: "border-growth-amber bg-growth-amber-soft dark:bg-amber-950/20 dark:border-amber-900",

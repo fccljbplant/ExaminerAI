@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api-client";
+import type { CertificateResponse } from "@/lib/api-types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +37,7 @@ function CertificateCard() {
   const generate = async () => {
     setLoading(true);
     try {
-      const res = await api.post<{ certificate?: any; requested?: boolean; message?: string; alreadyExisted?: boolean }>(`/api/certificates/generate`);
+      const res = await api.post<{ certificate?: CertificateResponse; requested?: boolean; message?: string; alreadyExisted?: boolean }>(`/api/certificates/generate`);
       if (res.certificate) {
         setCertificate(res.certificate);
         showSuccess("Certificate approved and generated!");
@@ -54,7 +55,7 @@ function CertificateCard() {
 
   const load = async () => {
     try {
-      const res = await api.get<{ certificate: any }>(`/api/certificates/user`);
+      const res = await api.get<{ certificate: CertificateResponse | null }>(`/api/certificates/user`);
       if (res.certificate) {
         if (res.certificate.grade === "PENDING") {
           setRequested(true);

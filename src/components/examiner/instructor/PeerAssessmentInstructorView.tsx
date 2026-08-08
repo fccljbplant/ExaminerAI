@@ -74,7 +74,7 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
               {data.ratings.some((r: { rating?: number; textFeedback?: string }) => r.textFeedback) && (
                 <div className="mt-2 pt-2 border-t border-border">
                   <p className="text-[9px] text-muted-foreground mb-1">Feedback (anonymous to student):</p>
-                  {data.ratings.filter((r: { rating?: number; textFeedback?: string }) => r.textFeedback).map((r: any, i: number) => (
+                  {data.ratings.filter((r: { rating?: number; textFeedback?: string }) => r.textFeedback).map((r: { rating?: number; textFeedback?: string }, i: number) => (
                     <p key={i} className="text-[10px] text-foreground italic">"{r.textFeedback}"</p>
                   ))}
                 </div>

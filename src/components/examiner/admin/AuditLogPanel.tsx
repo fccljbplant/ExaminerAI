@@ -1,5 +1,6 @@
 "use client";
 
+import type { AuditLogEntry } from "@/lib/api-types";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,7 +28,7 @@ export function AuditLogPanel() {
     try {
       const params = new URLSearchParams({ limit: String(LIMIT), offset: String(offset) });
       if (actionFilter !== "all") params.set("action", actionFilter);
-      const res = await api.get<{ entries: any[]; total: number }>(`/api/audit-log?${params.toString()}`);
+      const res = await api.get<{ entries: AuditLogEntry[]; total: number }>(`/api/audit-log?${params.toString()}`);
       setEntries(res.entries); setTotal(res.total);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load audit log"); }
     finally { setLoading(false); }
@@ -46,7 +47,7 @@ export function AuditLogPanel() {
     return { label: action, color: "bg-muted text-muted-foreground" };
   };
 
-  const renderChange = (entry: any): React.ReactNode => {
+  const renderChange = (entry: AuditLogEntry): React.ReactNode => {
     const before = entry.before; const after = entry.after;
     if (!before && !after) return <span className="text-muted-foreground">—</span>;
     if (entry.action === "grade_changed" && (before as { score?: number })?.score !== undefined) {
@@ -126,12 +127,13 @@ export function AuditLogPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {entries.map((e: any) => {
+                    {entries.map((e: AuditLogEntry) => {
                       const lbl = actionLabel(e.action);
                       const when = new Date(e.createdAt);
                       const minsAgo = Math.floor((Date.now() - when.getTime()) / 60000);
                       const whenLabel = minsAgo < 60 ? `${minsAgo}m ago` : minsAgo < 1440 ? `${Math.floor(minsAgo / 60)}h ago` : `${Math.floor(minsAgo / 1440)}d ago`;
-                      const reason = e.metadata?.reason;
+                      const metadataObj = e.metadata ? JSON.parse(e.metadata) as Record<string, unknown> : null;
+                      const reason = metadataObj?.reason as string | undefined;
                       return (
                         <tr key={e.id} className="border-b border-border hover:bg-muted/30 align-top">
                           <td className="py-2 px-2 text-xs text-muted-foreground whitespace-nowrap" title={when.toLocaleString()}>{whenLabel}</td>
