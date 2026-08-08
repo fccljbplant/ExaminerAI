@@ -26,12 +26,13 @@ import {
 import { toast } from "sonner";
 import {
   Building2, Users, UserPlus, Loader2, Trash2,
-  CheckCircle2, XCircle, Mail, Crown, Clock,
+  CheckCircle2, XCircle, Mail, Crown, Clock, BookOpen,
 } from "lucide-react";
 import { DashboardHeader } from "@/components/shared/dashboard-shell";
 import { StatCard, StatStrip } from "@/components/shared/stat-card";
 import { SkeletonPanel, EmptyState } from "@/components/ui/states";
 import { COPY } from "@/content/copy";
+import { OrgCourseAssigner } from "@/components/examiner/admin/OrgCourseAssigner";
 
 interface Member {
   id: string;
@@ -316,6 +317,28 @@ export default function OrgAdminDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Course assignment — assign marketplace courses to team members */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              Assign Courses
+              <Badge variant="secondary" className="ml-auto">{data.members.filter(m => m.role === "member").length} learners</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.members.filter(m => m.role === "member").length === 0 ? (
+              <EmptyState
+                icon="📚"
+                title="No learners to assign"
+                hint="Invite team members as 'Learner' first, then assign courses here."
+              />
+            ) : (
+              <OrgCourseAssigner members={data.members.filter(m => m.role === "member")} />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Invite dialog */}
@@ -340,9 +363,9 @@ export default function OrgAdminDashboard() {
               <Select value={inviteRole} onValueChange={setInviteRole}>
                 <SelectTrigger id="invite-role"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="member">Member (Learner)</SelectItem>
-                  <SelectItem value="mentor">Mentor</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="member">Learner</SelectItem>
+                  <SelectItem value="mentor">Mentor (Instructor)</SelectItem>
+                  <SelectItem value="admin">Org Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

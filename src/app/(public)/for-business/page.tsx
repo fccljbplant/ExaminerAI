@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { COPY } from "@/content/copy";
+import { ROICalculator } from "./ROICalculator";
 import {
   Sparkles,
   Briefcase,
@@ -10,6 +11,7 @@ import {
   FileText,
   Award,
   MessageSquare,
+  HelpCircle,
   CheckCircle2,
   ArrowRight,
   CalendarClock,
@@ -166,7 +168,7 @@ const PRICING = [
       "Email support",
     ],
     cta: "Start 10-Seat Pilot",
-    href: "/app?view=signup",
+    href: "/signup/b2b",
     highlight: false,
   },
   {
@@ -184,7 +186,7 @@ const PRICING = [
       "On-prem / private-cloud deployment available",
     ],
     cta: "Book a Demo",
-    href: "/app?view=signup",
+    href: "/signup/b2b",
     highlight: true,
   },
 ];
@@ -273,13 +275,13 @@ export default function ForBusinessPage() {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3" id="cta">
               <Button asChild size="lg" className="h-12 px-6 text-base">
-                <Link href="/app?view=signup">
+                <Link href="/signup/b2b">
                   <CalendarClock className="h-4 w-4" />
                   Book a Demo
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                <Link href="/app?view=signup">
+                <Link href="/signup/b2b">
                   <Users className="h-4 w-4" />
                   Start 10-Seat Pilot
                 </Link>
@@ -319,6 +321,11 @@ export default function ForBusinessPage() {
           </div>
         </div>
       </section>
+
+      {/* ────────────────────────────────────────────────────────────
+          2b. ROI Calculator — interactive, shows time + cost savings
+         ──────────────────────────────────────────────────────────── */}
+      <ROICalculator />
 
       {/* ────────────────────────────────────────────────────────────
           3. How It Works — 3 steps
@@ -538,7 +545,7 @@ export default function ForBusinessPage() {
             </h2>
             <p className="mt-3 text-base text-muted-foreground">
               Don&apos;t see your question?{" "}
-              <Link href="/app?view=signup" className="text-primary hover:underline">
+              <Link href="/signup/b2b" className="text-primary hover:underline">
                 Talk to sales →
               </Link>
             </p>
@@ -583,13 +590,13 @@ export default function ForBusinessPage() {
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg" className="h-12 px-6 text-base">
-              <Link href="/app?view=signup">
+              <Link href="/signup/b2b">
                 <CalendarClock className="h-4 w-4" />
                 Book a Demo
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-              <Link href="/app?view=signup">
+              <Link href="/signup/b2b">
                 <Users className="h-4 w-4" />
                 Start 10-Seat Pilot
               </Link>
@@ -608,6 +615,42 @@ export default function ForBusinessPage() {
               <Server className="h-3.5 w-3.5 text-primary" />
               Private-cloud deployment available
             </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────────────────
+          7b. Support / Contact — B2B buyers need a direct line
+         ──────────────────────────────────────────────────────────── */}
+      <section className="border-b border-border bg-muted/30">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20 text-center">
+          <Badge variant="outline" className="mb-4 border-primary/30 text-primary">Talk to us</Badge>
+          <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
+            Have questions before you commit?
+          </h2>
+          <p className="mt-4 text-base sm:text-lg text-muted-foreground">
+            We respond within 24 hours. No sales pressure — just honest answers about whether TraineesAI fits your team.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <Button asChild size="lg" className="h-12 text-base">
+              <Link href="/signup/b2b">
+                <Briefcase className="h-4 w-4 mr-2" />
+                Create Your Org
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 text-base">
+              <a href="mailto:sales@traineesai.com?subject=B2B%20Inquiry">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Email Sales
+              </a>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 text-base">
+              <Link href="/support">
+                <HelpCircle className="h-4 w-4 mr-2" />
+                Help Center
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

@@ -43,39 +43,11 @@ export function B2CPanel() {
     setError("");
     setLoading(true);
     try {
-      // Use the existing /api/stats endpoint with the admin context
       const res = await api.get<B2CData>("/api/admin/b2c-stats");
       setData(res);
-    } catch {
-      // Fallback: compute from users list
-      try {
-        const usersRes = await api.get<{ users: any[] }>("/api/users?role=learner&pageSize=200");
-        const learners = usersRes.users || [];
-        const activeToday = learners.filter((u: any) => {
-          if (!u.lastLogin) return false;
-          const diff = Date.now() - new Date(u.lastLogin).getTime();
-          return diff < 24 * 60 * 60 * 1000;
-        }).length;
-        setData({
-          stats: {
-            totalLearners: learners.length,
-            activeToday,
-            enrolledInCourses: 0,
-            completedCertificates: 0,
-            avgScore: null,
-            completionRate: 0,
-          },
-          recentLearners: learners.slice(0, 10).map((u: any) => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            createdAt: u.createdAt,
-            lastLogin: u.lastLogin,
-          })),
-        });
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load B2C data");
-      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load B2C data");
+      setData(null);
     } finally {
       setLoading(false);
     }
