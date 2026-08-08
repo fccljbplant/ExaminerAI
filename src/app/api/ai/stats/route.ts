@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { AI_TOKEN_QUOTA, hasAI, isAIConfigured, getRateLimitStats } from "@/lib/ai-provider";
+import { logger } from "@/lib/logger";
 
 /** GET /api/ai/stats — AI usage stats for admin dashboard.
  *

@@ -6,6 +6,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 import { normalizeRole, UserRole } from "@/lib/rbac";
+import { logger } from "@/lib/logger";
 
 /** POST /api/students/[id]/rehearse — practice a hard conversation
  *  against an AI playing a plausible version of the student.

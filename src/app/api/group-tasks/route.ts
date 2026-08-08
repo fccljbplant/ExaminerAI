@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { requireRole, UserRole, hasRole, ADMIN_ROLES, normalizeRole } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/group-tasks?courseId=X — list group tasks for a course.

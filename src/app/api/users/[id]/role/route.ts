@@ -5,6 +5,7 @@ import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { invalidateAuthCache } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** PATCH /api/users/[id]/role — change a user's role. Admin only.
  *  Phase RBAC+AUDIT: centralized RBAC + universal audit log.

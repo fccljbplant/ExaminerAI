@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
+import { logger } from "@/lib/logger";
 
 /** GET /api/daily-motivation — returns a single AI-generated motivational
  *  statement that renews once per day (UTC midnight). The SAME statement is

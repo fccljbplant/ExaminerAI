@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getBootcampDayNumber } from "@/lib/course-topics";
 import { getCourseTopics, getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** GET /api/curriculum/progress — returns the student's curriculum completion.
  *

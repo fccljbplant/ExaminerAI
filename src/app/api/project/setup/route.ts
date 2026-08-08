@@ -5,6 +5,7 @@ import { callAI } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getCourseProjectConfig } from "@/lib/course-db";
+import { logger } from "@/lib/logger";
 
 /** Generate a concise project summary + key features from the project definition.
  *  Used by POST (create) and PATCH (edit) to keep the summary in sync.

@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { callAI, hasAI, isAIConfigured, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { connectionTestPrompt } from "@/lib/ai-prompts";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** POST /api/ai/test — admin-only diagnostic endpoint that runs a real AI
  *  call and returns the result + timing + provider used.

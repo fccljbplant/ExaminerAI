@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, hashPassword, comparePassword } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/auth/set-security-question

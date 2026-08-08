@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { normalizeRole } from "@/lib/rbac";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/employer/dashboard

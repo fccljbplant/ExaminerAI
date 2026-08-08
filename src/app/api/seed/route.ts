@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { seedDatabase } from "@/lib/seed";
 import { ensureAdminUser, signToken, TOKEN_COOKIE, ADMIN_EMAIL, ADMIN_PASSWORD, getAuthUser, getCookieOptions } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** GET /api/seed — bootstraps the database with admin. Admin-only.
  *  Safe to call repeatedly (idempotent). */

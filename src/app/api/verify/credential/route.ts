@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { fetchCertificateForVerification } from "@/lib/marketplace";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/verify/credential?credentialId=TRN-AI-2026-08-NA-87

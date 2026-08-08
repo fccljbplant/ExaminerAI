@@ -34,7 +34,9 @@ git grep -n "<DailyTaskReminder" -- src 2>/dev/null | sed 's/^/  popup ref: /' |
 
 H "F) BACKEND HYGIENE"
 echo "  silent catches: $(git grep -c '\.catch(() => {})' -- src 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')"
-echo "  console.log:    $(git grep -c 'console.log' -- src 2>/dev/null | awk -F: '{s+=$NF} END {print s+0}')"
+echo "  console.log:    $(git grep -c 'console.log\|console.error\|console.warn' -- src 2>/dev/null | grep -v logger.ts | awk -F: '{s+=$NF} END {print s+0}')"
+echo "  any types:      $(git grep -c ': any\b\|as any\|<any>' -- src 2>/dev/null | grep -v node_modules | grep -v __tests__ | awk -F: '{s+=$NF} END {print s+0}')"
+echo "  API routes without logger: $(find src/app/api -name 'route.ts' -exec sh -c 'grep -l "catch" {} 2>/dev/null' \; | while read f; do grep -q logger "$f" || echo "$f"; done | wc -l)"
 git grep -n "15 questions\|questionCount: 15" -- src 2>/dev/null | sed 's/^/  test-count mismatch: /' || echo "  test-count clean"
 git grep -ln "psychologyObs.create\|psychEvidence.create" -- src 2>/dev/null | sed 's/^/  psych write leftover: /' || echo "  psych writes clean"
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { generateCourseAlignedPlan } from "@/modules/project/lib/course-aligned-planner";
+import { logger } from "@/lib/logger";
 
 /** POST /api/project/generate-tasks — AI generates a course-aligned project plan + daily tasks.
  *

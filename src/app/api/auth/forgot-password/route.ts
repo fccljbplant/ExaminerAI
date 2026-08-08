@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 import { hashPassword } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/auth/forgot-password

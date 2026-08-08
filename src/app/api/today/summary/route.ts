@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { recordLearningSignal } from "@/lib/learning-signal";
+import { logger } from "@/lib/logger";
 
 /** GET /api/today/summary — the trainee's "what do I do next?" data.
  *

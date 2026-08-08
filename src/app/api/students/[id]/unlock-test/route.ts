@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** POST /api/students/[id]/unlock-test — instructor/admin unlocks a week's test
  *  for a student, bypassing the task-completion requirement.

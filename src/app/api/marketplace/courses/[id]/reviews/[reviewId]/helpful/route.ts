@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/marketplace/courses/[id]/reviews/[reviewId]/helpful — auth required.

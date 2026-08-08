@@ -5,6 +5,7 @@ import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { evaluatePrompt } from "@/lib/ai-prompts";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** POST /api/ai/evaluate — evaluate a student's answer to a Socratic question.
  *  Returns correctness 0-100, feedback, level, gaps, followUp, and persists the interaction. */

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { ADMIN_ROLES, hasRole } from "@/lib/rbac";
 import { getUserAuditProfile, AuditDirection } from "@/modules/user-audit";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/users/[id]/audit — full audit trail for a user.

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** DELETE /api/users/[id] — delete a user and ALL their data.
  *  Admin only (org_admin + platform_admin). Demo is read-only and

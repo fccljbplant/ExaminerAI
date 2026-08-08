@@ -4,6 +4,7 @@ import { requireRole, UserRole } from "@/lib/rbac";
 import { assertCanAccessStudent } from "@/lib/auth";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** POST /api/grades/override — instructor/admin overrides a grade.
  *  Phase RBAC+AUDIT: centralized RBAC + universal audit log. */

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createCheckoutSession } from "@/lib/stripe";
+import { logger } from "@/lib/logger";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://examiner-ai-tau.vercel.app";
 

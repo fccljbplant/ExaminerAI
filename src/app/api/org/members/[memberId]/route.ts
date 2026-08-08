@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ memberId: string }> }) {
   const payload = await getAuthUser();

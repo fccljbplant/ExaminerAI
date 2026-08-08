@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** PATCH /api/institutions/[id] — update institution (logo URL, name, contact).
  *  Admin/demo only.

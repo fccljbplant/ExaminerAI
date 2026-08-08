@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { setAIKey, isAIConfigured, hasAI } from "@/lib/ai-provider";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** GET /api/settings/ai-key — returns whether AI is configured.
  *  Supports both Z.ai (primary) and DeepSeek (fallback). */

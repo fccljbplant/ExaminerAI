@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { getUserOrg, getOrgMembers, getOrgStats } from "@/lib/org";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const payload = await getAuthUser();
