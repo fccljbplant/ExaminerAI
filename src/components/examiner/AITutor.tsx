@@ -1,27 +1,25 @@
 "use client";
 
 /**
- * AITutor — in-app AI Tutor chatbot.
+ * AITutor — in-app AI Tutor chatbot (streaming version).
  *
- * Replaces the old NotebookLM iframe launcher. The AI Tutor is a
- * friendly, practical tutor that:
- *  - Teaches the current week's topic
- *  - Connects every concept to the student's hands-on project
- *  - Uses the 3-step teaching method (analogy → example → project mapping)
- *  - Replies in Roman English if the student writes in any non-English language
- *  - Ends every response with a [Coherence Check] showing course progress
- *  - Feeds behavioral signals into the same analysis pipeline as tests
+ * Streams responses from /api/ai/tutor/stream so the learner sees the
+ * first token in ~500ms instead of waiting 5-15s for the full reply.
+ * Falls back to the non-streaming /api/ai/tutor endpoint if the stream
+ * emits a `[stream-degraded: ...]` marker.
  *
- * Backend: POST /api/ai/tutor (system prompt with dynamic course/project/topic placeholders)
+ * Backend: POST /api/ai/tutor/stream (Reads course + project + week context)
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Loader2, Send, Brain } from "lucide-react";
+import { Bot, Send, Brain, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "@/components/examiner/MarkdownRenderer";
+import { TypingIndicator } from "@/components/shared/typing-indicator";
+import { useStreamingAI } from "@/lib/use-streaming-ai";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -35,14 +33,41 @@ export default function AITutor() {
   const [error, setError] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
+  // The streaming hook — handles fetch, chunk parsing, abort, cleanup.
+  const { text: streamingText, streaming, error: streamError, send: streamSend, cancel: streamCancel } = useStreamingAI({
+    url: "/api/ai/tutor/stream",
+    onDone: (fullText) => {
+      // Stream completed — append the full assistant message to the chat.
+      setMessages(prev => [...prev, { role: "assistant", content: fullText }]);
+      setBusy(false);
+    },
+    onError: async (reason) => {
+      // Stream degraded — fall back to the non-streaming endpoint.
+      try {
+        const fallback = await api.post<{ reply: string }>("/api/ai/tutor", {
+          messages: messagesRef.current,
+        }, AI_TIMEOUT_MS);
+        setMessages(prev => [...prev, { role: "assistant", content: fallback.reply || "I'm having trouble right now. Please try again." }]);
+      } catch {
+        setError(`AI Tutor is unavailable (${reason}). Please try again.`);
+      }
+      setBusy(false);
+    },
+  });
+
+  // Keep a ref of messages so the onError callback can read the latest
+  // value without re-subscribing the hook on every render.
+  const messagesRef = useRef<ChatMessage[]>([]);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+
+  // Auto-scroll to bottom on new messages or streaming text updates.
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, busy]);
+  }, [messages, streamingText, busy]);
 
-  const send = async () => {
+  const send = useCallback(async () => {
     const trimmed = input.trim();
     if (!trimmed || busy) return;
 
@@ -52,32 +77,32 @@ export default function AITutor() {
     setBusy(true);
     setError("");
 
-    try {
-      const res = await api.post<{ reply: string }>("/api/ai/tutor", {
-        messages: newMessages,
-      }, AI_TIMEOUT_MS);
-      // Hide technical response fields (provider, token counts, etc.) from the UI.
-      // Only show the reply text to the student.
-      setMessages(prev => [...prev, { role: "assistant", content: res.reply || "I'm having trouble responding right now. Please try again." }]);
-    } catch (e) {
-      // Show user-friendly error, not technical details
-      const msg = e instanceof Error ? e.message : "";
-      if (msg.includes("timed out") || msg.includes("timeout")) {
-        setError("The AI Tutor is taking longer than expected. Please try again.");
-      } else if (msg.includes("403") || msg.includes("Forbidden")) {
-        setError("You don't have access to the AI Tutor. Please contact your administrator.");
-      } else {
-        setError("The AI Tutor is unavailable right now. Please try again in a moment.");
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
+    // Hit the streaming endpoint. The hook handles the response.
+    await streamSend({ messages: newMessages });
+  }, [input, busy, messages, streamSend]);
 
   const clearChat = () => {
     setMessages([]);
     setError("");
+    streamCancel();
   };
+
+  // Esc cancels an in-flight stream.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && streaming) {
+        e.preventDefault();
+        streamCancel();
+        setBusy(false);
+        // Keep whatever partial text we got as the assistant message.
+        if (streamingText.trim()) {
+          setMessages(prev => [...prev, { role: "assistant", content: streamingText + " [stopped]" }]);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [streaming, streamingText, streamCancel]);
 
   return (
     <div className="flex flex-col h-full max-w-3xl mx-auto">
@@ -90,7 +115,7 @@ export default function AITutor() {
             <div className="flex-1">
               <CardTitle className="text-lg text-foreground">AI Tutor</CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Your personal tutor — teaches today's topic, connects it to your project, and tracks your progress.
+                Your personal tutor — teaches today&apos;s topic, connects it to your project.
               </CardDescription>
             </div>
             {messages.length > 0 && (
@@ -101,12 +126,12 @@ export default function AITutor() {
           </div>
         </CardHeader>
         <CardContent className="flex flex-col flex-1 min-h-0 space-y-3">
-          {/* Chat messages — fills available height, scrolls to bottom on new messages */}
+          {/* Chat messages — fills available height, scrolls to bottom */}
           <div
             ref={scrollRef}
             className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 rounded-lg border border-border bg-card/50 p-3"
           >
-            {messages.length === 0 && (
+            {messages.length === 0 && !streaming && (
               <div className="text-center py-8 px-4">
                 <Brain className="h-10 w-10 text-primary/40 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">
@@ -130,6 +155,7 @@ export default function AITutor() {
                 </div>
               </div>
             )}
+
             {messages.map((m, i) => (
               <div
                 key={i}
@@ -156,12 +182,22 @@ export default function AITutor() {
                 </div>
               </div>
             ))}
-            {busy && (
+
+            {/* Streaming response — shows the partial text as it arrives.
+                Shows the TypingIndicator (3 bouncing dots) until the first
+                token lands, then shows the streaming text inline. */}
+            {streaming && (
               <div className="flex justify-start">
-                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 text-sm flex items-center gap-2">
-                  <Bot className="h-3 w-3 text-primary opacity-70" />
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span className="text-xs text-muted-foreground">AI Tutor is thinking...</span>
+                <div className="max-w-[90%] bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 text-sm">
+                  <div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b border-border/50">
+                    <Bot className="h-3 w-3 text-primary opacity-70" />
+                    <span className="text-[9px] font-semibold opacity-70">AI Tutor</span>
+                    <span className="ml-auto"><TypingIndicator /></span>
+                  </div>
+                  {streamingText
+                    ? <MarkdownRenderer content={streamingText} />
+                    : <span className="text-xs text-muted-foreground">Thinking…</span>
+                  }
                 </div>
               </div>
             )}
@@ -173,7 +209,13 @@ export default function AITutor() {
             </div>
           )}
 
-          {/* Input area — stays at bottom, doesn't scroll with messages */}
+          {streamError && (
+            <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 rounded-md p-2">
+              Connection slowed — retrying…
+            </div>
+          )}
+
+          {/* Input area */}
           <div className="space-y-2 flex-shrink-0 pt-2">
             <textarea
               value={input}
@@ -185,24 +227,30 @@ export default function AITutor() {
                 }
               }}
               className="w-full min-h-[60px] max-h-[120px] rounded-lg bg-background border border-border p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="Ask your AI Tutor anything... (Enter to send, Shift+Enter for new line)"
+              placeholder="Ask your AI Tutor anything… (Enter to send, Shift+Enter for new line, Esc to stop)"
               disabled={busy}
               autoFocus
             />
             <div className="flex justify-end">
-              <Button
-                onClick={send}
-                disabled={busy || !input.trim()}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Send
-              </Button>
+              {streaming ? (
+                <Button onClick={streamCancel} variant="outline" className="border-border">
+                  <Square className="h-4 w-4 mr-1.5" /> Stop
+                </Button>
+              ) : (
+                <Button
+                  onClick={send}
+                  disabled={busy || !input.trim()}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Send className="h-4 w-4" />
+                  Send
+                </Button>
+              )}
             </div>
           </div>
 
           <p className="text-[10px] text-muted-foreground/70 text-center">
-            The AI Tutor uses your course outline, your project, and your current week's topic to give personalized guidance.
+            The AI Tutor uses your course outline, your project, and your current week&apos;s topic to give personalized guidance.
           </p>
         </CardContent>
       </Card>

@@ -14,6 +14,7 @@ import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { issueCertificate } from "@/lib/certificate";
 import { TEST_QUESTION_COUNT } from "@/lib/constants";
+import { awardXP } from "@/lib/learner-xp";
 
 /**
  * POST /api/ai/weekly-test
@@ -553,6 +554,34 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
           },
         }).catch(() => {/* Non-blocking — best-effort logging */});
 
+        // === Evidence-Locked XP — award for natural weekly test completion ===
+        // Same logic as the early-finish path. Idempotent via refId=test.id.
+        void (async () => {
+          try {
+            const finalScore = plagiarismResult.finalScore;
+            if (finalScore >= 60) {
+              await awardXP({
+                userId: user.id,
+                reason: "WEEKLY_TEST_PASSED",
+                refId: test.id,
+              });
+              if (finalScore >= 90) {
+                await awardXP({
+                  userId: user.id,
+                  reason: "WEEKLY_TEST_ACED",
+                  refId: test.id,
+                });
+              }
+            }
+          } catch (err) {
+            logger.warn("XP award failed (weekly-test natural)", {
+              userId: user.id,
+              testId: test.id,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        })();
+
         // === Phase 6: Certificate pipeline (fire-and-forget) ===
         // After a weekly test is marked completed, kick off the auto-issuance
         // check. If this was the final week and the student meets the score
@@ -666,6 +695,36 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
     });
     // Phase Three-Tab Redesign: run analysis pipeline after early-finish too
     // Uses the FINAL (post-deduction) score.
+
+    // === Evidence-Locked XP — award for weekly test completion ===
+    // Idempotent: if the same test ID has already been awarded, this is a no-op.
+    // Score >= 60 → WEEKLY_TEST_PASSED (+50). Score >= 90 → also ACED (+80).
+    // Fire-and-forget — XP is non-critical, must never block the response.
+    void (async () => {
+      try {
+        const finalScore = plagiarismResult.finalScore;
+        if (finalScore >= 60) {
+          await awardXP({
+            userId: user.id,
+            reason: "WEEKLY_TEST_PASSED",
+            refId: test.id,
+          });
+          if (finalScore >= 90) {
+            await awardXP({
+              userId: user.id,
+              reason: "WEEKLY_TEST_ACED",
+              refId: test.id,
+            });
+          }
+        }
+      } catch (err) {
+        logger.warn("XP award failed (weekly-test finish)", {
+          userId: user.id,
+          testId: test.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    })();
 
     // === Phase 6: Certificate pipeline (fire-and-forget) — early-finish path ===
     void (async () => {

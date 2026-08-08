@@ -17,6 +17,7 @@ import {
 import OnboardingGuide from "./OnboardingGuide";
 import StreakCalendar from "./StreakCalendar";
 import DueTodayCard from "./DueTodayCard";
+import { LearnerXPBar } from "@/components/shared/learner-xp-bar";
 
 interface TodayData {
   traineeName: string;
@@ -155,6 +156,12 @@ export default function TodayView({ onNavigate }: { onNavigate?: (view: string) 
           the learner can pick what to work on. One tap → jump to the right
           view. Popups are now reserved for red-tier alerts only. */}
       <DueTodayCard onNavigate={(view) => onNavigate?.(view)} />
+
+      {/* Evidence-Locked XP — only for learners. Casual-yet-professional:
+          shows level + progress + the last few awards. NOT gamified-cheesy:
+          no leaderboards, no badges-as-engagement-bait. XP is a trust
+          signal (employer can see "this learner passed 20+ graded tests"). */}
+      <LearnerXPBar />
 
       {/* Streak calendar — GitHub-style contribution grid showing the last
           12 weeks of study activity. Visible to any logged-in student. */}

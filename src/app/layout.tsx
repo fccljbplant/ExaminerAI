@@ -25,6 +25,31 @@ export const metadata: Metadata = {
   authors: [{ name: "Inzet Enterprises" }],
   icons: {
     icon: "/logo.svg",
+    apple: "/icon-192.png",
+  },
+  // ── PWA manifest — makes the app installable on phones/desktops ──
+  // See /public/manifest.webmanifest for the full definition.
+  manifest: "/manifest.webmanifest",
+  // ── Theme color — used by the OS for the status bar / window chrome
+  // when the app is installed. Matches our slate-950 background.
+  themeColor: "#0f172a",
+  // ── Apple-specific — lets iOS Safari add to home screen with a
+  // standalone feel (no browser chrome on launch).
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "TraineesAI",
+  },
+  // ── Mobile-friendly viewport — lets the user pinch-zoom (accessibility).
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
+  // ── App is installable + works offline (PWA).
+  applicationName: "TraineesAI",
+  formatDetection: {
+    telephone: false,
   },
 };
 

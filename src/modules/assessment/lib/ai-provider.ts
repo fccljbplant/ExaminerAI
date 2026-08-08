@@ -40,6 +40,7 @@ export const TOKEN_BUDGET = {
   WEEKLY_TEST_REPLY: 500,
   FINAL_ANALYSIS: 4000,
   CONNECTION_TEST: 10,
+  TUTOR_REPLY: 800, // streaming tutor responses — generous since they stream
 } as const;
 
 // === Provider configuration ===
@@ -448,4 +449,147 @@ export function getRateLimitStats() {
     rpdLimit: RATE_LIMIT_RPD,
     remaining: Math.max(0, RATE_LIMIT_RPD - getDailyRequestCount()),
   };
+}
+
+// ============================================================================
+// streamAI — streaming version of callAI for chat-like routes.
+// ============================================================================
+//
+// Returns a ReadableStream of text chunks (SSE-style: each chunk is a UTF-8
+// text fragment). The caller wraps it in a Response and the client reads it
+// via `await for await (const chunk of stream)` or a `TextDecoder` reader.
+//
+// Why this exists:
+//   The non-streaming `callAI()` makes the user wait 5-15s with a spinner
+//   before any text appears. Streaming makes the AI feel alive — the user
+//   sees the first token in ~500ms, and the rest streams in. This is the
+//   modern SaaS baseline (Cursor, ChatGPT, Vercel v0, Linear AI all stream).
+//
+// Fallback behavior:
+//   - If the provider doesn't support streaming (or errors mid-stream),
+//     we emit `[stream-degraded: <reason>]` and close the stream cleanly
+//     so the client UI can fall back to a non-streaming retry.
+//   - The full response is reconstructed on the server side and logged to
+//     `usage` for billing attribution (same as `callAI`).
+//
+// Usage (in an API route):
+//   const stream = await streamAI(messages, { feature: "tutor", userId });
+//   return new Response(stream, {
+//     headers: {
+//       "Content-Type": "text/event-stream",
+//       "Cache-Control": "no-cache, no-transform",
+//       "Connection": "keep-alive",
+//     },
+//   });
+//
+// Usage (on the client):
+//   const res = await fetch("/api/ai/tutor", { method: "POST", body: ... });
+//   const reader = res.body!.getReader();
+//   const decoder = new TextDecoder();
+//   while (true) {
+//     const { done, value } = await reader.read();
+//     if (done) break;
+//     setText(prev => prev + decoder.decode(value, { stream: true }));
+//   }
+
+export async function streamAI(
+  messages: AIMessage[],
+  options?: {
+    temperature?: number;
+    maxTokens?: number;
+    feature?: string;
+    userId?: string;
+  },
+): Promise<ReadableStream<Uint8Array>> {
+  const temp = options?.temperature ?? 0.5;
+  const maxTokens = options?.maxTokens ?? TOKEN_BUDGET.TUTOR_REPLY;
+  const feature = options?.feature ?? "stream-unknown";
+  const startedAt = Date.now();
+
+  const encoder = new TextEncoder();
+  let fullText = ""; // accumulated for usage logging on stream end
+
+  // Pick the best available provider client (DeepSeek preferred, then Z.ai).
+  const client = await getDeepSeekClient();
+  if (!client) {
+    // No provider available — emit a clean degradation marker and end.
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode("[stream-degraded: no AI provider configured]"));
+        controller.close();
+      },
+    });
+  }
+
+  const gotSlot = await waitForSlot(10_000);
+  if (!gotSlot) {
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode("[stream-degraded: rate limit]"));
+        controller.close();
+      },
+    });
+  }
+
+  const apiMessages = messages.map(m => ({ role: m.role, content: m.content }));
+
+  try {
+    const stream = await client.chat.completions.create({
+      model: DEEPSEEK_MODEL,
+      messages: apiMessages,
+      temperature: temp,
+      max_tokens: maxTokens,
+      stream: true, // <-- the magic flag
+    }) as any;
+
+    trackDailyRequest();
+
+    return new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            const delta: string = chunk?.choices?.[0]?.delta?.content ?? "";
+            if (delta) {
+              fullText += delta;
+              controller.enqueue(encoder.encode(delta));
+            }
+          }
+          controller.close();
+          // Log usage (best-effort — never fail the response over logging).
+          const completionTokens = estimateTokens(fullText);
+          const promptTokens = estimateTokens(messages.map(m => m.content).join(""));
+          logUsage({
+            provider: "deepseek-stream",
+            model: DEEPSEEK_MODEL,
+            feature,
+            promptTokens,
+            completionTokens,
+            totalTokens: promptTokens + completionTokens,
+            success: true,
+            durationMs: Date.now() - startedAt,
+            userId: options?.userId,
+          }).catch(() => {});
+        } catch (err) {
+          // Mid-stream error — emit marker so client UI can fall back.
+          const reason = err instanceof Error ? err.message : "stream-error";
+          controller.enqueue(encoder.encode(`[stream-degraded: ${reason}]`));
+          controller.close();
+          logger.warn("AI stream errored mid-flight", { feature, reason });
+        }
+      },
+      cancel() {
+        // Client navigated away / pressed Esc — abort the upstream stream.
+        try { (stream as any)?.abort?.(); } catch { /* already closed */ }
+      },
+    });
+  } catch (err) {
+    // Stream creation failed — return a single-chunk degraded stream.
+    const reason = err instanceof Error ? err.message : "init-failed";
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(`[stream-degraded: ${reason}]`));
+        controller.close();
+      },
+    });
+  }
 }
