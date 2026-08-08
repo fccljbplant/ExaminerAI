@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { isStaffRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** POST /api/courses/[id]/set-default — mark a course as the default for new students.
  *
@@ -47,7 +48,7 @@ export async function POST(
       target: { type: "course", id },
       after: { isDefault: true, courseName: course.name },
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
 
     return NextResponse.json({
       ok: true,
@@ -65,7 +66,7 @@ export async function POST(
       before: { isDefault: true },
       after: { isDefault: false, courseName: course.name },
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
 
     return NextResponse.json({
       ok: true,

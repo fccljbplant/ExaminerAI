@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
             conversation: JSON.stringify(conversation),
             completedAt: new Date(),
           },
-        }).catch(() => {/* Non-blocking — best-effort logging */});
+        }).catch((err) => { logger.warn("Operation failed", { err }); });
 
         return NextResponse.json({
           conversation,

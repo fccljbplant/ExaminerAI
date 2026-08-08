@@ -51,7 +51,7 @@ export function computeLearningSignal(inputs: SignalInputs): LearningSignal {
 }
 
 /** Fetch the inputs for a student's learning signal from the DB.
- *  Non-blocking — callers should use `void recordLearningSignal(userId).catch(() => {})`. */
+ *  Non-blocking — callers should use `void recordLearningSignal(userId).catch((err) => { logger.warn("Operation failed", { err }); })`. */
 export async function gatherSignalInputs(userId: string): Promise<SignalInputs> {
   // Lazy import to avoid circular dependency at module load time
   const { db } = await import("@/lib/db");

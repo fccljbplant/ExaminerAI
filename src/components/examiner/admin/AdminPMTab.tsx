@@ -11,14 +11,15 @@ import {
   ShieldCheck, Save,
 } from "lucide-react";
 import type { UserRow } from "@/components/examiner/admin/types";
+import { logger } from "@/lib/logger";
 
 export function AdminPMTab({ users, students, pending }: { users: UserRow[]; students: UserRow[]; pending: UserRow[] }) {
   const [aiStats, setAiStats] = useState<{ tokens?: { total: number }; usage24h?: { calls: number; successRate: number }; cache?: { hitRate: number } } | null>(null);
   const [healthStatus, setHealthStatus] = useState<{ status: string; checks: { db: boolean; ai: boolean; jwt: boolean } } | null>(null);
 
   useEffect(() => {
-    api.get<{ tokens?: { total: number }; usage24h?: { calls: number; successRate: number }; cache?: { hitRate: number } }>("/api/ai/stats").then((r) => setAiStats(r)).catch(() => {});
-    fetch("/api/health").then(r => r.json()).then((d) => setHealthStatus(d)).catch(() => {});
+    api.get<{ tokens?: { total: number }; usage24h?: { calls: number; successRate: number }; cache?: { hitRate: number } }>("/api/ai/stats").then((r) => setAiStats(r)).catch((err) => { logger.warn("Operation failed", { err }); });
+    fetch("/api/health").then(r => r.json()).then((d) => setHealthStatus(d)).catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
 
   // Action items: pending approvals + blocked users + students with no project

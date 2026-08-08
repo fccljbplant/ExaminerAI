@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** PUT /api/users/[id]/approve — approve a pending-status user. Instructor/admin only.
  *  Demo is read-only and deliberately excluded from this list. */
@@ -72,7 +73,7 @@ export async function PUT(
         courseId: targetCourseId,
         role: "student",
       },
-    }).catch(() => {/* non-fatal — user is still approved */});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
   }
 
   await logAudit({

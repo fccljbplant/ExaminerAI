@@ -14,6 +14,7 @@ import type { WeeklyTest, StatsResponse, Mode } from "@/components/examiner/stud
 import { PostTestReflection } from "@/components/examiner/student/PostTestReflection";
 import { TeachingFeedbackCard, type TeachingFeedback } from "@/components/examiner/student/TeachingFeedbackCard";
 import { TestChatUI } from "@/modules/assessment/components/TestChatUI";
+import { logger } from "@/lib/logger";
 import {
   Brain, Loader2, RefreshCw, ClipboardList, Sparkles, ShieldAlert,
   Send, Circle, CheckCircle2, AlertTriangle,
@@ -25,7 +26,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
   useEffect(() => {
     api.get<{ user: { role: string } | null }>("/api/auth/me").then((r) => {
       if (r.user) setUserRole(r.user.role);
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
   const isAdmin = ["administrator", "admin", "principal", "institution_admin", "platform_admin", "demo"].includes(userRole);
   // The student's course duration (defaults to 6 if not set — backward compat).

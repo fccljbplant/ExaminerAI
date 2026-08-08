@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logAudit } from "@/lib/audit-log";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/settings/ai-limits — returns the current AI rate-limit config
@@ -114,7 +115,7 @@ export async function POST(req: NextRequest) {
       target: { type: "system", id: "ai-limits" },
       after: updates,
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
 
     return NextResponse.json({
       ok: true,

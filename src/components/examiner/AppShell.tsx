@@ -55,6 +55,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UnifiedThemeToggle } from "@/modules/theme";
 import { NotificationBell } from "@/components/examiner/NotificationBell";
+import { logger } from "@/lib/logger";
 
 export type ViewKey =
   | "dashboard"
@@ -178,7 +179,7 @@ export default function AppShell() {
         }
         setNavConfig(map);
       })
-      .catch(() => {});
+      .catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
 
   const navigateTo = (newView: ViewKey) => {

@@ -33,6 +33,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 import {
   Users, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
@@ -78,7 +79,7 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
   useEffect(() => {
     api.get<{ user: { role: string } | null }>("/api/auth/me").then(res => {
       if (res.user?.role) setCurrentUserRole(res.user.role);
-    }).catch(() => {/* silent */});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
 
   // P1.3: Role-based tab visibility — different admin roles see different tabs

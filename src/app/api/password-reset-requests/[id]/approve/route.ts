@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, hashPassword } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/password-reset-requests/[id]/approve
@@ -100,7 +101,7 @@ export async function PATCH(
   await db.passwordResetRequest.update({
     where: { id },
     data: { status: "rejected", adminNote, resolvedAt: new Date() },
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json({ ok: true });
 }

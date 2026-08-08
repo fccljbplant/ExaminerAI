@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
       await db.aICache.update({
         where: { id: cached.id },
         data: { hitCount: { increment: 1 } },
-      }).catch(() => {/* non-critical */});
+      }).catch((err) => { logger.warn("Operation failed", { err }); });
       logger.info("Course generation: cache hit", { cacheKey, hitCount: cached.hitCount + 1 });
       return NextResponse.json({
         course: JSON.parse(cached.response),

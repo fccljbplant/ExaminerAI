@@ -7,6 +7,7 @@ import { getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import crypto from "crypto";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/certificates/generate — certificate request + approval flow.
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
       target: { type: "user", id: targetUserId },
       metadata: { requestId: request.id },
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
 
     return NextResponse.json({
       requested: true,
@@ -167,7 +168,7 @@ export async function POST(req: NextRequest) {
         target: { type: "user", id: targetUserId },
         metadata: { reason },
         req,
-      }).catch(() => {});
+      }).catch((err) => { logger.warn("Operation failed", { err }); });
       return NextResponse.json({ rejected: true, reason });
     }
 
@@ -217,7 +218,7 @@ export async function POST(req: NextRequest) {
       target: { type: "user", id: targetUserId },
       after: { grade, score: avgScore, certificateId: certificate.id },
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
 
     return NextResponse.json({
       certificate,

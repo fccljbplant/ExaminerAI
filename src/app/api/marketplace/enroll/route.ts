@@ -5,6 +5,7 @@ import { normalizeRole, UserRole } from "@/lib/rbac";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logAudit } from "@/lib/audit-log";
 import { sendEnrollmentConfirmation } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/marketplace/enroll — direct self-enrollment for students.
@@ -93,12 +94,12 @@ export async function POST(req: NextRequest) {
     after: { courseId, courseName: course.name, role: "student", source: "marketplace" },
     metadata: { source: "marketplace_self_enroll" },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   // 8) Best-effort enrollment confirmation notification (in-app bell).
   //    Fires after the response is committed to the audit log so a
   //    notification failure can never block the enrollment itself.
-  void sendEnrollmentConfirmation(payload.sub, course.name, courseId).catch(() => {});
+  void sendEnrollmentConfirmation(payload.sub, course.name, courseId).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json({ enrollment }, { status: 201 });
 }

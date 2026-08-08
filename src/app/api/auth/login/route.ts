@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth";
 import { normalizeRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
+import { logger } from "@/lib/logger";
 
 /** POST /api/auth/login — email/password login, sets JWT cookie. */
 export async function POST(req: NextRequest) {
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
     target: { type: "user", id: user.id },
     metadata: { email: user.email, ip: getClientIp(req) },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   const res = NextResponse.json({
     user: { id: user.id, email: user.email, name: user.name, role: canonicalRole },

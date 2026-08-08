@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getSelfPacedStatus, advanceDay } from "@/modules/self-paced";
 import { logAudit } from "@/lib/audit-log";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/self-paced — returns the student's self-paced status.
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     target: { type: "user", id: user.id },
     after: { week: result.week, day: result.day },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json({
     ok: true,

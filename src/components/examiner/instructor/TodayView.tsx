@@ -27,6 +27,7 @@ import type { StudentRow } from "@/components/examiner/instructor/types";
 import { ActionDialog, type ActionDialogData } from "@/components/shared/action-dialog";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface TodayViewProps {
   students: StudentRow[];
@@ -107,7 +108,7 @@ export function TodayView({ students, stats, alerts, onStudentClick, onViewChang
           alertId: actionDialogContext.alertId,
           status: "acknowledged",
           resolutionNote: note,
-        }).catch(() => {}); // non-fatal
+        }).catch((err) => { logger.warn("Operation failed", { err }); }); // non-fatal
       }
       setActionDialogOpen(false);
       setActionDialogData(null);

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { showError, showSuccess } from "@/lib/toast-helpers";
+import { logger } from "@/lib/logger";
 import {
   Loader2, Gauge, Bot, MessageCircle, FileText, ShieldCheck, Save, AlertTriangle,
 } from "lucide-react";
@@ -38,7 +39,7 @@ export function AILimitsPanel() {
   useEffect(() => {
     api.get<{ user: { role: string } | null }>("/api/auth/me").then(res => {
       if (res.user?.role) setCurrentUserRole(res.user.role);
-    }).catch(() => {/* silent */});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
 
   const isDemo = currentUserRole === "demo";

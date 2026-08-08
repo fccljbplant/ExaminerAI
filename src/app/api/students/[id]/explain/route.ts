@@ -95,7 +95,7 @@ export async function GET(
   const cached = await db.aICache.findUnique({ where: { cacheKey } });
   if (cached) {
     // Bump hit count
-    await db.aICache.update({ where: { id: cached.id }, data: { hitCount: { increment: 1 } } }).catch(() => {});
+    await db.aICache.update({ where: { id: cached.id }, data: { hitCount: { increment: 1 } } }).catch((err) => { logger.warn("Operation failed", { err }); });
     return NextResponse.json({ narrative: cached.response, cached: true });
   }
 
@@ -138,7 +138,7 @@ Write the narrative:`;
         response: narrative,
         createdAt: new Date(), // refresh timestamp
       },
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
 
     return NextResponse.json({ narrative, cached: false });
   } catch (err) {

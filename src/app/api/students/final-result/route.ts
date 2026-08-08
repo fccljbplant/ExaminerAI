@@ -7,6 +7,7 @@ import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseWeekPhase, getCourseDurationWeeks } from "@/lib/course-db";
+import { logger } from "@/lib/logger";
 
 /** GET /api/students/final-result — generates (or returns cached) final result
  *  for a student based on ALL their data across the full course duration.
@@ -237,7 +238,7 @@ Return ONLY a JSON object:
     action: AuditAction.FINAL_RESULT_GENERATED,
     target: { type: "user", id: targetUserId },
     after: { performanceScore, performanceGrade, careerReadiness: aiAnalysis?.careerReadiness },
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json({
     studentName: user.name,

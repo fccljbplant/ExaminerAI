@@ -26,6 +26,7 @@ import { UserAuditTab } from "@/components/examiner/instructor/UserAuditTab";
 import { StudentAITools } from "@/components/examiner/instructor/ai/StudentAITools";
 import { StudentBriefing } from "@/components/examiner/instructor/StudentBriefing";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
+import { logger } from "@/lib/logger";
 
 export function StudentPortfolioPage({
   student,
@@ -103,7 +104,7 @@ export function StudentPortfolioPage({
   useEffect(() => {
     api.get<{ user: { role: string } | null }>("/api/auth/me").then(res => {
       if (res.user?.role) setCurrentUserRole(res.user.role);
-    }).catch(() => {/* silent */});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
 
   const submitComment = async () => {
@@ -161,7 +162,7 @@ export function StudentPortfolioPage({
           type: "weeklyTest",
           id: wtCommentFor.testId,
           score: gradeNum,
-        }).catch(() => {}); // non-blocking — comment is the primary action
+        }).catch((err) => { logger.warn("Operation failed", { err }); }); // non-blocking — comment is the primary action
       }
       await api.post("/api/comments", payload);
       setWtCommentBody("");

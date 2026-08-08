@@ -50,6 +50,7 @@ import { CollapsibleCard, CardRefreshButton } from "@/components/shared/collapsi
 import MyCoursesView from "@/components/examiner/student/MyCoursesView";
 import { LearnerXPBar } from "@/modules/gamification";
 import { LearnerBadgeCollection } from "@/modules/gamification";
+import { logger } from "@/lib/logger";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   AreaChart, Area,
@@ -72,7 +73,7 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
   useEffect(() => {
     api.get<{ user: { id: string } | null }>("/api/auth/me").then(res => {
       if (res.user?.id) setUserId(res.user.id);
-    }).catch(() => {/* silent */});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
 
   const load = useCallback(async () => {

@@ -5,6 +5,7 @@ import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { scoreToGrade, gradeColor, PILLARS } from "@/lib/constants";
+import { logger } from "@/lib/logger";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
   Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, AlertCircle, RefreshCw,
@@ -53,7 +54,7 @@ export function FinalResultPanel() {
       careerReadiness: string;
     }>("/api/students/final-result")
       .then((r) => setData(r))
-      .catch(() => {})
+      .catch((err) => { logger.warn("Operation failed", { err }); })
       .finally(() => setLoading(false));
   }, []);
 

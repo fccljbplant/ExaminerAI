@@ -6,6 +6,7 @@ import { scoreToGrade } from "@/lib/constants";
 import { getCourseDurationWeeks } from "@/lib/course-db";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logAudit, AuditAction } from "@/lib/audit-log";
+import { logger } from "@/lib/logger";
 
 /** POST /api/students/[id]/generate-report-card — instructor/admin auto-generates
  *  a report card for a student based on their accumulated data (weekly tests,
@@ -144,7 +145,7 @@ export async function POST(
     target: { type: "user", id },
     after: { week, score: overallScore, grade },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json({
     ok: true,

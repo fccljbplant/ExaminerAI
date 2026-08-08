@@ -6,6 +6,7 @@ import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-
 import { logAudit } from "@/lib/audit-log";
 import { db } from "@/lib/db";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/students/[id]/comprehensive-report — generates (or returns cached)
@@ -74,7 +75,7 @@ export async function GET(
       target: { type: "user", id },
       metadata: { forceRegenerate, cached: report.cached },
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
   }
 
   return NextResponse.json({ report });
@@ -129,7 +130,7 @@ export async function PATCH(
       target: { type: "user", id },
       metadata: { reviewed },
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
 
     return NextResponse.json({ ok: true, reviewed });
   } catch {

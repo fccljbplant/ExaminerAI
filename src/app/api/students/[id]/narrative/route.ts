@@ -102,7 +102,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         where: { cacheKey },
         create: { cacheKey, response: text, provider: "deepseek" },
         update: { response: text, createdAt: new Date() },
-      }).catch(() => {});
+      }).catch((err) => { logger.warn("Operation failed", { err }); });
       narratives.push({ week, text, cached: false });
     } catch (err) {
       logger.warn("Narrative generation failed", { studentId: id, week, error: err instanceof Error ? err.message : String(err) });

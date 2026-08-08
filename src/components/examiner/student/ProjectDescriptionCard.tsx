@@ -18,6 +18,7 @@ import type {
   Interaction, CommentRow, StatsResponse, Mode, JourneyStep,
 } from "@/components/examiner/student/types";
 import { StatSquareCard, GanttChartIcon, GithubIcon, safeParse } from "@/components/examiner/student/shared";
+import { logger } from "@/lib/logger";
 
 export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: { onMode?: (m: Mode) => void; hasTasks?: boolean; onTasksGenerated?: () => void }) {
   const [project, setProject] = useState<{
@@ -48,7 +49,7 @@ export function ProjectDescriptionCard({ onMode, hasTasks, onTasksGenerated }: {
       projectDeployUrl: string | null;
     }>("/api/project/setup")
       .then(setProject)
-      .catch(() => {})
+      .catch((err) => { logger.warn("Operation failed", { err }); })
       .finally(() => setLoading(false));
   }, []);
 

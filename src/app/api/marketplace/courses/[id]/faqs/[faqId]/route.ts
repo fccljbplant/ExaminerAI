@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { normalizeRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
+import { logger } from "@/lib/logger";
 
 /**
  * PATCH /api/marketplace/courses/[id]/faqs/[faqId] — auth required (instructor/admin).
@@ -105,7 +106,7 @@ export async function PATCH(
     after: { faqId, fields: Object.keys(data) },
     metadata: { source: "marketplace" },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json({
     faq: {
@@ -185,7 +186,7 @@ export async function DELETE(
     after: { faqId },
     metadata: { source: "marketplace" },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json({ ok: true });
 }

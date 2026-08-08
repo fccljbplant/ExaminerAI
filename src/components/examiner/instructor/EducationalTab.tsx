@@ -20,6 +20,7 @@ import {
 import { useChartColors, tooltipStyle } from "@/lib/chart-theme";
 import type { PortfolioData } from "@/components/examiner/instructor/types";
 import { computeMasteryFromInteractions } from "@/components/examiner/instructor/computeMasteryFromInteractions";
+import { logger } from "@/lib/logger";
 
 export function EducationalTab({ portfolio }: { portfolio: PortfolioData }) {
   const [mastery, setMastery] = useState<{ id: string; topic: string; pillar: string; masteryLevel: string; evidenceCount: number; lastAssessedWeek: number | null; trend: string }[]>([]);
@@ -33,7 +34,7 @@ export function EducationalTab({ portfolio }: { portfolio: PortfolioData }) {
     setLoading(true);
     api.get<{ mastery: typeof mastery }>(`/api/skill-mastery?userId=${portfolio.student.id}`)
       .then((res) => setMastery(res.mastery || []))
-      .catch(() => {/* silent */})
+      .catch((err) => { logger.warn("Operation failed", { err }); })
       .finally(() => setLoading(false));
   }, [portfolio?.student?.id]);
 

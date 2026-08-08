@@ -552,7 +552,7 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
             conversation: JSON.stringify(conversation),
             completedAt: new Date(),
           },
-        }).catch(() => {/* Non-blocking — best-effort logging */});
+        }).catch((err) => { logger.warn("Operation failed", { err }); });
 
         // === Evidence-Locked XP — award for natural weekly test completion ===
         // Same logic as the early-finish path. Idempotent via refId=test.id.

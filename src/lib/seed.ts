@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { ensureAdminUser, ADMIN_EMAIL } from "./auth";
 import { WEEKLY_TOPICS } from "./course-topics";
+import { logger } from "@/lib/logger";
 import {
   DEFAULT_TEST_CONFIG,
   DEFAULT_REPORT_CARD_TEMPLATE,
@@ -28,7 +29,7 @@ export async function seedDatabase(): Promise<void> {
   db.user.update({
     where: { email: ADMIN_EMAIL },
     data: { role: "admin", approvedAt: new Date() },
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   // Ensure the default course exists
   let defaultCourseId: string | null = null;

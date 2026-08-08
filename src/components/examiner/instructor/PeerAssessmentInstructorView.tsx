@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { logger } from "@/lib/logger";
 import {
   Users, Clock, CheckCircle2, Loader2, ShieldCheck, TrendingUp, Mail, UserCheck,
   Award, AlertCircle, RefreshCw, FolderOpen, MessageSquare, ClipboardList,
@@ -20,7 +21,7 @@ export function PeerAssessmentInstructorView({ groupTaskId }: { groupTaskId: str
     setLoading(true);
     api.get<{ assessments: any[] }>(`/api/peer-assessment?groupTaskId=${groupTaskId}`)
       .then((res) => setAssessments(res.assessments || []))
-      .catch(() => {})
+      .catch((err) => { logger.warn("Operation failed", { err }); })
       .finally(() => setLoading(false));
   }, [groupTaskId]);
 

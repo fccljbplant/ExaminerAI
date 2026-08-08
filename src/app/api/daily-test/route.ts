@@ -355,7 +355,7 @@ DAILY TEST — SHORTER FORMAT:
             attempts: 0,
             lastScore: questionExplanation.score,
           },
-        }).catch(() => { /* non-blocking */ });
+        }).catch((err) => { logger.warn("Operation failed", { err }); });
       }
     }
 
@@ -402,10 +402,10 @@ DAILY TEST — SHORTER FORMAT:
           conversation: JSON.stringify(conversation),
           completedAt: new Date(),
         },
-      }).catch(() => {/* Non-blocking — best-effort logging */});
+      }).catch((err) => { logger.warn("Operation failed", { err }); });
 
       // MODERNIZED: transparent Learning Signal replaces the deleted psych pipeline
-      void recordLearningSignal(user.id).catch(() => { /* non-blocking */ });
+      void recordLearningSignal(user.id).catch((err) => { logger.warn("Operation failed", { err }); });
 
       return NextResponse.json({
         conversation, isComplete: true,
@@ -477,7 +477,7 @@ DAILY TEST — SHORTER FORMAT:
     });
 
     // MODERNIZED: transparent Learning Signal replaces the deleted psych pipeline
-    void recordLearningSignal(user.id).catch(() => { /* non-blocking */ });
+    void recordLearningSignal(user.id).catch((err) => { logger.warn("Operation failed", { err }); });
 
     // ── Evidence-Locked XP + Badges ──────────────────────────────
     // Award XP for daily test completion + check for badges.

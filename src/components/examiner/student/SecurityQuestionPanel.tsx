@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { logger } from "@/lib/logger";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,
   Loader2, Send, CheckCircle2, Circle, AlertTriangle, Sparkles, Brain, AlertCircle, RefreshCw,
@@ -32,7 +33,7 @@ export function SecurityQuestionPanel() {
       .then((res) => {
         if (res.user?.hasSecurityQuestion) setHasQuestion(true);
       })
-      .catch(() => {})
+      .catch((err) => { logger.warn("Operation failed", { err }); })
       .finally(() => setLoading(false));
   }, []);
 

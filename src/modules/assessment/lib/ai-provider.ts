@@ -93,7 +93,7 @@ export async function setAIKey(apiKey: string | null, provider: "zai" | "deepsee
   const { db } = await import("@/lib/db");
   const keyName = provider === "zai" ? "zai_api_key" : "deepseek_api_key";
   if (!apiKey) {
-    await db.setting.delete({ where: { key: keyName } }).catch(() => {});
+    await db.setting.delete({ where: { key: keyName } }).catch((err) => { logger.warn("Operation failed", { err }); });
     return;
   }
   await db.setting.upsert({
@@ -356,7 +356,7 @@ export async function callAI(
             promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
             success: true, durationMs: Date.now() - startedAt,
             userId: options?.userId,
-          }).catch(() => {});
+          }).catch((err) => { logger.warn("Operation failed", { err }); });
           maybeCache(text, promptTokens, completionTokens, DEEPSEEK_MODEL);
           return { text, provider: "deepseek", fallback: false, promptTokens, completionTokens, model: DEEPSEEK_MODEL, durationMs: Date.now() - startedAt };
         } else {
@@ -374,7 +374,7 @@ export async function callAI(
           success: false, durationMs: Date.now() - startedAt,
           errorMessage: e instanceof Error ? e.message : String(e),
           userId: options?.userId,
-        }).catch(() => {});
+        }).catch((err) => { logger.warn("Operation failed", { err }); });
       }
     }
   }
@@ -401,7 +401,7 @@ export async function callAI(
           promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
           success: true, durationMs: Date.now() - startedAt,
           userId: options?.userId,
-        }).catch(() => {});
+        }).catch((err) => { logger.warn("Operation failed", { err }); });
         maybeCache(text, promptTokens, completionTokens, ZAI_MODEL);
         return { text, provider: "zai", fallback: false, promptTokens, completionTokens, model: ZAI_MODEL, durationMs: Date.now() - startedAt };
       }
@@ -568,7 +568,7 @@ export async function streamAI(
             success: true,
             durationMs: Date.now() - startedAt,
             userId: options?.userId,
-          }).catch(() => {});
+          }).catch((err) => { logger.warn("Operation failed", { err }); });
         } catch (err) {
           // Mid-stream error — emit marker so client UI can fall back.
           const reason = err instanceof Error ? err.message : "stream-error";

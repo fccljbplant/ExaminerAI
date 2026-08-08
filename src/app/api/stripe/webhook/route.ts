@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifyWebhookSignature } from "@/lib/stripe";
 import { sendEnrollmentConfirmation } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   const payload = await req.text();
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
 
           // Send notification
           if (course) {
-            void sendEnrollmentConfirmation(userId, course.name, courseId).catch(() => {});
+            void sendEnrollmentConfirmation(userId, course.name, courseId).catch((err) => { logger.warn("Operation failed", { err }); });
           }
         }
       } catch (e) {

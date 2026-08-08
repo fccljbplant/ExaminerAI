@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { normalizeRole, UserRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/marketplace/courses/[id]/faqs — PUBLIC.
@@ -142,7 +143,7 @@ export async function POST(
     after: { faqId: faq.id, question: question.trim() },
     metadata: { source: "marketplace" },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
 
   return NextResponse.json(
     {

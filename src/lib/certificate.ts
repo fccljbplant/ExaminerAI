@@ -323,8 +323,8 @@ export async function issueCertificate(
 
     // 8) Notifications — fire-and-forget.
     const credentialId = certificate.credentialId ?? certificate.verifyToken;
-    void sendCredentialEarned(userId, course.name, credentialId).catch(() => {});
-    void sendMilestoneEarned(userId, `${course.name} — Course Completion`, courseId).catch(() => {});
+    void sendCredentialEarned(userId, course.name, credentialId).catch((err) => { logger.warn("Operation failed", { err }); });
+    void sendMilestoneEarned(userId, `${course.name} — Course Completion`, courseId).catch((err) => { logger.warn("Operation failed", { err }); });
 
     logger.info("Certificate auto-issued", {
       userId,

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireRole, UserRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit-log";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** PATCH /api/enrollments/[userId] — add or remove a course enrollment for a user.
  *  Body: { courseId: string, action: "enroll" | "unenroll", role?: string }
@@ -65,7 +66,7 @@ export async function PATCH(
       after: { courseId, courseName: course.name, role: targetRole },
       metadata: { userName: targetUser.name, userEmail: targetUser.email },
       req,
-    }).catch(() => {});
+    }).catch((err) => { logger.warn("Operation failed", { err }); });
     return NextResponse.json({ ok: true, action: "enrolled", courseId, role: targetRole });
   }
 
@@ -86,6 +87,6 @@ export async function PATCH(
     before: { courseId, courseName: course.name, role: targetRole },
     metadata: { userName: targetUser.name, userEmail: targetUser.email },
     req,
-  }).catch(() => {});
+  }).catch((err) => { logger.warn("Operation failed", { err }); });
   return NextResponse.json({ ok: true, action: "unenrolled", courseId });
 }

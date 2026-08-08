@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { gradeColor } from "@/lib/constants";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 // ============================================================
 // Types — mirror the /api/student/credentials response shape
@@ -157,7 +158,7 @@ export function CredentialsView() {
     // (and any milestones/notifications that came with it).
     api.get<CredentialsResponse>("/api/student/credentials")
       .then(setData)
-      .catch(() => {});
+      .catch((err) => { logger.warn("Operation failed", { err }); });
     toast.success("Certificate issued!", {
       description: "Your verified credential is now ready to share.",
     });

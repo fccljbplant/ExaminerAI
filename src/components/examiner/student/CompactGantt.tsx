@@ -13,6 +13,7 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
+import { logger } from "@/lib/logger";
 import type {
   Stats, WeeklyTest, Competency, ReportCardRow, DailyLog, Task,
   Interaction, CommentRow, StatsResponse, Mode, JourneyStep,
@@ -28,7 +29,7 @@ export function CompactGantt({ stats }: { stats: StatsResponse }) {
   useEffect(() => {
     api.get<{ weeks: { weekNumber: number; title: string }[] }>("/api/project/weeks")
       .then((res) => setProjectWeeks(res.weeks || []))
-      .catch(() => {});
+      .catch((err) => { logger.warn("Operation failed", { err }); });
   }, []);
   const weekTitleMap = new Map<number, string>();
   for (const pw of projectWeeks) weekTitleMap.set(pw.weekNumber, pw.title);
