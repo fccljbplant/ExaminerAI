@@ -8,9 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProminentTabs } from "@/components/shared/prominent-tabs";
+import { DashboardHeader } from "@/components/shared/dashboard-shell";
+import { StatCard } from "@/components/shared/stat-card";
+import { SkeletonPanel, EmptyState } from "@/components/ui/states";
+import { COPY } from "@/content/copy";
 import {
   CalendarDays, Users, ClipboardList, BarChart3,
-  Loader2, RefreshCw, AlertTriangle, Sparkles, Activity,
+  RefreshCw, AlertTriangle, Activity,
   Wallet,
 } from "lucide-react";
 import type { StudentRow } from "@/components/examiner/instructor/types";
@@ -133,33 +137,44 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="space-y-4">
+        <DashboardHeader
+          crumbs={[{ label: "Instructor" }]}
+          title="Loading dashboard…"
+          subtitle={COPY.mentorBrief}
+        />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonPanel key={i} lines={2} className="h-24" />
+            ))}
+          </div>
+          <SkeletonPanel lines={6} className="h-96" />
+        </div>
       </div>
     );
   }
 
   if (!loading && students.length === 0 && !stats) {
     return (
-      <div className="max-w-2xl mx-auto pt-8">
-        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-card">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
-              <Users className="h-8 w-8 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">No students assigned yet</h2>
-            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-              You don&apos;t have any students in this course yet. Once an administrator
- enrolls students to your courses, they&apos;ll appear here with their progress,
- wellbeing indicators, and action items.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+      <div className="space-y-4">
+        <DashboardHeader
+          crumbs={[{ label: "Instructor" }]}
+          title="Instructor Dashboard"
+          subtitle={COPY.mentorBrief}
+        />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+          <EmptyState
+            icon="👥"
+            title="No students assigned yet"
+            hint="You don't have any students in this course yet. Once an administrator enrolls students to your courses, they'll appear here with their progress, wellbeing indicators, and action items."
+            action={
               <Button variant="outline" size="sm" onClick={() => { load(); }}>
                 <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            }
+          />
+        </div>
       </div>
     );
   }
@@ -175,10 +190,12 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Instructor Dashboard</h1>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
+      <DashboardHeader
+        crumbs={[{ label: "Instructor" }]}
+        title="Instructor Dashboard"
+        subtitle={COPY.mentorBrief}
+        chips={
+          <div className="hidden sm:flex items-center gap-1.5">
             {stats && (
               <>
                 <Badge variant="outline" className="text-xs">
@@ -196,29 +213,52 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
                     {stats.pendingApprovals} pending
                   </Badge>
                 )}
-                {stats.testsThisWeek > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    <ClipboardList className="w-3 h-3 mr-1" />
-                    {stats.testsThisWeek} tests this week
-                  </Badge>
-                )}
-                {stats.totalActiveToday > 0 && (
-                  <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800">
-                    <Activity className="w-3 h-3 mr-1" />
-                    {stats.totalActiveToday} active today
-                  </Badge>
-                )}
               </>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-2">
+        }
+        actions={
           <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); load(); }} disabled={refreshing}>
             <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", refreshing && "animate-spin")} />
             Refresh
           </Button>
+        }
+      />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
+      {/* Stat strip — the at-a-glance numbers */}
+      {stats && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            label="Students"
+            value={stats.totalStudents}
+            icon={Users}
+            tone="info"
+            hint={`${stats.studentsWithProjects} with projects`}
+          />
+          <StatCard
+            label="Need Attention"
+            value={stats.studentsNeedingAttention}
+            icon={AlertTriangle}
+            tone={stats.studentsNeedingAttention > 0 ? "warning" : "success"}
+            hint="Flagged by AI triage"
+          />
+          <StatCard
+            label="Active Today"
+            value={stats.totalActiveToday}
+            icon={Activity}
+            tone={stats.totalActiveToday > 0 ? "success" : "default"}
+            hint="Logged in today"
+          />
+          <StatCard
+            label="Tests This Week"
+            value={stats.testsThisWeek}
+            icon={ClipboardList}
+            tone="default"
+            hint={`${stats.pendingApprovals} pending approvals`}
+          />
         </div>
-      </div>
+      )}
 
       <ProminentTabs
         tabs={TABS.map(item => ({
@@ -274,6 +314,7 @@ export default function InstructorDashboard({ initialTab, courseId }: { initialT
       )}
 
       {tab === "earnings" && <EarningsDashboard />}
+      </div>
     </div>
   );
 }

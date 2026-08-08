@@ -23,11 +23,14 @@ import {
 } from "@/components/ui/table";
 import {
   DollarSign, TrendingUp, Clock, Gauge,
-  RefreshCw, Loader2, AlertTriangle, Lightbulb,
+  RefreshCw, AlertTriangle, Lightbulb,
   CheckCircle2, Users,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
+import { DashboardHeader } from "@/components/shared/dashboard-shell";
+import { StatCard } from "@/components/shared/stat-card";
+import { SkeletonPanel, EmptyState, ErrorState } from "@/components/ui/states";
 
 type TraineeStatus = "on_track" | "needs_attention" | "at_risk" | "completed";
 
@@ -128,23 +131,38 @@ export function EmployerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="space-y-4">
+        <DashboardHeader
+          crumbs={[{ label: "Employer" }]}
+          title="Loading dashboard…"
+          subtitle="Fetching trainee progress and ROI"
+        />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <SkeletonPanel key={i} lines={2} className="h-24" />
+            ))}
+          </div>
+          <SkeletonPanel lines={6} className="h-96" />
+        </div>
       </div>
     );
   }
 
   if (error && !data) {
     return (
-      <Card className="border-destructive/30">
-        <CardContent className="p-6 text-center space-y-3">
-          <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
-          <p className="text-sm text-foreground">{error}</p>
-          <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); load(); }}>
-            <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Retry
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <DashboardHeader
+          crumbs={[{ label: "Employer" }]}
+          title="Employer Dashboard"
+        />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+          <ErrorState
+            message={error}
+            onRetry={() => { setRefreshing(true); load(); }}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -183,58 +201,43 @@ export function EmployerDashboard() {
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground">Employer Dashboard</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            B2B overview — sponsored trainee progress, ROI, and skill gaps.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => { setRefreshing(true); load(); }}
-          disabled={refreshing}
-        >
-          <RefreshCw className={refreshing ? "h-3.5 w-3.5 mr-1.5 animate-spin" : "h-3.5 w-3.5 mr-1.5"} />
-          Refresh
-        </Button>
-      </div>
+      <DashboardHeader
+        crumbs={[{ label: "Employer" }]}
+        title="Employer Dashboard"
+        subtitle="B2B overview — sponsored trainee progress, ROI, and skill gaps."
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setRefreshing(true); load(); }}
+            disabled={refreshing}
+          >
+            <RefreshCw className={refreshing ? "h-3.5 w-3.5 mr-1.5 animate-spin" : "h-3.5 w-3.5 mr-1.5"} />
+            Refresh
+          </Button>
+        }
+      />
 
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
       {/* Cohort summary strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-lg bg-card border border-border p-3">
-          <div className="text-[10px] text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Total Trainees</div>
-          <div className="text-xl font-bold text-foreground mt-0.5">{data.totalTrainees}</div>
-        </div>
-        <div className="rounded-lg bg-card border border-border p-3">
-          <div className="text-[10px] text-muted-foreground flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Active (3d)</div>
-          <div className="text-xl font-bold text-emerald-500 mt-0.5">{data.activeTrainees}</div>
-        </div>
-        <div className="rounded-lg bg-card border border-border p-3">
-          <div className="text-[10px] text-muted-foreground flex items-center gap-1"><Gauge className="h-3 w-3" /> Avg Completion</div>
-          <div className="text-xl font-bold text-foreground mt-0.5">{data.avgCompletionRate}%</div>
-        </div>
-        <div className="rounded-lg bg-card border border-border p-3">
-          <div className="text-[10px] text-muted-foreground flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Avg Score</div>
-          <div className="text-xl font-bold text-foreground mt-0.5">{data.avgScore}%</div>
-        </div>
+        <StatCard label="Total Trainees" value={data.totalTrainees} icon={Users} tone="info" />
+        <StatCard label="Active (3d)" value={data.activeTrainees} icon={CheckCircle2} tone="success" />
+        <StatCard label="Avg Completion" value={`${data.avgCompletionRate}%`} icon={Gauge} progress={data.avgCompletionRate} />
+        <StatCard label="Avg Score" value={`${data.avgScore}%`} icon={TrendingUp} />
       </div>
 
       {/* ROI Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {roiCards.map((c) => (
-          <Card key={c.label} className="bg-gradient-to-br from-card to-muted/30">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">{c.label}</span>
-                <span className={c.accent}>{c.icon}</span>
-              </div>
-              <div className="text-2xl font-bold text-foreground">{c.value}</div>
-              {c.sub && <div className="text-[10px] text-muted-foreground mt-0.5">{c.sub}</div>}
-            </CardContent>
-          </Card>
+          <StatCard
+            key={c.label}
+            label={c.label}
+            value={c.value}
+            hint={c.sub}
+            icon={c.icon as any}
+            tone={c.accent.includes("emerald") ? "success" : c.accent.includes("amber") ? "warning" : c.accent.includes("blue") ? "info" : "default"}
+          />
         ))}
       </div>
 
@@ -248,9 +251,11 @@ export function EmployerDashboard() {
         </CardHeader>
         <CardContent className="pt-0">
           {data.trainees.length === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground">
-              No sponsored trainees yet.
-            </div>
+            <EmptyState
+              icon="👥"
+              title="No sponsored trainees yet"
+              hint="Trainees you sponsor will appear here with their progress, scores, and status."
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -318,10 +323,11 @@ export function EmployerDashboard() {
         </CardHeader>
         <CardContent className="pt-0">
           {data.skillGaps.length === 0 ? (
-            <div className="py-6 text-center text-xs text-muted-foreground">
-              <CheckCircle2 className="h-6 w-6 text-emerald-500 mx-auto mb-1" />
-              No skill gaps detected — all topics are above 60% mastery.
-            </div>
+            <EmptyState
+              icon="✅"
+              title="No skill gaps detected"
+              hint="All topics are above 60% mastery across your sponsored trainees."
+            />
           ) : (
             <div className="space-y-2">
               {data.skillGaps.map((g) => (
@@ -353,6 +359,7 @@ export function EmployerDashboard() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
