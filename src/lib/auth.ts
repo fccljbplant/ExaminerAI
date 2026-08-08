@@ -166,7 +166,7 @@ export async function getCurrentUser() {
   } catch (err) {
     // H11-rel: Log DB timeouts — previously silent, which meant during a
     // partial DB outage every user appeared logged out with no trace.
-    console.error("getCurrentUser: DB lookup failed", err instanceof Error ? err.message : String(err));
+    logger.warn("getCurrentUser: DB lookup failed", { error: err instanceof Error ? err.message : String(err) });
     return null;
   }
 }

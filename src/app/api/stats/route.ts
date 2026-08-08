@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { getCourseProjectConfig } from "@/lib/course-db";
+import { logger } from "@/lib/logger";
 
 /** GET /api/stats — aggregated stats for the dashboard.
  *  - For students: their own progress, streak, weakest topic, etc.
@@ -313,7 +314,7 @@ export async function GET(req: NextRequest) {
       }
     } catch (err) {
       // M3-rel: log self-healing failures (was silent)
-      console.error("stats self-healing failed:", err instanceof Error ? err.message : String(err));
+      logger.warn("stats self-healing failed", { error: err instanceof Error ? err.message : String(err) });
     }
   }
 

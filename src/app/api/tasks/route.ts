@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** GET /api/tasks?week=3 — list tasks for current user, optionally by week. */
 export async function GET(req: NextRequest) {
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ task });
   } catch (err) {
-    console.error("[POST /api/tasks] Create failed:", err);
+    logger.error("[POST /api/tasks] Create failed", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: "Failed to create task. The database might be missing required columns. Please contact support.", details: err instanceof Error ? err.message : String(err) },
       { status: 500 }
@@ -158,7 +159,7 @@ export async function PATCH(req: NextRequest) {
     });
     return NextResponse.json({ task });
   } catch (err) {
-    console.error("[PATCH /api/tasks] Update failed:", err);
+    logger.error("[PATCH /api/tasks] Update failed", { error: err instanceof Error ? err.message : String(err) });
     // Check if it's a "record not found" error vs a schema/column error
     const errMsg = err instanceof Error ? err.message : String(err);
     if (errMsg.includes("record not found") || errMsg.includes("P2025")) {
@@ -200,7 +201,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Task not found or not owned by user" }, { status: 404 });
     }
   } catch (err) {
-    console.error("[DELETE /api/tasks] Verify failed:", err);
+    logger.error("[DELETE /api/tasks] Verify failed", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Task lookup failed" }, { status: 500 });
   }
 
@@ -213,7 +214,7 @@ export async function DELETE(req: NextRequest) {
   try {
     await db.projectTask.delete({ where: { id, userId: user.id } });
   } catch (err) {
-    console.error("[DELETE /api/tasks] Delete failed:", err);
+    logger.error("[DELETE /api/tasks] Delete failed", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Task not found or not owned by user" }, { status: 404 });
   }
   return NextResponse.json({ ok: true });

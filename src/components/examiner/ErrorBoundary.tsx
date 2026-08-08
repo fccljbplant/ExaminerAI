@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { logger } from "@/lib/logger";
 
 interface State {
   hasError: boolean;
@@ -30,7 +31,7 @@ export default class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("[ErrorBoundary] Caught:", error, errorInfo);
+    logger.error("[ErrorBoundary] Caught", { error: error?.message, errorInfo });
   }
 
   handleRetry = () => {

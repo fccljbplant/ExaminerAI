@@ -114,6 +114,6 @@ export async function DELETE(req: NextRequest) {
   const { role } = body as { role?: string };
   if (!role) return NextResponse.json({ error: "role required" }, { status: 400 });
 
-  await db.roleNavConfig.delete({ where: { role } }).catch(err => console.error("Failed to delete role nav config:", err instanceof Error ? err.message : String(err)));
+  await db.roleNavConfig.delete({ where: { role } }).catch((err: unknown) => logger.warn("Failed to delete role nav config", { error: err instanceof Error ? err.message : String(err) }));
   return NextResponse.json({ ok: true });
 }

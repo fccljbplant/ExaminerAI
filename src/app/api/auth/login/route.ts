@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   // Best-effort admin ensure — don't block login if DB is read-only.
   try { await ensureAdminUser(); } catch (err) {
     // Log but don't block login — admin user creation is best-effort
-    console.error("Failed to ensure admin user exists:", err instanceof Error ? err.message : String(err));
+    logger.warn("Failed to ensure admin user exists", { error: err instanceof Error ? err.message : String(err) });
   }
 
   const user = await db.user.findUnique({ where: { email } });
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   db.user.update({
     where: { id: user.id },
     data: { lastLogin: new Date() },
-  }).catch(err => console.error("Failed to update lastLogin:", err instanceof Error ? err.message : String(err)));
+  }).catch((err: unknown) => logger.warn("Failed to update lastLogin", { error: err instanceof Error ? err.message : String(err) }));
 
   // Normalize the role — legacy aliases like 'admin' → 'platform_admin',
   // 'institution_admin' → 'org_admin', 'student' → 'learner'.
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     db.user.update({
       where: { id: user.id },
       data: { role: canonicalRole },
-    }).catch(err => console.error("Failed to normalize user role:", err instanceof Error ? err.message : String(err)));
+    }).catch((err: unknown) => logger.warn("Failed to normalize user role", { error: err instanceof Error ? err.message : String(err) }));
   }
 
   const token = signToken({

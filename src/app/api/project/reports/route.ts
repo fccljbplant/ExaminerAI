@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { demoWriteBlock } from "@/lib/demo-guard";
+import { logger } from "@/lib/logger";
 
 /** GET /api/project/reports — list all project reports for the current user. */
 export async function GET() {
@@ -142,7 +143,7 @@ Example:
       return NextResponse.json({ report: { ...updated, aiAnalysis: sanitized } });
     }
   } catch (err) {
-    console.error("[project/reports] AI analysis failed:", err);
+    logger.error("[project/reports] AI analysis failed", { error: err instanceof Error ? err.message : String(err) });
   }
 
   // Return the report without analysis if AI failed
@@ -169,7 +170,7 @@ export async function DELETE(req: NextRequest) {
     if (err?.code === "P2025") {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
-    console.error("project/reports DELETE failed:", err instanceof Error ? err.message : String(err));
+    logger.error("project/reports DELETE failed", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Failed to delete report" }, { status: 500 });
   }
   return NextResponse.json({ ok: true });

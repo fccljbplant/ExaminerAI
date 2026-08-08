@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (e) {
-        console.error("[stripe webhook] Error processing payment:", e);
+        logger.error("[stripe webhook] Error processing payment", { error: e instanceof Error ? e.message : String(e) });
       }
     }
   }
