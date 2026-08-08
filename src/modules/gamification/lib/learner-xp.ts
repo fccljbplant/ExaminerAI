@@ -143,7 +143,7 @@ function parseJourney(raw: string | null | undefined): XPAwardEntry[] {
 function serializeJourney(existing: unknown[], xpEntries: XPAwardEntry[]): string {
   // Keep non-XP entries (the field may be used for other journey data too).
   const nonXp = existing.filter(
-    (item) => typeof item !== "object" || item === null || (item as any).type !== "xp",
+    (item) => typeof item !== "object" || item === null || (item as { type?: string }).type !== "xp",
   );
   return JSON.stringify([...nonXp, ...xpEntries]);
 }

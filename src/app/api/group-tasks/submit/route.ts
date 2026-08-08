@@ -123,8 +123,8 @@ export async function PATCH(req: NextRequest) {
   }
   try {
     await assertCanAccessStudent({ sub: user.id, role: user.role, name: user.name, email: user.email }, existingSubmission.userId);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   const submission = await db.groupTaskSubmission.update({

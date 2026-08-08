@@ -118,8 +118,8 @@ export function InsightsView({ students, stats, alerts, onStudentClick, courseId
     try {
       const res = await api.post<{ answer: string }>("/api/instructor/assistant", { question: assistantQuery }, AI_TIMEOUT_MS);
       setAssistantAnswer(res.answer);
-    } catch (e: any) {
-      setAssistantAnswer(`Unable to get AI insight: ${e.message}`);
+    } catch (e) {
+      setAssistantAnswer(`Unable to get AI insight: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setAssistantLoading(false);
     }

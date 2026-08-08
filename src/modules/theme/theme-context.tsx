@@ -74,7 +74,7 @@ function colorsToCssVars(colors: ThemeColors): string {
     sidebarRing: "--sidebar-ring",
   };
   return Object.entries(map)
-    .map(([key, varName]) => `${varName}: ${(colors as any)[key]};`)
+    .map(([key, varName]) => `${varName}: ${(colors as unknown as Record<string, string>)[key]};`)
     .join("\n  ");
 }
 

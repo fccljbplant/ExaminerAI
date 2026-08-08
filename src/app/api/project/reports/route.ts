@@ -164,10 +164,10 @@ export async function DELETE(req: NextRequest) {
 
   try {
     await db.projectReport.delete({ where: { id, userId: user.id } });
-  } catch (err: any) {
+  } catch (err) {
     // M5-rel: Distinguish "not found" from real DB errors.
     // Prisma P2025 = record not found → 404. Other errors → 500.
-    if (err?.code === "P2025") {
+    if (err instanceof Error && err.message.includes("P2025")) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
     logger.error("project/reports DELETE failed", { error: err instanceof Error ? err.message : String(err) });

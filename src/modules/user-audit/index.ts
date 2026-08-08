@@ -30,9 +30,9 @@ export interface AuditTrailEntry {
   action: string;
   targetType: string;
   targetId: string;
-  before: any;
-  after: any;
-  metadata: any;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
   ipAddress: string | null;
   createdAt: string;
   direction: "by" | "about";
@@ -114,9 +114,9 @@ export async function getUserAuditTrail(
   ]);
 
   const entries: AuditTrailEntry[] = logs.map(log => {
-    let before: any = null;
-    let after: any = null;
-    let metadata: any = null;
+    let before: Record<string, unknown> | null = null;
+    let after: Record<string, unknown> | null = null;
+    let metadata: Record<string, unknown> | null = null;
     try { if (log.beforeJson) before = JSON.parse(log.beforeJson); } catch { /* keep null */ }
     try { if (log.afterJson) after = JSON.parse(log.afterJson); } catch { /* keep null */ }
     try { if (log.metadata) metadata = JSON.parse(log.metadata); } catch { /* keep null */ }

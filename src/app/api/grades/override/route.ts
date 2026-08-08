@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
       // IDOR protection: verify the caller can access this student's data
       try {
         await assertCanAccessStudent(ctx.payload, interaction.userId);
-      } catch (err: any) {
-        return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+      } catch (err) {
+        return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
       }
       // H4-rel: wrap grade override + comment in a transaction so a
       // comment failure doesn't leave the grade changed with no audit trail.
@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
       // IDOR protection: verify the caller can access this student's data
       try {
         await assertCanAccessStudent(ctx.payload, test.userId);
-      } catch (err: any) {
-        return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+      } catch (err) {
+        return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
       }
       await db.weeklyTest.update({ where: { id }, data: { score } });
       await logAudit({
@@ -77,8 +77,8 @@ export async function POST(req: NextRequest) {
       const oldScore = test.score;
       try {
         await assertCanAccessStudent(ctx.payload, test.userId);
-      } catch (err: any) {
-        return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+      } catch (err) {
+        return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
       }
       await db.dailyTest.update({ where: { id }, data: { score } });
       await logAudit({

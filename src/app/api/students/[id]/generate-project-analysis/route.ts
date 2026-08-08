@@ -34,8 +34,8 @@ export async function POST(
   // The import was already here but the call was missing.
   try {
     await assertCanAccessStudent(payload, studentId);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   // Load all student data needed for the analysis

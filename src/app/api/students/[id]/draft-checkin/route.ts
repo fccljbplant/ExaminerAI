@@ -37,8 +37,8 @@ export async function POST(
   // IDOR protection
   try {
     await assertCanAccessStudent(payload, id);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   // Demo AI enable/disable check (admin-configurable)

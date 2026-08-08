@@ -18,8 +18,8 @@ async function verifyDailyLogOwnership(payload: { sub: string; role: string; ema
   }
   try {
     await assertCanAccessStudent(payload, log.userId);
-  } catch (err: any) {
-    return { error: NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 }) };
+  } catch (err) {
+    return { error: NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 }) };
   }
   return { userId: log.userId };
 }

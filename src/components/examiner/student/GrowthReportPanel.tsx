@@ -51,12 +51,12 @@ export function GrowthReportPanel({ studentId }: GrowthReportPanelProps) {
       setError(null);
       const res = await api.get<{ report: GrowthReport }>(`/api/growth-reports/${studentId}`, undefined, AI_TIMEOUT_MS);
       setReport(res.report);
-    } catch (e: any) {
+    } catch (e) {
       // 404 means no report yet — that's OK, we'll show a "generate" CTA
-      if (e?.status === 404) {
+      if (e instanceof Error && e.message.includes("404")) {
         setReport(null);
       } else {
-        setError(e?.message || "Failed to load growth report");
+        setError(e instanceof Error ? e.message : "Failed to load growth report");
       }
     } finally {
       setLoading(false);
@@ -71,8 +71,8 @@ export function GrowthReportPanel({ studentId }: GrowthReportPanelProps) {
       const res = await api.get<{ report: GrowthReport }>(`/api/growth-reports/${studentId}`, undefined, AI_TIMEOUT_MS);
       setReport(res.report);
       showSuccess("Growth report generated. This is your private, honest reflection — share it with a mentor, not an employer.");
-    } catch (e: any) {
-      showError(e?.message || "Failed to generate growth report. You may need to complete more of the course first.");
+    } catch (e) {
+      showError(e instanceof Error ? e.message : "Failed to generate growth report. You may need to complete more of the course first.");
     } finally {
       setGenerating(false);
     }

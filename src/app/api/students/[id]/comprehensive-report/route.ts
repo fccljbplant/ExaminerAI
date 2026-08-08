@@ -36,8 +36,8 @@ export async function GET(
   if (!isPrivileged && payload.sub !== id) {
     try {
       await assertCanAccessStudent(payload, id);
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
   }
 
@@ -105,8 +105,8 @@ export async function PATCH(
   }
 
   // IDOR check
-  try { await assertCanAccessStudent(payload, id); } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  try { await assertCanAccessStudent(payload, id); } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   // Update the cache entry's 'reviewed' field

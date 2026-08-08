@@ -36,8 +36,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (normalizeRole(payload.role) === UserRole.LEARNER) return NextResponse.json({ error: "Staff only" }, { status: 403 });
 
   const { id } = await params;
-  try { await assertCanAccessStudent(payload, id); } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  try { await assertCanAccessStudent(payload, id); } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   // Demo AI enable/disable check (admin-configurable)

@@ -32,8 +32,8 @@ export async function POST(
   // IDOR protection: verify the caller can access this student's data
   try {
     await assertCanAccessStudent(payload, id);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -94,8 +94,8 @@ export async function DELETE(
   // IDOR protection: verify the caller can access this student's data
   try {
     await assertCanAccessStudent(payload, id);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   const week = Number(req.nextUrl.searchParams.get("week") ?? "0");

@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
   if (userIdParam && (isStaffRole(payload.role))) {
     targetUserId = userIdParam;
     // IDOR protection
-    try { await assertCanAccessStudent(payload, targetUserId); } catch (err: any) {
-      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    try { await assertCanAccessStudent(payload, targetUserId); } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
   }
   const interactions = await db.interaction.findMany({

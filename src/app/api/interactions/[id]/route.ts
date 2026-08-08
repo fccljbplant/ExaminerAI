@@ -17,8 +17,8 @@ async function verifyInteractionOwnership(payload: { sub: string; role: string; 
   }
   try {
     await assertCanAccessStudent(payload, interaction.userId);
-  } catch (err: any) {
-    return { error: NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 }) };
+  } catch (err) {
+    return { error: NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 }) };
   }
   return { userId: interaction.userId };
 }

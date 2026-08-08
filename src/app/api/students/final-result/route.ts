@@ -35,8 +35,8 @@ export async function GET(req: Request) {
   if (targetUserId !== payload.sub) {
     try {
       await assertCanAccessStudent(payload, targetUserId);
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
   }
 

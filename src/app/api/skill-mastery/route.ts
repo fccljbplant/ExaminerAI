@@ -35,8 +35,8 @@ export async function GET(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
 
   // IDOR protection
-  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  try { await assertCanAccessStudent(auth.ctx.payload, userId); } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   try {

@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
   if (payload.sub !== studentId) {
     try {
       await assertCanAccessStudent(payload, studentId);
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
   }
 
@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
   // IDOR protection: verify the caller can access this student
   try {
     await assertCanAccessStudent(payload, studentId);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
   const comment = await db.comment.create({

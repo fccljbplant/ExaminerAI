@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
   if (userIdParam && (isStaffRole(payload.role))) {
     targetUserId = userIdParam;
     // IDOR protection
-    try { await assertCanAccessStudent(payload, targetUserId); } catch (err: any) {
-      return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+    try { await assertCanAccessStudent(payload, targetUserId); } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
   }
   const cards = await db.reportCard.findMany({
@@ -41,8 +41,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "userId and week required" }, { status: 400 });
   }
   // IDOR protection
-  try { await assertCanAccessStudent(payload, String(userId)); } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Access denied" }, { status: err.status || 403 });
+  try { await assertCanAccessStudent(payload, String(userId)); } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
   // Input validation — prevent resource exhaustion
   const MAX_TEXT = 10_000;

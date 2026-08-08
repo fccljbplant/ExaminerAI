@@ -31,7 +31,7 @@ export async function deleteProjectReport(reportId: string, userId: string): Pro
     await db.projectReport.delete({ where: { id: reportId } });
     return { ok: true };
   } catch (err) {
-    if ((err as any)?.code === "P2025") return { ok: false, error: "Report not found" };
+    if (err instanceof Error && err.message.includes("P2025")) return { ok: false, error: "Report not found" };
     logger.error("Failed to delete report", { reportId, error: err instanceof Error ? err.message : String(err) });
     return { ok: false, error: "Failed to delete report" };
   }

@@ -69,18 +69,26 @@ export function getBadge(badgeId: string): BadgeDef | null {
 }
 
 // ── Journey storage (shared with XP system) ────────────────────
+interface XPAwardEntry {
+  type: "xp";
+  reason: string;
+  refId?: string;
+  amount: number;
+  at: string;
+}
+
 interface BadgeAwardEntry {
   type: "badge";
   badgeId: string;
   awardedAt: string;
 }
 
-function parseJourney(raw: string | null | undefined): { xp: any[]; badges: BadgeAwardEntry[]; other: unknown[] } {
+function parseJourney(raw: string | null | undefined): { xp: XPAwardEntry[]; badges: BadgeAwardEntry[]; other: unknown[] } {
   if (!raw) return { xp: [], badges: [], other: [] };
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return { xp: [], badges: [], other: [] };
-    const xp: any[] = [];
+    const xp: XPAwardEntry[] = [];
     const badges: BadgeAwardEntry[] = [];
     const other: unknown[] = [];
     for (const item of parsed) {
@@ -95,7 +103,7 @@ function parseJourney(raw: string | null | undefined): { xp: any[]; badges: Badg
   }
 }
 
-function serializeJourney(xp: any[], badges: BadgeAwardEntry[], other: unknown[]): string {
+function serializeJourney(xp: XPAwardEntry[], badges: BadgeAwardEntry[], other: unknown[]): string {
   return JSON.stringify([...other, ...xp, ...badges]);
 }
 

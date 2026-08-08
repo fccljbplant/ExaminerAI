@@ -774,8 +774,8 @@ function EnrollDialog({ userId, onClose, onEnrolled }: {
     try {
       await api.patch(`/api/enrollments/${userId}`, { courseId, action: "enroll", role: "student" });
       onEnrolled();
-    } catch (e: any) {
-      setError(e?.message || "Failed to enroll");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to enroll");
     } finally {
       setBusy(null);
     }
