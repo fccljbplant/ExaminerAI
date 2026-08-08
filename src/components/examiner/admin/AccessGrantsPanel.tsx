@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import {
   Users, ShieldAlert, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
@@ -59,36 +60,36 @@ export function AccessGrantsPanel() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-muted-foreground text-xs">
-                    <th className="text-left py-2 px-2 font-medium">Grantee</th>
-                    <th className="text-left py-2 px-2 font-medium">Scope</th>
-                    <th className="text-left py-2 px-2 font-medium">Data scope</th>
-                    <th className="text-left py-2 px-2 font-medium hidden md:table-cell">Granted</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b border-border text-muted-foreground text-xs">
+                    <TableHead className="text-left py-2 px-2 font-medium">Grantee</TableHead>
+                    <TableHead className="text-left py-2 px-2 font-medium">Scope</TableHead>
+                    <TableHead className="text-left py-2 px-2 font-medium">Data scope</TableHead>
+                    <TableHead className="text-left py-2 px-2 font-medium hidden md:table-cell">Granted</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {grants.map((g: AccessGrant) => {
                     const scope = dataScopeLabel(g.dataScope);
                     return (
-                      <tr key={g.id} className="border-b border-border hover:bg-muted/30">
-                        <td className="py-2 px-2">
+                      <TableRow key={g.id} className="border-b border-border hover:bg-muted/30">
+                        <TableCell className="py-2 px-2">
                           <div className="text-xs font-medium text-foreground">{g.grantee?.name ?? "—"}</div>
                           <div className="text-[10px] text-muted-foreground">{g.grantee?.email}</div>
                           <div className="text-[10px] text-muted-foreground">{g.grantee?.role}</div>
-                        </td>
-                        <td className="py-2 px-2">
+                        </TableCell>
+                        <TableCell className="py-2 px-2">
                           <div className="text-xs text-foreground">{g.scopeType}</div>
                           <div className="text-[10px] text-muted-foreground font-mono">{g.scopeId.slice(0, 12)}…</div>
-                        </td>
-                        <td className="py-2 px-2"><Badge variant="outline" className={`text-[9px] ${scope.color}`}>{scope.label}</Badge></td>
-                        <td className="py-2 px-2 text-xs text-muted-foreground hidden md:table-cell">{new Date(String(g.grantedAt || g.createdAt)).toLocaleDateString()}</td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="py-2 px-2"><Badge variant="outline" className={`text-[9px] ${scope.color}`}>{scope.label}</Badge></TableCell>
+                        <TableCell className="py-2 px-2 text-xs text-muted-foreground hidden md:table-cell">{new Date(String(g.grantedAt || g.createdAt)).toLocaleDateString()}</TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

@@ -31,6 +31,7 @@ import {
 import { DashboardHeader } from "@/components/shared/dashboard-shell";
 import { StatCard, StatStrip } from "@/components/shared/stat-card";
 import { SkeletonPanel, EmptyState } from "@/components/ui/states";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { COPY } from "@/content/copy";
 import { OrgCourseAssigner } from "@/modules/b2b";
 
@@ -237,31 +238,31 @@ export default function OrgAdminDashboard() {
               />
             ) : (
               <div className="overflow-x-auto -mx-2">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-xs text-muted-foreground border-b">
-                      <th className="text-left py-2 px-2 font-medium">Name</th>
-                      <th className="text-left px-2 font-medium">Email</th>
-                      <th className="text-left px-2 font-medium">Role</th>
-                      <th className="text-center px-2 font-medium">Seat</th>
-                      <th className="text-left px-2 font-medium">Last Active</th>
-                      <th className="px-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full text-sm">
+                  <TableHeader>
+                    <TableRow className="text-xs text-muted-foreground border-b">
+                      <TableHead className="text-left py-2 px-2 font-medium">Name</TableHead>
+                      <TableHead className="text-left px-2 font-medium">Email</TableHead>
+                      <TableHead className="text-left px-2 font-medium">Role</TableHead>
+                      <TableHead className="text-center px-2 font-medium">Seat</TableHead>
+                      <TableHead className="text-left px-2 font-medium">Last Active</TableHead>
+                      <TableHead className="px-2"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {data.members.map(m => (
-                      <tr key={m.id} className="border-b last:border-0 hover:bg-muted/40 transition">
-                        <td className="py-2.5 px-2 font-medium text-foreground">{m.user.name}</td>
-                        <td className="px-2 text-muted-foreground">
+                      <TableRow key={m.id} className="border-b last:border-0 hover:bg-muted/40 transition">
+                        <TableCell className="py-2.5 px-2 font-medium text-foreground">{m.user.name}</TableCell>
+                        <TableCell className="px-2 text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
                             <Mail className="h-3 w-3" />
                             {m.user.email}
                           </span>
-                        </td>
-                        <td className="px-2">
+                        </TableCell>
+                        <TableCell className="px-2">
                           <Badge variant="outline" className="capitalize">{m.role}</Badge>
-                        </td>
-                        <td className="px-2 text-center">
+                        </TableCell>
+                        <TableCell className="px-2 text-center">
                           <button
                             type="button"
                             onClick={() => toggleSeat(m.id, m.seat)}
@@ -273,11 +274,11 @@ export default function OrgAdminDashboard() {
                               ? <CheckCircle2 className="h-4 w-4 text-growth-sage" />
                               : <XCircle className="h-4 w-4 text-muted-foreground" />}
                           </button>
-                        </td>
-                        <td className="px-2 text-xs text-muted-foreground">
+                        </TableCell>
+                        <TableCell className="px-2 text-xs text-muted-foreground">
                           {m.user.lastLogin ? new Date(m.user.lastLogin).toLocaleDateString() : "—"}
-                        </td>
-                        <td className="px-2 text-right">
+                        </TableCell>
+                        <TableCell className="px-2 text-right">
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <button
@@ -308,11 +309,11 @@ export default function OrgAdminDashboard() {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>

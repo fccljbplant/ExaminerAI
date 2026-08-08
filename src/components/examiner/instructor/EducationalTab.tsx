@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import {
   Users, Clock, CheckCircle2, Loader2, ShieldCheck, TrendingUp, Mail, UserCheck,
   Award, AlertCircle, RefreshCw, FolderOpen, MessageSquare, ClipboardList,
@@ -270,26 +271,26 @@ export function EducationalTab({ portfolio }: { portfolio: PortfolioData }) {
         <CardHeader><CardTitle className="text-base text-foreground">Week-by-Week</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground">
-                  <th className="text-left py-1.5 px-2 font-medium">Week</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Test Score</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Practice Avg</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Practice Count</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-xs">
+              <TableHeader>
+                <TableRow className="border-b border-border text-muted-foreground">
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Week</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Test Score</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Practice Avg</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Practice Count</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {weekChartData.map(w => (
-                  <tr key={w.week} className="border-b border-border">
-                    <td className="py-1.5 px-2 text-foreground">{w.week}</td>
-                    <td className="py-1.5 px-2 text-foreground">{w.weeklyTest ?? "—"}</td>
-                    <td className="py-1.5 px-2 text-foreground">{w.practice ?? "—"}</td>
-                    <td className="py-1.5 px-2 text-muted-foreground">{w.practiceCount}</td>
-                  </tr>
+                  <TableRow key={w.week} className="border-b border-border">
+                    <TableCell className="py-1.5 px-2 text-foreground">{w.week}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-foreground">{w.weeklyTest ?? "—"}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-foreground">{w.practice ?? "—"}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-muted-foreground">{w.practiceCount}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

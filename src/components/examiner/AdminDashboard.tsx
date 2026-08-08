@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 import {
@@ -420,27 +421,27 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-muted-foreground text-xs">
-                    <th className="text-left py-2 px-3">Name</th>
-                    <th className="text-left py-2 px-3 hidden sm:table-cell">Email</th>
-                    <th className="text-left py-2 px-3">Role</th>
-                    <th className="text-left py-2 px-3 hidden lg:table-cell">Courses</th>
-                    <th className="text-left py-2 px-3 hidden md:table-cell">Project</th>
-                    <th className="text-left py-2 px-3 hidden md:table-cell">Last Login</th>
-                    <th className="text-left py-2 px-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b border-border text-muted-foreground text-xs">
+                    <TableHead className="text-left py-2 px-3">Name</TableHead>
+                    <TableHead className="text-left py-2 px-3 hidden sm:table-cell">Email</TableHead>
+                    <TableHead className="text-left py-2 px-3">Role</TableHead>
+                    <TableHead className="text-left py-2 px-3 hidden lg:table-cell">Courses</TableHead>
+                    <TableHead className="text-left py-2 px-3 hidden md:table-cell">Project</TableHead>
+                    <TableHead className="text-left py-2 px-3 hidden md:table-cell">Last Login</TableHead>
+                    <TableHead className="text-left py-2 px-3">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {users.map((u) => (
-                    <tr key={u.id} className={`border-b border-border hover:bg-muted/50 ${u.blocked ? "opacity-50" : ""}`}>
-                      <td className="py-2 px-3 text-foreground font-medium">
+                    <TableRow key={u.id} className={`border-b border-border hover:bg-muted/50 ${u.blocked ? "opacity-50" : ""}`}>
+                      <TableCell className="py-2 px-3 text-foreground font-medium">
                         {u.name}
                         {u.blocked && <Badge variant="outline" className="ml-2 text-[9px] text-destructive border-destructive/30 bg-destructive/5">Blocked</Badge>}
-                      </td>
-                      <td className="py-2 px-3 text-muted-foreground hidden sm:table-cell">{u.email}</td>
-                      <td className="py-2 px-3">
+                      </TableCell>
+                      <TableCell className="py-2 px-3 text-muted-foreground hidden sm:table-cell">{u.email}</TableCell>
+                      <TableCell className="py-2 px-3">
                         <Select value={u.role || "learner"} onValueChange={(r) => changeRole(u.id, r)} disabled={busy === u.id || u.email === "admin@examiner.ai" || currentUserRole === "demo"}>
                           <SelectTrigger className="bg-muted border-border h-7 text-xs w-36"><SelectValue /></SelectTrigger>
                           <SelectContent>
@@ -451,8 +452,8 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                             <SelectItem value="demo">Demo (read-only)</SelectItem>
                           </SelectContent>
                         </Select>
-                      </td>
-                      <td className="py-2 px-3 hidden lg:table-cell">
+                      </TableCell>
+                      <TableCell className="py-2 px-3 hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
                           {normalizeRole(u.role) === "learner" && enrollmentsMap[u.id]?.length > 0 ? (
                             enrollmentsMap[u.id].map((enr, ei) => (
@@ -485,10 +486,10 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                             </Button>
                           )}
                         </div>
-                      </td>
-                      <td className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.projectName || "—"}</td>
-                      <td className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "—"}</td>
-                      <td className="py-2 px-3">
+                      </TableCell>
+                      <TableCell className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.projectName || "—"}</TableCell>
+                      <TableCell className="py-2 px-3 text-muted-foreground hidden md:table-cell text-xs">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "—"}</TableCell>
+                      <TableCell className="py-2 px-3">
                         <div className="flex gap-1">
                           {u.email !== "admin@examiner.ai" && currentUserRole !== "demo" && (
                             <>
@@ -509,11 +510,11 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
                             <span className="text-[10px] text-muted-foreground italic px-2">read-only</span>
                           )}
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
             {/* Pagination controls */}
             {pagination.totalPages > 1 && (

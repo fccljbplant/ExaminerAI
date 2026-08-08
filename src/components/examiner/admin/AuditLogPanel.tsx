@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import {
   Users, ShieldAlert, Loader2, Trash2, RefreshCw, Database, Key, Bug, Terminal,
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
@@ -115,18 +116,18 @@ export function AuditLogPanel() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-muted-foreground text-xs">
-                      <th className="text-left py-2 px-2 font-medium">When</th>
-                      <th className="text-left py-2 px-2 font-medium">Who</th>
-                      <th className="text-left py-2 px-2 font-medium">Action</th>
-                      <th className="text-left py-2 px-2 font-medium">Change</th>
-                      <th className="text-left py-2 px-2 font-medium hidden md:table-cell">Reason</th>
-                      <th className="text-left py-2 px-2 font-medium hidden lg:table-cell">IP</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b border-border text-muted-foreground text-xs">
+                      <TableHead className="text-left py-2 px-2 font-medium">When</TableHead>
+                      <TableHead className="text-left py-2 px-2 font-medium">Who</TableHead>
+                      <TableHead className="text-left py-2 px-2 font-medium">Action</TableHead>
+                      <TableHead className="text-left py-2 px-2 font-medium">Change</TableHead>
+                      <TableHead className="text-left py-2 px-2 font-medium hidden md:table-cell">Reason</TableHead>
+                      <TableHead className="text-left py-2 px-2 font-medium hidden lg:table-cell">IP</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {entries.map((e: AuditLogEntry) => {
                       const lbl = actionLabel(e.action);
                       const when = new Date(e.createdAt);
@@ -135,21 +136,21 @@ export function AuditLogPanel() {
                       const metadataObj = e.metadata ? JSON.parse(e.metadata) as Record<string, unknown> : null;
                       const reason = metadataObj?.reason as string | undefined;
                       return (
-                        <tr key={e.id} className="border-b border-border hover:bg-muted/30 align-top">
-                          <td className="py-2 px-2 text-xs text-muted-foreground whitespace-nowrap" title={when.toLocaleString()}>{whenLabel}</td>
-                          <td className="py-2 px-2">
+                        <TableRow key={e.id} className="border-b border-border hover:bg-muted/30 align-top">
+                          <TableCell className="py-2 px-2 text-xs text-muted-foreground whitespace-nowrap" title={when.toLocaleString()}>{whenLabel}</TableCell>
+                          <TableCell className="py-2 px-2">
                             <div className="text-xs font-medium text-foreground">{e.actorName}</div>
                             <div className="text-[10px] text-muted-foreground">{e.actorRole}</div>
-                          </td>
-                          <td className="py-2 px-2"><Badge variant="outline" className={`text-[9px] ${lbl.color}`}>{lbl.label}</Badge></td>
-                          <td className="py-2 px-2 max-w-[300px]">{renderChange(e)}</td>
-                          <td className="py-2 px-2 text-xs text-muted-foreground hidden md:table-cell max-w-[200px]">{reason ? <span className="italic">"{reason}"</span> : <span className="text-muted-foreground/60">—</span>}</td>
-                          <td className="py-2 px-2 text-[10px] text-muted-foreground hidden lg:table-cell font-mono">{e.ipAddress ?? "—"}</td>
-                        </tr>
+                          </TableCell>
+                          <TableCell className="py-2 px-2"><Badge variant="outline" className={`text-[9px] ${lbl.color}`}>{lbl.label}</Badge></TableCell>
+                          <TableCell className="py-2 px-2 max-w-[300px]">{renderChange(e)}</TableCell>
+                          <TableCell className="py-2 px-2 text-xs text-muted-foreground hidden md:table-cell max-w-[200px]">{reason ? <span className="italic">"{reason}"</span> : <span className="text-muted-foreground/60">—</span>}</TableCell>
+                          <TableCell className="py-2 px-2 text-[10px] text-muted-foreground hidden lg:table-cell font-mono">{e.ipAddress ?? "—"}</TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
               {pages > 1 && (
                 <div className="flex items-center justify-between mt-3 text-xs">

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { scoreToGrade, gradeColor, PILLARS } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import {
@@ -170,44 +171,44 @@ export function FinalResultPanel() {
             <p className="text-xs font-medium text-foreground">Per-Week Breakdown ({data.totalPossibleQuestions} questions total)</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground">
-                  <th className="text-left py-1.5 px-2 font-medium">Week</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Phase</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Test Score</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Q Answered</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Practice</th>
-                  <th className="text-left py-1.5 px-2 font-medium">Plagiarism</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-xs">
+              <TableHeader>
+                <TableRow className="border-b border-border text-muted-foreground">
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Week</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Phase</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Test Score</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Q Answered</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Practice</TableHead>
+                  <TableHead className="text-left py-1.5 px-2 font-medium">Plagiarism</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {(data.weekBreakdown || []).map((w) => (
-                  <tr key={w.week} className="border-b border-border/50 last:border-0">
-                    <td className="py-1.5 px-2 font-medium text-foreground">W{w.week}</td>
-                    <td className="py-1.5 px-2 text-muted-foreground text-[10px]">{w.phase.length > 25 ? w.phase.slice(0, 25) + "…" : w.phase}</td>
-                    <td className="py-1.5 px-2">
+                  <TableRow key={w.week} className="border-b border-border/50 last:border-0">
+                    <TableCell className="py-1.5 px-2 font-medium text-foreground">W{w.week}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-muted-foreground text-[10px]">{w.phase.length > 25 ? w.phase.slice(0, 25) + "…" : w.phase}</TableCell>
+                    <TableCell className="py-1.5 px-2">
                       {w.weeklyTestScore !== null ? (
                         <span className={"font-bold " + gradeColor(scoreToGrade(w.weeklyTestScore))}>{w.weeklyTestScore}%</span>
                       ) : (
                         <span className="text-muted-foreground/50 text-[10px]">{w.weeklyTestStatus}</span>
                       )}
-                    </td>
-                    <td className="py-1.5 px-2 text-foreground/80">{w.questionsAnswered}/10</td>
-                    <td className="py-1.5 px-2 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="py-1.5 px-2 text-foreground/80">{w.questionsAnswered}/10</TableCell>
+                    <TableCell className="py-1.5 px-2 text-muted-foreground">
                       {w.practiceCount > 0 ? w.practiceCount + " Q, " + w.practiceAvg + "%" : "-"}
-                    </td>
-                    <td className="py-1.5 px-2">
+                    </TableCell>
+                    <TableCell className="py-1.5 px-2">
                       {w.plagiarismScore != null && w.plagiarismScore > 0 ? (
                         <span className={"font-bold " + (w.plagiarismScore > 40 ? "text-destructive" : "text-growth-amber")}>{w.plagiarismScore}%</span>
                       ) : (
                         <span className="text-growth-sage text-[10px]">Clean</span>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
