@@ -142,7 +142,7 @@ Also provide:
 Return ONLY a JSON object. No markdown.
 
 Example:
-{"score":78,"projectExecution":80,"technicalCompetence":70,"projectQuality":75,"careerReadiness":85,"summary":"Nauman built a restaurant website with online reservations...","strengths":["Strong UI/UX sense","Consistent daily check-ins","Good use of WordPress blocks"],"weaknesses":["Limited custom code","Could improve database skills"],"recommendations":["Build a second project with more custom code","Contribute to open source","Practice SQL queries weekly"]}`,
+{"score":78,"projectExecution":80,"technicalCompetence":70,"projectQuality":75,"careerReadiness":85,"summary":"Nauman built a restaurant website with online reservations...","strengths":["Strong UI/UX sense","Consistent daily check-ins","Good use of course tools"],"weaknesses":["Limited custom code","Could improve database skills"],"recommendations":["Build a second project with more custom code","Contribute to open source","Practice SQL queries weekly"]}`,
       },
     ], { temperature: 0.4, maxTokens: 800, feature: "project-final-analysis", userId: payload.sub });
 

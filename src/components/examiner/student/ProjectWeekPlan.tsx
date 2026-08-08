@@ -233,7 +233,7 @@ export function ProjectWeekPlan({ stats, onReload }: { stats: StatsResponse; onR
           <Textarea
             value={taskDescription}
             onChange={(e) => setTaskDescription(e.target.value)}
-            placeholder="e.g. Build homepage with WordPress blocks"
+            placeholder="e.g. Build the homepage with the course tools"
             className="bg-background border-border min-h-12 text-xs"
             required autoFocus
           />

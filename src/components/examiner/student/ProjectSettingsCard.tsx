@@ -303,7 +303,7 @@ export function ProjectSettingsCard({ onSaved }: { onSaved?: () => void }) {
               <Textarea
                 value={projectNotes}
                 onChange={(e) => setProjectNotes(e.target.value)}
-                placeholder="e.g. Using WordPress for CMS, custom plugin for AI chatbot, deploy on Vercel..."
+                placeholder="e.g. Using the course tools for the main project, custom integration, deploy on Vercel..."
                 className="bg-muted border-border mt-1 min-h-20 text-xs"
               />
             </div>

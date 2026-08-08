@@ -115,7 +115,7 @@ export default function InstructorAITutor() {
                   {[
                     "Help me design a 30-min lesson on databases",
                     "A student hasn't submitted work in 3 days — how do I approach them?",
-                    "Draft a rubric for a WordPress project",
+                    "Draft a rubric for a student project",
                     "Write a parent update message about low attendance",
                   ].map(suggestion => (
                     <button
