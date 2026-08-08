@@ -50,6 +50,39 @@ See **[MODERNIZATION_PLAN.md](./MODERNIZATION_PLAN.md)** for the full execution 
 - **Auth**: Custom JWT + bcrypt
 - **Hosting**: Vercel
 
+## Quick Start (local dev)
+
+Prerequisites: Node.js 20+, Bun (preferred) or npm.
+
+```bash
+# 1. Install dependencies
+bun install            # or: npm install
+
+# 2. Configure environment
+cp .env.example .env
+# Edit .env — for local dev, the default SQLite URL works out of the box:
+#   DATABASE_URL=file:./db/custom.db
+
+# 3. Initialize the database (SQLite dev schema)
+bun run db:generate    # generate Prisma client
+bun run db:push        # create/migrate SQLite schema
+
+# 4. (optional) Seed demo data
+bun run db:seed
+
+# 5. Start the dev server
+bun run dev            # http://localhost:3000
+```
+
+For production (Vercel), use Postgres and the production Prisma schema:
+
+```bash
+bun run db:generate:prod
+bun run db:push:prod
+```
+
+See `.env.example` for details on switching DATABASE_URL from SQLite to Postgres.
+
 ## License
 
 Proprietary. © fccljbplant.
