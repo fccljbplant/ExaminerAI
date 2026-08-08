@@ -17,6 +17,8 @@ import { AIConnectionPanel } from "@/components/examiner/admin/AIConnectionPanel
 import { PasswordResetPanel } from "@/components/examiner/admin/PasswordResetPanel";
 import { RoleNavConfigPanel } from "@/components/examiner/admin/RoleNavConfigPanel";
 import { MaintenancePanel } from "@/components/examiner/admin/MaintenancePanel";
+import { B2BPanel } from "@/components/examiner/admin/B2BPanel";
+import { B2CPanel } from "@/components/examiner/admin/B2CPanel";
 import { LayoutDashboard } from "@/components/examiner/admin/LayoutDashboard";
 import { DashboardHeader } from "@/components/shared/dashboard-shell";
 import { SkeletonPanel } from "@/components/ui/states";
@@ -36,11 +38,13 @@ import {
   CheckCircle2, Zap, TrendingUp, AlertTriangle, Activity, Clock, Ban, UserCheck,
   Settings as SettingsIcon, Server, Send, BookOpen, Plus, Edit3, ClipboardList,
   ShieldCheck, Save, Gauge, Search, ChevronLeft, ChevronRight,
+  Building2, GraduationCap,
 } from "lucide-react";
 
 type AdminView =
   | "overview" | "users" | "courses" | "features" | "resets" | "system" | "pm"
-  | "ai-limits" | "user-audit" | "ai-connection" | "audit-log" | "access-grants" | "nav-config" | "maintenance";
+  | "ai-limits" | "user-audit" | "ai-connection" | "audit-log" | "access-grants" | "nav-config" | "maintenance"
+  | "b2b" | "b2c";
 
 interface Props {
   initialView?: AdminView;
@@ -258,6 +262,13 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
         <Button onClick={() => setView("overview")} variant={view === "overview" ? "default" : "outline"} className={cn(view === "overview" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
           <LayoutDashboard className="h-4 w-4" /> Overview
         </Button>
+        {/* B2B + B2C tabs — the two business segments */}
+        <Button onClick={() => setView("b2b")} variant={view === "b2b" ? "default" : "outline"} className={cn(view === "b2b" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
+          <Building2 className="h-4 w-4" /> B2B
+        </Button>
+        <Button onClick={() => setView("b2c")} variant={view === "b2c" ? "default" : "outline"} className={cn(view === "b2c" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
+          <GraduationCap className="h-4 w-4" /> B2C
+        </Button>
         {/* Operations tab — visible to all admin-equivalent roles */}
         <Button onClick={() => setView("pm")} variant={view === "pm" ? "default" : "outline"} className={cn(view === "pm" ? "bg-primary text-primary-foreground" : "border-border", "whitespace-nowrap flex-shrink-0")}>
           <ClipboardList className="h-4 w-4" /> Operations
@@ -336,6 +347,12 @@ export default function AdminDashboard({ initialView = "overview" }: Props) {
       {view === "overview" && (
         <AdminOverview users={users} pending={pending} students={students} teachers={teachers} blocked={blocked} onTab={setView} />
       )}
+
+      {/* B2B — organizations, seats, pipeline */}
+      {view === "b2b" && <B2BPanel />}
+
+      {/* B2C — individual learners, engagement, certificates */}
+      {view === "b2c" && <B2CPanel />}
 
       {/* Phase 8: PM tab — operations + delivery */}
       {view === "pm" && <AdminPMTab users={users} students={students} pending={pending} />}
