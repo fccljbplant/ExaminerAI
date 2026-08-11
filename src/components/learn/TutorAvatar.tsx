@@ -151,6 +151,12 @@ const W = 360, H = 450;
 const imgCache: Record<string, HTMLImageElement> = {};
 const getImg = (url: string) => (imgCache[url] ??= (() => { const i = new Image(); i.src = url; return i; })());
 
+// Preload all sprite sheets on module load so they're cached + ready
+// before the first gesture is triggered (especially talk variants).
+if (typeof window !== "undefined") {
+ Object.values(SPRITES).forEach((url) => { if (url) getImg(url); });
+}
+
 function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
  ctx.beginPath();
  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
@@ -190,6 +196,16 @@ function drawPlaceholder(ctx: CanvasRenderingContext2D, g: string, mouth: number
 
 function SpriteAvatar({ sheet, mouth, reduced }: { sheet: SheetKey; mouth: number; reduced: boolean }) {
  const ref = useRef<HTMLCanvasElement>(null);
+ // Store mouth in a ref so the animation loop can read the latest value
+ // WITHOUT restarting the effect. Previously `mouth` was in the dep array,
+ // which tore down + recreated the rAF loop every 130ms — preventing the
+ // sprite image from ever finishing its load → stuck on placeholder.
+ const mouthRef = useRef(mouth);
+ mouthRef.current = mouth;
+ // Same for `reduced` — read from ref, don't restart the loop.
+ const reducedRef = useRef(reduced);
+ reducedRef.current = reduced;
+
  useEffect(() => {
  const canvas = ref.current!; const ctx = canvas.getContext("2d")!;
  const url = SPRITES[sheet]; const img = url ? getImg(url) : null;
@@ -197,14 +213,15 @@ function SpriteAvatar({ sheet, mouth, reduced }: { sheet: SheetKey; mouth: numbe
  let frame = 0, last = 0, raf = 0;
  const draw = (t: number) => {
  // Use the sprite image if it has loaded and is at least W pixels wide.
- // Single-frame sprites are exactly W (360) wide; multi-frame strips are
- // W * frames wide. Both cases are handled by the drawImage source-crop.
  if (img && img.complete && img.naturalWidth >= W && img.naturalHeight >= H) {
  ctx.clearRect(0, 0, W, H); ctx.drawImage(img, frame * W, 0, W, H, 0, 0, W, H);
- } else drawPlaceholder(ctx, sheet, sheet.startsWith("talk") ? mouth : 0, t);
+ } else {
+ // Fallback: procedural placeholder (only shows while sprite is loading).
+ drawPlaceholder(ctx, sheet, sheet.startsWith("talk") ? mouthRef.current : 0, t);
+ }
  };
  const step = (t: number) => {
- if (reduced) { draw(t); return; }
+ if (reducedRef.current) { draw(t); return; }
  raf = requestAnimationFrame(step);
  if (t - last < 1000 / cfg.fps) return;
  last = t; draw(t);
@@ -212,7 +229,8 @@ function SpriteAvatar({ sheet, mouth, reduced }: { sheet: SheetKey; mouth: numbe
  };
  raf = requestAnimationFrame(step);
  return () => cancelAnimationFrame(raf);
- }, [sheet, mouth, reduced]);
+ // Only re-run when `sheet` changes — NOT on mouth/reduced changes.
+ }, [sheet]);
  return <canvas ref={ref} width={W} height={H} />;
 }
 
