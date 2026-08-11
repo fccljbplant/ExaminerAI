@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { BookOpen, Sparkles, Home, ArrowRight } from "lucide-react";
+import { BookOpen, Sparkles, Home, ArrowRight, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -61,6 +61,12 @@ export default function PublicNotFound() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
             <Button asChild>
+              <Link href="/learn">
+                <GraduationCap className="h-4 w-4" />
+                Go to my learning
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href="/courses">
                 Browse Courses
                 <ArrowRight className="h-4 w-4 ml-1" />

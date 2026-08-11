@@ -43,6 +43,7 @@ const PUBLIC_ROUTES = [
   "/verify",
   "/instructors",
   "/paths",
+  "/learn", // learn catalog is public; /learn/[courseId] auto-creates profile on first visit (auth required)
 ];
 
 const PUBLIC_API_ROUTES = [

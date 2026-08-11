@@ -69,31 +69,29 @@ describe("scoreToGrade", () => {
 // gradeColor — returns Tailwind text color class for a grade
 // ============================================================
 describe("gradeColor", () => {
-  it("returns emerald for grade A", () => {
-    expect(gradeColor("A")).toContain("emerald");
+  it("returns sage (growth) for grade A", () => {
+    expect(gradeColor("A")).toContain("growth-sage");
   });
 
-  it("returns lime for grade B", () => {
-    expect(gradeColor("B")).toContain("lime");
+  it("returns sage (growth) for grade B", () => {
+    expect(gradeColor("B")).toContain("growth-sage");
   });
 
-  it("returns amber for grade C", () => {
-    // Note: the amber→warning rename was only for wellbeing tiers, NOT for
-    // grade colors. grade C still uses Tailwind's `text-amber-500` class.
-    expect(gradeColor("C")).toContain("amber");
+  it("returns amber (growth) for grade C", () => {
+    expect(gradeColor("C")).toContain("growth-amber");
   });
 
-  it("returns orange for grade D", () => {
-    expect(gradeColor("D")).toContain("orange");
+  it("returns destructive for grade D", () => {
+    expect(gradeColor("D")).toContain("destructive");
   });
 
-  it("returns red for grade F", () => {
-    expect(gradeColor("F")).toContain("red");
+  it("returns destructive for grade F", () => {
+    expect(gradeColor("F")).toContain("destructive");
   });
 
-  it("returns red for unknown grades", () => {
-    expect(gradeColor("X")).toContain("red");
-    expect(gradeColor("")).toContain("red");
+  it("returns destructive for unknown grades", () => {
+    expect(gradeColor("X")).toContain("destructive");
+    expect(gradeColor("")).toContain("destructive");
   });
 });
 
