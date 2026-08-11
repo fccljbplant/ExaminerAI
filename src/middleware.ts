@@ -44,6 +44,9 @@ const PUBLIC_ROUTES = [
   "/instructors",
   "/paths",
   "/learn", // learn catalog is public; /learn/[courseId] auto-creates profile on first visit (auth required)
+  "/login",
+  "/register",
+  "/app", // AppShell handles both login (no token) and dashboard (with token)
 ];
 
 const PUBLIC_API_ROUTES = [
@@ -157,7 +160,7 @@ export async function middleware(req: NextRequest) {
         { status: 401 }
       );
     }
-    // Page → redirect to login
+    // Page → redirect to /app (AppShell shows login form when unauthenticated)
     return NextResponse.redirect(new URL("/app", req.url));
   }
 
@@ -184,7 +187,7 @@ export async function middleware(req: NextRequest) {
         { status: 401 }
       );
     }
-    // Page → redirect to login
+    // Page → redirect to /app (AppShell shows login form when unauthenticated)
     return NextResponse.redirect(new URL("/app", req.url));
   }
 }
