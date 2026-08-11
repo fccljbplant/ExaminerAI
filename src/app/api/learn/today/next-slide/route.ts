@@ -28,6 +28,7 @@
  *  OR { topicComplete: true, resources: [...] }
  */
 
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -178,7 +179,10 @@ export async function POST(req: Request) {
         { feature: "learn-slide-fallback", userId: user.sub, maxTokens: 200, temperature: 0.7 },
       );
       if (fallback.text) narration = fallback.text;
-    } catch { /* keep default */ }
+    } catch (err) {
+      // Fallback AI call failed — keep the default narration. Non-fatal.
+      logger.warn("Slide narration fallback failed", { err, courseId });
+    }
   }
 
   // Persist slide + narration.
@@ -189,9 +193,9 @@ export async function POST(req: Request) {
       lessonId: null,
       slideOrder: slideNumber,
       title: slide.title,
-      bullets: slide.bullets as any,
+      bullets: slide.bullets as unknown as Prisma.InputJsonValue,
       visualSpec: slide.visualSpec ?? null,
-      keyTerms: slide.keyTerms as any,
+      keyTerms: slide.keyTerms as unknown as Prisma.InputJsonValue,
       checkQuestion: slide.checkQuestion ?? null,
       realWorldExample: slide.realWorldExample ?? null,
       analogy: slide.analogy ?? null,
@@ -212,10 +216,13 @@ export async function POST(req: Request) {
     await db.journeyStep.updateMany({
       where: {
         journey: { userId: user.sub, courseId },
-        metadata: { equals: { week: today.topic.week, day: today.topic.day } as any },
+        metadata: { equals: { week: today.topic.week, day: today.topic.day } as unknown as Prisma.InputJsonValue },
       },
       data: { status: "active" },
-    }).catch(() => { /* metadata JSON filter may not work on SQLite — best-effort */ });
+    }).catch((err: unknown) => {
+      // metadata JSON filter may not work on SQLite — best-effort, non-fatal.
+      logger.warn("JourneyStep metadata filter failed (SQLite JSON limitation)", { err, courseId });
+    });
   }
 
   const message =

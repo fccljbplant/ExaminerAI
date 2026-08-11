@@ -1,8 +1,8 @@
+// src/modules/learn/index.ts — Barrel re-exports for the Learn platform.
 /**
  * LEARN MODULE — barrel re-exports.
- *
  * Import everything from `@/modules/learn` in app code:
- *   import { awardXP, getTodayTopic, SLIDES_PER_TOPIC } from "@/modules/learn";
+ * import { awardXP, getTodayTopic, SLIDES_PER_TOPIC } from "@/modules/learn";
  *
  * NOTE: This barrel mixes server-only and isomorphic code. Anything
  * imported from here will pull in `db` (server-side). Client components
@@ -20,8 +20,8 @@ export * from "./lib/learner-profile";
 
 // Client-only lib (uses `window.speechSynthesis`)
 export {
-  prepareForTTS,
-  speakTTS,
-  stopTTS,
-  isTTSAvailable,
+ prepareForTTS,
+ speakTTS,
+ stopTTS,
+ isTTSAvailable,
 } from "./lib/tts-filter";

@@ -18,8 +18,10 @@
  * Returns: { answer, citation }
  */
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { apiError, apiForbidden, apiNotFound, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 import { callAI } from "@/modules/assessment/lib/ai-provider";
 import { LEVEL_DIRECTIVES, type TeachingLevel } from "@/modules/learn/types";
@@ -40,7 +42,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (session.userId !== user.sub) return apiForbidden("This session belongs to another user");
 
   let body: { question?: string } = {};
-  try { body = await req.json(); } catch { /* */ }
+  try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   const question = (body.question ?? "").trim();
   if (!question) return apiValidationError({ question: "question is required" });
   if (question.length > 2000) return apiValidationError({ question: "question too long (2000 char max)" });
@@ -116,7 +118,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       role: "tutor",
       content: answer,
       messageType: "text",
-      ...(citation ? { metadata: { citation } as any } : {}),
+      ...(citation ? { metadata: { citation } as unknown as Prisma.InputJsonValue } : {}),
     },
   });
 

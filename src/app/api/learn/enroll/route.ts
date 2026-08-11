@@ -12,6 +12,7 @@
  * creating duplicates (the @@unique constraints enforce this).
  */
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { WEEKLY_TOPICS } from "@/modules/course/lib/course-topics";
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
       description: t.objective,
       status: "pending" as const,
       xpReward: 5,
-      metadata: { week: w.week, day: idx + 1 } as any,
+      metadata: { week: w.week, day: idx + 1 } as unknown as Prisma.InputJsonValue,
     })),
   );
 
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
             slidesViewed: 0,
             resourcesShown: false,
           },
-        } as any,
+        } as unknown as Prisma.InputJsonValue,
       },
     });
 

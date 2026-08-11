@@ -16,6 +16,7 @@
  * shows an empty state without a CTA.
  */
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiError, apiSuccess, apiUnauthorized } from "@/lib/api-response";
@@ -53,7 +54,7 @@ export async function GET(req: Request) {
             slidesViewed: 0,
             resourcesShown: false,
           },
-        } as any,
+        } as unknown as Prisma.InputJsonValue,
       },
     });
     today = await getTodayTopic(user.sub, courseId);

@@ -308,3 +308,81 @@ The `CronHeartbeat` table is planned (currently crons fail silently — see
 
 `ignoreBuildErrors: false` and `reactStrictMode: true` are enforced. Any
 PR that flips either is rejected in review.
+
+---
+
+## 8. Learn Platform (`/learn`)
+
+The Learn Platform is a **separate AI-guided learning experience** that lives
+alongside the old `/app` dashboard. The old platform keeps working unchanged;
+the learn platform extends the codebase with new routes, models, and UI.
+
+### 8.1 Routes
+
+| Route | Description |
+|---|---|
+| `/learn` | Learner home — "Continue Learning" hero + stats chips + catalog |
+| `/learn/[courseId]` | h-screen session shell (slides + avatar + chat + panels) |
+| `/dashboard` | 301 redirect → `/learn` |
+| `/login` | 301 redirect → `/app` |
+| `/register` | 301 redirect → `/app` |
+
+### 8.2 Module structure
+
+```
+src/modules/learn/
+  ├── index.ts                    ← Barrel re-exports
+  ├── types/index.ts              ← Shared types + constants
+  └── lib/
+      ├── today-topic.ts          ← Topic progression (30 topics, 4 slides each)
+      ├── xp-ledger.ts            ← Append-only XP ledger + level calculation
+      ├── learner-profile.ts      ← Profile CRUD + streak management
+      └── tts-filter.ts           ← TTS text preparation (strips code/URLs/tables)
+```
+
+### 8.3 API endpoints (16 routes under `/api/learn/`)
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/learn/enroll` | POST | Atomic create: profile + journey + project |
+| `/api/learn/now` | GET | Aggregated NOW data (next step + stats) |
+| `/api/learn/today` | GET | Today's topic + slide progress |
+| `/api/learn/today/next-slide` | POST | AI on-the-go slide generation |
+| `/api/learn/today/complete` | POST | Mark topic done + advance |
+| `/api/learn/sessions/[id]/ask` | POST | RAG-grounded tutor Q&A |
+| `/api/learn/daily-test/[date]/start` | POST | Start 3-Q daily test |
+| `/api/learn/daily-test/[date]/answer` | POST | Evaluate answer |
+| `/api/learn/projects` | GET/POST | List + create projects |
+| `/api/learn/projects/[id]/help` | POST | Hint ladder (nudge → clue → scaffold) |
+| `/api/learn/projects/[id]/milestones/complete` | POST | Mark milestone done + 15 XP |
+| `/api/learn/me/xp` | GET | XP history |
+| `/api/learn/me/badges` | GET | User badges |
+| `/api/learn/me/journey` | GET | Journey map |
+| `/api/learn/notes` | GET/POST | Notes CRUD |
+| `/api/learn/resources` | GET | Resources for a slide |
+
+### 8.4 Data models (15 new Prisma models)
+
+`LearnProfile`, `JourneyPlan`, `JourneyStep`, `LearnSlide`, `LearnNarration`,
+`TutorSession`, `TutorMessage`, `LearnDailyTest`, `LearnWeeklyTest`,
+`LearnProject`, `ProjectMilestone`, `ProjectHelpSession`, `XPLedger`,
+`BadgeDefinition`, `UserBadge`, `LearnNote`, `EngagementEvent`.
+
+### 8.5 Avatar system
+
+`src/components/learn/TutorAvatar.tsx` — a complete in-house avatar system:
+- Sprite-strip player (15 gestures + 3 talk loops)
+- Amplitude lip-sync (real audio analysis, simulated fallback)
+- Event bus: `tutor.say()`, `tutor.play()`, `tutor.caption()`, `tutor.bindAudio()`
+- Non-intrusive floating dock (full/mini/dot, drag+snap, position memory)
+- Procedural placeholder (zero assets needed — works today)
+
+### 8.6 UI Shell v2
+
+`src/components/learn/LearnShell.tsx` — `h-screen overflow-hidden` shell:
+- Status strip (12px): breadcrumb chip + XP chip + streak chip + focus toggle
+- Activity bar (72px): Journey / Project / Grow / Library
+- Slide canvas (center): today's topic banner + progress dots + slide content
+- Quick bar: contextual CTA (Next Slide / View Resources / Complete & Next Topic)
+- Chat pane (right): transcript + input
+- Panel drawers: slide-over left 40% desktop, full-screen mobile

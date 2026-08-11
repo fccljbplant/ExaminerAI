@@ -34,7 +34,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
   await ctx.params; // validate route shape
 
   let body: { testId?: string; questionIdx?: number; answer?: string } = {};
-  try { body = await req.json(); } catch { /* */ }
+  try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   const { testId, questionIdx, answer } = body;
   if (!testId) return apiValidationError({ testId: "testId is required" });
   if (typeof questionIdx !== "number" || questionIdx < 0) return apiValidationError({ questionIdx: "questionIdx must be a non-negative number" });

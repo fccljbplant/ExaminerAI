@@ -24,6 +24,15 @@ See **[MODERNIZATION_PLAN.md](./MODERNIZATION_PLAN.md)** for the full execution 
 
 ## Key features
 
+### Learn Platform (`/learn`) — AI-guided learning experience
+- **Today's Topic flow** — 30 topics (6 weeks × 5 days), AI generates 4 slides per topic on-the-go
+- **AI Tutor avatar** — sprite player + lip-sync + floating dock, driven by `tutor.say/play/caption` event bus
+- **h-screen shell** — no vertical page scroll; status strip + activity bar + slide canvas + chat pane
+- **4 panels** — Journey (30-topic map), Project (create + milestones + hint ladder), Grow (daily test UI + XP + badges), Library (resources + notes)
+- **Gamification** — XP ledger (slide +5, probe +10, quiz +15, daily +30, weekly +100, course +500), 7 levels (Rookie → Legend), timezone-safe streaks
+- **Daily tests** — 3 conversational questions with AI evaluation + feedback
+- **Project guidance** — hint ladder (nudge → clue → scaffold), never gives the full answer first
+
 ### For students (trainees)
 - **TodayView** — one screen answering "what do I do next?"
 - **SlideViewer** — on-the-fly slide generation from course content (video, code, visual, activity, reflection)

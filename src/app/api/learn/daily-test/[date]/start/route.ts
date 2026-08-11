@@ -54,7 +54,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
   if (!date) return apiValidationError({ date: "date must be YYYY-MM-DD" });
 
   let body: { courseId?: string } = {};
-  try { body = await req.json(); } catch { /* */ }
+  try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   const courseId = body.courseId;
   if (!courseId) return apiValidationError({ courseId: "courseId is required" });
 

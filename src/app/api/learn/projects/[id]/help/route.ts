@@ -14,6 +14,7 @@
  * just asks a new question or moves on).
  */
 
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -48,7 +49,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const { id: projectId } = await ctx.params;
 
   let body: { blocker?: string } = {};
-  try { body = await req.json(); } catch { /* */ }
+  try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   const blocker = (body.blocker ?? "").trim();
   if (!blocker) return apiValidationError({ blocker: "blocker is required" });
   if (blocker.length > 4000) return apiValidationError({ blocker: "blocker too long (4000 char max)" });
@@ -130,7 +131,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     data: {
       hint,
       hintLevel: newHintLevel,
-      conversation: nextConversation as any,
+      conversation: nextConversation as unknown as Prisma.InputJsonValue,
     },
   });
 

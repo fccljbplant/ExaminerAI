@@ -1,3 +1,4 @@
+// src/app/api/learn/notes/route.ts — Notes CRUD for the Learn platform.
 /**
  * /api/learn/notes
  *
@@ -10,6 +11,7 @@
 
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { apiError, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 
 export const runtime = "nodejs";
@@ -37,7 +39,7 @@ export async function POST(req: Request) {
   if (!user) return apiUnauthorized();
 
   let body: { courseId?: string; slideId?: string; content?: string } = {};
-  try { body = await req.json(); } catch { /* */ }
+  try { body = await req.json(); } catch (err) { logger.warn("notes POST body parse failed", { err }); }
   const { courseId, slideId, content } = body;
   if (!courseId) return apiValidationError({ courseId: "courseId is required" });
   if (!content || !content.trim()) return apiValidationError({ content: "content is required" });

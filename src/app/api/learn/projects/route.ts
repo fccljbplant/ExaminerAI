@@ -11,6 +11,7 @@
 
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { apiError, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 
 export const runtime = "nodejs";
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     currentState?: string;
     deadline?: string;
   } = {};
-  try { body = await req.json(); } catch { /* */ }
+  try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   if (!body.title || !body.title.trim()) return apiValidationError({ title: "title is required" });
 
   // Idempotent on (userId, courseId) when courseId is provided.

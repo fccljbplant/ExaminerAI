@@ -15,6 +15,7 @@
  * Auto-creates the plan on first call (idempotent with /enroll).
  */
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiError, apiNotFound, apiSuccess, apiUnauthorized } from "@/lib/api-response";
@@ -51,7 +52,7 @@ export async function GET(req: Request) {
         description: t.objective,
         status: "pending" as const,
         xpReward: 5,
-        metadata: { week: w.week, day: idx + 1 } as any,
+        metadata: { week: w.week, day: idx + 1 } as unknown as Prisma.InputJsonValue,
       })),
     );
     plan = await db.journeyPlan.create({
@@ -83,8 +84,9 @@ export async function GET(req: Request) {
   const profile = await db.learnProfile.findUnique({
     where: { userId_courseId: { userId: user.sub, courseId } },
   });
-  const history: { week: number; day: number }[] =
-    (profile?.masteryMap as any)?.topicProgress?.history ?? [];
+  const masteryMap = (profile?.masteryMap ?? {}) as Record<string, unknown>;
+  const topicProgress = masteryMap.topicProgress as { history?: { week: number; day: number }[] } | undefined;
+  const history: { week: number; day: number }[] = topicProgress?.history ?? [];
   const isHistory = (w: number, d: number) => history.some((h) => h.week === w && h.day === d);
 
   const steps = plan.steps.map((s) => {

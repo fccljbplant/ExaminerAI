@@ -10,6 +10,7 @@
 
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { apiError, apiForbidden, apiNotFound, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 import { awardTypedXP } from "@/modules/learn/lib/xp-ledger";
 
@@ -21,7 +22,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const { id: projectId } = await ctx.params;
 
   let body: { milestoneId?: string } = {};
-  try { body = await req.json(); } catch { /* */ }
+  try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   const { milestoneId } = body;
   if (!milestoneId) return apiValidationError({ milestoneId: "milestoneId is required" });
 

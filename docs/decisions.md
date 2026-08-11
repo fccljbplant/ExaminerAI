@@ -48,3 +48,33 @@
 ## D-012: Enrollment Atomicity (Spec Section 1.1)
 **Decision:** POST /api/learn/enroll atomically creates: LearnProfile + JourneyPlan (with full 30 topic-steps) + StudentProject (with 4 milestones). All in a Prisma transaction.
 **Rationale:** Spec Section 1.1. Anti-junk law #4 (no "not found" in normal flows).
+
+## D-013: Coding Standards Compliance (2026-08-11)
+**Decision:** All learn module code follows `docs/CODING-STANDARDS.md` strictly.
+**Compliance verified:**
+- §1.1 Module pattern: `src/modules/learn/` with `index.ts` + `lib/` + `types/` — no React in lib
+- §2.1 No `any`: all `as any` replaced with `as unknown as Prisma.InputJsonValue` for JSON fields
+- §3.1 No silent catches: all `catch {}` replaced with `catch (err) { logger.warn(...) }`
+- §5.1 No hardcoded colors: all `text-emerald-500` etc. replaced with theme tokens (`text-growth-sage` etc.)
+- §7.1 File headers: every file starts with `// path/to/file — description`
+- §6.1 Thin API handlers: routes validate + call lib + return JSON
+- §6.2 Auth check first: every route starts with `getAuthUser()`
+
+## D-014: No New Dependencies (Spec Anti-Junk Law #8)
+**Decision:** The learn platform adds zero new npm dependencies. Uses only:
+- Existing `@prisma/client` (Prisma JSON types)
+- Existing `sonner` (toast notifications)
+- Existing `lucide-react` (icons)
+- Existing `@/lib/logger`, `@/lib/db`, `@/lib/auth`, `@/lib/api-client`, `@/lib/api-response`
+- Existing `@/modules/assessment/lib/ai-provider` (callAI)
+- Existing `@/modules/course/lib/course-topics` (WEEKLY_TOPICS)
+
+## D-015: Test Coverage (Spec Section 10 — commit + green tests each phase)
+**Decision:** 123 tests passing across 6 test files.
+**Test files:**
+- `src/modules/learn/__tests__/today-topic.test.ts` (19 tests — topic picking, next/prev, curriculum integrity)
+- `src/lib/__tests__/grading-and-topics.test.ts` (41 tests)
+- `src/lib/__tests__/course-validation.test.ts` (26 tests)
+- `src/lib/__tests__/course-normalization.test.ts` (20 tests)
+- `src/lib/__tests__/auth.test.ts` (8 tests)
+- `src/lib/__tests__/logger.test.ts` (9 tests)
