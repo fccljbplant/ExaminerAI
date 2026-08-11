@@ -112,12 +112,12 @@ const ALL_NAV: NavItem[] = [
   // Now its own nav entry so mentors can find it.
   { key: "instructor-certificates", label: "Certificates", icon: Award, roles: ["instructor"] },
 
-  // Org admin extras — Course Planner + shared Students roster.
+  // Org admin extras — shared Students roster.
+  // Course Planner is registered below in the shared block (instructor + org_admin + platform_admin).
   // NOTE: "instructor-students" is already registered for instructors above
   // (line 107). Adding it here with roles ["instructor", "org_admin"] caused
   // a DUPLICATE "Students" entry in the instructor sidebar. Now scoped to
   // org_admin only — instructors get it from the block above.
-  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["org_admin"] },
   { key: "instructor-students", label: "Students", icon: Users, roles: ["org_admin"] },
 
   // Employer / B2B dashboard — for company managers sponsoring trainees.
@@ -134,7 +134,10 @@ const ALL_NAV: NavItem[] = [
 
   { key: "ai-tutor", label: "AI Tutor", icon: Bot, roles: ["learner"] },
   { key: "instructor-ai-tutor", label: "AI Assistant", icon: GraduationCap, roles: STAFF_NAV_ROLES },
-  { key: "course-outline", label: "Course", icon: BookOpen, roles: ALL_ROLES_WITH_SHARED },
+  // Learners see the read-only Course Outline; instructors + org_admins see
+  // the editable Course Planner. Same nav position, different component by role.
+  { key: "course-outline", label: "Course", icon: BookOpen, roles: ["learner"] },
+  { key: "course-planner", label: "Course Planner", icon: GraduationCap, roles: ["instructor", "org_admin", "platform_admin", "demo"] },
   { key: "messages", label: "Messages", icon: MessageSquare, roles: ALL_ROLES_WITH_SHARED },
   { key: "settings", label: "Settings", icon: Settings, roles: ALL_ROLES_WITH_SHARED },
 ];

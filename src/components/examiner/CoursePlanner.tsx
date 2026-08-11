@@ -775,7 +775,7 @@ export default function CoursePlanner() {
         {/* Phase fix: Warning banner when no batches are assigned — students
             can't see the course until it's assigned to at least one batch.
             Shows a quick-assign button for each available batch. */}
-        {selectedCourse.batches && selectedCourse.batches.length === 0 && batches.length > 0 && (
+        {Array.isArray(selectedCourse.batches) && selectedCourse.batches.length === 0 && batches.length > 0 && (
           <Card className="border-growth-amber bg-growth-amber-soft">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
@@ -1160,7 +1160,7 @@ export default function CoursePlanner() {
             </div>
           </div>
 
-          {selectedCourse.weeks.map((w, weekIdx) => {
+          {(Array.isArray(selectedCourse.weeks) ? selectedCourse.weeks : []).map((w, weekIdx) => {
             const isExpanded = expandedWeeks.has(weekIdx) || editing;
             return (
               <Card key={weekIdx} className={`border-border ${isExpanded ? "" : "hover:shadow-sm"} transition-shadow`}>
@@ -1195,7 +1195,7 @@ export default function CoursePlanner() {
                     {!editing && w.milestone && <p className="text-[10px] text-muted-foreground italic">🎯 {w.milestone}</p>}
 
                     {/* Days */}
-                    {w.days.map((d, dayIdx) => (
+                    {(Array.isArray(w.days) ? w.days : []).map((d, dayIdx) => (
                       <div key={dayIdx} className={`rounded-md border ${d.activity ? "border-primary/20 bg-primary/5" : "border-border bg-background/50"} p-2.5 space-y-2`}>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-[8px] text-cyan-600 border-cyan-500/30">Day {d.day}</Badge>
@@ -1230,11 +1230,11 @@ export default function CoursePlanner() {
                         )}
 
                         {/* Topics covered */}
-                        {(editing || d.topicsCovered.length > 0) && (
+                        {(editing || (Array.isArray(d.topicsCovered) && d.topicsCovered.length > 0)) && (
                           <div className="pl-4 space-y-1">
                             <Label className="text-[8px] text-muted-foreground">Topics Covered</Label>
                             <div className="flex flex-wrap gap-1">
-                              {d.topicsCovered.map((t, topicIdx) => (
+                              {(Array.isArray(d.topicsCovered) ? d.topicsCovered : []).map((t, topicIdx) => (
                                 editing ? (
                                   <span key={topicIdx} className="inline-flex items-center gap-0.5">
                                     <Input value={t} onChange={(e) => updateTopic(weekIdx, dayIdx, topicIdx, e.target.value)} className="bg-background border-border h-5 text-[10px] w-28" />
@@ -1272,10 +1272,10 @@ export default function CoursePlanner() {
                         )}
 
                         {/* Resources */}
-                        {(editing || d.resources.length > 0) && (
+                        {(editing || (Array.isArray(d.resources) && d.resources.length > 0)) && (
                           <div className="pl-4 space-y-1">
                             <Label className="text-[8px] text-muted-foreground">Resources</Label>
-                            {d.resources.map((r, resIdx) => (
+                            {(Array.isArray(d.resources) ? d.resources : []).map((r, resIdx) => (
                               <div key={resIdx} className="flex items-center gap-1.5">
                                 {editing ? (
                                   <>
@@ -1373,7 +1373,7 @@ export default function CoursePlanner() {
               <CardContent className="pt-0 px-4 pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap gap-1">
-                    {c.batches?.length > 0 ? c.batches.map(co => (
+                    {c.batches?.length > 0 && Array.isArray(c.batches) ? c.batches.map(co => (
                       <Badge key={co.id} variant="secondary" className="text-[8px] bg-primary/10 text-primary">{co.name}</Badge>
                     )) : <span className="text-[10px] text-muted-foreground">No batches assigned</span>}
                   </div>
@@ -1482,7 +1482,7 @@ export default function CoursePlanner() {
                       <p className="text-[10px] text-muted-foreground mb-1">🎯 {w.milestone}</p>
                     )}
                     <div className="flex flex-wrap gap-1 ml-6">
-                      {w.days.map((d) => (
+                      {(Array.isArray(w.days) ? w.days : []).map((d) => (
                         <Badge key={d.day} variant="outline" className="text-[10px] font-normal">
                           D{d.day}: {d.title}
                         </Badge>
