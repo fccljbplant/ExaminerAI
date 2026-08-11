@@ -16,8 +16,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 41,
-      "sizeBytes": 24434
+      "opaquePercent": 36,
+      "sizeBytes": 31754
     },
     {
       "name": "listen",
@@ -25,8 +25,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 29,
-      "sizeBytes": 20704
+      "opaquePercent": 33,
+      "sizeBytes": 29808
     },
     {
       "name": "think",
@@ -34,8 +34,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 25,
-      "sizeBytes": 21030
+      "opaquePercent": 34,
+      "sizeBytes": 20418
     },
     {
       "name": "explain",
@@ -43,8 +43,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 31,
-      "sizeBytes": 24382
+      "opaquePercent": 23,
+      "sizeBytes": 21008
     },
     {
       "name": "talk",
@@ -52,8 +52,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 31,
-      "sizeBytes": 18986
+      "opaquePercent": 41,
+      "sizeBytes": 24570
     },
     {
       "name": "talk-soft",
@@ -61,8 +61,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 28,
-      "sizeBytes": 30632
+      "opaquePercent": 40,
+      "sizeBytes": 32080
     },
     {
       "name": "talk-mid",
@@ -70,8 +70,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 25,
-      "sizeBytes": 22036
+      "opaquePercent": 30,
+      "sizeBytes": 24830
     },
     {
       "name": "talk-wide",
@@ -79,8 +79,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 31,
-      "sizeBytes": 24856
+      "opaquePercent": 33,
+      "sizeBytes": 28604
     },
     {
       "name": "wavehi",
@@ -89,7 +89,7 @@
       "height": 450,
       "frames": 1,
       "opaquePercent": 32,
-      "sizeBytes": 27838
+      "sizeBytes": 27742
     },
     {
       "name": "wavebye",
@@ -97,8 +97,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 28,
-      "sizeBytes": 22654
+      "opaquePercent": 40,
+      "sizeBytes": 27952
     },
     {
       "name": "thumbsup",
@@ -106,8 +106,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 35,
-      "sizeBytes": 24452
+      "opaquePercent": 39,
+      "sizeBytes": 26846
     },
     {
       "name": "cheer",
@@ -115,8 +115,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 26,
-      "sizeBytes": 25118
+      "opaquePercent": 36,
+      "sizeBytes": 33198
     },
     {
       "name": "fistpump",
@@ -124,8 +124,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 28,
-      "sizeBytes": 25476
+      "opaquePercent": 43,
+      "sizeBytes": 27998
     },
     {
       "name": "comfort",
@@ -133,8 +133,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 35,
-      "sizeBytes": 24206
+      "opaquePercent": 47,
+      "sizeBytes": 38508
     },
     {
       "name": "point",
@@ -142,8 +142,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 23,
-      "sizeBytes": 21422
+      "opaquePercent": 34,
+      "sizeBytes": 22886
     },
     {
       "name": "question",
@@ -151,8 +151,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 27,
-      "sizeBytes": 20426
+      "opaquePercent": 42,
+      "sizeBytes": 29636
     },
     {
       "name": "write",
@@ -160,8 +160,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 29,
-      "sizeBytes": 23502
+      "opaquePercent": 37,
+      "sizeBytes": 24674
     },
     {
       "name": "jump",
@@ -169,8 +169,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 35,
-      "sizeBytes": 26472
+      "opaquePercent": 34,
+      "sizeBytes": 26282
     }
   ]
 }
