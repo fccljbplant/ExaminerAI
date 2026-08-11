@@ -104,6 +104,15 @@ model Course {
   learningPathCourses LearningPathCourse[]
   payments           Payment[]
   faqs               CourseFAQ[]
+
+  // === LEARN PLATFORM (reverse relations) ===
+  learnProfiles      LearnProfile[]
+  journeyPlans       JourneyPlan[]
+  learnSlides        LearnSlide[]
+  tutorSessions      TutorSession[]
+  learnDailyTests    LearnDailyTest[]
+  learnWeeklyTests   LearnWeeklyTest[]
+  learnNotes         LearnNote[]
 }
 
 /// Course reviews — students rate courses after completion.
@@ -307,6 +316,18 @@ model User {
   payments                Payment[]
   // Organization membership — multi-org B2B support.
   organizationMembers     OrgMember[]
+
+  // === LEARN PLATFORM (reverse relations) ===
+  learnProfiles      LearnProfile[]
+  journeyPlans       JourneyPlan[]
+  tutorSessions      TutorSession[]
+  learnProjects      LearnProject[]
+  xpLedger           XPLedger[]
+  userBadges         UserBadge[]
+  learnNotes         LearnNote[]
+  engagementEvents   EngagementEvent[]
+  learnDailyTests    LearnDailyTest[]
+  learnWeeklyTests   LearnWeeklyTest[]
 }
 
 model PasswordResetRequest {
@@ -981,4 +1002,253 @@ model OrgMember {
 
   @@unique([orgId, userId])
   @@index([orgId, role])
+}
+
+// === LEARN PLATFORM (AI Audio-Visual Learning) ===
+
+model LearnProfile {
+  id                String   @id @default(cuid())
+  userId            String
+  courseId          String
+  preferredLanguage String   @default("en")
+  teachingLevel     Int      @default(4) // 1=kindergarten, 2=school, 3=college, 4=university
+  totalXP           Int      @default(0)
+  learnerLevel      String   @default("Rookie")
+  streakCurrent     Int      @default(0)
+  streakLongest     Int      @default(0)
+  lastActivityDate  DateTime?
+  masteryMap        Json?    // { topicProgress: { current, history[] } }
+  leaderboardOptIn  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  @@unique([userId, courseId])
+  @@index([userId])
+}
+
+model JourneyPlan {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+  status      String   @default("active")
+  totalSteps  Int      @default(0)
+  currentStep Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  steps  JourneyStep[]
+  @@unique([userId, courseId])
+}
+
+model JourneyStep {
+  id          String   @id @default(cuid())
+  journeyId   String
+  stepOrder   Int
+  stepType    String   // slide | daily_test | weekly_test | project_milestone | completion
+  slideId     String?
+  title       String
+  description String?
+  status      String   @default("pending") // pending | active | completed
+  xpReward    Int      @default(5)
+  completedAt DateTime?
+  metadata    Json?
+  journey JourneyPlan @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  @@index([journeyId, stepOrder])
+}
+
+model LearnSlide {
+  id           String   @id @default(cuid())
+  courseId     String
+  moduleId     String?
+  lessonId     String?
+  slideOrder   Int
+  title        String
+  bullets      Json     // string[]
+  visualSpec   String?
+  keyTerms     Json     // string[]
+  checkQuestion String?
+  realWorldExample String?
+  analogy      String?
+  createdAt    DateTime @default(now())
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  narrations  LearnNarration[]
+  @@index([courseId, slideOrder])
+}
+
+model LearnNarration {
+  id        String   @id @default(cuid())
+  slideId   String
+  level     Int      // 1-4
+  language  String   @default("en")
+  text      String
+  createdAt DateTime @default(now())
+  slide LearnSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  @@unique([slideId, level, language])
+}
+
+model TutorSession {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+  slideId     String?
+  status      String   @default("active")
+  language    String   @default("en")
+  teachingLevel Int    @default(4)
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  messages TutorMessage[]
+  @@index([userId, courseId])
+}
+
+model TutorMessage {
+  id          String   @id @default(cuid())
+  sessionId   String
+  role        String   // tutor | student | system
+  content     String
+  messageType String   @default("text")
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  session TutorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  @@index([sessionId, createdAt])
+}
+
+model LearnDailyTest {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  date      DateTime
+  questions Json     // array of { question, format, conceptId, isSpacedRepetition }
+  answers   Json?    // array of { answer, evaluation, score }
+  status    String   @default("in_progress") // in_progress | completed
+  score     Int?
+  xpAwarded Int      @default(0)
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  @@unique([userId, courseId, date])
+}
+
+model LearnWeeklyTest {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  week      Int
+  questions Json     // array of { question, format, conceptId, difficulty }
+  answers   Json?
+  status    String   @default("in_progress")
+  score     Int?
+  xpAwarded Int      @default(0)
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  @@unique([userId, courseId, week])
+}
+
+model LearnProject {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String?
+  title       String
+  goal        String?
+  stack       String?
+  currentState String?
+  deadline    DateTime?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones ProjectMilestone[]
+  helpSessions ProjectHelpSession[]
+  @@index([userId])
+}
+
+model ProjectMilestone {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  order       Int      @default(0)
+  status      String   @default("pending") // pending | in_progress | completed
+  completedAt DateTime?
+  project LearnProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  @@index([projectId, order])
+}
+
+model ProjectHelpSession {
+  id        String   @id @default(cuid())
+  projectId String
+  blocker   String
+  hint      String?
+  hintLevel Int      @default(0)
+  resolved  Boolean  @default(false)
+  conversation Json?
+  createdAt DateTime @default(now())
+  project LearnProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model XPLedger {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String?
+  amount      Int
+  reason      String
+  referenceId String?
+  createdAt   DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
+}
+
+model BadgeDefinition {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String
+  icon        String
+  rarity      String   @default("common")
+  xpReward    Int      @default(0)
+  criteria    Json?
+  createdAt   DateTime @default(now())
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  courseId   String?
+  awardedAt DateTime @default(now())
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge BadgeDefinition @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  @@unique([userId, badgeId, courseId])
+}
+
+model LearnNote {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  slideId   String?
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  @@index([userId, courseId])
+}
+
+model EngagementEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String?
+  eventType   String
+  sentiment   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
 }
