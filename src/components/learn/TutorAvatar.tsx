@@ -12,21 +12,41 @@ type SheetKey =
 type Gesture = Exclude<SheetKey, "talkSoft" | "talkMid" | "talkWide">;
 
 const SHEETS: Record<SheetKey, { frames: number; fps: number; loop: boolean }> = {
- idle: { frames: 8, fps: 8, loop: true }, listen: { frames: 8, fps: 8, loop: true },
- think: { frames: 8, fps: 10, loop: true }, explain: { frames: 12, fps: 12, loop: true },
- talk: { frames: 6, fps: 12, loop: true }, talkSoft: { frames: 6, fps: 10, loop: true },
- talkMid: { frames: 6, fps: 12, loop: true }, talkWide: { frames: 6, fps: 14, loop: true },
- wavehi: { frames: 12, fps: 12, loop: false }, wavebye: { frames: 12, fps: 10, loop: false },
- thumbsup: { frames: 10, fps: 12, loop: false }, cheer: { frames: 16, fps: 14, loop: false },
- fistpump: { frames: 10, fps: 12, loop: false }, comfort: { frames: 10, fps: 10, loop: false },
- point: { frames: 10, fps: 12, loop: false }, question: { frames: 10, fps: 12, loop: false },
- write: { frames: 14, fps: 12, loop: false }, jump: { frames: 12, fps: 14, loop: false },
+ // Single-frame baked-3D sprites (pre-rendered Pixar-style character).
+ // Each sprite is a 360x450 transparent WebP. The canvas player shows
+ // the frame statically — real multi-frame animation strips can replace
+ // these later without changing any code (just update frames count + SPRITES URL).
+ idle: { frames: 1, fps: 8, loop: true }, listen: { frames: 1, fps: 8, loop: true },
+ think: { frames: 1, fps: 10, loop: true }, explain: { frames: 1, fps: 12, loop: true },
+ talk: { frames: 1, fps: 12, loop: true }, talkSoft: { frames: 1, fps: 10, loop: true },
+ talkMid: { frames: 1, fps: 12, loop: true }, talkWide: { frames: 1, fps: 14, loop: true },
+ wavehi: { frames: 1, fps: 12, loop: false }, wavebye: { frames: 1, fps: 10, loop: false },
+ thumbsup: { frames: 1, fps: 12, loop: false }, cheer: { frames: 1, fps: 14, loop: false },
+ fistpump: { frames: 1, fps: 12, loop: false }, comfort: { frames: 1, fps: 10, loop: false },
+ point: { frames: 1, fps: 12, loop: false }, question: { frames: 1, fps: 12, loop: false },
+ write: { frames: 1, fps: 12, loop: false }, jump: { frames: 1, fps: 14, loop: false },
 };
 const ONE_SHOT: Partial<Record<SheetKey, number>> = {};
 (Object.keys(SHEETS) as SheetKey[]).forEach(k => {
  const s = SHEETS[k]; if (!s.loop) ONE_SHOT[k] = (s.frames / s.fps) * 1000 + 250;
 });
-const SPRITES: Partial<Record<SheetKey, string>> = {};
+// Baked-3D sprite strips (Pixar-style, transparent WebP, 360x450 per frame).
+// Generated via scripts/avatar-assets/ — see manifest.json in /public/avatars/.
+// Missing sheets (explain, listen, talk, fistpump, question, write, jump) fall
+// back to the procedural placeholder canvas renderer.
+const SPRITES: Partial<Record<SheetKey, string>> = {
+ idle: "/avatars/idle.webp",
+ talkSoft: "/avatars/talk-soft.webp",
+ talkMid: "/avatars/talk-mid.webp",
+ talkWide: "/avatars/talk-wide.webp",
+ wavehi: "/avatars/wavehi.webp",
+ point: "/avatars/point.webp",
+ thumbsup: "/avatars/thumbsup.webp",
+ think: "/avatars/think.webp",
+ cheer: "/avatars/cheer.webp",
+ comfort: "/avatars/comfort.webp",
+ wavebye: "/avatars/wavebye.webp",
+};
 
 type Handler = (p?: unknown) => void;
 const handlers: Record<string, Set<Handler>> = {};
@@ -171,7 +191,10 @@ function SpriteAvatar({ sheet, mouth, reduced }: { sheet: SheetKey; mouth: numbe
  const cfg = SHEETS[sheet];
  let frame = 0, last = 0, raf = 0;
  const draw = (t: number) => {
- if (img && img.complete && img.naturalWidth > W) {
+ // Use the sprite image if it has loaded and is at least W pixels wide.
+ // Single-frame sprites are exactly W (360) wide; multi-frame strips are
+ // W * frames wide. Both cases are handled by the drawImage source-crop.
+ if (img && img.complete && img.naturalWidth >= W && img.naturalHeight >= H) {
  ctx.clearRect(0, 0, W, H); ctx.drawImage(img, frame * W, 0, W, H, 0, 0, W, H);
  } else drawPlaceholder(ctx, sheet, sheet.startsWith("talk") ? mouth : 0, t);
  };

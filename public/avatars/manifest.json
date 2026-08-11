@@ -1,0 +1,99 @@
+{
+  "character": "TraineesAI Tutor \u2014 3D Pixar-style female teacher",
+  "style": "Baked-3D sprite strips (pre-rendered 3D, played as 2D)",
+  "frameSize": {
+    "width": 360,
+    "height": 450
+  },
+  "format": "WebP with alpha transparency",
+  "sheets": [
+    {
+      "name": "idle",
+      "file": "idle.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 29404
+    },
+    {
+      "name": "talk-soft",
+      "file": "talk-soft.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 53992
+    },
+    {
+      "name": "talk-mid",
+      "file": "talk-mid.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 34094
+    },
+    {
+      "name": "talk-wide",
+      "file": "talk-wide.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 31010
+    },
+    {
+      "name": "wavehi",
+      "file": "wavehi.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 29686
+    },
+    {
+      "name": "point",
+      "file": "point.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 30408
+    },
+    {
+      "name": "thumbsup",
+      "file": "thumbsup.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 27150
+    },
+    {
+      "name": "think",
+      "file": "think.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 26610
+    },
+    {
+      "name": "cheer",
+      "file": "cheer.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 24016
+    },
+    {
+      "name": "comfort",
+      "file": "comfort.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 35210
+    },
+    {
+      "name": "wavebye",
+      "file": "wavebye.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 29414
+    }
+  ]
+}
