@@ -3,17 +3,17 @@
 scripts/avatar-assets/process-sprites.py
 Processes raw AI-generated character poses into transparent WebP sprite sheets.
 
+Background: bright bottle green (#00A86B) — used as a chroma key for clean
+background removal. This is far more reliable than white-background removal
+because the green color is distinct from any natural skin/clothing color.
+
 For each pose:
-  1. Open the raw PNG (864x1152, white background)
-  2. Remove white background + grey haze + shadows → transparent
+  1. Open the raw PNG (864x1152, bottle green background)
+  2. Chroma-key: remove all green-dominant pixels → transparent
   3. Trim to character bounding box
-  4. Normalize: scale all characters to the SAME height (so they're consistent)
+  4. Normalize: scale all characters to the SAME height (consistent body size)
   5. Center horizontally on a 360x450 transparent canvas
   6. Save as WebP with alpha
-
-The normalization step is critical — without it, the AI generates the character
-at slightly different scales per pose, causing the avatar to "jump size" when
-switching gestures.
 """
 
 import os
@@ -26,7 +26,6 @@ OUT_DIR = Path(__file__).parent.parent.parent / "public" / "avatars"
 TARGET_W = 360
 TARGET_H = 450
 
-# All 18 poses
 POSE_MAP = {
     "idle": "idle.webp", "listen": "listen.webp", "think": "think.webp",
     "explain": "explain.webp", "talk": "talk.webp", "talk-soft": "talk-soft.webp",
@@ -37,38 +36,58 @@ POSE_MAP = {
     "write": "write.webp", "jump": "jump.webp",
 }
 
-# Target character height in the final 450px frame (leaves 20px margin top+bottom)
-# All poses are scaled so the character's opaque content fills this height.
-# This eliminates the "different sizes" problem.
+# Target character height — all poses scaled to this for consistent body size
 TARGET_CHAR_HEIGHT = 410
-TARGET_CHAR_WIDTH = 280  # max width before scaling down
+TARGET_CHAR_WIDTH = 280
 
 
-def remove_background(img: Image.Image) -> Image.Image:
-    """Remove white background + grey haze + shadows → transparent."""
+def remove_green_background(img: Image.Image) -> Image.Image:
+    """Chroma-key removal: remove bottle green (#00A86B) background.
+
+    The AI doesn't always generate pure bottle green — it can be dark teal,
+    bright green, or anywhere in between. We use a multi-criteria approach:
+
+    A pixel is "background" if ANY of these are true:
+      1. Green is strongly dominant (g - max(r,b) > 15) — pure green screen
+      2. Green is mildly dominant (g - max(r,b) > 3) AND the pixel is dark
+         (brightness < 200) — catches dark teal variants
+      3. The pixel is in the green hue range (g > r AND g > b) with low
+         saturation on red+blue — catches washed-out green
+
+    Anti-aliased edges get gradient alpha.
+    """
     img = img.convert("RGBA")
     data = img.getdata()
     new_data = []
 
     for r, g, b, a in data:
-        max_c = max(r, g, b)
-        min_c = min(r, g, b)
+        green_dominance = g - max(r, b)
         brightness = (r + g + b) / 3
-        saturation = (max_c - min_c) / max_c if max_c > 0 else 0
 
-        # Pure white background → transparent
-        if min_c >= 225:
-            new_data.append((r, g, b, 0))
-        # Light grey haze (bright + low saturation) → transparent
-        elif brightness >= 130 and saturation < 0.12:
-            if brightness >= 200:
-                new_data.append((r, g, b, 0))
+        is_bg = False
+        alpha = 255
+
+        # Criterion 1: Strong green dominance → definitely background
+        if green_dominance > 15:
+            is_bg = True
+            if green_dominance > 40:
+                alpha = 0
             else:
-                alpha = int(255 * (200 - brightness) / 70)
-                new_data.append((r, g, b, max(0, alpha)))
-        # Dark grey contact shadow → transparent
-        elif brightness < 80 and saturation < 0.08:
-            new_data.append((r, g, b, 0))
+                alpha = int(255 * (1 - green_dominance / 40))
+        # Criterion 2: Mild green dominance + dark pixel (dark teal bg)
+        elif green_dominance > 3 and brightness < 200:
+            is_bg = True
+            if green_dominance > 10:
+                alpha = 0
+            else:
+                alpha = int(255 * (1 - green_dominance / 10))
+        # Criterion 3: Green is the max channel + low red (washed green)
+        elif g > r and g >= b and r < 100 and brightness < 220:
+            is_bg = True
+            alpha = int(255 * max(0, (r - 50) / 50))
+
+        if is_bg:
+            new_data.append((r, g, b, max(0, alpha)))
         else:
             new_data.append((r, g, b, 255))
 
@@ -94,20 +113,19 @@ def trim_to_content(img: Image.Image, padding: int = 4) -> Image.Image:
 def normalize_to_frame(img: Image.Image) -> Image.Image:
     """Scale the character to a FIXED height so all poses are the same size.
 
-    1. Scale so the character height = TARGET_CHAR_HEIGHT (410px)
-    2. If the character is wider than TARGET_CHAR_WIDTH (280px) after scaling,
-       scale down further to fit the width.
-    3. Center on a 360x450 transparent canvas, shifted up 10px for shadow room.
+    1. Scale so character height = TARGET_CHAR_HEIGHT (410px)
+    2. If too wide, scale down to fit TARGET_CHAR_WIDTH (280px)
+    3. Center on transparent canvas, shifted up 10px for shadow room
     """
     if img.mode != "RGBA":
         img = img.convert("RGBA")
 
-    # Step 1: Scale to target height
+    # Scale to target height
     scale_h = TARGET_CHAR_HEIGHT / img.height
     new_w = int(img.width * scale_h)
     new_h = TARGET_CHAR_HEIGHT
 
-    # Step 2: If too wide, scale down to fit width
+    # If too wide, scale down further
     if new_w > TARGET_CHAR_WIDTH:
         scale_w = TARGET_CHAR_WIDTH / new_w
         new_w = int(new_w * scale_w)
@@ -115,10 +133,10 @@ def normalize_to_frame(img: Image.Image) -> Image.Image:
 
     resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
-    # Step 3: Center on transparent canvas
+    # Center on transparent canvas
     canvas = Image.new("RGBA", (TARGET_W, TARGET_H), (0, 0, 0, 0))
     offset_x = (TARGET_W - new_w) // 2
-    offset_y = max(0, (TARGET_H - new_h) // 2 - 10)  # shift up for shadow
+    offset_y = max(0, (TARGET_H - new_h) // 2 - 10)
     canvas.paste(resized, (offset_x, offset_y), resized)
     return canvas
 
@@ -128,12 +146,12 @@ def process_pose(raw_path: Path, out_path: Path) -> dict:
     print(f"  {raw_path.name}...", end=" ")
     img = Image.open(raw_path)
     original_size = img.size
-    img = remove_background(img)
+    img = remove_green_background(img)
     img = trim_to_content(img, padding=4)
     trimmed_size = img.size
     img = normalize_to_frame(img)
 
-    # Verify: count opaque pixels for consistency check
+    # Verify: count opaque pixels
     alpha = img.getchannel("A")
     opaque = sum(1 for a in alpha.getdata() if a > 200)
     pct = opaque * 100 // (TARGET_W * TARGET_H)
@@ -154,9 +172,10 @@ def process_pose(raw_path: Path, out_path: Path) -> dict:
 
 
 def main():
-    print("=== Sprite Processing (18 poses, normalized + shadow-free) ===")
+    print("=== Sprite Processing (18 poses, chroma-key green → transparent) ===")
+    print(f"Background removal: bottle green #00A86B chroma key")
     print(f"Target frame: {TARGET_W}x{TARGET_H}")
-    print(f"Target character height: {TARGET_CHAR_HEIGHT}px (normalized for consistency)")
+    print(f"Target character height: {TARGET_CHAR_HEIGHT}px (normalized)")
     print()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -182,16 +201,16 @@ def main():
     manifest_path = OUT_DIR / "manifest.json"
     with open(manifest_path, "w") as f:
         json.dump({
-            "character": "TraineesAI Tutor — 3D Pixar-style female teacher",
+            "character": "TraineesAI Tutor — 3D Pixar-style middle-aged man with beard and glasses",
             "style": "Baked-3D sprite strips (pre-rendered 3D, played as 2D)",
             "frameSize": {"width": TARGET_W, "height": TARGET_H},
             "normalizedCharHeight": TARGET_CHAR_HEIGHT,
+            "backgroundRemoval": "Chroma key — bottle green #00A86B",
             "format": "WebP with alpha transparency",
             "shadowStyle": "CSS ellipse (.ta-shadow) — NOT baked into sprite",
             "sheets": manifest,
         }, f, indent=2)
 
-    # Consistency report
     opaque_pcts = [e["opaquePercent"] for e in manifest]
     print()
     print(f"=== Complete: {success} success, {failed} failed ===")
