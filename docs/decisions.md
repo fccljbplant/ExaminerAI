@@ -78,3 +78,19 @@
 - `src/lib/__tests__/course-normalization.test.ts` (20 tests)
 - `src/lib/__tests__/auth.test.ts` (8 tests)
 - `src/lib/__tests__/logger.test.ts` (9 tests)
+
+## D-016: Batches Removal (2026-08-11)
+**Decision:** Removed all `batches`/`cohort` references from `CoursePlanner.tsx`.
+**Rationale:** The batches model was already removed from the API (replaced by `CourseEnrollment`), but `CoursePlanner.tsx` still had dead batches code: a `Batch` interface, `batches` state (always empty), `assignBatch` function (calling non-existent `/api/batches/[id]`), cohort assignment UI (hidden when `batches.length === 0`), and a warning banner that never showed. This violated anti-junk law #1 (no dead UI) and #3 (no empty state without helpful CTA).
+**What was removed:**
+- `Batch` interface
+- `batches` field from `Course` interface
+- `batches` state + `setBatches([])` call
+- `assignBatch` function (called non-existent API endpoint)
+- Batches deletion handling (409 response with `assignedBatches`)
+- Cohort assignment UI section
+- "No batches assigned" warning banner
+- "No batches assigned" text in course list view
+- "Default Batch" text in set-default success message
+- Unused `ApiError` import
+**What replaced it:** The course list view now shows domain + level badges (useful information) instead of "No batches assigned" (dead text).

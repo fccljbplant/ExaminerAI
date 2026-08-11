@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { api, AI_TIMEOUT_MS, ApiError } from "@/lib/api-client";
+import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { MARKETPLACE_CATEGORIES as COURSE_MARKETPLACE_CATEGORIES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ interface Course {
   id: string; name: string; description: string; isActive: boolean;
   domain?: string; level?: string; assessmentType?: string;
   subjects?: string[];
-  weeks: CourseWeek[]; batches: { id: string; name: string }[];
+  weeks: CourseWeek[];
   journeySteps?: unknown; projectTemplate?: unknown; aiPrompts?: unknown;
   testConfig?: unknown; reportCardTemplate?: unknown;
   // Project configuration — set by the course coordinator.
@@ -61,7 +61,6 @@ interface Course {
   thumbnailUrl?: string | null;
   durationWeeks?: number;
 }
-interface Batch { id: string; name: string; courseId: string | null; courseName: string | null; }
 
 type View = "list" | "generate" | "detail";
 
@@ -71,7 +70,6 @@ type View = "list" | "generate" | "detail";
 
 export default function CoursePlanner() {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("list");
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -232,11 +230,8 @@ export default function CoursePlanner() {
 
   const load = useCallback(async () => {
     try {
-      // Fix: /api/batches no longer exists (replaced by CourseEnrollment).
-      // Only fetch courses — batches/cohorts are managed via the enrollment system.
       const courseRes = await api.get<{ courses: Course[] }>("/api/courses", undefined, AI_TIMEOUT_MS);
       setCourses(courseRes.courses || []);
-      setBatches([]);
     } catch (e) {
       // Phase fix: show the error instead of silently swallowing it.
       // The old `catch { /* ignore */ }` meant if GET /api/courses failed
@@ -392,30 +387,7 @@ export default function CoursePlanner() {
       await load();
       showMsg("success", "Course deleted.");
     } catch (e) {
-      // Handle the 409 "batches still assigned" response from the API.
-      // ApiError.body carries the full error JSON, including the list of
-      // affected batches so the admin knows what to unassign.
-      const assignedBatches = (e instanceof ApiError && e.body?.assignedBatches)
-        ? (e.body.assignedBatches as { id: string; name: string }[])
-        : [];
-      if (assignedBatches.length > 0) {
-        const names = (Array.isArray(assignedBatches) ? assignedBatches.map(c => c.name).join(", ") : "");
-        const force = confirm(
-          `Cannot delete: ${assignedBatches.length} batch(s) are still using this course (${names}).\n\nClick OK to unassign them and delete anyway, or Cancel to keep them assigned.`
-        );
-        if (force) {
-          try {
-            await api.del(`/api/courses/${id}?force=true`);
-            if (selectedCourse?.id === id) { setSelectedCourse(null); setView("list"); }
-            await load();
-            showMsg("success", "Course deleted (classes unassigned).");
-          } catch (e2) {
-            showMsg("error", e2 instanceof Error ? e2.message : "Failed to force-delete");
-          }
-        }
-      } else {
-        showMsg("error", e instanceof Error ? e.message : "Failed to delete course");
-      }
+      showMsg("error", e instanceof Error ? e.message : "Failed to delete course");
     } finally { setBusy(false); }
   };
 
@@ -490,19 +462,6 @@ export default function CoursePlanner() {
     const weeks = [...selectedCourse.weeks];
     weeks[weekIdx].days[dayIdx].topicsCovered = weeks[weekIdx].days[dayIdx].topicsCovered.filter((_, i) => i !== topicIdx);
     setSelectedCourse({ ...selectedCourse, weeks });
-  };
-
-  const assignBatch = async (batchId: string, courseId: string | null) => {
-    try {
-      // Phase fix: use the api-client (handles errors properly) + the correct
-      // PATCH /api/batches/[id] endpoint (was calling /api/batches which doesn't
-      // have a PATCH handler — the route is at /api/batches/[id]).
-      await api.patch(`/api/batches/${batchId}`, { courseId });
-      showMsg("success", courseId ? "Course assigned to class. Students will now see it." : "Course unassigned from class.");
-      await load();
-    } catch (e) {
-      showMsg("error", e instanceof Error ? e.message : "Failed to assign class");
-    }
   };
 
   const toggleWeek = (idx: number) => {
@@ -670,7 +629,7 @@ export default function CoursePlanner() {
                   try {
                     await api.post(`/api/courses/${selectedCourse.id}/set-default`, { isDefault: !selectedCourse.isDefault });
                     showMsg("success", !selectedCourse.isDefault
-                      ? `Set "${selectedCourse.name}" as the default course for new students. The Default Batch is now linked to it.`
+                      ? `Set "${selectedCourse.name}" as the default course for new students.`
                       : `"${selectedCourse.name}" is no longer the default course.`
                     );
                     await load();
@@ -751,58 +710,8 @@ export default function CoursePlanner() {
                 </div>
               )}
             </div>
-            {/* Cohort assignment — hidden when no cohorts exist (batches model was removed) */}
-            {batches.length > 0 && (
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Assigned Cohorts</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {batches.map(co => {
-                  const assigned = co.courseId === selectedCourse.id;
-                  return (
-                    <button key={co.id} disabled={!editing} onClick={() => assignBatch(co.id, assigned ? null : selectedCourse.id)}
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors ${assigned ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"} ${!editing ? "cursor-default" : "cursor-pointer"}`}>
-                      {co.name} {assigned && "✓"}
-                    </button>
-                  );
-                })}
-                {batches.length === 0 && <span className="text-[10px] text-muted-foreground">No cohorts available</span>}
-              </div>
-            </div>
-            )}
           </CardContent>
         </Card>
-
-        {/* Phase fix: Warning banner when no batches are assigned — students
-            can't see the course until it's assigned to at least one batch.
-            Shows a quick-assign button for each available batch. */}
-        {Array.isArray(selectedCourse.batches) && selectedCourse.batches.length === 0 && batches.length > 0 && (
-          <Card className="border-growth-amber bg-growth-amber-soft">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-growth-amber flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">
-                    This course isn&apos;t assigned to any batch yet
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5 mb-2">
-                    Students won&apos;t see this course in their Course Outline or weekly tests until you assign it to their batch. Click a batch to assign:
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {batches.map(co => (
-                      <button
-                        key={co.id}
-                        onClick={() => assignBatch(co.id, selectedCourse.id)}
-                        className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                      >
-                        Assign to {co.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* ============================================================
             PROJECT CONFIGURATION CARD
@@ -1314,7 +1223,7 @@ export default function CoursePlanner() {
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-primary" /> Course Planner
           </h2>
-          <p className="text-xs text-muted-foreground">Create courses with AI, edit weekly plans, assign to batches.</p>
+          <p className="text-xs text-muted-foreground">Create courses with AI, edit weekly plans, manage course configuration.</p>
         </div>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={seedDefault} disabled={busy} className="border-border">
@@ -1373,9 +1282,8 @@ export default function CoursePlanner() {
               <CardContent className="pt-0 px-4 pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap gap-1">
-                    {c.batches?.length > 0 && Array.isArray(c.batches) ? c.batches.map(co => (
-                      <Badge key={co.id} variant="secondary" className="text-[8px] bg-primary/10 text-primary">{co.name}</Badge>
-                    )) : <span className="text-[10px] text-muted-foreground">No batches assigned</span>}
+                    <Badge variant="outline" className="text-[10px]">{c.domain || "technology"}</Badge>
+                    <Badge variant="outline" className="text-[10px] capitalize">{c.level || "beginner"}</Badge>
                   </div>
                   <div className="flex gap-1">
                     <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); openCourseDetail(c.id, true); }}>
