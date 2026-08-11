@@ -294,11 +294,12 @@ if (typeof document !== "undefined" && !document.getElementById("ta-css")) {
  .ta-dock{position:fixed;z-index:40;pointer-events:none;transition:width .25s,height .25s,opacity .3s}
  .ta-btn{pointer-events:auto;border:0;background:transparent;padding:0;width:100%;height:100%;cursor:grab;touch-action:none;position:relative}
  .ta-btn:active{cursor:grabbing}
- .ta-btn canvas{width:100%;height:100%;display:block}
+ /* Smooth crossfade transition when gesture changes — prevents jarring snap */
+ .ta-btn canvas{width:100%;height:100%;display:block;transition:opacity .2s ease-out}
  .ta-cap{position:absolute;bottom:14px;max-width:280px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.95);color:#222;font:13px/1.4 system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.15)}
  .ta-dock[data-side="right"] .ta-cap{right:calc(100% + 10px)}
  .ta-dock[data-side="left"] .ta-cap{left:calc(100% + 10px)}
- /* CSS sphere shadow — a soft ellipse beneath the avatar, not baked into the sprite */
+ /* CSS sphere shadow — soft ellipse beneath the avatar */
  .ta-shadow{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:55%;height:12px;
    background:radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.14) 40%, transparent 75%);
    border-radius:50%;pointer-events:none;filter:blur(2px)}

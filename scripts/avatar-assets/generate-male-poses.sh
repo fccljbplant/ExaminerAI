@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # scripts/avatar-assets/generate-male-poses.sh
 # Generates 18 consistent poses of a male mid-age bearded character.
-# Background: bright bottle green (#00A86B) for easy chroma-key removal.
-# Outfit: dark grey/black suit, white shirt, nice style.
-# Same body size + framing for smooth motion transitions.
+#
+# CRITICAL CONSISTENCY RULES:
+# 1. Every pose uses the EXACT same character description (face, hair, beard,
+#    eyes, skin, suit color, shoes) — only the body language changes.
+# 2. Background is a SOLID flat bottle green (#00FF7F) — no gradient, no
+#    variation, no lighting falloff. This makes chroma-key removal perfect.
+# 3. Same body framing: head-to-toe, centered, same camera distance.
+# 4. Professional Pixar/DreamWorks render quality.
 
 set -e
 
@@ -12,8 +17,8 @@ mkdir -p "$RAW_DIR"
 
 SIZE="864x1152"
 
-# EXACT same character spec for every pose — ensures consistency
-CHAR="3D Pixar-style character render of a distinguished middle-aged man, approximately 45 years old, neat trimmed grey beard, short dark hair with slight grey at temples, wearing modern thin-frame glasses, wearing a well-fitted dark charcoal grey suit jacket over a crisp white dress shirt (no tie), dark grey trousers, black dress shoes. Professional dignified appearance, warm friendly expression. Full body visible from head to toe, standing perfectly centered in frame, facing forward, same camera angle and distance for every pose (like a character model sheet). Flat even studio lighting from front, bright solid bottle green background color #00A86B (chroma key green for easy background removal), absolutely NO shadow on ground NO drop shadow NO contact shadow, character appears to float, clean professional 3D Pixar animation render quality, smooth subsurface scattering, high detail, consistent character design across all poses"
+# IDENTICAL character spec for every single pose
+CHAR="Professional 3D animated character render in the style of Pixar and DreamWorks. The character is the EXACT SAME person in every image: a distinguished middle-aged man, exactly 45 years old, warm medium tan skin tone (same shade in every image), short neatly styled dark brown-black hair combed back with slight grey only at the temples, full neatly trimmed short beard dark brown-black color same as hair, warm brown eyes, thick modern rectangular black frame glasses, strong jawline, slight confident smile. He wears the EXACT SAME outfit in every image: a well-tailored dark charcoal grey black suit jacket (same color same shade), crisp clean white dress shirt buttoned at collar no tie, dark charcoal grey trousers matching the jacket, polished black leather dress shoes. Full body visible from top of head to bottom of shoes, standing perfectly centered in the exact middle of the frame, facing forward toward camera, same camera angle and same camera distance in every single image like a character model turnaround sheet. The background is a completely flat solid uniform bright bottle green color hex 00FF7F with absolutely NO gradient NO lighting variation NO shadows NO highlights NO vignette just one solid flat green color filling the entire background. Flat even front-facing studio lighting with NO drop shadow NO contact shadow NO ground shadow the character appears to float in front of the solid green background. Ultra high quality professional 3D animation studio render, smooth subsurface scattering, clean topology, photorealistic fabric textures, 8K detail. The character must look identical across all poses — same face same hair same beard same eyes same skin tone same suit color same body proportions."
 
 generate() {
   local name="$1"
@@ -26,7 +31,7 @@ generate() {
   fi
 
   echo -n "  $name... "
-  if z-ai image -p "$CHAR. POSE: $action" -o "$outfile" -s "$SIZE" 2>&1 | grep -q "completed\|saved"; then
+  if z-ai image -p "$CHAR. ONLY THIS POSE CHANGES: $action. Everything else about the character and background stays exactly identical." -o "$outfile" -s "$SIZE" 2>&1 | grep -q "completed\|saved"; then
     echo "✓"
   else
     echo "✗ FAILED"
@@ -34,9 +39,9 @@ generate() {
   sleep 2
 }
 
-echo "=== Male Avatar: 18 consistent poses ==="
-echo "Character: middle-aged man, grey beard, glasses, dark grey suit, white shirt"
-echo "Background: bottle green #00A86B (chroma key)"
+echo "=== Male Avatar: 18 poses, strict consistency ==="
+echo "Character: SAME man, SAME face, SAME suit, SAME body size in every pose"
+echo "Background: solid flat #00FF7F bottle green (NO gradient)"
 echo ""
 
 generate "idle"      "standing still, arms relaxed at sides, gentle closed-mouth smile, looking at camera, neutral pose"

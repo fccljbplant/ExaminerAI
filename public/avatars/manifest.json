@@ -1,14 +1,14 @@
 {
-  "character": "TraineesAI Tutor \u2014 3D Pixar-style middle-aged man with beard and glasses",
-  "style": "Baked-3D sprite strips (pre-rendered 3D, played as 2D)",
+  "character": "TraineesAI Tutor \u2014 middle-aged man, beard, glasses, dark suit",
+  "style": "Baked-3D sprite strips (Pixar/DreamWorks style)",
   "frameSize": {
     "width": 360,
     "height": 450
   },
   "normalizedCharHeight": 410,
-  "backgroundRemoval": "Chroma key \u2014 bottle green #00A86B",
+  "backgroundRemoval": "Chroma key \u2014 solid bottle green",
   "format": "WebP with alpha transparency",
-  "shadowStyle": "CSS ellipse (.ta-shadow) \u2014 NOT baked into sprite",
+  "shadowStyle": "CSS ellipse (.ta-shadow)",
   "sheets": [
     {
       "name": "idle",
@@ -16,8 +16,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 22,
-      "sizeBytes": 31222
+      "opaquePercent": 41,
+      "sizeBytes": 24434
     },
     {
       "name": "listen",
@@ -25,8 +25,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 19,
-      "sizeBytes": 30748
+      "opaquePercent": 29,
+      "sizeBytes": 20704
     },
     {
       "name": "think",
@@ -34,8 +34,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 9,
-      "sizeBytes": 28652
+      "opaquePercent": 25,
+      "sizeBytes": 21030
     },
     {
       "name": "explain",
@@ -43,8 +43,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 26,
-      "sizeBytes": 30856
+      "opaquePercent": 31,
+      "sizeBytes": 24382
     },
     {
       "name": "talk",
@@ -52,8 +52,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 23,
-      "sizeBytes": 31084
+      "opaquePercent": 31,
+      "sizeBytes": 18986
     },
     {
       "name": "talk-soft",
@@ -61,8 +61,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 21,
-      "sizeBytes": 33770
+      "opaquePercent": 28,
+      "sizeBytes": 30632
     },
     {
       "name": "talk-mid",
@@ -70,8 +70,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 23,
-      "sizeBytes": 33666
+      "opaquePercent": 25,
+      "sizeBytes": 22036
     },
     {
       "name": "talk-wide",
@@ -79,8 +79,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 23,
-      "sizeBytes": 37732
+      "opaquePercent": 31,
+      "sizeBytes": 24856
     },
     {
       "name": "wavehi",
@@ -88,8 +88,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 26,
-      "sizeBytes": 41854
+      "opaquePercent": 32,
+      "sizeBytes": 27838
     },
     {
       "name": "wavebye",
@@ -97,8 +97,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 20,
-      "sizeBytes": 48126
+      "opaquePercent": 28,
+      "sizeBytes": 22654
     },
     {
       "name": "thumbsup",
@@ -106,8 +106,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 22,
-      "sizeBytes": 28592
+      "opaquePercent": 35,
+      "sizeBytes": 24452
     },
     {
       "name": "cheer",
@@ -115,8 +115,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 19,
-      "sizeBytes": 26602
+      "opaquePercent": 26,
+      "sizeBytes": 25118
     },
     {
       "name": "fistpump",
@@ -124,8 +124,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 20,
-      "sizeBytes": 31086
+      "opaquePercent": 28,
+      "sizeBytes": 25476
     },
     {
       "name": "comfort",
@@ -133,8 +133,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 22,
-      "sizeBytes": 30804
+      "opaquePercent": 35,
+      "sizeBytes": 24206
     },
     {
       "name": "point",
@@ -142,8 +142,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 14,
-      "sizeBytes": 28202
+      "opaquePercent": 23,
+      "sizeBytes": 21422
     },
     {
       "name": "question",
@@ -151,8 +151,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 14,
-      "sizeBytes": 31762
+      "opaquePercent": 27,
+      "sizeBytes": 20426
     },
     {
       "name": "write",
@@ -160,8 +160,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 18,
-      "sizeBytes": 28862
+      "opaquePercent": 29,
+      "sizeBytes": 23502
     },
     {
       "name": "jump",
@@ -169,8 +169,8 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "opaquePercent": 16,
-      "sizeBytes": 34818
+      "opaquePercent": 35,
+      "sizeBytes": 26472
     }
   ]
 }
