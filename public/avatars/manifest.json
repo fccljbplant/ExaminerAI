@@ -6,6 +6,7 @@
     "height": 450
   },
   "format": "WebP with alpha transparency",
+  "shadowStyle": "CSS ellipse (.ta-shadow) \u2014 NOT baked into sprite",
   "sheets": [
     {
       "name": "idle",
@@ -13,55 +14,15 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "sizeBytes": 29404
+      "sizeBytes": 35604
     },
     {
-      "name": "talk-soft",
-      "file": "talk-soft.webp",
+      "name": "listen",
+      "file": "listen.webp",
       "width": 360,
       "height": 450,
       "frames": 1,
-      "sizeBytes": 53992
-    },
-    {
-      "name": "talk-mid",
-      "file": "talk-mid.webp",
-      "width": 360,
-      "height": 450,
-      "frames": 1,
-      "sizeBytes": 34094
-    },
-    {
-      "name": "talk-wide",
-      "file": "talk-wide.webp",
-      "width": 360,
-      "height": 450,
-      "frames": 1,
-      "sizeBytes": 31010
-    },
-    {
-      "name": "wavehi",
-      "file": "wavehi.webp",
-      "width": 360,
-      "height": 450,
-      "frames": 1,
-      "sizeBytes": 29686
-    },
-    {
-      "name": "point",
-      "file": "point.webp",
-      "width": 360,
-      "height": 450,
-      "frames": 1,
-      "sizeBytes": 30408
-    },
-    {
-      "name": "thumbsup",
-      "file": "thumbsup.webp",
-      "width": 360,
-      "height": 450,
-      "frames": 1,
-      "sizeBytes": 27150
+      "sizeBytes": 40782
     },
     {
       "name": "think",
@@ -69,23 +30,55 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "sizeBytes": 26610
+      "sizeBytes": 34458
     },
     {
-      "name": "cheer",
-      "file": "cheer.webp",
+      "name": "explain",
+      "file": "explain.webp",
       "width": 360,
       "height": 450,
       "frames": 1,
-      "sizeBytes": 24016
+      "sizeBytes": 25480
     },
     {
-      "name": "comfort",
-      "file": "comfort.webp",
+      "name": "talk",
+      "file": "talk.webp",
       "width": 360,
       "height": 450,
       "frames": 1,
-      "sizeBytes": 35210
+      "sizeBytes": 32170
+    },
+    {
+      "name": "talk-soft",
+      "file": "talk-soft.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 33618
+    },
+    {
+      "name": "talk-mid",
+      "file": "talk-mid.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 33328
+    },
+    {
+      "name": "talk-wide",
+      "file": "talk-wide.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 27178
+    },
+    {
+      "name": "wavehi",
+      "file": "wavehi.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 33086
     },
     {
       "name": "wavebye",
@@ -93,7 +86,71 @@
       "width": 360,
       "height": 450,
       "frames": 1,
-      "sizeBytes": 29414
+      "sizeBytes": 39132
+    },
+    {
+      "name": "thumbsup",
+      "file": "thumbsup.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 30666
+    },
+    {
+      "name": "cheer",
+      "file": "cheer.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 30858
+    },
+    {
+      "name": "fistpump",
+      "file": "fistpump.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 35338
+    },
+    {
+      "name": "comfort",
+      "file": "comfort.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 33658
+    },
+    {
+      "name": "point",
+      "file": "point.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 26926
+    },
+    {
+      "name": "question",
+      "file": "question.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 28460
+    },
+    {
+      "name": "write",
+      "file": "write.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 25422
+    },
+    {
+      "name": "jump",
+      "file": "jump.webp",
+      "width": 360,
+      "height": 450,
+      "frames": 1,
+      "sizeBytes": 31254
     }
   ]
 }

@@ -31,21 +31,26 @@ const ONE_SHOT: Partial<Record<SheetKey, number>> = {};
  const s = SHEETS[k]; if (!s.loop) ONE_SHOT[k] = (s.frames / s.fps) * 1000 + 250;
 });
 // Baked-3D sprite strips (Pixar-style, transparent WebP, 360x450 per frame).
-// Generated via scripts/avatar-assets/ — see manifest.json in /public/avatars/.
-// Missing sheets (explain, listen, talk, fistpump, question, write, jump) fall
-// back to the procedural placeholder canvas renderer.
+// All 18 gestures have dedicated sprite sheets — no procedural fallback.
 const SPRITES: Partial<Record<SheetKey, string>> = {
  idle: "/avatars/idle.webp",
+ listen: "/avatars/listen.webp",
+ think: "/avatars/think.webp",
+ explain: "/avatars/explain.webp",
+ talk: "/avatars/talk.webp",
  talkSoft: "/avatars/talk-soft.webp",
  talkMid: "/avatars/talk-mid.webp",
  talkWide: "/avatars/talk-wide.webp",
  wavehi: "/avatars/wavehi.webp",
- point: "/avatars/point.webp",
- thumbsup: "/avatars/thumbsup.webp",
- think: "/avatars/think.webp",
- cheer: "/avatars/cheer.webp",
- comfort: "/avatars/comfort.webp",
  wavebye: "/avatars/wavebye.webp",
+ thumbsup: "/avatars/thumbsup.webp",
+ cheer: "/avatars/cheer.webp",
+ fistpump: "/avatars/fistpump.webp",
+ comfort: "/avatars/comfort.webp",
+ point: "/avatars/point.webp",
+ question: "/avatars/question.webp",
+ write: "/avatars/write.webp",
+ jump: "/avatars/jump.webp",
 };
 
 type Handler = (p?: unknown) => void;
@@ -259,6 +264,9 @@ export function AvatarDock() {
  <button className="ta-btn" aria-label="AI tutor" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}>
  <SpriteAvatar sheet={sheet} mouth={mouth} reduced={reduced} />
  </button>
+ {/* CSS sphere shadow under the avatar — not baked into the sprite so it
+     can animate independently + scale with the dock mode. */}
+ {mode !== "dot" && <div className="ta-shadow" aria-hidden="true" />}
  </div>
  );
 }
@@ -266,12 +274,16 @@ export function AvatarDock() {
 if (typeof document !== "undefined" && !document.getElementById("ta-css")) {
  const s = document.createElement("style"); s.id = "ta-css"; s.textContent = `
  .ta-dock{position:fixed;z-index:40;pointer-events:none;transition:width .25s,height .25s,opacity .3s}
- .ta-btn{pointer-events:auto;border:0;background:transparent;padding:0;width:100%;height:100%;cursor:grab;touch-action:none;filter:drop-shadow(0 8px 20px rgba(0,0,0,.18))}
+ .ta-btn{pointer-events:auto;border:0;background:transparent;padding:0;width:100%;height:100%;cursor:grab;touch-action:none;position:relative}
  .ta-btn:active{cursor:grabbing}
  .ta-btn canvas{width:100%;height:100%;display:block}
  .ta-cap{position:absolute;bottom:14px;max-width:280px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.95);color:#222;font:13px/1.4 system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.15)}
  .ta-dock[data-side="right"] .ta-cap{right:calc(100% + 10px)}
  .ta-dock[data-side="left"] .ta-cap{left:calc(100% + 10px)}
+ /* CSS sphere shadow — a soft ellipse beneath the avatar, not baked into the sprite */
+ .ta-shadow{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:55%;height:12px;
+   background:radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.14) 40%, transparent 75%);
+   border-radius:50%;pointer-events:none;filter:blur(2px)}
  body[data-focus] .ta-dock{opacity:.25}
  body[data-focus] .ta-dock:hover{opacity:1}`;
  document.head.appendChild(s);

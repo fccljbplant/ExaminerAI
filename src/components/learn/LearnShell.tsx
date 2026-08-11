@@ -5,7 +5,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { logger } from "@/lib/logger";
-import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
+import { api, AI_TIMEOUT_MS, ApiError } from "@/lib/api-client";
 import { toast } from "sonner";
 import {
  Map as MapIcon, Target, TrendingUp, BookOpen, Sparkles, Flame, Star,
@@ -117,6 +117,11 @@ export function LearnShell({ courseId, courseName }: Props) {
  const res = await api.get<{ data: NowData }>(`/api/learn/now?courseId=${courseId}`);
  setNow(res.data);
  } catch (e) {
+ if (e instanceof ApiError && e.status === 401) {
+ // Token expired or invalid — redirect to login.
+ window.location.href = "/app";
+ return;
+ }
  toast.error("Couldn't load your progress", { description: e instanceof Error ? e.message : undefined });
  }
  }, [courseId]);
@@ -130,6 +135,10 @@ export function LearnShell({ courseId, courseName }: Props) {
  setSlideIdx(Math.max(0, (data.slides?.length ?? 1) - 1));
  setTopicComplete(false);
  } catch (e) {
+ if (e instanceof ApiError && e.status === 401) {
+ window.location.href = "/app";
+ return;
+ }
  toast.error("Couldn't load today's topic", { description: e instanceof Error ? e.message : undefined });
  }
  }, [courseId]);
@@ -147,6 +156,10 @@ export function LearnShell({ courseId, courseName }: Props) {
  content: `Hi! I'm your AI tutor for ${courseName}. Ask me anything about today's topic, or click "Next Slide" to start learning.`,
  }]);
  } catch (e) {
+ if (e instanceof ApiError && e.status === 401) {
+ window.location.href = "/app";
+ return;
+ }
  toast.error("Couldn't start tutor session", { description: e instanceof Error ? e.message : undefined });
  }
  }, [courseId, courseName]);
