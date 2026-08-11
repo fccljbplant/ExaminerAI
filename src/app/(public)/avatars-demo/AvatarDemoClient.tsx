@@ -1,7 +1,7 @@
 "use client";
 
 // src/app/(public)/avatars-demo/AvatarDemoClient.tsx — Interactive avatar demo.
-// Shows all 11 baked-3D sprite poses + gesture buttons + the floating dock.
+// Shows the smooth crossfade system + gesture buttons + the floating dock.
 
 import { AvatarDock, tutor } from "@/components/learn/TutorAvatar";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 const GESTURES: { name: string; gesture: string; description: string }[] = [
   { name: "Wave Hi", gesture: "wavehi", description: "Greeting on session start" },
+  { name: "Explain", gesture: "explain", description: "Teaching a concept" },
   { name: "Talk Soft", gesture: "talkSoft", description: "Low amplitude speech" },
   { name: "Talk Mid", gesture: "talkMid", description: "Medium amplitude speech" },
   { name: "Talk Wide", gesture: "talkWide", description: "High amplitude speech" },
@@ -18,21 +19,33 @@ const GESTURES: { name: string; gesture: string; description: string }[] = [
   { name: "Think", gesture: "think", description: "Processing a question" },
   { name: "Cheer", gesture: "cheer", description: "Badge / celebration" },
   { name: "Comfort", gesture: "comfort", description: "Wrong answer — reassurance" },
+  { name: "Question", gesture: "question", description: "Asking a check question" },
+  { name: "Fist Pump", gesture: "fistpump", description: "Motivation" },
+  { name: "Listen", gesture: "listen", description: "Student speaking" },
+  { name: "Write", gesture: "write", description: "Taking notes" },
+  { name: "Jump", gesture: "jump", description: "Level up celebration" },
   { name: "Wave Bye", gesture: "wavebye", description: "Session end" },
 ];
 
 const SPRITE_SHEETS: { name: string; file: string }[] = [
   { name: "idle", file: "/avatars/idle.webp" },
+  { name: "listen", file: "/avatars/listen.webp" },
+  { name: "think", file: "/avatars/think.webp" },
+  { name: "explain", file: "/avatars/explain.webp" },
+  { name: "talk", file: "/avatars/talk.webp" },
   { name: "talk-soft", file: "/avatars/talk-soft.webp" },
   { name: "talk-mid", file: "/avatars/talk-mid.webp" },
   { name: "talk-wide", file: "/avatars/talk-wide.webp" },
   { name: "wavehi", file: "/avatars/wavehi.webp" },
-  { name: "point", file: "/avatars/point.webp" },
-  { name: "thumbsup", file: "/avatars/thumbsup.webp" },
-  { name: "think", file: "/avatars/think.webp" },
-  { name: "cheer", file: "/avatars/cheer.webp" },
-  { name: "comfort", file: "/avatars/comfort.webp" },
   { name: "wavebye", file: "/avatars/wavebye.webp" },
+  { name: "thumbsup", file: "/avatars/thumbsup.webp" },
+  { name: "cheer", file: "/avatars/cheer.webp" },
+  { name: "fistpump", file: "/avatars/fistpump.webp" },
+  { name: "comfort", file: "/avatars/comfort.webp" },
+  { name: "point", file: "/avatars/point.webp" },
+  { name: "question", file: "/avatars/question.webp" },
+  { name: "write", file: "/avatars/write.webp" },
+  { name: "jump", file: "/avatars/jump.webp" },
 ];
 
 export default function AvatarDemoClient() {
@@ -42,13 +55,13 @@ export default function AvatarDemoClient() {
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="p-5 space-y-2">
           <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
-            Baked-3D Sprite System
+            Baked-3D Sprite System v3 — Smooth Crossfade
           </div>
           <h1 className="text-xl font-bold">AI Tutor Avatar Demo</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
-            Pre-rendered Pixar-style 3D character played as lightweight 2D sprite frames.
-            Transparent WebP, 360×450 per frame, ~350 KB total. The floating dock (bottom-right)
-            is fully interactive — drag it, click it to resize, or use the buttons below to trigger gestures.
+            IMG-based crossfade (not canvas) for buttery-smooth gesture transitions.
+            3-state system: active → exiting (scale + blur) → next active (scale in from 0.96).
+            Idle breathing animation + CSS sphere shadow + professional floating dock.
           </p>
         </CardContent>
       </Card>
@@ -56,16 +69,16 @@ export default function AvatarDemoClient() {
       {/* Gesture triggers */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Trigger Gestures</CardTitle>
+          <CardTitle className="text-base">Trigger Gestures — Smooth Crossfade</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
             <p className="text-xs text-muted-foreground mb-2">
-              Click a button to trigger a one-shot gesture or talk variant.
-              The floating dock (bottom-right) will animate.
+              Click a button to trigger a gesture. The avatar crossfades smoothly between poses.
+              The floating dock (bottom-right) animates in real-time.
             </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {GESTURES.map((g) => (
               <div key={g.gesture} className="space-y-1">
                 <Button
@@ -93,7 +106,7 @@ export default function AvatarDemoClient() {
               size="sm"
               onClick={() => tutor.say("Hi! I'm your AI tutor. Today we'll learn something amazing together!")}
             >
-              Say Greeting (TTS + Caption)
+              Say Greeting (TTS + Caption + Crossfade)
             </Button>
           </div>
         </CardContent>
@@ -102,26 +115,27 @@ export default function AvatarDemoClient() {
       {/* Sprite sheet gallery */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Sprite Sheets</CardTitle>
+          <CardTitle className="text-base">All 18 Sprites — 360×450 Transparent WebP</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground mb-3">
-            All 11 baked-3D sprite sheets. Each is a 360×450 transparent WebP.
-            Total: ~350 KB. Missing gestures (explain, listen, talk, fistpump, question, write, jump)
-            fall back to the procedural canvas placeholder.
+            All 18 baked-3D sprite sheets. Each is a 360×450 transparent WebP with chroma-key
+            background removal. Click any sprite to trigger that gesture.
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
             {SPRITE_SHEETS.map((s) => (
               <div key={s.name} className="space-y-1">
-                <div className="rounded-lg border bg-card p-2 flex items-center justify-center h-32">
+                <button
+                  className="rounded-lg border bg-card p-2 flex items-center justify-center h-32 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer w-full"
+                  onClick={() => tutor.play(s.name as any)}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={s.file}
                     alt={s.name}
                     className="max-h-full max-w-full"
-                    style={{ imageRendering: "auto" }}
                   />
-                </div>
+                </button>
                 <div className="text-center">
                   <Badge variant="outline" className="text-[10px]">{s.name}</Badge>
                 </div>
@@ -136,8 +150,9 @@ export default function AvatarDemoClient() {
 
       {/* Tip */}
       <div className="text-center text-xs text-muted-foreground py-4">
-        💡 The avatar dock is draggable — grab it and snap it to any corner.
-        Click it to cycle sizes (full → mini → dot).
+        The avatar dock is draggable — grab it and snap it to any corner.
+        Click it to cycle sizes (full → mini → dot). The avatar breathes when idle
+        and crossfades smoothly between gestures.
       </div>
     </div>
   );
