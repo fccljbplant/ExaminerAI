@@ -19,11 +19,15 @@ npx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-
   echo "    The build will continue with the existing schema."
 }
 
-# Step 3: Seed marketplace metadata on existing courses (non-blocking)
+# Step 3: Ensure admin + demo accounts exist (safe to run every build)
+echo "Ensuring admin + demo accounts..."
+node scripts/ensure-accounts.js || echo "⚠️  Account seeding failed (non-blocking)"
+
+# Step 4: Seed marketplace metadata on existing courses (non-blocking)
 echo "Seeding marketplace metadata..."
 node scripts/seed-marketplace-prod.js || echo "Seed skipped (already done or error)"
 
-# Step 4: Build Next.js
+# Step 5: Build Next.js
 echo "Building Next.js..."
 npx next build
 
