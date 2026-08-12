@@ -15,10 +15,10 @@ async function main() {
     const adminPwd = await bcrypt.hash("helloworld", 10);
     const demoPwd = await bcrypt.hash("demo123", 10);
 
-    // Admin account
+    // Admin account — always reset password to known value on every build.
     await db.user.upsert({
       where: { email: "admin@examiner.ai" },
-      update: {},
+      update: { passwordHash: adminPwd, status: "active", role: "platform_admin", approvedAt: new Date() },
       create: {
         email: "admin@examiner.ai",
         name: "Platform Administrator",
@@ -30,10 +30,10 @@ async function main() {
     }).catch(() => {});
     console.log("✓ admin@examiner.ai ensured");
 
-    // Demo account
+    // Demo account — always reset password to known value on every build.
     await db.user.upsert({
       where: { email: "demo@examiner.ai" },
-      update: {},
+      update: { passwordHash: demoPwd, status: "active", approvedAt: new Date() },
       create: {
         email: "demo@examiner.ai",
         name: "Demo User",
