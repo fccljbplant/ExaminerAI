@@ -386,3 +386,71 @@ src/modules/learn/
 - Quick bar: contextual CTA (Next Slide / View Resources / Complete & Next Topic)
 - Chat pane (right): transcript + input
 - Panel drawers: slide-over left 40% desktop, full-screen mobile
+
+## 9. Living Portrait Tutor Badge (`TutorBadge.tsx`)
+
+The avatar system was redesigned from baked-3D sprites to a "Living Portrait" approach:
+ONE locked face photo + 100% code-driven animation. The face never changes; the code
+does the acting via SVG overlays, FX particles, mood rings, and props.
+
+### 9.1 Architecture
+
+```
+public/assets/avatar/v1/
+  ├── face.png              ← ONE locked face photo (never regenerated)
+  ├── face-config.json      ← Calibration data (eye/mouth/brow positions, crop)
+  ├── expressions.json      ← 20 expression recipes (brows, eyes, mouth, FX, ring, motion)
+  └── calibration.html      ← Drag-reticle tool for calibrating any face photo
+```
+
+### 9.2 Layer Anatomy (back → front)
+
+| Layer | Purpose | Implementation |
+|---|---|---|
+| 0 | Circle frame + mood ring | CSS border (emotion color) |
+| 1 | Inner backdrop | CSS radial gradient |
+| 2 | Face photo | `<img>` circular crop, breathing scale, micro-nod |
+| 3 | Brows overlay | Inline SVG (6 shapes: neutral/raised/furrowed/one-up/empathetic/in-down) |
+| 4 | Eyes overlay | Inline SVG (10 shapes: open/blink/happy-arc/wide/wink/closed-arc/gaze variants) |
+| 5 | Mouth overlay | Inline SVG (9 shapes: hidden/closed/smile/mid/wide/laugh/o/soft-smile/closed-firm) |
+| 6 | FX layer | Emoji + CSS particles (sparkle/confetti/heart/star/fire/blush) |
+| 7 | Props layer | Emoji hands/objects (wave/fist) sliding from circle edge |
+| 8 | Shine layer | CSS gradient sweep for glasses glint on "idea" moments |
+| 9 | Outside circle | Caption bubble + CSS sphere shadow |
+
+### 9.3 Event Wiring
+
+The `tutor` event bus maps tutor engine events to expression recipes:
+
+| Event | Recipe | Description |
+|---|---|---|
+| `session:start` | hello | Greeting with wave prop |
+| `tts:start` | talk | Amplitude-synced mouth + micro-nod |
+| `tts:end` | idle | Return to breathing idle |
+| `student:input` | listen | Tilt + gaze toward learner |
+| `tutor:thinking` | think | Gaze up-left + question FX |
+| `slide:highlight` | idea | Glasses glint + scale-pop |
+| `answer:correct` | praise | Happy eyes + sparkle FX |
+| `answer:wrong` | comfort | Empathetic brows + heart FX |
+| `badge` / `xp` | celebrate | Confetti + bounce |
+| `motivate` | determined | Fist prop + orange-red ring |
+| `level:up` | levelup | Gold ring burst + confetti + jump |
+| `streak:day` | streak | Fire orbiting FX |
+| `session:end` | bye | Slow wave + fade-tilt |
+
+### 9.4 Calibration
+
+The `calibration.html` tool lets institutions plug in ANY real teacher photo:
+1. Replace `face.png` with the teacher's photo
+2. Open `calibration.html` — drag 6 reticles (2 eyes, 2 brows, mouth center, mouth width)
+3. Adjust crop circle sliders
+4. Click SAVE → generates `face-config.json`
+5. The badge reads the config — zero code changes needed
+
+### 9.5 Consistency Guarantee
+
+The face is 100% real and 100% identical every session/device/year because:
+- The photo is a single locked asset (checksummed)
+- All animation is code-driven (SVG overlays, CSS, emoji)
+- Zero AI regeneration at runtime
+- Zero raster assets beyond the one face photo

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "faceImage": "/assets/avatar/v1/face.png",
+  "crop": {
+    "cx": 50,
+    "cy": 38,
+    "r": 42
+  },
+  "eyeL": { "x": 38, "y": 35 },
+  "eyeR": { "x": 62, "y": 35 },
+  "mouth": { "x": 50, "y": 55, "w": 16 },
+  "brows": {
+    "leftX": 38, "leftY": 27,
+    "rightX": 62, "rightY": 27
+  },
+  "mode": "real",
+  "note": "Calibration defaults for the generated face photo. Use calibration.html to adjust for any real teacher photo. All values are percentages of the image dimensions."
+}

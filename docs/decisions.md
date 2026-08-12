@@ -94,3 +94,17 @@
 - "Default Batch" text in set-default success message
 - Unused `ApiError` import
 **What replaced it:** The course list view now shows domain + level badges (useful information) instead of "No batches assigned" (dead text).
+
+## D-017: Living Portrait Tutor Badge (2026-08-12)
+**Decision:** Replaced the baked-3D sprite system with a "Living Portrait" approach — ONE locked face photo + 100% code-driven animation via SVG overlays.
+**Rationale:** The baked-3D sprite approach had persistent consistency issues (different faces, sizes, colors per pose) despite multiple regeneration attempts. The Living Portrait approach guarantees 100% consistency because the face photo never changes — only the code-driven overlays (brows, eyes, mouth, FX, mood ring) animate.
+**Implementation:**
+- ONE locked face photo: `public/assets/avatar/v1/face.png`
+- 20 expression recipes in `expressions.json` (idle, hello, talk, listen, think, idea, praise, celebrate, comfort, oops, surprised, wink, determined, laugh, focus, streak, levelup, confused, proud, shy, bye)
+- 10-layer anatomy: mood ring → backdrop → face photo → brows SVG → eyes SVG → mouth SVG → FX emoji → props emoji → shine → caption
+- Event bus: `tutor.play()`, `tutor.say()`, `tutor.caption()`, `tutor.emit()` — same API as before
+- Calibration tool: `public/assets/avatar/v1/calibration.html` — drag reticles to align eyes/mouth/brows for any face photo
+- `face-config.json`: pluggable — any real teacher photo works with zero code changes
+- Natural blinking (every 3-6s), amplitude-synced mouth while talking, breathing idle
+- Mood ring colors per emotion, CSS particles for celebrations, glasses glint on "idea"
+- Dock: full/mini/dot modes, drag+snap, auto-shrink, focus dim, reduced-motion

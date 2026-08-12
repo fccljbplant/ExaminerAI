@@ -13,7 +13,7 @@ import {
  X, GraduationCap, MessageSquare, StickyNote, CheckCircle2, ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AvatarDock, tutor } from "@/components/learn/TutorAvatar";
+import { AvatarDock, tutor } from "@/components/learn/TutorBadge";
 import { prepareForTTS, speakTTS, stopTTS } from "@/modules/learn/lib/tts-filter";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
 import { JourneyPanel } from "@/components/learn/panels/JourneyPanel";
@@ -60,7 +60,7 @@ function useSpeakWithAvatar(ttsOn: boolean) {
  return useCallback((text: string) => {
  if (!text) return;
  tutor.caption(text);
- tutor.emit("tts");
+ tutor.emit("tts", "start");
  if (ttsOn) {
  speakTTS(prepareForTTS(text));
  }
@@ -170,14 +170,14 @@ export function LearnShell({ courseId, courseName }: Props) {
  fetchToday();
  fetchSession();
  // Welcome wave.
- tutor.play("wavehi");
+ tutor.play("hello");
  const t = setTimeout(() => {
  speakWithAvatar("Welcome back. Let's pick up where you left off.");
  }, 800);
  return () => {
  clearTimeout(t);
  stopTTS();
- tutor.emit("tts:end");
+ tutor.emit("tts", "end");
  };
  }, [courseId, fetchNow, fetchToday, fetchSession, speakWithAvatar]);
 
@@ -216,7 +216,7 @@ export function LearnShell({ courseId, courseName }: Props) {
  const { slide, narration, message } = res.data;
  setSlides(prev => [...prev, slide]);
  setSlideIdx(prev => prev + 1);
- tutor.play("explain");
+ tutor.play("idea");
  speakWithAvatar(narration || message);
  fetchNow();
  } catch (e) {
@@ -240,7 +240,7 @@ export function LearnShell({ courseId, courseName }: Props) {
  }>(`/api/learn/today/complete?courseId=${courseId}`);
  const { nextTopic, xpAwarded, courseCompleted } = res.data;
  if (courseCompleted) {
- tutor.play("jump");
+ tutor.play("levelup");
  speakWithAvatar("Congratulations! You've finished the entire course. That's a huge achievement.");
  toast.success("Course complete!", { description: `+${xpAwarded} XP` });
  } else if (nextTopic) {
@@ -277,7 +277,7 @@ export function LearnShell({ courseId, courseName }: Props) {
  content: res.data.answer,
  citation: res.data.citation,
  }]);
- tutor.play("explain");
+ tutor.play("idea");
  speakWithAvatar(res.data.answer);
  } catch (e) {
  const msg = e instanceof Error ? e.message : "Couldn't reach the tutor.";
@@ -302,7 +302,7 @@ export function LearnShell({ courseId, courseName }: Props) {
 
  function jumpToSlide(idx: number) {
  setSlideIdx(idx);
- tutor.play("point");
+ tutor.play("slide:highlight");
  }
 
  // ── Render ────────────────────────────────────────────────────────

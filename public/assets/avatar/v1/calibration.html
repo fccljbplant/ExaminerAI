@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avatar Calibration Tool — TraineesAI</title>
+<style>
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+ body { font-family: system-ui, sans-serif; background: #0a0a1a; color: #e8eaf6; min-height: 100vh; padding: 20px; }
+ h1 { font-size: 24px; margin-bottom: 8px; }
+ p { color: #8892b0; margin-bottom: 20px; font-size: 14px; }
+ .stage { display: flex; gap: 30px; flex-wrap: wrap; }
+ .canvas-wrap { position: relative; background: #111; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+ canvas { display: block; cursor: crosshair; }
+ .controls { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; min-width: 300px; }
+ .controls h2 { font-size: 14px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; color: #8892b0; }
+ .slider-group { margin-bottom: 16px; }
+ .slider-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #8892b0; }
+ .slider-group input[type="range"] { width: 100%; }
+ .json-output { background: #0d1117; border: 1px solid #333; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; color: #7ee787; max-height: 200px; overflow: auto; margin-top: 12px; white-space: pre-wrap; word-break: break-all; }
+ .btn { background: #00b894; color: #000; border: 0; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; margin-top: 12px; }
+ .btn:hover { background: #00cec9; }
+ .instructions { font-size: 12px; color: #8892b0; line-height: 1.6; margin-top: 12px; }
+ .instructions li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<h1>Avatar Calibration Tool</h1>
+<p>Drag the 4 reticles to align with the face's eyes, mouth, and crop circle. Adjust the crop radius slider. Click SAVE to generate face-config.json.</p>
+
+<div class="stage">
+ <div class="canvas-wrap">
+  <canvas id="canvas" width="400" height="500"></canvas>
+ </div>
+ <div class="controls">
+  <h2>Calibration</h2>
+  <div class="slider-group">
+   <label>Crop Center X: <span id="cxVal">50</span>%</label>
+   <input type="range" id="cx" min="0" max="100" value="50" />
+  </div>
+  <div class="slider-group">
+   <label>Crop Center Y: <span id="cyVal">38</span>%</label>
+   <input type="range" id="cy" min="0" max="100" value="38" />
+  </div>
+  <div class="slider-group">
+   <label>Crop Radius: <span id="rVal">42</span>%</label>
+   <input type="range" id="r" min="20" max="60" value="42" />
+  </div>
+  <h2 style="margin-top:20px">Reticles (drag on canvas)</h2>
+  <div class="instructions">
+   <ol>
+    <li><b style="color:#3b82f6">Blue</b> dots = Left eye + Right eye</li>
+    <li><b style="color:#ef4444">Red</b> dot = Mouth center</li>
+    <li><b style="color:#22c55e">Green</b> dot = Mouth width (drag right)</li>
+    <li><b style="color:#f59e0b">Amber</b> dots = Brows (left + right)</li>
+   </ol>
+  </div>
+  <button class="btn" id="save">SAVE face-config.json</button>
+  <button class="btn" id="copy" style="background:#3b82f6">Copy JSON</button>
+  <div class="json-output" id="output">Loading...</div>
+ </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const img = new Image();
+img.src = '/assets/avatar/v1/face.png';
+img.onload = () => draw();
+
+// Reticle positions (percentages of image dimensions)
+const reticles = {
+ eyeL: { x: 38, y: 35, color: '#3b82f6', label: 'Left Eye' },
+ eyeR: { x: 62, y: 35, color: '#3b82f6', label: 'Right Eye' },
+ mouth: { x: 50, y: 55, color: '#ef4444', label: 'Mouth' },
+ mouthW: { x: 58, y: 55, color: '#22c55e', label: 'Mouth Width' },
+ browL: { x: 38, y: 27, color: '#f59e0b', label: 'Left Brow' },
+ browR: { x: 62, y: 27, color: '#f59e0b', label: 'Right Brow' },
+};
+
+const crop = { cx: 50, cy: 38, r: 42 };
+let dragging = null;
+
+function draw() {
+ ctx.clearRect(0, 0, canvas.width, canvas.height);
+ // Draw image scaled to canvas
+ ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+ // Draw crop circle
+ const cxPx = crop.cx / 100 * canvas.width;
+ const cyPx = crop.cy / 100 * canvas.height;
+ const rPx = crop.r / 100 * canvas.width;
+ ctx.strokeStyle = 'rgba(0,184,148,0.8)';
+ ctx.lineWidth = 3;
+ ctx.setLineDash([8, 4]);
+ ctx.beginPath();
+ ctx.arc(cxPx, cyPx, rPx, 0, Math.PI * 2);
+ ctx.stroke();
+ ctx.setLineDash([]);
+
+ // Draw reticles
+ Object.entries(reticles).forEach(([key, r]) => {
+  const px = r.x / 100 * canvas.width;
+  const py = r.y / 100 * canvas.height;
+  ctx.fillStyle = r.color;
+  ctx.beginPath();
+  ctx.arc(px, py, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // Label
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px system-ui';
+  ctx.fillText(r.label, px + 12, py + 4);
+ });
+
+ // Mouth width line
+ const mxPx = reticles.mouth.x / 100 * canvas.width;
+ const myPx = reticles.mouth.y / 100 * canvas.height;
+ const mwPx = reticles.mouthW.x / 100 * canvas.width;
+ ctx.strokeStyle = '#22c55e';
+ ctx.lineWidth = 2;
+ ctx.beginPath();
+ ctx.moveTo(mxPx, myPx);
+ ctx.lineTo(mwPx, myPx);
+ ctx.stroke();
+
+ updateOutput();
+}
+
+function updateOutput() {
+ const mouthW = Math.abs(reticles.mouthW.x - reticles.mouth.x);
+ const config = {
+  version: 1,
+  faceImage: '/assets/avatar/v1/face.png',
+  crop: { cx: crop.cx, cy: crop.cy, r: crop.r },
+  eyeL: { x: reticles.eyeL.x, y: reticles.eyeL.y },
+  eyeR: { x: reticles.eyeR.x, y: reticles.eyeR.y },
+  mouth: { x: reticles.mouth.x, y: reticles.mouth.y, w: mouthW },
+  brows: {
+   leftX: reticles.browL.x, leftY: reticles.browL.y,
+   rightX: reticles.browR.x, rightY: reticles.browR.y,
+  },
+  mode: 'real',
+  note: 'Generated by calibration.html. All values are percentages.',
+ };
+ document.getElementById('output').textContent = JSON.stringify(config, null, 2);
+}
+
+// Mouse interaction
+canvas.addEventListener('mousedown', e => {
+ const rect = canvas.getBoundingClientRect();
+ const mx = (e.clientX - rect.left) / canvas.width * 100;
+ const my = (e.clientY - rect.top) / canvas.height * 100;
+ // Find closest reticle
+ let closest = null, minDist = 5;
+ Object.entries(reticles).forEach(([key, r]) => {
+  const dist = Math.sqrt((r.x - mx) ** 2 + (r.y - my) ** 2);
+  if (dist < minDist) { minDist = dist; closest = key; }
+ });
+ if (closest) dragging = closest;
+});
+
+canvas.addEventListener('mousemove', e => {
+ if (!dragging) return;
+ const rect = canvas.getBoundingClientRect();
+ reticles[dragging].x = Math.max(0, Math.min(100, (e.clientX - rect.left) / canvas.width * 100));
+ reticles[dragging].y = Math.max(0, Math.min(100, (e.clientY - rect.top) / canvas.height * 100));
+ draw();
+});
+
+canvas.addEventListener('mouseup', () => { dragging = null; });
+canvas.addEventListener('mouseleave', () => { dragging = null; });
+
+// Sliders
+['cx', 'cy', 'r'].forEach(key => {
+ const slider = document.getElementById(key);
+ slider.addEventListener('input', e => {
+  crop[key] = parseInt(e.target.value);
+  document.getElementById(key + 'Val').textContent = crop[key];
+  draw();
+ });
+});
+
+// Save
+document.getElementById('save').addEventListener('click', () => {
+ const json = document.getElementById('output').textContent;
+ const blob = new Blob([json], { type: 'application/json' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'face-config.json';
+ a.click();
+ URL.revokeObjectURL(url);
+});
+
+// Copy
+document.getElementById('copy').addEventListener('click', () => {
+ navigator.clipboard.writeText(document.getElementById('output').textContent);
+ alert('Copied to clipboard!');
+});
+</script>
+</body>
+</html>
