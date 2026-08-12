@@ -1,11 +1,8 @@
 "use client";
 
-// src/components/learn/TutorBadge.tsx — Static avatar PNG + CSS blink/mouth overlays.
-// Uses the audited business-ai-avatar approach: one PNG + CSS-positioned
-// eyelid + mouth divs that animate via CSS keyframes.
-//
-// The avatar.png is 590×650 RGBA. Eye + mouth positions are calibrated
-// percentages from the audited CSS.
+// src/components/learn/TutorBadge.tsx — 4-layer avatar: face + face-turn + eyes + mouth.
+// Uses pre-split PNGs from the asset sheet with transparent backgrounds.
+// Only eyes (blink) and mouth (talk) animate. No sound waves.
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 
@@ -72,52 +69,63 @@ export function AvatarDock() {
  const dragInfo = useRef<{ sx: number; sy: number; moved: boolean } | null>(null);
  const [caption, setCaption] = useState("");
  const [stageClass, setStageClass] = useState<string>("idle");
+ const [eyesVisible, setEyesVisible] = useState(true);
+ const [mouthClass, setMouthClass] = useState("");
  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+ const blinkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+ const talkInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
  const setStatus = useCallback((status: string) => {
   setStageClass(status);
+  // Mouth animation class
+  if (status === "speaking") setMouthClass("tb-mouth-talk");
+  else setMouthClass("");
+ }, []);
+
+ const blink = useCallback(() => {
+  setEyesVisible(false);
+  setTimeout(() => setEyesVisible(true), 130);
  }, []);
 
  const applyGesture = useCallback((gesture: string) => {
   if (holdTimer.current) clearTimeout(holdTimer.current);
-
   switch (gesture) {
    case "idle": case "focus":
-    setStatus("idle"); break;
+    setStatus("idle"); setEyesVisible(true); break;
    case "hello": case "bye":
-    setStatus("speaking");
+    setStatus("speaking"); setEyesVisible(true);
     holdTimer.current = setTimeout(() => setStatus("idle"), 2500);
     break;
    case "talk":
-    setStatus("speaking"); break;
+    setStatus("speaking"); setEyesVisible(true); break;
    case "listen":
-    setStatus("listening"); break;
+    setStatus("listening"); setEyesVisible(true); break;
    case "think": case "confused":
-    setStatus("thinking");
+    setStatus("thinking"); setEyesVisible(true);
     holdTimer.current = setTimeout(() => setStatus("idle"), 3000);
     break;
    case "idea": case "surprised":
-    setStatus("thinking");
+    setStatus("thinking"); setEyesVisible(true);
     holdTimer.current = setTimeout(() => setStatus("idle"), 2000);
     break;
    case "praise": case "celebrate": case "cheer": case "laugh": case "levelup": case "streak":
-    setStatus("speaking");
+    setStatus("speaking"); setEyesVisible(true);
     holdTimer.current = setTimeout(() => setStatus("idle"), 2500);
     break;
    case "comfort":
-    setStatus("speaking");
+    setStatus("speaking"); setEyesVisible(true);
     holdTimer.current = setTimeout(() => setStatus("idle"), 3000);
     break;
    case "oops":
-    setStatus("thinking");
+    setStatus("thinking"); setEyesVisible(true);
     holdTimer.current = setTimeout(() => setStatus("idle"), 2000);
     break;
    case "wink":
-    setStatus("idle");
+    setStatus("idle"); setEyesVisible(true);
     holdTimer.current = setTimeout(() => setStatus("idle"), 2000);
     break;
    default:
-    setStatus("idle");
+    setStatus("idle"); setEyesVisible(true);
   }
  }, [setStatus]);
 
@@ -141,12 +149,26 @@ export function AvatarDock() {
   else if (stageClass === "speaking") setMode(m => (m === "mini" ? "full" : m));
  }, [busy, stageClass]);
 
+ // Natural blink loop
  useEffect(() => {
-  return () => { if (holdTimer.current) clearTimeout(holdTimer.current); };
+  if (reduced) return;
+  const loop = () => {
+   blink();
+   blinkTimer.current = setTimeout(loop, 2400 + Math.random() * 3200);
+  };
+  blinkTimer.current = setTimeout(loop, 800 + Math.random() * 2000);
+  return () => { if (blinkTimer.current) clearTimeout(blinkTimer.current); };
+ }, [reduced, blink]);
+
+ useEffect(() => {
+  return () => {
+   if (holdTimer.current) clearTimeout(holdTimer.current);
+   if (blinkTimer.current) clearTimeout(blinkTimer.current);
+   if (talkInterval.current) clearInterval(talkInterval.current);
+  };
  }, []);
 
  const px = SIZES[mode]; const h = px * 1.25;
-
  const onDown = (e: React.PointerEvent) => {
   (e.target as Element).setPointerCapture(e.pointerId);
   dragInfo.current = { sx: e.clientX, sy: e.clientY, moved: false };
@@ -169,22 +191,39 @@ export function AvatarDock() {
   ? { left: drag.x, top: drag.y, width: px, height: h }
   : { [pos.side]: 16, bottom: pos.bottom, width: px, height: h } as React.CSSProperties;
 
+ // Determine which face image to use (face vs face-turn for listening/thinking)
+ const faceSrc = stageClass === "listening" || stageClass === "thinking"
+  ? "/assets/avatar/v1/face-turn.png"
+  : "/assets/avatar/v1/face.png";
+
  return (
   <div className="tb-dock" data-side={pos.side} style={style}>
    {caption && mode !== "dot" && <div className="tb-cap">{caption}</div>}
    {mode !== "dot" ? (
     <button className="tb-badge-btn" aria-label="AI tutor" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}>
      <div className={`tb-avatar-stage ${stageClass}`} style={{ width: px, height: px }}>
-      <img src="/assets/avatar/v1/avatar.png" alt="AI tutor" className="tb-avatar-image" draggable={false} />
-      <div className="tb-blink tb-left-eye" aria-hidden="true" />
-      <div className="tb-blink tb-right-eye" aria-hidden="true" />
-      <div className="tb-mouth" aria-hidden="true" />
+      {/* Layer 1: Face (base) — or face-turn for listening/thinking */}
+      <img src={faceSrc} alt="AI tutor" className="tb-layer tb-face" draggable={false} />
+      {/* Layer 2: Eyes/eyebrows overlay — toggles for blink */}
+      <img
+       src="/assets/avatar/v1/eyes.png"
+       alt=""
+       className={`tb-layer tb-eyes ${eyesVisible ? "" : "tb-eyes-hidden"}`}
+       draggable={false}
+       aria-hidden="true"
+      />
+      {/* Layer 3: Mouth/lips overlay — animates for talk */}
+      <img
+       src="/assets/avatar/v1/mouth.png"
+       alt=""
+       className={`tb-layer tb-mouth ${mouthClass}`}
+       draggable={false}
+       aria-hidden="true"
+      />
+      {/* Status indicator */}
       <div className="tb-avatar-status">
        <span className={`tb-status-dot ${stageClass}`} />
       </div>
-      {stageClass === "speaking" && !reduced && (
-       <div className="tb-sound-waves" aria-hidden="true"><i /><i /><i /></div>
-      )}
       <div className="tb-shadow" aria-hidden="true" />
      </div>
     </button>
@@ -197,7 +236,7 @@ export function AvatarDock() {
  );
 }
 
-// ── CSS — calibrated positions from the audited business-ai-avatar ─
+// ── CSS ────────────────────────────────────────────────────────────
 if (typeof document !== "undefined" && !document.getElementById("tb-css")) {
  const s = document.createElement("style"); s.id = "tb-css"; s.textContent = `
  .tb-dock{position:fixed;z-index:40;pointer-events:none;transition:width .35s cubic-bezier(0.4,0,0.2,1),height .35s cubic-bezier(0.4,0,0.2,1),opacity .3s}
@@ -207,43 +246,33 @@ if (typeof document !== "undefined" && !document.getElementById("tb-css")) {
  /* Avatar stage */
  .tb-avatar-stage{position:relative;overflow:hidden;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3),0 0 0 1px rgba(255,255,255,0.05);background:radial-gradient(circle at 50% 10%,#334155,#111827 70%)}
 
- /* Avatar image — idle breathing */
- .tb-avatar-image{display:block;width:100%;height:100%;object-fit:contain;user-select:none;pointer-events:none;animation:tbIdle 4.2s ease-in-out infinite}
+ /* All layers — stacked, same size */
+ .tb-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;transition:opacity .1s ease}
+
+ /* Face — idle breathing motion */
+ .tb-face{animation:tbIdle 4.2s ease-in-out infinite;z-index:1}
  @keyframes tbIdle{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(.25deg)}}
- .tb-avatar-stage.listening .tb-avatar-image{animation:tbListening 1.1s ease-in-out infinite}
- .tb-avatar-stage.thinking .tb-avatar-image{animation:tbThinking 1.5s ease-in-out infinite}
- @keyframes tbListening{0%,100%{transform:translateX(0)}50%{transform:translateX(5px) rotate(.3deg)}}
- @keyframes tbThinking{0%,100%{transform:rotate(0)}50%{transform:rotate(1.1deg) translateY(-3px)}}
+ .tb-avatar-stage.listening .tb-face{animation:tbListening 1.1s ease-in-out infinite}
+ .tb-avatar-stage.thinking .tb-face{animation:tbThinking 1.5s ease-in-out infinite}
+ @keyframes tbListening{0%,100%{transform:translateX(0)}50%{transform:translateX(3px) rotate(.2deg)}}
+ @keyframes tbThinking{0%,100%{transform:rotate(0)}50%{transform:rotate(.8deg) translateY(-2px)}}
 
- /* Blink overlays — calibrated for 590x650 avatar.png */
- .tb-blink{position:absolute;top:25.5%;width:11.2%;height:2.2%;background:#e7a37b;border-radius:50%;transform:scaleY(0);transform-origin:center;pointer-events:none;opacity:.96}
- .tb-left-eye{left:30.1%}
- .tb-right-eye{left:59.2%}
- .tb-avatar-stage.idle .tb-blink,
- .tb-avatar-stage.listening .tb-blink,
- .tb-avatar-stage.thinking .tb-blink,
- .tb-avatar-stage.speaking .tb-blink{animation:tbBlink 4.7s infinite}
- @keyframes tbBlink{0%,92%,100%{transform:scaleY(0)}94%,96%{transform:scaleY(1)}}
+ /* Eyes overlay — visible by default, hidden during blink */
+ .tb-eyes{z-index:2;opacity:1}
+ .tb-eyes-hidden{opacity:0}
 
- /* Mouth overlay — talk animation */
- .tb-mouth{position:absolute;left:50.2%;top:38.1%;width:13.6%;height:2.2%;transform:translateX(-50%) scaleY(0);transform-origin:center;opacity:0;background:#541f1d;border-radius:45% 45% 52% 52%;pointer-events:none;box-shadow:inset 0 2px 0 rgba(255,255,255,.1)}
- .tb-avatar-stage.speaking .tb-mouth{opacity:1;animation:tbTalk .15s ease-in-out infinite alternate}
- @keyframes tbTalk{0%{width:12%;height:1.3%;transform:translateX(-50%) scaleY(.8)}33%{width:14.5%;height:4.2%;border-radius:48%}66%{width:10%;height:5.5%;border-radius:45%}100%{width:15.5%;height:2.7%;border-radius:52%}}
+ /* Mouth overlay — animates during talk */
+ .tb-mouth{z-index:3;opacity:0;transform-origin:center bottom}
+ .tb-mouth.tb-mouth-talk{opacity:1;animation:tbTalk .15s ease-in-out infinite alternate}
+ @keyframes tbTalk{0%{transform:scaleY(.3) scaleX(.95)}33%{transform:scaleY(1.2) scaleX(1.05)}66%{transform:scaleY(.5) scaleX(.9)}100%{transform:scaleY(1.4) scaleX(1.1)}}
 
  /* Status indicator */
- .tb-avatar-status{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px);font-size:.7rem;box-shadow:0 4px 15px rgba(0,0,0,.2)}
- .tb-status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}
+ .tb-avatar-status{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px);font-size:.65rem;box-shadow:0 4px 15px rgba(0,0,0,.2);z-index:10}
+ .tb-status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
  .tb-status-dot.listening{background:#38bdf8}
  .tb-status-dot.thinking{background:#f59e0b;animation:tbDotPulse 1s infinite}
  .tb-status-dot.speaking{background:#22c55e;animation:tbDotPulse 1s infinite}
  @keyframes tbDotPulse{50%{transform:scale(1.55)}}
-
- /* Sound waves */
- .tb-sound-waves{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);display:flex;align-items:center;gap:4px}
- .tb-sound-waves i{width:3px;height:10px;border-radius:999px;background:#7dd3fc;animation:tbWave .45s ease-in-out infinite alternate}
- .tb-sound-waves i:nth-child(2){animation-delay:.12s}
- .tb-sound-waves i:nth-child(3){animation-delay:.24s}
- @keyframes tbWave{to{height:28px}}
 
  /* Shadow */
  .tb-shadow{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:60%;height:8px;background:radial-gradient(ellipse at center,rgba(0,0,0,0.25) 0%,transparent 70%);border-radius:50%;pointer-events:none;z-index:0}
