@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verify as jwtVerify } from "jsonwebtoken";
+import { jwtVerify as joseVerify } from "jose";
+
+/** Verify a JWT token using the configured secret.
+ *  Uses jose (Edge-compatible) instead of jsonwebtoken (Node.js crypto only). */
+async function verifyJwt(token: string, secret: string) {
+  const key = new TextEncoder().encode(secret);
+  const { payload } = await joseVerify(token, key);
+  return payload as { sub: string; email: string; role: string; name: string };
+}
 
 /**
  * src/middleware.ts — Centralized middleware for auth, RBAC, and rate limiting.
@@ -168,7 +176,7 @@ export async function middleware(req: NextRequest) {
   // ── Verify JWT ───────────────────────────────────────────────
   try {
     const secret = process.env.JWT_SECRET || "examiner-ai-dev-secret-change-me";
-    const payload = jwtVerify(token, secret) as { sub: string; email: string; role: string; name: string };
+    const payload = await verifyJwt(token, secret);
 
     // Add user info to request headers for downstream handlers
     const requestHeaders = new Headers(req.headers);

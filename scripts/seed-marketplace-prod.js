@@ -60,7 +60,7 @@ async function main() {
         currency: "USD",
         durationWeeks: 6,
         language: "en",
-        thumbnailUrl: `https://picsum.photos/seed/${thumbnailQuery}&sig=${course.id.charCodeAt(0)}`,/600/400
+        thumbnailUrl: `https://picsum.photos/seed/${thumbnailQuery}&sig=${course.id.charCodeAt(0)}/600/400`,
         instructorName: "FCCL Training Team",
         instructorBio: "Professional trainers with industry experience in their respective domains.",
         whatYouWillLearn: JSON.stringify([
