@@ -36,11 +36,13 @@ type MouthMode = "idle" | "smile" | "talk" | "o" | "soft-smile";
 
 // ── Config: positions of eyes + mouth (in viewBox coords 0-640 x 0-360) ──
 const CFG = {
- eyeL: { x: 250, y: 145, w: 28, h: 15 },
- eyeR: { x: 390, y: 145, w: 28, h: 15 },
- mouth: { x: 320, y: 225, w: 48, h: 20 },
- skin: "#d9a271",
- beard: "#1a1a2e",
+ eyeL: { x: 270, y: 135, w: 32, h: 16 },
+ eyeR: { x: 370, y: 135, w: 32, h: 16 },
+ mouth: { x: 320, y: 200, w: 50, h: 22 },
+ skin: "#e8c098",
+ skinShadow: "#d4a877",
+ beard: "#2a2018",
+ hair: "#1a1410",
 };
 
 // ── Hooks ──────────────────────────────────────────────────────────
@@ -127,29 +129,25 @@ function AvatarSVG({
  // Mouth rendering
  const renderMouth = () => {
   const c = mouth;
+  const lipColor = "#b07050";
+  const lipStroke = "#8a4a30";
+  const innerMouth = "#5a2010";
 
   // Talking — open mouth with amplitude
   if (talking) {
-   const openH = Math.max(2, mouthOpen * c.h * 0.7);
+   const openH = Math.max(2, mouthOpen * c.h * 0.6);
    return (
     <g>
-     {/* Beard patch behind mouth */}
-     <rect
-      x={c.x - c.w / 2} y={c.y - c.h / 2} width={c.w} height={c.h}
-      rx={8} fill={CFG.beard}
-     />
-     {/* Open mouth */}
-     <rect
-      x={c.x - c.w * 0.2} y={c.y - openH / 2} width={c.w * 0.4} height={openH}
-      rx={6} fill="#3a1512"
-     />
-     {/* Teeth (top edge) */}
+     {/* Upper lip */}
+     <path d={`M ${c.x - c.w * 0.35} ${c.y - openH * 0.4} Q ${c.x} ${c.y - openH * 0.7} ${c.x + c.w * 0.35} ${c.y - openH * 0.4}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
+     {/* Inner mouth */}
+     <ellipse cx={c.x} cy={c.y} rx={c.w * 0.25} ry={openH / 2} fill={innerMouth} />
+     {/* Teeth (when mouth open enough) */}
      {mouthOpen > 0.5 && (
-      <rect
-       x={c.x - c.w * 0.14} y={c.y - openH / 2} width={c.w * 0.28} height={3}
-       rx={1.5} fill="#fff"
-      />
+      <rect x={c.x - c.w * 0.18} y={c.y - openH * 0.35} width={c.w * 0.36} height={3} rx={1.5} fill="#f0f0f0" />
      )}
+     {/* Lower lip */}
+     <path d={`M ${c.x - c.w * 0.35} ${c.y + openH * 0.3} Q ${c.x} ${c.y + openH * 0.6} ${c.x + c.w * 0.35} ${c.y + openH * 0.3}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
     </g>
    );
   }
@@ -158,103 +156,101 @@ function AvatarSVG({
   if (mouthMode === "o") {
    return (
     <g>
-     <rect x={c.x - c.w / 2} y={c.y - c.h / 2} width={c.w} height={c.h} rx={8} fill={CFG.beard} />
-     <circle cx={c.x} cy={c.y} r={c.h * 0.32} fill="#3a1512" />
+     <ellipse cx={c.x} cy={c.y} rx={c.w * 0.2} ry={c.h * 0.35} fill={innerMouth} stroke={lipStroke} strokeWidth="2" />
     </g>
    );
   }
 
   // Smile
   if (mouthMode === "smile" || mouthMode === "soft-smile") {
-   const curve = mouthMode === "smile" ? 6 : 3;
+   const curve = mouthMode === "smile" ? 8 : 4;
    return (
-    <path
-     d={`M ${c.x - c.w * 0.4} ${c.y - 2} Q ${c.x} ${c.y + curve} ${c.x + c.w * 0.4} ${c.y - 2}`}
-     stroke="#0a0f1a" strokeWidth="3" fill="none" strokeLinecap="round"
-    />
+    <g>
+     {/* Upper lip line */}
+     <path d={`M ${c.x - c.w * 0.35} ${c.y - 1} Q ${c.x} ${c.y - 3} ${c.x + c.w * 0.35} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2" fill="none" strokeLinecap="round" />
+     {/* Lower lip (smile curve) */}
+     <path d={`M ${c.x - c.w * 0.35} ${c.y - 1} Q ${c.x} ${c.y + curve} ${c.x + c.w * 0.35} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
+    </g>
    );
   }
 
-  // Idle — relaxed lip line
+  // Idle — relaxed closed lips
   return (
-   <path
-    d={`M ${c.x - c.w * 0.36} ${c.y - 1} Q ${c.x} ${c.y + 3} ${c.x + c.w * 0.36} ${c.y - 1}`}
-    stroke="#0a0f1a" strokeWidth="3" fill="none" strokeLinecap="round"
-   />
+   <g>
+    {/* Upper lip */}
+    <path d={`M ${c.x - c.w * 0.32} ${c.y - 1} Q ${c.x} ${c.y - 3} ${c.x + c.w * 0.32} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2" fill="none" strokeLinecap="round" />
+    {/* Lower lip */}
+    <path d={`M ${c.x - c.w * 0.32} ${c.y - 1} Q ${c.x} ${c.y + 4} ${c.x + c.w * 0.32} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
+   </g>
   );
  };
 
  return (
   <svg viewBox="0 0 640 360" className="tb-svg" preserveAspectRatio="xMidYMid meet">
-   {/* ── BACKGROUND ── */}
    <defs>
-    <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
-     <stop offset="0%" stopColor="#1a1a2e" />
-     <stop offset="100%" stopColor="#0a0a1a" />
-    </radialGradient>
     <linearGradient id="suitGrad" x1="0" y1="0" x2="0" y2="1">
-     <stop offset="0%" stopColor="#2a2a3a" />
-     <stop offset="100%" stopColor="#1a1a2a" />
+     <stop offset="0%" stopColor="#333" />
+     <stop offset="100%" stopColor="#1a1a1a" />
     </linearGradient>
-    <linearGradient id="shirtGrad" x1="0" y1="0" x2="0" y2="1">
-     <stop offset="0%" stopColor="#f0f0f5" />
-     <stop offset="100%" stopColor="#d0d0d8" />
+    <linearGradient id="faceGrad" x1="0" y1="0" x2="0" y2="1">
+     <stop offset="0%" stopColor={CFG.skin} />
+     <stop offset="100%" stopColor={CFG.skinShadow} />
     </linearGradient>
    </defs>
-   <rect width="640" height="360" fill="url(#bgGrad)" />
 
-   {/* ── SUIT (shoulders + jacket) ── */}
-   <path d="M 120 360 L 160 250 Q 200 220 260 210 L 380 210 Q 440 220 480 250 L 520 360 Z" fill="url(#suitGrad)" />
-   {/* Lapels */}
-   <path d="M 260 210 L 290 280 L 250 360 L 230 360 L 230 240 Z" fill="#1a1a2a" />
-   <path d="M 380 210 L 350 280 L 390 360 L 410 360 L 410 240 Z" fill="#1a1a2a" />
-   {/* Shirt V */}
-   <path d="M 290 280 L 320 310 L 350 280 L 340 210 L 300 210 Z" fill="url(#shirtGrad)" />
+   {/* ── BACKGROUND ── */}
+   <rect width="640" height="360" fill="#1a1a2e" />
+
+   {/* ── SUIT SHOULDERS ── */}
+   <path d="M 100 360 L 140 270 Q 200 240 260 235 L 380 235 Q 440 240 500 270 L 540 360 Z" fill="url(#suitGrad)" />
+   {/* Suit lapels */}
+   <path d="M 260 235 L 300 290 L 270 360 L 240 360 L 240 260 Z" fill="#222" />
+   <path d="M 380 235 L 340 290 L 370 360 L 400 360 L 400 260 Z" fill="#222" />
+   {/* White shirt */}
+   <path d="M 300 290 L 320 320 L 340 290 L 335 235 L 305 235 Z" fill="#f5f5f5" />
 
    {/* ── NECK ── */}
-   <rect x="285" y="175" width="70" height="45" rx="8" fill={CFG.skin} />
-   {/* Neck shadow */}
-   <rect x="285" y="175" width="70" height="12" rx="6" fill="#000" opacity="0.15" />
+   <path d="M 290 190 L 290 240 Q 290 250 320 252 Q 350 250 350 240 L 350 190 Z" fill={CFG.skinShadow} />
+   {/* Neck shadow under chin */}
+   <ellipse cx="320" cy="195" rx="30" ry="6" fill="#000" opacity="0.12" />
 
-   {/* ── FACE (oval) ── */}
-   <ellipse cx="320" cy="130" rx="90" ry="100" fill={CFG.skin} />
+   {/* ── FACE — proper proportions: forehead 40%, midface 35%, jaw 25% ── */}
+   {/* Face shape: wider at temples, narrower at jaw */}
+   <path d="M 235 145 Q 235 80 290 65 Q 320 58 350 65 Q 405 80 405 145 Q 405 190 385 215 Q 360 235 320 238 Q 280 235 255 215 Q 235 190 235 145 Z" fill="url(#faceGrad)" />
 
-   {/* ── HAIR ── */}
-   <path d="M 232 110 Q 230 55 290 42 Q 320 35 350 42 Q 410 55 408 110 Q 408 85 380 78 Q 360 70 340 75 Q 320 68 300 75 Q 280 70 260 78 Q 232 85 232 110 Z" fill="#1a1a2e" />
-   {/* Hair side volume */}
-   <path d="M 232 110 Q 228 90 235 75 L 240 100 Z" fill="#15151f" />
-   <path d="M 408 110 Q 412 90 405 75 L 400 100 Z" fill="#15151f" />
+   {/* ── HAIR — side-parted, textured top ── */}
+   <path d="M 232 130 Q 225 70 285 55 Q 320 48 355 55 Q 415 70 408 130 Q 408 100 390 88 Q 370 78 345 82 Q 325 72 305 82 Q 280 78 260 88 Q 242 100 232 130 Z" fill={CFG.hair} />
+   {/* Hair side fade */}
+   <path d="M 232 130 Q 228 100 235 82 L 240 115 Z" fill="#0e0a06" />
+   <path d="M 408 130 Q 412 100 405 82 L 400 115 Z" fill="#0e0a06" />
 
    {/* ── EARS ── */}
-   <ellipse cx="232" cy="135" rx="8" ry="15" fill={CFG.skin} />
-   <ellipse cx="408" cy="135" rx="8" ry="15" fill={CFG.skin} />
+   <ellipse cx="236" cy="150" rx="7" ry="14" fill={CFG.skinShadow} />
+   <ellipse cx="404" cy="150" rx="7" ry="14" fill={CFG.skinShadow} />
 
-   {/* ── BEARD ── */}
-   <path d="M 250 130 Q 240 170 260 200 Q 280 215 320 218 Q 360 215 380 200 Q 400 170 390 130 Q 385 155 370 170 Q 350 185 320 188 Q 290 185 270 170 Q 255 155 250 130 Z" fill={CFG.beard} opacity="0.85" />
-   {/* Mustache */}
-   <path d="M 285 195 Q 300 190 320 193 Q 340 190 355 195 Q 345 200 320 198 Q 295 200 285 195 Z" fill={CFG.beard} />
+   {/* ── BEARD — jawline only, NOT covering the whole face ── */}
+   <path d="M 255 165 Q 250 200 270 220 Q 290 232 320 234 Q 350 232 370 220 Q 390 200 385 165 Q 380 185 365 198 Q 345 212 320 214 Q 295 212 275 198 Q 260 185 255 165 Z" fill={CFG.beard} opacity="0.9" />
+   {/* Mustache — thin, following lip line */}
+   <path d="M 295 188 Q 310 184 320 186 Q 330 184 345 188 Q 338 192 320 191 Q 302 192 295 188 Z" fill={CFG.beard} />
 
    {/* ── EYEBROWS ── */}
-   <path d="M 230 125 Q 250 119 270 125" stroke="#1a1a2e" strokeWidth="4" fill="none" strokeLinecap="round" />
-   <path d="M 370 125 Q 390 119 410 125" stroke="#1a1a2e" strokeWidth="4" fill="none" strokeLinecap="round" />
+   <path d="M 248 118 Q 265 112 285 118" stroke={CFG.hair} strokeWidth="4.5" fill="none" strokeLinecap="round" />
+   <path d="M 355 118 Q 375 112 392 118" stroke={CFG.hair} strokeWidth="4.5" fill="none" strokeLinecap="round" />
 
    {/* ── GLASSES ── */}
-   {/* Lens rims */}
-   <rect x={eyeL.x - eyeL.w / 2 - 4} y={eyeL.y - eyeL.h - 2} width={eyeL.w + 8} height={eyeL.h * 2 + 4} rx="6" fill="none" stroke="#1a1a2e" strokeWidth="2.5" />
-   <rect x={eyeR.x - eyeR.w / 2 - 4} y={eyeR.y - eyeR.h - 2} width={eyeR.w + 8} height={eyeR.h * 2 + 4} rx="6" fill="none" stroke="#1a1a2e" strokeWidth="2.5" />
-   {/* Bridge */}
-   <path d={`M ${eyeL.x + eyeL.w / 2 + 4} ${eyeL.y} L ${eyeR.x - eyeR.w / 2 - 4} ${eyeR.y}`} stroke="#1a1a2e" strokeWidth="2.5" fill="none" />
-   {/* Temple arms */}
-   <path d={`M ${eyeL.x - eyeL.w / 2 - 4} ${eyeL.y} L 225 ${eyeL.y + 3}`} stroke="#1a1a2e" strokeWidth="2.5" fill="none" />
-   <path d={`M ${eyeR.x + eyeR.w / 2 + 4} ${eyeR.y} L 415 ${eyeR.y + 3}`} stroke="#1a1a2e" strokeWidth="2.5" fill="none" />
-   {/* Lens reflection */}
-   <rect x={eyeL.x - eyeL.w / 2 - 2} y={eyeL.y - eyeL.h} width={eyeL.w * 0.3} height={eyeL.h * 0.4} rx="2" fill="#fff" opacity="0.15" />
-   <rect x={eyeR.x - eyeR.w / 2 - 2} y={eyeR.y - eyeR.h} width={eyeR.w * 0.3} height={eyeR.h * 0.4} rx="2" fill="#fff" opacity="0.15" />
+   <rect x={eyeL.x - eyeL.w / 2 - 5} y={eyeL.y - eyeL.h - 3} width={eyeL.w + 10} height={eyeL.h * 2 + 6} rx="8" fill="none" stroke="#1a1a1a" strokeWidth="3" />
+   <rect x={eyeR.x - eyeR.w / 2 - 5} y={eyeR.y - eyeR.h - 3} width={eyeR.w + 10} height={eyeR.h * 2 + 6} rx="8" fill="none" stroke="#1a1a1a" strokeWidth="3" />
+   <line x1={eyeL.x + eyeL.w / 2 + 5} y1={eyeL.y} x2={eyeR.x - eyeR.w / 2 - 5} y2={eyeR.y} stroke="#1a1a1a" strokeWidth="3" />
+   <line x1={eyeL.x - eyeL.w / 2 - 5} y1={eyeL.y} x2="234" y2={eyeL.y + 4} stroke="#1a1a1a" strokeWidth="3" />
+   <line x1={eyeR.x + eyeR.w / 2 + 5} y1={eyeR.y} x2="406" y2={eyeR.y + 4} stroke="#1a1a1a" strokeWidth="3" />
+   {/* Lens glare */}
+   <path d={`M ${eyeL.x - eyeL.w / 2} ${eyeL.y - eyeL.h} L ${eyeL.x - eyeL.w / 4} ${eyeL.y - eyeL.h} L ${eyeL.x - eyeL.w / 6} ${eyeL.y - eyeL.h / 2} L ${eyeL.x - eyeL.w / 2} ${eyeL.y - eyeL.h / 2} Z`} fill="#fff" opacity="0.12" />
+   <path d={`M ${eyeR.x - eyeR.w / 2} ${eyeR.y - eyeR.h} L ${eyeR.x - eyeR.w / 4} ${eyeR.y - eyeR.h} L ${eyeR.x - eyeR.w / 6} ${eyeR.y - eyeR.h / 2} L ${eyeR.x - eyeR.w / 2} ${eyeR.y - eyeR.h / 2} Z`} fill="#fff" opacity="0.12" />
 
-   {/* ── NOSE ── */}
-   <path d="M 320 145 Q 312 165 316 178 Q 320 182 324 178 Q 328 165 320 145" fill="none" stroke="#b8865a" strokeWidth="2" strokeLinecap="round" />
-   <ellipse cx="316" cy="178" rx="2" ry="1.5" fill="#b8865a" opacity="0.5" />
-   <ellipse cx="324" cy="178" rx="2" ry="1.5" fill="#b8865a" opacity="0.5" />
+   {/* ── NOSE — subtle shadow only ── */}
+   <path d="M 316 148 Q 312 168 314 178 L 326 178 Q 328 168 324 148" fill="none" stroke={CFG.skinShadow} strokeWidth="2" strokeLinecap="round" opacity="0.6" />
+   <ellipse cx="314" cy="179" rx="2.5" ry="1.5" fill={CFG.skinShadow} opacity="0.4" />
+   <ellipse cx="326" cy="179" rx="2.5" ry="1.5" fill={CFG.skinShadow} opacity="0.4" />
 
    {/* ── EYES (animated) ── */}
    <g>{renderEye("L")}</g>
