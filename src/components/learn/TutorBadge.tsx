@@ -76,7 +76,7 @@ function AvatarSVG({
 }) {
  const { eyeL, eyeR, mouth } = CFG;
 
- // Helper to render one eye
+ // Helper to render one eye — using polygons like tracing a sketch
  const renderEye = (side: "L" | "R") => {
   const c = side === "L" ? eyeL : eyeR;
   const isWink = eyeMode === "wink" && side === "R";
@@ -84,173 +84,254 @@ function AvatarSVG({
   const isBlink = eyeMode === "blink";
   const isWide = eyeMode === "wide";
 
-  // Happy arc (^^)
+  // Happy arc (^^) — polyline
   if (isHappy) {
    return (
-    <path
-     d={`M ${c.x - c.w * 0.4} ${c.y + c.h * 0.15} Q ${c.x} ${c.y - c.h * 0.55} ${c.x + c.w * 0.4} ${c.y + c.h * 0.15}`}
-     stroke="#17202f" strokeWidth="3.5" fill="none" strokeLinecap="round"
+    <polyline
+     points={`${c.x - c.w * 0.4},${c.y + c.h * 0.15} ${c.x},${c.y - c.h * 0.55} ${c.x + c.w * 0.4},${c.y + c.h * 0.15}`}
+     stroke="#17202f" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round"
     />
    );
   }
 
-  // Blink / wink (closed — skin patch)
+  // Blink / wink (closed — skin-colored line)
   if (isBlink || isWink) {
    return (
-    <rect
-     x={c.x - c.w / 2} y={c.y - 1} width={c.w} height={2.5}
-     rx={1.25} fill={CFG.skin}
+    <line
+     x1={c.x - c.w / 2} y1={c.y} x2={c.x + c.w / 2} y2={c.y}
+     stroke={CFG.skinShadow} strokeWidth="3" strokeLinecap="round"
     />
    );
   }
 
-  // Open / wide
-  const w = isWide ? c.w * 1.25 : c.w;
-  const h = isWide ? c.h * 1.6 : c.h;
+  // Open / wide — eye white as polygon, pupil as polygon
+  const w = isWide ? c.w * 1.2 : c.w;
+  const h = isWide ? c.h * 1.5 : c.h;
+  const x1 = c.x - w * 0.4, y1 = c.y - h * 0.35;
+  const x2 = c.x + w * 0.4, y2 = c.y + h * 0.35;
+  // Eye shape: almond/oval using points
+  const eyePoints = `${x1},${c.y} ${c.x - w * 0.2},${y1} ${c.x + w * 0.2},${y1} ${x2},${c.y} ${c.x + w * 0.2},${y2} ${c.x - w * 0.2},${y2}`;
   return (
    <g>
-    {/* Eye white */}
-    <rect
-     x={c.x - w * 0.4} y={c.y - h * 0.35} width={w * 0.8} height={h * 0.7}
-     rx={5} fill="#fff" stroke="#17202f" strokeWidth="1.2"
+    {/* Eye white — almond shape polygon */}
+    <polygon points={eyePoints} fill="#fff" stroke="#17202f" strokeWidth="1.2" />
+    {/* Iris + pupil — small polygon circle */}
+    <polygon
+     points={`
+      ${c.x + gaze.x},${c.y + gaze.y - h * 0.26}
+      ${c.x + gaze.x + h * 0.22},${c.y + gaze.y - h * 0.1}
+      ${c.x + gaze.x + h * 0.22},${c.y + gaze.y + h * 0.1}
+      ${c.x + gaze.x},${c.y + gaze.y + h * 0.26}
+      ${c.x + gaze.x - h * 0.22},${c.y + gaze.y + h * 0.1}
+      ${c.x + gaze.x - h * 0.22},${c.y + gaze.y - h * 0.1}
+     `}
+     fill="#2a1a0e"
     />
-    {/* Pupil */}
-    <circle
-     cx={c.x + gaze.x} cy={c.y + gaze.y} r={h * 0.26} fill="#17202f"
-    />
-    {/* Glint */}
-    <circle
-     cx={c.x + gaze.x + 1.4} cy={c.y + gaze.y - 1.4} r={1.1} fill="#fff"
+    {/* Glint — tiny white polygon */}
+    <polygon
+     points={`
+      ${c.x + gaze.x + 1},${c.y + gaze.y - 2}
+      ${c.x + gaze.x + 3},${c.y + gaze.y - 1}
+      ${c.x + gaze.x + 2},${c.y + gaze.y + 1}
+      ${c.x + gaze.x},${c.y + gaze.y}
+     `}
+     fill="#fff"
     />
    </g>
   );
  };
 
- // Mouth rendering
+ // Mouth rendering — using polygons
  const renderMouth = () => {
   const c = mouth;
-  const lipColor = "#b07050";
+  const lipColor = "#c08070";
   const lipStroke = "#8a4a30";
   const innerMouth = "#5a2010";
+  const teethColor = "#f0ece0";
 
   // Talking — open mouth with amplitude
   if (talking) {
    const openH = Math.max(2, mouthOpen * c.h * 0.6);
+   const topY = c.y - openH * 0.4;
+   const botY = c.y + openH * 0.5;
    return (
     <g>
-     {/* Upper lip */}
-     <path d={`M ${c.x - c.w * 0.35} ${c.y - openH * 0.4} Q ${c.x} ${c.y - openH * 0.7} ${c.x + c.w * 0.35} ${c.y - openH * 0.4}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
-     {/* Inner mouth */}
-     <ellipse cx={c.x} cy={c.y} rx={c.w * 0.25} ry={openH / 2} fill={innerMouth} />
-     {/* Teeth (when mouth open enough) */}
+     {/* Upper lip — polygon */}
+     <polygon points={`
+      ${c.x - c.w * 0.35},${topY}
+      ${c.x - c.w * 0.15},${topY - 2}
+      ${c.x},${topY - 1}
+      ${c.x + c.w * 0.15},${topY - 2}
+      ${c.x + c.w * 0.35},${topY}
+      ${c.x + c.w * 0.2},${topY + 2}
+      ${c.x},${topY + 3}
+      ${c.x - c.w * 0.2},${topY + 2}
+     `} fill={lipColor} stroke={lipStroke} strokeWidth="1.5" />
+     {/* Inner mouth — polygon */}
+     <polygon points={`
+      ${c.x - c.w * 0.22},${topY + 2}
+      ${c.x},${topY + 3}
+      ${c.x + c.w * 0.22},${topY + 2}
+      ${c.x + c.w * 0.18},${botY - 2}
+      ${c.x},${botY}
+      ${c.x - c.w * 0.18},${botY - 2}
+     `} fill={innerMouth} />
+     {/* Teeth — polygon (when open enough) */}
      {mouthOpen > 0.5 && (
-      <rect x={c.x - c.w * 0.18} y={c.y - openH * 0.35} width={c.w * 0.36} height={3} rx={1.5} fill="#f0f0f0" />
+      <polygon points={`
+       ${c.x - c.w * 0.16},${topY + 3}
+       ${c.x + c.w * 0.16},${topY + 3}
+       ${c.x + c.w * 0.14},${topY + 7}
+       ${c.x - c.w * 0.14},${topY + 7}
+      `} fill={teethColor} />
      )}
-     {/* Lower lip */}
-     <path d={`M ${c.x - c.w * 0.35} ${c.y + openH * 0.3} Q ${c.x} ${c.y + openH * 0.6} ${c.x + c.w * 0.35} ${c.y + openH * 0.3}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
+     {/* Lower lip — polygon */}
+     <polygon points={`
+      ${c.x - c.w * 0.3},${botY - 2}
+      ${c.x},${botY}
+      ${c.x + c.w * 0.3},${botY - 2}
+      ${c.x + c.w * 0.2},${botY + 4}
+      ${c.x},${botY + 6}
+      ${c.x - c.w * 0.2},${botY + 4}
+     `} fill={lipColor} stroke={lipStroke} strokeWidth="1.5" />
     </g>
    );
   }
 
-  // O mouth
+  // O mouth — polygon oval
   if (mouthMode === "o") {
    return (
-    <g>
-     <ellipse cx={c.x} cy={c.y} rx={c.w * 0.2} ry={c.h * 0.35} fill={innerMouth} stroke={lipStroke} strokeWidth="2" />
-    </g>
+    <polygon points={`
+     ${c.x},${c.y - c.h * 0.35}
+     ${c.x + c.w * 0.18},${c.y - c.h * 0.2}
+     ${c.x + c.w * 0.18},${c.y + c.h * 0.2}
+     ${c.x},${c.y + c.h * 0.35}
+     ${c.x - c.w * 0.18},${c.y + c.h * 0.2}
+     ${c.x - c.w * 0.18},${c.y - c.h * 0.2}
+    `} fill={innerMouth} stroke={lipStroke} strokeWidth="2" />
    );
   }
 
-  // Smile
+  // Smile — upper + lower lip polygons
   if (mouthMode === "smile" || mouthMode === "soft-smile") {
    const curve = mouthMode === "smile" ? 8 : 4;
    return (
     <g>
-     {/* Upper lip line */}
-     <path d={`M ${c.x - c.w * 0.35} ${c.y - 1} Q ${c.x} ${c.y - 3} ${c.x + c.w * 0.35} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2" fill="none" strokeLinecap="round" />
+     {/* Upper lip */}
+     <polygon points={`
+      ${c.x - c.w * 0.35},${c.y - 1}
+      ${c.x - c.w * 0.15},${c.y - 3}
+      ${c.x},${c.y - 2}
+      ${c.x + c.w * 0.15},${c.y - 3}
+      ${c.x + c.w * 0.35},${c.y - 1}
+      ${c.x + c.w * 0.2},${c.y}
+      ${c.x},${c.y + 1}
+      ${c.x - c.w * 0.2},${c.y}
+     `} fill={lipColor} stroke={lipStroke} strokeWidth="1.5" />
      {/* Lower lip (smile curve) */}
-     <path d={`M ${c.x - c.w * 0.35} ${c.y - 1} Q ${c.x} ${c.y + curve} ${c.x + c.w * 0.35} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
+     <polygon points={`
+      ${c.x - c.w * 0.35},${c.y - 1}
+      ${c.x},${c.y + curve}
+      ${c.x + c.w * 0.35},${c.y - 1}
+      ${c.x + c.w * 0.25},${c.y + curve + 3}
+      ${c.x},${c.y + curve + 5}
+      ${c.x - c.w * 0.25},${c.y + curve + 3}
+     `} fill={lipColor} stroke={lipStroke} strokeWidth="1.5" />
     </g>
    );
   }
 
-  // Idle — relaxed closed lips
+  // Idle — relaxed closed lips (upper + lower lip polygons)
   return (
    <g>
     {/* Upper lip */}
-    <path d={`M ${c.x - c.w * 0.32} ${c.y - 1} Q ${c.x} ${c.y - 3} ${c.x + c.w * 0.32} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2" fill="none" strokeLinecap="round" />
+    <polygon points={`
+     ${c.x - c.w * 0.32},${c.y - 1}
+     ${c.x - c.w * 0.14},${c.y - 3}
+     ${c.x},${c.y - 2}
+     ${c.x + c.w * 0.14},${c.y - 3}
+     ${c.x + c.w * 0.32},${c.y - 1}
+     ${c.x + c.w * 0.18},${c.y}
+     ${c.x},${c.y + 1}
+     ${c.x - c.w * 0.18},${c.y}
+    `} fill={lipColor} stroke={lipStroke} strokeWidth="1.5" />
     {/* Lower lip */}
-    <path d={`M ${c.x - c.w * 0.32} ${c.y - 1} Q ${c.x} ${c.y + 4} ${c.x + c.w * 0.32} ${c.y - 1}`} stroke={lipStroke} strokeWidth="2.5" fill={lipColor} strokeLinecap="round" />
+    <polygon points={`
+     ${c.x - c.w * 0.32},${c.y - 1}
+     ${c.x},${c.y + 4}
+     ${c.x + c.w * 0.32},${c.y - 1}
+     ${c.x + c.w * 0.22},${c.y + 6}
+     ${c.x},${c.y + 8}
+     ${c.x - c.w * 0.22},${c.y + 6}
+    `} fill={lipColor} stroke={lipStroke} strokeWidth="1.5" />
    </g>
   );
  };
 
  return (
-  <svg viewBox="0 0 640 360" className="tb-svg" preserveAspectRatio="xMidYMid meet">
-   <defs>
-    <linearGradient id="suitGrad" x1="0" y1="0" x2="0" y2="1">
-     <stop offset="0%" stopColor="#333" />
-     <stop offset="100%" stopColor="#1a1a1a" />
-    </linearGradient>
-    <linearGradient id="faceGrad" x1="0" y1="0" x2="0" y2="1">
-     <stop offset="0%" stopColor={CFG.skin} />
-     <stop offset="100%" stopColor={CFG.skinShadow} />
-    </linearGradient>
-   </defs>
+  <svg viewBox="0 0 640 400" className="tb-svg" preserveAspectRatio="xMidYMid meet">
+   {/* Transparent background — no rect */}
 
-   {/* ── BACKGROUND ── */}
-   <rect width="640" height="360" fill="#1a1a2e" />
+   {/* ── SUIT — polygon points tracing shoulders + jacket ── */}
+   <polygon points="80,400 120,300 170,265 220,250 250,245 250,230 270,225 320,225 370,225 390,230 390,245 420,250 470,265 520,300 560,400" fill="#2a2a2a" />
+   {/* Left lapel */}
+   <polygon points="250,245 270,225 295,225 300,270 275,310 255,400 235,400 235,275" fill="#1a1a1a" />
+   {/* Right lapel */}
+   <polygon points="390,245 370,225 345,225 340,270 365,310 385,400 405,400 405,275" fill="#1a1a1a" />
+   {/* White shirt V */}
+   <polygon points="295,225 345,225 340,270 320,300 300,270" fill="#f0f0f0" />
 
-   {/* ── SUIT SHOULDERS ── */}
-   <path d="M 100 360 L 140 270 Q 200 240 260 235 L 380 235 Q 440 240 500 270 L 540 360 Z" fill="url(#suitGrad)" />
-   {/* Suit lapels */}
-   <path d="M 260 235 L 300 290 L 270 360 L 240 360 L 240 260 Z" fill="#222" />
-   <path d="M 380 235 L 340 290 L 370 360 L 400 360 L 400 260 Z" fill="#222" />
-   {/* White shirt */}
-   <path d="M 300 290 L 320 320 L 340 290 L 335 235 L 305 235 Z" fill="#f5f5f5" />
+   {/* ── NECK — polygon tracing neck shape ── */}
+   <polygon points="290,190 290,235 300,245 320,248 340,245 350,235 350,190" fill={CFG.skinShadow} />
+   {/* Neck shadow polygon */}
+   <polygon points="290,190 350,190 345,200 335,205 320,207 305,205 295,200" fill="#000" opacity="0.15" />
 
-   {/* ── NECK ── */}
-   <path d="M 290 190 L 290 240 Q 290 250 320 252 Q 350 250 350 240 L 350 190 Z" fill={CFG.skinShadow} />
-   {/* Neck shadow under chin */}
-   <ellipse cx="320" cy="195" rx="30" ry="6" fill="#000" opacity="0.12" />
+   {/* ── HAIR — polygon tracing hairline + sides ── */}
+   <polygon points="228,120 225,90 235,68 260,55 290,50 320,48 350,50 380,55 405,68 415,90 412,120 408,105 395,92 375,85 355,88 340,80 325,85 310,80 295,88 275,85 255,92 240,105 232,120" fill={CFG.hair} />
 
-   {/* ── FACE — proper proportions: forehead 40%, midface 35%, jaw 25% ── */}
-   {/* Face shape: wider at temples, narrower at jaw */}
-   <path d="M 235 145 Q 235 80 290 65 Q 320 58 350 65 Q 405 80 405 145 Q 405 190 385 215 Q 360 235 320 238 Q 280 235 255 215 Q 235 190 235 145 Z" fill="url(#faceGrad)" />
+   {/* ── FACE — polygon tracing face outline (forehead → temples → cheeks → jaw → chin) ── */}
+   <polygon points="235,120 238,95 250,75 275,62 320,58 365,62 390,75 402,95 405,120 402,150 395,175 380,195 360,210 340,218 320,220 300,218 280,210 260,195 245,175 238,150" fill={CFG.skin} />
 
-   {/* ── HAIR — side-parted, textured top ── */}
-   <path d="M 232 130 Q 225 70 285 55 Q 320 48 355 55 Q 415 70 408 130 Q 408 100 390 88 Q 370 78 345 82 Q 325 72 305 82 Q 280 78 260 88 Q 242 100 232 130 Z" fill={CFG.hair} />
-   {/* Hair side fade */}
-   <path d="M 232 130 Q 228 100 235 82 L 240 115 Z" fill="#0e0a06" />
-   <path d="M 408 130 Q 412 100 405 82 L 400 115 Z" fill="#0e0a06" />
+   {/* ── EARS — polygon tracing ear shapes ── */}
+   <polygon points="238,135 230,140 228,155 232,170 240,168 238,155" fill={CFG.skinShadow} />
+   <polygon points="402,135 410,140 412,155 408,170 400,168 402,155" fill={CFG.skinShadow} />
 
-   {/* ── EARS ── */}
-   <ellipse cx="236" cy="150" rx="7" ry="14" fill={CFG.skinShadow} />
-   <ellipse cx="404" cy="150" rx="7" ry="14" fill={CFG.skinShadow} />
+   {/* ── BEARD — polygon tracing jawline beard (NOT covering face) ── */}
+   <polygon points="255,165 250,180 252,195 260,208 275,218 295,224 320,226 345,224 365,218 380,208 388,195 390,180 385,165 380,175 370,185 355,195 340,200 320,202 300,200 285,195 270,185 260,175" fill={CFG.beard} opacity="0.85" />
+   {/* Mustache — polygon tracing upper lip hair */}
+   <polygon points="292,190 305,186 320,188 335,186 348,190 340,194 320,193 300,194" fill={CFG.beard} />
 
-   {/* ── BEARD — jawline only, NOT covering the whole face ── */}
-   <path d="M 255 165 Q 250 200 270 220 Q 290 232 320 234 Q 350 232 370 220 Q 390 200 385 165 Q 380 185 365 198 Q 345 212 320 214 Q 295 212 275 198 Q 260 185 255 165 Z" fill={CFG.beard} opacity="0.9" />
-   {/* Mustache — thin, following lip line */}
-   <path d="M 295 188 Q 310 184 320 186 Q 330 184 345 188 Q 338 192 320 191 Q 302 192 295 188 Z" fill={CFG.beard} />
+   {/* ── EYEBROWS — polygon tracing brow shapes ── */}
+   <polygon points="248,116 258,112 270,112 282,115 285,119 275,118 262,118 252,120" fill={CFG.hair} />
+   <polygon points="355,116 365,112 378,112 390,115 392,119 382,118 370,118 358,120" fill={CFG.hair} />
 
-   {/* ── EYEBROWS ── */}
-   <path d="M 248 118 Q 265 112 285 118" stroke={CFG.hair} strokeWidth="4.5" fill="none" strokeLinecap="round" />
-   <path d="M 355 118 Q 375 112 392 118" stroke={CFG.hair} strokeWidth="4.5" fill="none" strokeLinecap="round" />
-
-   {/* ── GLASSES ── */}
-   <rect x={eyeL.x - eyeL.w / 2 - 5} y={eyeL.y - eyeL.h - 3} width={eyeL.w + 10} height={eyeL.h * 2 + 6} rx="8" fill="none" stroke="#1a1a1a" strokeWidth="3" />
-   <rect x={eyeR.x - eyeR.w / 2 - 5} y={eyeR.y - eyeR.h - 3} width={eyeR.w + 10} height={eyeR.h * 2 + 6} rx="8" fill="none" stroke="#1a1a1a" strokeWidth="3" />
+   {/* ── GLASSES — polygon tracing frame outlines ── */}
+   {/* Left lens rim */}
+   <polygon points={`
+    ${eyeL.x - eyeL.w / 2 - 5},${eyeL.y - eyeL.h - 3}
+    ${eyeL.x + eyeL.w / 2 + 5},${eyeL.y - eyeL.h - 3}
+    ${eyeL.x + eyeL.w / 2 + 5},${eyeL.y + eyeL.h + 3}
+    ${eyeL.x - eyeL.w / 2 - 5},${eyeL.y + eyeL.h + 3}
+   `} fill="none" stroke="#1a1a1a" strokeWidth="3" rx="6" />
+   {/* Right lens rim */}
+   <polygon points={`
+    ${eyeR.x - eyeR.w / 2 - 5},${eyeR.y - eyeR.h - 3}
+    ${eyeR.x + eyeR.w / 2 + 5},${eyeR.y - eyeR.h - 3}
+    ${eyeR.x + eyeR.w / 2 + 5},${eyeR.y + eyeR.h + 3}
+    ${eyeR.x - eyeR.w / 2 - 5},${eyeR.y + eyeR.h + 3}
+   `} fill="none" stroke="#1a1a1a" strokeWidth="3" rx="6" />
+   {/* Bridge */}
    <line x1={eyeL.x + eyeL.w / 2 + 5} y1={eyeL.y} x2={eyeR.x - eyeR.w / 2 - 5} y2={eyeR.y} stroke="#1a1a1a" strokeWidth="3" />
-   <line x1={eyeL.x - eyeL.w / 2 - 5} y1={eyeL.y} x2="234" y2={eyeL.y + 4} stroke="#1a1a1a" strokeWidth="3" />
-   <line x1={eyeR.x + eyeR.w / 2 + 5} y1={eyeR.y} x2="406" y2={eyeR.y + 4} stroke="#1a1a1a" strokeWidth="3" />
-   {/* Lens glare */}
-   <path d={`M ${eyeL.x - eyeL.w / 2} ${eyeL.y - eyeL.h} L ${eyeL.x - eyeL.w / 4} ${eyeL.y - eyeL.h} L ${eyeL.x - eyeL.w / 6} ${eyeL.y - eyeL.h / 2} L ${eyeL.x - eyeL.w / 2} ${eyeL.y - eyeL.h / 2} Z`} fill="#fff" opacity="0.12" />
-   <path d={`M ${eyeR.x - eyeR.w / 2} ${eyeR.y - eyeR.h} L ${eyeR.x - eyeR.w / 4} ${eyeR.y - eyeR.h} L ${eyeR.x - eyeR.w / 6} ${eyeR.y - eyeR.h / 2} L ${eyeR.x - eyeR.w / 2} ${eyeR.y - eyeR.h / 2} Z`} fill="#fff" opacity="0.12" />
+   {/* Temple arms */}
+   <line x1={eyeL.x - eyeL.w / 2 - 5} y1={eyeL.y} x2="235" y2={eyeL.y + 4} stroke="#1a1a1a" strokeWidth="3" />
+   <line x1={eyeR.x + eyeR.w / 2 + 5} y1={eyeR.y} x2="405" y2={eyeR.y + 4} stroke="#1a1a1a" strokeWidth="3" />
 
-   {/* ── NOSE — subtle shadow only ── */}
-   <path d="M 316 148 Q 312 168 314 178 L 326 178 Q 328 168 324 148" fill="none" stroke={CFG.skinShadow} strokeWidth="2" strokeLinecap="round" opacity="0.6" />
-   <ellipse cx="314" cy="179" rx="2.5" ry="1.5" fill={CFG.skinShadow} opacity="0.4" />
-   <ellipse cx="326" cy="179" rx="2.5" ry="1.5" fill={CFG.skinShadow} opacity="0.4" />
+   {/* ── NOSE — polygon tracing nose bridge + tip + nostrils ── */}
+   <polygon points="315,145 312,160 310,172 314,180 320,182 326,180 330,172 328,160 325,145 322,143 318,143" fill="none" stroke={CFG.skinShadow} strokeWidth="1.5" opacity="0.5" />
+   {/* Left nostril */}
+   <polygon points="314,179 316,182 318,180 316,177" fill={CFG.skinShadow} opacity="0.4" />
+   {/* Right nostril */}
+   <polygon points="322,180 324,182 326,179 324,177" fill={CFG.skinShadow} opacity="0.4" />
 
    {/* ── EYES (animated) ── */}
    <g>{renderEye("L")}</g>
