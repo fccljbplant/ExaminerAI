@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Adam — AI Business Assistant Avatar</title>
+<style>
+  :root{
+    --bg1:#0f172a; --bg2:#1e293b; --panel:#111c33; --line:#2b3a5c;
+    --accent:#2563eb; --accent2:#38bdf8; --txt:#e2e8f0; --dim:#94a3b8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Segoe UI,system-ui,sans-serif;color:var(--txt);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;
+  }
+  #app{display:flex;gap:18px;width:min(1060px,100%);flex-wrap:wrap}
+  #avatarPane{flex:1 1 380px;display:flex;flex-direction:column;gap:10px;align-items:center}
+  #stageWrap{
+    position:relative;width:min(430px,100%);aspect-ratio:4/5;border-radius:22px;overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 10%,#3b4a6b 0%,#22304d 55%,#16203a 100%);
+    border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  #stage{position:absolute;inset:0}
+  .layer{position:absolute;overflow:hidden;pointer-events:none}
+  .layer img{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none}
+  body.cal .layer{pointer-events:auto;outline:1px dashed #f472b6;cursor:move}
+  body.cal .layer:hover{outline:2px solid #f472b6}
+  #nameTag{
+    position:absolute;left:12px;bottom:12px;background:rgba(15,23,42,.75);backdrop-filter:blur(6px);
+    padding:6px 14px;border-radius:999px;font-size:13px;border:1px solid var(--line)
+  }
+  #nameTag b{color:var(--accent2)}
+  #exprBar{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  #exprBar button{
+    background:#16233f;border:1px solid var(--line);color:var(--txt);border-radius:999px;
+    padding:6px 12px;font-size:12px;cursor:pointer;transition:.2s
+  }
+  #exprBar button:hover{background:var(--accent);border-color:var(--accent)}
+  #chatPane{flex:1 1 420px;display:flex;flex-direction:column;height:560px;
+    background:var(--panel);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+  #chatHead{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;
+    background:linear-gradient(90deg,#16233f,#101a30)}
+  #chatHead .dot{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}
+  #msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:80%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.45;animation:pop .25s}
+  .msg.bot{background:#1d2c4c;border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+  .msg.user{background:var(--accent);align-self:flex-end;border-bottom-right-radius:4px}
+  @keyframes pop{from{transform:scale(.9);opacity:0}}
+  #chatForm{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#0e1930}
+  #chatForm input{flex:1;background:#16233f;border:1px solid var(--line);border-radius:12px;
+    padding:11px 14px;color:var(--txt);outline:none}
+  #chatForm input:focus{border-color:var(--accent)}
+  #chatForm button{width:44px;border-radius:12px;border:none;background:var(--accent);color:#fff;
+    font-size:17px;cursor:pointer}
+  #chatForm button:hover{background:var(--accent2)}
+  #calib{position:fixed;right:10px;top:10px;width:270px;background:#0d1730f2;border:1px solid var(--line);
+    border-radius:14px;padding:12px;font-size:12px;z-index:50;display:none}
+  body.cal #calib{display:block}
+  #calib h3{font-size:13px;margin-bottom:8px;color:var(--accent2)}
+  #calib select,#calib textarea{width:100%;background:#16233f;color:var(--txt);border:1px solid var(--line);
+    border-radius:8px;padding:6px;margin-bottom:8px}
+  #calib .row{display:grid;grid-template-columns:20px 1fr 34px 34px;gap:4px;align-items:center;margin-bottom:4px}
+  #calib .row button{background:#1d2c4c;border:1px solid var(--line);color:var(--txt);border-radius:6px;cursor:pointer}
+  #calib .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  #calib .acts button{flex:1;background:var(--accent);border:none;color:#fff;border-radius:8px;padding:7px;cursor:pointer}
+  #calHint{font-size:11px;color:var(--dim);margin-top:6px}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <section id="avatarPane">
+    <div id="stageWrap">
+      <div id="stage"></div>
+      <div id="nameTag"><b>Adam</b> · AI Business Assistant</div>
+    </div>
+    <div id="exprBar"></div>
+  </section>
+
+  <section id="chatPane">
+    <div id="chatHead"><span class="dot"></span><b>Adam</b><span style="color:var(--dim);font-size:12px">online</span></div>
+    <div id="msgs"></div>
+    <form id="chatForm">
+      <input id="chatInput" placeholder="Type a message… (try /thumbs, /smile, /think)" autocomplete="off">
+      <button type="button" id="micBtn" title="Voice input">🎤</button>
+      <button type="submit" title="Send">➤</button>
+    </form>
+  </section>
+</div>
+
+<div id="calib">
+  <h3>🛠 SPRITE CALIBRATION</h3>
+  <select id="partSel"></select>
+  <div id="srcRows"></div>
+  <div class="acts">
+    <button id="copyMap">Copy Map</button>
+    <button id="resetMap">Reset</button>
+  </div>
+  <textarea id="mapIO" rows="5" placeholder='Paste an exported map here + press Load'></textarea>
+  <div class="acts"><button id="loadMap">Load Map</button></div>
+  <div id="calHint">Drag layers on stage to move · mouse-wheel = scale · sliders fix the crop cut.</div>
+</div>
+
+<script>
+const SHEET_URL = '/assets/avatar/v1/avatar-sheet.png';
+
+const DEFAULT_MAP = {
+  faceBase:{x:2.2,y:52.3,w:16.6,h:12.6},
+  hair:    {x:1.6,y:45.0,w:17.8,h:9.6},
+  beard:   {x:3.0,y:63.3,w:15.2,h:9.2},
+  nose:    {x:8.6,y:72.0,w:3.6,h:2.8},
+  browsN:  {x:22.0,y:45.5,w:11.0,h:2.2},
+  browsUp: {x:22.0,y:48.9,w:11.0,h:2.2},
+  browsSad:{x:34.0,y:55.8,w:11.0,h:2.2},
+  eyesOpen:{x:22.0,y:53.2,w:11.0,h:2.8},
+  eyesClosed:{x:34.0,y:53.4,w:11.0,h:2.0},
+  eyesSide:{x:22.0,y:60.2,w:11.0,h:2.8},
+  eyesWink:{x:22.0,y:63.6,w:11.0,h:2.8},
+  eyesHappy:{x:34.0,y:60.4,w:11.0,h:2.2},
+  m_closed:{x:47.4,y:45.6,w:5.6,h:1.8},
+  m_smile: {x:47.4,y:52.1,w:5.8,h:2.5},
+  m_A:     {x:54.0,y:48.7,w:5.8,h:2.7},
+  m_E:     {x:47.4,y:55.4,w:5.8,h:2.3},
+  m_O:     {x:60.6,y:52.1,w:5.8,h:2.7},
+  m_U:     {x:67.2,y:52.2,w:5.4,h:2.5},
+  m_small: {x:54.0,y:62.1,w:5.6,h:2.1},
+  g_point: {x:74.0,y:70.4,w:12.5,h:8.2},
+  g_open:  {x:80.8,y:71.8,w:17.2,h:7.2},
+  g_thumb: {x:88.0,y:76.4,w:10.2,h:6.8},
+  g_pen:   {x:74.0,y:82.8,w:12.5,h:7.4},
+  g_thumb2:{x:86.4,y:82.4,w:12.2,h:8.2},
+};
+const DEFAULT_RIG = {
+  face:{x:14,y:6,w:72},  mouth:{x:37,y:52,w:26}, beard:{x:16,y:36,w:68},
+  nose:{x:44,y:44,w:13}, eyes:{x:26,y:33,w:48},  brows:{x:25,y:26,w:50},
+  hair:{x:12,y:0,w:76},  gesture:{x:52,y:60,w:46},
+};
+
+const $=s=>document.querySelector(s);
+const stage=$('#stage');
+let MAP=load('avatarMAP')||JSON.parse(JSON.stringify(DEFAULT_MAP));
+let RIG=load('avatarRIG')||JSON.parse(JSON.stringify(DEFAULT_RIG));
+function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function save(){localStorage.setItem('avatarMAP',JSON.stringify(MAP));
+               localStorage.setItem('avatarRIG',JSON.stringify(RIG))}
+
+const sheet=new Image(); sheet.src=SHEET_URL;
+sheet.onload=()=>{layout()};
+
+const LAYERS=['face','mouth','beard','nose','eyes','brows','hair','gesture']
+ .map(k=>{const el=document.createElement('div');el.className='layer';el.dataset.key=k;
+   const im=new Image();im.src=SHEET_URL;el.appendChild(im);stage.appendChild(el);
+   return {key:k,el,img:im};});
+
+const state={src:{face:'faceBase',mouth:'m_closed',beard:'beard',nose:'nose',
+   eyes:'eyesOpen',brows:'browsN',hair:'hair'}, gesture:null, talking:false, mood:'neutral'};
+
+function layout(){
+  if(!sheet.naturalWidth)return;
+  const SW=stage.clientWidth,SH=stage.clientHeight,
+        sw=sheet.naturalWidth,sh=sheet.naturalHeight;
+  for(const L of LAYERS){
+    const src=MAP[state.src[L.key]], dst=RIG[L.key];
+    if(!src||!dst||(L.key==='gesture'&&!state.gesture)){L.el.style.display='none';continue}
+    const srcKey=(L.key==='gesture')?state.gesture:state.src[L.key];
+    const s2=MAP[srcKey]; if(!s2){continue}
+    L.el.style.display='block';
+    const srcW=s2.w/100*sw, srcH=s2.h/100*sh, scale=(dst.w/100*SW)/srcW;
+    L.el.style.left=dst.x/100*SW+'px'; L.el.style.top=dst.y/100*SH+'px';
+    L.el.style.width=dst.w/100*SW+'px'; L.el.style.height=srcH*scale+'px';
+    L.img.style.width=sw*scale+'px';  L.img.style.height=sh*scale+'px';
+    L.img.style.left=(-s2.x/100*sw*scale)+'px'; L.img.style.top=(-s2.y/100*sh*scale)+'px';
+  }
+}
+addEventListener('resize',layout);
+
+const MOODS={
+  neutral:{brows:'browsN', eyes:'eyesOpen',  mouth:'m_closed'},
+  smile:  {brows:'browsN', eyes:'eyesOpen',  mouth:'m_smile'},
+  happy:  {brows:'browsUp',eyes:'eyesHappy', mouth:'m_smile'},
+  thinking:{brows:'browsN',eyes:'eyesSide',  mouth:'m_closed'},
+  surprised:{brows:'browsUp',eyes:'eyesOpen',mouth:'m_O'},
+  sad:    {brows:'browsSad',eyes:'eyesOpen', mouth:'m_small'},
+  wink:   {brows:'browsN', eyes:'eyesWink',  mouth:'m_smile'},
+};
+function setMood(m){state.mood=m;Object.assign(state.src,MOODS[m]);layout()}
+function setGesture(g){state.gesture=g;layout();if(g)setTimeout(()=>{if(state.gesture===g)setGesture(null)},2500)}
+
+const VISEMES=['m_A','m_E','m_O','m_U','m_small','m_closed'];
+let talkTimer=null;
+function startTalking(){state.talking=true;let i=0;
+  talkTimer=setInterval(()=>{state.src.mouth=VISEMES[(Math.random()*VISEMES.length)|0];
+    if(++i%4===3)state.src.mouth='m_closed';layout()},95);}
+function stopTalking(){state.talking=false;clearInterval(talkTimer);
+  state.src.mouth=MOODS[state.mood].mouth;layout()}
+
+setInterval(()=>{if(!state.talking&&(state.mood==='neutral'||state.mood==='smile')){
+  state.src.eyes='eyesClosed';layout();
+  setTimeout(()=>{state.src.eyes=MOODS[state.mood].eyes;layout()},140);}},3800);
+
+const CONFIG={voice:true, llmURL:null};
+
+async function brain(t){
+  if(CONFIG.llmURL){try{
+    const r=await fetch(CONFIG.llmURL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt:t})});return await r.text();}catch(e){}}
+  t=t.toLowerCase();
+  if(/hello|hi\b|hey/.test(t))return"Hello! I'm Adam, your business assistant. How can I help you today?";
+  if(/your name|who are you/.test(t))return"My name is Adam — a talking avatar assistant built entirely from a sprite sheet!";
+  if(/time/.test(t))return"It's currently "+new Date().toLocaleTimeString();
+  if(/date|day/.test(t))return"Today is "+new Date().toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'})+".";
+  if(/joke/.test(t))return"Why did the businessman bring a ladder to the meeting? He wanted to take the company to the next level!";
+  const m=t.match(/([\d.\s]+)[+x*/-]([\d.\s]+)=?/);
+  if(m){try{const v=Function('return('+m[1]+')'+(m[0].includes('x')?'*':m[0].match(/[+*/-]/)[0])+'('+m[2]+')')();
+    return"The answer is "+v;}catch(e){}}
+  if(/thank/.test(t))return"You're very welcome!";
+  if(/bye/.test(t))return"Goodbye! Have a productive day!";
+  const defs=["Interesting — tell me more.","I can help with that. Could you give me a few more details?",
+    "Great question! Here's what I think: let's break it into steps.","Noted! I've added that to our agenda.",
+    "From a business perspective, I'd recommend we look at the numbers first."];
+  return defs[(Math.random()*defs.length)|0];
+}
+function sentiment(t){
+  if(/thank|great|good|awesome|love/.test(t))return'happy';
+  if(/sorry|bad|sad|problem/.test(t))return'sad';
+  if(/wow|amazing|what!?/.test(t))return'surprised';
+  if(/\?|why|how|think/.test(t))return'thinking';
+  return null;
+}
+
+const msgs=$('#msgs');
+function addMsg(t,who){const d=document.createElement('div');d.className='msg '+who;
+  d.textContent=t;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight}
+
+function speak(text,done){
+  if(!CONFIG.voice||!('speechSynthesis'in window)){startTalking();
+    setTimeout(()=>{stopTalking();done&&done()},Math.min(4000,text.length*55));return;}
+  const u=new SpeechSynthesisUtterance(text);u.rate=1.02;u.pitch=0.9;
+  u.onstart=startTalking; u.onend=()=>{stopTalking();done&&done()};
+  u.onboundary=e=>{const ch=(text[e.charIndex]||'').toLowerCase();
+    state.src.mouth='aeiou'.includes(ch)?{a:'m_A',e:'m_E',i:'m_E',o:'m_O',u:'m_U'}[ch]:'m_small';layout();};
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+
+async function handle(raw){
+  const t=raw.trim();if(!t)return;addMsg(t,'user');
+  const cmd=t.toLowerCase();
+  const G={'/thumbs':'g_thumb','/wave':'g_open','/point':'g_point','/pen':'g_pen','/ok':'g_thumb2'};
+  const M={'/smile':'smile','/happy':'happy','/think':'thinking','/sad':'sad',
+           '/surprised':'surprised','/wink':'wink','/neutral':'neutral'};
+  if(G[cmd]){setGesture(G[cmd]);addMsg('ok','bot');return}
+  if(M[cmd]){setMood(M[cmd]);addMsg('ok','bot');return}
+  setMood(sentiment(t)||'thinking');
+  addMsg('…','bot'); const think=msgs.lastChild;
+  if(sentiment(t)==='thinking')setGesture('g_point');
+  const reply=await brain(t);
+  think.remove();
+  setMood(sentiment(reply)||'smile');
+  addMsg(reply,'bot'); speak(reply);
+}
+$('#chatForm').addEventListener('submit',e=>{e.preventDefault();
+  handle($('#chatInput').value);$('#chatInput').value=''});
+
+$('#micBtn').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return alert('Speech recognition not supported');
+  const r=new SR();r.lang='en-US';r.start();
+  r.onresult=e=>{$('#chatInput').value=e.results[0][0].transcript;handle($('#chatInput').value)};};
+
+const BAR=[['Neutral','neutral'],['Smile','smile'],['Happy','happy'],['Think','thinking'],
+ ['Wow','surprised'],['Sad','sad'],['Wink','wink'],['Thumbs','g_thumb'],['Wave','g_open'],
+ ['Point','g_point'],['Pen','g_pen'],['Voice','voice']];
+BAR.forEach(([l,v])=>{const b=document.createElement('button');b.textContent=l;
+  b.onclick=()=>{if(v==='voice'){CONFIG.voice=!CONFIG.voice;b.style.opacity=CONFIG.voice?1:.4;return}
+    v.startsWith('g_')?setGesture(v):setMood(v);};
+  $('#exprBar').appendChild(b);});
+
+addEventListener('keydown',e=>{if(e.key==='c'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))
+  document.body.classList.toggle('cal')});
+const partSel=$('#partSel');
+Object.keys(MAP).forEach(k=>partSel.add(new Option(k,k)));
+function srcUI(){const p=partSel.value,r=MAP[p],box=$('#srcRows');box.innerHTML='';
+  [['x','>'],['y','v'],['w','w'],['h','h']].forEach(([f,lbl])=>{
+    const row=document.createElement('div');row.className='row';
+    row.innerHTML=`<span>${lbl}</span><input type="range" min="0" max="100" step="0.1" value="${r[f]}">
+      <button>-</button><button>+</button>`;
+    const [rng,minus,plus]=row.querySelectorAll('input,button');
+    const set=v=>{r[f]=Math.max(0,Math.min(100,v));rng.value=r[f];layout();save()};
+    rng.oninput=()=>set(+rng.value);
+    minus.onclick=()=>set(r[f]-0.2); plus.onclick=()=>set(r[f]+0.2);
+    box.appendChild(row);});}
+partSel.onchange=srcUI;srcUI();
+
+let drag=null;
+stage.addEventListener('pointerdown',e=>{if(!document.body.classList.contains('cal'))return;
+  const el=e.target.closest('.layer');if(!el)return;drag={k:el.dataset.key,
+  x:e.clientX,y:e.clientY,r:{...RIG[el.dataset.key]}};el.setPointerCapture(e.pointerId)});
+stage.addEventListener('pointermove',e=>{if(!drag)return;
+  const SW=stage.clientWidth,SH=stage.clientHeight;
+  RIG[drag.k].x=drag.r.x+(e.clientX-drag.x)/SW*100;
+  RIG[drag.k].y=drag.r.y+(e.clientY-drag.y)/SH*100;layout();save()});
+stage.addEventListener('pointerup',()=>drag=null);
+stage.addEventListener('wheel',e=>{if(!document.body.classList.contains('cal'))return;
+  const el=e.target.closest('.layer');if(!el)return;e.preventDefault();
+  const k=el.dataset.key;RIG[k].w=Math.max(4,RIG[k].w*(e.deltaY>0?0.96:1.04));layout();save()},{passive:false});
+
+$('#copyMap').onclick=()=>navigator.clipboard.writeText(
+  JSON.stringify({MAP,RIG},null,1)).then(()=>alert('Map copied!'));
+$('#resetMap').onclick=()=>{MAP=JSON.parse(JSON.stringify(DEFAULT_MAP));
+  RIG=JSON.parse(JSON.stringify(DEFAULT_RIG));save();layout();srcUI()};
+$('#loadMap').onclick=()=>{try{const d=JSON.parse($('#mapIO').value);
+  if(d.MAP)MAP=d.MAP;if(d.RIG)RIG=d.RIG;save();layout();srcUI()}catch(e){alert('Invalid JSON')}};
+
+setMood('smile');
+addMsg("Hi! I'm Adam. Your sprite-sheet powered assistant. Ask me something, or try /thumbs, /smile, /think…",'bot');
+</script>
+</body>
+</html>
