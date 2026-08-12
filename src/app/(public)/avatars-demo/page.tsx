@@ -9,9 +9,9 @@ export default function AvatarDemoPage() {
   return (
     <div style={{ width: "100%", minHeight: "100vh" }}>
       <iframe
-        src="/avatar-standalone.html"
+        src="/pip-avatar.html"
         style={{ width: "100%", minHeight: "100vh", border: "none" }}
-        title="Avatar Demo"
+        title="Pip Avatar Demo"
         allow="microphone"
       />
     </div>

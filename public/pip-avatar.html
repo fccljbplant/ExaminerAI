@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pip — your AI tutor, given a face</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#122a30; --paper:#fdf7ee;
+  --teal-95:#04191f; --teal-9:#06272d; --teal-8:#0b3540; --teal-7:#10454f;
+  --aqua:#4fe3c8; --aqua-soft:#9df0df; --coral:#ff7a59; --coral-deep:#f0532f;
+  --sun:#ffc857; --line:rgba(255,255,255,.13);
+  --disp:'Fredoka',system-ui,sans-serif; --body:'Nunito',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--body); color:var(--paper); overflow-x:hidden;
+  background:
+    radial-gradient(900px 500px at 78% -10%, rgba(79,227,200,.10), transparent 60%),
+    radial-gradient(700px 480px at 8% 108%, rgba(255,122,89,.10), transparent 60%),
+    linear-gradient(160deg,#07242b 0%, #0a3038 55%, #06222a 100%);
+}
+body::before{ /* dotted texture layer */
+  content:''; position:fixed; inset:0; pointer-events:none; opacity:.35;
+  background-image:radial-gradient(rgba(157,240,223,.14) 1px, transparent 1.6px);
+  background-size:26px 26px;
+  mask-image:radial-gradient(closest-side at 50% 45%, #000 30%, transparent 100%);
+}
+
+/* ---------- top bar ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  max-width:1240px;margin:0 auto;padding:18px 34px 8px;position:relative;z-index:5}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:700;letter-spacing:.4px}
+.brand .mark{width:34px;height:34px;border-radius:11px;background:var(--coral);
+  display:grid;place-items:center;box-shadow:0 6px 16px rgba(255,122,89,.35);font-size:18px}
+.brand small{display:block;font-family:var(--body);font-weight:700;font-size:11px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--aqua);opacity:.9}
+.top-actions{display:flex;gap:10px}
+.tbtn{font-family:var(--body);font-weight:800;font-size:13px;color:var(--paper);
+  background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:999px;
+  padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  transition:transform .18s ease, background .18s ease, border-color .18s}
+.tbtn:hover{transform:translateY(-2px);background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.3)}
+.tbtn.primary{background:var(--coral);border-color:transparent;box-shadow:0 8px 20px rgba(240,83,47,.35)}
+.tbtn.primary:hover{background:#ff8a6d}
+.vdot{width:8px;height:8px;border-radius:50%;background:var(--aqua);box-shadow:0 0 8px var(--aqua)}
+.tbtn.muted .vdot{background:#7a8a8e;box-shadow:none}
+
+/* ---------- layout ---------- */
+.app{display:grid;grid-template-columns:1.12fr .95fr;gap:28px;max-width:1240px;
+  margin:0 auto;padding:10px 34px 34px;position:relative;z-index:2}
+
+/* ---------- stage ---------- */
+.stage{display:flex;flex-direction:column;min-width:0}
+.stage-copy{padding:8px 4px 0}
+.kicker{font-weight:800;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--sun)}
+h1{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4.4vw,52px);line-height:1.05;margin:8px 0 12px}
+h1 em{font-style:normal;color:var(--coral);position:relative;white-space:nowrap}
+h1 em::after{content:'';position:absolute;left:2%;right:2%;bottom:4px;height:9px;
+  background:rgba(255,122,89,.28);border-radius:6px;z-index:-1;transform:rotate(-1deg)}
+.stage-copy p{max-width:52ch;font-size:15px;line-height:1.6;color:rgba(253,247,238,.78)}
+.steps{display:flex;flex-wrap:wrap;gap:6px 18px;margin:16px 0 6px;font-size:13px;font-weight:700;color:rgba(253,247,238,.72)}
+.steps b{color:var(--coral);font-family:var(--disp);margin-right:6px}
+.statusrow{display:flex;align-items:center;gap:12px;margin:10px 0 2px}
+.pill{display:inline-flex;align-items:center;gap:9px;padding:7px 14px;border-radius:999px;
+  background:rgba(255,255,255,.07);border:1px solid var(--line);font-weight:800;font-size:13px;letter-spacing:.03em}
+.pill .dot{width:9px;height:9px;border-radius:50%;background:var(--aqua);box-shadow:0 0 9px var(--aqua);transition:.3s}
+.pill[data-tone="listen"] .dot{background:var(--sun);box-shadow:0 0 9px var(--sun)}
+.pill[data-tone="think"]  .dot{background:#8fd0ff;box-shadow:0 0 9px #8fd0ff}
+.pill[data-tone="talk"]   .dot{background:var(--coral);box-shadow:0 0 10px var(--coral);animation:pulse .5s infinite alternate}
+.pill[data-tone="sleep"]  .dot{background:#7a8a8e;box-shadow:none}
+@keyframes pulse{to{transform:scale(1.5)}}
+
+/* scene */
+.scene{position:relative;flex:1;min-height:340px;display:flex;align-items:flex-end;justify-content:center;
+  border-radius:26px;border:1px solid var(--line);
+  background:radial-gradient(120% 90% at 50% 30%, rgba(79,227,200,.10), transparent 60%), rgba(255,255,255,.03)}
+.scene::before{content:'';position:absolute;inset:0;border-radius:26px;pointer-events:none;
+  background:radial-gradient(closest-side at 50% 40%, rgba(255,200,87,.10), transparent 70%)}
+.scene::after{content:'';position:absolute;inset:0;border-radius:26px;pointer-events:none;
+  background:radial-gradient(closest-side at 50% 42%, transparent 62%, rgba(4,20,25,.4))}
+.drift{position:absolute;inset:0;pointer-events:none;transition:transform .3s ease-out}
+.glyph{position:absolute;font-family:var(--disp);font-weight:600;color:var(--aqua);
+  opacity:.28;animation:floatG 7s ease-in-out infinite;text-shadow:0 0 14px rgba(79,227,200,.5)}
+.glyph.warm{color:var(--sun);text-shadow:0 0 14px rgba(255,200,87,.5)}
+.glyph.hot{color:var(--coral);text-shadow:0 0 14px rgba(255,122,89,.5)}
+@keyframes floatG{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-16px) rotate(5deg)}}
+
+#botSvg{width:min(340px,72%);height:auto;position:relative;z-index:2;cursor:pointer;
+  filter:drop-shadow(0 18px 30px rgba(0,0,0,.35));margin-bottom:34px;transition:filter .3s}
+#botSvg:hover{filter:drop-shadow(0 22px 36px rgba(0,0,0,.45)) drop-shadow(0 0 26px rgba(79,227,200,.18))}
+
+/* robot animation */
+.bot{animation:bob 3.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.mood-sleep .bot{animation-duration:5.4s}
+.shadow{transform-box:fill-box;transform-origin:center;animation:shpulse 3.4s ease-in-out infinite}
+@keyframes shpulse{0%,100%{transform:scaleX(1);opacity:.35}50%{transform:scaleX(.84);opacity:.2}}
+.mood-sleep .shadow{animation-duration:5.4s}
+.eye{transform-box:fill-box;transform-origin:center;transition:transform .1s ease}
+.blink .eye, .mood-sleep .eye{transform:scaleY(.1)}
+.mood-happy .eye{transform:scaleY(.8)}
+.mood-listen .eye{transform:scale(1.13)}
+.brow{transform-box:fill-box;transform-origin:center;transition:transform .28s ease}
+.mood-happy .brow{transform:translateY(-3.5px)}
+.mood-listen .brow{transform:translateY(-4.5px) scaleX(1.12)}
+.mood-think .browL{transform:translateY(-3px) rotate(9deg)}
+.mood-think .browR{transform:translateY(1px) rotate(-7deg)}
+.mood-sleep .brow{transform:translateY(4px)}
+.blush{opacity:0;transition:opacity .35s}
+.mood-happy .blush{opacity:.85}
+.bulb{transition:fill .4s}
+.mood-think .bulb{fill:#8fd0ff}
+.mood-happy .bulb, .squint .bulb{fill:#ff9fb0}
+.mood-listen .bulb, .talking .bulb{fill:var(--aqua)}
+.mood-sleep .bulb{fill:#5b6d71}
+.bulb-glow{animation:glowP 2.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.talking .bulb-glow{animation-duration:.45s}
+@keyframes glowP{0%,100%{opacity:.25;transform:scale(1)}50%{opacity:.6;transform:scale(1.45)}}
+.heart{transition:.3s}
+.talking .heart{animation:heartB .5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes heartB{50%{transform:scale(1.35)}}
+.arm{transform-box:fill-box;transform-origin:center;transition:transform .3s}
+.mood-happy .armL{transform:translateY(-5px) rotate(-8deg)}
+.mood-happy .armR{transform:translateY(-5px) rotate(8deg)}
+.wave .armR{animation:waveA 1.15s ease}
+@keyframes waveA{0%,100%{transform:translate(0,0) rotate(0)}
+  25%{transform:translate(5px,-13px) rotate(22deg)}55%{transform:translate(4px,-11px) rotate(-12deg)}
+  80%{transform:translate(5px,-12px) rotate(16deg)}}
+
+/* bubbles over the character */
+.bubble{position:absolute;top:9%;right:8%;max-width:56%;background:var(--paper);color:var(--ink);
+  font-weight:800;font-size:13.5px;line-height:1.4;padding:10px 14px;border-radius:16px 16px 16px 4px;
+  box-shadow:0 10px 26px rgba(0,0,0,.35);opacity:0;transform:scale(.7) translateY(8px);
+  transform-origin:bottom left;transition:.22s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:4}
+.bubble::after{content:'';position:absolute;left:14px;bottom:-7px;border:8px solid transparent;
+  border-top-color:var(--paper);border-left-color:var(--paper)}
+.bubble.on{opacity:1;transform:scale(1) translateY(0)}
+.thought{position:absolute;top:7%;left:10%;display:none;z-index:4;pointer-events:none}
+.thought .cloud{background:var(--paper);border-radius:999px;padding:9px 14px;display:flex;gap:5px;
+  box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.thought i{width:7px;height:7px;border-radius:50%;background:var(--teal-7);animation:tdot 1s infinite}
+.thought i:nth-child(2){animation-delay:.15s}.thought i:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(-5px);opacity:1}}
+.thought::after{content:'';position:absolute;left:16px;bottom:-12px;width:9px;height:9px;border-radius:50%;background:var(--paper)}
+.thought::before{content:'';position:absolute;left:8px;bottom:-24px;width:5px;height:5px;border-radius:50%;background:var(--paper)}
+.zzz{position:absolute;top:16%;right:16%;display:none;font-family:var(--disp);font-weight:700;color:var(--aqua-soft);z-index:4}
+.mood-sleep .zzz{display:block}
+.zzz i{position:absolute;font-style:normal;animation:zfloat 2.6s linear infinite;opacity:0}
+.zzz i:nth-child(2){animation-delay:.85s}.zzz i:nth-child(3){animation-delay:1.7s}
+@keyframes zfloat{0%{transform:translate(0,0);opacity:0;font-size:13px}
+  20%{opacity:.9}100%{transform:translate(26px,-46px);opacity:0;font-size:22px}}
+
+/* mood playground */
+.moodbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px}
+.moodbar span{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(253,247,238,.5);margin-right:4px}
+.chip{font-family:var(--body);font-weight:800;font-size:13px;color:var(--paper);cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:999px;padding:7px 14px;
+  transition:transform .16s, background .16s, border-color .16s}
+.chip:hover{transform:translateY(-2px) scale(1.03);background:rgba(255,255,255,.14)}
+.chip.active{background:var(--coral);border-color:transparent}
+
+/* ---------- chat panel ---------- */
+.chat{display:flex;flex-direction:column;min-height:540px;max-height:calc(100vh - 150px);
+  background:var(--paper);color:var(--ink);border-radius:22px;overflow:hidden;
+  box-shadow:0 30px 70px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.08)}
+.chat-head{display:flex;align-items:center;gap:12px;padding:15px 18px;background:var(--teal-8);color:var(--paper)}
+.mini{width:38px;height:38px;border-radius:12px;background:var(--teal-9);display:grid;place-items:center;position:relative;flex:none}
+.mini::before,.mini::after{content:'';position:absolute;top:12px;width:7px;height:9px;border-radius:4px;background:var(--aqua);
+  box-shadow:0 0 8px var(--aqua);animation:miniBlink 4s infinite}
+.mini::before{left:9px}.mini::after{right:9px}
+@keyframes miniBlink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.chat-head .who b{font-family:var(--disp);font-size:16px;letter-spacing:.3px;display:block}
+.chat-head .who small{font-size:11.5px;font-weight:700;color:var(--aqua);letter-spacing:.06em}
+.chat-head .state{margin-left:auto;font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--sun);background:rgba(255,255,255,.08);padding:5px 11px;border-radius:999px}
+.log{flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:14px;
+  background-image:radial-gradient(rgba(16,69,79,.07) 1px, transparent 1.5px);background-size:20px 20px}
+.log::-webkit-scrollbar{width:9px}
+.log::-webkit-scrollbar-thumb{background:#cfe0dc;border-radius:8px;border:2px solid var(--paper)}
+.msg{max-width:82%;padding:11px 15px;font-size:14.5px;line-height:1.5;font-weight:600;
+  animation:popIn .3s cubic-bezier(.34,1.4,.64,1)}
+@keyframes popIn{from{opacity:0;transform:translateY(10px) scale(.96)}}
+.msg.bot{align-self:flex-start;background:#fff;border:1.5px solid #ddeae6;border-radius:16px 16px 16px 4px;color:var(--ink)}
+.msg.user{align-self:flex-end;background:linear-gradient(140deg,var(--coral),var(--coral-deep));
+  color:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 8px 18px rgba(240,83,47,.3)}
+.msg time{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;opacity:.55;margin-top:5px}
+.typing{display:inline-flex;gap:5px;padding:14px 16px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--teal-7);animation:tdot 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+.quick{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 12px}
+.qchip{font-family:var(--body);font-weight:800;font-size:12.5px;color:var(--teal-7);cursor:pointer;
+  background:#eef6f3;border:1.5px solid #d5e7e1;border-radius:999px;padding:7px 13px;
+  transition:transform .15s, background .15s, color .15s}
+.qchip:hover{transform:translateY(-2px);background:var(--teal-7);color:#fff}
+.chat-form{display:flex;gap:10px;padding:14px 16px;border-top:2px dashed #e4d9c6;background:#fff8ec}
+.chat-form input{flex:1;font-family:var(--body);font-weight:700;font-size:14.5px;color:var(--ink);
+  background:#fff;border:2px solid #e3d7c2;border-radius:14px;padding:12px 16px;outline:none;transition:.2s}
+.chat-form input:focus{border-color:var(--coral);box-shadow:0 0 0 4px rgba(255,122,89,.16)}
+.send{width:48px;height:48px;flex:none;border:none;border-radius:15px;cursor:pointer;
+  background:linear-gradient(140deg,var(--coral),var(--coral-deep));display:grid;place-items:center;
+  box-shadow:0 8px 18px rgba(240,83,47,.4);transition:transform .15s, box-shadow .15s}
+.send:hover{transform:translateY(-2px) scale(1.05)}
+.send:active{transform:scale(.92)}
+.send:disabled{filter:grayscale(.6);cursor:wait;transform:none}
+
+/* ---------- docs drawer ---------- */
+.docs{position:fixed;top:0;right:0;bottom:0;width:min(480px,94vw);z-index:40;background:var(--teal-9);
+  border-left:1px solid var(--line);padding:28px;overflow-y:auto;transform:translateX(105%);
+  transition:transform .38s cubic-bezier(.32,1,.4,1);box-shadow:-30px 0 80px rgba(0,0,0,.5)}
+.docs.open{transform:translateX(0)}
+.docs h2{font-family:var(--disp);font-size:24px;margin-bottom:4px}
+.docs .sub{color:var(--aqua);font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
+.docs p{font-size:14px;line-height:1.65;color:rgba(253,247,238,.8);margin-bottom:14px}
+.codewrap{position:relative;margin-bottom:18px}
+pre{background:var(--teal-95);border:1px solid var(--line);border-radius:14px;padding:16px;
+  font:12.5px/1.7 ui-monospace,'SF Mono',Menlo,Consolas,monospace;color:var(--aqua-soft);overflow-x:auto}
+pre .c{color:#5f7d84}
+.copy{position:absolute;top:10px;right:10px;font-family:var(--body);font-weight:800;font-size:11px;
+  background:rgba(255,255,255,.1);color:var(--paper);border:1px solid var(--line);border-radius:8px;
+  padding:5px 10px;cursor:pointer;transition:.2s}
+.copy:hover{background:var(--coral)}
+.api{list-style:none;margin-top:6px}
+.api li{font-size:13.5px;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.12);color:rgba(253,247,238,.85)}
+.api code{background:var(--teal-95);border:1px solid var(--line);border-radius:6px;padding:2px 7px;
+  font-size:12px;color:var(--sun)}
+.docsclose{float:right;background:none;border:none;color:var(--paper);font-size:22px;cursor:pointer;opacity:.7}
+.docsclose:hover{opacity:1;transform:rotate(90deg);transition:.3s}
+.overlay{position:fixed;inset:0;background:rgba(3,16,20,.55);backdrop-filter:blur(2px);z-index:30;
+  opacity:0;pointer-events:none;transition:.3s}
+.overlay.on{opacity:1;pointer-events:auto}
+
+@media (max-width:980px){
+  .app{grid-template-columns:1fr;padding:6px 18px 26px}
+  .chat{max-height:70vh;min-height:480px}
+  .scene{min-height:300px}
+  .top{padding:14px 18px 6px}
+  .steps{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01s !important;animation-iteration-count:1 !important}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark">◕‿◕</div>
+    <div>PIP<small>visual tutor companion</small></div>
+  </div>
+  <div class="top-actions">
+    <button class="tbtn" id="voiceBtn"><span class="vdot"></span><span id="voiceLbl">Voice on</span></button>
+    <button class="tbtn primary" id="docsBtn">⚡ Plug in your AI</button>
+  </div>
+</header>
+
+<main class="app">
+  <!-- ============ STAGE ============ -->
+  <section class="stage">
+    <div class="stage-copy">
+      <div class="kicker">Live character · Text-to-speech · Lip sync</div>
+      <h1>Your chatbot, <em>given a face.</em></h1>
+      <p>Pip listens, thinks, and <strong>speaks every AI reply out loud</strong> — blinking,
+         looking at your cursor, and moving his mouth to each word. Drop him next to your
+         tutor chat and call one function.</p>
+      <div class="steps">
+        <div><b>01</b>Your AI writes the reply</div>
+        <div><b>02</b><code>Pip.say(text)</code></div>
+        <div><b>03</b>Pip performs it</div>
+      </div>
+      <div class="statusrow">
+        <div class="pill" id="pillStage" data-tone="idle"><span class="dot"></span><span id="pillStageTxt">Warming up…</span></div>
+      </div>
+    </div>
+
+    <div class="scene mood-idle" id="scene">
+      <div class="drift" id="drift">
+        <span class="glyph"      style="left:9%;top:16%;font-size:30px">?</span>
+        <span class="glyph warm" style="left:84%;top:22%;font-size:22px;animation-delay:1.2s">π</span>
+        <span class="glyph hot"  style="left:14%;top:66%;font-size:20px;animation-delay:2.1s">★</span>
+        <span class="glyph"      style="left:80%;top:70%;font-size:24px;animation-delay:.6s">a²</span>
+        <span class="glyph warm" style="left:26%;top:30%;font-size:16px;animation-delay:3s">+</span>
+        <span class="glyph hot"  style="left:68%;top:10%;font-size:16px;animation-delay:1.8s">✎</span>
+      </div>
+
+      <div class="thought" id="thought"><div class="cloud"><i></i><i></i><i></i></div></div>
+      <div class="bubble" id="bubble"><span id="bubbleTxt"></span></div>
+      <div class="zzz"><i>z</i><i>z</i><i>z</i></div>
+
+      <svg id="botSvg" viewBox="0 0 340 360" role="img" aria-label="Pip, the animated tutor robot. Click to say hi.">
+        <defs>
+          <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff7e8"/><stop offset="1" stop-color="#ffe8c9"/>
+          </linearGradient>
+        </defs>
+        <ellipse class="shadow" cx="170" cy="330" rx="72" ry="12" fill="#031418"/>
+        <g class="bot">
+          <g id="nod">
+            <!-- antenna -->
+            <line x1="170" y1="52" x2="170" y2="26" stroke="#e8b06a" stroke-width="6" stroke-linecap="round"/>
+            <circle class="bulb-glow" cx="170" cy="20" r="15" fill="#ffc857"/>
+            <circle class="bulb" cx="170" cy="20" r="8" fill="#ffc857" stroke="#0f3540" stroke-width="3"/>
+            <!-- ears -->
+            <circle cx="80" cy="122" r="15" fill="#ff9d7e" stroke="#0f3540" stroke-width="4"/>
+            <circle cx="260" cy="122" r="15" fill="#ff9d7e" stroke="#0f3540" stroke-width="4"/>
+            <!-- head -->
+            <rect x="85" y="50" width="170" height="142" rx="56" fill="url(#cream)" stroke="#0f3540" stroke-width="5"/>
+            <!-- face screen -->
+            <rect x="106" y="76" width="128" height="92" rx="30" fill="#0e333d" stroke="#0a2830" stroke-width="4"/>
+            <!-- brows -->
+            <rect class="brow browL" x="129" y="87" width="24" height="6" rx="3" fill="#9df0df"/>
+            <rect class="brow browR" x="187" y="87" width="24" height="6" rx="3" fill="#9df0df"/>
+            <!-- eyes -->
+            <g class="eye">
+              <circle cx="141" cy="116" r="14" fill="#5df1d4"/>
+              <g id="pupilL"><circle cx="141" cy="116" r="6" fill="#07242b"/><circle cx="143.5" cy="113" r="2.1" fill="#fff"/></g>
+            </g>
+            <g class="eye">
+              <circle cx="199" cy="116" r="14" fill="#5df1d4"/>
+              <g id="pupilR"><circle cx="199" cy="116" r="6" fill="#07242b"/><circle cx="201.5" cy="113" r="2.1" fill="#fff"/></g>
+            </g>
+            <!-- mouth -->
+            <path id="mouthSmile" d="M152 146 Q170 157 188 146" fill="none" stroke="#9df0df" stroke-width="5" stroke-linecap="round"/>
+            <ellipse id="mouthOpen" cx="170" cy="149" rx="10" ry="2" fill="#5ff0d3" style="opacity:0"/>
+            <!-- cheeks -->
+            <circle class="blush" cx="99" cy="146" r="7" fill="#ffb199"/>
+            <circle class="blush" cx="241" cy="146" r="7" fill="#ffb199"/>
+            <!-- body -->
+            <rect x="122" y="198" width="96" height="86" rx="36" fill="url(#cream)" stroke="#0f3540" stroke-width="5"/>
+            <circle class="heart" cx="170" cy="238" r="11" fill="#4fe3c8" stroke="#0f3540" stroke-width="4"/>
+            <!-- arms -->
+            <g class="arm armL"><circle cx="106" cy="240" r="13" fill="#ffe8c9" stroke="#0f3540" stroke-width="5"/></g>
+            <g class="arm armR"><circle cx="234" cy="240" r="13" fill="#ffe8c9" stroke="#0f3540" stroke-width="5"/></g>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="moodbar">
+      <span>Try a mood</span>
+      <button class="chip" data-mood="happy">😊 Happy</button>
+      <button class="chip" data-mood="think">🤔 Thinking</button>
+      <button class="chip" data-mood="listen">👂 Listening</button>
+      <button class="chip" data-mood="sleep">😴 Sleep</button>
+      <button class="chip" id="waveChip">👋 Wave</button>
+    </div>
+  </section>
+
+  <!-- ============ CHAT ============ -->
+  <aside class="chat" aria-label="Chat with Pip">
+    <div class="chat-head">
+      <div class="mini"></div>
+      <div class="who"><b>Pip</b><small>AI TUTOR · ONLINE</small></div>
+      <div class="state" id="chatState">waking up</div>
+    </div>
+    <div class="log" id="log" role="log" aria-live="polite"></div>
+    <div class="quick">
+      <button class="qchip">Hi Pip! 👋</button>
+      <button class="qchip">Explain fractions 🍕</button>
+      <button class="qchip">Quiz me ⚡</button>
+      <button class="qchip">Study tips 📚</button>
+    </div>
+    <form class="chat-form" id="chatForm">
+      <input id="chatInput" type="text" maxlength="400" placeholder="Ask Pip anything…" autocomplete="off">
+      <button class="send" id="sendBtn" type="submit" aria-label="Send">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 11.5 21 3l-6.5 18-3.2-7.3L3 11.5Z" fill="#fff"/><path d="m11.3 13.7 4.6-4.6" stroke="#f0532f" stroke-width="1.6"/></svg>
+      </button>
+    </form>
+  </aside>
+</main>
+
+<!-- ============ INTEGRATION DRAWER ============ -->
+<div class="overlay" id="overlay"></div>
+<div class="docs" id="docs">
+  <button class="docsclose" id="docsClose">✕</button>
+  <h2>Plug Pip into your AI</h2>
+  <div class="sub">One function. That's the whole API you need.</div>
+  <p>Wherever your site currently receives the tutor's reply (REST, WebSocket or SSE),
+     hand the text to Pip. He takes care of voice, lip-sync, captions and mood.</p>
+  <div class="codewrap">
+    <button class="copy" id="copyBtn">Copy</button>
+<pre id="codeSnippet"><span class="c">// in your existing chat handler…</span>
+Pip.think();                      <span class="c">// 🤔 hmm-face while waiting</span>
+
+const reply = await myAIBackend(message);
+
+Pip.say(reply.text);              <span class="c">// 🗣 speaks + lip-syncs + captions</span>
+Pip.mood('happy');                <span class="c">// optional: happy|think|listen|sleep|idle</span>
+Pip.voice(false);                 <span class="c">// optional: mute the speech</span></pre>
+  </div>
+  <p>In this demo the backend is mocked — replace <code style="color:var(--sun)">mockAI()</code> in the script with:</p>
+  <div class="codewrap">
+<pre><span class="c">// example: your real endpoint</span>
+async function getAIReply(text){
+  const r = await fetch('/api/tutor', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ message: text })
+  });
+  return (await r.json()).reply;
+}</pre>
+  </div>
+  <ul class="api">
+    <li><code>Pip.say(text)</code> — speak a reply with animated mouth + word captions</li>
+    <li><code>Pip.think()</code> — thinking face with bouncing dots</li>
+    <li><code>Pip.mood(name)</code> — set an expression instantly</li>
+    <li><code>Pip.voice(bool)</code> — toggle text-to-speech</li>
+    <li><code>Pip.wave()</code> — little wave animation (great on page load)</li>
+  </ul>
+  <p style="margin-top:16px;font-size:12.5px;opacity:.6">Voice uses the browser's built-in SpeechSynthesis — no API key.
+     Swap in ElevenLabs / your TTS provider later by replacing the <code style="color:var(--sun)">speak()</code> internals; the mouth animation is amplitude-driven, so any audio source works.</p>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+
+/* ================================================================
+   PIP — the visual assistant engine
+================================================================ */
+const scene   = $('#scene'), nod = $('#nod');
+const pupilL  = $('#pupilL'), pupilR = $('#pupilR');
+const mouthO  = $('#mouthOpen'), mouthS = $('#mouthSmile');
+const bubble  = $('#bubble'), bubbleTxt = $('#bubbleTxt');
+const thought = $('#thought');
+const pillStage = $('#pillStage'), pillTxt = $('#pillStageTxt'), chatState = $('#chatState');
+
+let moodNow = 'idle';
+let speaking = false, voiceOn = true;
+let amp = 0, targetAmp = 0, nextFlap = 0, sayToken = 0;
+let pX = 0, pY = 0, mNX = 0, mNY = 0;
+
+const LABELS = { idle:'Chilling', happy:'Happy', think:'Thinking…', listen:'Listening…', talk:'Speaking…', sleep:'Dozing' };
+const TONES  = { idle:'idle', happy:'idle', think:'think', listen:'listen', talk:'talk', sleep:'sleep' };
+const SMILES = {
+  idle:'M152 146 Q170 157 188 146', happy:'M148 143 Q170 163 192 143',
+  think:'M158 150 L184 147', listen:'M154 147 Q170 155 186 147', sleep:'M160 150 L182 150'
+};
+
+function setStatus(name, tone){
+  pillTxt.textContent = name; chatState.textContent = name.toLowerCase();
+  pillStage.dataset.tone = tone; chatState.style.color =
+    tone==='talk' ? 'var(--coral)' : tone==='think' ? '#8fd0ff' : tone==='listen' ? 'var(--sun)' : tone==='sleep' ? '#9fb4b8' : 'var(--aqua)';
+}
+function mood(m){
+  if (m === moodNow) return;
+  scene.classList.remove('mood-'+moodNow);
+  moodNow = m;
+  scene.classList.add('mood-'+m);
+  thought.style.display = (m === 'think') ? 'block' : 'none';
+  mouthS.setAttribute('d', SMILES[m] || SMILES.idle);
+  if (m !== 'talk') setStatus(LABELS[m], TONES[m]);
+  document.querySelectorAll('.chip[data-mood]').forEach(c =>
+    c.classList.toggle('active', c.dataset.mood === m));
+}
+
+/* --- pupils follow the cursor --- */
+document.addEventListener('pointermove', e => {
+  const r = scene.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height*0.38);
+  const d = Math.hypot(dx, dy) || 1, m = Math.min(1, d/300);
+  mNX = dx/d*m; mNY = dy/d*m;
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches)
+    $('#drift').style.transform = `translate(${(e.clientX/innerWidth-.5)*16}px, ${(e.clientY/innerHeight-.5)*12}px)`;
+});
+
+/* --- main animation loop: pupils, nod, lip-sync --- */
+function loop(t){
+  let tx = mNX*5, ty = mNY*4;
+  if (moodNow === 'think'){ tx = -3.5; ty = -3.8; }
+  if (moodNow === 'sleep'){ tx = 0; ty = 3; }
+  if (speaking) tx += Math.sin(t/280)*1.4;
+  pX += (tx-pX)*.12; pY += (ty-pY)*.12;
+  const pt = `translate(${pX.toFixed(2)} ${pY.toFixed(2)})`;
+  pupilL.setAttribute('transform', pt); pupilR.setAttribute('transform', pt);
+
+  if (speaking){
+    if (t > nextFlap){ targetAmp = .2 + Math.random()*.8; nextFlap = t + 70 + Math.random()*110; }
+    amp += (targetAmp-amp)*.45;
+  } else amp += (0-amp)*.25;
+
+  const open = amp > .06;
+  mouthO.style.opacity = open ? 1 : 0;
+  mouthS.style.opacity = open ? 0 : 1;
+  mouthO.setAttribute('ry', (1.4 + amp*10).toFixed(2));
+  mouthO.setAttribute('rx', (9 + amp*6).toFixed(2));
+  nod.style.transform = `translateY(${(amp*3).toFixed(2)}px)`;
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* --- blinking --- */
+(function blinkLoop(){
+  setTimeout(() => {
+    if (moodNow !== 'sleep'){ scene.classList.add('blink'); setTimeout(()=>scene.classList.remove('blink'), 140); }
+    blinkLoop();
+  }, 2200 + Math.random()*2800);
+})();
+
+/* --- speech + captions --- */
+let cachedVoice = null;
+function pickVoice(){
+  if (cachedVoice) return cachedVoice;
+  const vs = speechSynthesis.getVoices();
+  cachedVoice = vs.find(v => /Google US English/i.test(v.name))
+             || vs.find(v => /^en/i.test(v.lang)) || vs[0];
+  return cachedVoice;
+}
+if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { cachedVoice = null; };
+
+function chunkAt(text, i){
+  let end = Math.min(text.length, i + 38);
+  const sp = text.indexOf(' ', i + 20);
+  if (sp > -1 && sp < end) end = sp;
+  return text.slice(i, end);
+}
+
+function say(text, opts = {}){
+  const tk = ++sayToken;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (!opts.keepMood) mood('happy');
+  speaking = true; scene.classList.add('talking');
+  setStatus(LABELS.talk, 'talk');
+  bubble.classList.add('on'); bubbleTxt.textContent = chunkAt(text, 0);
+
+  let finished = false;
+  const done = () => {
+    if (finished || tk !== sayToken) return;
+    finished = true; speaking = false;
+    scene.classList.remove('talking'); bubble.classList.remove('on');
+    setStatus(LABELS[moodNow], TONES[moodNow]);
+    opts.onEnd && opts.onEnd();
+  };
+
+  if (!voiceOn || !('speechSynthesis' in window)){
+    /* silent mode: still animate the mouth, cycle captions */
+    let i = 0;
+    const iv = setInterval(() => {
+      if (tk !== sayToken){ clearInterval(iv); return; }
+      i += 18;
+      if (i >= text.length){ clearInterval(iv); setTimeout(done, 350); }
+      else bubbleTxt.textContent = chunkAt(text, i);
+    }, 240);
+    return done;
+  }
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 1.05; u.pitch = 1.12;
+  const v = pickVoice(); if (v) u.voice = v;
+  u.onboundary = e => { if (e.name !== 'word' || e.charIndex == null) return; bubbleTxt.textContent = chunkAt(text, e.charIndex); };
+  u.onend = done; u.onerror = done;
+  speechSynthesis.speak(u);
+  setTimeout(done, text.length*90 + 3000); /* safety net */
+  return done;
+}
+
+function voice(v){
+  voiceOn = v;
+  if (!v && 'speechSynthesis' in window) speechSynthesis.cancel();
+  $('#voiceLbl').textContent = v ? 'Voice on' : 'Voice off';
+  $('#voiceBtn').classList.toggle('muted', !v);
+}
+function wave(){ scene.classList.remove('wave'); void scene.offsetWidth; scene.classList.add('wave'); }
+function think(){ mood('think'); }
+
+window.Pip = { say, mood, think, voice, wave,
+               get speaking(){ return speaking; } };
+
+/* ================================================================
+   SOUND EFFECTS (tiny WebAudio blips)
+================================================================ */
+let AC;
+function sfx(kind){
+  try{
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    const t = AC.currentTime;
+    if (kind === 'send'){ o.frequency.setValueAtTime(500,t); o.frequency.exponentialRampToValueAtTime(780,t+.09); }
+    if (kind === 'recv'){ o.frequency.setValueAtTime(660,t); o.frequency.exponentialRampToValueAtTime(880,t+.12); }
+    if (kind === 'boop'){ o.frequency.setValueAtTime(940,t); o.frequency.exponentialRampToValueAtTime(620,t+.1); }
+    g.gain.setValueAtTime(.09,t); g.gain.exponentialRampToValueAtTime(.001,t+.2);
+    o.start(t); o.stop(t+.22);
+  }catch(e){}
+}
+
+/* ================================================================
+   MOCK AI — 👉 replace getAIReply() with your real backend call
+================================================================ */
+async function getAIReply(text){
+  await wait(700 + Math.random()*800);         // simulated latency
+  return mockAI(text);
+}
+function mockAI(t){
+  t = t.toLowerCase();
+  if (/^(hi|hey|hello|yo)\b/.test(t)) return pick([
+    "Hi hi! I'm Pip — the friendly face of your tutor. Ask me anything!",
+    "Hello there! Ready to learn something new today? I sure am!"]);
+  if (t.includes('fraction') || t.includes('math')) return
+    "Fractions are just slices of pizza! Cut it into four, eat one, and you've eaten one fourth. Want a quiz to test your slice skills?";
+  if (t.includes('quiz')) return
+    "Quick quiz! What is seven times eight? Shout your answer, then double-check it. I believe in you!";
+  if (t.includes('study') || t.includes('tip')) return
+    "Top study tip: little and often beats long and late. Try twenty five focused minutes, then a five minute stretch. Your brain will thank you!";
+  if (t.includes('who are you') || t.includes('what are you')) return
+    "I'm Pip! I live inside this website and perform every AI reply out loud. Feed me a sentence and I'll act it out!";
+  if (t.includes('thank')) return "Aww, any time! Virtual high five!";
+  if (t.includes('bye')) return "Bye for now! Come back when you want to learn something awesome.";
+  return pick([
+    "Great question! Let's break it down step by step — which part feels tricky first?",
+    "Love the curiosity! Here's a hint: explain it to a rubber duck. If the duck gets it, you've got it.",
+    "Hmm, good one. Start with what you already know, then take one small step forward. You've got this!"]);
+}
+
+/* ================================================================
+   CHAT UI
+================================================================ */
+const log = $('#log'), input = $('#chatInput'), sendBtn = $('#sendBtn');
+let busy = false;
+
+function stamp(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+function scroll(){ log.scrollTop = log.scrollHeight; }
+
+function addMsg(role, html){
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = `<span class="txt"></span><time>${stamp()}</time>`;
+  d.querySelector('.txt').innerHTML = html;
+  log.appendChild(d); scroll();
+  return d.querySelector('.txt');
+}
+function addMsgTyped(role, text){
+  return new Promise(res => {
+    const el = addMsg(role, '');
+    let i = 0;
+    const iv = setInterval(() => {
+      el.textContent = text.slice(0, ++i); scroll();
+      if (i >= text.length){ clearInterval(iv); res(); }
+    }, 13);
+  });
+}
+let typingEl = null;
+function showTyping(){
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg bot typing';
+  typingEl.innerHTML = '<i></i><i></i><i></i>';
+  log.appendChild(typingEl); scroll();
+}
+function hideTyping(){ typingEl && typingEl.remove(); typingEl = null; }
+
+async function handleSend(text){
+  if (!text || busy) return;
+  busy = true; input.disabled = true; sendBtn.disabled = true;
+
+  addMsg('user', text.replace(/</g,'&lt;'));
+  sfx('send');
+
+  mood('listen'); setStatus('Listening…','listen');
+  await wait(450);
+
+  think(); showTyping();
+  const reply = await getAIReply(text);      // 👉 your AI backend plugs in here
+  hideTyping(); sfx('recv');
+
+  await addMsgTyped('bot', reply);
+  wave();
+  say(reply);                                // 👈 Pip performs the reply
+
+  busy = false; input.disabled = false; sendBtn.disabled = false; input.focus();
+}
+
+$('#chatForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = input.value.trim(); input.value = '';
+  handleSend(v);
+});
+document.querySelectorAll('.qchip').forEach(q =>
+  q.addEventListener('click', () => handleSend(q.textContent.trim())));
+
+/* --- click / boop Pip --- */
+$('#botSvg').addEventListener('click', () => {
+  sfx('boop'); mood('happy');
+  scene.classList.add('squint'); setTimeout(()=>scene.classList.remove('squint'), 900);
+  const line = pick(["Hehe — that tickles!", "Boop received! Systems happy!", "You found my boop spot! Nice one."]);
+  addMsgTyped('bot', line).then(() => say(line));
+});
+
+/* --- mood playground + wave --- */
+document.querySelectorAll('.chip[data-mood]').forEach(c =>
+  c.addEventListener('click', () => mood(moodNow === c.dataset.mood ? 'idle' : c.dataset.mood)));
+$('#waveChip').addEventListener('click', wave);
+$('#voiceBtn').addEventListener('click', () => voice(!voiceOn));
+
+/* --- docs drawer --- */
+const docs = $('#docs'), overlay = $('#overlay');
+const openDocs = o => { docs.classList.toggle('open', o); overlay.classList.toggle('on', o); };
+$('#docsBtn').addEventListener('click', () => openDocs(true));
+$('#docsClose').addEventListener('click', () => openDocs(false));
+overlay.addEventListener('click', () => openDocs(false));
+$('#copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText($('#codeSnippet').innerText).then(() => {
+    $('#copyBtn').textContent = 'Copied!';
+    setTimeout(()=>$('#copyBtn').textContent = 'Copy', 1400);
+  });
+});
+
+/* --- greeting on load --- */
+mood('idle'); setStatus('Warming up…','idle');
+setTimeout(async () => {
+  mood('happy'); wave();
+  const g = "Hi! I'm Pip — the face of your AI tutor. Click me, or ask me anything below!";
+  await addMsgTyped('bot', g);
+  say(g);
+}, 900);
+})();
+</script>
+</body>
+</html>
