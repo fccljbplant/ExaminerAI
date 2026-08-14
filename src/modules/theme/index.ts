@@ -18,3 +18,5 @@ export { deriveBrandPalette, paletteToCssVars, DEFAULT_BRAND_OKLCH } from "./lib
 export type { BrandPalette, BrandPaletteMode } from "./lib/brand";
 export { contrastRatio, hexToOklch, oklchToHex } from "./lib/color";
 export { CONTRAST_MANIFEST } from "./lib/contrast-manifest";
+export { captionsEnabled, useCaptionsStore, CAPTIONS_MODES } from "./lib/captions-store";
+export type { CaptionsMode } from "./lib/captions-store";

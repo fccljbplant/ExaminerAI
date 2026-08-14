@@ -28,7 +28,7 @@ function AppBar({ brand, trailing }: { brand?: ShellBrand; trailing?: ReactNode 
       data-slot="app-bar"
       className="sticky top-0 z-[var(--p-z-sticky)] border-b border-nav-border bg-nav-bg"
     >
-      <div className="flex h-14 items-center gap-2 px-4">
+      <div className="flex h-14 items-center gap-2 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
         {brand && (
           <Link
             href={brand.href ?? "/"}

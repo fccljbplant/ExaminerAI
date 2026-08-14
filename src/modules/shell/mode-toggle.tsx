@@ -25,7 +25,7 @@ export function ModeToggle({ className }: { className?: string }) {
     return (
       <div
         aria-hidden
-        className={cn("h-9 w-[132px] rounded-full bg-bg-subtle", className)}
+        className={cn("h-11 w-[152px] rounded-full bg-bg-subtle", className)}
       />
     );
   }
@@ -34,7 +34,10 @@ export function ModeToggle({ className }: { className?: string }) {
     <div
       role="radiogroup"
       aria-label="Color mode"
-      className={cn("flex h-9 items-center gap-0.5 rounded-full bg-bg-subtle p-0.5", className)}
+      className={cn(
+        "flex h-11 items-center gap-0.5 rounded-full bg-bg-subtle p-0.5",
+        className
+      )}
     >
       {MODES.map(({ mode: m, label, icon: Icon }) => {
         const active = mode === m;
@@ -48,7 +51,10 @@ export function ModeToggle({ className }: { className?: string }) {
             title={`${label} mode`}
             onClick={() => setMode(m)}
             className={cn(
-              "flex h-8 w-10 items-center justify-center rounded-full transition-colors",
+              // ≥44px touch targets (P6 §1 tap law); the segmented control
+              // keeps a tight pill look while staying thumb-friendly.
+              "flex h-10 w-12 items-center justify-center rounded-full transition-colors",
+              "[-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
               active
                 ? "bg-surface text-fg shadow-elev-1"
                 : "text-fg-muted hover:text-fg-secondary"

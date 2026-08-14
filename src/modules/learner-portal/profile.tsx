@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { ModeToggle } from "@/modules/shell";
+import { CAPTIONS_MODES, useCaptionsStore } from "@/modules/theme";
 
 /**
  * modules/learner-portal — L13 Profile & settings (REDESIGN-P3 §L13)
@@ -45,11 +46,7 @@ export function LearnerProfile({ user }: { user: ProfileInfo }) {
           title="Notifications"
           body="Email and in-app notification preferences arrive with the messaging update."
         />
-        <UpcomingCard
-          icon={SlidersHorizontal}
-          title="Accessibility"
-          body="Type scale, reduced motion, captions and audio-only defaults are coming soon."
-        />
+        <AccessibilityCard />
         <SignOutCard />
       </div>
     </div>
@@ -115,6 +112,47 @@ function AppearanceCard() {
       <p className="mt-3 text-xs text-fg-muted">
         Bed mode dims everything for late-night study. Your organisation&apos;s brand colours apply
         automatically.
+      </p>
+    </Card>
+  );
+}
+
+function AccessibilityCard() {
+  const captionsMode = useCaptionsStore((s) => s.captionsMode);
+  const setCaptionsMode = useCaptionsStore((s) => s.setCaptionsMode);
+
+  return (
+    <Card icon={SlidersHorizontal} title="Accessibility">
+      <fieldset>
+        <legend className="text-xs font-medium text-fg-secondary">Captions</legend>
+        <p className="mt-1 text-xs text-fg-muted">
+          Captions follow the tutor&apos;s speech. Auto keeps them on in Bed Mode — the P6 §3 default.
+        </p>
+        <div className="mt-3 flex gap-1.5" role="radiogroup" aria-label="Captions preference">
+          {CAPTIONS_MODES.map(({ mode, label, hint }) => {
+            const active = captionsMode === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                title={hint}
+                onClick={() => setCaptionsMode(mode)}
+                className={
+                  active
+                    ? "min-h-11 flex-1 rounded-lg bg-brand px-3 py-2 text-left text-xs font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    : "min-h-11 flex-1 rounded-lg border border-line bg-bg-subtle px-3 py-2 text-left text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+      <p className="mt-4 text-xs text-fg-muted">
+        Type scale, reduced motion and audio-only defaults are coming soon.
       </p>
     </Card>
   );

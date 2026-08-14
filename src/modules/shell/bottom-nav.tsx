@@ -7,6 +7,7 @@ import { MoreHorizontal } from "lucide-react";
 import { BottomSheet } from "@/modules/ui/bottom-sheet";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "./types";
+import { useScrollDirection } from "./use-scroll-direction";
 
 /**
  * modules/shell — BottomNav (xs, <768)
@@ -15,6 +16,11 @@ import type { NavItem } from "./types";
  * each ≥56px tall. If a portal has more than 5 items the first four
  * render inline and a More slot opens a BottomSheet with the rest.
  * Active state is M3-style: a brand-subtle pill behind the icon.
+ *
+ * Mobile comfort: the nav hides on scroll-down and returns on
+ * scroll-up (or at the very top), pauses while the More sheet is
+ * open, and honours reduced motion. Landscape safe-area insets are
+ * applied on both sides so notch devices never clip the tabs.
  */
 
 const MAX_INLINE = 5;
@@ -33,6 +39,7 @@ function BottomNavItem({ item, pathname }: { item: NavItem; pathname: string }) 
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex min-h-14 min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[11px] transition-colors",
+        "[-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
         active ? "text-fg" : "text-fg-muted hover:text-fg-secondary"
       )}
     >
@@ -62,6 +69,11 @@ function BottomNavItem({ item, pathname }: { item: NavItem; pathname: string }) 
 export function BottomNav({ nav }: { nav: NavItem[] }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const direction = useScrollDirection();
+
+  // Tuck the nav away while reading (scroll down), bring it back on
+  // scroll-up, at the top, or while the More sheet is open.
+  const hidden = !moreOpen && direction === "down";
 
   const condensed = nav.length > MAX_INLINE;
   const inline = condensed ? nav.slice(0, MAX_INLINE - 1) : nav;
@@ -75,7 +87,15 @@ export function BottomNav({ nav }: { nav: NavItem[] }) {
       <nav
         data-slot="bottom-nav"
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-[var(--p-z-sticky)] border-t border-nav-border bg-nav-bg pb-[env(safe-area-inset-bottom)] md:hidden"
+        aria-hidden={hidden}
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-[var(--p-z-sticky)] border-t border-nav-border bg-nav-bg",
+          "pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] md:hidden",
+          // transform-based (not Tailwind's translate-*) so the tuck works
+          // even where the --tw-translate-* var chain doesn't resolve.
+          "transition-transform duration-200 motion-reduce:transition-none",
+          hidden && "[transform:translateY(100%)]"
+        )}
       >
         <div className={cn("grid", gridCols)}>
           {inline.map((item) => (
@@ -87,7 +107,7 @@ export function BottomNav({ nav }: { nav: NavItem[] }) {
               onClick={() => setMoreOpen(true)}
               aria-haspopup="dialog"
               aria-expanded={moreOpen}
-              className="relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] text-fg-muted transition-colors hover:text-fg-secondary"
+              className="relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] text-fg-muted transition-colors hover:text-fg-secondary [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <span className="relative flex h-7 w-14 items-center justify-center">
                 <MoreHorizontal className="h-5 w-5" aria-hidden />
@@ -118,7 +138,8 @@ export function BottomNav({ nav }: { nav: NavItem[] }) {
                 onClick={() => setMoreOpen(false)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs transition-colors",
+                  "flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs transition-colors [-webkit-tap-highlight-color:transparent]",
+                  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
                   active
                     ? "border-brand bg-brand-subtle font-medium text-fg"
                     : "border-line bg-surface text-fg-secondary hover:bg-bg-subtle"

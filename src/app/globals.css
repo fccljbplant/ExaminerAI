@@ -227,6 +227,15 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Mobile comfort: kill the grey iOS/Android tap flash — components
+       own their focus-visible rings (shell tokens) instead. */
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    /* Prevent iOS Safari auto-zooming into inputs (fonts <16px trigger
+       it) — the mobile comfort law. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     @apply bg-background text-foreground;
@@ -245,6 +254,13 @@
   body {
     font-variant-numeric: tabular-nums;
   }
+}
+
+/* Exam runner (L9) hides the BottomNav for full focus — the runner
+   sets document.body[data-exam="on"] for its lifetime. Unlayered so it
+   beats the layered utility stack. */
+body[data-exam="on"] [data-slot="bottom-nav"] {
+  display: none;
 }
 
 /* ---- TraineesAI custom utilities & polish ---- */

@@ -5,9 +5,10 @@
 // stands on a podium beside the lesson stage, with a caption bubble for what
 // it's saying and a live status plate (Listening / Thinking / Speaking).
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { captionsEnabled, useCaptionsStore, useThemeV2 } from "@/modules/theme";
 import { AvatarRig, tutor } from "@/modules/learn/components/avatar/avatar-rig";
 
 type TeacherStatus = "ready" | "listening" | "thinking" | "speaking";
@@ -30,6 +31,18 @@ export function AvatarStage({ size = 176, className }: AvatarStageProps) {
   const [caption, setCaption] = useState("");
   const [status, setStatus] = useState<TeacherStatus>("ready");
 
+  // Caption preference + theme mode: in Bed Mode (auto) or explicit "on",
+  // the caption bubble stays on screen instead of fading after 8s — the
+  // P6 §3 "captions default ON in bed" guarantee.
+  const captionsMode = useCaptionsStore((s) => s.captionsMode);
+  const { mode } = useThemeV2();
+  const keepCaptions = captionsEnabled(captionsMode, mode);
+  // Ref so the caption handler never re-subscribes when the preference flips.
+  const keepRef = useRef(keepCaptions);
+  useEffect(() => {
+    keepRef.current = keepCaptions;
+  }, [keepCaptions]);
+
   // Caption bubble + status plate driven by the shared tutor bus.
   useEffect(() => {
     const unsubs: (() => void)[] = [];
@@ -38,7 +51,11 @@ export function AvatarStage({ size = 176, className }: AvatarStageProps) {
     unsubs.push(tutor.on("caption", (text: unknown) => {
       setCaption(text as string);
       clearTimeout(capTimer);
-      capTimer = setTimeout(() => setCaption(""), 8000);
+      // Without captions (e.g. light mode, auto) the bubble is a transient
+      // speech indicator — 8s, matching the longest narration estimate.
+      capTimer = setTimeout(() => {
+        if (!keepRef.current) setCaption("");
+      }, 8000);
     }));
     unsubs.push(tutor.on("tts", (phase: unknown) => {
       setStatus(phase === "start" ? "speaking" : "ready");
