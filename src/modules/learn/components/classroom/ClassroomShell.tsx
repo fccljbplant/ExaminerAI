@@ -13,7 +13,7 @@ import {
   Map as MapIcon, Target, TrendingUp, BookOpen, Sparkles, Flame, Star,
   ChevronRight, ChevronLeft, Send, Loader2, Volume2, VolumeX, Focus,
   X, GraduationCap, MessageSquare, StickyNote, CheckCircle2, ArrowRight, MonitorPlay,
-  Presentation,
+  Presentation, Brain, Trophy, ClipboardList, CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/modules/ui/PageHeader";
@@ -23,6 +23,7 @@ import { tutor } from "@/modules/learn/components/avatar/avatar-rig";
 import { AvatarStage } from "@/modules/learn/components/avatar/AvatarStage";
 import { LessonStage } from "@/modules/learn/components/classroom/LessonStage";
 import { VideoStage } from "@/modules/learn/components/classroom/VideoStage";
+import { DailyTestPanel } from "@/modules/assessment/components/DailyTestPanel";
 import { VoiceBar } from "@/modules/learn/components/classroom/VoiceBar";
 import type { LessonMedia } from "@/modules/learn/lib/lesson-media";
 import { JourneyPanel } from "@/components/learn/panels/JourneyPanel";
@@ -112,6 +113,10 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [slides, setSlides] = useState<SlideData[]>([]);
   const [slideIdx, setSlideIdx] = useState(0);
   const [activePanel, setActivePanel] = useState<PanelKey | null>(null);
+  // Post-lesson flow (W12): after the slides, the daily Socratic test
+  // launches in place of the stage; results unlock "complete & next topic".
+  const [postStage, setPostStage] = useState<"slides" | "test" | "results" | "project" | "checkin" | "next">("slides");
+  const [dailyScore, setDailyScore] = useState<number | null>(null);
   // Sound is OFF by default — learners opt in via the voice toggle
   // (user requirement 2026-08-15).
   const [ttsOn, setTtsOn] = useState(false);
@@ -186,6 +191,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       setSlides(data.slides ?? []);
       setSlideIdx(Math.max(0, (data.slides?.length ?? 1) - 1));
       setTopicComplete(false);
+      setPostStage("slides");
+      setDailyScore(null);
       // Video lesson leads when one exists for the new topic.
       setStageMode(data.media?.kind === "video" ? "video" : "slides");
     } catch (e) {
@@ -269,8 +276,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
 
       if ("topicComplete" in res.data) {
         setTopicComplete(true);
+        setPostStage("test");
         tutor.play("cheer");
-        speakWithAvatar("You've completed all the slides for this topic. Take a look at the resources, then mark the topic complete to advance.");
+        speakWithAvatar("Teaching complete! The daily Socratic test is now open — answer, and the examiner will probe your understanding. Your results unlock what comes next.");
         fetchNow();
         return;
       }
@@ -311,6 +319,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
         toast.success("Topic complete", { description: `+${xpAwarded} XP` });
       }
       // Refetch everything for the new topic.
+      setPostStage("slides");
+      setDailyScore(null);
       await fetchToday();
       await fetchNow();
     } catch (e) {
@@ -515,7 +525,113 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               </div>
             )}
 
-            {stageMode === "video" && today?.media?.video ? (
+            {postStage === "test" ? (
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+                <PostFlowStepper stage="test" hasProject={Boolean(now?.project)} onStage={setPostStage} />
+                <div className="mx-auto max-w-2xl">
+                  <DailyTestPanel
+                    onComplete={(score) => {
+                      setDailyScore(score);
+                      setPostStage("results");
+                      tutor.play("cheer");
+                      speakWithAvatar(
+                        "Test complete! Your result is on the board. Let's check your project and today's check-in."
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+            ) : postStage === "results" ? (
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+                <PostFlowStepper stage="results" hasProject={Boolean(now?.project)} onStage={setPostStage} />
+                <div className="mx-auto flex max-w-lg flex-col items-center rounded-2xl border border-line bg-surface p-6 text-center shadow-sm md:p-8">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle text-success-on">
+                    <Trophy className="h-8 w-8" aria-hidden />
+                  </span>
+                  <h3 className="mt-4 text-lg font-semibold text-fg">Daily test complete</h3>
+                  <p className="mt-2 text-4xl font-bold tabular-nums text-fg">
+                    {dailyScore != null ? `${dailyScore}%` : "—"}
+                  </p>
+                  <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-fg-muted">
+                    {dailyScore != null && dailyScore >= 60
+                      ? "Strong work — the concept is locked in."
+                      : "The examiner's explanations below show what to review before moving on."}
+                  </p>
+                  <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setPostStage(now?.project ? "project" : "checkin")}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover"
+                    >
+                      Continue
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPostStage("slides")}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-5 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+                    >
+                      <Presentation className="h-4 w-4" aria-hidden />
+                      Review slides
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : postStage === "project" && now?.project ? (
+              <ProjectStage
+                project={now.project}
+                week={today?.topic.week ?? 1}
+                onDone={() => setPostStage("checkin")}
+                onBack={() => setPostStage("results")}
+                onStage={setPostStage}
+                hasProject
+              />
+            ) : postStage === "checkin" ? (
+              <CheckinStage
+                courseId={courseId}
+                hasProject={Boolean(now?.project)}
+                onDone={() => setPostStage("next")}
+                onBack={() => setPostStage(now?.project ? "project" : "results")}
+                onStage={setPostStage}
+              />
+            ) : postStage === "next" ? (
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+                <PostFlowStepper stage="next" hasProject={Boolean(now?.project)} onStage={setPostStage} />
+                <div className="mx-auto flex max-w-lg flex-col items-center rounded-2xl border border-line bg-surface p-6 text-center shadow-sm md:p-8">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-subtle text-fg">
+                    <CheckCircle2 className="h-8 w-8" aria-hidden />
+                  </span>
+                  <h3 className="mt-4 text-lg font-semibold text-fg">All steps complete</h3>
+                  <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-fg-muted">
+                    Slides, Socratic test, project and check-in are all done for this topic.
+                    Ready for the next one?
+                  </p>
+                  <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                    <button
+                      type="button"
+                      onClick={handleCompleteTopic}
+                      disabled={completing}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-success px-5 text-sm font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-50"
+                    >
+                      {completing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <CheckCircle2 className="h-4 w-4" aria-hidden />
+                      )}
+                      {today?.isLastTopicInCourse ? "Complete course" : "Proceed to next topic"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPostStage("slides")}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-5 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+                    >
+                      <Presentation className="h-4 w-4" aria-hidden />
+                      Review slides
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : stageMode === "video" && today?.media?.video ? (
               <VideoStage
                 video={today.media.video}
                 onEnded={handleVideoEnded}
@@ -533,31 +649,43 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                 onJumpToSlide={jumpToSlide}
               />
             )}
+
           </div>
 
           {/* Quick bar */}
           <div className="flex h-16 flex-shrink-0 items-center gap-2 border-t bg-surface px-4">
-            <button
-              type="button"
-              onClick={() => jumpToSlide(Math.max(0, slideIdx - 1))}
-              disabled={isFirstSlide || slides.length === 0}
-              aria-label="Previous slide"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md border hover:bg-bg-subtle disabled:opacity-40"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-
-            {/* Contextual CTA — clean navigation. Slides generate on load
-                and on Next; no generation buttons are ever shown. */}
-            {topicComplete || allSlidesGenerated ? (
+            {postStage === "slides" && (
               <button
                 type="button"
-                onClick={handleCompleteTopic}
-                disabled={completing}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-success px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                onClick={() => jumpToSlide(Math.max(0, slideIdx - 1))}
+                disabled={isFirstSlide || slides.length === 0}
+                aria-label="Previous slide"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md border hover:bg-bg-subtle disabled:opacity-40"
               >
-                {completing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                {today?.isLastTopicInCourse ? "Complete course" : "Complete & next topic"}
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
+
+            {/* Contextual CTA — clean navigation. Slides generate on load
+                and on Next; no generation buttons are ever shown. After
+                the slides, the daily Socratic test takes the stage. */}
+            {topicComplete && postStage === "slides" ? (
+              <button
+                type="button"
+                onClick={() => setPostStage("test")}
+                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover"
+              >
+                <Brain className="h-4 w-4" />
+                Take the daily test
+              </button>
+            ) : postStage !== "slides" ? (
+              <button
+                type="button"
+                onClick={() => setPostStage("slides")}
+                className="inline-flex min-h-11 items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-bg-subtle"
+              >
+                <Presentation className="h-4 w-4" />
+                Slides
               </button>
             ) : (
               <button
@@ -821,6 +949,273 @@ function CoachMarks({ onClose }: { onClose: () => void }) {
           Got it
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ── Post-lesson flow stage components (W13) ─────────────────────────── */
+
+function PostFlowStepper({
+  stage,
+  hasProject,
+  onStage,
+}: {
+  stage: "test" | "results" | "project" | "checkin" | "next";
+  hasProject: boolean;
+  onStage: (s: "slides" | "test" | "results" | "project" | "checkin" | "next") => void;
+}) {
+  const steps = [
+    { key: "test" as const, label: "Test" },
+    ...(hasProject ? [{ key: "project" as const, label: "Project" }] : []),
+    { key: "checkin" as const, label: "Check-in" },
+    { key: "next" as const, label: "Next topic" },
+  ];
+  const currentIdx = stage === "results" ? 0 : steps.findIndex((x) => x.key === stage);
+  return (
+    <ol className="mx-auto mb-4 flex max-w-2xl items-center gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <li className="shrink-0">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-success-subtle px-3 py-1 text-[11px] font-semibold text-success-on">
+          <CheckCircle2 className="h-3 w-3" aria-hidden />
+          Slides
+        </span>
+      </li>
+      {steps.map((x, i) => {
+        const done = i < currentIdx;
+        const active = i === currentIdx;
+        return (
+          <li key={x.key} className="flex shrink-0 items-center gap-1">
+            <span className="text-fg-muted" aria-hidden>
+              <ChevronRight className="h-3 w-3" />
+            </span>
+            <button
+              type="button"
+              onClick={() => (done ? onStage(x.key) : undefined)}
+              disabled={!done}
+              aria-current={active ? "step" : undefined}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
+                done
+                  ? "bg-bg-subtle text-fg-muted hover:text-fg"
+                  : active
+                    ? "bg-brand text-on-brand"
+                    : "bg-bg-subtle text-fg-muted/60"
+              )}
+            >
+              {done && <CheckCircle2 className="h-3 w-3" aria-hidden />}
+              {x.label}
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function ProjectStage({
+  project,
+  week,
+  onDone,
+  onBack,
+  onStage,
+  hasProject,
+}: {
+  project: { id: string; title: string; activeMilestone: { id: string; title: string } | null };
+  week: number;
+  onDone: () => void;
+  onBack: () => void;
+  onStage: (s: "slides" | "test" | "results" | "project" | "checkin" | "next") => void;
+  hasProject: boolean;
+}) {
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function continueFlow() {
+    if (!note.trim()) {
+      onDone();
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.post("/api/tasks", {
+        description: `[Topic update] ${note.trim()}`,
+        week,
+      });
+      toast.success("Project updated", { description: "The note is attached to your project tasks." });
+      onDone();
+    } catch (e) {
+      toast.error("Couldn't save the project note", {
+        description: e instanceof Error ? e.message : undefined,
+      });
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+      <PostFlowStepper stage="project" hasProject={hasProject} onStage={onStage} />
+      <div className="mx-auto max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-sm md:p-8">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-info-subtle text-info-on">
+          <Target className="h-7 w-7" aria-hidden />
+        </span>
+        <h3 className="mt-4 text-lg font-semibold text-fg">Your project</h3>
+        <p className="mt-1 text-sm font-medium text-fg">{project.title}</p>
+        <p className="mt-1 text-xs text-fg-muted">
+          {project.activeMilestone
+            ? `Active milestone: ${project.activeMilestone.title}`
+            : "All milestones complete 🎉"}
+        </p>
+        <label htmlFor="project-note" className="mt-4 block text-xs font-medium text-fg-secondary">
+          Quick update (optional) — what did you do for the project today?
+        </label>
+        <textarea
+          id="project-note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={3}
+          placeholder="e.g. Wrote the requirements section for my capstone brief…"
+          className="mt-1.5 w-full resize-y rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        />
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-bg px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden />
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={() => void continueFlow()}
+            disabled={saving}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            )}
+            Continue to check-in
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const CHECKIN_CONFIDENCE = [
+  { value: 1, label: "Lost" },
+  { value: 2, label: "Struggling" },
+  { value: 3, label: "Okay" },
+  { value: 4, label: "Good" },
+  { value: 5, label: "Great" },
+];
+
+function CheckinStage({
+  courseId,
+  hasProject,
+  onDone,
+  onBack,
+  onStage,
+}: {
+  courseId: string;
+  hasProject: boolean;
+  onDone: () => void;
+  onBack: () => void;
+  onStage: (s: "slides" | "test" | "results" | "project" | "checkin" | "next") => void;
+}) {
+  const [confidence, setConfidence] = useState(3);
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!note.trim()) return;
+    setSaving(true);
+    try {
+      await api.post("/api/v2/learn/checkin", {
+        courseId,
+        whatDidYouDo: note.trim(),
+        confidence,
+      });
+      toast.success("Check-in saved", { description: "Your instructor can see today's update." });
+      onDone();
+    } catch (err) {
+      toast.error("Couldn't save check-in", {
+        description: err instanceof Error ? err.message : undefined,
+      });
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+      <PostFlowStepper stage="checkin" hasProject={hasProject} onStage={onStage} />
+      <form onSubmit={submit} className="mx-auto max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-sm md:p-8">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-warning-subtle text-warning-on">
+          <CalendarCheck className="h-7 w-7" aria-hidden />
+        </span>
+        <h3 className="mt-4 text-lg font-semibold text-fg">Daily check-in</h3>
+        <p className="mt-1 text-xs text-fg-muted">
+          A quick stand-up for your mentor — how did today&apos;s topic feel?
+        </p>
+        <fieldset className="mt-4">
+          <legend className="text-xs font-medium text-fg-secondary">How did it go today?</legend>
+          <div className="mt-2 flex gap-1.5" role="radiogroup" aria-label="Confidence">
+            {CHECKIN_CONFIDENCE.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                role="radio"
+                aria-checked={confidence === c.value}
+                onClick={() => setConfidence(c.value)}
+                className={cn(
+                  "min-h-11 flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition-colors",
+                  confidence === c.value
+                    ? "border-brand bg-brand-subtle text-fg"
+                    : "border-line bg-bg-subtle text-fg-secondary hover:border-line-strong"
+                )}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <label htmlFor="flow-checkin-note" className="mt-4 block text-xs font-medium text-fg-secondary">
+          What did you work on today?
+        </label>
+        <textarea
+          id="flow-checkin-note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={3}
+          required
+          placeholder="Today I learned…"
+          className="mt-1.5 w-full resize-y rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        />
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-bg px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden />
+            Back
+          </button>
+          <button
+            type="submit"
+            disabled={saving || !note.trim()}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" aria-hidden />
+            )}
+            Save check-in
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
