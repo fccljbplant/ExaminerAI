@@ -78,14 +78,46 @@ export function prepareForTTS(text: string): string {
  return out.trim();
 }
 
-/** Speak text via the Web Speech API. No-op if TTS unavailable. */
+// The tutor voice is MALE (user requirement 2026-08-15). Voices are
+// populated asynchronously, so we warm the list on first use and keep
+// a best-effort heuristic: prefer clearly male / "UK English male"
+// voices, never pick a known female one, fall back to any English
+// voice, then the browser default.
+const MALE_HINTS = /david|daniel|george|alex|ryan|oliver|arthur|guy|male|en[-_ ]?gb[-_ ]?male/i;
+const FEMALE_HINTS = /female|zira|susan|karen|moira|tessa|serena|samantha|victoria|hazel|sonia|libby|kate|joanna|salli|kimberly|ivy|emma|amy/i;
+
+function pickMaleVoice(): SpeechSynthesisVoice | null {
+ if (typeof speechSynthesis === "undefined") return null;
+ const voices = speechSynthesis.getVoices();
+ if (voices.length === 0) return null;
+ const male = voices.find((v) => MALE_HINTS.test(v.name) && !FEMALE_HINTS.test(v.name));
+ const anyEnglish = voices.find((v) => v.lang.toLowerCase().startsWith("en"));
+ return male ?? anyEnglish ?? voices[0];
+}
+
+/** Warm the voice list (getVoices populates asynchronously). */
+export function warmVoices(): void {
+ if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+ try {
+  // Reading the list once triggers async population; the browser fires
+  // voiceschanged — after which pickMaleVoice sees the real voices.
+  void speechSynthesis.getVoices();
+ } catch {
+  // best-effort
+ }
+}
+
+/** Speak text via the Web Speech API in the male tutor voice. No-op if
+ *  TTS unavailable. */
 export function speakTTS(text: string): void {
  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
  try {
  speechSynthesis.cancel();
  const u = new SpeechSynthesisUtterance(text);
+ const voice = pickMaleVoice();
+ if (voice) u.voice = voice;
  u.rate = 1;
- u.pitch = 1;
+ u.pitch = 0.9; // slightly lower pitch reads as a male voice on neutral defaults
  speechSynthesis.speak(u);
  } catch {
  // best-effort — TTS is non-critical

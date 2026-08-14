@@ -42,11 +42,11 @@ export function LessonStage({
   if (loading || !topic) {
     return (
       <div className="mx-auto w-full max-w-3xl space-y-4" aria-busy="true" aria-label="Loading lesson">
-        <div className="h-3 w-40 animate-pulse rounded bg-muted" />
-        <div className="h-7 w-3/4 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-full animate-pulse rounded bg-muted" />
-        <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-40 animate-pulse rounded bg-bg-subtle" />
+        <div className="h-7 w-3/4 animate-pulse rounded bg-bg-subtle" />
+        <div className="h-4 w-full animate-pulse rounded bg-bg-subtle" />
+        <div className="h-4 w-5/6 animate-pulse rounded bg-bg-subtle" />
+        <div className="h-4 w-2/3 animate-pulse rounded bg-bg-subtle" />
       </div>
     );
   }
@@ -57,7 +57,7 @@ export function LessonStage({
       <div className="py-20 text-center">
         <CheckCircle2 className="mx-auto h-12 w-12 text-growth-sage" />
         <h1 className="mt-4 text-2xl font-bold">Course complete</h1>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 text-fg-muted">
           You&apos;ve finished every topic. Browse the Library for resources or start a new course.
         </p>
       </div>
@@ -70,15 +70,16 @@ export function LessonStage({
     <div className="mx-auto w-full max-w-3xl">
       {/* Topic banner */}
       <div className="mb-4">
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+        <div className="text-[10px] uppercase tracking-wide text-fg-muted">
           Week {topic.week} Day {topic.day} · {topic.phase}
         </div>
         <h1 className="text-2xl font-bold leading-tight">{topic.title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{topic.objective}</p>
+        <p className="mt-1 text-sm text-fg-muted">{topic.objective}</p>
       </div>
 
-      {/* Filmstrip dots */}
-      <div className="mb-5 flex items-center gap-1.5">
+      {/* Slide navigation — numbered dots; slides generate on load and
+          on Next, never via a visible "generate" control. */}
+      <div className="mb-5 flex items-center gap-1.5" role="tablist" aria-label="Slides">
         {Array.from({ length: totalSlides }).map((_, i) => {
           const generated = i < slides.length;
           const isCurrent = i === slideIdx && generated;
@@ -86,37 +87,40 @@ export function LessonStage({
             <button
               key={i}
               type="button"
+              role="tab"
+              aria-selected={isCurrent}
               onClick={() => generated && onJumpToSlide(i)}
               disabled={!generated}
-              aria-label={`Slide ${i + 1}${generated ? "" : " (not generated yet)"}`}
-              aria-current={isCurrent ? "true" : undefined}
+              aria-label={`Slide ${i + 1}`}
               className={cn(
-                "h-1.5 rounded-full transition-all",
+                "flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-colors",
                 isCurrent
-                  ? "w-8 bg-primary"
+                  ? "bg-brand text-on-brand"
                   : generated
-                    ? "w-6 bg-primary/60 hover:bg-primary/80"
-                    : "w-6 bg-muted cursor-not-allowed"
+                    ? "bg-brand-subtle text-fg hover:bg-brand-subtle"
+                    : "bg-bg-subtle text-fg-muted",
               )}
-            />
+            >
+              {i + 1}
+            </button>
           );
         })}
-        <span className="ml-2 text-[10px] text-muted-foreground">
-          {slides.length} / {totalSlides} prepared
+        <span className="ml-2 text-[10px] tabular-nums text-fg-muted">
+          Slide {slides.length > 0 ? slideIdx + 1 : "—"} of {totalSlides}
         </span>
       </div>
 
       {/* Slide content */}
       {currentSlide ? (
         <article className="space-y-4">
-          <div className="text-[11px] font-medium text-muted-foreground">Slide {slideIdx + 1}</div>
+          <div className="text-[11px] font-medium text-fg-muted">Slide {slideIdx + 1}</div>
           <h2 className="text-xl font-semibold leading-tight">{currentSlide.title}</h2>
 
           {currentSlide.bullets.length > 0 && (
             <ul className="space-y-2">
               {currentSlide.bullets.map((b, i) => (
                 <li key={i} className="flex gap-2 text-sm leading-relaxed">
-                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
+                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand" />
                   <span>{b}</span>
                 </li>
               ))}
@@ -126,7 +130,7 @@ export function LessonStage({
           {currentSlide.keyTerms.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {currentSlide.keyTerms.map((t, i) => (
-                <span key={i} className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium">{t}</span>
+                <span key={i} className="rounded-full bg-bg-subtle px-2.5 py-0.5 text-xs font-medium">{t}</span>
               ))}
             </div>
           )}
@@ -134,19 +138,19 @@ export function LessonStage({
           {/* Visual board — renders the AI's visualSpec as a styled figure
               so slides feel visual, not text-only */}
           {currentSlide.visualSpec && (
-            <figure className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-4">
+            <figure className="rounded-xl border border-dashed border-primary/40 bg-brand/5 p-4">
               <figcaption className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                 <Shapes className="h-3.5 w-3.5" aria-hidden />
                 Visual board
               </figcaption>
               {/* Abstract diagram bars — decorative, token-colored */}
               <div className="mb-3 flex items-end gap-2" aria-hidden>
-                <div className="h-10 w-1/4 rounded-sm bg-primary/20" />
-                <div className="h-16 w-1/4 rounded-sm bg-primary/35" />
-                <div className="h-7 w-1/4 rounded-sm bg-primary/15" />
-                <div className="h-12 w-1/4 rounded-sm bg-primary/25" />
+                <div className="h-10 w-1/4 rounded-sm bg-brand/20" />
+                <div className="h-16 w-1/4 rounded-sm bg-brand/35" />
+                <div className="h-7 w-1/4 rounded-sm bg-brand/15" />
+                <div className="h-12 w-1/4 rounded-sm bg-brand/25" />
               </div>
-              <p className="text-sm leading-relaxed text-muted-foreground">{currentSlide.visualSpec}</p>
+              <p className="text-sm leading-relaxed text-fg-muted">{currentSlide.visualSpec}</p>
             </figure>
           )}
 
@@ -170,11 +174,11 @@ export function LessonStage({
 
           {currentSlide.checkQuestion && (
             <div className="rounded-md border p-3 text-sm">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
                 Check your understanding
               </div>
               <p className="font-medium">{currentSlide.checkQuestion}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-fg-muted">
                 Tip: ask the tutor (right pane) to evaluate your answer.
               </p>
             </div>
@@ -184,7 +188,7 @@ export function LessonStage({
         <div className="rounded-lg border-2 border-dashed py-16 text-center">
           <Sparkles className="mx-auto h-8 w-8 text-primary" />
           <p className="mt-3 text-sm font-medium">Ready to start learning</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-fg-muted">
             Click &quot;Start learning&quot; below and I&apos;ll teach this topic to you, one slide at a time.
           </p>
         </div>
@@ -192,12 +196,12 @@ export function LessonStage({
 
       {/* Topic-complete resources panel */}
       {topicComplete && (
-        <div className="mt-6 rounded-lg border-2 border-primary/40 bg-primary/5 p-4">
+        <div className="mt-6 rounded-lg border-2 border-primary/40 bg-brand/5 p-4">
           <div className="mb-2 flex items-center gap-2">
             <ListChecks className="h-4 w-4 text-primary" />
             <h3 className="font-semibold">Topic resources</h3>
           </div>
-          <p className="mb-3 text-sm text-muted-foreground">
+          <p className="mb-3 text-sm text-fg-muted">
             Review these before moving on. The next topic builds on what you learned here.
           </p>
           <ul className="space-y-1.5">

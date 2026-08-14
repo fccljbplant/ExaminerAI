@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Map as MapIcon, Target, TrendingUp, BookOpen, Sparkles, Flame, Star,
   ChevronRight, ChevronLeft, Send, Loader2, Volume2, VolumeX, Focus,
-  X, GraduationCap, MessageSquare, StickyNote, CheckCircle2, MonitorPlay,
+  X, GraduationCap, MessageSquare, StickyNote, CheckCircle2, ArrowRight, MonitorPlay,
   Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -66,19 +66,43 @@ interface Props {
   courseName: string;
 }
 
-/** Helper: speak text via the avatar with TTS, syncing lip-sync gestures. */
+/**
+ * Helper: speak text via the avatar with TTS, syncing lip-sync gestures.
+ * The callback is STABLE (ttsOn lives in a ref) so toggling the voice
+ * never re-runs effects that depend on it — the chat window survives
+ * voice on/off (user requirement 2026-08-15).
+ */
 function useSpeakWithAvatar(ttsOn: boolean) {
+  const ttsRef = useRef(ttsOn);
+  useEffect(() => {
+    ttsRef.current = ttsOn;
+  }, [ttsOn]);
   return useCallback((text: string) => {
     if (!text) return;
     tutor.caption(text);
     tutor.emit("tts", "start");
-    if (ttsOn) {
+    if (ttsRef.current) {
       speakTTS(prepareForTTS(text));
     }
     // Approximate duration: ~55ms per character, capped at 9s.
     const estimated = Math.min(9000, Math.max(2000, text.length * 55));
     setTimeout(() => tutor.emit("tts:end"), estimated);
-  }, [ttsOn]);
+  }, []);
+}
+
+/**
+ * Caption-only narration for SLIDES: the avatar bubble + lip-sync show
+ * the content, but slides never speak aloud — only the AI tutor does
+ * (user requirement 2026-08-15).
+ */
+function useCaptionOnly() {
+  return useCallback((text: string) => {
+    if (!text) return;
+    tutor.caption(text);
+    tutor.emit("tts", "start");
+    const estimated = Math.min(9000, Math.max(2000, text.length * 55));
+    setTimeout(() => tutor.emit("tts:end"), estimated);
+  }, []);
 }
 
 export function ClassroomShell({ courseId, courseName }: Props) {
@@ -106,6 +130,10 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   const speakWithAvatar = useSpeakWithAvatar(ttsOn);
+  const captionOnly = useCaptionOnly();
+  // Auto-generate the first slide on page load — the learner never sees
+  // a "Start learning" generation button (user requirement 2026-08-15).
+  const autoStartedRef = useRef(false);
 
   // ── Focus mode sync ───────────────────────────────────────────────
   useEffect(() => {
@@ -199,6 +227,14 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     };
   }, [courseId, fetchNow, fetchToday, fetchSession, speakWithAvatar]);
 
+  // ── Auto-generate the first slide once the topic is loaded ────────
+  useEffect(() => {
+    if (autoStartedRef.current) return;
+    if (!today || slides.length > 0 || topicComplete || loadingSlide) return;
+    autoStartedRef.current = true;
+    void handleNextSlide();
+  }, [today, slides.length, topicComplete, loadingSlide, handleNextSlide]);
+
   // ── Auto-scroll transcript ────────────────────────────────────────
   useEffect(() => {
     if (transcriptRef.current) {
@@ -235,7 +271,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       setSlides(prev => [...prev, slide]);
       setSlideIdx(prev => prev + 1);
       tutor.play("idea");
-      speakWithAvatar(narration || message);
+      captionOnly(narration || message);
       fetchNow();
     } catch (e) {
       toast.error("Couldn't generate the next slide", { description: e instanceof Error ? e.message : undefined });
@@ -492,24 +528,25 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           </div>
 
           {/* Quick bar */}
-          <div className="flex h-16 flex-shrink-0 items-center gap-2 border-t bg-card px-4">
+          <div className="flex h-16 flex-shrink-0 items-center gap-2 border-t bg-surface px-4">
             <button
               type="button"
               onClick={() => jumpToSlide(Math.max(0, slideIdx - 1))}
               disabled={isFirstSlide || slides.length === 0}
               aria-label="Previous slide"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border hover:bg-muted disabled:opacity-40"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md border hover:bg-bg-subtle disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
 
-            {/* Contextual CTA — one primary action per view */}
+            {/* Contextual CTA — clean navigation. Slides generate on load
+                and on Next; no generation buttons are ever shown. */}
             {topicComplete || allSlidesGenerated ? (
               <button
                 type="button"
                 onClick={handleCompleteTopic}
                 disabled={completing}
-                className="inline-flex items-center gap-2 rounded-md bg-growth-sage px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-success px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
               >
                 {completing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 {today?.isLastTopicInCourse ? "Complete course" : "Complete & next topic"}
@@ -518,11 +555,15 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               <button
                 type="button"
                 onClick={handleNextSlide}
-                disabled={loadingSlide}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                disabled={loadingSlide || slides.length === 0}
+                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
               >
-                {loadingSlide ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {slides.length === 0 ? "Start learning" : isLastSlideOfTopic ? "Generate final slide" : "Next slide"}
+                {loadingSlide ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+                {slides.length === 0 ? "Loading lesson…" : "Next slide"}
               </button>
             )}
 
@@ -531,7 +572,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               onClick={() => jumpToSlide(Math.min(slides.length - 1, slideIdx + 1))}
               disabled={isLastSlideOfTopic || slides.length === 0}
               aria-label="Next slide"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border hover:bg-muted disabled:opacity-40"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md border hover:bg-bg-subtle disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -540,7 +581,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               <button
                 type="button"
                 onClick={() => { setChatInput(currentSlide?.checkQuestion ?? ""); document.getElementById("chat-input")?.focus(); }}
-                className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-bg-subtle"
                 title="Ask the AI tutor about this slide"
               >
                 <MessageSquare className="h-3.5 w-3.5" /> Ask AI
@@ -548,7 +589,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               <button
                 type="button"
                 onClick={() => setActivePanel("library")}
-                className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-bg-subtle"
                 title="Open the Library panel"
               >
                 <StickyNote className="h-3.5 w-3.5" /> Notes

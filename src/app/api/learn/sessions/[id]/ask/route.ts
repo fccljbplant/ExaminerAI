@@ -87,6 +87,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     LEVEL_DIRECTIVES[level],
     "Below is the course knowledge base — each block starts with a [Week/Day/Slide] citation. ALWAYS ground your answer in these blocks. If the answer is in the KB, cite the [Week/Day/Slide] tag at the end of your answer. If the KB does not cover the question, say so honestly and offer to explain at a higher level using general knowledge (no citation).",
     "Keep answers short — 3-6 sentences. No code blocks unless the question specifically asks for code. No URLs. No markdown tables.",
+    "LANGUAGE: use very simple English — short sentences, everyday words, polite and encouraging, like a friendly mentor to a beginner. Explain any technical term the first time you use it.",
     "",
     "=== COURSE KNOWLEDGE BASE ===",
     knowledge,

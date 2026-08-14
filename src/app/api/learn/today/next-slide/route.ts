@@ -109,6 +109,7 @@ export async function POST(req: Request) {
     `Teaching level: ${LEVEL_DIRECTIVES[level]}`,
     `Language: ${language}.`,
     "Respond with ONLY a JSON object matching the schema. No prose, no markdown fences.",
+    "LANGUAGE: use very simple English — short sentences, everyday words, polite and encouraging. Teach like a friendly mentor to a beginner: explain every term the first time it appears, one idea per bullet, and keep the narration the same simple tone.",
     "Schema: { title: string, bullets: string[2..6], visualSpec?: string, keyTerms: string[], checkQuestion?: string, realWorldExample?: string, analogy?: string, narration: string }",
     "The `narration` field is what the avatar will SAY out loud — make it 2-4 sentences, conversational, no markdown, no URLs, no code blocks. It should expand on the bullets naturally.",
   ].join("\n");
