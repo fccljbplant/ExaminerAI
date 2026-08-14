@@ -1,22 +1,23 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { ClipboardCheck, LayoutDashboard } from "lucide-react";
 import { AppShellV2, ModeToggle } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { FloatingTutor } from "@/modules/tutor";
-import { INSTRUCTOR_NAV, INSTRUCTOR_MORE } from "./nav";
 
 /**
- * modules/instructor-portal — InstructorShell (REDESIGN-P3 §2, W6)
+ * modules/instructor-portal — InstructorShell (REDESIGN-P3 §2)
  *
- * Instructor portal chrome on the adaptive shell. Bottom tabs:
- * Home / Courses / Students / Grading / More (5 slots — the More slot
- * opens the More hub: Analytics, Earnings).
+ * Instructor portal chrome on the adaptive shell. W4 ships the Review
+ * center (I3/I4); the full tab set (Home / Courses / Students / Grading
+ * / More) lands with W6 — the nav grows as those screens do.
  */
 
-const NAV: NavItem[] = INSTRUCTOR_NAV;
-
-export { INSTRUCTOR_MORE };
+const NAV: NavItem[] = [
+  { id: "review", label: "Review", href: "/instructor/review", icon: ClipboardCheck },
+  { id: "home", label: "Home", href: "/instructor", icon: LayoutDashboard },
+];
 
 function initials(name: string): string {
   return name

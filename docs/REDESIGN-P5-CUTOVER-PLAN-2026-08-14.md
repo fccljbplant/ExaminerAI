@@ -37,7 +37,11 @@ Parallelization: W2 can run with W1; W6 starts when W4 review side lands; W7 aft
 | W3 Study-flow engine | ✅ merged | `study-flow.test.ts` 37 (6 scenarios) + crons + L12 page behind `study_flow_v2` |
 | W4 Assignments & projects | ✅ learner + review side merged | routes + UI kit + L5/L6 pages behind `submissions_v2`; review center (I3/I4: queue, rubric grading, AI drafts, decisions, sign-offs) on `(portals)/instructor` (68 submission tests); P7 fixtures pending |
 | W5 Exams | 🚧 learner slice merged | ExamSession schema (both schemas), runner L9 (autosave/resume/offline queue, nav-hidden) + results L10 + list CTAs behind `exams_v2` (18 tests); AI draft grading + P7 interruption-resume e2e pending |
+<<<<<<< HEAD
 | W6 Instructor portal | 🚧 core merged | `portal_instructor_v2` (layout switched from submissions); I1 home (queue/at-risk KPIs via /v2/instructor/home), I5 roster (/v2/instructor/students w/ attention rollups), I8 analytics + I10 earnings (v2 wrappers over kept v1 handlers), More hub; studio (I2) + I6 drill-down + I9 announcements pending |
+=======
+| W6–W10 | 🔲 | per table above |
+>>>>>>> 7083773 (feat: enable portal v2 flags — learner + instructor dashboards accessible)
 
 ## 3. Strangulation mechanics
 
