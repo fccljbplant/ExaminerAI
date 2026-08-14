@@ -35,16 +35,15 @@ The platform-wide redesign (strangler pattern, feature-flagged) is specified in
 | **W3** | Study-flow engine (6 scenarios), SRS, diagnostic, L12 Study-Flow Center, crons | ✅ behind `study_flow_v2` |
 | **W4** | Assignments & projects: registry, submission lifecycle, rubric engine, text-only AI pipeline, L5 list + L6 submission flow, **instructor review center (I3/I4)** | ✅ behind `submissions_v2` |
 | **W5** | Exams: unified runner (L9) with autosave/resume + results review (L10), ExamSession model, exam-schedule session CTAs | ✅ learner slice behind `exams_v2` |
-<<<<<<< HEAD
 | **W6** | Instructor portal: I1 home (queue + at-risk KPIs), I5 students roster, I8 analytics, I10 earnings, More hub; studio (I2) placeholder | ✅ core behind `portal_instructor_v2` |
-| **W7–W10** | Org/platform · restyle · cutover & deletion | 🔲 next |
-=======
-| **W6–W10** | Instructor portal · org/platform · restyle · cutover & deletion | 🔲 next |
->>>>>>> 7083773 (feat: enable portal v2 flags — learner + instructor dashboards accessible)
+| **W7** | Org portal (O1 home, O2 people + RBAC-ready, O4 control w/ live brand derivation, O5 audit + CSV) + Platform portal (P1 home, orgs table) | ✅ core behind `portal_org_v2` / `portal_platform_v2` |
+| **W8–W10** | Gamification restyle · public restyle · cutover & deletion | 🔲 next |
 
 Every workstream gates behind a portal flag (org override > global) and fails
 closed to the legacy `/app` experience until flipped — see
 `docs/REDESIGN-P5-CUTOVER-PLAN-2026-08-14.md` for the rollback strategy.
+Production flags can be flipped by a platform admin via `POST /api/admin/portal-flags`
+(or by inserting `feature_portal_*_v2` Setting rows directly).
 
 ## Key features
 

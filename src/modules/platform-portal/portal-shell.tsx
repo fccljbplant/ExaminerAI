@@ -4,19 +4,20 @@ import type { ReactNode } from "react";
 import { AppShellV2, ModeToggle } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { FloatingTutor } from "@/modules/tutor";
-import { INSTRUCTOR_NAV, INSTRUCTOR_MORE } from "./nav";
+import { PLATFORM_NAV, PLATFORM_MORE } from "./nav";
 
 /**
- * modules/instructor-portal — InstructorShell (REDESIGN-P3 §2, W6)
+ * modules/platform-portal — PlatformShell (REDESIGN-P3 §4, W7)
  *
- * Instructor portal chrome on the adaptive shell. Bottom tabs:
- * Home / Courses / Students / Grading / More (5 slots — the More slot
- * opens the More hub: Analytics, Earnings).
+ * Platform admin chrome (desktop-dense per spec; the adaptive shell
+ * keeps it usable on small screens). P3/P4 surfaces (system, ai,
+ * marketplace, maintenance) land as their workstreams ship — the nav
+ * grows then; the shell + home + orgs ship here.
  */
 
-const NAV: NavItem[] = INSTRUCTOR_NAV;
+const NAV: NavItem[] = PLATFORM_NAV;
 
-export { INSTRUCTOR_MORE };
+export { PLATFORM_MORE };
 
 function initials(name: string): string {
   return name
@@ -27,7 +28,7 @@ function initials(name: string): string {
     .join("");
 }
 
-export function InstructorShell({
+export function PlatformShell({
   userName,
   children,
 }: {
