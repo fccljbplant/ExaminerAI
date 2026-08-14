@@ -19,3 +19,5 @@ export type { ApiState } from "./use-api";
 export { LearnerAssignments } from "./assignments";
 export { SubmissionFlow } from "./submission-flow";
 export type { AssignmentDetail, PartInput, PartView } from "./submission-flow";
+export { ExamRunner } from "./exam-runner";
+export { ExamResults } from "./exam-results";

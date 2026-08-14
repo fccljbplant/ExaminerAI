@@ -47,8 +47,9 @@ abstraction in `src/lib/ai-provider.ts` so other models can be swapped in.
 │                                                                    │
 │  /api/v2/*  (REDESIGN strangulation surface, envelope {ok,data})   │
 │    learner/home|progress · courses(+tabs) · study-plan · srs/queue │
-│    srs/[cardId]/review · diagnostic/start|answer · exams ·         │
-│    tutor/ask (SSE) · events · assignments(+draft|submit) ·         │
+│    srs/[cardId]/review · diagnostic/start|answer · exams(+[id]/    │
+│    start|resume|answer|complete|results) · tutor/ask (SSE) ·       │
+│    events · assignments(+draft|submit) ·                           │
 │    submissions/[id]/resubmit|feedback · uploads (docx/pdf→text)    │
 │  /api/cron/* (W3): study-plan-refresh 06:00 · absence-scan 07:00 · │
 │    srs-due 03:00 — all verify via src/lib/cron-auth.ts             │
@@ -169,7 +170,7 @@ Course-view standards. Currently:
 
 Domain-organised modules. Each module groups related logic + components + lib.
 
-- `src/modules/assessment/` — test engine, grader, chat UI.
+- `src/modules/assessment/` (legacy engine, kept) — test engine, grader, chat UI.
   - `lib/unified-test-engine.ts` — `PRACTICE_CONFIG`, `DAILY_TEST_CONFIG`,
     `WEEKLY_TEST_CONFIG` (uses `TEST_QUESTION_COUNT`).
   - `lib/unified-grader.ts` — `gradeOneQuestion`, `gradeTest`, explanations.
@@ -205,9 +206,18 @@ at cutover (W10).
   `lib/text-extract.ts` (mammoth/pdfjs in-house), `lib/submission-db.ts` (the
   ONLY file importing `db`), `lib/submission-flag.ts` (single flag source),
   `__tests__/` (58 tests).
+- `src/modules/assessment/` — test engine + **W5 exam runner**:
+  `contracts.ts` (slug helpers + zod), `lib/exam-session.ts` (pure state
+  machine: upsertAnswer, computeScore, completion guards — 13 tests),
+  `lib/exam-session-db.ts` (ONLY db file: lazy weekly question generation,
+  graded autosave, complete→XP+notification+Learn-row sync),
+  `lib/exam-flag.ts` (`exams_v2`), `lib/http.ts`; reuses
+  `unified-test-engine.ts` gradeOneQuestion + `ai-json.ts` callAIJson.
 - `src/modules/learner-portal/` — W1 screens composing the kit: home, catalog,
   course-detail, exams, progress, profile, help, assignments (L5),
-  submission-flow (L6), `use-api.ts` hook.
+  submission-flow (L6), exam-runner (L9: autosave/resume/offline queue,
+  nav-hidden via body[data-exam]), exam-results (L10: ring + review accordion),
+  `use-api.ts` hook.
 
 Every v2 surface gates through a per-workstream flag helper
 (`lib/feature-flags.ts` `isPortalEnabled`) and fails closed to `/app`.

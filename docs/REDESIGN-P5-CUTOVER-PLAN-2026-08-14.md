@@ -36,7 +36,8 @@ Parallelization: W2 can run with W1; W6 starts when W4 review side lands; W7 aft
 | W2 Floating tutor | ✅ merged | `modules/tutor` (dock.test 10) — inside `portal_learner_v2` |
 | W3 Study-flow engine | ✅ merged | `study-flow.test.ts` 37 (6 scenarios) + crons + L12 page behind `study_flow_v2` |
 | W4 Assignments & projects | 🚧 learner slice merged | routes + UI kit + L5/L6 pages behind `submissions_v2` (58 tests); review UI (I3/I4) + L7 + P7 fixtures pending |
-| W5–W10 | 🔲 | per table above |
+| W5 Exams | 🚧 learner slice merged | ExamSession schema (both schemas), runner L9 (autosave/resume/offline queue, nav-hidden) + results L10 + list CTAs behind `exams_v2` (18 tests); AI draft grading + P7 interruption-resume e2e pending |
+| W6–W10 | 🔲 | per table above |
 
 ## 3. Strangulation mechanics
 

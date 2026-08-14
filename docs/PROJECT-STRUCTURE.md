@@ -63,7 +63,7 @@ src/modules/<feature>/
 | `admin` | Admin dashboard panels (legacy) | index.ts only |
 | `ai-assistant` | Instructor AI assistant (legacy) | index.ts only |
 | `ai-tutor` | Student AI tutor (legacy) | index.ts only |
-| `assessment` | Test engine, grader, chat UI | ✓ lib/ + components/ |
+| `assessment` | Test engine, grader, chat UI + **W5 exam runner** (contracts, exam-session state machine, ExamSession DB wrapper, flag) | ✓ lib/ + contracts + __tests__ |
 | `auth` | REDESIGN login/signup/reset screens | ✓ lib/ + components/ |
 | `b2b` | B2B org management | ✓ components/ |
 | `b2c` | B2C learner management | ✓ components/ |
@@ -73,7 +73,7 @@ src/modules/<feature>/
 | `gamification` | XP + badges + celebrations | ✓ lib/ + components/ |
 | `grading` | Unified grader (legacy stub) | index.ts only |
 | `learn` | Modern class: classroom, slides/video, voice Q&A, avatar, study-flow engine | ✓ lib/ + components/ + __tests__ |
-| `learner-portal` | REDESIGN learner screens (home, catalog, course detail, exams, progress, assignments, submission flow) | ✓ components + use-api |
+| `learner-portal` | REDESIGN learner screens (home, catalog, course detail, exams, progress, assignments, submission flow, exam runner + results) | ✓ components + use-api |
 | `project` | Capstone project | ✓ lib/ |
 | `self-paced` | Self-paced advancement (legacy) | index.ts only |
 | `shared` | Cross-module shared (legacy stub) | index.ts only |
@@ -99,7 +99,9 @@ src/modules/
 │   ├── feedback-thread.tsx ← W4 text/audio/annotation thread
 │   └── sign-off-card.tsx  ← W4 ordered multi-signer chain
 ├── shell/                 ← adaptive shell (TopNav / TabRow / BottomNav / ActionBar)
-├── theme/                 ← token engine, mode switching, org-brand derivation
+│                            + use-scroll-direction (hide-on-scroll nav, unit-tested)
+├── theme/                 ← token engine, mode switching, org-brand derivation,
+│                            captions-store (Bed captions default ON, P6 §3)
 ├── tutor/                 ← FloatingTutor (FAB, drag/dock/persist, vector rig)
 ├── learn/                 ← classroom, journey, SRS, study-flow engine (lib/study-flow.ts)
 ├── course/                ← content-model services (legacy lib kept)
@@ -201,7 +203,7 @@ src/app/api/
 │   ├── learner/home|progress/
 │   ├── courses/  courses/[id]/overview|syllabus/
 │   ├── study-plan/  srs/queue/  srs/[cardId]/review/  diagnostic/start|answer/
-│   ├── exams/
+│   ├── exams/  exams/[id]/start|resume|answer|complete|results/
 │   ├── tutor/ask/           ← streaming tutor (text-only AI packet)
 │   ├── assignments/  assignments/[id]/  assignments/[id]/draft|submit/
 │   ├── submissions/[id]/resubmit|feedback/

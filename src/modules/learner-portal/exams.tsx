@@ -14,6 +14,13 @@ import { useApi } from "./use-api";
 
 /* ---------------- payload types (mirror GET /api/v2/exams) ------------- */
 
+interface SessionRollup {
+  status: string;
+  questionIndex: number;
+  score: number | null;
+  href: string;
+}
+
 interface DailyDue {
   id: string;
   kind: "daily-test";
@@ -22,6 +29,7 @@ interface DailyDue {
   courseName: string;
   score: number | null;
   href: string;
+  session: SessionRollup | null;
 }
 
 interface WeeklyTest {
@@ -33,6 +41,7 @@ interface WeeklyTest {
   score: number | null;
   completedAt?: string | null;
   href: string;
+  session: SessionRollup | null;
 }
 
 interface ExamsData {
@@ -66,11 +75,19 @@ export function LearnerExams() {
                 {data.dueToday.map((t) => (
                   <ListCardRow
                     key={t.id}
-                    href={t.href}
+                    href={t.session?.href ?? t.href}
                     leading={<TestIcon tone="warning" />}
                     title="Daily check-in"
                     meta={t.courseName}
-                    trailing={<StatusBadge status={t.status} />}
+                    trailing={
+                      t.session?.status === "completed" ? (
+                        <ReviewChip score={t.session.score} />
+                      ) : t.session?.status === "in_progress" ? (
+                        <ResumeChip />
+                      ) : (
+                        <StatusBadge status={t.status} />
+                      )
+                    }
                   />
                 ))}
               </ListCard>
@@ -81,15 +98,19 @@ export function LearnerExams() {
                 {data.ready.map((t) => (
                   <ListCardRow
                     key={t.id}
-                    href={t.href}
+                    href={t.session?.href ?? t.href}
                     leading={<TestIcon tone="brand" />}
                     title={`Week ${t.week} test`}
                     meta={t.courseName}
                     trailing={
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
-                        <Play className="h-3.5 w-3.5" aria-hidden />
-                        Start
-                      </span>
+                      t.session?.status === "in_progress" ? (
+                        <ResumeChip />
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
+                          <Play className="h-3.5 w-3.5" aria-hidden />
+                          Start
+                        </span>
+                      )
                     }
                   />
                 ))}
@@ -103,12 +124,14 @@ export function LearnerExams() {
                 {data.taken.map((t) => (
                   <ListCardRow
                     key={t.id}
-                    href={t.href}
+                    href={t.session?.href ?? t.href}
                     leading={<TestIcon tone={t.status === "completed" ? "success" : "warning"} />}
                     title={`Week ${t.week} test`}
                     meta={`${t.courseName}${t.completedAt ? ` · ${new Date(t.completedAt).toLocaleDateString()}` : ""}`}
                     trailing={
-                      t.status === "completed" && t.score !== null ? (
+                      t.session?.status === "in_progress" ? (
+                        <ResumeChip />
+                      ) : t.status === "completed" && t.score !== null ? (
                         <span className="font-semibold text-fg">{t.score}%</span>
                       ) : (
                         <StatusBadge status={t.status} />
@@ -156,6 +179,24 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className="inline-flex items-center rounded-full bg-warning-subtle px-2 py-0.5 text-[11px] font-semibold text-warning-on">
       In progress
+    </span>
+  );
+}
+
+function ResumeChip() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-brand-subtle px-2 py-0.5 text-[11px] font-semibold text-fg">
+      <Play className="h-3 w-3" aria-hidden />
+      Resume
+    </span>
+  );
+}
+
+function ReviewChip({ score }: { score: number | null }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-success-subtle px-2 py-0.5 text-[11px] font-semibold text-success-on">
+      <CheckCircle2 className="h-3 w-3" aria-hidden />
+      Review {score != null ? `· ${Math.round(score)}%` : ""}
     </span>
   );
 }

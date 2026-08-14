@@ -112,6 +112,7 @@ model Course {
   tutorSessions      TutorSession[]
   learnDailyTests    LearnDailyTest[]
   learnWeeklyTests   LearnWeeklyTest[]
+  examSessions       ExamSession[]
   learnNotes         LearnNote[]
   assignments        Assignment[]
 }
@@ -330,6 +331,7 @@ model User {
   engagementEvents   EngagementEvent[]
   learnDailyTests    LearnDailyTest[]
   learnWeeklyTests   LearnWeeklyTest[]
+  examSessions       ExamSession[]
 }
 
 model PasswordResetRequest {
@@ -1441,4 +1443,30 @@ model GradeEntry {
   submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 
   @@index([submissionId, cycle])
+}
+
+/// W5 exam runner session (REDESIGN-P4 §3): per-learner progress + grades
+/// for a daily or weekly assessment. Questions live on the LearnDailyTest /
+/// LearnWeeklyTest rows; this tracks runner position, per-question grades
+/// (via gradeOneQuestion), and completion state for resume/autosave.
+model ExamSession {
+  id            String   @id @default(cuid())
+  userId        String
+  courseId      String
+  kind          String   // "daily" | "weekly"
+  slug          String   // "daily-<courseId>-<YYYY-MM-DD>" | "weekly-<courseId>-<week>"
+  questionIndex Int      @default(0)
+  answersJson   Json? // [{ question, format, answer, score, explanation, correctAnswer, flagged }]
+  status        String   @default("in_progress") // in_progress | completed
+  score         Float?
+  xpAwarded     Int      @default(0)
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, kind, slug])
+  @@index([userId, status])
+  @@index([courseId, kind])
 }
