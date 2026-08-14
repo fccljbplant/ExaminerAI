@@ -52,7 +52,18 @@ interface StudentProfileData {
   courseId: string;
   kpis: { progress: number; tasksDone: string; latestScore: number | null; attentionScore: number };
   attentionReasons: string[];
-  weeklyTests: Array<{ week: number; score: number | null; status: string; completedAt: string | null }>;
+  weeklyTests: Array<{
+    week: number;
+    score: number | null;
+    status: string;
+    completedAt: string | null;
+    plagiarismScore: number | null;
+    strengths: string[];
+    weaknesses: string[];
+    nextAction: string | null;
+    retakeAllowed: boolean;
+    replies: number;
+  }>;
   reportCards: Array<{ id: string; week: number | null; score: number; grade: string; createdAt: string }>;
   competencies: Array<{ topic: string; level: string }>;
   dailyLogs: Array<{ date: string; confidence: number | null }>;
@@ -82,10 +93,12 @@ interface CommentRow {
   interactionId: string | null;
 }
 
-type TabKey = "academic" | "project" | "engagement" | "certificates" | "comments";
+type TabKey = "academic" | "growth" | "psychology" | "project" | "engagement" | "certificates" | "comments";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "academic", label: "Academic" },
+  { key: "growth", label: "Growth" },
+  { key: "psychology", label: "Psychology" },
   { key: "project", label: "Project" },
   { key: "engagement", label: "Engagement" },
   { key: "certificates", label: "Certificates" },
@@ -329,6 +342,8 @@ export function StudentProfile({ studentId }: { studentId: string }) {
       </div>
 
       {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
+      {tab === "growth" && <GrowthTab data={data} studentId={studentId} />}
+      {tab === "psychology" && <PsychologyTab data={data} />}
       {tab === "project" && <ProjectTab data={data} />}
       {tab === "engagement" && <EngagementTab data={data} />}
       {tab === "certificates" && <CertificatesTab data={data} />}
@@ -532,6 +547,228 @@ function AcademicTab({
     </div>
   );
 }
+
+function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: string }) {
+  const [report, setReport] = useState<{
+    overview?: string;
+    strengths?: string[];
+    growthAreas?: string[];
+    recommendations?: string[];
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/growth-reports/${studentId}`);
+      const payload = (await res.json().catch(() => ({}))) as {
+        report?: typeof report;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(payload.error || "Growth report unavailable");
+      setReport(payload.report ?? null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Growth report unavailable");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const scored = data.weeklyTests.filter((t) => t.score != null);
+
+  return (
+    <div className="space-y-4">
+      {/* score trend */}
+      <section className="space-y-2">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          Score trend
+        </h2>
+        {scored.length === 0 ? (
+          <Empty label="No scored tests yet." />
+        ) : (
+          <div className="flex h-28 items-end gap-2 rounded-xl border border-line bg-surface p-4">
+            {scored.map((t) => (
+              <div key={t.week} className="flex min-w-8 flex-1 flex-col items-center gap-1">
+                <span className="text-[10px] tabular-nums text-fg-muted">{t.score}%</span>
+                <div
+                  className={cn(
+                    "w-full rounded-t-md",
+                    (t.score ?? 0) >= 60 ? "bg-success" : "bg-warning"
+                  )}
+                  style={{ height: `${Math.max(8, t.score ?? 0)}%` }}
+                  title={`Week ${t.week}: ${t.score}%`}
+                />
+                <span className="text-[10px] tabular-nums text-fg-muted">W{t.week}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* private growth report (v1 GrowthReportPanel) */}
+      <section className="space-y-2">
+        <div className="flex items-center justify-between gap-2 px-1">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
+            Growth report
+          </h2>
+          {!report && !loading && (
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong"
+            >
+              <Sparkles className="h-3.5 w-3.5" aria-hidden />
+              Generate
+            </button>
+          )}
+          {report && (
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong"
+            >
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+              Refresh
+            </button>
+          )}
+        </div>
+        {loading ? (
+          <p className="rounded-xl border border-line bg-surface p-4 text-xs text-fg-muted" aria-busy="true">
+            <Loader2 className="mr-1.5 inline h-3.5 w-3.5 animate-spin" aria-hidden />
+            Writing the growth report…
+          </p>
+        ) : error ? (
+          <p role="alert" className="rounded-xl border border-line bg-surface p-4 text-xs font-medium text-danger">
+            {error}
+          </p>
+        ) : report ? (
+          <div className="space-y-2 rounded-xl border border-line bg-surface p-4">
+            {report.overview && <p className="text-sm leading-relaxed text-fg">{report.overview}</p>}
+            {report.strengths && report.strengths.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-success-on">Strengths</p>
+                <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-fg">
+                  {report.strengths.map((x, i) => (
+                    <li key={i}>{x}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {report.growthAreas && report.growthAreas.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-warning-on">Growth areas</p>
+                <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-fg">
+                  {report.growthAreas.map((x, i) => (
+                    <li key={i}>{x}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {report.recommendations && report.recommendations.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-fg-secondary">Recommendations</p>
+                <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-fg">
+                  {report.recommendations.map((x, i) => (
+                    <li key={i}>{x}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Empty label="No growth report yet — generate one from the test data." />
+        )}
+      </section>
+
+      {/* competencies */}
+      <section className="space-y-2">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          Competency mastery
+        </h2>
+        {data.competencies.length === 0 ? (
+          <Empty label="No competency data yet." />
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {data.competencies.map((c) => (
+              <span
+                key={c.topic}
+                className="rounded-full border border-line bg-surface px-3 py-1 text-xs text-fg-secondary"
+              >
+                {c.topic}
+                <span className="ml-1 text-fg-muted">· {c.level}</span>
+              </span>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function PsychologyTab({ data }: { data: StudentProfileData }) {
+  const completed = data.weeklyTests.filter((t) => t.status === "completed");
+  if (completed.length === 0)
+    return <Empty label="No completed tests yet — psychology signals appear after the first weekly test." />;
+  return (
+    <div className="space-y-4">
+      <p className="px-1 text-xs leading-relaxed text-fg-muted">
+        Derived from the Socratic examiner&apos;s per-test analysis: plagiarism flags,
+        strengths and weaknesses, the recommended next action, and reply engagement.
+      </p>
+      {completed.map((t) => (
+        <div key={t.week} className="space-y-2 rounded-xl border border-line bg-surface p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-fg">Week {t.week}</p>
+            <div className="flex items-center gap-1.5">
+              {t.plagiarismScore != null && t.plagiarismScore > 40 && (
+                <span className="rounded-full bg-danger-subtle px-2 py-0.5 text-[10px] font-semibold text-danger-on">
+                  plagiarism {t.plagiarismScore}%
+                </span>
+              )}
+              <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-[10px] font-semibold tabular-nums text-fg-muted">
+                {t.replies} replies
+              </span>
+              {t.retakeAllowed && (
+                <span className="rounded-full bg-warning-subtle px-2 py-0.5 text-[10px] font-semibold text-warning-on">
+                  retake allowed
+                </span>
+              )}
+            </div>
+          </div>
+          {t.strengths.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-success-on">Strengths</p>
+              <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-fg">
+                {t.strengths.map((x, i) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {t.weaknesses.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-warning-on">Weaknesses</p>
+              <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-fg">
+                {t.weaknesses.map((x, i) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {t.nextAction && (
+            <p className="text-sm leading-relaxed text-fg">
+              <span className="text-xs font-semibold text-fg-secondary">Next action: </span>
+              {t.nextAction}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 function ProjectTab({ data }: { data: StudentProfileData }) {
   return (

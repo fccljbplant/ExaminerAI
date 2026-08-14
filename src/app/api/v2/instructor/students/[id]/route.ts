@@ -68,7 +68,18 @@ export async function GET(
       db.weeklyTest.findMany({
         where: { userId: id },
         orderBy: { week: "asc" },
-        select: { week: true, score: true, status: true, completedAt: true },
+        select: {
+          week: true,
+          score: true,
+          status: true,
+          completedAt: true,
+          plagiarismScore: true,
+          strengths: true,
+          weaknesses: true,
+          nextAction: true,
+          retakeAllowed: true,
+          conversation: true,
+        },
       }),
       db.reportCard.findMany({
         where: { userId: id },
@@ -150,12 +161,31 @@ export async function GET(
       attentionScore,
     },
     attentionReasons,
-    weeklyTests: weeklyTests.map((t) => ({
-      week: t.week,
-      score: t.score,
-      status: t.status,
-      completedAt: t.completedAt?.toISOString() ?? null,
-    })),
+    weeklyTests: weeklyTests.map((t) => {
+      let replies = 0;
+      try {
+        const conv = JSON.parse(t.conversation) as Array<{ role?: string }>;
+        replies = conv.filter((m) => m.role === "student").length;
+      } catch {
+        replies = 0;
+      }
+      let strengths: string[] = [];
+      let weaknesses: string[] = [];
+      try { strengths = JSON.parse(t.strengths); } catch { strengths = []; }
+      try { weaknesses = JSON.parse(t.weaknesses); } catch { weaknesses = []; }
+      return {
+        week: t.week,
+        score: t.score,
+        status: t.status,
+        completedAt: t.completedAt?.toISOString() ?? null,
+        plagiarismScore: t.plagiarismScore,
+        strengths,
+        weaknesses,
+        nextAction: t.nextAction,
+        retakeAllowed: t.retakeAllowed,
+        replies,
+      };
+    }),
     reportCards: reportCards.map((r) => ({
       id: r.id,
       week: r.week ?? null,
