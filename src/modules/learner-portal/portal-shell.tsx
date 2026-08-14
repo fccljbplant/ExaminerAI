@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppShellV2, ModeToggle } from "@/modules/shell";
+import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { LEARNER_NAV } from "./nav";
 
@@ -21,14 +21,6 @@ import { LEARNER_NAV } from "./nav";
 
 const NAV: NavItem[] = LEARNER_NAV;
 
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
 
 export function PortalShell({ userName, children }: { userName: string; children: ReactNode }) {
   return (
@@ -39,12 +31,7 @@ export function PortalShell({ userName, children }: { userName: string; children
         trailing={
           <>
             <ModeToggle />
-            <span
-              title={userName}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-subtle text-xs font-semibold text-fg"
-            >
-              {initials(userName) || "?"}
-            </span>
+            <UserMenu userName={userName} profileHref="/learner/profile" profileLabel="Profile" />
           </>
         }
       >

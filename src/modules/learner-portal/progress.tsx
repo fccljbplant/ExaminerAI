@@ -16,6 +16,7 @@ import {
 import { Kpi, StatStrip } from "@/modules/ui/kpi";
 import { RadialProgress } from "@/modules/ui/radial-progress";
 import { useApi } from "./use-api";
+import { PrivateReports, ClaimCertificate } from "./reports";
 
 /**
  * modules/learner-portal — L11 Progress (REDESIGN-P3 §L11)
@@ -124,10 +125,11 @@ export function LearnerProgress() {
         <div className="space-y-4 lg:col-span-7 lg:space-y-6">
           <CourseRings courses={data.courses} />
           <ActivityStrip activity={data.activity} />
+          <PrivateReports />
         </div>
 
         <div className="space-y-4 lg:col-span-5 lg:space-y-6">
-          <Credentials certificates={data.certificates} />
+          <Credentials certificates={data.certificates} courses={data.courses} />
           <WeeklyTests tests={data.weeklyTests} />
           <ReportCards cards={data.reportCards} />
           <CheckinsHeatmap checkins={data.checkins} />
@@ -212,7 +214,16 @@ function ActivityStrip({ activity }: { activity: ProgressData["activity"] }) {
 
 /* ---------------- credentials --------------------------------------------------- */
 
-function Credentials({ certificates }: { certificates: ProgressData["certificates"] }) {
+function Credentials({
+  certificates,
+  courses,
+}: {
+  certificates: ProgressData["certificates"];
+  courses: ProgressData["courses"];
+}) {
+  const completedCourses = courses.filter((c) => c.percent >= 100);
+  const claimedNames = new Set(certificates.map((c) => c.courseName));
+  const claimable = completedCourses.filter((c) => !claimedNames.has(c.courseName));
   return (
     <section aria-label="Credentials" className="rounded-xl border border-line bg-surface p-4 md:p-5">
       <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Credentials</h2>
@@ -249,6 +260,14 @@ function Credentials({ certificates }: { certificates: ProgressData["certificate
             </li>
           ))}
         </ul>
+      )}
+      {claimable.length > 0 && (
+        <div className="mt-3 space-y-1.5 border-t border-line pt-3">
+          <p className="text-xs font-medium text-fg-muted">Completed — claim your credential:</p>
+          {claimable.map((c) => (
+            <ClaimCertificate key={c.courseId} courseId={c.courseId} courseName={c.courseName} />
+          ))}
+        </div>
       )}
     </section>
   );

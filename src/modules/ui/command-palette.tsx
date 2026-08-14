@@ -38,22 +38,22 @@ import {
 // Built-in navigation commands — always available.
 const NAV_COMMANDS: CommandEntry[] = [
   { id: "nav-home", label: "Today", hint: "Your daily routine", group: "Navigate", icon: Home, action: () => window.location.assign("/learner") },
-  { id: "nav-courses", label: "My Courses", hint: "Browse and switch courses", group: "Navigate", icon: BookOpen, action: () => window.location.assign("/app?view=my-courses") },
-  { id: "nav-study", label: "Study", hint: "Practice, daily test, weekly test", group: "Navigate", icon: ClipboardList, action: () => window.location.assign("/app?view=study") },
-  { id: "nav-project", label: "Project", hint: "Your capstone project tasks", group: "Navigate", icon: FolderGit2, action: () => window.location.assign("/app?view=project") },
-  { id: "nav-progress", label: "Progress", hint: "Report cards, growth, scores", group: "Navigate", icon: BarChart3, action: () => window.location.assign("/app?view=progress") },
-  { id: "nav-credentials", label: "Credentials", hint: "Certificates and badges", group: "Navigate", icon: Award, action: () => window.location.assign("/app?view=credentials") },
-  { id: "nav-messages", label: "Messages", hint: "Chat with your mentor", group: "Navigate", icon: MessageSquare, action: () => window.location.assign("/app?view=messages") },
-  { id: "nav-calendar", label: "Calendar", hint: "Deadlines and weekly tests", group: "Navigate", icon: Calendar, action: () => window.location.assign("/app?view=calendar") },
-  { id: "nav-settings", label: "Settings", hint: "Account, theme, security", group: "Navigate", icon: Settings, action: () => window.location.assign("/app?view=settings") },
+  { id: "nav-courses", label: "My Courses", hint: "Browse and switch courses", group: "Navigate", icon: BookOpen, action: () => window.location.assign("/learner/learn") },
+  { id: "nav-study", label: "Study", hint: "Practice, daily test, weekly test", group: "Navigate", icon: ClipboardList, action: () => window.location.assign("/learner/exams") },
+  { id: "nav-project", label: "Project", hint: "Your capstone project tasks", group: "Navigate", icon: FolderGit2, action: () => window.location.assign("/learner/progress") },
+  { id: "nav-progress", label: "Progress", hint: "Report cards, growth, scores", group: "Navigate", icon: BarChart3, action: () => window.location.assign("/learner/progress") },
+  { id: "nav-credentials", label: "Credentials", hint: "Certificates and badges", group: "Navigate", icon: Award, action: () => window.location.assign("/learner/progress") },
+  { id: "nav-messages", label: "Messages", hint: "Chat with your mentor", group: "Navigate", icon: MessageSquare, action: () => window.location.assign("/learner/messages") },
+  { id: "nav-calendar", label: "Calendar", hint: "Deadlines and weekly tests", group: "Navigate", icon: Calendar, action: () => window.location.assign("/learner/progress") },
+  { id: "nav-settings", label: "Settings", hint: "Account, theme, security", group: "Navigate", icon: Settings, action: () => window.location.assign("/learner/profile") },
 ];
 
 // Quick actions — the "do something" commands.
 const ACTION_COMMANDS: CommandEntry[] = [
-  { id: "act-daily-test", label: "Start today's daily test", hint: "3 Socratic questions · ~5 min", group: "Actions", icon: GraduationCap, action: () => window.location.assign("/app?view=study&mode=daily-test") },
-  { id: "act-weekly-test", label: "Take weekly test", hint: "10 questions · full Socratic exam", group: "Actions", icon: ClipboardList, action: () => window.location.assign("/app?view=study&mode=weekly-test") },
-  { id: "act-practice", label: "Practice drills", hint: "Wrong answers come back", group: "Actions", icon: Sparkles, action: () => window.location.assign("/app?view=study&mode=practice") },
-  { id: "act-ask-mentor", label: "Ask your mentor", hint: "Send a question to your mentor", group: "Actions", icon: MessageSquare, action: () => window.location.assign("/app?view=study&mode=ask") },
+  { id: "act-daily-test", label: "Start today's daily test", hint: "3 Socratic questions · ~5 min", group: "Actions", icon: GraduationCap, action: () => window.location.assign("/learner/exams/daily") },
+  { id: "act-weekly-test", label: "Take weekly test", hint: "10 questions · full Socratic exam", group: "Actions", icon: ClipboardList, action: () => window.location.assign("/learner/exams/weekly") },
+  { id: "act-practice", label: "Practice drills", hint: "Wrong answers come back", group: "Actions", icon: Sparkles, action: () => window.location.assign("/learner/practice") },
+  { id: "act-ask-mentor", label: "Ask your mentor", hint: "Send a question to your mentor", group: "Actions", icon: MessageSquare, action: () => window.location.assign("/learner/messages") },
 ];
 
 export function CommandPalette() {

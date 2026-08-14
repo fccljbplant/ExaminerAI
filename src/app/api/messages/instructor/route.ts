@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "student") {
+  if (user.role !== "student" && user.role !== "learner") {
     return NextResponse.json({ error: "Only students can use Ask My Teacher" }, { status: 403 });
   }
   // Find the student's courses and return the first instructor

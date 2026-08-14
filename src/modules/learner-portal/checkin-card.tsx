@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, ChevronDown, Loader2 } from "lucide-react";
+import { CheckCircle2, ChevronDown, History, Loader2, Trash2 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +51,38 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
     }
   }
 
+  const [history, setHistory] = useState<Array<{ id: string; date: string; whatDidYouDo: string; confidence: number | null }> | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function loadHistory() {
+    setShowHistory((v) => {
+      if (!v) {
+        setHistory(null);
+        fetch("/api/daily-logs")
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d: { logs?: typeof history } | null) => setHistory(d?.logs ?? []))
+          .catch(() => setHistory([]));
+      }
+      return !v;
+    });
+  }
+
+  async function removeLog(id: string) {
+    setDeletingId(id);
+    try {
+      await api.del(`/api/daily-logs/${id}`);
+      toast.success("Check-in deleted");
+      setHistory((h) => h?.filter((l) => l.id !== id) ?? h);
+    } catch (err) {
+      toast.error("Couldn't delete check-in", {
+        description: err instanceof Error ? err.message : "Try again.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   if (done) {
     return (
       <section
@@ -84,6 +116,58 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
           aria-hidden
         />
       </button>
+
+      {/* history (v1 CheckInPanel recent logs) */}
+      <button
+        type="button"
+        onClick={() => void loadHistory()}
+        aria-expanded={showHistory}
+        className="flex min-h-11 w-full items-center justify-between gap-2 text-left"
+      >
+        <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
+          <History className="h-3.5 w-3.5" aria-hidden />
+          Recent check-ins
+        </span>
+        <ChevronDown
+          className={cn("h-4 w-4 shrink-0 text-fg-muted transition-transform", showHistory && "rotate-180")}
+          aria-hidden
+        />
+      </button>
+
+      {showHistory && (
+        <div className="space-y-1.5 border-t border-line pt-2">
+          {history === null ? (
+            <p className="py-2 text-xs text-fg-muted" aria-busy="true">Loading…</p>
+          ) : history.length === 0 ? (
+            <p className="py-2 text-xs text-fg-muted">No check-ins yet.</p>
+          ) : (
+            history.slice(0, 7).map((l) => (
+              <div key={l.id} className="flex items-start gap-2 rounded-lg bg-bg-subtle px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-fg-muted">
+                    {new Date(l.date).toLocaleDateString()}
+                    {l.confidence != null ? ` · ${l.confidence}/5` : ""}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-sm text-fg">{l.whatDidYouDo}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void removeLog(l.id)}
+                  disabled={deletingId === l.id}
+                  aria-label={`Delete check-in from ${new Date(l.date).toLocaleDateString()}`}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger"
+                >
+                  {deletingId === l.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                  )}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {open && (
         <form onSubmit={submit} className="mt-3 space-y-3 border-t border-line pt-3">

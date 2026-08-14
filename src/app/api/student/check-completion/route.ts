@@ -28,7 +28,7 @@ import { issueCertificate, checkEligibility, type CertificateRow } from "@/lib/c
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "student") {
+  if (user.role !== "student" && user.role !== "learner") {
     return NextResponse.json(
       { error: "Only students can check their own course completion" },
       { status: 403 },

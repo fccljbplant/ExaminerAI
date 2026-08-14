@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("submitting group tasks"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "student") {
+  if (user.role !== "student" && user.role !== "learner") {
     return NextResponse.json({ error: "Only students can submit" }, { status: 403 });
   }
 

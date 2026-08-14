@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   Bell,
   CircleHelp,
+  KeyRound,
   LogOut,
   Palette,
   ShieldCheck,
@@ -40,6 +41,7 @@ export function LearnerProfile({ user }: { user: ProfileInfo }) {
         <AccountCard user={user} />
         <AppearanceCard />
         <SecurityCard />
+        <SecurityQuestionCard />
         <HelpCard />
         <UpcomingCard
           icon={Bell}
@@ -220,6 +222,74 @@ function SecurityCard() {
           className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle disabled:opacity-60"
         >
           {busy ? "Saving…" : "Change password"}
+        </button>
+      </form>
+    </Card>
+  );
+}
+
+function SecurityQuestionCard() {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setResult(null);
+    try {
+      await api.post("/api/auth/set-security-question", {
+        securityQuestion: question,
+        securityAnswer: answer,
+      });
+      setResult({ ok: true, message: "Security question saved — it's used to recover your account." });
+      setQuestion("");
+      setAnswer("");
+    } catch (err) {
+      setResult({ ok: false, message: err instanceof Error ? err.message : "Couldn't save security question" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card icon={KeyRound} title="Account recovery">
+      <form onSubmit={submit} className="space-y-3">
+        <label className="block">
+          <span className="text-xs font-medium text-fg-secondary">Security question</span>
+          <input
+            required
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="e.g. What was your first pet's name?"
+            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-fg-secondary">Answer</span>
+          <input
+            required
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Your answer"
+            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          />
+        </label>
+        {result && (
+          <p
+            role={result.ok ? "status" : "alert"}
+            className={"text-xs font-medium " + (result.ok ? "text-success" : "text-danger")}
+          >
+            {result.message}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle disabled:opacity-60"
+        >
+          {busy ? "Saving…" : "Save security question"}
         </button>
       </form>
     </Card>

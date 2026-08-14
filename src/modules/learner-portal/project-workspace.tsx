@@ -11,8 +11,10 @@ import {
   CircleDashed,
   Flag,
   Loader2,
+  Plus,
   RefreshCw,
   Target,
+  Trash2,
   TrendingUp,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
@@ -89,6 +91,61 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
     } catch (e) {
       toast.error("Couldn't complete milestone", {
         description: e instanceof Error ? e.message : "Try again.",
+      });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  // Task CRUD (v1 /api/tasks — the learner's own ProjectTask rows)
+  const [newTask, setNewTask] = useState("");
+  const [newTaskWeek, setNewTaskWeek] = useState(1);
+  const [adding, setAdding] = useState(false);
+
+  async function addTask(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTask.trim()) return;
+    setAdding(true);
+    try {
+      await api.post("/api/tasks", { description: newTask.trim(), week: newTaskWeek });
+      setNewTask("");
+      toast.success("Task added");
+      retry();
+    } catch (err) {
+      toast.error("Couldn't add task", {
+        description: err instanceof Error ? err.message : "Try again.",
+      });
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function toggleTask(t: TaskView) {
+    setBusyId(t.id);
+    try {
+      await api.patch("/api/tasks", {
+        id: t.id,
+        status: t.status === "completed" ? "planned" : "completed",
+      });
+      retry();
+    } catch (err) {
+      toast.error("Couldn't update task", {
+        description: err instanceof Error ? err.message : "Try again.",
+      });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function deleteTask(t: TaskView) {
+    setBusyId(t.id);
+    try {
+      await api.del(`/api/tasks?id=${t.id}`);
+      toast.success("Task deleted");
+      retry();
+    } catch (err) {
+      toast.error("Couldn't delete task", {
+        description: err instanceof Error ? err.message : "Try again.",
       });
     } finally {
       setBusyId(null);
@@ -210,16 +267,58 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
       )}
 
       {/* task board by week */}
-      {data.tasks.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">Tasks</h2>
+      <section className="space-y-3">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">Tasks</h2>
+        <form onSubmit={addTask} className="flex flex-wrap gap-2 rounded-xl border border-line bg-surface p-3">
+          <input
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            placeholder="Add a task…"
+            aria-label="New task description"
+            className="h-11 min-w-40 flex-1 rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+          />
+          <select
+            value={newTaskWeek}
+            onChange={(e) => setNewTaskWeek(Number(e.target.value))}
+            aria-label="Task week"
+            className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg"
+          >
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
+              <option key={w} value={w}>Week {w}</option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={adding || !newTask.trim()}
+            className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+          >
+            {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
+            Add
+          </button>
+        </form>
+        {data.tasks.length > 0 && (
+          <div className="space-y-3">
           {[...byWeek.entries()].map(([week, tasks]) => (
             <div key={week} className="space-y-1.5">
               <p className="px-1 text-xs font-medium text-fg-muted">Week {week}</p>
               <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
                 {tasks.map((t) => (
                   <div key={t.id} className="flex min-h-11 items-center gap-3 px-4 py-2.5">
-                    <p className="min-w-0 flex-1 truncate text-sm text-fg">{t.title}</p>
+                    <button
+                      type="button"
+                      onClick={() => toggleTask(t)}
+                      disabled={busyId === t.id}
+                      aria-label={t.status === "completed" ? `Mark ${t.title} incomplete` : `Mark ${t.title} complete`}
+                      className={cn(
+                        "h-4 w-4 shrink-0 rounded-full border",
+                        t.status === "completed"
+                          ? "border-success bg-success"
+                          : "border-line bg-bg"
+                      )}
+                    />
+                    <p className={cn("min-w-0 flex-1 truncate text-sm", t.status === "completed" ? "text-fg-muted line-through" : "text-fg")}>
+                      {t.title}
+                    </p>
                     <span
                       className={cn(
                         "shrink-0 rounded-md px-2 py-0.5 text-xs font-medium capitalize",
@@ -228,13 +327,23 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
                     >
                       {t.status.replace("-", " ")}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => deleteTask(t)}
+                      disabled={busyId === t.id}
+                      aria-label={`Delete ${t.title}`}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
           ))}
-        </section>
-      )}
+          </div>
+        )}
+      </section>
 
       <Link
         href="/learner"

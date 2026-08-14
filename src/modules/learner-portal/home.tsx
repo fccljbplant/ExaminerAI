@@ -282,22 +282,62 @@ function HomeError({ message, onRetry }: { message: string; onRetry: () => void 
 
 function NoEnrollment() {
   return (
-    <div className="rounded-xl border border-dashed border-line bg-surface p-8 text-center">
-      <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-subtle text-fg">
-        <GraduationCap className="h-7 w-7" aria-hidden />
-      </span>
-      <p className="mt-4 text-sm font-semibold text-fg">Start your first course</p>
-      <p className="mx-auto mt-1 max-w-xs text-xs text-fg-muted">
-        Browse the catalog and pick a course — your streak starts on day one.
-      </p>
-      <Link
-        href="/learner/learn"
-        className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90"
-      >
-        <BookOpen className="h-4 w-4" aria-hidden />
-        Browse courses
-      </Link>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-dashed border-line bg-surface p-8 text-center">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-subtle text-fg">
+          <GraduationCap className="h-7 w-7" aria-hidden />
+        </span>
+        <p className="mt-4 text-sm font-semibold text-fg">Start your first course</p>
+        <p className="mx-auto mt-1 max-w-xs text-xs text-fg-muted">
+          Browse the catalog and pick a course — your streak starts on day one.
+        </p>
+        <Link
+          href="/learner/learn"
+          className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90"
+        >
+          <BookOpen className="h-4 w-4" aria-hidden />
+          Browse courses
+        </Link>
+      </div>
+
+      {/* onboarding guide (v1 OnboardingGuide) */}
+      <OnboardingGuide />
     </div>
+  );
+}
+
+function OnboardingGuide() {
+  const STEPS = [
+    { n: 1, label: "Enroll in a course", href: "/learner/learn", desc: "Pick a course from the catalog to start your journey." },
+    { n: 2, label: "Open your first lesson", href: "/learner/learn", desc: "The classroom has slides, video and an AI tutor on stage." },
+    { n: 3, label: "Practice with the AI examiner", href: "/learner/practice", desc: "Have a Socratic conversation — the examiner probes your understanding." },
+    { n: 4, label: "Take the weekly test", href: "/learner/exams/weekly", desc: "10 concept questions, graded on reasoning — not word count." },
+    { n: 5, label: "Claim your certificate", href: "/learner/progress", desc: "Finish all weekly tests to earn a verified credential." },
+  ] as const;
+  return (
+    <section aria-label="Getting started" className="rounded-xl border border-line bg-surface p-4 md:p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
+        Getting started
+      </h2>
+      <ol className="mt-3 space-y-2">
+        {STEPS.map((s) => (
+          <li key={s.n}>
+            <Link
+              href={s.href}
+              className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-bg-subtle"
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-subtle text-[11px] font-semibold text-fg">
+                {s.n}
+              </span>
+              <span>
+                <span className="block text-sm font-medium text-fg">{s.label}</span>
+                <span className="block text-xs text-fg-muted">{s.desc}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

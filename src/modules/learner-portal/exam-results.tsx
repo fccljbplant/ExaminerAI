@@ -13,6 +13,7 @@ import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { useApi } from "./use-api";
 import { RadialProgress } from "@/modules/ui/radial-progress";
+import { PostTestReflection } from "@/modules/assessment";
 
 /**
  * modules/learner-portal — L10 Exam results (REDESIGN-P3 §L10, W5)
@@ -132,6 +133,12 @@ export function ExamResults({ examId }: { examId: string }) {
           </p>
         </div>
       </section>
+
+      {/* coaching reflection (v1 PostTestReflection) */}
+      <PostTestReflection
+        score={Math.round(score)}
+        testType={data.kind === "daily" ? "daily_test" : "weekly_test"}
+      />
 
       {/* per-question review */}
       <section className="space-y-2">

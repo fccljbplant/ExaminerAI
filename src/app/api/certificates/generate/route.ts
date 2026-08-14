@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       db.user.findUnique({ where: { id: targetUserId }, select: { currentWeek: true, role: true, name: true } }),
       getCourseDurationWeeks(targetUserId),
     ]);
-    if (!user || user.role !== "student") {
+    if (!user || user.role !== "student" && user.role !== "learner") {
       return NextResponse.json({ error: "Only students can request certificates" }, { status: 400 });
     }
 
