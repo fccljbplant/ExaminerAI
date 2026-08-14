@@ -1,15 +1,15 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
-import { LearnShell } from "@/components/learn/LearnShell";
+import { ClassroomShell } from "@/modules/learn/components/classroom/ClassroomShell";
 
 export const dynamic = "force-dynamic";
 
 /**
- * /learn/[courseId] — full-screen learning session.
+ * /learn/[courseId] — full-screen learning session ("Modern Class").
  *
- * Renders the LearnShell component which contains the avatar dock,
- * slide canvas, chat pane, and 4 slide-over panels.
+ * Renders the ClassroomShell: on-stage AI avatar teacher, lesson stage
+ * (slides/video), tutor chat with voice + text Q&A, and slide-over panels.
  *
  * If the user is not authenticated, the middleware will redirect them
  * to /app (login). The page itself also checks auth defensively and
@@ -44,5 +44,5 @@ export default async function LearnSessionPage({
   });
   if (!course || !course.isActive) notFound();
 
-  return <LearnShell courseId={course.id} courseName={course.name} />;
+  return <ClassroomShell courseId={course.id} courseName={course.name} />;
 }
