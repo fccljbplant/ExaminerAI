@@ -45,9 +45,9 @@ export function LearnerXPBar({ className = "" }: { className?: string }) {
 
   if (loading) {
     return (
-      <div className={cn("rounded-xl border border-border bg-card p-4 animate-pulse", className)}>
-        <div className="h-3 w-32 rounded bg-muted" />
-        <div className="mt-3 h-2 w-full rounded bg-muted" />
+      <div className={cn("rounded-xl border border-line bg-surface p-4 animate-pulse", className)}>
+        <div className="h-3 w-32 rounded bg-bg-subtle" />
+        <div className="mt-3 h-2 w-full rounded bg-bg-subtle" />
       </div>
     );
   }
@@ -57,34 +57,34 @@ export function LearnerXPBar({ className = "" }: { className?: string }) {
   const { level, progress, total } = data;
 
   return (
-    <div className={cn("rounded-xl border border-border bg-card p-4", className)}>
+    <div className={cn("rounded-xl border border-line bg-surface p-4", className)}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Sparkles className="h-4 w-4 text-primary" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-subtle">
+            <Sparkles className="h-4 w-4 text-brand" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-fg-muted">
               Level {level.level} · {level.label}
             </p>
-            <p className="text-xs text-foreground truncate">
+            <p className="text-xs text-fg truncate">
               {total} XP{progress.toNext > 0 && (
-                <span className="text-muted-foreground"> · {progress.toNext} to next level</span>
+                <span className="text-fg-muted"> · {progress.toNext} to next level</span>
               )}
             </p>
           </div>
         </div>
         {progress.toNext > 0 && (
           <div className="text-right">
-            <p className="text-[10px] text-muted-foreground tabular-nums">{progress.pct}%</p>
+            <p className="text-[10px] text-fg-muted tabular-nums">{progress.pct}%</p>
           </div>
         )}
       </div>
 
       {/* Progress bar — subtle, not gamified-cheesy */}
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-bg-subtle">
         <div
-          className="h-full rounded-full bg-primary transition-all duration-500"
+          className="h-full rounded-full bg-brand transition-all duration-500"
           style={{ width: `${progress.pct}%` }}
         />
       </div>
@@ -95,7 +95,7 @@ export function LearnerXPBar({ className = "" }: { className?: string }) {
           {data.recentAwards.slice(0, 3).map((award, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] text-muted-foreground"
+              className="inline-flex items-center gap-1 rounded-full bg-bg-subtle/60 px-2 py-0.5 text-[10px] text-fg-muted"
             >
               <TrendingUp className="h-2.5 w-2.5" />
               +{award.amount} {REASON_LABELS[award.reason] || award.reason}
@@ -105,7 +105,7 @@ export function LearnerXPBar({ className = "" }: { className?: string }) {
       )}
 
       {/* The hint — casual, encouraging, not prescriptive */}
-      <p className="mt-2 text-[11px] text-muted-foreground italic">
+      <p className="mt-2 text-[11px] text-fg-muted italic">
         {level.hint}
       </p>
     </div>

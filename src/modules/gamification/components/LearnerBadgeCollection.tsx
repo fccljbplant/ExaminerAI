@@ -37,11 +37,13 @@ interface BadgeData {
   };
 }
 
+// W8: tier tints from semantic tokens (warning/success/brand/neutral)
+// instead of the legacy palette — mode-aware, audit-clean.
 const TIER_COLORS: Record<string, string> = {
-  bronze: "from-amber-700/20 to-amber-600/10 border-amber-600/30",
-  silver: "from-slate-400/20 to-slate-300/10 border-slate-400/30",
-  gold: "from-amber-400/20 to-amber-300/10 border-amber-400/40",
-  platinum: "from-violet-400/20 to-violet-300/10 border-violet-400/40",
+  bronze: "from-warning-subtle to-surface border-warning",
+  silver: "from-bg-subtle to-surface border-line",
+  gold: "from-warning-subtle to-surface border-warning",
+  platinum: "from-brand-subtle to-surface border-brand",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -94,7 +96,7 @@ export function LearnerBadgeCollection() {
         <div>
           <h3 className="text-base font-bold flex items-center gap-2">
             🏅 Badges
-            <span className="text-sm font-normal text-muted-foreground">
+            <span className="text-sm font-normal text-fg-muted">
               {data.stats.total} / {data.available.length} earned
             </span>
           </h3>
@@ -102,7 +104,7 @@ export function LearnerBadgeCollection() {
         {/* Tier breakdown */}
         <div className="flex gap-2 text-xs">
           {["bronze", "silver", "gold", "platinum"].map((tier) => (
-            <span key={tier} className="rounded-full border border-border px-2 py-0.5 capitalize">
+            <span key={tier} className="rounded-full border border-line px-2 py-0.5 capitalize">
               {tier}: {data.stats.byTier[tier] || 0}
             </span>
           ))}
@@ -112,7 +114,7 @@ export function LearnerBadgeCollection() {
       {/* Badge grid by category */}
       {Object.entries(byCategory).map(([category, badges]) => (
         <div key={category}>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-fg-muted mb-2">
             {CATEGORY_LABELS[category] || category}
           </p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
@@ -124,7 +126,7 @@ export function LearnerBadgeCollection() {
                   key={badge.id}
                   className={cn(
                     "relative flex flex-col items-center rounded-xl border bg-gradient-to-br p-3 text-center transition",
-                    TIER_COLORS[badge.tier] || "border-border",
+                    TIER_COLORS[badge.tier] || "border-line",
                     earned ? "opacity-100" : "opacity-40 grayscale",
                   )}
                   title={earned ? `${badge.name} — ${badge.description}` : `Locked: ${badge.description}`}
@@ -132,17 +134,17 @@ export function LearnerBadgeCollection() {
                   {/* Lock icon for unearned */}
                   {!earned && (
                     <div className="absolute top-1 right-1">
-                      <Lock className="h-3 w-3 text-muted-foreground" />
+                      <Lock className="h-3 w-3 text-fg-muted" />
                     </div>
                   )}
                   <div className={cn("text-3xl mb-1", !earned && "opacity-50")}>
                     {badge.icon}
                   </div>
-                  <p className="text-[10px] font-semibold text-foreground leading-tight line-clamp-2">
+                  <p className="text-[10px] font-semibold text-fg leading-tight line-clamp-2">
                     {badge.name}
                   </p>
                   {earned && earnedBadge && (
-                    <p className="text-[9px] text-muted-foreground mt-1">
+                    <p className="text-[9px] text-fg-muted mt-1">
                       {new Date(earnedBadge.awardedAt).toLocaleDateString()}
                     </p>
                   )}

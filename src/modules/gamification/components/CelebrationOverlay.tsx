@@ -46,7 +46,11 @@ interface Confetti {
   emoji?: string;
 }
 
-const CONFETTI_COLORS = ["#fbbf24", "#34d399", "#60a5fa", "#f472b6", "#a78bfa", "#fb7185"];
+// W8: confetti reads the semantic chart/status tokens — mode-aware, no hex literals.
+const CONFETTI_COLORS = [
+  "var(--chart-1)", "var(--chart-2)", "var(--chart-3)",
+  "var(--chart-4)", "var(--chart-5)", "var(--chart-6)",
+];
 const CONFETTI_EMOJIS = ["🎉", "✨", "⭐", "🚀", "💯", "🏆"];
 
 export function CelebrationOverlay() {
@@ -91,7 +95,7 @@ export function CelebrationOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center"
+      className="fixed inset-0 z-[var(--p-z-toast)] pointer-events-none flex items-center justify-center"
       onClick={() => setQueue(prev => prev.slice(1))}
       role="alert"
       aria-live="assertive"
@@ -116,46 +120,46 @@ export function CelebrationOverlay() {
       )}
 
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-scrim backdrop-blur-sm" />
 
       {/* Card */}
       <div className="relative animate-celebration-pop pointer-events-auto">
         {current.type === "level-up" && (
-          <div className="flex flex-col items-center rounded-2xl border-2 border-primary bg-card p-8 text-center shadow-2xl max-w-sm">
+          <div className="flex flex-col items-center rounded-2xl border-2 border-brand bg-surface p-8 text-center shadow-2xl max-w-sm">
             <div className="text-6xl mb-3">🎉</div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Level Up!</p>
-            <p className="mt-2 text-3xl font-extrabold text-foreground">Level {current.level}</p>
-            <p className="mt-1 text-lg font-semibold text-primary">{current.label}</p>
-            <p className="mt-3 text-sm text-muted-foreground">{current.description || "Keep going — you're on fire."}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-brand">Level Up!</p>
+            <p className="mt-2 text-3xl font-extrabold text-fg">Level {current.level}</p>
+            <p className="mt-1 text-lg font-semibold text-brand">{current.label}</p>
+            <p className="mt-3 text-sm text-fg-muted">{current.description || "Keep going — you're on fire."}</p>
           </div>
         )}
 
         {current.type === "badge" && (
-          <div className="flex flex-col items-center rounded-2xl border-2 border-primary bg-card p-8 text-center shadow-2xl max-w-sm">
+          <div className="flex flex-col items-center rounded-2xl border-2 border-brand bg-surface p-8 text-center shadow-2xl max-w-sm">
             <div className="text-7xl mb-3 animate-bounce">{current.icon}</div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Badge Earned!</p>
-            <p className="mt-2 text-2xl font-extrabold text-foreground">{current.name}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{current.description}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-brand">Badge Earned!</p>
+            <p className="mt-2 text-2xl font-extrabold text-fg">{current.name}</p>
+            <p className="mt-1 text-sm text-fg-muted">{current.description}</p>
           </div>
         )}
 
         {current.type === "xp" && (
-          <div className="flex items-center gap-4 rounded-xl border border-primary bg-card p-6 shadow-2xl">
+          <div className="flex items-center gap-4 rounded-xl border border-brand bg-surface p-6 shadow-2xl">
             <div className="text-4xl">⚡</div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-primary">XP Earned</p>
-              <p className="text-2xl font-extrabold text-foreground">+{current.amount} XP</p>
-              <p className="text-xs text-muted-foreground">{current.reason}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-brand">XP Earned</p>
+              <p className="text-2xl font-extrabold text-fg">+{current.amount} XP</p>
+              <p className="text-xs text-fg-muted">{current.reason}</p>
             </div>
           </div>
         )}
 
         {current.type === "milestone" && (
-          <div className="flex flex-col items-center rounded-2xl border-2 border-primary bg-card p-8 text-center shadow-2xl max-w-sm">
+          <div className="flex flex-col items-center rounded-2xl border-2 border-brand bg-surface p-8 text-center shadow-2xl max-w-sm">
             <div className="text-6xl mb-3">{current.icon || "🏆"}</div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Milestone!</p>
-            <p className="mt-2 text-xl font-extrabold text-foreground">{current.name}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{current.description}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-brand">Milestone!</p>
+            <p className="mt-2 text-xl font-extrabold text-fg">{current.name}</p>
+            <p className="mt-1 text-sm text-fg-muted">{current.description}</p>
           </div>
         )}
       </div>
