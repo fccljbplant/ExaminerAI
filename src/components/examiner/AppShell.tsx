@@ -17,6 +17,7 @@ import CourseOutline from "./CourseOutline";
 import CoursePlanner from "./CoursePlanner";
 import { CertificateApprovals } from "@/components/examiner/instructor/CertificateApprovals";
 import { SettingsPanel } from "./SettingsPanel";
+import { FloatingTutor } from "@/modules/tutor";
 import { AskMyInstructor } from "./AskMyInstructor";
 import ErrorBoundary from "./ErrorBoundary";
 import {
@@ -49,9 +50,9 @@ import {
   Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Skeleton } from "@/modules/ui/skeleton";
 import { UnifiedThemeToggle } from "@/modules/theme";
 import { NotificationBell } from "@/components/examiner/NotificationBell";
 import { LearnerTopNav } from "@/components/examiner/LearnerTopNav";
@@ -555,7 +556,7 @@ export default function AppShell() {
               {renderView()}
             </div>
           </main>
-          {view !== "messages" && <AskMyInstructor currentView={view} />}
+          <FloatingTutor />
         </>
       ) : (
       <div className="flex flex-1 min-h-0">

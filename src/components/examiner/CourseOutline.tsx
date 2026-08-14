@@ -6,9 +6,9 @@ import {
   BookOpen, ExternalLink, Loader2, ChevronDown, ChevronRight,
   CheckCircle2, Circle, PlayCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
 import { cn } from "@/lib/utils";
 import SlideViewer, { type SlideViewerCourseDay } from "@/components/examiner/student/SlideViewer";
 import AIPanel, { type AIMessage } from "@/components/examiner/student/AIPanel";

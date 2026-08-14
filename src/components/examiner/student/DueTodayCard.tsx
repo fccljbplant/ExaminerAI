@@ -4,7 +4,7 @@
 // the Today screen; the learner acts with one tap instead of dismissing
 // a dialog. Popups are now reserved for red-tier alerts only.
 import { useEffect, useState } from "react";
-import { SkeletonPanel } from "@/components/ui/states";
+import { SkeletonPanel } from "@/modules/ui/states";
 
 export type DueItemKind = "daily-test" | "drill" | "project-task" | "weekly-test" | "checkin";
 

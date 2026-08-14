@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { useThemePreset } from "./theme-context";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/modules/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/modules/ui/dropdown-menu";
 import { Sun, Moon, Monitor, Palette, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -4,13 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { ProminentTabs } from "@/components/shared/prominent-tabs";
-import { DashboardHeader } from "@/components/shared/dashboard-shell";
-import { StatCard } from "@/components/shared/stat-card";
-import { SkeletonPanel, EmptyState } from "@/components/ui/states";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent } from "@/modules/ui/card";
+import { ProminentTabs } from "@/modules/ui/prominent-tabs";
+import { DashboardHeader } from "@/modules/ui/dashboard-shell";
+import { StatCard } from "@/modules/ui/stat-card";
+import { SkeletonPanel, EmptyState } from "@/modules/ui/states";
 import { COPY } from "@/content/copy";
 import {
   CalendarDays, Users, ClipboardList, BarChart3,

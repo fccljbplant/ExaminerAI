@@ -3,10 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster as SonnerToaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ThemePresetProvider } from "@/modules/theme";
-import { CommandRegistryProvider } from "@/components/shared/command-registry";
-import { CommandPalette } from "@/components/shared/command-palette";
-import { KeyboardShortcutsHelp } from "@/components/shared/keyboard-shortcuts-help";
+import { ThemePresetProvider, ThemeV2Provider } from "@/modules/theme";
+import { CommandRegistryProvider } from "@/modules/ui/command-registry";
+import { CommandPalette } from "@/modules/ui/command-palette";
+import { KeyboardShortcutsHelp } from "@/modules/ui/keyboard-shortcuts-help";
 import { CelebrationOverlay } from "@/modules/gamification";
 
 const geistSans = Geist({
@@ -49,22 +49,31 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        {/* Theme v2 FOUC guard — sets html[data-mode] before first paint,
+            mirroring next-themes' storage keys (REDESIGN-P2 §2.2). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var d=document.documentElement;var t=localStorage.getItem("theme");var dark=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var bed=localStorage.getItem("tx-theme-bed")==="1";d.dataset.mode=bed?"bed":dark?"dark":"light";}catch(e){document.documentElement.dataset.mode="light";}})();`,
+          }}
+        />
         <ThemeProvider>
-          <ThemePresetProvider>
-            <CommandRegistryProvider>
-              {children}
-              {/* ⌘K command palette — global. Press ⌘K (or Ctrl+K) anywhere.
-                  Pages can register their own commands via useRegisterCommands(). */}
-              <CommandPalette />
-              {/* Press `?` anywhere to see the keyboard shortcut cheat sheet. */}
-              <KeyboardShortcutsHelp />
-              {/* Celebration overlay — fires on level-up, badge earned, XP gained.
-                  Listens for `traineesai:celebration` events dispatched from
-                  anywhere in the app. */}
-              <CelebrationOverlay />
-              <SonnerToaster position="bottom-right" richColors closeButton />
-            </CommandRegistryProvider>
-          </ThemePresetProvider>
+          <ThemeV2Provider>
+            <ThemePresetProvider>
+              <CommandRegistryProvider>
+                {children}
+                {/* ⌘K command palette — global. Press ⌘K (or Ctrl+K) anywhere.
+                    Pages can register their own commands via useRegisterCommands(). */}
+                <CommandPalette />
+                {/* Press `?` anywhere to see the keyboard shortcut cheat sheet. */}
+                <KeyboardShortcutsHelp />
+                {/* Celebration overlay — fires on level-up, badge earned, XP gained.
+                    Listens for `traineesai:celebration` events dispatched from
+                    anywhere in the app. */}
+                <CelebrationOverlay />
+                <SonnerToaster position="bottom-right" richColors closeButton />
+              </CommandRegistryProvider>
+            </ThemePresetProvider>
+          </ThemeV2Provider>
         </ThemeProvider>
       </body>
     </html>

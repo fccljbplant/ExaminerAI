@@ -4,7 +4,7 @@
 // the rest lives one click away in the meta drawer.
 // Direct fix for the "course heading fills 60% of page" bug.
 import { useState } from "react";
-import PageHeader from "@/components/ui/PageHeader";
+import PageHeader from "@/modules/ui/PageHeader";
 
 export interface CourseHeaderData {
   courseTitle: string;

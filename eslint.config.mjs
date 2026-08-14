@@ -8,6 +8,15 @@ const __dirname = dirname(__filename);
 
 const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
   rules: {
+    // REDESIGN-P2 §1.6: components/ui + shared moved to modules/ui.
+    "no-restricted-imports": ["error", {
+      patterns: [
+        {
+          group: ["@/components/ui", "@/components/ui/*", "@/components/shared", "@/components/shared/*"],
+          message: "Moved to @/modules/ui — import from there.",
+        },
+      ],
+    }],
     // TypeScript rules
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": "off",
@@ -46,6 +55,30 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-undef": "off",
     "no-unreachable": "off",
     "no-useless-escape": "off",
+  },
+}, {
+  // REDESIGN-P2 §1.6 — rebuilt modules stay clean:
+  //   no legacy examiner deps, no deep imports into other modules
+  //   (public API via index.ts; modules/ui deep imports allowed — shadcn kit).
+  // Extend the files list as each module is rebuilt.
+  files: ["src/modules/{ui,shell,auth,theme,learner-portal,tutor}/**/*"],
+  rules: {
+    "no-restricted-imports": ["error", {
+      patterns: [
+        {
+          group: ["@/components/ui", "@/components/ui/*", "@/components/shared", "@/components/shared/*"],
+          message: "Moved to @/modules/ui — import from there.",
+        },
+        {
+          group: ["@/components/examiner", "@/components/examiner/*"],
+          message: "Rebuilt modules must not depend on legacy examiner components.",
+        },
+        {
+          regex: "^@/modules/(?!ui(?:/|$))[^\"']*/",
+          message: "Import the module's public API (@/modules/<name>) instead of deep paths.",
+        },
+      ],
+    }],
   },
 }, {
   ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills"]

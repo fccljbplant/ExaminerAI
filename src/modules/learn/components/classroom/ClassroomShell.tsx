@@ -16,7 +16,7 @@ import {
   Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import PageHeader from "@/components/ui/PageHeader";
+import PageHeader from "@/modules/ui/PageHeader";
 import { prepareForTTS, speakTTS, stopTTS } from "@/modules/learn/lib/tts-filter";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
 import { tutor } from "@/modules/learn/components/avatar/avatar-rig";

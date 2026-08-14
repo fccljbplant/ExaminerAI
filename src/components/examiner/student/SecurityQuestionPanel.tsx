@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Label } from "@/modules/ui/label";
+import { Alert, AlertTitle, AlertDescription } from "@/modules/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/modules/ui/select";
 import { logger } from "@/lib/logger";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,

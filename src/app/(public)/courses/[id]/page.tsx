@@ -5,13 +5,13 @@ import {
   Star, Users, Clock, Award, BookOpen, CheckCircle2, Sparkles,
   GraduationCap, Globe, ShieldCheck, Code2, ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
 import {
   Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbPage, BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "@/modules/ui/breadcrumb";
 import { fetchMarketplaceCourseDetail, MARKETPLACE_CATEGORIES, MARKETPLACE_LEVELS } from "@/lib/marketplace";
 import { formatPrice } from "@/lib/format";
 import CheckoutButton from "./CheckoutButton";

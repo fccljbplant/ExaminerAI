@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Label } from "@/modules/ui/label";
+import { Badge } from "@/modules/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
   DialogFooter, DialogClose,
-} from "@/components/ui/dialog";
+} from "@/modules/ui/dialog";
 import {
   ImageIcon, Search, Upload, Check, Loader2, ExternalLink, X, Sparkles,
 } from "lucide-react";

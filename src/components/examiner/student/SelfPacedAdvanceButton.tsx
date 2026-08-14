@@ -9,9 +9,9 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Card, CardContent } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
 import { Loader2, ChevronRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { showError, showSuccess } from "@/lib/toast-helpers";
 

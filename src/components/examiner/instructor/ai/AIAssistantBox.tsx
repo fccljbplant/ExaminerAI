@@ -12,9 +12,9 @@
 
 import { useState } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
 import { Loader2, Sparkles, Send, ChevronRight } from "lucide-react";
 import type { StudentRow } from "@/components/examiner/instructor/types";
 

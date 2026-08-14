@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/modules/ui/table";
 import { scoreToGrade, gradeColor, PILLARS } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import {

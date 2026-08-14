@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
 import { logger } from "@/lib/logger";
 import {
   Users, Clock, CheckCircle2, Loader2, ShieldCheck, TrendingUp, Mail, UserCheck,

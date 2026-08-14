@@ -4,8 +4,8 @@
 // The entire character is drawn in SVG code — only eyes + lips animate.
 
 import { AvatarDock, tutor } from "@/components/learn/TutorBadge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
 
 const GESTURES: { name: string; gesture: string; description: string }[] = [
   { name: "Hello", gesture: "hello", description: "Happy eyes + smile" },

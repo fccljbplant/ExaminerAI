@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/modules/ui/card";
 
 /** StatSquareCard — small stat card used on the student dashboard overview.
  *

@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api-client";
 import { ChevronDown, ChevronUp, Play, Code2, BookOpen } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
 
 interface PreviewData {
   courseName: string;

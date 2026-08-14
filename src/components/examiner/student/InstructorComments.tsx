@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/modules/ui/badge";
 import { MessageSquare } from "lucide-react";
 import type { CommentRow } from "./types";
 

@@ -12,8 +12,25 @@
     },
     "src/app/api/project/generate-tasks/**/*.ts": {
       "maxDuration": 180
+    },
+    "src/app/api/cron/**/*.ts": {
+      "maxDuration": 60
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/srs-due",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/study-plan-refresh",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/absence-scan",
+      "schedule": "0 7 * * *"
+    }
+  ],
   "github": {
     "silent": false
   }

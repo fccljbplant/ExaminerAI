@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
 import { CheckCircle2, GraduationCap, Building2, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {

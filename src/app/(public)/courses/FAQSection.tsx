@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Textarea } from "@/modules/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "@/modules/ui/accordion";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
+} from "@/modules/ui/dialog";
 import {
   HelpCircle,
   Plus,

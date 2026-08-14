@@ -14,13 +14,13 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Card, CardContent, CardHeader, CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+} from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Progress } from "@/modules/ui/progress";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+} from "@/modules/ui/table";
 import {
   DollarSign, TrendingUp, Clock, Gauge,
   RefreshCw, AlertTriangle, Lightbulb,
@@ -28,9 +28,9 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
-import { DashboardHeader } from "@/components/shared/dashboard-shell";
-import { StatCard } from "@/components/shared/stat-card";
-import { SkeletonPanel, EmptyState, ErrorState } from "@/components/ui/states";
+import { DashboardHeader } from "@/modules/ui/dashboard-shell";
+import { StatCard } from "@/modules/ui/stat-card";
+import { SkeletonPanel, EmptyState, ErrorState } from "@/modules/ui/states";
 
 type TraineeStatus = "on_track" | "needs_attention" | "at_risk" | "completed";
 

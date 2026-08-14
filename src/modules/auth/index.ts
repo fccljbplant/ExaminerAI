@@ -1,16 +1,10 @@
-/** Auth Module — public API
+/**
+ * Auth Module — Public API (REDESIGN-P2 module catalog)
  *
- * Authentication + authorization — login, JWT, RBAC, password reset
- *
- * This module is a skeleton — the actual code still lives in src/lib/ and
- * src/components/examiner/. The re-exports below provide a stable import
- * path (@/modules/auth) that other modules can use. Over time,
- * the implementation files will be moved into this directory.
- *
- * API routes for this domain live under src/app/api/auth/password-reset-requests/
- * and are thin HTTP wrappers that call into this module's library functions.
+ * Import from here:
+ *   import { AuthLayout, LoginForm, RegisterForm } from "@/modules/auth";
  */
 
-// Re-export shared library functions
-export * from "@/lib/auth";
-export * from "@/lib/rbac";
+export { AuthLayout } from "./auth-layout";
+export { LoginForm } from "./login-form";
+export { RegisterForm, SECURITY_QUESTIONS } from "./register-form";

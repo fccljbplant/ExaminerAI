@@ -28,9 +28,15 @@ interface VoiceBarProps {
 }
 
 export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps) {
-  const [supported] = useState(() => isVoiceInputAvailable());
+  // Defer voice support detection to avoid hydration mismatch.
+  // Server always renders the loading state; client updates after mount.
+  const [supported, setSupported] = useState<boolean | null>(null);
   const [listening, setListening] = useState(false);
   const sessionRef = useRef<VoiceInputSession | null>(null);
+
+  useEffect(() => {
+    setSupported(isVoiceInputAvailable());
+  }, []);
 
   // Keep callbacks in refs so the recognition session never goes stale.
   const interimRef = useRef(onInterim);
@@ -41,7 +47,7 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
   });
 
   useEffect(() => {
-    if (!supported) return;
+    if (supported === false) return;
     sessionRef.current = createVoiceInput({
       onInterim: (text) => interimRef.current(text),
       onFinal: (text) => finalRef.current(text),
@@ -70,6 +76,20 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
       session.start();
       setListening(true);
     }
+  }
+
+  // Loading state: render a disabled button that matches both renders
+  if (supported === null) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-label="Voice input initializing"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border text-muted-foreground opacity-40"
+      >
+        <Mic className="h-4 w-4" />
+      </button>
+    );
   }
 
   if (!supported) {

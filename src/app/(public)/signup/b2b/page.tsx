@@ -2,11 +2,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Label } from "@/modules/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
 import { Loader2, Building2, ArrowRight, CheckCircle2 } from "lucide-react";
 import { COPY } from "@/content/copy";
 

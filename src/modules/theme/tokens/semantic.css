@@ -1,0 +1,181 @@
+/* ============================================================
+   LAYER 2 — SEMANTIC TOKENS  (REDESIGN-P2 §2.1–§2.2)
+   Meaning-bearing tokens, defined once per mode:
+     :root (= light)  |  html[data-mode="dark"]  |  html[data-mode="bed"]
+   Org brands override the brand/chart/focus subset at runtime
+   via html[data-brand] (injected by the theme v2 provider from
+   deriveBrandPalette — modules/theme/lib/brand.ts).
+
+   Mode characters (§2.2):
+   - light: neutral-cool surfaces, body text ≥ 7:1
+   - dark:  true elevated surfaces (never pure black), reduced saturation
+   - bed:   warm dimmed dark — amber-shifted hue, luminance ceiling,
+            blue-light-minimal charts, boosted scrim
+
+   Status colors (success/warning/danger/info) are FIXED per mode —
+   they are never derived from the org brand (§2.3 rule 4).
+
+   Name-collision note (strangulation): --border and --chart-1..6
+   intentionally reuse legacy shadcn var names. This selector set
+   (html[data-mode=…], specificity 0-1-1) wins over legacy .dark
+   (0-1-0); values stay neutral-compatible so legacy UI is stable.
+   All other semantic tokens use NEW names and cannot collide.
+   ============================================================ */
+
+:root,
+html[data-mode="light"] {
+  /* surfaces */
+  --bg: oklch(0.985 0 0);
+  --bg-subtle: oklch(0.965 0 0);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(1 0 0);
+  --surface-overlay: oklch(1 0 0);
+
+  /* text */
+  --text: oklch(0.24 0.01 260);
+  --text-secondary: oklch(0.45 0.015 260);
+  --text-muted: oklch(0.55 0.015 260);
+  --text-inverse: oklch(0.985 0 0);
+
+  /* lines */
+  --border: oklch(0.925 0.005 260);
+  --border-strong: oklch(0.82 0.01 260);
+
+  /* brand — default amber hue; orgs override via [data-brand] */
+  --brand: oklch(0.48 0.12 60);
+  --brand-hover: oklch(0.43 0.12 58);
+  --brand-active: oklch(0.4 0.11 56);
+  --brand-subtle: oklch(0.95 0.045 70);
+  --on-brand: oklch(1 0 0);
+  --focus: oklch(0.65 0.14 65);
+
+  /* overlay */
+  --scrim: oklch(0.2 0.02 260 / 0.45);
+
+  /* status — fixed, never brand-derived */
+  --success: oklch(0.58 0.13 155);
+  --success-subtle: oklch(0.96 0.035 155);
+  --success-on: oklch(0.36 0.08 155);
+  --warning: oklch(0.66 0.15 80);
+  --warning-subtle: oklch(0.96 0.05 85);
+  --warning-on: oklch(0.38 0.08 70);
+  --danger: oklch(0.55 0.2 27);
+  --danger-subtle: oklch(0.96 0.03 27);
+  --danger-on: oklch(0.37 0.11 27);
+  --info: oklch(0.55 0.13 250);
+  --info-subtle: oklch(0.96 0.02 250);
+  --info-on: oklch(0.4 0.09 250);
+
+  /* charts (6 series; wrappers fill via var/currentColor) */
+  --chart-1: oklch(0.7 0.15 65);
+  --chart-2: oklch(0.62 0.13 155);
+  --chart-3: oklch(0.58 0.14 250);
+  --chart-4: oklch(0.58 0.19 27);
+  --chart-5: oklch(0.55 0.16 300);
+  --chart-6: oklch(0.62 0.1 190);
+
+  /* tutor */
+  --tutor-ring: oklch(0.65 0.14 65);
+  --tutor-fab: oklch(0.48 0.12 60);
+}
+
+html[data-mode="dark"] {
+  --bg: oklch(0.185 0.015 270);
+  --bg-subtle: oklch(0.16 0.015 270);
+  --surface: oklch(0.235 0.015 270);
+  --surface-raised: oklch(0.27 0.015 270);
+  --surface-overlay: oklch(0.29 0.017 270);
+
+  --text: oklch(0.95 0.005 260);
+  --text-secondary: oklch(0.78 0.01 260);
+  --text-muted: oklch(0.65 0.012 260);
+  --text-inverse: oklch(0.2 0.015 270);
+
+  --border: oklch(0.32 0.015 270);
+  --border-strong: oklch(0.42 0.015 270);
+
+  --brand: oklch(0.75 0.13 65);
+  --brand-hover: oklch(0.8 0.13 66);
+  --brand-active: oklch(0.7 0.13 64);
+  --brand-subtle: oklch(0.27 0.045 65);
+  --on-brand: oklch(0.18 0.02 70);
+  --focus: oklch(0.75 0.13 65);
+
+  --scrim: oklch(0.1 0.01 270 / 0.6);
+
+  --success: oklch(0.72 0.12 155);
+  --success-subtle: oklch(0.28 0.05 155);
+  --success-on: oklch(0.85 0.09 155);
+  --warning: oklch(0.78 0.13 82);
+  --warning-subtle: oklch(0.3 0.05 80);
+  --warning-on: oklch(0.88 0.1 85);
+  --danger: oklch(0.68 0.17 25);
+  --danger-subtle: oklch(0.28 0.06 25);
+  --danger-on: oklch(0.85 0.1 25);
+  --info: oklch(0.7 0.11 245);
+  --info-subtle: oklch(0.28 0.05 245);
+  --info-on: oklch(0.84 0.08 245);
+
+  --chart-1: oklch(0.8 0.14 68);
+  --chart-2: oklch(0.75 0.12 155);
+  --chart-3: oklch(0.72 0.12 250);
+  --chart-4: oklch(0.72 0.15 25);
+  --chart-5: oklch(0.72 0.13 300);
+  --chart-6: oklch(0.75 0.09 190);
+
+  --tutor-ring: oklch(0.75 0.13 65);
+  --tutor-fab: oklch(0.75 0.13 65);
+}
+
+/* BED MODE — warm dimmed dark for night/bedtime study.
+   Hue shifted to amber (~60°), luminance ceiling kept low,
+   blue content desaturated (charts C×0.6 vs dark), scrim
+   boosted so imagery/overlays read dimmer. Captions default ON
+   is handled by the shell, not CSS. */
+html[data-mode="bed"] {
+  --bg: oklch(0.16 0.02 60);
+  --bg-subtle: oklch(0.14 0.02 55);
+  --surface: oklch(0.2 0.025 60);
+  --surface-raised: oklch(0.235 0.027 62);
+  --surface-overlay: oklch(0.25 0.028 62);
+
+  --text: oklch(0.85 0.03 75);
+  --text-secondary: oklch(0.72 0.03 72);
+  --text-muted: oklch(0.62 0.03 70);
+  --text-inverse: oklch(0.18 0.02 60);
+
+  --border: oklch(0.28 0.03 60);
+  --border-strong: oklch(0.36 0.035 62);
+
+  --brand: oklch(0.72 0.08 62);
+  --brand-hover: oklch(0.77 0.08 63);
+  --brand-active: oklch(0.67 0.08 61);
+  --brand-subtle: oklch(0.25 0.035 60);
+  --on-brand: oklch(0.16 0.02 60);
+  --focus: oklch(0.72 0.08 62);
+
+  --scrim: oklch(0.12 0.02 55 / 0.65);
+
+  --success: oklch(0.68 0.07 150);
+  --success-subtle: oklch(0.26 0.035 140);
+  --success-on: oklch(0.82 0.06 145);
+  --warning: oklch(0.74 0.09 78);
+  --warning-subtle: oklch(0.27 0.04 72);
+  --warning-on: oklch(0.85 0.07 80);
+  --danger: oklch(0.64 0.1 35);
+  --danger-subtle: oklch(0.26 0.045 35);
+  --danger-on: oklch(0.82 0.07 35);
+  --info: oklch(0.66 0.04 230);
+  --info-subtle: oklch(0.25 0.025 220);
+  --info-on: oklch(0.8 0.04 225);
+
+  --chart-1: oklch(0.72 0.08 62);
+  --chart-2: oklch(0.68 0.06 90);
+  --chart-3: oklch(0.64 0.05 30);
+  --chart-4: oklch(0.6 0.05 140);
+  --chart-5: oklch(0.66 0.04 75);
+  --chart-6: oklch(0.58 0.04 200);
+
+  --tutor-ring: oklch(0.72 0.08 62);
+  --tutor-fab: oklch(0.72 0.08 62);
+}

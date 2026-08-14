@@ -20,10 +20,10 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Textarea } from "@/modules/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   Bot, Send, Sparkles, X, Lightbulb, RotateCw, HelpCircle,

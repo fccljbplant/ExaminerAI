@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Progress } from "@/modules/ui/progress";
 import { useChartColors, tooltipStyle } from "@/lib/chart-theme";
 import {
   CalendarCheck, ClipboardList, HelpCircle, TrendingUp, FileText,

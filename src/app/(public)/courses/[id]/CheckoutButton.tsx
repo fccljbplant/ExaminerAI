@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/modules/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
   DialogFooter, DialogClose,
-} from "@/components/ui/dialog";
+} from "@/modules/ui/dialog";
 import {
   Loader2, LogIn, ArrowRight, CheckCircle2, GraduationCap, CreditCard,
   ShieldCheck, Sparkles, Award, X,

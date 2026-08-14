@@ -149,6 +149,7 @@ model Course {
   learnDailyTests    LearnDailyTest[]
   learnWeeklyTests   LearnWeeklyTest[]
   learnNotes         LearnNote[]
+  assignments        Assignment[]
 }
 
 /// Course reviews — students rate courses after completion.
@@ -346,6 +347,7 @@ model User {
   institutionId           String?
   institution             Institution?           @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   groupTaskSubmissions    GroupTaskSubmission[]
+  submissions             Submission[]
   eventsCreated           Event[]
   instructorGroupTasks    GroupTask[]            @relation("GroupTaskInstructor")
   peerAssessmentsGiven    PeerAssessment[]       @relation("PeerAssessor")
@@ -1316,4 +1318,192 @@ model EngagementEvent {
   createdAt   DateTime @default(now())
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, createdAt])
+}
+
+// ============================================================
+// W4 — ASSIGNMENTS & SUBMISSIONS (REDESIGN-P4 §3, flag submissions_v2)
+// Registry-driven: adding a domain (HSE / eBay listing / device repair)
+// or a submission type = inserting RegistryRow rows — zero code changes.
+// GroupTask/GroupTaskSubmission stay read-only legacy until the W10 drop.
+// ============================================================
+
+/// Org-scoped registry rows (kind = submission_type | rubric_template | category).
+/// orgId NULL = platform default; an org row shadows the default by key.
+model RegistryRow {
+  id         String   @id @default(cuid())
+  orgId      String?
+  kind       String
+  key        String
+  label      String
+  configJson Json?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([orgId, kind, key])
+  @@index([kind, isActive])
+}
+
+model Rubric {
+  id          String            @id @default(cuid())
+  orgId       String?
+  courseId    String?
+  title       String
+  description String            @default("")
+  criteria    RubricCriterion[]
+  assignments Assignment[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([courseId])
+}
+
+model RubricCriterion {
+  id         String  @id @default(cuid())
+  rubricId   String
+  key        String
+  label      String
+  weight     Float   @default(1)
+  levelsJson Json
+  aiAssist   Boolean @default(false)
+  order      Int     @default(0)
+
+  rubric Rubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+
+  @@index([rubricId])
+}
+
+model Assignment {
+  id                     String    @id @default(cuid())
+  courseId               String
+  instructorId           String?
+  title                  String
+  description            String    @default("")
+  instructions           String    @default("")
+  // Required part types — registry keys, e.g. ["text","photo","file"]
+  partTypesJson          Json?
+  rubricId               String?
+  // { maxCycles, cooldownHours } — cycle limits + resubmit cooldown
+  resubmissionPolicyJson Json?
+  milestoneLabel         String?
+  dueDate                DateTime?
+  week                   Int?
+  maxScore               Int       @default(100)
+  status                 String    @default("published") // draft | published | archived
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  rubric      Rubric?      @relation(fields: [rubricId], references: [id], onDelete: SetNull)
+  submissions Submission[]
+
+  @@index([courseId, status])
+  @@index([dueDate])
+}
+
+model Submission {
+  id             String    @id @default(cuid())
+  assignmentId   String
+  userId         String
+  // draft|submitted|in_review|changes_requested|resubmitted|approved|signed_off
+  status         String    @default("draft")
+  cycle          Int       @default(1)
+  score          Float?
+  learnerSummary String    @default("")
+  submittedAt    DateTime?
+  reviewedAt     DateTime?
+  decidedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  assignment Assignment        @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parts      SubmissionPart[]
+  thread     FeedbackThread?
+  signOffs   SignOff[]
+  grades     GradeEntry[]
+
+  @@unique([assignmentId, userId])
+  @@index([userId, status])
+  @@index([status, updatedAt])
+}
+
+model SubmissionPart {
+  id               String   @id @default(cuid())
+  submissionId     String
+  type             String // text | photo | video | link | checklist | file
+  payloadJson      Json?
+  fileUrl          String?
+  fileName         String?
+  mimeType         String?
+  sizeBytes        Int?
+  extractedText    String?
+  extractionStatus String   @default("none") // none | pending | done | failed
+  createdAt        DateTime @default(now())
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+model FeedbackThread {
+  id           String        @id @default(cuid())
+  submissionId String        @unique
+  messages     FeedbackMsg[]
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
+model FeedbackMsg {
+  id          String   @id @default(cuid())
+  threadId    String
+  authorId    String
+  authorName  String   @default("")
+  authorRole  String // learner | instructor
+  kind        String   @default("text") // text | audio | annotation
+  body        String   @default("")
+  audioUrl    String?
+  partId      String?
+  markersJson Json?
+  createdAt   DateTime @default(now())
+
+  thread FeedbackThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+}
+
+/// Ordered multi-signer chain (HSE-style): sign-off completes when every
+/// expected signer in order has a row; the submission flips to signed_off
+/// on the last one.
+model SignOff {
+  id          String   @id @default(cuid())
+  submissionId String
+  signerId    String
+  signerName  String   @default("")
+  signerRole  String   @default("instructor")
+  order       Int      @default(0)
+  note        String   @default("")
+  decidedAt   DateTime @default(now())
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, signerId])
+  @@index([submissionId, order])
+}
+
+/// Per-cycle rubric grading snapshot (history timeline = one row per cycle).
+model GradeEntry {
+  id           String   @id @default(cuid())
+  submissionId String
+  cycle        Int
+  graderId     String
+  graderRole   String   @default("instructor")
+  entriesJson  Json? // [{ criterionKey, level, score, note, aiDraft }]
+  totalScore   Float?
+  createdAt    DateTime @default(now())
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId, cycle])
 }

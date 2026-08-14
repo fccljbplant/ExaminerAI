@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
 import { BookOpen, Star, Users, Clock, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { formatPrice } from "@/lib/format";

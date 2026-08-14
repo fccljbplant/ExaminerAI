@@ -21,11 +21,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Input } from "@/modules/ui/input";
+import { Label } from "@/modules/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +35,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@/modules/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Loader2, RefreshCw, Database, Key, Terminal,

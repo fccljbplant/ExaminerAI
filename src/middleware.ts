@@ -56,6 +56,7 @@ const PUBLIC_ROUTES = [
   "/register",
   "/app", // AppShell handles both login (no token) and dashboard (with token)
   "/avatars-demo", // public avatar demo page
+  "/preview", // dev-only design preview routes (not-found in production)
 ];
 
 const PUBLIC_API_ROUTES = [

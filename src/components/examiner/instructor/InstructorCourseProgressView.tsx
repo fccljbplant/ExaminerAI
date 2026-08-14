@@ -14,7 +14,7 @@
  * available in the portfolio data. Accent colors cycle through a palette.
  */
 
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "@/modules/ui/progress";
 import { CheckCircle2 } from "lucide-react";
 import type { PortfolioData, StudentRow } from "@/components/examiner/instructor/types";
 

@@ -3,16 +3,16 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useTransition } from "react";
 import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/modules/ui/input";
+import { Button } from "@/modules/ui/button";
+import { Checkbox } from "@/modules/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/modules/ui/select";
 
 interface FilterProps {
   categories: readonly { value: string; label: string }[];

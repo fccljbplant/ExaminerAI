@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Star, Users, Clock, Sparkles, BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent } from "@/modules/ui/card";
 import type { MarketplaceCourseListItem } from "@/lib/marketplace";
 import { formatPrice } from "@/lib/format";
 import WishlistButton from "./WishlistButton";

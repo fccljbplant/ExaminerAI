@@ -29,8 +29,8 @@
 
 import { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
 import { Loader2, Send, X, Brain, Lightbulb, CheckCircle2, BookOpen } from "lucide-react";
 
 export interface ChatMessage {

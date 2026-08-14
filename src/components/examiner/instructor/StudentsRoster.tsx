@@ -14,10 +14,10 @@
 
 import { useState, useMemo } from "react";
 import type { TeacherStats } from "@/lib/api-types";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Input } from "@/modules/ui/input";
+import { Button } from "@/modules/ui/button";
 import { Search, Users, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StudentRow } from "@/components/examiner/instructor/types";

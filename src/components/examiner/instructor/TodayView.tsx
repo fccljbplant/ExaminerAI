@@ -13,10 +13,10 @@
  */
 
 import { useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Progress } from "@/modules/ui/progress";
 import {
   AlertTriangle, HeartHandshake, Clock, TrendingDown, TrendingUp,
   CheckCircle2, ArrowRight, Users, Activity, Zap, Bell, Sparkles,
@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { StudentRow } from "@/components/examiner/instructor/types";
 import type { TeacherStats, AlertItem } from "@/lib/api-types";
-import { ActionDialog, type ActionDialogData } from "@/components/shared/action-dialog";
+import { ActionDialog, type ActionDialogData } from "@/modules/ui/action-dialog";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 import { logger } from "@/lib/logger";

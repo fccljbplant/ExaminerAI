@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api-client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/modules/ui/card";
+import { Skeleton } from "@/modules/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/modules/ui/tooltip";
 import { Flame, Award, CalendarCheck, Activity } from "lucide-react";
 
 /**

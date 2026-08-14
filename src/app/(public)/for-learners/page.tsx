@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { COPY } from "@/content/copy";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
 import {
   ArrowRight, Bot, Brain, Award, CheckCircle2, GraduationCap,
   Sparkles, Zap, TrendingUp, Clock,

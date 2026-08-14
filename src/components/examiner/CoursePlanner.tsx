@@ -3,16 +3,16 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { MARKETPLACE_CATEGORIES as COURSE_MARKETPLACE_CATEGORIES } from "@/lib/constants";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Label } from "@/modules/ui/label";
+import { Textarea } from "@/modules/ui/textarea";
+import { Badge } from "@/modules/ui/badge";
+import { Switch } from "@/modules/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "@/modules/ui/select";
 import {
   Loader2, Plus, Trash2, Save, BookOpen, ChevronDown, ChevronRight,
   RefreshCw, GraduationCap, Edit3, X, Sparkles, Wand2, ExternalLink,
@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
+} from "@/modules/ui/dialog";
+import { Progress } from "@/modules/ui/progress";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/format";
 import CourseThumbnailPicker from "./CourseThumbnailPicker";

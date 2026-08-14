@@ -5,9 +5,9 @@ import {
   Clock, BookOpen, Sparkles, GraduationCap, ArrowRight, Code2,
   Route as RouteIcon, CheckCircle2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
 import { fetchMarketplacePathDetail } from "@/lib/marketplace";
 import { formatPrice } from "@/lib/format";
 

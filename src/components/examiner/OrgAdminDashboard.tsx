@@ -5,13 +5,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Input } from "@/modules/ui/input";
+import { Label } from "@/modules/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/modules/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/modules/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,16 +22,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/modules/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Building2, Users, UserPlus, Loader2, Trash2,
   CheckCircle2, XCircle, Mail, Crown, Clock, BookOpen,
 } from "lucide-react";
-import { DashboardHeader } from "@/components/shared/dashboard-shell";
-import { StatCard, StatStrip } from "@/components/shared/stat-card";
-import { SkeletonPanel, EmptyState } from "@/components/ui/states";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { DashboardHeader } from "@/modules/ui/dashboard-shell";
+import { StatCard, StatStrip } from "@/modules/ui/stat-card";
+import { SkeletonPanel, EmptyState } from "@/modules/ui/states";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/modules/ui/table";
 import { COPY } from "@/content/copy";
 import { OrgCourseAssigner } from "@/modules/b2b";
 

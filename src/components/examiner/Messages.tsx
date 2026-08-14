@@ -3,16 +3,16 @@ import { showError } from "@/lib/toast-helpers";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { api } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Input } from "@/modules/ui/input";
+import { Textarea } from "@/modules/ui/textarea";
+import { Label } from "@/modules/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/modules/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/modules/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/modules/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/modules/ui/command";
 import { Mail, Loader2, Send, Inbox, ArrowUpRight, Trash2, CheckCheck, ChevronLeft, ChevronRight, ChevronsUpDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -1,0 +1,20 @@
+/* ============================================================
+   LAYER 3 — COMPONENT TOKENS  (REDESIGN-P2 §2.1 item 3)
+   Component-level aliases composed from semantics. They exist so
+   a component's contract (card, input, nav, tab, fab) can change
+   independently of the raw semantic values. Mode-aware because
+   they resolve through var(--…) chains — no per-mode blocks here.
+   Mapped to utilities by the @theme inline bridge in globals.css
+   (bg-card-bg, border-input-border, bg-nav-bg, …).
+   ============================================================ */
+
+:root {
+  --card-bg: var(--surface);
+  --card-border: var(--border);
+  --input-bg: var(--surface);
+  --input-border: var(--border-strong);
+  --nav-bg: var(--surface);
+  --nav-border: var(--border);
+  --tab-active: var(--brand);
+  --fab-bg: var(--brand);
+}

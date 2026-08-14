@@ -22,8 +22,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
 import { cn } from "@/lib/utils";
 import {
   CalendarCheck, Loader2, RefreshCw,

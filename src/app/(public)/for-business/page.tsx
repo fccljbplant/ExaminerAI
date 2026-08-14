@@ -25,15 +25,15 @@ import {
   Lock,
   Bot,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent } from "@/modules/ui/card";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "@/modules/ui/accordion";
 
 export const metadata: Metadata = {
   title: "TraineesAI for Business — Share the Training Burden",

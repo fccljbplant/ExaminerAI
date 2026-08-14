@@ -16,13 +16,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { useChartColors, tooltipStyle } from "@/lib/chart-theme";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Progress } from "@/modules/ui/progress";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+} from "@/modules/ui/table";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";

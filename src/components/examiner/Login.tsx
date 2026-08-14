@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/modules/ui/tabs";
 import { GraduationCap, Loader2, Sparkles, ShieldCheck, Award, Briefcase } from "lucide-react";
 import Link from "next/link";
 import ForgotPassword from "./ForgotPassword";

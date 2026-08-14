@@ -4,13 +4,13 @@ import type { GroupTask, CourseEvent, GroupTaskSubmission } from "@/lib/api-type
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Textarea } from "@/modules/ui/textarea";
+import { Badge } from "@/modules/ui/badge";
+import { Label } from "@/modules/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/modules/ui/select";
 import {
   Users, Clock, CheckCircle2, Loader2, ShieldCheck, TrendingUp, Mail, UserCheck,
   Award, AlertCircle, RefreshCw, FolderOpen, MessageSquare, ClipboardList,

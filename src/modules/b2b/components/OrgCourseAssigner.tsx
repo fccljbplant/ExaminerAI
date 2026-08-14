@@ -5,9 +5,9 @@
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/modules/ui/select";
+import { Badge } from "@/modules/ui/badge";
 import { Loader2, BookOpen, UserPlus, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 

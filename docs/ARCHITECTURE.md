@@ -44,6 +44,14 @@ abstraction in `src/lib/ai-provider.ts` so other models can be swapped in.
 │  /api/enrollments        — B2B + B2C enrollment management         │
 │  /api/marketplace/*      — course catalog + checkout               │
 │  ...76 total route files (see `scripts/ui-backend-audit.sh` G)     │
+│                                                                    │
+│  /api/v2/*  (REDESIGN strangulation surface, envelope {ok,data})   │
+│    learner/home|progress · courses(+tabs) · study-plan · srs/queue │
+│    srs/[cardId]/review · diagnostic/start|answer · exams ·         │
+│    tutor/ask (SSE) · events · assignments(+draft|submit) ·         │
+│    submissions/[id]/resubmit|feedback · uploads (docx/pdf→text)    │
+│  /api/cron/* (W3): study-plan-refresh 06:00 · absence-scan 07:00 · │
+│    srs-due 03:00 — all verify via src/lib/cron-auth.ts             │
 └──────────────────────────────┬─────────────────────────────────────┘
                                │
 ┌──────────────────────────────▼─────────────────────────────────────┐
@@ -169,6 +177,40 @@ Domain-organised modules. Each module groups related logic + components + lib.
   - `components/WeeklyTestPanel.tsx` — weekly test wrapper.
 - `src/modules/project/` — capstone project module.
 - `src/modules/marketplace/` — course catalog + checkout.
+
+### REDESIGN modules (W0–W4, strangulation surface)
+
+The redesign rebuilds modules under `src/modules/` (specs:
+`docs/REDESIGN-P1…P7-2026-08-14.md`). Old `components/examiner/**` is deleted
+at cutover (W10).
+
+- `src/modules/ui/` — the component library (moved from `components/ui` +
+  `shared`, tokens-only). New W4 primitives: `media-capture.tsx`,
+  `submission-renderer.tsx` (renders ANY part type, text-only AI law),
+  `rubric-grader.tsx` (AI-draft "verify" chip), `feedback-thread.tsx`
+  (text/audio/annotation), `sign-off-card.tsx` (ordered chain).
+- `src/modules/theme/` — 3-layer token engine (`tokens/primitives.css`,
+  `semantic.css`, `component.css`), org-brand derivation in OKLCH,
+  `lib/validate.ts` WCAG validator, `lib/brand.ts` deriveBrandPalette.
+- `src/modules/shell/` — adaptive shell: `TopNav` / `TabRow` / `BottomNav`
+  (5 slots) / `ActionBar` / `ModeToggle`, keyed by `use-breakpoint.ts`.
+- `src/modules/tutor/` — FloatingTutor: `vector-rig.tsx`, `floating-tutor.tsx`,
+  `tutor-store.ts` (zustand persist), `lib/dock.ts` (drag/dock state machine).
+- `src/modules/learn/` — classroom + study-flow engine:
+  `lib/study-flow.ts` (detectAbsence/Cram, generatePlan, srsSchedule — pure),
+  `lib/study-flow-db.ts`, `components/study-flow/*` (StudyFlowCenter etc.).
+- `src/modules/submission/` — W4: `contracts.ts` (zod, shared route↔client),
+  `lib/lifecycle.ts` (status machine + sign-off chains), `lib/rubric-engine.ts`
+  (weighted grading, human-beats-AI), `lib/ai-packet.ts` (text-only packet),
+  `lib/text-extract.ts` (mammoth/pdfjs in-house), `lib/submission-db.ts` (the
+  ONLY file importing `db`), `lib/submission-flag.ts` (single flag source),
+  `__tests__/` (58 tests).
+- `src/modules/learner-portal/` — W1 screens composing the kit: home, catalog,
+  course-detail, exams, progress, profile, help, assignments (L5),
+  submission-flow (L6), `use-api.ts` hook.
+
+Every v2 surface gates through a per-workstream flag helper
+(`lib/feature-flags.ts` `isPortalEnabled`) and fails closed to `/app`.
 
 ### `src/lib/`
 

@@ -4,13 +4,13 @@ import { showError } from "@/lib/toast-helpers";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import { canSeeAuditTab } from "@/lib/client-rbac";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Progress } from "@/modules/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/modules/ui/dialog";
+import { Input } from "@/modules/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/modules/ui/select";
 import { scoreToGrade, gradeColor } from "@/lib/constants";
 import {
   Users, Clock, CheckCircle2, Loader2, ShieldCheck, TrendingUp, Mail, UserCheck,
@@ -25,7 +25,7 @@ import { EducationalTab } from "@/components/examiner/instructor/EducationalTab"
 import { UserAuditTab } from "@/components/examiner/instructor/UserAuditTab";
 import { StudentAITools } from "@/components/examiner/instructor/ai/StudentAITools";
 import { StudentBriefing } from "@/components/examiner/instructor/StudentBriefing";
-import { ProminentTabs } from "@/components/shared/prominent-tabs";
+import { ProminentTabs } from "@/modules/ui/prominent-tabs";
 import { logger } from "@/lib/logger";
 
 export function StudentPortfolioPage({

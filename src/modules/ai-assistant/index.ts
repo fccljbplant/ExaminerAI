@@ -14,7 +14,7 @@
 // Components
 export { default as InstructorAITutor } from "@/components/examiner/InstructorAITutor";
 export { AIAssistantBox } from "@/components/examiner/instructor/ai/AIAssistantBox";
-export { ActionDialog, type ActionDialogData } from "@/components/shared/action-dialog";
+export { ActionDialog, type ActionDialogData } from "@/modules/ui/action-dialog";
 
 /** API route paths for the AI Assistant */
 export const AI_ASSISTANT_API = {

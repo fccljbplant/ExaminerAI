@@ -39,16 +39,16 @@ import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { MARKETPLACE_CATEGORIES as CATEGORIES } from "@/lib/constants";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+} from "@/modules/ui/dialog";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Label } from "@/modules/ui/label";
+import { Textarea } from "@/modules/ui/textarea";
+import { Badge } from "@/modules/ui/badge";
+import { Progress } from "@/modules/ui/progress";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "@/modules/ui/select";
 import {
   Loader2, Sparkles, ArrowLeft, ArrowRight, Check, CheckCircle2,
   AlertCircle, ExternalLink, Wand2, BookOpen, Store, ClipboardPaste,

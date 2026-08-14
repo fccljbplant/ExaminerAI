@@ -14,14 +14,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/modules/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from "@/modules/ui/popover";
+import { Badge } from "@/modules/ui/badge";
+import { ScrollArea } from "@/modules/ui/scroll-area";
 
 /**
  * NotificationBell — top-bar bell with unread badge + dropdown panel.

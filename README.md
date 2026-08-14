@@ -22,6 +22,24 @@ TraineesAI is the modernized successor to [ExaminerAI](https://github.com/fccljb
 
 See **[MODERNIZATION_PLAN.md](./MODERNIZATION_PLAN.md)** for the full execution plan.
 
+## Redesign status (2026-08-14) — W0–W4 learner core shipped
+
+The platform-wide redesign (strangler pattern, feature-flagged) is specified in
+[`docs/REDESIGN-P1…P7-2026-08-14.md`](./docs/REDESIGN-P1-INVENTORY-2026-08-14.md):
+
+| Workstream | Scope | Status |
+|---|---|---|
+| **W0** | Token theme engine (3-layer, WCAG-validated), `modules/ui` kit, adaptive `modules/shell` (top nav / tabs / bottom nav), auth screens, CI gates | ✅ live behind `shell_v2` |
+| **W1** | Learner portal routes + v2 endpoints, classroom polish | ✅ behind `portal_learner_v2` |
+| **W2** | Floating tutor (vector rig, drag/dock/persist, state machine) | ✅ inside `portal_learner_v2` |
+| **W3** | Study-flow engine (6 scenarios), SRS, diagnostic, L12 Study-Flow Center, crons | ✅ behind `study_flow_v2` |
+| **W4** | Assignments & projects: registry, submission lifecycle, rubric engine, text-only AI pipeline, L5 list + L6 submission flow | ✅ learner slice behind `submissions_v2` (review UI = W6) |
+| **W5–W10** | Exams · instructor portal · org/platform · restyle · cutover & deletion | 🔲 next |
+
+Every workstream gates behind a portal flag (org override > global) and fails
+closed to the legacy `/app` experience until flipped — see
+`docs/REDESIGN-P5-CUTOVER-PLAN-2026-08-14.md` for the rollback strategy.
+
 ## Key features
 
 ### Learn Platform (`/learn`) — AI-guided learning experience

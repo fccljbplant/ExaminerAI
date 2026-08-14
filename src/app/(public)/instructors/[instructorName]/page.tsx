@@ -4,12 +4,12 @@ import type { Metadata } from "next";
 import {
   Star, Users, BookOpen, Sparkles, GraduationCap, Award, ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
 import {
   Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbPage, BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "@/modules/ui/breadcrumb";
 import { db } from "@/lib/db";
 import MarketplaceCourseCard from "../../courses/MarketplaceCourseCard";
 

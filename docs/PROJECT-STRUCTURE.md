@@ -12,15 +12,17 @@
 src/
 ├── app/                    ← Next.js App Router (pages + API routes)
 │   ├── (public)/           ← Public-facing pages (landing, courses, pricing)
+│   ├── (portals)/          ← REDESIGN v2 portals (learner live; instructor/org/platform next)
 │   ├── api/                ← API route handlers (thin — call lib, return JSON)
-│   ├── app/                ← Authenticated app shell (/app)
+│   │   └── v2/             ← REDESIGN v2 envelope endpoints (see §6)
+│   ├── app/                ← Legacy authenticated app shell (/app)
 │   ├── globals.css         ← Global styles + theme tokens
 │   └── layout.tsx          ← Root layout (providers, fonts, ⌘K, celebrations)
 ├── components/
-│   ├── examiner/           ← Role-specific dashboard components
+│   ├── examiner/           ← Legacy role-specific dashboard components (deleting at cutover)
 │   ├── landing/            ← Marketing landing page components
-│   ├── shared/             ← Cross-module shared components
-│   └── ui/                 ← shadcn/ui primitives
+│   ├── shared/             ← Cross-module shared components (legacy kit)
+│   └── ui/                 ← shadcn/ui primitives (superseded by modules/ui)
 ├── content/
 │   └── copy.ts             ← Centralized marketing + UI voice constants
 ├── hooks/                  ← Cross-module React hooks
@@ -54,48 +56,83 @@ src/modules/<feature>/
 
 ---
 
-## 3. Module inventory (18 modules)
+## 3. Module inventory (24 modules)
 
 | Module | Purpose | Structure |
 |---|---|---|
-| `admin` | Admin dashboard panels | index.ts only (components still in examiner/admin/) |
-| `ai-assistant` | Instructor AI assistant | index.ts only |
-| `ai-tutor` | Student AI tutor | index.ts only |
+| `admin` | Admin dashboard panels (legacy) | index.ts only |
+| `ai-assistant` | Instructor AI assistant (legacy) | index.ts only |
+| `ai-tutor` | Student AI tutor (legacy) | index.ts only |
 | `assessment` | Test engine, grader, chat UI | ✓ lib/ + components/ |
-| `auth` | Login, signup, password reset | index.ts only |
+| `auth` | REDESIGN login/signup/reset screens | ✓ lib/ + components/ |
 | `b2b` | B2B org management | ✓ components/ |
 | `b2c` | B2C learner management | ✓ components/ |
-| `communication` | Messages | index.ts only |
-| `comprehensive-report` | Full portfolio report | index.ts only |
+| `communication` | Messages (legacy stub) | index.ts only |
+| `comprehensive-report` | Full portfolio report (legacy) | index.ts only |
 | `course` | Course CRUD | ✓ lib/ |
 | `gamification` | XP + badges + celebrations | ✓ lib/ + components/ |
-| `grading` | Unified grader | index.ts only |
-| `learn` | Modern class: classroom stage, slides/video, voice Q&A, avatar, learner home | ✓ lib/ + components/ |
+| `grading` | Unified grader (legacy stub) | index.ts only |
+| `learn` | Modern class: classroom, slides/video, voice Q&A, avatar, study-flow engine | ✓ lib/ + components/ + __tests__ |
+| `learner-portal` | REDESIGN learner screens (home, catalog, course detail, exams, progress, assignments, submission flow) | ✓ components + use-api |
 | `project` | Capstone project | ✓ lib/ |
-| `self-paced` | Self-paced advancement | index.ts only |
-| `shared` | Cross-module shared | index.ts only |
-| `student` | Student dashboard panels | index.ts only |
-| `theme` | Theme presets | index.ts only |
-| `user-audit` | Audit trail | index.ts only |
+| `self-paced` | Self-paced advancement (legacy) | index.ts only |
+| `shared` | Cross-module shared (legacy stub) | index.ts only |
+| `shell` | REDESIGN adaptive shell: TopNav, TabRow, BottomNav, ActionBar, mode toggle | ✓ components |
+| `student` | Student dashboard panels (legacy) | index.ts only |
+| `submission` | REDESIGN W4: submission lifecycle, rubric engine, AI text-only packet, text extraction, registries | ✓ lib/ + contracts + __tests__ |
+| `theme` | REDESIGN 3-layer token engine (primitives/semantic/component), brand derivation, validator | ✓ lib/ + tokens/ |
+| `tutor` | REDESIGN FloatingTutor: vector rig, dock state machine, chat | ✓ components + lib/ + __tests__ |
+| `ui` | REDESIGN component library (moved from components/ui + shared; tokens-only) | ✓ primitives (60+) |
+| `user-audit` | Audit trail (legacy) | index.ts only |
 
 **Legend**: ✓ = has that subdirectory. — = doesn't need it (module is a re-export only).
 
-### `learn` module layout (Modern Class)
+### REDESIGN module map (P2 §1.1 — target structure)
+
+```
+src/modules/
+├── ui/                    ← THE component library (tokens only, no business logic)
+│   ├── kpi.tsx list-card.tsx data-table.tsx bottom-sheet.tsx states.tsx …
+│   ├── media-capture.tsx  ← W4 registry-driven file/photo/video picker
+│   ├── submission-renderer.tsx ← W4 renders ANY part type (text-only AI law)
+│   ├── rubric-grader.tsx  ← W4 level picker + "AI draft — verify" chip
+│   ├── feedback-thread.tsx ← W4 text/audio/annotation thread
+│   └── sign-off-card.tsx  ← W4 ordered multi-signer chain
+├── shell/                 ← adaptive shell (TopNav / TabRow / BottomNav / ActionBar)
+├── theme/                 ← token engine, mode switching, org-brand derivation
+├── tutor/                 ← FloatingTutor (FAB, drag/dock/persist, vector rig)
+├── learn/                 ← classroom, journey, SRS, study-flow engine (lib/study-flow.ts)
+├── course/                ← content-model services (legacy lib kept)
+├── assessment/            ← exam engine, grader, AI provider chain (kept)
+├── submission/            ← W4: contracts, lifecycle, rubric-engine, ai-packet,
+│                            text-extract, submission-db, registries, __tests__
+├── learner-portal/        ← W1 screens composing the kit (use-api hook)
+├── auth/                  ← login/register/reset screens
+└── theme/…                ← tokens/ (primitives.css, semantic.css, component.css)
+```
+
+### `learn` module layout (Modern Class + study flow)
 
 ```
 src/modules/learn/
   ├── index.ts              ← Barrel (NOTE: mixes server/db code — client
   │                             components import specific paths, never the root)
+  ├── contracts.ts          ← zod contracts for v2 study-flow endpoints
   ├── lib/
+  │   ├── study-flow.ts     ← W3 engine: detectAbsence/Cram, generatePlan, srsSchedule
+  │   ├── study-flow-db.ts  ← DB-backed plan + scenario services
+  │   ├── study-flow-flag.ts← W3 single flag source
   │   ├── lesson-media.ts   ← Resolves slide/video media for a topic
   │   ├── voice-input.ts    ← Web Speech API wrapper (barge-in, fallback)
+  │   ├── today-topic.ts    ← 6×5 topic scheduler
   │   └── youtube-player.ts ← YouTube id parsing + embed URL builder
+  ├── __tests__/            ← study-flow.test.ts (6 scenarios), lesson-media, voice-input, today-topic
   └── components/
-      ├── classroom/        ← ClassroomShell, LessonStage, VideoStage,
-      │                       AvatarStage, VoiceBar
+      ├── classroom/        ← ClassroomShell, LessonStage, VideoStage, VoiceBar
       ├── avatar/           ← Avatar rig + expressions
-      └── dashboard/        ← LearnerHome (stat tiles, assignments,
-                              coverage, project, activity)
+      ├── dashboard/        ← LearnerHome
+      └── study-flow/       ← StudyFlowCenter, CatchUpCard, CramCard, SrsQueueCard,
+                              DiagnosticBanner, WeeklyPlanCard, BudgetSelector, PlanPreviewDialog
 ```
 
 ---
@@ -160,6 +197,17 @@ Feature-specific logic belongs in its module's `lib/`:
 
 ```
 src/app/api/
+├── v2/                     ← REDESIGN v2 endpoints (envelope { ok, data } / { ok, error, code })
+│   ├── learner/home|progress/
+│   ├── courses/  courses/[id]/overview|syllabus/
+│   ├── study-plan/  srs/queue/  srs/[cardId]/review/  diagnostic/start|answer/
+│   ├── exams/
+│   ├── tutor/ask/           ← streaming tutor (text-only AI packet)
+│   ├── assignments/  assignments/[id]/  assignments/[id]/draft|submit/
+│   ├── submissions/[id]/resubmit|feedback/
+│   ├── uploads/             ← docx/pdf→text extraction (in-house)
+│   └── events/              ← typed engagement event union
+├── cron/                    ← study-plan-refresh 06:00 · absence-scan 07:00 · srs-due 03:00
 ├── ai/                     ← AI endpoints (tutor, daily-test, weekly-test, practice)
 │   ├── tutor/
 │   │   ├── route.ts        ← Non-streaming tutor
@@ -179,6 +227,12 @@ src/app/api/
 ├── health/                 ← Health check
 └── ...
 ```
+
+v2 conventions (REDESIGN-P4 §1): stable error codes
+(`UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, CONFLICT, RATE_LIMITED, AI_DEGRADED,
+EXTRACTION_FAILED, VALIDATION`), zod contracts shared route↔client, cursor
+pagination + field selection on lists, demo-write block on every mutation,
+IDOR guards in the module service layer (never in routes).
 
 ### API route rules
 1. **Thin handlers** — validate input, call lib function, return JSON. No business logic.

@@ -3,7 +3,7 @@
 // Used on the certificate verify page (which is a server component).
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/modules/ui/button";
 import { Check, Link as LinkIcon } from "lucide-react";
 
 export function CopyLinkButton({ url }: { url: string }) {

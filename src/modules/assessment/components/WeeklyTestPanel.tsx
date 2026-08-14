@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Textarea } from "@/modules/ui/textarea";
+import { Badge } from "@/modules/ui/badge";
+import { Progress } from "@/modules/ui/progress";
 import { scoreToGrade, gradeColor, TEST_QUESTION_COUNT } from "@/lib/constants";
 import { showError } from "@/lib/toast-helpers";
 import type { WeeklyTest, StatsResponse, Mode } from "@/components/examiner/student/types";

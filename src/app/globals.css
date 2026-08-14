@@ -1,7 +1,24 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* ---- Theme v2 token layers (REDESIGN-P2 §2.1) ----
+   primitives → semantic (light/dark/bed) → component aliases.
+   Legacy shadcn vars below are KEPT for strangulation and are
+   deleted at cutover (REDESIGN-P5). */
+@import "../modules/theme/tokens/primitives.css";
+@import "../modules/theme/tokens/semantic.css";
+@import "../modules/theme/tokens/component.css";
+
 @custom-variant dark (&:is(.dark *));
+@custom-variant bed (&:is([data-mode="bed"] *));
+
+/* Z-layer utilities (REDESIGN-P2 §2.1 z scale). Dedicated utilities
+   instead of z-[var(--p-z-*)] arbitrary values: deterministic emission
+   in every route chunk, including dev-server incremental rebuilds. */
+@utility z-raised { z-index: var(--p-z-raised); }
+@utility z-sticky { z-index: var(--p-z-sticky); }
+@utility z-modal { z-index: var(--p-z-modal); }
+@utility z-tutor { z-index: var(--p-z-tutor); }
 
 @theme inline {
   --color-background: var(--background);
@@ -42,6 +59,60 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* ── Theme v2 utility bridge (REDESIGN-P2 §2.1 item 3) ────────
+     New feature code uses ONLY these utilities:
+       surfaces: bg-bg bg-bg-subtle bg-surface bg-surface-raised bg-surface-overlay
+       text:     text-fg text-fg-secondary text-fg-muted text-fg-inverse
+       lines:    border-line border-line-strong (border-border keeps working)
+       brand:    bg-brand bg-brand-hover bg-brand-active bg-brand-subtle text-on-brand
+       status:   bg-success / text-success-on / bg-success-subtle (same for warning/danger/info)
+       charts:   fill-chart-1 … fill-chart-6
+     Naming note: text tokens use the fg-* namespace because the
+     legacy --color-secondary slot is a SURFACE color (shadcn) and
+     must not be repurposed until cutover. */
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-fg: var(--text);
+  --color-fg-secondary: var(--text-secondary);
+  --color-fg-muted: var(--text-muted);
+  --color-fg-inverse: var(--text-inverse);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-active: var(--brand-active);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-on-brand: var(--on-brand);
+  --color-focus: var(--focus);
+  --color-scrim: var(--scrim);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-on: var(--success-on);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-on: var(--warning-on);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-on: var(--danger-on);
+  --color-info: var(--info);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-on: var(--info-on);
+  --color-chart-6: var(--chart-6);
+  --color-tutor-ring: var(--tutor-ring);
+  --color-tutor-fab: var(--tutor-fab);
+  /* component-layer aliases */
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-nav-bg: var(--nav-bg);
+  --color-nav-border: var(--nav-border);
+  --color-tab-active: var(--tab-active);
+  --color-fab-bg: var(--fab-bg);
 }
 
 /* ============================================================

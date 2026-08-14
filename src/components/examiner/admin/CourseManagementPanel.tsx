@@ -4,17 +4,17 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api-client";
 import { MARKETPLACE_CATEGORIES as COURSE_CATEGORIES } from "@/lib/constants";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Input } from "@/modules/ui/input";
+import { Switch } from "@/modules/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "@/modules/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+} from "@/modules/ui/table";
 import { showError, showSuccess } from "@/lib/toast-helpers";
 import {
   BookOpen, Loader2, RefreshCw, Edit3, ExternalLink, Star, Users,

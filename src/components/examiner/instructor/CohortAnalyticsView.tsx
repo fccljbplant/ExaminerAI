@@ -22,9 +22,9 @@ import {
   Users, Activity, TrendingUp, TrendingDown, Minus, CheckCircle2, AlertTriangle,
   RefreshCw, Loader2, Award, Mail,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
 import { api } from "@/lib/api-client";
 import { showError } from "@/lib/toast-helpers";
 

@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MonitorPlay, SkipForward } from "lucide-react";
 import { logger } from "@/lib/logger";
-import { ErrorState } from "@/components/ui/states";
+import { ErrorState } from "@/modules/ui/states";
 import { createPlayer, type YTPlayerInstance } from "@/modules/learn/lib/youtube-player";
 import type { LessonVideo } from "@/modules/learn/lib/lesson-media";
 

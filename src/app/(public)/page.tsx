@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { getAuthUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { COPY } from "@/content/copy";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
 import {
   ArrowRight, Bot, Users, ShieldCheck, Zap, Brain, Award,
   TrendingUp, Clock, CheckCircle2, Sparkles, Building2, GraduationCap,

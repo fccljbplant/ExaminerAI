@@ -18,7 +18,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/modules/ui/dropdown-menu";
 import { UnifiedThemeToggle } from "@/modules/theme";
 import { NotificationBell } from "@/components/examiner/NotificationBell";
 import type { EnrollmentResponse } from "@/app/api/enrollments/route";

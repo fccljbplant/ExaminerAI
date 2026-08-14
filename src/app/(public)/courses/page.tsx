@@ -2,10 +2,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Star, Users, Clock, TrendingUp, Award, BookOpen, Sparkles, Route as RouteIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent } from "@/modules/ui/card";
+import { Skeleton } from "@/modules/ui/skeleton";
 import { db } from "@/lib/db";
 import {
   fetchMarketplaceCourses,

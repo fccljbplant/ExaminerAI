@@ -1,0 +1,98 @@
+/* ============================================================
+   LAYER 1 — PRIMITIVE TOKENS  (REDESIGN-P2 §2.1)
+   Raw design decisions: scales only, zero meaning.
+   Rules:
+   - Only the semantic layer (semantic.css) may reference these.
+   - Feature code must NEVER use primitives or raw literals —
+     only semantic utilities (bg-surface, text-fg-muted, …).
+   - This file + the brand-derivation lib are the ONLY places
+     color literals may exist (CI-enforced token law, §2.1).
+   ============================================================ */
+
+@theme {
+  /* ---- Neutral scale (cool-neutral grey, oklch) ---- */
+  --p-neutral-0: oklch(1 0 0);
+  --p-neutral-50: oklch(0.985 0 0);
+  --p-neutral-100: oklch(0.97 0 0);
+  --p-neutral-200: oklch(0.93 0 0);
+  --p-neutral-300: oklch(0.88 0 0);
+  --p-neutral-400: oklch(0.75 0 0);
+  --p-neutral-500: oklch(0.6 0 0);
+  --p-neutral-600: oklch(0.5 0 0);
+  --p-neutral-700: oklch(0.4 0 0);
+  --p-neutral-800: oklch(0.3 0 0);
+  --p-neutral-900: oklch(0.22 0 0);
+  --p-neutral-950: oklch(0.16 0 0);
+  --p-neutral-1000: oklch(0 0 0);
+
+  /* ---- Default brand scale (amber hue ≈ 62°) ----
+     Orgs override the brand at runtime with a derived palette
+     (modules/theme/lib/brand.ts) injected on html[data-brand].
+     These steps exist for the semantic layer to consume. */
+  --p-brand-50: oklch(0.97 0.02 70);
+  --p-brand-100: oklch(0.95 0.045 70);
+  --p-brand-200: oklch(0.9 0.07 66);
+  --p-brand-300: oklch(0.83 0.1 64);
+  --p-brand-400: oklch(0.75 0.12 63);
+  --p-brand-500: oklch(0.66 0.13 62);
+  --p-brand-600: oklch(0.48 0.12 60);
+  --p-brand-700: oklch(0.43 0.12 58);
+  --p-brand-800: oklch(0.4 0.11 56);
+  --p-brand-900: oklch(0.32 0.09 54);
+
+  /* ---- Space (px) ---- */
+  --p-space-1: 0.25rem;  /*  4px */
+  --p-space-2: 0.5rem;   /*  8px */
+  --p-space-3: 0.75rem;  /* 12px */
+  --p-space-4: 1rem;     /* 16px */
+  --p-space-5: 1.5rem;   /* 24px */
+  --p-space-6: 2rem;     /* 32px */
+  --p-space-7: 3rem;     /* 48px */
+  --p-space-8: 4rem;     /* 64px */
+
+  /* ---- Radius ----
+     Primitive scale + Tailwind-facing additions (xs / 2xl / 3xl).
+     Legacy --radius-sm/md/lg/xl stay untouched until cutover. */
+  --p-radius-xs: 0.25rem;   /*  4px */
+  --p-radius-sm: 0.375rem;  /*  6px */
+  --p-radius-md: 0.625rem;  /* 10px */
+  --p-radius-lg: 0.875rem;  /* 14px */
+  --p-radius-xl: 1.25rem;   /* 20px */
+  --radius-xs: 0.25rem;
+  --radius-2xl: 0.875rem;
+  --radius-3xl: 1.25rem;
+
+  /* ---- Elevation (1 = card hover, 2 = popover, 3 = modal/sheet) ---- */
+  --shadow-elev-1: 0 1px 2px oklch(0.2 0.02 260 / 0.06), 0 2px 8px oklch(0.2 0.02 260 / 0.05);
+  --shadow-elev-2: 0 2px 6px oklch(0.2 0.02 260 / 0.08), 0 8px 24px oklch(0.2 0.02 260 / 0.1);
+  --shadow-elev-3: 0 4px 12px oklch(0.2 0.02 260 / 0.12), 0 16px 48px oklch(0.2 0.02 260 / 0.16);
+
+  /* ---- Type scale (body default 14px = text-sm; headings climb) ---- */
+  --p-type-xs: 0.75rem;   /* 12px */
+  --p-type-sm: 0.8125rem; /* 13px */
+  --p-type-md: 0.875rem;  /* 14px */
+  --p-type-lg: 1rem;      /* 16px */
+  --p-type-xl: 1.125rem;  /* 18px */
+  --p-type-2xl: 1.25rem;  /* 20px */
+  --p-type-3xl: 1.5rem;   /* 24px */
+  --p-type-4xl: 1.875rem; /* 30px */
+  --p-type-5xl: 2.25rem;  /* 36px */
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1rem;
+
+  /* ---- Motion ---- */
+  --p-dur-fast: 150ms;
+  --p-dur-med: 200ms;
+  --p-dur-slow: 250ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+
+  /* ---- Z-index registry ---- */
+  --p-z-base: 0;
+  --p-z-raised: 10;
+  --p-z-sticky: 100;
+  --p-z-drawer: 200;
+  --p-z-modal: 300;
+  --p-z-toast: 400;
+  --p-z-tutor: 500;
+}

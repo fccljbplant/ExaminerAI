@@ -25,9 +25,9 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
 import { cn } from "@/lib/utils";
 import {
   ChevronLeft, ChevronRight, PlayCircle, Code2, Image as ImageIcon,

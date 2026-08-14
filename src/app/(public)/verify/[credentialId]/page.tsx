@@ -5,9 +5,9 @@ import {
   GraduationCap, ShieldCheck, Award, Calendar, User, BookOpen,
   ExternalLink, Download, Sparkles, CheckCircle2, Star, Code2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent } from "@/modules/ui/card";
 import { fetchCertificateForVerification } from "@/lib/marketplace";
 import { scoreToGrade, gradeColor } from "@/lib/constants";
 import { CopyLinkButton } from "./CopyLinkButton";

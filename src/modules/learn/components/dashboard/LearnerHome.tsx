@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/format";
-import { WidgetCard } from "@/components/shared/widget-card";
-import { StatStrip } from "@/components/shared/stat-card";
-import { EmptyState } from "@/components/ui/states";
+import { WidgetCard } from "@/modules/ui/widget-card";
+import { StatStrip } from "@/modules/ui/stat-card";
+import { EmptyState } from "@/modules/ui/states";
 import type { StatsResponse, Task } from "@/components/examiner/student/types";
 import type { EnrollmentResponse } from "@/app/api/enrollments/route";
 

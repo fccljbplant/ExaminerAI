@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
 import {
   GraduationCap, Mail, MessageSquare, BookOpen, HelpCircle,
   Building2, ArrowRight, Search,

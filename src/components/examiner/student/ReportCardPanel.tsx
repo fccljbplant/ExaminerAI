@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { api } from "@/lib/api-client";
 import type { CertificateResponse } from "@/lib/api-types";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
+import { Progress } from "@/modules/ui/progress";
 import { scoreToGrade, gradeColor, PILLARS } from "@/lib/constants";
 import { showError, showSuccess } from "@/lib/toast-helpers";
 import {

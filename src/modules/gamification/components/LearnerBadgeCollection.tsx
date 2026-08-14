@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-import { SkeletonPanel } from "@/components/ui/states";
+import { SkeletonPanel } from "@/modules/ui/states";
 import { Lock } from "lucide-react";
 
 interface BadgeDef {

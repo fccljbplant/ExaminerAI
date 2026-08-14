@@ -10,9 +10,9 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Badge } from "@/modules/ui/badge";
 import { Loader2, Send, CheckCircle2, CalendarCheck, Brain, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PostTestReflection } from "@/components/examiner/student/PostTestReflection";

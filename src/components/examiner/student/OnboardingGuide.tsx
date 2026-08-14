@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/modules/ui/button";
+import { Card, CardContent } from "@/modules/ui/card";
 
 /**
  * OnboardingGuide — a step-by-step card that helps new students ramp up.

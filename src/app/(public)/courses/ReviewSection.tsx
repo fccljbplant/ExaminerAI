@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
+import { Textarea } from "@/modules/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
   DialogFooter, DialogClose, DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/modules/ui/dialog";
 import {
   Star, ThumbsUp, Loader2, MessageSquare, PenLine, AlertCircle, CheckCircle2,
 } from "lucide-react";

@@ -18,3 +18,31 @@ export async function isFeatureEnabled(name: string): Promise<boolean> {
     return true; // default: enabled on error
   }
 }
+
+/**
+ * Portal rollout flags (REDESIGN-P5 §2) — unlike feature flags these are
+ * default-OFF: a portal only serves the v2 experience once flipped.
+ *
+ * Resolution order (first explicit setting wins):
+ *   1. org override   feature_portal_<name>_v2_org:<orgId>
+ *   2. global         feature_portal_<name>_v2
+ *   3. fallback       false
+ */
+export async function isPortalEnabled(
+  name: string,
+  orgId?: string | null
+): Promise<boolean> {
+  const base = `feature_portal_${name}_v2`;
+  try {
+    if (orgId) {
+      const orgSetting = await db.setting.findUnique({
+        where: { key: `${base}_org:${orgId}` },
+      });
+      if (orgSetting) return orgSetting.value === "true";
+    }
+    const global = await db.setting.findUnique({ where: { key: base } });
+    return global ? global.value === "true" : false;
+  } catch {
+    return false; // rollout flags fail closed to the legacy portal
+  }
+}

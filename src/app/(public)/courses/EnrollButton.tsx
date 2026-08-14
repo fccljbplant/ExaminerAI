@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/modules/ui/button";
 import { Loader2, LogIn, ArrowRight, CheckCircle2, GraduationCap, Eye } from "lucide-react";
 import { api, ApiError } from "@/lib/api-client";
 

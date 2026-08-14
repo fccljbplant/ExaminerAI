@@ -14,10 +14,10 @@
  */
 
 import { useEffect, useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/modules/ui/card";
+import { Badge } from "@/modules/ui/badge";
+import { Button } from "@/modules/ui/button";
+import { Input } from "@/modules/ui/input";
 import {
   BarChart3, TrendingUp, TrendingDown, Activity, Users, Brain,
   Send, Loader2, Sparkles, AlertTriangle, CheckCircle2,
