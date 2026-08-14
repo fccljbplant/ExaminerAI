@@ -73,14 +73,14 @@ src/modules/<feature>/
 | `gamification` | XP + badges + celebrations | ✓ lib/ + components/ |
 | `grading` | Unified grader (legacy stub) | index.ts only |
 | `learn` | Modern class: classroom, slides/video, voice Q&A, avatar, study-flow engine | ✓ lib/ + components/ + __tests__ |
-| `instructor-portal` | REDESIGN instructor portal: review center (I3/I4), I1 home, I5 roster, I8 analytics, I10 earnings, More hub | ✓ components + nav |
-| `org-portal` | REDESIGN org portal: O1 home, O2 people, O4 control (branding + flags), O5 audit | ✓ components + lib |
-| `platform-portal` | REDESIGN platform portal: P1 home (KPIs + orgs + audit) | ✓ components + lib |
-| `learner-portal` | REDESIGN learner screens (home, catalog, course detail, exams, progress, assignments, submission flow, exam runner + results) | ✓ components + use-api |
+| `instructor-portal` | REDESIGN instructor portal: review center (I3/I4), I1 home (+ AI assistant), I5 roster + student profile (briefing, comments, retake/unlock, report cards, messaging), assignments & events studio, certificates (+ request approvals), I8 analytics, I10 earnings, More hub | ✓ components + nav |
+| `org-portal` | REDESIGN org portal: O1 home (member/seat/mentor/invite KPIs), O2 people (seat toggle + course assignment), O4 control (branding + flags), O5 audit | ✓ components + lib |
+| `platform-portal` | REDESIGN platform portal: P1 home (KPIs + orgs + audit), Users management, Features (global + portal flags), Password resets, AI usage, System | ✓ components + lib |
+| `learner-portal` | REDESIGN learner screens (home + onboarding, catalog, course detail, exams incl. Socratic practice/daily/weekly, progress + private reports + credential claim, messages, assignments, submission flow, project workspace with task CRUD, exam runner + results + coaching) | ✓ components + use-api |
 | `project` | Capstone project | ✓ lib/ |
 | `self-paced` | Self-paced advancement (legacy) | index.ts only |
 | `shared` | Cross-module shared (legacy stub) | index.ts only |
-| `shell` | REDESIGN adaptive shell: TopNav, TabRow, BottomNav, ActionBar, mode toggle | ✓ components |
+| `shell` | REDESIGN adaptive shell: TopNav, TabRow, BottomNav, ActionBar, mode toggle, UserMenu (profile + sign-out) | ✓ components |
 | `student` | Student dashboard panels (legacy) | index.ts only |
 | `submission` | REDESIGN W4: submission lifecycle, rubric engine, AI text-only packet, text extraction, registries | ✓ lib/ + contracts + __tests__ |
 | `theme` | REDESIGN 3-layer token engine (primitives/semantic/component), brand derivation, validator | ✓ lib/ + tokens/ |

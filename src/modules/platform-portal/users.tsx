@@ -98,7 +98,6 @@ export function PlatformUsers() {
 
   useEffect(() => {
     void load(q, role, page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, load]);
 
   async function act(id: string, path: string, method: string, body?: unknown) {

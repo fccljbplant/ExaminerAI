@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       lastLogin: true,
     },
   });
-  if (!student || student.role !== "student") {
+  if (!student || (student.role !== "student" && student.role !== "learner")) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
