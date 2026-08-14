@@ -1,10 +1,11 @@
 /**
- * POST /api/v2/submissions/[id]/feedback — L7 learner message to mentor
- * (REDESIGN-P3 §L7, W4)
+ * POST /api/v2/submissions/[id]/feedback — L7 learner ↔ mentor thread
+ * (REDESIGN-P3 §L7/I4, W4 review side)
  *
  * Learners post text updates into their own submission thread (the
- * "Send update to mentor" action). Instructor-authored feedback uses
- * the same service; ownership is checked server-side (IDOR guard).
+ * "Send update to mentor" action); instructors post review notes into
+ * the same thread. The service checks the author's right server-side:
+ * owner (learner) or course instructor (IDOR guard).
  */
 
 import { NextRequest } from "next/server";
@@ -18,7 +19,9 @@ import { submissionErrorResponse } from "@/modules/submission/lib/http";
 
 export const runtime = "nodejs";
 
-const LEARNER_ROLES = new Set(["learner", "student"]);
+// Both roles may post: the owning learner, or an instructor of the course.
+// The service decides which (and notifies the other side).
+const FEEDBACK_ROLES = new Set(["learner", "student", "instructor", "org_admin"]);
 
 export async function POST(
   req: NextRequest,
@@ -26,8 +29,8 @@ export async function POST(
 ) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (!LEARNER_ROLES.has(user.role)) {
-    return apiError("Learner access only", "FORBIDDEN", 403);
+  if (!FEEDBACK_ROLES.has(user.role)) {
+    return apiError("Unauthorized to post feedback", "FORBIDDEN", 403);
   }
   if (!(await isSubmissionsEnabled())) {
     return apiError("Assignments are not enabled yet", "FORBIDDEN", 403);
@@ -47,9 +50,11 @@ export async function POST(
   }
 
   try {
+    // Pass the real role — the service routes learner vs instructor
+    // authoring (instructor messages notify the learner).
     const { messageId } = await postFeedback(
       id,
-      { id: user.sub, name: user.name, role: "learner" },
+      { id: user.sub, name: user.name, role: user.role },
       parsed.data,
     );
     return apiSuccess({ messageId });

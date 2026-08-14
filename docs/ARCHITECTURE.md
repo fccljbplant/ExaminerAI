@@ -49,8 +49,9 @@ abstraction in `src/lib/ai-provider.ts` so other models can be swapped in.
 │    learner/home|progress · courses(+tabs) · study-plan · srs/queue │
 │    srs/[cardId]/review · diagnostic/start|answer · exams(+[id]/    │
 │    start|resume|answer|complete|results) · tutor/ask (SSE) ·       │
-│    events · assignments(+draft|submit) ·                           │
-│    submissions/[id]/resubmit|feedback · uploads (docx/pdf→text)    │
+│    events · assignments(+draft|submit) · review/queue ·              │
+│    submissions/[id](+resubmit|feedback|grade|decision|ai-draft) ·   │
+│    uploads (docx/pdf→text)                                          │
 │  /api/cron/* (W3): study-plan-refresh 06:00 · absence-scan 07:00 · │
 │    srs-due 03:00 — all verify via src/lib/cron-auth.ts             │
 └──────────────────────────────┬─────────────────────────────────────┘
@@ -203,9 +204,14 @@ at cutover (W10).
 - `src/modules/submission/` — W4: `contracts.ts` (zod, shared route↔client),
   `lib/lifecycle.ts` (status machine + sign-off chains), `lib/rubric-engine.ts`
   (weighted grading, human-beats-AI), `lib/ai-packet.ts` (text-only packet),
+  `lib/ai-draft.ts` (I4 drafts for aiAssist criteria, degrades human-only),
   `lib/text-extract.ts` (mammoth/pdfjs in-house), `lib/submission-db.ts` (the
   ONLY file importing `db`), `lib/submission-flag.ts` (single flag source),
-  `__tests__/` (58 tests).
+  `__tests__/` (64 tests).
+- `src/modules/instructor-portal/` — W4 review center: `review-queue.tsx`
+  (I3: status chips + ListCard queue), `review-detail.tsx` (I4: parts
+  preview, editable RubricGrader + AI-draft flow, feedback composer,
+  sign-off chain, grade history, decision bar), `portal-shell.tsx`.
 - `src/modules/assessment/` — test engine + **W5 exam runner**:
   `contracts.ts` (slug helpers + zod), `lib/exam-session.ts` (pure state
   machine: upsertAnswer, computeScore, completion guards — 13 tests),

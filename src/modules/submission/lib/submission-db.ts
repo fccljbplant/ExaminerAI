@@ -958,7 +958,9 @@ export async function postFeedback(
   input: FeedbackInput,
 ): Promise<{ messageId: string }> {
   const bundle = await loadSubmissionBundle(submissionId);
-  const isInstructor = author.role === "instructor";
+  // Reviewers are course instructors (or org admins who also teach) —
+  // both must hold an instructor enrollment on the course (IDOR guard).
+  const isInstructor = author.role === "instructor" || author.role === "org_admin";
   if (isInstructor) {
     await requireInstructorAccess(author.id, bundle.assignment.courseId);
   } else if (bundle.userId !== author.id) {

@@ -73,6 +73,7 @@ src/modules/<feature>/
 | `gamification` | XP + badges + celebrations | ✓ lib/ + components/ |
 | `grading` | Unified grader (legacy stub) | index.ts only |
 | `learn` | Modern class: classroom, slides/video, voice Q&A, avatar, study-flow engine | ✓ lib/ + components/ + __tests__ |
+| `instructor-portal` | REDESIGN review center (I3 queue + I4 detail: rubric grading, AI drafts, decisions, sign-offs) | ✓ components |
 | `learner-portal` | REDESIGN learner screens (home, catalog, course detail, exams, progress, assignments, submission flow, exam runner + results) | ✓ components + use-api |
 | `project` | Capstone project | ✓ lib/ |
 | `self-paced` | Self-paced advancement (legacy) | index.ts only |
@@ -206,7 +207,8 @@ src/app/api/
 │   ├── exams/  exams/[id]/start|resume|answer|complete|results/
 │   ├── tutor/ask/           ← streaming tutor (text-only AI packet)
 │   ├── assignments/  assignments/[id]/  assignments/[id]/draft|submit/
-│   ├── submissions/[id]/resubmit|feedback/
+│   ├── submissions/[id]/resubmit|feedback|grade|decision|ai-draft/
+│   ├── review/queue/             ← instructor grading queue (I3)
 │   ├── uploads/             ← docx/pdf→text extraction (in-house)
 │   └── events/              ← typed engagement event union
 ├── cron/                    ← study-plan-refresh 06:00 · absence-scan 07:00 · srs-due 03:00

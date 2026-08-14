@@ -33,7 +33,7 @@ The platform-wide redesign (strangler pattern, feature-flagged) is specified in
 | **W1** | Learner portal routes + v2 endpoints, classroom polish | ✅ behind `portal_learner_v2` |
 | **W2** | Floating tutor (vector rig, drag/dock/persist, state machine) | ✅ inside `portal_learner_v2` |
 | **W3** | Study-flow engine (6 scenarios), SRS, diagnostic, L12 Study-Flow Center, crons | ✅ behind `study_flow_v2` |
-| **W4** | Assignments & projects: registry, submission lifecycle, rubric engine, text-only AI pipeline, L5 list + L6 submission flow | ✅ learner slice behind `submissions_v2` (review UI = W6) |
+| **W4** | Assignments & projects: registry, submission lifecycle, rubric engine, text-only AI pipeline, L5 list + L6 submission flow, **instructor review center (I3/I4)** | ✅ behind `submissions_v2` |
 | **W5** | Exams: unified runner (L9) with autosave/resume + results review (L10), ExamSession model, exam-schedule session CTAs | ✅ learner slice behind `exams_v2` |
 | **W6–W10** | Instructor portal · org/platform · restyle · cutover & deletion | 🔲 next |
 
