@@ -8,6 +8,7 @@
  * and the audit feed scoped to the org's own members.
  */
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit-log";
 import type { AuditActor } from "@/lib/audit-log";
@@ -238,5 +239,189 @@ export async function listOrgAudit(
       createdAt: r.createdAt.toISOString(),
     })),
     nextCursor,
+  };
+}
+
+// ── Registries (O3) ─────────────────────────────────────────────────────
+
+export const REGISTRY_KINDS = ["submission_type", "rubric_template", "category"] as const;
+export type RegistryKind = (typeof REGISTRY_KINDS)[number];
+
+export interface RegistryView {
+  id: string;
+  kind: string;
+  key: string;
+  label: string;
+  config: unknown;
+  sortOrder: number;
+  isActive: boolean;
+  /** false = platform default row (orgId null); true = org override. */
+  isOrgOverride: boolean;
+}
+
+/** Defaults (orgId null) + org overrides merged by key — the org row
+ *  shadows the platform default (RegistryRow semantics). */
+export async function listRegistries(orgId: string, kind: RegistryKind): Promise<RegistryView[]> {
+  const rows = await db.registryRow.findMany({
+    where: { kind, OR: [{ orgId: null }, { orgId }] },
+    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+  });
+  const byKey = new Map<string, RegistryView>();
+  for (const r of rows) {
+    byKey.set(r.key, {
+      id: r.id,
+      kind: r.kind,
+      key: r.key,
+      label: r.label,
+      config: r.configJson ?? {},
+      sortOrder: r.sortOrder,
+      isActive: r.isActive,
+      isOrgOverride: r.orgId === orgId,
+    });
+  }
+  return [...byKey.values()];
+}
+
+/** Create (or update) an org-scoped override for a registry key. The org
+ *  row shadows the platform default. Audited. */
+export async function upsertRegistry(
+  orgId: string,
+  actor: AuditActor,
+  input: { kind: RegistryKind; key: string; label: string; config?: unknown },
+) {
+  const key = input.key.trim();
+  if (!key) throw new OrgError("Key is required", "VALIDATION", 400);
+  if (!REGISTRY_KINDS.includes(input.kind)) {
+    throw new OrgError("Unknown registry kind", "VALIDATION", 400);
+  }
+
+  const row = await db.registryRow.upsert({
+    where: { orgId_kind_key: { orgId, kind: input.kind, key } },
+    update: { label: input.label, configJson: (input.config ?? {}) as Prisma.InputJsonValue, isActive: true },
+    create: {
+      orgId,
+      kind: input.kind,
+      key,
+      label: input.label,
+      configJson: (input.config ?? {}) as Prisma.InputJsonValue,
+      sortOrder: Date.now() % 1000,
+    },
+  });
+
+  await logAudit({
+    actor,
+    action: "org_registry_updated",
+    target: { type: "registry_row", id: row.id },
+    after: { kind: input.kind, key, label: input.label },
+  });
+
+  return row;
+}
+
+/** Enable/disable an org-scoped registry row (defaults are read-only). */
+export async function setRegistryActive(
+  orgId: string,
+  rowId: string,
+  actor: AuditActor,
+  isActive: boolean,
+) {
+  const row = await db.registryRow.findFirst({ where: { id: rowId, orgId } });
+  if (!row) throw new OrgError("Registry row not found (platform defaults are read-only)", "NOT_FOUND", 404);
+
+  const updated = await db.registryRow.update({ where: { id: rowId }, data: { isActive } });
+
+  await logAudit({
+    actor,
+    action: isActive ? "org_registry_enabled" : "org_registry_disabled",
+    target: { type: "registry_row", id: rowId },
+    after: { kind: row.kind, key: row.key },
+  });
+
+  return updated;
+}
+
+// ── Study analytics (O7) ────────────────────────────────────────────────
+
+/** Org engagement aggregate: activity by day + event mix + active
+ *  learners, scoped to the org's members (EngagementEvent rows). */
+export async function getOrgAnalytics(orgId: string) {
+  const memberIds = await db.orgMember.findMany({
+    where: { orgId },
+    select: { userId: true },
+  });
+  const userIds = memberIds.map((m) => m.userId);
+  if (userIds.length === 0) {
+    return { kpis: { events: 0, activeLearners: 0, sessions: 0 }, daily: [], byType: [] };
+  }
+
+  const since = new Date();
+  since.setDate(since.getDate() - 13);
+  since.setHours(0, 0, 0, 0);
+
+  const [events, sessions] = await Promise.all([
+    db.engagementEvent.findMany({
+      where: { userId: { in: userIds }, createdAt: { gte: since } },
+      select: { userId: true, eventType: true, createdAt: true },
+    }),
+    db.examSession.count({ where: { userId: { in: userIds }, startedAt: { gte: since } } }),
+  ]);
+
+  // Daily activity bars (last 14 days).
+  const dailyMap = new Map<string, number>();
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(since);
+    d.setDate(d.getDate() + i);
+    dailyMap.set(d.toISOString().slice(0, 10), 0);
+  }
+  for (const e of events) {
+    const day = e.createdAt.toISOString().slice(0, 10);
+    if (dailyMap.has(day)) dailyMap.set(day, dailyMap.get(day)! + 1);
+  }
+
+  const byTypeMap = new Map<string, number>();
+  for (const e of events) {
+    byTypeMap.set(e.eventType, (byTypeMap.get(e.eventType) ?? 0) + 1);
+  }
+
+  return {
+    kpis: {
+      events: events.length,
+      activeLearners: new Set(events.map((e) => e.userId)).size,
+      sessions,
+    },
+    daily: [...dailyMap.entries()].map(([date, count]) => ({ date, count })),
+    byType: [...byTypeMap.entries()]
+      .map(([eventType, count]) => ({ eventType, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8),
+  };
+}
+
+// ── Billing (O6) ────────────────────────────────────────────────────────
+
+/** Org billing view: plan + seats usage + recent member payments. */
+export async function getOrgBilling(orgId: string) {
+  const { org, members, seatsUsed } = await listMembers(orgId);
+  const memberIds = members.map((m) => m.userId);
+
+  const payments = await db.payment.findMany({
+    where: { userId: { in: memberIds }, status: "completed" },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+    include: { course: { select: { name: true } } },
+  });
+
+  return {
+    plan: org.plan,
+    seats: org.seats,
+    seatsUsed,
+    seatsPct: org.seats > 0 ? Math.round((seatsUsed / org.seats) * 100) : 0,
+    recentPayments: payments.map((p) => ({
+      id: p.id,
+      courseName: p.course.name,
+      amount: p.amount,
+      currency: p.currency,
+      createdAt: p.createdAt.toISOString(),
+    })),
   };
 }

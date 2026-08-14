@@ -9,3 +9,6 @@ export { OrgHome } from "./home";
 export { OrgPeople } from "./people";
 export { OrgControl } from "./control";
 export { OrgAudit } from "./audit";
+export { OrgRegistries } from "./registries";
+export { OrgAnalytics } from "./analytics";
+export { OrgBilling } from "./billing";

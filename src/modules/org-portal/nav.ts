@@ -7,10 +7,12 @@
  */
 
 import {
+  BarChart3,
   Building2,
   Home,
   LayoutDashboard,
   MoreHorizontal,
+  ServerCog,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -25,7 +27,9 @@ export const ORG_NAV: NavItem[] = [
   { id: "more", label: "More", href: "/org/more", icon: MoreHorizontal },
 ];
 
-/** Secondary destinations for the More hub (billing/analytics land later). */
+/** Secondary destinations for the More hub (O3/O6/O7). */
 export const ORG_MORE: NavItem[] = [
-  { id: "billing", label: "Billing & seats", href: "/org/more", icon: Building2 },
+  { id: "registries", label: "Registries", href: "/org/registries", icon: ServerCog },
+  { id: "analytics", label: "Study analytics", href: "/org/analytics", icon: BarChart3 },
+  { id: "billing", label: "Billing & seats", href: "/org/billing", icon: Building2 },
 ];

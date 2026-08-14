@@ -5,8 +5,9 @@ import Link from "next/link";
 import { ORG_MORE } from "@/modules/org-portal/nav";
 
 /**
- * /org/more — More hub: Billing & seats (O6) and Study Analytics (O7)
- * land with their workstreams — the hub grows as they ship.
+ * /org/more — More hub: Registries (O3), Study Analytics (O7),
+ * Billing & seats (O6). RBAC matrix and governance approvals land
+ * with their remaining pieces.
  */
 
 export default function OrgMorePage() {
@@ -27,9 +28,6 @@ export default function OrgMorePage() {
             </Link>
           );
         })}
-        <p className="px-4 py-3 text-xs text-fg-muted">
-          Billing (O6) and Study Analytics (O7) arrive with their workstreams.
-        </p>
       </div>
     </div>
   );
