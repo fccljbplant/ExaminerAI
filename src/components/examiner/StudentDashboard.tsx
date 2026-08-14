@@ -21,20 +21,17 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { api } from "@/lib/api-client";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { scoreToGrade, gradeColor } from "@/lib/constants";
 import {
-  CalendarCheck, TrendingUp, Loader2, RefreshCw, Sparkles,
-  Bot, ClipboardList, ClipboardCheck, FileText, BookOpen, ArrowRight, CheckCircle2,
-  AlertCircle, Award, ChevronRight, Activity, Target, Clock, MessageSquare,
+  CalendarCheck, Loader2, RefreshCw,
+  Bot, ClipboardList, ClipboardCheck, AlertCircle,
 } from "lucide-react";
 import type { StatsResponse, Mode } from "@/components/examiner/student/types";
 import type { EnrollmentResponse } from "@/app/api/enrollments/route";
+import { LearnerHome } from "@/modules/learn/components/dashboard/LearnerHome";
 import { WeeklyTestPanel } from "@/components/examiner/student/WeeklyTestPanel";
 import { QuestionPanel } from "@/components/examiner/student/PracticePanel";
 import { CheckInPanel } from "@/components/examiner/student/CheckInPanel";
@@ -42,11 +39,9 @@ import { ReportCardPanel } from "@/components/examiner/student/ReportCardPanel";
 import { ComprehensiveReportView } from "@/components/examiner/student/ComprehensiveReportView";
 import { SelfPacedAdvanceButton } from "@/components/examiner/student/SelfPacedAdvanceButton";
 import { GanttPanel } from "@/components/examiner/student/GanttPanel";
-import { redirectToView } from "@/components/examiner/student/shared";
 import { DailyTestPanel } from "@/components/examiner/student/DailyTestPanel";
 import TodayView from "@/components/examiner/student/TodayView";
 import { CredentialsView } from "@/components/examiner/student/CredentialsView";
-import { CollapsibleCard, CardRefreshButton } from "@/components/shared/collapsible-card";
 import MyCoursesView from "@/components/examiner/student/MyCoursesView";
 import { LearnerXPBar } from "@/modules/gamification";
 import { LearnerBadgeCollection } from "@/modules/gamification";
@@ -139,37 +134,16 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
         <TodayView onNavigate={(v) => setView(v as StudentView)} />
       )}
 
-      {/* My Courses overview — course cards from enrollments */}
-      {view === "home" && enrollments && enrollments.length > 0 && (
-        <div className="space-y-4">
-          {enrollments.length === 1 ? (
-            /* Single course: show current progress card */
-            <SingleCourseHome enrollment={(enrollments && enrollments.length > 0) ? enrollments[0] : null as unknown as EnrollmentResponse["enrollments"][0]} stats={stats!} onNavigate={setView} onReload={load} />
-          ) : (
-            /* Multiple courses: show card grid */
-            <div>
-              <h2 className="text-lg font-semibold text-foreground mb-3">My Courses</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {enrollments.map(enr => (
-                  <CourseCard
-                    key={enr.courseId}
-                    enrollment={enr}
-                    isActive={enr.courseId === activeCourseId}
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        const params = new URLSearchParams(window.location.search);
-                        params.set("courseId", enr.courseId);
-                        window.history.replaceState({}, "", `?${params.toString()}`);
-                      }
-                      // Reload stats for the selected course
-                      load();
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+      {/* LearnerHome — Star Admin dashboard: stat tiles, assignments,
+          course coverage, project progress, activity feed. */}
+      {view === "home" && (
+        <LearnerHome
+          stats={stats!}
+          enrollments={enrollments}
+          activeCourseId={activeCourseId}
+          onNavigate={(v) => setView(v as StudentView)}
+          onReload={load}
+        />
       )}
       {view === "study" && <StudyView stats={stats!} onReload={load} onNavigate={setView} />}
       {view === "project" && <GanttPanel stats={stats!} onReload={load} onMode={() => setView("study")} />}
@@ -251,150 +225,4 @@ function StudyView({ stats, onReload, onNavigate }: {
   );
 }
 
-// ============================================================
-// Shared components
-// ============================================================
-function StatCard({ icon: Icon, label, value, color }: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  color: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="pt-4 pb-3">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</span>
-          <Icon className={cn("w-3.5 h-3.5", color)} />
-        </div>
-        <div className={cn("text-xl font-bold", color)}>{value}</div>
-      </CardContent>
-    </Card>
-  );
-}
 
-function SingleCourseHome({ enrollment, stats, onNavigate, onReload }: {
-  enrollment: EnrollmentResponse["enrollments"][0] | null;
-  stats: StatsResponse;
-  onNavigate: (v: StudentView) => void;
-  onReload: () => void;
-}) {
-  const pct = enrollment?.totalWeeks ?? 0 > 0
-    ? Math.round(((enrollment?.currentWeek ?? 0) / (enrollment?.totalWeeks ?? 1)) * 100)
-    : 0;
-
-  return (
-    <div className="space-y-4">
-      <Card className="border-primary/20">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">{enrollment?.courseName}</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Week {enrollment?.currentWeek} of {enrollment?.totalWeeks}
-                {enrollment?.latestScore !== null && ` · Latest: ${enrollment?.latestScore}%`}
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-primary">{enrollment?.avgScore !== null ? `${enrollment?.avgScore}%` : "—"}</div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Avg Score</div>
-            </div>
-          </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-4">
-            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-lg bg-muted/50 p-2">
-              <div className="text-sm font-semibold text-foreground">{enrollment?.currentWeek}</div>
-              <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Week</div>
-            </div>
-            <div className="rounded-lg bg-muted/50 p-2">
-              <div className="text-sm font-semibold text-foreground">{enrollment?.currentDay}</div>
-              <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Day</div>
-            </div>
-            <div className="rounded-lg bg-muted/50 p-2">
-              <div className="text-sm font-semibold text-foreground">{enrollment?.progress}%</div>
-              <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Tasks</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {stats && (stats.tasks || []).length === 0 && enrollment?.projectEnabled && (
-        <Card className="border-growth-amber bg-growth-amber-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-growth-amber/20 flex items-center justify-center flex-shrink-0">
-                <Target className="h-5 w-5 text-growth-amber" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">
-                  Start your capstone project
-                  {enrollment?.projectRequired && (
-                    <Badge variant="outline" className="ml-2 text-[9px] border-growth-amber bg-growth-amber-soft text-growth-amber-foreground dark:text-growth-amber">
-                      Required
-                    </Badge>
-                  )}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Define your project to get AI-generated weekly tasks, milestones, and a Gantt chart.
-                </p>
-              </div>
-              <Button onClick={() => onNavigate("project")} size="sm" className="bg-growth-amber hover:bg-amber-600 text-white flex-shrink-0">
-                Set Up Project <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-    </div>
-  );
-}
-
-function CourseCard({ enrollment, isActive, onClick }: {
-  enrollment: EnrollmentResponse["enrollments"][0];
-  isActive: boolean;
-  onClick: () => void;
-}) {
-  const pct = enrollment?.totalWeeks ?? 0 > 0
-    ? Math.round(((enrollment?.currentWeek ?? 0) / (enrollment?.totalWeeks ?? 1)) * 100)
-    : 0;
-
-  return (
-    <Card
-      className={cn(
-        "cursor-pointer transition-all hover:shadow-md",
-        isActive ? "ring-2 ring-primary" : ""
-      )}
-      onClick={onClick}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground truncate">{enrollment.courseName}</h3>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              Week {enrollment?.currentWeek}/{enrollment?.totalWeeks}
-            </p>
-          </div>
-          <div className="text-right flex-shrink-0 ml-2">
-            <div className="text-base font-bold text-primary">
-              {enrollment?.avgScore !== null ? `${enrollment.avgScore}%` : "—"}
-            </div>
-            <div className="text-[8px] text-muted-foreground uppercase tracking-wider">Avg</div>
-          </div>
-        </div>
-        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-3">
-          <div
-            className="h-full bg-primary rounded-full transition-all"
-            style={{ width: `${Math.min(pct, 100)}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-          <span>Tasks: {enrollment?.progress}%</span>
-          {enrollment?.latestScore !== null && <span>Latest: {enrollment.latestScore}%</span>}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}

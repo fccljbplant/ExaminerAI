@@ -51,3 +51,6 @@ export { VideoStage } from "./components/classroom/VideoStage";
 export { VoiceBar } from "./components/classroom/VoiceBar";
 export { AvatarStage } from "./components/avatar/AvatarStage";
 export { AvatarRig, tutor } from "./components/avatar/avatar-rig";
+
+// ── Dashboard components (client-only) ────────────────────────
+export { LearnerHome } from "./components/dashboard/LearnerHome";
