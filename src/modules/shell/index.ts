@@ -13,5 +13,7 @@ export { TabRow } from "./tab-row";
 export { BottomNav } from "./bottom-nav";
 export { ActionBar } from "./action-bar";
 export { ModeToggle } from "./mode-toggle";
+export { UserMenu, initialsOf, roleLabel } from "./user-menu";
+export type { MeUser } from "./user-menu";
 export { useBreakpoint } from "./use-breakpoint";
 export type { BreakpointClass, NavItem, ShellBrand } from "./types";

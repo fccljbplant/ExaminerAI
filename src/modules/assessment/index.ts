@@ -36,5 +36,6 @@ export { DailyTestPanel } from "./components/DailyTestPanel";
 export { QuestionPanel as PracticePanel } from "./components/PracticePanel";
 export { SocraticPractice } from "./socratic-practice";
 export { SocraticWeeklyTest } from "./socratic-weekly";
+export { SocraticDaily } from "./socratic-daily";
 export { PostTestReflection } from "./components/PostTestReflection";
 export { TeachingFeedbackCard } from "./components/TeachingFeedbackCard";

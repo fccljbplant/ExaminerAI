@@ -79,6 +79,16 @@ export function LearnerExams() {
           <Play className="h-4 w-4 shrink-0 text-brand" aria-hidden />
         </Link>
         <Link
+          href="/learner/exams/daily"
+          className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface p-3 transition-colors hover:border-brand"
+        >
+          <span>
+            <span className="block text-sm font-medium text-fg">Socratic daily test</span>
+            <span className="block text-xs text-fg-muted">Three concept questions for today</span>
+          </span>
+          <Play className="h-4 w-4 shrink-0 text-brand" aria-hidden />
+        </Link>
+        <Link
           href="/learner/exams/weekly"
           className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface p-3 transition-colors hover:border-brand"
         >

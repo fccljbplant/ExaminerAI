@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppShellV2, ModeToggle } from "@/modules/shell";
+import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { PLATFORM_NAV, PLATFORM_MORE } from "./nav";
 
@@ -18,14 +18,6 @@ const NAV: NavItem[] = PLATFORM_NAV;
 
 export { PLATFORM_MORE };
 
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
 
 export function PlatformShell({
   userName,
@@ -42,12 +34,7 @@ export function PlatformShell({
         trailing={
           <>
             <ModeToggle />
-            <span
-              title={userName}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-subtle text-xs font-semibold text-fg"
-            >
-              {initials(userName) || "?"}
-            </span>
+            <UserMenu userName={userName} profileHref="/platform" profileLabel="Dashboard" />
           </>
         }
       >
