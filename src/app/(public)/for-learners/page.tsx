@@ -40,7 +40,7 @@ export default function ForLearnersPage() {
             <Link href="/support" className="text-fg-muted hover:text-fg">Support</Link>
           </div>
           <Button asChild size="sm">
-            <Link href="/app">Start Free <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+            <Link href="/login">Start Free <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
           </Button>
         </div>
       </nav>

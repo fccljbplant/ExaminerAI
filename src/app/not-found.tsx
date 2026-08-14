@@ -66,7 +66,7 @@ export default function RootNotFound() {
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/app">
+              <Link href="/login">
                 <LogIn className="h-4 w-4" />
                 Sign in
               </Link>

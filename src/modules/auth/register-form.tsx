@@ -61,7 +61,7 @@ export function RegisterForm() {
         });
         try {
           await api.post("/api/auth/login", { email, password });
-          router.push("/app");
+          router.push("/learner");
         } catch {
           setPending(true);
         }

@@ -15,8 +15,8 @@ import { Button } from "@/modules/ui/button";
 import { Badge } from "@/modules/ui/badge";
 import { Loader2, Send, CheckCircle2, CalendarCheck, Brain, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PostTestReflection } from "@/components/examiner/student/PostTestReflection";
-import { TeachingFeedbackCard, type TeachingFeedback } from "@/components/examiner/student/TeachingFeedbackCard";
+import { PostTestReflection } from "@/modules/assessment/components/PostTestReflection";
+import { TeachingFeedbackCard, type TeachingFeedback } from "@/modules/assessment/components/TeachingFeedbackCard";
 import { TestChatUI } from "@/modules/assessment/components/TestChatUI";
 
 interface ChatMessage {

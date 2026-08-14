@@ -26,7 +26,7 @@ export default function PublicNotFound() {
             <span className="text-fg-muted">/ Marketplace</span>
           </Link>
           <Button asChild size="sm">
-            <Link href="/app">Sign in</Link>
+            <Link href="/login">Sign in</Link>
           </Button>
         </div>
       </header>

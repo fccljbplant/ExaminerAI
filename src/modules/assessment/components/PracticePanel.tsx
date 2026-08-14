@@ -21,9 +21,9 @@ import {
 import type {
   Stats, WeeklyTest, Competency, ReportCardRow, DailyLog, Task,
   Interaction, CommentRow, StatsResponse, Mode, JourneyStep,
-} from "@/components/examiner/student/types";
-import { PostTestReflection } from "@/components/examiner/student/PostTestReflection";
-import { TeachingFeedbackCard, type TeachingFeedback } from "@/components/examiner/student/TeachingFeedbackCard";
+} from "@/modules/assessment/types";
+import { PostTestReflection } from "@/modules/assessment/components/PostTestReflection";
+import { TeachingFeedbackCard, type TeachingFeedback } from "@/modules/assessment/components/TeachingFeedbackCard";
 import { TestChatUI } from "@/modules/assessment/components/TestChatUI";
 
 export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek: number; onAnswered: () => void; stats: StatsResponse }) {

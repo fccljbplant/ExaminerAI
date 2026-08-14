@@ -144,7 +144,7 @@ export default async function CourseDetailPage({ params }: Params) {
             <span>Marketplace</span>
           </Link>
           <Button asChild size="sm">
-            <Link href="/app">Sign in</Link>
+            <Link href="/login">Sign in</Link>
           </Button>
         </div>
       </header>

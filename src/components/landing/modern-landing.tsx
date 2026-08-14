@@ -411,10 +411,10 @@ export function ModernLanding() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link href="/app">
+            <Link href="/login">
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Sign in</Button>
             </Link>
-            <Link href="/app">
+            <Link href="/login">
               <Button size="sm" className="bg-growth-amber hover:bg-amber-600 text-white shadow-sm">
                 <Sparkles className="w-4 h-4 mr-1.5" /> Try Demo
               </Button>
@@ -435,7 +435,7 @@ export function ModernLanding() {
             <a href="#psychology" onClick={() => setMobileNav(false)} className="block py-1.5">Mastery</a>
             <a href="#themes" onClick={() => setMobileNav(false)} className="block py-1.5">Themes</a>
             <a href="#tech" onClick={() => setMobileNav(false)} className="block py-1.5">Platform</a>
-            <Link href="/app" className="block">
+            <Link href="/login" className="block">
               <Button variant="outline" size="sm" className="w-full">Sign in</Button>
             </Link>
           </div>
@@ -477,7 +477,7 @@ export function ModernLanding() {
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mb-10">
-                <Link href="/app">
+                <Link href="/login">
                   <Button size="lg" className="bg-growth-amber hover:bg-amber-600 text-white text-base h-12 px-6 shadow-lg shadow-amber-500/20">
                     <Sparkles className="w-5 h-5 mr-2" /> Launch Live Demo
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -834,7 +834,7 @@ export function ModernLanding() {
                 ))}
               </div>
 
-              <Link href="/app">
+              <Link href="/login">
                 <Button className={`bg-gradient-to-r ${ROLES[activeRole].accent} text-white border-0`}>
                   <Sparkles className="w-4 h-4 mr-2" /> Open this dashboard
                 </Button>
@@ -1326,7 +1326,7 @@ export function ModernLanding() {
           </div>
 
           <div className="text-center">
-            <Link href="/app">
+            <Link href="/login">
               <Button size="lg">
                 <Palette className="w-4 h-4 mr-2" /> Try themes in the app
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -1391,7 +1391,7 @@ export function ModernLanding() {
           <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             One click. No signup. Watch the AI teach, students build, milestones track, and the teacher's dashboard light up with signal. The demo is read-only — try every role, nothing breaks.
           </p>
-          <Link href="/app">
+          <Link href="/login">
             <Button
               size="lg"
               className="bg-white text-slate-900 hover:bg-slate-100 h-14 px-8 text-base font-semibold shadow-xl"
@@ -1440,7 +1440,7 @@ export function ModernLanding() {
                 <li><a href="#psychology" className="hover:text-white">Mastery</a></li>
                 <li><a href="#themes" className="hover:text-white">Themes</a></li>
                 <li><a href="#tech" className="hover:text-white">Platform</a></li>
-                <li><Link href="/app" className="hover:text-white">Live Demo</Link></li>
+                <li><Link href="/login" className="hover:text-white">Live Demo</Link></li>
               </ul>
             </div>
 

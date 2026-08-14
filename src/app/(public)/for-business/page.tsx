@@ -226,13 +226,13 @@ export default function ForBusinessPage() {
             <span className="text-fg-muted hidden sm:inline">/ For Business</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="/courses">Browse Courses</Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-              <Link href="/app">Sign in</Link>
+              <Link href="/login">Sign in</Link>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="px-3 sm:px-4">
               <Link href="#cta">
                 Book a Demo
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -673,7 +673,7 @@ export default function ForBusinessPage() {
             <Link href="/for-business" className="hover:text-fg transition-colors">
               For Business
             </Link>
-            <Link href="/app" className="hover:text-fg transition-colors">
+            <Link href="/login" className="hover:text-fg transition-colors">
               Sign in
             </Link>
           </div>

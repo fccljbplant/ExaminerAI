@@ -47,6 +47,4 @@ export {
 } from "./lib/learner-badges";
 
 // ── Component re-exports ────────────────────────────────────────
-export { LearnerXPBar } from "./components/LearnerXPBar";
-export { LearnerBadgeCollection } from "./components/LearnerBadgeCollection";
 export { CelebrationOverlay } from "./components/CelebrationOverlay";

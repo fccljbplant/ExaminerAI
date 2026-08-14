@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { homeForRole } from "@/lib/portal-home";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -16,15 +17,15 @@ import { PortalShell } from "@/modules/learner-portal";
  */
 export default async function LearnerPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/app");
-  if (user.role !== "learner" && user.role !== "student") redirect("/app");
+  if (!user) redirect("/login");
+  if (user.role !== "learner" && user.role !== "student") redirect(homeForRole(user.role));
 
   const membership = await db.orgMember.findFirst({
     where: { userId: user.id, status: "active" },
     select: { orgId: true },
   });
   const enabled = await isPortalEnabled("learner", membership?.orgId);
-  if (!enabled) redirect("/app");
+  if (!enabled) redirect(homeForRole(user.role));
 
   return <PortalShell userName={user.name}>{children}</PortalShell>;
 }

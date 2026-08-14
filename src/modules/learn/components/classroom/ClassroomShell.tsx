@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/modules/ui/PageHeader";
-import { prepareForTTS, speakTTS, stopTTS } from "@/modules/learn/lib/tts-filter";
+import { prepareForTTS, speakTTS, stopTTS, warmVoices } from "@/modules/learn/lib/tts-filter";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
 import { tutor } from "@/modules/learn/components/avatar/avatar-rig";
 import { AvatarStage } from "@/modules/learn/components/avatar/AvatarStage";
@@ -112,7 +112,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [slides, setSlides] = useState<SlideData[]>([]);
   const [slideIdx, setSlideIdx] = useState(0);
   const [activePanel, setActivePanel] = useState<PanelKey | null>(null);
-  const [ttsOn, setTtsOn] = useState(true);
+  // Sound is OFF by default — learners opt in via the voice toggle
+  // (user requirement 2026-08-15).
+  const [ttsOn, setTtsOn] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -134,6 +136,12 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   // Auto-generate the first slide on page load — the learner never sees
   // a "Start learning" generation button (user requirement 2026-08-15).
   const autoStartedRef = useRef(false);
+
+  // Warm the browser voice list on mount so the male-voice picker is
+  // ready when the learner opts in (getVoices populates asynchronously).
+  useEffect(() => {
+    warmVoices();
+  }, []);
 
   // ── Focus mode sync ───────────────────────────────────────────────
   useEffect(() => {
@@ -163,7 +171,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         // Token expired or invalid — redirect to login.
-        window.location.href = "/app";
+        window.location.href = "/login";
         return;
       }
       toast.error("Couldn't load your progress", { description: e instanceof Error ? e.message : undefined });
@@ -182,7 +190,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       setStageMode(data.media?.kind === "video" ? "video" : "slides");
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
-        window.location.href = "/app";
+        window.location.href = "/login";
         return;
       }
       toast.error("Couldn't load today's topic", { description: e instanceof Error ? e.message : undefined });
@@ -203,7 +211,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       }]);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
-        window.location.href = "/app";
+        window.location.href = "/login";
         return;
       }
       toast.error("Couldn't start tutor session", { description: e instanceof Error ? e.message : undefined });

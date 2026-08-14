@@ -93,14 +93,14 @@ export default async function CoursesPage({
             <span className="text-fg-muted">/ Marketplace</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="/paths">Learning Paths</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/app">Sign in</Link>
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link href="/login">Sign in</Link>
             </Button>
-            <Button asChild size="sm">
-              <Link href="/app">Get started</Link>
+            <Button asChild size="sm" className="px-3 sm:px-4">
+              <Link href="/login">Get started</Link>
             </Button>
           </div>
         </div>

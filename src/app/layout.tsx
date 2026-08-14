@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster as SonnerToaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ThemePresetProvider, ThemeV2Provider } from "@/modules/theme";
+import { ThemeV2Provider } from "@/modules/theme";
 import { CommandRegistryProvider } from "@/modules/ui/command-registry";
 import { CommandPalette } from "@/modules/ui/command-palette";
 import { KeyboardShortcutsHelp } from "@/modules/ui/keyboard-shortcuts-help";
@@ -58,7 +58,6 @@ export default function RootLayout({
         />
         <ThemeProvider>
           <ThemeV2Provider>
-            <ThemePresetProvider>
               <CommandRegistryProvider>
                 {children}
                 {/* ⌘K command palette — global. Press ⌘K (or Ctrl+K) anywhere.
@@ -72,7 +71,6 @@ export default function RootLayout({
                 <CelebrationOverlay />
                 <SonnerToaster position="bottom-right" richColors closeButton />
               </CommandRegistryProvider>
-            </ThemePresetProvider>
           </ThemeV2Provider>
         </ThemeProvider>
       </body>

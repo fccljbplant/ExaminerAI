@@ -89,10 +89,10 @@ export default async function CategoryPage({
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
-              <Link href="/app">Sign in</Link>
+              <Link href="/login">Sign in</Link>
             </Button>
             <Button asChild size="sm">
-              <Link href="/app">Get started</Link>
+              <Link href="/login">Get started</Link>
             </Button>
           </div>
         </div>

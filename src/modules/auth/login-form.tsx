@@ -9,14 +9,18 @@ import { Button } from "@/modules/ui/button";
 import { Input } from "@/modules/ui/input";
 import { Label } from "@/modules/ui/label";
 import { cn } from "@/lib/utils";
+import { homeForRole } from "@/lib/portal-home";
 
 /**
  * modules/auth — LoginForm (new kit, REDESIGN-P2)
  *
- * POST /api/auth/login then hand off to the /app shell, which reads
- * the session via /api/auth/me. Demo accounts are read-only preview
- * seats and flag themselves through the examiner-is-demo key.
+ * POST /api/auth/login then route by role straight into the v2 portal
+ * (W10 cutover — the legacy /app shell is deleted). Demo accounts are
+ * read-only preview seats and flag themselves through the
+ * examiner-is-demo key.
  */
+
+
 
 const DEMO_ACCOUNTS = [
   { email: "learner@demo.ai", label: "Learner" },
@@ -49,11 +53,11 @@ export function LoginForm() {
         setBusy(true);
       }
       try {
-        await api.post("/api/auth/login", {
-          email: demoEmail ?? email,
-          password: demoEmail ? DEMO_PASSWORD : password,
-        });
-        router.push("/app");
+        const res = await api.post<{ ok?: boolean; user?: { role?: string } }>(
+          "/api/auth/login",
+          { email: demoEmail ?? email, password: demoEmail ? DEMO_PASSWORD : password },
+        );
+        router.push(homeForRole(res?.user?.role ?? "learner"));
       } catch (e) {
         if (isDemo) localStorage.removeItem("examiner-is-demo");
         setError(e instanceof Error ? e.message : "Sign in failed");

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { homeForRole } from "@/lib/portal-home";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -17,15 +18,15 @@ import { InstructorShell } from "@/modules/instructor-portal";
  */
 export default async function InstructorPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/app");
-  if (user.role !== "instructor" && user.role !== "org_admin") redirect("/app");
+  if (!user) redirect("/login");
+  if (user.role !== "instructor" && user.role !== "org_admin") redirect(homeForRole(user.role));
 
   const membership = await db.orgMember.findFirst({
     where: { userId: user.id, status: "active" },
     select: { orgId: true },
   });
   const enabled = await isPortalEnabled("instructor", membership?.orgId);
-  if (!enabled) redirect("/app");
+  if (!enabled) redirect(homeForRole(user.role));
 
   return <InstructorShell userName={user.name}>{children}</InstructorShell>;
 }

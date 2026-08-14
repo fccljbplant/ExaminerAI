@@ -29,7 +29,7 @@ export default function PricingPage() {
             <Link href="/courses" className="text-fg-muted hover:text-fg">Courses</Link>
             <Link href="/support" className="text-fg-muted hover:text-fg">Support</Link>
           </div>
-          <Button asChild size="sm"><Link href="/app">Sign In</Link></Button>
+          <Button asChild size="sm"><Link href="/login">Sign In</Link></Button>
         </div>
       </nav>
 

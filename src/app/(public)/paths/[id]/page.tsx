@@ -45,7 +45,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
             <span>Marketplace</span>
           </Link>
           <Button asChild size="sm">
-            <Link href="/app">Sign in</Link>
+            <Link href="/login">Sign in</Link>
           </Button>
         </div>
       </header>
@@ -94,7 +94,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
             {/* CTA + price */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Button asChild size="lg">
-                <Link href="/app">
+                <Link href="/login">
                   {isFree ? "Start free path" : "Enroll in Path"} <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -152,7 +152,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                   </div>
                 )}
                 <Button asChild className="w-full mt-2">
-                  <Link href="/app">{isFree ? "Start free path" : "Enroll in Path"}</Link>
+                  <Link href="/login">{isFree ? "Start free path" : "Enroll in Path"}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -285,7 +285,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                 <li>Distinct grade if score ≥ 85</li>
               </ul>
               <Button asChild size="sm" className="w-full mt-3">
-                <Link href="/app">{isFree ? "Start free path" : "Enroll in Path"}</Link>
+                <Link href="/login">{isFree ? "Start free path" : "Enroll in Path"}</Link>
               </Button>
             </CardContent>
           </Card>

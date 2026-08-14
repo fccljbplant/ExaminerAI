@@ -37,7 +37,7 @@ import {
 
 // Built-in navigation commands — always available.
 const NAV_COMMANDS: CommandEntry[] = [
-  { id: "nav-home", label: "Today", hint: "Your daily routine", group: "Navigate", icon: Home, action: () => window.location.assign("/app") },
+  { id: "nav-home", label: "Today", hint: "Your daily routine", group: "Navigate", icon: Home, action: () => window.location.assign("/learner") },
   { id: "nav-courses", label: "My Courses", hint: "Browse and switch courses", group: "Navigate", icon: BookOpen, action: () => window.location.assign("/app?view=my-courses") },
   { id: "nav-study", label: "Study", hint: "Practice, daily test, weekly test", group: "Navigate", icon: ClipboardList, action: () => window.location.assign("/app?view=study") },
   { id: "nav-project", label: "Project", hint: "Your capstone project tasks", group: "Navigate", icon: FolderGit2, action: () => window.location.assign("/app?view=project") },

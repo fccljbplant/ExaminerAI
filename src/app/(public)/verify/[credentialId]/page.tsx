@@ -117,9 +117,9 @@ export default async function VerifyCredentialPage({ params }: Params) {
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand text-on-brand mb-3">
               <GraduationCap className="h-8 w-8" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-fg">
+            <h2 className="text-2xl sm:text-3xl font-bold text-fg">
               {certificate.distinction ? "Certificate of Completion with Distinction" : "Certificate of Completion"}
-            </h1>
+            </h2>
             <p className="text-sm text-fg-muted mt-1">This certifies that</p>
             {certificate.distinction && (
               <Badge className="mt-3 bg-growth-amber/20 text-growth-amber dark:text-growth-amber border-growth-amber">
@@ -308,7 +308,7 @@ function InvalidCredential({ credentialId }: { credentialId: string }) {
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
             <ShieldCheck className="h-7 w-7 text-destructive" />
           </div>
-          <h1 className="text-xl font-bold text-fg">Invalid credential</h1>
+          <h2 className="text-xl font-bold text-fg">Invalid credential</h2>
           <p className="text-sm text-fg-muted">
             We couldn&apos;t find a TraineesAI credential with the ID
             <span className="font-mono block mt-1 px-2 py-1 rounded bg-bg-subtle text-xs break-all">

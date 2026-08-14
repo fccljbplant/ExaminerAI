@@ -112,7 +112,7 @@ export function LearnerHelp() {
           </span>
         </Link>
         <Link
-          href="/app"
+          href="/login"
           className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-line-strong"
         >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-subtle text-fg-secondary">

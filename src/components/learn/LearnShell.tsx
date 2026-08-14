@@ -119,7 +119,7 @@ export function LearnShell({ courseId, courseName }: Props) {
  } catch (e) {
  if (e instanceof ApiError && e.status === 401) {
  // Token expired or invalid — redirect to login.
- window.location.href = "/app";
+ window.location.href = "/login";
  return;
  }
  toast.error("Couldn't load your progress", { description: e instanceof Error ? e.message : undefined });
@@ -136,7 +136,7 @@ export function LearnShell({ courseId, courseName }: Props) {
  setTopicComplete(false);
  } catch (e) {
  if (e instanceof ApiError && e.status === 401) {
- window.location.href = "/app";
+ window.location.href = "/login";
  return;
  }
  toast.error("Couldn't load today's topic", { description: e instanceof Error ? e.message : undefined });
@@ -157,7 +157,7 @@ export function LearnShell({ courseId, courseName }: Props) {
  }]);
  } catch (e) {
  if (e instanceof ApiError && e.status === 401) {
- window.location.href = "/app";
+ window.location.href = "/login";
  return;
  }
  toast.error("Couldn't start tutor session", { description: e instanceof Error ? e.message : undefined });

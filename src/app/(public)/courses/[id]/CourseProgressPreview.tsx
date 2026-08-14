@@ -150,7 +150,7 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
             </Button>
           ) : (
             <Button asChild size="sm" className="flex-1">
-              <Link href="/app">
+              <Link href="/login">
                 {isComplete ? "Review Course" : "Continue Learning"}
                 <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Link>

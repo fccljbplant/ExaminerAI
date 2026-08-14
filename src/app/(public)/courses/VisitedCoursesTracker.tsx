@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { markVisitedCourses } from "@/components/examiner/student/OnboardingGuide";
+import { markVisitedCourses } from "@/modules/course/lib/visited-courses";
 
 /**
  * VisitedCoursesTracker — invisible client component.

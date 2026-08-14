@@ -54,7 +54,6 @@ const PUBLIC_ROUTES = [
   "/learn", // learn catalog is public; /learn/[courseId] auto-creates profile on first visit (auth required)
   "/login",
   "/register",
-  "/app", // AppShell handles both login (no token) and dashboard (with token)
   "/avatars-demo", // public avatar demo page
   "/preview", // dev-only design preview routes (not-found in production)
 ];
@@ -171,7 +170,7 @@ export async function middleware(req: NextRequest) {
       );
     }
     // Page → redirect to /app (AppShell shows login form when unauthenticated)
-    return NextResponse.redirect(new URL("/app", req.url));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // ── Verify JWT ───────────────────────────────────────────────
@@ -198,7 +197,7 @@ export async function middleware(req: NextRequest) {
       );
     }
     // Page → redirect to /app (AppShell shows login form when unauthenticated)
-    return NextResponse.redirect(new URL("/app", req.url));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 }
 

@@ -15,7 +15,7 @@ import { formatRelativeTime } from "@/lib/format";
 import { WidgetCard } from "@/modules/ui/widget-card";
 import { StatStrip } from "@/modules/ui/stat-card";
 import { EmptyState } from "@/modules/ui/states";
-import type { StatsResponse, Task } from "@/components/examiner/student/types";
+import type { StatsResponse, Task } from "@/modules/assessment/types";
 import type { EnrollmentResponse } from "@/app/api/enrollments/route";
 
 interface LearnerHomeProps {

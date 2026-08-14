@@ -129,7 +129,7 @@ export default function EnrollButton({ courseId }: { courseId: string }) {
     return (
       <div className="flex flex-col gap-2">
         <Button asChild size="lg" className="bg-brand text-on-brand hover:bg-brand/90">
-          <Link href="/app">
+          <Link href="/login">
             <CheckCircle2 className="h-4 w-4" />
             {justEnrolled ? "Enrolled! Continue Learning" : "Continue Learning"}
             <ArrowRight className="h-4 w-4" />
@@ -142,7 +142,7 @@ export default function EnrollButton({ courseId }: { courseId: string }) {
   if (authState === "anon") {
     return (
       <Button asChild size="lg">
-        <Link href="/app">
+        <Link href="/login">
           <LogIn className="h-4 w-4" />
           Sign in to Enroll
         </Link>
@@ -153,7 +153,7 @@ export default function EnrollButton({ courseId }: { courseId: string }) {
   if (authState === "staff") {
     return (
       <Button asChild size="lg" variant="outline">
-        <Link href="/app">
+        <Link href="/login">
           <GraduationCap className="h-4 w-4" />
           View as Instructor
         </Link>

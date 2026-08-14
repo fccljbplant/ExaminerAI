@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getAuthUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { homeForRole } from "@/lib/portal-home";
 import { COPY } from "@/content/copy";
 import { Button } from "@/modules/ui/button";
 import { Badge } from "@/modules/ui/badge";
@@ -28,7 +29,7 @@ export const dynamic = "force-dynamic";
 export default async function LandingPage() {
   // Authenticated users skip the marketing page → go straight to dashboard.
   const user = await getAuthUser();
-  if (user) redirect("/app");
+  if (user) redirect(homeForRole(user.role));
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -51,7 +52,7 @@ export default async function LandingPage() {
             </div>
             <div className="flex items-center gap-2">
               <Button asChild variant="ghost" size="sm">
-                <Link href="/app">Sign in</Link>
+                <Link href="/login">Sign in</Link>
               </Button>
               <Button asChild size="sm">
                 <Link href="/for-learners">Start Free <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
@@ -302,7 +303,7 @@ export default async function LandingPage() {
               <ul className="space-y-2 text-sm">
                 <li><Link href="/support" className="text-fg-muted hover:text-fg transition-colors">Help Center</Link></li>
                 <li><Link href="/support" className="text-fg-muted hover:text-fg transition-colors">Contact Support</Link></li>
-                <li><Link href="/app" className="text-fg-muted hover:text-fg transition-colors">Sign In</Link></li>
+                <li><Link href="/login" className="text-fg-muted hover:text-fg transition-colors">Sign In</Link></li>
               </ul>
             </div>
             <div>

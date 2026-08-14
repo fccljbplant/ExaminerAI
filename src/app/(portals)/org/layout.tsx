@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { homeForRole } from "@/lib/portal-home";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -14,8 +15,8 @@ import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
 
 export default async function OrgPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/app");
-  if (user.role !== "org_admin" && user.role !== "platform_admin") redirect("/app");
+  if (!user) redirect("/login");
+  if (user.role !== "org_admin" && user.role !== "platform_admin") redirect(homeForRole(user.role));
 
   if (!(await isOrgPortalEnabled())) redirect("/app");
 
@@ -23,7 +24,7 @@ export default async function OrgPortalLayout({ children }: { children: ReactNod
     where: { userId: user.id, status: "active" },
     select: { orgId: true },
   });
-  if (!membership) redirect("/app");
+  if (!membership) redirect(homeForRole(user.role));
 
   return <OrgShell userName={user.name}>{children}</OrgShell>;
 }

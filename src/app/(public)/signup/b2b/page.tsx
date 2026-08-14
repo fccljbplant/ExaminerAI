@@ -33,7 +33,7 @@ export default function B2BSignupPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Signup failed");
       // Success — redirect to the org dashboard
-      router.push("/app");
+      router.push("/learner");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Signup failed");
     } finally {
@@ -53,7 +53,7 @@ export default function B2BSignupPage() {
             TraineesAI
           </Link>
           <Button asChild variant="ghost" size="sm">
-            <Link href="/app">Sign in</Link>
+            <Link href="/login">Sign in</Link>
           </Button>
         </div>
       </nav>

@@ -32,7 +32,6 @@ import {
 } from "react";
 import { useTheme } from "next-themes";
 import { deriveBrandPalette, paletteToCssVars, type BrandPalette } from "./lib/brand";
-import { getThemePreset } from "./themes/presets";
 
 export type ThemeModeV2 = "light" | "dark" | "bed";
 
@@ -80,20 +79,9 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
   /* ---- boot: read storage, run one-time preset migration (§2.5) ---- */
   useEffect(() => {
     setBedState(readBool(THEME_V2_STORAGE.bed));
-    let hex: string | null = localStorage.getItem(THEME_V2_STORAGE.brand);
-    if (!hex) {
-      const legacy = localStorage.getItem(THEME_V2_STORAGE.legacyPreset);
-      if (legacy) {
-        // Nearest-hue mapping: the preset accent becomes the brand.
-        hex = getThemePreset(legacy).accentColor;
-        try {
-          localStorage.setItem(THEME_V2_STORAGE.brand, hex);
-          localStorage.removeItem(THEME_V2_STORAGE.legacyPreset);
-        } catch {
-          /* storage unavailable — migration simply retries next load */
-        }
-      }
-    }
+    // W10: the legacy preset migration is gone with presets.ts — the
+    // org/global brand key is the only source.
+    const hex = localStorage.getItem(THEME_V2_STORAGE.brand);
     if (hex) setBrandHexState(hex);
     setMounted(true);
   }, []);

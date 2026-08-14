@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import ForgotPassword from "@/components/examiner/ForgotPassword";
+import ForgotPassword from "@/modules/auth/ForgotPassword";
 
 /**
  * /forgot-password — links from the new /login screen.

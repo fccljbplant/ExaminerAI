@@ -32,7 +32,7 @@ export default function SupportPage() {
             <Link href="/for-learners" className="text-fg-muted hover:text-fg">For Learners</Link>
             <Link href="/pricing" className="text-fg-muted hover:text-fg">Pricing</Link>
           </div>
-          <Button asChild size="sm"><Link href="/app">Sign In</Link></Button>
+          <Button asChild size="sm"><Link href="/login">Sign In</Link></Button>
         </div>
       </nav>
 

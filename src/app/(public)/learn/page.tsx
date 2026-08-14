@@ -70,10 +70,10 @@ export default async function LearnHomePage() {
             {user ? (
               <>
                 <span className="hidden sm:inline text-fg-muted">Hi, {user.name.split(" ")[0]}</span>
-                <Link href="/app" className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle">Dashboard</Link>
+                <Link href="/login" className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle">Dashboard</Link>
               </>
             ) : (
-              <Link href="/app" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90">
+              <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90">
                 Sign in
               </Link>
             )}
@@ -93,9 +93,9 @@ export default async function LearnHomePage() {
                 </div>
                 {lastCourse ? (
                   <>
-                    <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+                    <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
                       {lastCourse.name}
-                    </h1>
+                    </h2>
                     <p className="text-fg-muted mt-2 max-w-xl">
                       Pick up where you left off. Your AI tutor is ready to walk you through the next topic.
                     </p>
@@ -116,9 +116,9 @@ export default async function LearnHomePage() {
                   </>
                 ) : (
                   <>
-                    <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+                    <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
                       Ready to start learning
-                    </h1>
+                    </h2>
                     <p className="text-fg-muted mt-2 max-w-xl">
                       Pick a course below to begin. Your AI tutor will guide you through every topic with slides, daily tests, and a capstone project.
                     </p>
@@ -151,15 +151,15 @@ export default async function LearnHomePage() {
               <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand mb-2">
                 <Sparkles className="h-3 w-3" /> AI-guided learning
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
                 Learn with an AI tutor by your side
-              </h1>
+              </h2>
               <p className="text-fg-muted mt-2 max-w-xl">
                 Every course is taught by an AI avatar that explains each topic, asks check questions, and adapts to your level. Sign in to start.
               </p>
               <div className="mt-4">
                 <Link
-                  href="/app"
+                  href="/login"
                   className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90"
                 >
                   Sign in to start <ArrowRight className="h-4 w-4" />

@@ -33,7 +33,7 @@ export default async function LearnSessionPage({
       <div className="min-h-screen flex items-center justify-center bg-bg text-fg">
         <div className="text-center">
           <p className="text-sm text-fg-muted">Please sign in to start learning.</p>
-          <a href="/app" className="mt-2 inline-block text-brand underline">Go to sign in</a>
+          <a href="/login" className="mt-2 inline-block text-brand underline">Go to sign in</a>
         </div>
       </div>
     );
