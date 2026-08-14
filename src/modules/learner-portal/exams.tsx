@@ -65,6 +65,31 @@ export function LearnerExams() {
     <div className="space-y-4 md:space-y-6">
       <h1 className="text-lg font-semibold text-fg md:text-xl">Exams</h1>
 
+      {/* Socratic mode — the classic concept-based testing experience
+          restored alongside the runner (W10 audit). */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Link
+          href="/learner/practice"
+          className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface p-3 transition-colors hover:border-brand"
+        >
+          <span>
+            <span className="block text-sm font-medium text-fg">Socratic practice</span>
+            <span className="block text-xs text-fg-muted">Chat with the AI examiner on any topic</span>
+          </span>
+          <Play className="h-4 w-4 shrink-0 text-brand" aria-hidden />
+        </Link>
+        <Link
+          href="/learner/exams/weekly"
+          className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface p-3 transition-colors hover:border-brand"
+        >
+          <span>
+            <span className="block text-sm font-medium text-fg">Socratic weekly test</span>
+            <span className="block text-xs text-fg-muted">The classic 10-question conversation</span>
+          </span>
+          <Play className="h-4 w-4 shrink-0 text-brand" aria-hidden />
+        </Link>
+      </div>
+
       {empty ? (
         <AllClear />
       ) : (

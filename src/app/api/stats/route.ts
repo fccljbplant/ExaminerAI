@@ -384,7 +384,10 @@ export async function GET(req: NextRequest) {
       completedTasksThisWeek: completedTasks,
       // Project planning metadata — needed by the Project Progress chart
       // so it can render weeks 1..projectDurationWeeks instead of hardcoding 6.
-      projectDurationWeeks: user.projectDurationWeeks ?? 6,
+      // W10: when the learner hasn't picked a project duration, fall back to
+      // the assigned course's week count so the weekly-test selector doesn't
+      // offer weeks the test gate will reject.
+      projectDurationWeeks: user.projectDurationWeeks ?? (projectConfig.totalWeeks > 0 ? projectConfig.totalWeeks : 6),
     },
     weeklyTests: user.weeklyTests,
     competencies: user.competencies,

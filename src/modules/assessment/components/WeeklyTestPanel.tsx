@@ -316,7 +316,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
     <div className="space-y-4">
       {/* Week selector — student can pick any week */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs font-medium text-muted-foreground">Select week:</span>
+        <span className="text-xs font-medium text-fg-muted">Select week:</span>
         {Array.from({ length: stats.stats.projectDurationWeeks ?? 6 }, (_, i) => i + 1).map(w => {
           const test = (stats.weeklyTests || []).find(t => t.week === w);
           const isDone = test?.status === "completed";
@@ -326,10 +326,10 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               onClick={() => { setSelectedWeek(w); setConversation([]); setChatLoaded(false); setIsComplete(false); setPsychAnalysis(""); setExaminerComment(""); setScore(null); setFeedback(null); }}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                 selectedWeek === w
-                  ? "bg-primary text-primary-foreground border-primary"
+                  ? "bg-brand text-on-brand border-brand"
                   : isDone
                   ? "border-growth-sage text-growth-sage bg-growth-sage-soft hover:bg-growth-sage/20"
-                  : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                  : "border-line text-fg-muted hover:text-fg hover:bg-bg-subtle"
               }`}
             >
               W{w}{isDone && " ✓"}
@@ -338,13 +338,13 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         })}
       </div>
 
-      <Card className="border-border bg-card">
+      <Card className="border-line bg-surface">
         <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2">
-            <ClipboardList className="h-5 w-5 text-primary" /> Weekly Test — Week {selectedWeek}
+          <CardTitle className="text-fg flex items-center gap-2">
+            <ClipboardList className="h-5 w-5 text-brand" /> Weekly Test — Week {selectedWeek}
             {isFinalWeek && <Badge variant="outline" className="text-[10px] text-growth-amber border-growth-amber bg-growth-amber-soft">Final Capstone — No task lock</Badge>}
           </CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardDescription className="text-fg-muted">
             A Socratic conversation with the AI examiner. {totalQuestions} questions, max {maxReplies} replies each.
             Graded on concept understanding and logical reasoning.
           </CardDescription>
@@ -355,7 +355,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               <p className="text-growth-amber-foreground dark:text-growth-amber flex items-center gap-2 font-medium">
                 <AlertTriangle className="h-4 w-4" /> Complete all Week {selectedWeek} tasks first to unlock the test.
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-fg-muted mt-1">
                 {weekTasks.filter(t => t.status === "completed").length} of {weekTasks.length} tasks completed. Go to the Project tab and mark the remaining tasks as "completed".
               </p>
               <ul className="mt-3 space-y-1.5 text-sm">
@@ -364,7 +364,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                   const dayB = b.day ?? 99;
                   return dayA - dayB;
                 }).map((t) => (
-                  <li key={t.id} className={`flex items-center gap-2 ${t.status === "completed" ? "text-muted-foreground" : "text-foreground font-medium"}`}>
+                  <li key={t.id} className={`flex items-center gap-2 ${t.status === "completed" ? "text-fg-muted" : "text-fg font-medium"}`}>
                     {t.status === "completed"
                       ? <CheckCircle2 className="h-3.5 w-3.5 text-growth-sage flex-shrink-0" />
                       : <Circle className="h-3.5 w-3.5 text-growth-amber flex-shrink-0" />}
@@ -379,23 +379,23 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
             </div>
           ) : !hasStarted && !isCompleted ? (
             <div className="text-center py-8 space-y-4">
-              <Brain className="h-12 w-12 text-primary mx-auto" />
+              <Brain className="h-12 w-12 text-brand mx-auto" />
               <div>
-                <p className="text-foreground font-medium">Ready to begin your Socratic assessment</p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-fg font-medium">Ready to begin your Socratic assessment</p>
+                <p className="text-sm text-fg-muted mt-1">
                   The AI examiner will ask you {totalQuestions} questions across 4 pillars (Why Probe, Break-It, Client Translation, Edge Case) plus reflections.
                   Each question allows up to {maxReplies} replies. You&apos;ll be graded on concept understanding and logical reasoning — not word count.
                   Be concise and thoughtful.
                 </p>
               </div>
-              <Button onClick={startTest} disabled={busy} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button onClick={startTest} disabled={busy} className="bg-brand hover:bg-brand/90 text-on-brand">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardList className="h-4 w-4" />}
                 Start Socratic Test
               </Button>
             </div>
           ) : !chatLoaded ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <Loader2 className="h-6 w-6 animate-spin text-brand" />
             </div>
           ) : isComplete ? (
             /* COMPLETED STATE — show only the results, NOT the empty chat window.
@@ -405,9 +405,9 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                sees a kind "here's what to focus on" message + study plan instead
                of the raw score. Teachers see the real score in the portfolio view. */
             <div className="space-y-3 animate-fade-in-up">
-              <div className="rounded-lg border border-primary/40 bg-primary/10 p-4">
+              <div className="rounded-lg border border-brand/40 bg-brand-subtle p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-primary">
+                  <span className="text-sm font-medium text-brand">
                     {needsStudyPlan ? "Test Complete — Let's Look at This Together" : "Test Complete"}
                   </span>
                   {/* Phase 1.1: Only show the raw score if the student passed
@@ -415,13 +415,13 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                       instead — the student doesn't need to see "32%" staring
                       at them. The instructor sees the real score. */}
                   {score !== null && !needsStudyPlan && (
-                    <span className="text-2xl font-bold text-primary">{score}%</span>
+                    <span className="text-2xl font-bold text-brand">{score}%</span>
                   )}
                   {score !== null && needsStudyPlan && (
                     <span className="text-2xl font-bold text-growth-amber">Keep Going</span>
                   )}
                 </div>
-                <p className="text-[10px] text-muted-foreground mb-2">Based on {currentQuestion + 1} questions answered</p>
+                <p className="text-[10px] text-fg-muted mb-2">Based on {currentQuestion + 1} questions answered</p>
 
                 {/* Phase 1.1 + 1.6: Study plan for low scores. Replaces the
                     harsh "you failed" feeling with actionable guidance. */}
@@ -431,27 +431,27 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                     <p className="text-sm font-medium text-growth-sage-foreground dark:text-growth-sage mb-1">
                       What you're already doing well:
                     </p>
-                    <p className="text-xs text-foreground/80 mb-3">
+                    <p className="text-xs text-fg/80 mb-3">
                       You showed up and engaged with every question — that's the foundation everything else builds on. Showing up consistently is the hardest part, and you're already doing it.
                     </p>
                     <p className="text-sm font-medium text-growth-amber-foreground dark:text-growth-amber mb-1">
                       Want to strengthen these areas?
                     </p>
-                    <p className="text-xs text-muted-foreground mb-2">
+                    <p className="text-xs text-fg-muted mb-2">
                       Here are some topics worth a closer look. You decide how to approach them —
                       try one practice question, ask the AI Tutor, or take a first pass on your own.
                     </p>
                     {weaknesses.length > 0 && (
                       <ul className="space-y-1 mt-2">
                         {weaknesses.map((w, i) => (
-                          <li key={i} className="text-xs text-foreground flex items-start gap-2">
+                          <li key={i} className="text-xs text-fg flex items-start gap-2">
                             <span className="text-growth-amber mt-0.5">→</span>
                             <span>{w}</span>
                           </li>
                         ))}
                       </ul>
                     )}
-                    <p className="text-[10px] text-muted-foreground mt-2 italic">
+                    <p className="text-[10px] text-fg-muted mt-2 italic">
                       Try this: next time you open the app, start with one practice question on {weaknesses[0] || "any topic"} before anything else. Just one — it takes 2 minutes.
                     </p>
                   </div>
@@ -463,17 +463,17 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                     bare score. See "Academic Integrity Note" card below. */}
                 {examinerComment && (
                   <div className="mt-3">
-                    <p className="text-xs font-medium text-primary mb-1">Examiner&apos;s Observation</p>
-                    <p className="text-sm text-foreground">{examinerComment}</p>
+                    <p className="text-xs font-medium text-brand mb-1">Examiner&apos;s Observation</p>
+                    <p className="text-sm text-fg">{examinerComment}</p>
                   </div>
                 )}
               </div>
               {psychAnalysis && (
-                <div className="rounded-lg border border-border bg-muted p-4">
-                  <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1">
+                <div className="rounded-lg border border-line bg-bg-subtle p-4">
+                  <p className="text-xs font-medium text-fg mb-1 flex items-center gap-1">
                     <Brain className="h-3 w-3" /> How You Think
                   </p>
-                  <p className="text-sm text-foreground/80">{psychAnalysis}</p>
+                  <p className="text-sm text-fg/80">{psychAnalysis}</p>
                 </div>
               )}
 
@@ -486,9 +486,9 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                     ? "border-growth-sage bg-growth-sage-soft"
                     : engagementFeedback.overallEngagement === "low"
                     ? "border-growth-amber bg-growth-amber-soft"
-                    : "border-border bg-muted"
+                    : "border-line bg-bg-subtle"
                 }`}>
-                  <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1">
+                  <p className="text-xs font-medium text-fg mb-1 flex items-center gap-1">
                     <Sparkles className="h-3 w-3" /> Engagement &amp; Focus Feedback
                   </p>
                   {/* Quick stats row */}
@@ -499,11 +499,11 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                     <Badge variant="outline" className={`text-[10px] ${engagementFeedback.avoidanceCount > 0 ? "border-growth-amber text-growth-amber" : "border-growth-sage text-growth-sage"}`}>
                       {engagementFeedback.avoidanceCount} avoidance{engagementFeedback.avoidanceCount === 1 ? "" : "s"}
                     </Badge>
-                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.overallEngagement === "high" ? "border-growth-sage text-growth-sage" : engagementFeedback.overallEngagement === "low" ? "border-growth-amber text-growth-amber" : "border-border text-muted-foreground"}`}>
+                    <Badge variant="outline" className={`text-[10px] ${engagementFeedback.overallEngagement === "high" ? "border-growth-sage text-growth-sage" : engagementFeedback.overallEngagement === "low" ? "border-growth-amber text-growth-amber" : "border-line text-fg-muted"}`}>
                       Engagement: {engagementFeedback.overallEngagement}
                     </Badge>
                   </div>
-                  <p className="text-sm text-foreground/80">{engagementFeedback.studentFeedback}</p>
+                  <p className="text-sm text-fg/80">{engagementFeedback.studentFeedback}</p>
                 </div>
               )}
 
@@ -516,7 +516,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                   : "border-growth-sage bg-growth-sage-soft"
                 }`}>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-medium text-foreground flex items-center gap-1">
+                    <p className="text-xs font-medium text-fg flex items-center gap-1">
                       <ShieldAlert className="h-3 w-3" /> Academic Integrity
                     </p>
                     <Badge variant="outline" className={`text-[10px] ${
@@ -532,26 +532,26 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                   {/* Score deduction breakdown */}
                   {plagiarismScore > 0 && score !== null && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 text-xs">
-                      <div className="rounded-md bg-background/50 p-2">
-                        <p className="text-[9px] text-muted-foreground">Raw Score</p>
-                        <p className="text-sm font-bold text-foreground">{plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score}%</p>
+                      <div className="rounded-md bg-bg/50 p-2">
+                        <p className="text-[9px] text-fg-muted">Raw Score</p>
+                        <p className="text-sm font-bold text-fg">{plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score}%</p>
                       </div>
-                      <div className="rounded-md bg-background/50 p-2">
-                        <p className="text-[9px] text-muted-foreground">Plagiarism</p>
+                      <div className="rounded-md bg-bg/50 p-2">
+                        <p className="text-[9px] text-fg-muted">Plagiarism</p>
                         <p className="text-sm font-bold text-growth-amber">{plagiarismScore}%</p>
                       </div>
-                      <div className="rounded-md bg-background/50 p-2">
-                        <p className="text-[9px] text-muted-foreground">Marks Deducted</p>
+                      <div className="rounded-md bg-bg/50 p-2">
+                        <p className="text-[9px] text-fg-muted">Marks Deducted</p>
                         <p className="text-sm font-bold text-destructive">-{Math.round((plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score) * plagiarismScore / 100)}</p>
                       </div>
-                      <div className="rounded-md bg-background/50 p-2">
-                        <p className="text-[9px] text-muted-foreground">Final Score</p>
-                        <p className="text-sm font-bold text-foreground">{score}%</p>
+                      <div className="rounded-md bg-bg/50 p-2">
+                        <p className="text-[9px] text-fg-muted">Final Score</p>
+                        <p className="text-sm font-bold text-fg">{score}%</p>
                       </div>
                     </div>
                   )}
 
-                  <p className="text-sm text-foreground/80">
+                  <p className="text-sm text-fg/80">
                     {plagiarismScore <= 10
                       ? "Your answers are genuinely your own work. No marks deducted."
                       : plagiarismScore <= 30
@@ -563,10 +563,10 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                       : "Very likely cheated on several answers. Heavy marks deducted."}
                   </p>
                   {plagiarismNotes && plagiarismScore > 30 && (
-                    <p className="text-xs text-muted-foreground mt-1">{plagiarismNotes}</p>
+                    <p className="text-xs text-fg-muted mt-1">{plagiarismNotes}</p>
                   )}
                   {plagiarismScore > 10 && (
-                    <p className="text-[10px] text-muted-foreground mt-2 italic">
+                    <p className="text-[10px] text-fg-muted mt-2 italic">
                       Deduction formula: Final = Raw × (1 − Plagiarism%÷100). 100% plagiarism = 0 marks.
                     </p>
                   )}
@@ -581,7 +581,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                 </Button>
               )}
               {!currentTest?.retakeAllowed && (
-                <p className="text-xs text-muted-foreground italic">
+                <p className="text-xs text-fg-muted italic">
                   Test locked. Ask your instructor if you need to retake this test.
                 </p>
               )}
@@ -606,26 +606,26 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
               {/* Results — only show inline results during/after live test, not for already-completed tests */}
               {isComplete && (
                 <div className="space-y-3 animate-fade-in-up">
-                  <div className="rounded-lg border border-primary/40 bg-primary/10 p-4">
+                  <div className="rounded-lg border border-brand/40 bg-brand-subtle p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-primary">Test Complete</span>
+                      <span className="text-sm font-medium text-brand">Test Complete</span>
                       {score !== null && (
-                        <span className="text-2xl font-bold text-primary">{score}%</span>
+                        <span className="text-2xl font-bold text-brand">{score}%</span>
                       )}
                     </div>
                     {examinerComment && (
                       <div className="mt-3">
-                        <p className="text-xs font-medium text-primary mb-1">Examiner&apos;s Observation</p>
-                        <p className="text-sm text-foreground">{examinerComment}</p>
+                        <p className="text-xs font-medium text-brand mb-1">Examiner&apos;s Observation</p>
+                        <p className="text-sm text-fg">{examinerComment}</p>
                       </div>
                     )}
                   </div>
                   {psychAnalysis && (
-                    <div className="rounded-lg border border-border bg-muted p-4">
-                      <p className="text-xs font-medium text-foreground mb-1 flex items-center gap-1">
+                    <div className="rounded-lg border border-line bg-bg-subtle p-4">
+                      <p className="text-xs font-medium text-fg mb-1 flex items-center gap-1">
                         <Brain className="h-3 w-3" /> How You Think
                       </p>
-                      <p className="text-sm text-foreground/80">{psychAnalysis}</p>
+                      <p className="text-sm text-fg/80">{psychAnalysis}</p>
                     </div>
                   )}
                   {currentTest?.retakeAllowed && (
@@ -646,15 +646,15 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
       </Card>
 
       {(stats.weeklyTests || []).length > 0 && (
-        <Card className="border-border bg-card">
-          <CardHeader><CardTitle className="text-base text-foreground">Test History</CardTitle></CardHeader>
+        <Card className="border-line bg-surface">
+          <CardHeader><CardTitle className="text-base text-fg">Test History</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2">
               {(stats.weeklyTests || []).map((t) => (
-                <div key={t.week} className="flex items-center justify-between rounded-md bg-muted p-3 text-sm">
-                  <span className="text-foreground">Week {t.week}</span>
+                <div key={t.week} className="flex items-center justify-between rounded-md bg-bg-subtle p-3 text-sm">
+                  <span className="text-fg">Week {t.week}</span>
                   <Badge variant="outline" className="capitalize">{t.status}</Badge>
-                  <span className={`font-bold ${t.score !== null ? gradeColor(scoreToGrade(t.score)) : "text-muted-foreground"}`}>
+                  <span className={`font-bold ${t.score !== null ? gradeColor(scoreToGrade(t.score)) : "text-fg-muted"}`}>
                     {t.score !== null ? `${t.score}%` : "—"}
                   </span>
                 </div>

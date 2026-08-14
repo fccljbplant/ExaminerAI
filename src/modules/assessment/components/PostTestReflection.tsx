@@ -44,12 +44,12 @@ export function PostTestReflection({ score, testType }: { score: number; testTyp
   if (!data || data.reflections.length === 0) return null;
 
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-card animate-success-burst">
+    <Card className="border-brand/30 bg-gradient-to-br from-primary/5 to-card animate-success-burst">
       <CardHeader>
-        <CardTitle className="text-base text-foreground flex items-center gap-2">
-          <Brain className="h-4 w-4 text-primary" /> What This Told Us
+        <CardTitle className="text-base text-fg flex items-center gap-2">
+          <Brain className="h-4 w-4 text-brand" /> What This Told Us
         </CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardDescription className="text-fg-muted">
           A quick reflection on this test. This is coaching, not grading.
         </CardDescription>
       </CardHeader>
@@ -61,20 +61,20 @@ export function PostTestReflection({ score, testType }: { score: number; testTyp
             <div key={i} className="flex items-start gap-2">
               <Icon className={`h-4 w-4 ${color} flex-shrink-0 mt-0.5`} />
               <div>
-                <p className="text-xs font-medium text-foreground">{r.title}</p>
-                <p className="text-xs text-muted-foreground">{r.message}</p>
+                <p className="text-xs font-medium text-fg">{r.title}</p>
+                <p className="text-xs text-fg-muted">{r.message}</p>
               </div>
             </div>
           );
         })}
 
         {/* Study tip — actionable next step */}
-        <div className="mt-3 rounded-md bg-primary/10 border border-primary/20 p-3">
+        <div className="mt-3 rounded-md bg-brand-subtle border border-brand/20 p-3">
           <div className="flex items-start gap-2">
-            <Lightbulb className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+            <Lightbulb className="h-4 w-4 text-brand flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-medium text-foreground">Try this next</p>
-              <p className="text-xs text-muted-foreground">{data.studyTip}</p>
+              <p className="text-xs font-medium text-fg">Try this next</p>
+              <p className="text-xs text-fg-muted">{data.studyTip}</p>
             </div>
           </div>
         </div>

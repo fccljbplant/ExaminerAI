@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, BookOpen, ClipboardList, Clock, Search, SearchX, Star } from "lucide-react";
+import { AlertTriangle, BookOpen, ClipboardList, Clock, Search, SearchX, Sparkles, Star } from "lucide-react";
 import { useApi } from "./use-api";
 
 /**
@@ -71,6 +71,13 @@ export function LearnerCatalog() {
           <h1 className="text-lg font-semibold text-fg md:text-xl">Courses</h1>
           {/* L5 Assignments entry — keeps the 5-tab rule intact; the
               assignments workspace hangs off the Learn tab. */}
+          <Link
+            href="/learner/practice"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          >
+            <Sparkles className="h-4 w-4 text-fg-muted" aria-hidden />
+            Practice
+          </Link>
           <Link
             href="/learner/assignments"
             className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"

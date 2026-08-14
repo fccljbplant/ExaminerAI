@@ -157,10 +157,10 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
 
   return (
     <div className="space-y-4">
-      <Card className="border-border bg-card">
+      <Card className="border-line bg-surface">
         <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2"><HelpCircle className="h-5 w-5 text-secondary-foreground" /> Practice Conversation</CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardTitle className="text-fg flex items-center gap-2"><HelpCircle className="h-5 w-5 text-secondary-foreground" /> Practice Conversation</CardTitle>
+          <CardDescription className="text-fg-muted">
             Pick any week + daily topic and have a Socratic conversation with the AI examiner — same format as the weekly test, just shorter ({maxExchanges} exchanges).
           </CardDescription>
         </CardHeader>
@@ -171,13 +171,13 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Week selector — student can pick ANY week in the course */}
                 <div className="space-y-1.5">
-                  <Label className="text-foreground">Week</Label>
+                  <Label className="text-fg">Week</Label>
                   <Select
                     value={String(selectedWeek)}
                     onValueChange={(v) => setSelectedWeek(Number(v))}
                     disabled={weekLoading}
                   >
-                    <SelectTrigger className="bg-muted border-border">
+                    <SelectTrigger className="bg-bg-subtle border-line">
                       <SelectValue placeholder="Select week…" />
                     </SelectTrigger>
                     <SelectContent>
@@ -192,9 +192,9 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
 
                 {/* Topic selector — daily topics for the selected week */}
                 <div className="space-y-1.5">
-                  <Label className="text-foreground">Daily topic</Label>
+                  <Label className="text-fg">Daily topic</Label>
                   <Select value={topic} onValueChange={setTopic} disabled={weekLoading || weekTopics.length === 0}>
-                    <SelectTrigger className="bg-muted border-border">
+                    <SelectTrigger className="bg-bg-subtle border-line">
                       <SelectValue placeholder={weekLoading ? "Loading…" : "Pick a topic…"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -207,10 +207,10 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
                   </Select>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[10px] text-fg-muted">
                 Practicing on <strong>Week {selectedWeek} · {weekPhase}</strong>. The AI will ask you a conceptual question about <strong>{topic || "the selected topic"}</strong>, then probe your understanding with follow-ups.
               </p>
-              <Button onClick={startPractice} disabled={busy || !topic.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button onClick={startPractice} disabled={busy || !topic.trim()} className="bg-brand hover:bg-brand/90 text-on-brand">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Start Practice
               </Button>
             </>
@@ -236,15 +236,15 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
             <>
               <div className="text-center py-4 animate-success-burst">
                 <CheckCircle2 className="h-10 w-10 text-growth-sage mx-auto mb-2" />
-                <p className="text-sm font-medium text-foreground">Practice complete!</p>
-                {score !== null && <p className="text-3xl font-bold text-foreground mt-1">{score}%</p>}
+                <p className="text-sm font-medium text-fg">Practice complete!</p>
+                {score !== null && <p className="text-3xl font-bold text-fg mt-1">{score}%</p>}
               </div>
               {/* Show the full conversation for review */}
-              <div className="max-h-[30vh] overflow-y-auto space-y-2 rounded-md bg-muted/30 p-3">
+              <div className="max-h-[30vh] overflow-y-auto space-y-2 rounded-md bg-bg-subtle/30 p-3">
                 {conversation.map((m, i) => (
                   <div key={i} className={cn("flex", m.role === "student" ? "justify-end" : "justify-start")}>
                     <div className={cn("max-w-[85%] rounded-lg px-3 py-2 text-xs",
-                      m.role === "student" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground")}>
+                      m.role === "student" ? "bg-brand text-on-brand" : "bg-bg-subtle text-fg")}>
                       <p className="whitespace-pre-wrap">{m.content}</p>
                     </div>
                   </div>
@@ -252,7 +252,7 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
               </div>
               {score !== null && <PostTestReflection score={score} testType="practice" />}
               <TeachingFeedbackCard feedback={feedback} />
-              <Button onClick={reset} variant="outline" size="sm" className="border-border">New practice</Button>
+              <Button onClick={reset} variant="outline" size="sm" className="border-line">New practice</Button>
             </>
           )}
         </CardContent>

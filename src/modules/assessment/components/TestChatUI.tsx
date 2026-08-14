@@ -98,9 +98,9 @@ export function TestChatUI({
           question number badge on each examiner bubble + this hint. */}
       {questionCountLabel && (
         <div className="flex items-center justify-between text-xs mb-2 flex-shrink-0">
-          <span className="text-muted-foreground">{questionCountLabel}</span>
+          <span className="text-fg-muted">{questionCountLabel}</span>
           {topicBadge && (
-            <Badge variant="outline" className="text-[9px] bg-primary/10 text-primary border-primary/30">
+            <Badge variant="outline" className="text-[9px] bg-brand-subtle text-brand border-brand/30">
               {topicBadge}
             </Badge>
           )}
@@ -110,7 +110,7 @@ export function TestChatUI({
       {/* Chat messages — fills available height, scrolls to bottom on new messages */}
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 rounded-lg border border-border bg-card/50 p-3"
+        className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 rounded-lg border border-line bg-surface/50 p-3"
       >
         {conversation.map((m, i) => (
           <div
@@ -121,13 +121,13 @@ export function TestChatUI({
               className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
                 m.role === "student"
-                  ? "bg-primary text-primary-foreground rounded-br-md"
-                  : "bg-muted text-foreground rounded-bl-md"
+                  ? "bg-brand text-on-brand rounded-br-md"
+                  : "bg-bg-subtle text-fg rounded-bl-md"
               )}
             >
               {m.role === "examiner" && (
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Brain className="h-3 w-3 text-primary opacity-70" />
+                  <Brain className="h-3 w-3 text-brand opacity-70" />
                   <span className="text-[9px] font-semibold opacity-70">
                     TraineesAI
                     {m.questionIndex !== undefined && m.questionIndex >= 0 && (
@@ -138,18 +138,18 @@ export function TestChatUI({
               )}
               <p className="whitespace-pre-wrap">{m.content}</p>
               {m.questionExplanation && (
-                <div className="mt-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs space-y-2">
-                  <div className="flex items-center gap-1.5 text-primary font-semibold">
+                <div className="mt-2 rounded-lg border border-brand/30 bg-brand/5 p-3 text-xs space-y-2">
+                  <div className="flex items-center gap-1.5 text-brand font-semibold">
                     <Lightbulb className="h-3.5 w-3.5" />
                     <span>Question explanation</span>
                   </div>
-                  <div className="space-y-1.5 text-foreground/90">
+                  <div className="space-y-1.5 text-fg/90">
                     <div>
-                      <span className="font-semibold text-foreground">Correct answer: </span>
+                      <span className="font-semibold text-fg">Correct answer: </span>
                       <span>{m.questionExplanation.correctAnswer}</span>
                     </div>
                     <div className="flex items-start gap-1.5">
-                      <BookOpen className="h-3 w-3 mt-0.5 text-primary/70 flex-shrink-0" />
+                      <BookOpen className="h-3 w-3 mt-0.5 text-brand/70 flex-shrink-0" />
                       <span>{m.questionExplanation.explanation}</span>
                     </div>
                     <div className="flex items-start gap-1.5 text-growth-sage-foreground">
@@ -164,10 +164,10 @@ export function TestChatUI({
         ))}
         {busy && (
           <div className="flex justify-start">
-            <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 text-sm flex items-center gap-2">
-              <Brain className="h-3 w-3 text-primary opacity-70" />
+            <div className="bg-bg-subtle rounded-2xl rounded-bl-md px-4 py-2.5 text-sm flex items-center gap-2">
+              <Brain className="h-3 w-3 text-brand opacity-70" />
               <Loader2 className="h-3 w-3 animate-spin" />
-              <span className="text-xs text-muted-foreground">TraineesAI is thinking...</span>
+              <span className="text-xs text-fg-muted">TraineesAI is thinking...</span>
             </div>
           </div>
         )}
@@ -187,7 +187,7 @@ export function TestChatUI({
               onSend();
             }
           }}
-          className="w-full min-h-[60px] max-h-[120px] rounded-lg bg-background border border-border p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full min-h-[60px] max-h-[120px] rounded-lg bg-bg border border-line p-3 text-sm text-fg resize-y focus:outline-none focus:ring-2 focus:ring-ring"
           placeholder={placeholder}
           disabled={busy}
           autoFocus
@@ -196,7 +196,7 @@ export function TestChatUI({
           <Button
             onClick={onSend}
             disabled={busy || !input.trim()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-brand hover:bg-brand/90 text-on-brand"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             Send
@@ -207,7 +207,7 @@ export function TestChatUI({
               disabled={busy}
               variant="outline"
               size="sm"
-              className="border-border text-muted-foreground"
+              className="border-line text-fg-muted"
             >
               <X className="h-3 w-3" /> End early
             </Button>

@@ -197,21 +197,21 @@ export function DailyTestPanel() {
 
   if (loading) {
     return (
-      <Card className="border-border bg-card">
+      <Card className="border-line bg-surface">
         <CardContent className="p-6 flex items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <Loader2 className="h-5 w-5 animate-spin text-brand" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-card">
+    <Card className="border-brand/30 bg-gradient-to-br from-primary/5 to-card">
       <CardHeader>
-        <CardTitle className="text-base text-foreground flex items-center gap-2">
-          <CalendarCheck className="h-4 w-4 text-primary" /> Daily Check-in Test
+        <CardTitle className="text-base text-fg flex items-center gap-2">
+          <CalendarCheck className="h-4 w-4 text-brand" /> Daily Check-in Test
         </CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardDescription className="text-fg-muted">
           Short 3-question Socratic test — same format as the weekly test, just shorter. Sharpens your mastery data daily.
         </CardDescription>
       </CardHeader>
@@ -222,9 +222,9 @@ export function DailyTestPanel() {
         {todays?.status === "completed" && !dailyTestId && (
           <div className="text-center py-4">
             <CheckCircle2 className="h-8 w-8 text-growth-sage mx-auto mb-2" />
-            <p className="text-sm font-medium text-foreground">Today's daily test complete!</p>
-            <p className="text-xl font-bold text-foreground mt-1">{todays.score ?? "—"}%</p>
-            <p className="text-[10px] text-muted-foreground mt-2">Come back tomorrow for the next one.</p>
+            <p className="text-sm font-medium text-fg">Today's daily test complete!</p>
+            <p className="text-xl font-bold text-fg mt-1">{todays.score ?? "—"}%</p>
+            <p className="text-[10px] text-fg-muted mt-2">Come back tomorrow for the next one.</p>
           </div>
         )}
 
@@ -233,11 +233,11 @@ export function DailyTestPanel() {
           <>
             <div className="text-center py-4 animate-success-burst">
               <CheckCircle2 className="h-10 w-10 text-growth-sage mx-auto mb-2" />
-              <p className="text-sm font-medium text-foreground">Daily test complete!</p>
-              <p className="text-3xl font-bold text-foreground mt-1">{score}%</p>
+              <p className="text-sm font-medium text-fg">Daily test complete!</p>
+              <p className="text-3xl font-bold text-fg mt-1">{score}%</p>
               <Button onClick={() => {
                 setIsComplete(false); setConversation([]); setDailyTestId(null); setScore(null); setFeedback(null);
-              }} variant="outline" size="sm" className="mt-3 border-border">
+              }} variant="outline" size="sm" className="mt-3 border-line">
                 Done
               </Button>
             </div>
@@ -253,11 +253,11 @@ export function DailyTestPanel() {
         {/* Start screen */}
         {!todays && !conversation.length && !isComplete && (
           <div className="text-center py-2">
-            <p className="text-sm text-muted-foreground mb-3">
+            <p className="text-sm text-fg-muted mb-3">
               A quick 3-question Socratic check-in. The examiner asks, you answer, they probe once, then advance.
               Takes about 3-5 minutes. Feeds your Psychological / Educational / Mentorship tabs with fresh data.
             </p>
-            <Button onClick={start} disabled={starting} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button onClick={start} disabled={starting} className="bg-brand hover:bg-brand/90 text-on-brand">
               {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
               Start today's test
             </Button>
@@ -278,7 +278,7 @@ export function DailyTestPanel() {
             topicBadge={topic}
             confidenceSelector={
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-muted-foreground flex-shrink-0">Your confidence:</span>
+                <span className="text-[10px] text-fg-muted flex-shrink-0">Your confidence:</span>
                 {(["low", "medium", "high"] as const).map(c => (
                   <button
                     key={c}
@@ -290,7 +290,7 @@ export function DailyTestPanel() {
                         ? c === "low" ? "bg-red-500/20 text-destructive border-red-500/40"
                         : c === "medium" ? "bg-growth-amber/20 text-growth-amber border-growth-amber"
                         : "bg-growth-sage/20 text-growth-sage border-growth-sage"
-                        : "bg-muted text-muted-foreground border-border"
+                        : "bg-bg-subtle text-fg-muted border-line"
                     )}
                   >
                     {c}
