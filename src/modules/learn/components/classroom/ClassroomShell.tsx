@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import {
   Map as MapIcon, Target, TrendingUp, BookOpen, Sparkles, Flame, Star,
   ChevronRight, ChevronLeft, Send, Loader2, Volume2, VolumeX, Focus,
-  X, GraduationCap, MessageSquare, StickyNote, CheckCircle2,
+  X, GraduationCap, MessageSquare, StickyNote, CheckCircle2, MonitorPlay,
+  Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/ui/PageHeader";
@@ -21,7 +22,9 @@ import type { SlideData, TopicContext } from "@/modules/learn/types";
 import { tutor } from "@/modules/learn/components/avatar/avatar-rig";
 import { AvatarStage } from "@/modules/learn/components/avatar/AvatarStage";
 import { LessonStage } from "@/modules/learn/components/classroom/LessonStage";
+import { VideoStage } from "@/modules/learn/components/classroom/VideoStage";
 import { VoiceBar } from "@/modules/learn/components/classroom/VoiceBar";
+import type { LessonMedia } from "@/modules/learn/lib/lesson-media";
 import { JourneyPanel } from "@/components/learn/panels/JourneyPanel";
 import { ProjectPanel } from "@/components/learn/panels/ProjectPanel";
 import { GrowPanel } from "@/components/learn/panels/GrowPanel";
@@ -44,6 +47,8 @@ interface TodayData {
   prevTopic: { week: number; day: number } | null;
   isLastTopicInCourse: boolean;
   slides: SlideData[];
+  /** Classroom stage media — video lesson when curated/discovered. */
+  media?: LessonMedia;
   courseCompleted?: boolean;
 }
 
@@ -93,6 +98,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [completing, setCompleting] = useState(false);
   const [topicComplete, setTopicComplete] = useState(false);
   const [showCoachMarks, setShowCoachMarks] = useState(false);
+  // Stage: video lesson first (when the topic has one), then slides.
+  const [stageMode, setStageMode] = useState<"video" | "slides">("slides");
+  const videoIntroRef = useRef<string | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
 
   const speakWithAvatar = useSpeakWithAvatar(ttsOn);
@@ -140,6 +148,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       setSlides(data.slides ?? []);
       setSlideIdx(Math.max(0, (data.slides?.length ?? 1) - 1));
       setTopicComplete(false);
+      // Video lesson leads when one exists for the new topic.
+      setStageMode(data.media?.kind === "video" ? "video" : "slides");
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         window.location.href = "/app";
@@ -312,6 +322,26 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     tutor.play("slide:highlight");
   }
 
+  // ── Video lesson ────────────────────────────────────────────────
+  // Avatar introduces the video once per topic; recaps when it ends.
+  useEffect(() => {
+    if (stageMode !== "video" || !today?.media?.video) return;
+    const key = `${today.topic.week}-${today.topic.day}`;
+    if (videoIntroRef.current === key) return;
+    videoIntroRef.current = key;
+    speakWithAvatar(`Before the slides, let's watch a short video: ${today.media.video.title}. I'll recap the key points afterwards.`);
+  }, [stageMode, today, speakWithAvatar]);
+
+  function handleVideoEnded() {
+    setStageMode("slides");
+    tutor.play("idea");
+    speakWithAvatar(
+      today
+        ? `That covered the heart of today's topic — ${today.topic.title}. Now let's go through it slide by slide. Ask me anything along the way.`
+        : "Now let's go through the slides.",
+    );
+  }
+
   // ── Render ────────────────────────────────────────────────────────
   const currentSlide = slides[slideIdx];
   const isFirstSlide = slideIdx === 0 && slides.length > 0;
@@ -409,16 +439,54 @@ export function ClassroomShell({ courseId, courseName }: Props) {
         {/* Lesson stage (center) */}
         <main className="flex flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            <LessonStage
-              topic={today?.topic ?? null}
-              loading={!today}
-              courseCompleted={Boolean(today?.courseCompleted)}
-              slides={slides}
-              slideIdx={slideIdx}
-              totalSlides={today?.totalSlides ?? 4}
-              topicComplete={topicComplete}
-              onJumpToSlide={jumpToSlide}
-            />
+            {/* Media switcher — only when this topic has a video lesson */}
+            {today?.media?.video && !today.courseCompleted && (
+              <div className="mx-auto mb-5 flex w-full max-w-3xl items-center gap-1 rounded-lg border bg-card p-1">
+                <button
+                  type="button"
+                  onClick={() => setStageMode("video")}
+                  aria-pressed={stageMode === "video"}
+                  className={cn(
+                    "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                    stageMode === "video" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <MonitorPlay className="h-3.5 w-3.5" aria-hidden />
+                  Video
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStageMode("slides")}
+                  aria-pressed={stageMode === "slides"}
+                  className={cn(
+                    "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                    stageMode === "slides" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <Presentation className="h-3.5 w-3.5" aria-hidden />
+                  Slides
+                </button>
+              </div>
+            )}
+
+            {stageMode === "video" && today?.media?.video ? (
+              <VideoStage
+                video={today.media.video}
+                onEnded={handleVideoEnded}
+                onSkipToSlides={() => setStageMode("slides")}
+              />
+            ) : (
+              <LessonStage
+                topic={today?.topic ?? null}
+                loading={!today}
+                courseCompleted={Boolean(today?.courseCompleted)}
+                slides={slides}
+                slideIdx={slideIdx}
+                totalSlides={today?.totalSlides ?? 4}
+                topicComplete={topicComplete}
+                onJumpToSlide={jumpToSlide}
+              />
+            )}
           </div>
 
           {/* Quick bar */}

@@ -24,6 +24,7 @@ import {
   getTodayTopic,
   getTopicByWeekDay,
 } from "@/modules/learn/lib/today-topic";
+import { getLessonMedia } from "@/modules/learn/lib/lesson-media";
 import { getOrCreateProfile } from "@/modules/learn/lib/learner-profile";
 import { updateStreak } from "@/modules/learn/lib/learner-profile";
 import type { SlideData } from "@/modules/learn/types";
@@ -83,6 +84,8 @@ export async function GET(req: Request) {
   return apiSuccess({
     ...today,
     slides: topicSlides,
+    // Classroom stage: curated/discovered video lesson (or slides only).
+    media: getLessonMedia(today.topic),
     courseCompleted: false,
   });
 }

@@ -5,7 +5,7 @@
 // All flow control (generate/complete/jump) is handled by the parent shell —
 // this component only displays state and forwards user events.
 
-import { CheckCircle2, ListChecks, Sparkles } from "lucide-react";
+import { CheckCircle2, ListChecks, Shapes, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
 
@@ -129,6 +129,25 @@ export function LessonStage({
                 <span key={i} className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium">{t}</span>
               ))}
             </div>
+          )}
+
+          {/* Visual board — renders the AI's visualSpec as a styled figure
+              so slides feel visual, not text-only */}
+          {currentSlide.visualSpec && (
+            <figure className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-4">
+              <figcaption className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                <Shapes className="h-3.5 w-3.5" aria-hidden />
+                Visual board
+              </figcaption>
+              {/* Abstract diagram bars — decorative, token-colored */}
+              <div className="mb-3 flex items-end gap-2" aria-hidden>
+                <div className="h-10 w-1/4 rounded-sm bg-primary/20" />
+                <div className="h-16 w-1/4 rounded-sm bg-primary/35" />
+                <div className="h-7 w-1/4 rounded-sm bg-primary/15" />
+                <div className="h-12 w-1/4 rounded-sm bg-primary/25" />
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">{currentSlide.visualSpec}</p>
+            </figure>
           )}
 
           {currentSlide.analogy && (

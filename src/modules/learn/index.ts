@@ -15,6 +15,14 @@
 // Types + constants (isomorphic — safe to import from client)
 export * from "./types";
 
+// Lesson media resolver (isomorphic — no db, no window)
+export {
+ getLessonMedia,
+ parseYouTubeId,
+ type LessonMedia,
+ type LessonVideo,
+} from "./lib/lesson-media";
+
 // Server-only lib (uses `db` and `callAI`)
 export * from "./lib/today-topic";
 export * from "./lib/xp-ledger";
@@ -39,6 +47,7 @@ export {
 // ── Classroom components (client-only) ─────────────────────────
 export { ClassroomShell } from "./components/classroom/ClassroomShell";
 export { LessonStage } from "./components/classroom/LessonStage";
+export { VideoStage } from "./components/classroom/VideoStage";
 export { VoiceBar } from "./components/classroom/VoiceBar";
 export { AvatarStage } from "./components/avatar/AvatarStage";
 export { AvatarRig, tutor } from "./components/avatar/avatar-rig";
