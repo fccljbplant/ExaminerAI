@@ -6,14 +6,14 @@ echo "=== TraineesAI Vercel Build ==="
 
 # Step 1: Generate Prisma client using prod schema
 echo "Generating Prisma client (prod schema)..."
-npx prisma generate --schema=prisma/schema.prisma
+npx prisma generate --schema=prisma/schema.prod.prisma
 
 # Step 2: Push schema to DB — but don't fail the build if the DB is
 # temporarily unreachable (connection slot exhaustion, maintenance, etc).
 # The schema rarely changes between deploys; if it does and the push
 # fails, we'll catch it on the next successful build.
 echo "Syncing schema (data preserved, non-blocking)..."
-npx prisma db push --schema=prisma/schema.prisma --accept-data-loss --skip-generate 2>&1 || {
+npx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate 2>&1 || {
   echo "⚠️  Schema sync skipped — DB connection unavailable."
   echo "    This is usually transient (connection slot exhaustion)."
   echo "    The build will continue with the existing schema."
