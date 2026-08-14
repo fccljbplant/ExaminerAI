@@ -156,7 +156,11 @@ export function InstructorHome() {
           ) : (
             <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
               {atRisk.slice(0, 5).map((s) => (
-                <div key={s.id} className="flex items-center gap-3 px-4 py-3">
+                <Link
+                  key={s.id}
+                  href={`/instructor/students/${s.id}`}
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle"
+                >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-fg">{s.name}</p>
                     <p className="truncate text-xs text-fg-muted">{s.attentionReasons[0]}</p>
@@ -164,7 +168,7 @@ export function InstructorHome() {
                   <span className="shrink-0 rounded-md bg-warning-subtle px-2 py-0.5 text-xs font-medium text-warning-on">
                     {s.attentionScore} pts
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           )}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AlertTriangle, RefreshCw, Search, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useApi } from "@/modules/learner-portal/use-api";
 
 /**
@@ -128,7 +129,11 @@ export function StudentsRoster() {
       ) : (
         <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {rows.map((s) => (
-            <div key={s.id} className="flex min-h-14 items-center gap-3 px-4 py-3">
+            <Link
+              key={s.id}
+              href={`/instructor/students/${s.id}`}
+              className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-subtle text-fg-secondary">
                 <UserRound className="h-4 w-4" aria-hidden />
               </span>
@@ -153,7 +158,7 @@ export function StudentsRoster() {
                   OK
                 </span>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       )}
