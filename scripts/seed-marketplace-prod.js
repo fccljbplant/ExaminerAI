@@ -3,6 +3,7 @@
  * Run: node scripts/seed-marketplace-prod.js
  * This updates existing courses with marketplace data (thumbnails, pricing, etc.)
  */
+/* eslint-disable @typescript-eslint/no-require-imports -- CommonJS node script */
 const { PrismaClient } = require('@prisma/client');
 const db = new PrismaClient();
 

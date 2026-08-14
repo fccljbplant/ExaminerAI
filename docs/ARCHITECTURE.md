@@ -101,7 +101,12 @@ no bespoke hero sections, no ad-hoc padding.
 
 Role-specific top-level components.
 
-- `AppShell.tsx` — SPA shell, sidebar, theme provider, ⌘K + `?` shortcuts.
+- `AppShell.tsx` — SPA shell. Learners get a horizontal top bar
+  (`LearnerTopNav.tsx`); staff roles keep the sidebar. Theme provider,
+  ⌘K + `?` shortcuts.
+- `LearnerTopNav.tsx` — Star Admin-style top bar for learners: course
+  switcher, horizontal nav, ⌘K search box, theme toggle, notifications,
+  view-as-role, profile menu.
 - `StudentDashboard.tsx` — 4 views (Today, Study, Project, Progress) +
   Credentials + My Courses.
 - `InstructorDashboard.tsx` — 5 tabs (Today, Students, Assignments, Insights,
@@ -120,6 +125,8 @@ Shared modernization components — the "modern SaaS baseline" kit.
   consistent loading/error states.
 - `stat-card.tsx` — `StatCard` + `StatStrip`. The standard stat card with tone
   (default/success/warning/danger/info), icon, progress bar, optional onClick.
+- `widget-card.tsx` — `WidgetCard`. Panel with title bar, optional subtitle,
+  "…" menu, `actions`, padded or `flush` body. The standard dashboard panel.
 - `command-registry.tsx` + `command-palette.tsx` — global ⌘K palette. Pages
   register commands via `useRegisterCommands()`.
 - `keyboard-shortcuts-help.tsx` — press `?` anywhere to see the cheat sheet.
@@ -331,13 +338,24 @@ the learn platform extends the codebase with new routes, models, and UI.
 
 ```
 src/modules/learn/
-  ├── index.ts                    ← Barrel re-exports
+  ├── index.ts                    ← Barrel re-exports (mixes server/db code —
+  │                                   client components import specific paths,
+  │                                   never the barrel root)
   ├── types/index.ts              ← Shared types + constants
-  └── lib/
-      ├── today-topic.ts          ← Topic progression (30 topics, 4 slides each)
-      ├── xp-ledger.ts            ← Append-only XP ledger + level calculation
-      ├── learner-profile.ts      ← Profile CRUD + streak management
-      └── tts-filter.ts           ← TTS text preparation (strips code/URLs/tables)
+  ├── lib/
+  │   ├── today-topic.ts          ← Topic progression (30 topics, 4 slides each)
+  │   ├── xp-ledger.ts            ← Append-only XP ledger + level calculation
+  │   ├── learner-profile.ts      ← Profile CRUD + streak management
+  │   ├── tts-filter.ts           ← TTS text preparation (strips code/URLs/tables)
+  │   ├── lesson-media.ts         ← Resolves slide/video media for a topic
+  │   ├── voice-input.ts          ← Web Speech API wrapper (barge-in, text fallback)
+  │   └── youtube-player.ts       ← YouTube id parsing + embed URL builder
+  └── components/
+      ├── classroom/              ← Modern Class stage: ClassroomShell,
+      │                             LessonStage, VideoStage, AvatarStage, VoiceBar
+      ├── avatar/                 ← Avatar rig + expressions
+      └── dashboard/              ← LearnerHome (stat tiles, assignments,
+                                      coverage, project, activity)
 ```
 
 ### 8.3 API endpoints (16 routes under `/api/learn/`)
@@ -386,6 +404,33 @@ src/modules/learn/
 - Quick bar: contextual CTA (Next Slide / View Resources / Complete & Next Topic)
 - Chat pane (right): transcript + input
 - Panel drawers: slide-over left 40% desktop, full-screen mobile
+
+### 8.7 Modern Class (Classroom stage)
+
+The classroom rebuilds the lesson experience as a "modern class": the AI
+teacher presents slides or curated videos beside a teaching avatar, and the
+learner asks questions by voice or text.
+
+| Component | File | Role |
+|---|---|---|
+| `ClassroomShell` | `components/classroom/ClassroomShell.tsx` | `h-screen` frame: stage + avatar + chat rail |
+| `LessonStage` | `components/classroom/LessonStage.tsx` | Slide renderer + media switcher (slides ↔ video) |
+| `VideoStage` | `components/classroom/VideoStage.tsx` | YouTube embed wrapper with avatar intro/recap hooks |
+| `AvatarStage` | `components/classroom/AvatarStage.tsx` | Teaching avatar beside the stage |
+| `VoiceBar` | `components/classroom/VoiceBar.tsx` | Push-to-talk voice Q&A (Web Speech API) with text fallback |
+
+Flows:
+
+- **Media resolution**: `getLessonMedia(topic)` picks the first YouTube
+  resource for the topic (label → video title); topics without one render
+  slides only.
+- **Voice**: `voice-input.ts` accumulates final transcripts, emits one
+  utterance on end, fires `onSpeechStart` for barge-in, and degrades to the
+  text input when SpeechRecognition is unavailable or permission is denied.
+- **Learner home**: `LearnerHome` mounts below `TodayView` in
+  `StudentDashboard` using the shared widget kit (`StatCard` strip,
+  `WidgetCard` panels for assignments, course coverage, project progress,
+  activity). Course switching refetches via `onSelectCourse`.
 
 ## 9. Living Portrait Tutor Badge (`TutorBadge.tsx`)
 

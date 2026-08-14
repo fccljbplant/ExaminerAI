@@ -2,6 +2,7 @@
  * Seed marketplace demo courses so the platform has visible content.
  * Run: node scripts/seed-marketplace-courses.js
  */
+/* eslint-disable @typescript-eslint/no-require-imports -- CommonJS node script */
 const { PrismaClient } = require('@prisma/client');
 const db = new PrismaClient();
 

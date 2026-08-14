@@ -35,8 +35,10 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
   // Keep callbacks in refs so the recognition session never goes stale.
   const interimRef = useRef(onInterim);
   const finalRef = useRef(onFinal);
-  interimRef.current = onInterim;
-  finalRef.current = onFinal;
+  useEffect(() => {
+    interimRef.current = onInterim;
+    finalRef.current = onFinal;
+  });
 
   useEffect(() => {
     if (!supported) return;

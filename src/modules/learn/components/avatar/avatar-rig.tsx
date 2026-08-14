@@ -126,7 +126,6 @@ function SpriteLayer({ data, sheetW, sheetH, stageW, stageH, visible }: {
         height: `${elH}px`,
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element -- sprite sheet crop requires raw img transforms */}
       <img
         src={SHEET_URL}
         alt=""

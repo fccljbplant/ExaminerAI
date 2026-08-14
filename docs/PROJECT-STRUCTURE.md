@@ -70,6 +70,7 @@ src/modules/<feature>/
 | `course` | Course CRUD | ✓ lib/ |
 | `gamification` | XP + badges + celebrations | ✓ lib/ + components/ |
 | `grading` | Unified grader | index.ts only |
+| `learn` | Modern class: classroom stage, slides/video, voice Q&A, avatar, learner home | ✓ lib/ + components/ |
 | `project` | Capstone project | ✓ lib/ |
 | `self-paced` | Self-paced advancement | index.ts only |
 | `shared` | Cross-module shared | index.ts only |
@@ -78,6 +79,24 @@ src/modules/<feature>/
 | `user-audit` | Audit trail | index.ts only |
 
 **Legend**: ✓ = has that subdirectory. — = doesn't need it (module is a re-export only).
+
+### `learn` module layout (Modern Class)
+
+```
+src/modules/learn/
+  ├── index.ts              ← Barrel (NOTE: mixes server/db code — client
+  │                             components import specific paths, never the root)
+  ├── lib/
+  │   ├── lesson-media.ts   ← Resolves slide/video media for a topic
+  │   ├── voice-input.ts    ← Web Speech API wrapper (barge-in, fallback)
+  │   └── youtube-player.ts ← YouTube id parsing + embed URL builder
+  └── components/
+      ├── classroom/        ← ClassroomShell, LessonStage, VideoStage,
+      │                       AvatarStage, VoiceBar
+      ├── avatar/           ← Avatar rig + expressions
+      └── dashboard/        ← LearnerHome (stat tiles, assignments,
+                              coverage, project, activity)
+```
 
 ---
 
@@ -128,8 +147,8 @@ Feature-specific logic belongs in its module's `lib/`:
 | Directory | What | Rules |
 |---|---|---|
 | `ui/` | shadcn/ui primitives | Never import business logic. Pure presentation. |
-| `shared/` | Cross-module components (2+ modules use them) | `stat-card.tsx`, `dashboard-shell.tsx`, `command-palette.tsx`, etc. |
-| `examiner/` | Role-specific dashboards | `StudentDashboard.tsx`, `InstructorDashboard.tsx`, `AdminDashboard.tsx`, `AppShell.tsx` |
+| `shared/` | Cross-module components (2+ modules use them) | `widget-card.tsx`, `stat-card.tsx`, `dashboard-shell.tsx`, `command-palette.tsx`, etc. |
+| `examiner/` | Role-specific dashboards | `StudentDashboard.tsx`, `InstructorDashboard.tsx`, `AdminDashboard.tsx`, `AppShell.tsx`, `LearnerTopNav.tsx` |
 | `examiner/student/` | Student-facing panels | `TodayView.tsx`, `DueTodayCard.tsx`, `WeeklyTestPanel.tsx`, etc. |
 | `examiner/admin/` | Admin sub-panels | `SystemPanel.tsx`, `FeaturesPanel.tsx`, `AuditLogPanel.tsx`, etc. |
 | `examiner/instructor/` | Instructor sub-panels | `StudentsRoster.tsx`, `AssignmentsTab.tsx`, etc. |

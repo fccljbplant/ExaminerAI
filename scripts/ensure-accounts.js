@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports -- CommonJS node script */
 /**
  * ensure-accounts.js — Create admin + demo accounts if they don't exist.
  * Safe to run on every Vercel build (upsert, won't overwrite existing data).

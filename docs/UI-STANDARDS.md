@@ -229,6 +229,29 @@ Defined in `globals.css` under `@layer utilities`:
 | `.surface-hover` | `transition hover:border-foreground/20 hover:bg-muted/50` |
 | `.chrome-reveal` | `opacity-0 group-hover:opacity-100` — hover-to-reveal |
 | `.kbd` | Keyboard hint chip (⌘K, ↵, etc.) |
+| `.widget-title` / `.widget-subtitle` | Star Admin widget header typography |
+| `.chip-delta` (+ `-up` / `-down` / `-flat`) | Stat delta badge ("+12% vs last week") |
+| `.badge-pill` (+ `-sage` / `-amber` / `-coral` / `-muted`) | Status pills for table rows |
+| `.table-modern` | Star Admin table: hover rows, soft headers, progress bars |
+
+### Widget language (Star Admin pattern)
+
+Dashboards compose panels from the shared widget kit — never re-derive
+card markup:
+
+| Component | File | Use |
+|---|---|---|
+| `WidgetCard` | `@/components/shared/widget-card` | Panel with title bar, optional subtitle, `menu` ("…" dropdown), `actions`, padded or `flush` body |
+| `StatCard` | `@/components/shared/stat-card` | Stat tile: uppercase label, big value, icon chip, `tone` (default/success/warning/danger/info), optional `delta` chip and `progress` bar |
+| `StatStrip` | `@/components/shared/stat-card` | The row of 2–4 stat tiles at the top of a dashboard |
+
+Rules:
+
+- One `StatStrip` per dashboard, first thing under the header.
+- Delta chips compare against a real previous period — never invent
+  numbers (render no chip when there is no baseline).
+- Tables inside a `WidgetCard` use `flush` + `.table-modern`; row status
+  uses `.badge-pill-*` tones, not raw Badge components.
 
 ---
 
@@ -311,13 +334,24 @@ The `DailyTaskReminder` modal is the canonical example of what NOT to do
 | Project | `project` | GitBranch |
 | Progress | `progress` | TrendingUp |
 
-Plus: Credentials and My Courses as secondary entries (in the sidebar, not
-the main nav).
+Plus: Credentials and My Courses as secondary entries.
+
+### Shell split: learners get a top bar, staff keep the sidebar
+
+- **Learners** render `LearnerTopNav` (`src/components/examiner/LearnerTopNav.tsx`)
+  — a Star Admin-style horizontal bar: brand, primary nav with active
+  underline, course switcher (when enrolled in >1 course), ⌘K search,
+  theme picker, `NotificationBell`, and a profile menu. Below `lg:` the
+  nav collapses into a hamburger drawer.
+- **Staff roles** (instructor, org admin, platform admin, demo) keep the
+  sidebar shell in `AppShell`.
 
 ### Staff nav
 
 Instructors and admins get a richer sidebar, but the same principle: max 6
-top-level items. Use a Cmd+K command palette (planned) for deeper navigation.
+top-level items. Deeper navigation lives in the global ⌘K command palette
+(`@/components/shared/command-palette`, mounted once at the app root —
+register page-specific commands via `@/components/shared/command-registry`).
 
 ### Breadcrumbs
 
@@ -369,3 +403,33 @@ Every count above zero is a red line. The script checks:
 - (H) `tsc --noEmit && lint && test && build` all pass.
 
 Only ship when every gate is green.
+
+---
+
+## 13. Classroom patterns (Modern Class)
+
+`/learn/[courseId]` renders `ClassroomShell`
+(`src/modules/learn/components/classroom/`) — the full-screen lesson
+experience. Layout rules:
+
+- **PageHeader stays** — 96 px header with topic crumbs, XP/streak/level
+  badge pills, Focus + Exit actions.
+- **Stage center, avatar beside it** — `AvatarStage` (sprite-rig teacher)
+  sits next to the stage on `lg:` and up; the rig is shared with the
+  `TutorBadge` dock via `src/modules/learn/components/avatar/avatar-rig.tsx`.
+- **Media switcher** — `LessonStage` shows slides (`visualSpec` renders as
+  a token-colored visual block) or `VideoStage` (curated YouTube embed via
+  `lesson-media` resolver). Video flow: avatar introduces → video plays →
+  on end the avatar recaps and moves to the slides.
+- **Voice Q&A** — `VoiceBar` wraps the Web Speech API
+  (`lib/voice-input.ts`): barge-in (speaking stops TTS), interim
+  transcript in the input row, final transcript auto-sends. Unsupported
+  browsers degrade to text-only — never hard-fail.
+- **Client import caveat** — the learn barrel mixes server code; client
+  components import from specific paths (`@/modules/learn/types`,
+  `@/modules/learn/components/...`), never the barrel root.
+
+The learner dashboard (`LearnerHome`, `src/modules/learn/components/dashboard/`)
+follows the widget language from §5: `StatStrip`, continue-learning CTA,
+assignments `table-modern`, project progress, course coverage, activity
+feed — each handling empty states inline.

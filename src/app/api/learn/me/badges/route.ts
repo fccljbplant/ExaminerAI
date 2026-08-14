@@ -12,6 +12,7 @@
 
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { apiSuccess, apiUnauthorized } from "@/lib/api-response";
 
 export const runtime = "nodejs";
@@ -98,7 +99,8 @@ async function ensureBadge(
       update: {},
       create: { userId, badgeId: badge.id, courseId },
     });
-  } catch {
+  } catch (err) {
     // best-effort — badge award failures must not break the listing
+    logger.debug("Best-effort badge award failed", { err, code, userId, courseId });
   }
 }

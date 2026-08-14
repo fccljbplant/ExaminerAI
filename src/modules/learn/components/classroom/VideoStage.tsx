@@ -29,7 +29,9 @@ export function VideoStage({ video, onEnded, onSkipToSlides }: VideoStageProps) 
 
   // Keep the latest callbacks without re-creating the player.
   const endedRef = useRef(onEnded);
-  endedRef.current = onEnded;
+  useEffect(() => {
+    endedRef.current = onEnded;
+  });
 
   useEffect(() => {
     let cancelled = false;

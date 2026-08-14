@@ -15,6 +15,7 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { WEEKLY_TOPICS } from "@/modules/course/lib/course-topics";
 import { apiError, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 
@@ -34,8 +35,9 @@ export async function POST(req: Request) {
   let body: { courseId?: string } = {};
   try {
     body = await req.json();
-  } catch {
+  } catch (err) {
     /* empty body is fine — we'll validate below */
+    logger.debug("Enroll request had no JSON body — treating as empty", { err });
   }
   const courseId = body?.courseId;
   if (!courseId) return apiValidationError({ courseId: "courseId is required" });
