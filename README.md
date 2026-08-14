@@ -35,7 +35,8 @@ The platform-wide redesign (strangler pattern, feature-flagged) is specified in
 | **W3** | Study-flow engine (6 scenarios), SRS, diagnostic, L12 Study-Flow Center, crons | ✅ behind `study_flow_v2` |
 | **W4** | Assignments & projects: registry, submission lifecycle, rubric engine, text-only AI pipeline, L5 list + L6 submission flow, **instructor review center (I3/I4)** | ✅ behind `submissions_v2` |
 | **W5** | Exams: unified runner (L9) with autosave/resume + results review (L10), ExamSession model, exam-schedule session CTAs | ✅ learner slice behind `exams_v2` |
-| **W6–W10** | Instructor portal · org/platform · restyle · cutover & deletion | 🔲 next |
+| **W6** | Instructor portal: I1 home (queue + at-risk KPIs), I5 students roster, I8 analytics, I10 earnings, More hub; studio (I2) placeholder | ✅ core behind `portal_instructor_v2` |
+| **W7–W10** | Org/platform · restyle · cutover & deletion | 🔲 next |
 
 Every workstream gates behind a portal flag (org override > global) and fails
 closed to the legacy `/app` experience until flipped — see
