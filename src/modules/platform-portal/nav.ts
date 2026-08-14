@@ -9,9 +9,7 @@ import type { NavItem } from "@/modules/shell";
 /** Platform admin: desktop-dense portal; mobile = alerts + approvals (P3 §4). */
 export const PLATFORM_NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/platform", icon: Home },
-  { id: "orgs", label: "Orgs", href: "/platform", icon: Building2 },
-  { id: "audit", label: "Audit", href: "/platform/audit", icon: LayoutDashboard },
-  { id: "system", label: "System", href: "/platform", icon: Server },
+  { id: "audit", label: "Audit", href: "/platform/audit", icon: LayoutDashboard, match: ["/platform/audit"] },
 ];
 
 export const PLATFORM_MORE: NavItem[] = [];

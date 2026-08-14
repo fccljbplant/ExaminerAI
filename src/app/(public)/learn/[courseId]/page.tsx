@@ -30,10 +30,10 @@ export default async function LearnSessionPage({
   // if they hit this page directly we re-check.
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+      <div className="min-h-screen flex items-center justify-center bg-bg text-fg">
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Please sign in to start learning.</p>
-          <a href="/app" className="mt-2 inline-block text-primary underline">Go to sign in</a>
+          <p className="text-sm text-fg-muted">Please sign in to start learning.</p>
+          <a href="/app" className="mt-2 inline-block text-brand underline">Go to sign in</a>
         </div>
       </div>
     );

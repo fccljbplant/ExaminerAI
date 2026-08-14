@@ -42,12 +42,12 @@ export default function B2BSignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-bg text-fg flex flex-col">
       {/* Nav */}
-      <nav className="border-b border-border">
+      <nav className="border-b border-line">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <Building2 className="h-5 w-5" />
             </div>
             TraineesAI
@@ -62,9 +62,9 @@ export default function B2BSignupPage() {
         {/* LEFT: Form */}
         <div className="flex items-center justify-center p-6 sm:p-12">
           <div className="w-full max-w-md">
-            <Badge variant="outline" className="mb-4 border-primary/30 text-primary">For Teams</Badge>
+            <Badge variant="outline" className="mb-4 border-brand/30 text-brand">For Teams</Badge>
             <h1 className="text-2xl font-bold">Create your organization</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-fg-muted">
               You&apos;ll be the org admin. Invite your team and assign seats after signup.
             </p>
 
@@ -92,7 +92,7 @@ export default function B2BSignupPage() {
                   value={seats}
                   onChange={(e) => setSeats(e.target.value)}
                   disabled={busy}
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border border-line bg-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                 >
                   <option value="1-10">1–10 seats (Starter — $29/seat/mo)</option>
                   <option value="11-50">11–50 seats (Team — volume discount)</option>
@@ -109,14 +109,14 @@ export default function B2BSignupPage() {
               </Button>
             </form>
 
-            <p className="mt-4 text-xs text-muted-foreground text-center">
+            <p className="mt-4 text-xs text-fg-muted text-center">
               By signing up you agree to our terms. 30-day money-back guarantee.
             </p>
           </div>
         </div>
 
         {/* RIGHT: Marketing */}
-        <div className="hidden lg:flex items-center justify-center bg-muted/30 border-l border-border p-12">
+        <div className="hidden lg:flex items-center justify-center bg-bg-subtle/30 border-l border-line p-12">
           <div className="max-w-md space-y-6">
             <h2 className="text-2xl font-bold leading-tight">{COPY.b2bStrip}</h2>
             <ul className="space-y-3 text-sm">
@@ -129,12 +129,12 @@ export default function B2BSignupPage() {
               ].map((f) => (
                 <li key={f} className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-growth-sage mt-0.5 flex-shrink-0" />
-                  <span className="text-foreground">{f}</span>
+                  <span className="text-fg">{f}</span>
                 </li>
               ))}
             </ul>
-            <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground italic">
+            <div className="rounded-lg border border-line bg-surface p-4">
+              <p className="text-sm text-fg-muted italic">
                 &quot;{COPY.mentorBrief}&quot;
               </p>
             </div>

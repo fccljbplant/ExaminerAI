@@ -1,10 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { usePathname } from "next/navigation";
 import { AppShellV2, ModeToggle } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
-import { FloatingTutor } from "@/modules/tutor";
 import { LEARNER_NAV } from "./nav";
 
 /**
@@ -33,9 +31,6 @@ function initials(name: string): string {
 }
 
 export function PortalShell({ userName, children }: { userName: string; children: ReactNode }) {
-  const pathname = usePathname();
-  const showTutor = pathname !== "/learner";
-
   return (
     <>
       <AppShellV2
@@ -55,7 +50,6 @@ export function PortalShell({ userName, children }: { userName: string; children
       >
         {children}
       </AppShellV2>
-      {showTutor && <FloatingTutor />}
     </>
   );
 }

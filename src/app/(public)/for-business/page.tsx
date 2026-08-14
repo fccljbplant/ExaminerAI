@@ -212,18 +212,18 @@ const FAQS = [
 
 export default function ForBusinessPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-bg text-fg">
       {/* ────────────────────────────────────────────────────────────
           Header — shared marketplace chrome + "Browse Courses" link
          ──────────────────────────────────────────────────────────── */}
-      <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30 sticky top-0 z-20">
+      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand text-on-brand">
               <Sparkles className="h-4 w-4" />
             </span>
             <span>TraineesAI</span>
-            <span className="text-muted-foreground hidden sm:inline">/ For Business</span>
+            <span className="text-fg-muted hidden sm:inline">/ For Business</span>
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
@@ -245,7 +245,7 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           1. Hero — tagline + dual CTA
          ──────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="relative overflow-hidden border-b border-line">
         {/* Ambient gradient background — dark, professional */}
         <div
           aria-hidden
@@ -253,11 +253,11 @@ export default function ForBusinessPage() {
         />
         <div
           aria-hidden
-          className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl"
+          className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-brand/20 blur-3xl"
         />
         <div
           aria-hidden
-          className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary/10 blur-3xl"
+          className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-brand-subtle blur-3xl"
         />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-20 sm:py-28">
           <div className="max-w-3xl">
@@ -268,9 +268,9 @@ export default function ForBusinessPage() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
               We don&apos;t replace your engineers.
               <br />
-              <span className="text-primary">We share the training burden.</span>
+              <span className="text-brand">We share the training burden.</span>
             </h1>
-            <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+            <p className="mt-6 text-lg sm:text-xl text-fg-muted leading-relaxed max-w-2xl">
               {COPY.heroSub}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3" id="cta">
@@ -287,7 +287,7 @@ export default function ForBusinessPage() {
                 </Link>
               </Button>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">
+            <p className="mt-4 text-xs text-fg-muted">
               30-day risk-free pilot · No credit card · Cancel anytime
             </p>
           </div>
@@ -297,7 +297,7 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           2. The Problem
          ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border bg-card/20">
+      <section className="border-b border-line bg-surface/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="max-w-3xl">
             <Badge variant="outline" className="mb-4 border-destructive/30 text-destructive">
@@ -306,7 +306,7 @@ export default function ForBusinessPage() {
             <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
               {COPY.problemLine}
             </h2>
-            <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+            <p className="mt-4 text-base sm:text-lg text-fg-muted leading-relaxed">
               Interns wait. Projects slip. Your most expensive people end up
               tutoring the newest ones — alone — and the codebase pays for it.
             </p>
@@ -314,7 +314,7 @@ export default function ForBusinessPage() {
               {PROBLEM_POINTS.map((p, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm sm:text-base">
                   <CheckCircle2 className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <span className="text-foreground/90">{p}</span>
+                  <span className="text-fg/90">{p}</span>
                 </li>
               ))}
             </ul>
@@ -330,7 +330,7 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           3. How It Works — 3 steps
          ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border">
+      <section className="border-b border-line">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <Badge variant="outline" className="mb-4">
@@ -340,7 +340,7 @@ export default function ForBusinessPage() {
             <h2 className="text-3xl sm:text-4xl font-bold">
               Three steps. Zero busywork.
             </h2>
-            <p className="mt-3 text-base text-muted-foreground">
+            <p className="mt-3 text-base text-fg-muted">
               The platform does the routine 80%. Your mentors handle the high-leverage 20%.
             </p>
           </div>
@@ -351,22 +351,22 @@ export default function ForBusinessPage() {
                 <Card key={step.step} className="relative overflow-hidden py-6">
                   <div
                     aria-hidden
-                    className="absolute -top-8 -right-4 text-8xl font-black text-primary/5 select-none"
+                    className="absolute -top-8 -right-4 text-8xl font-black text-brand/5 select-none"
                   >
                     {step.step}
                   </div>
                   <CardContent className="relative space-y-4">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                      <Icon className="h-6 w-6 text-primary" />
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-subtle">
+                      <Icon className="h-6 w-6 text-brand" />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                        <span className="text-xs font-bold text-brand uppercase tracking-wider">
                           Step {step.step}
                         </span>
                       </div>
                       <h3 className="text-xl font-semibold">{step.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
+                      <p className="text-sm text-fg-muted leading-relaxed">
                         {step.desc}
                       </p>
                     </div>
@@ -381,7 +381,7 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           4. B2B Feature Grid — 6 cards
          ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border bg-card/20">
+      <section className="border-b border-line bg-surface/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="max-w-2xl mb-14">
             <Badge variant="outline" className="mb-4">
@@ -391,7 +391,7 @@ export default function ForBusinessPage() {
             <h2 className="text-3xl sm:text-4xl font-bold">
               Built for the way modern teams onboard.
             </h2>
-            <p className="mt-3 text-base text-muted-foreground">
+            <p className="mt-3 text-base text-fg-muted">
               Everything a training manager, engineering lead, or L&amp;D head needs
               to run a serious program — without becoming one.
             </p>
@@ -402,11 +402,11 @@ export default function ForBusinessPage() {
               return (
                 <Card key={f.title} className="py-6 transition-shadow hover:shadow-md">
                   <CardContent className="space-y-3">
-                    <div className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
+                    <div className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-brand-subtle">
+                      <Icon className="h-5 w-5 text-brand" />
                     </div>
                     <h3 className="text-lg font-semibold">{f.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-fg-muted leading-relaxed">
                       {f.desc}
                     </p>
                   </CardContent>
@@ -420,7 +420,7 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           5. Proof — metrics
          ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border">
+      <section className="border-b border-line">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <Badge variant="outline" className="mb-4">
@@ -430,7 +430,7 @@ export default function ForBusinessPage() {
             <h2 className="text-3xl sm:text-4xl font-bold">
               The numbers don&apos;t lie.
             </h2>
-            <p className="mt-3 text-base text-muted-foreground">
+            <p className="mt-3 text-base text-fg-muted">
               Measured across 1,200+ trainees on the TraineesAI platform in 2025–2026.
             </p>
           </div>
@@ -440,16 +440,16 @@ export default function ForBusinessPage() {
               return (
                 <Card key={m.label} className="py-6 text-center">
                   <CardContent className="space-y-2">
-                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 mb-2">
-                      <Icon className="h-5 w-5 text-primary" />
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-subtle mb-2">
+                      <Icon className="h-5 w-5 text-brand" />
                     </div>
-                    <div className="text-4xl sm:text-5xl font-black tracking-tight text-primary">
+                    <div className="text-4xl sm:text-5xl font-black tracking-tight text-brand">
                       {m.value}
                     </div>
-                    <div className="text-sm font-semibold text-foreground">
+                    <div className="text-sm font-semibold text-fg">
                       {m.label}
                     </div>
-                    <div className="text-xs text-muted-foreground">{m.sub}</div>
+                    <div className="text-xs text-fg-muted">{m.sub}</div>
                   </CardContent>
                 </Card>
               );
@@ -461,7 +461,7 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           6. Pricing — Team · Enterprise
          ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border bg-card/20">
+      <section className="border-b border-line bg-surface/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <Badge variant="outline" className="mb-4">
@@ -470,7 +470,7 @@ export default function ForBusinessPage() {
             <h2 className="text-3xl sm:text-4xl font-bold">
               Pricing that scales with your hiring.
             </h2>
-            <p className="mt-3 text-base text-muted-foreground">
+            <p className="mt-3 text-base text-fg-muted">
               Start with a 10-seat pilot. Upgrade when you hire the next cohort.
             </p>
           </div>
@@ -480,13 +480,13 @@ export default function ForBusinessPage() {
                 key={tier.name}
                 className={`py-6 relative ${
                   tier.highlight
-                    ? "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/20"
+                    ? "border-brand shadow-lg shadow-primary/10 ring-1 ring-brand/20"
                     : ""
                 }`}
               >
                 {tier.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground px-3 py-1">
+                    <Badge className="bg-brand text-on-brand px-3 py-1">
                       <Sparkles className="h-3 w-3" />
                       Most Popular
                     </Badge>
@@ -495,17 +495,17 @@ export default function ForBusinessPage() {
                 <CardContent className="space-y-5">
                   <div>
                     <h3 className="text-2xl font-bold">{tier.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{tier.desc}</p>
+                    <p className="text-sm text-fg-muted mt-1">{tier.desc}</p>
                   </div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-4xl font-black tracking-tight">{tier.price}</span>
-                    <span className="text-sm text-muted-foreground">{tier.unit}</span>
+                    <span className="text-sm text-fg-muted">{tier.unit}</span>
                   </div>
                   <ul className="space-y-2.5">
                     {tier.features.map((feat) => (
                       <li key={feat} className="flex items-start gap-2.5 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground/90">{feat}</span>
+                        <CheckCircle2 className="h-4 w-4 text-brand flex-shrink-0 mt-0.5" />
+                        <span className="text-fg/90">{feat}</span>
                       </li>
                     ))}
                   </ul>
@@ -524,7 +524,7 @@ export default function ForBusinessPage() {
               </Card>
             ))}
           </div>
-          <p className="mt-8 text-center text-xs text-muted-foreground">
+          <p className="mt-8 text-center text-xs text-fg-muted">
             All plans include verified certificates, AI tutor access, and the full marketplace catalogue.
             Annual billing saves 20%.
           </p>
@@ -534,7 +534,7 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           7. FAQ — 4 B2B objections
          ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border">
+      <section className="border-b border-line">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20">
           <div className="text-center mb-12">
             <Badge variant="outline" className="mb-4">
@@ -543,9 +543,9 @@ export default function ForBusinessPage() {
             <h2 className="text-3xl sm:text-4xl font-bold">
               Common questions, honest answers.
             </h2>
-            <p className="mt-3 text-base text-muted-foreground">
+            <p className="mt-3 text-base text-fg-muted">
               Don&apos;t see your question?{" "}
-              <Link href="/signup/b2b" className="text-primary hover:underline">
+              <Link href="/signup/b2b" className="text-brand hover:underline">
                 Talk to sales →
               </Link>
             </p>
@@ -556,7 +556,7 @@ export default function ForBusinessPage() {
                 <AccordionTrigger className="text-left text-base font-semibold">
                   {faq.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                <AccordionContent className="text-sm text-fg-muted leading-relaxed">
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>
@@ -568,23 +568,23 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           8. Final CTA
          ──────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="relative overflow-hidden border-b border-line">
         <div
           aria-hidden
           className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-background"
         />
         <div
           aria-hidden
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/10 blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-brand-subtle blur-3xl"
         />
         <div className="relative mx-auto max-w-4xl px-4 sm:px-6 py-24 text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg mb-6">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-on-brand shadow-lg mb-6">
             <Briefcase className="h-7 w-7" />
           </div>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight">
             Stop training. Start shipping.
           </h2>
-          <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-5 text-base sm:text-lg text-fg-muted max-w-2xl mx-auto leading-relaxed">
             Book a 30-minute demo, or start a 10-seat pilot today. Either way,
             your senior engineers get their hours back by next Monday.
           </p>
@@ -602,17 +602,17 @@ export default function ForBusinessPage() {
               </Link>
             </Button>
           </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-6 text-xs text-muted-foreground">
+          <div className="mt-10 flex flex-wrap justify-center gap-6 text-xs text-fg-muted">
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+              <ShieldCheck className="h-3.5 w-3.5 text-brand" />
               SOC 2 Type II-ready
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Lock className="h-3.5 w-3.5 text-primary" />
+              <Lock className="h-3.5 w-3.5 text-brand" />
               SSO + SCIM on Enterprise
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Server className="h-3.5 w-3.5 text-primary" />
+              <Server className="h-3.5 w-3.5 text-brand" />
               Private-cloud deployment available
             </span>
           </div>
@@ -622,13 +622,13 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           7b. Support / Contact — B2B buyers need a direct line
          ──────────────────────────────────────────────────────────── */}
-      <section className="border-b border-border bg-muted/30">
+      <section className="border-b border-line bg-bg-subtle/30">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20 text-center">
-          <Badge variant="outline" className="mb-4 border-primary/30 text-primary">Talk to us</Badge>
+          <Badge variant="outline" className="mb-4 border-brand/30 text-brand">Talk to us</Badge>
           <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
             Have questions before you commit?
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-muted-foreground">
+          <p className="mt-4 text-base sm:text-lg text-fg-muted">
             We respond within 24 hours. No sales pressure — just honest answers about whether TraineesAI fits your team.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -658,22 +658,22 @@ export default function ForBusinessPage() {
       {/* ────────────────────────────────────────────────────────────
           Footer
          ──────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+      <footer className="border-t border-line py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-fg-muted">
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-primary text-primary-foreground">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-brand text-on-brand">
               <Sparkles className="h-3 w-3" />
             </span>
             <span>© {new Date().getFullYear()} TraineesAI · AI-driven training for engineering teams</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/courses" className="hover:text-foreground transition-colors">
+            <Link href="/courses" className="hover:text-fg transition-colors">
               Browse Courses
             </Link>
-            <Link href="/for-business" className="hover:text-foreground transition-colors">
+            <Link href="/for-business" className="hover:text-fg transition-colors">
               For Business
             </Link>
-            <Link href="/app" className="hover:text-foreground transition-colors">
+            <Link href="/app" className="hover:text-fg transition-colors">
               Sign in
             </Link>
           </div>

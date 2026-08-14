@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 import { BottomSheet } from "@/modules/ui/bottom-sheet";
 import { cn } from "@/lib/utils";
-import type { NavItem } from "./types";
+import { resolveActiveItem, type NavItem } from "./types";
 import { useNavVisibility } from "./use-scroll-direction";
 
 /**
@@ -25,13 +25,7 @@ import { useNavVisibility } from "./use-scroll-direction";
 
 const MAX_INLINE = 5;
 
-function isActive(pathname: string, item: NavItem): boolean {
-  const prefix = item.match ?? item.href;
-  return pathname === item.href || pathname.startsWith(prefix);
-}
-
-function BottomNavItem({ item, pathname }: { item: NavItem; pathname: string }) {
-  const active = isActive(pathname, item);
+function BottomNavItem({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
   return (
     <Link
@@ -70,6 +64,9 @@ export function BottomNav({ nav }: { nav: NavItem[] }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const visibility = useNavVisibility();
+  // Single active tab: the LONGEST matching prefix wins (fixes Home
+  // staying selected on every sub-route across all portals).
+  const activeId = resolveActiveItem(pathname, nav)?.id;
 
   // Tuck the nav away while reading (sustained scroll-down), bring it
   // back on a deliberate scroll-up, at the top, or while the More sheet
@@ -100,7 +97,7 @@ export function BottomNav({ nav }: { nav: NavItem[] }) {
       >
         <div className={cn("grid", gridCols)}>
           {inline.map((item) => (
-            <BottomNavItem key={item.id} item={item} pathname={pathname} />
+            <BottomNavItem key={item.id} item={item} active={item.id === activeId} />
           ))}
           {overflow.length > 0 && (
             <button
@@ -112,7 +109,7 @@ export function BottomNav({ nav }: { nav: NavItem[] }) {
             >
               <span className="relative flex h-7 w-14 items-center justify-center">
                 <MoreHorizontal className="h-5 w-5" aria-hidden />
-                {overflow.some((i) => isActive(pathname, i)) && (
+                {overflow.some((i) => i.id === activeId) && (
                   <span className="absolute right-3 top-0.5 h-1.5 w-1.5 rounded-full bg-brand" aria-hidden />
                 )}
               </span>
@@ -130,7 +127,7 @@ export function BottomNav({ nav }: { nav: NavItem[] }) {
       >
         <div className="grid grid-cols-3 gap-2">
           {overflow.map((item) => {
-            const active = isActive(pathname, item);
+            const active = item.id === activeId;
             const Icon = item.icon;
             return (
               <Link

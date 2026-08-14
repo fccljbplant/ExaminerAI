@@ -22,8 +22,14 @@ export const INSTRUCTOR_NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/instructor", icon: Home },
   { id: "courses", label: "Courses", href: "/instructor/courses", icon: LayoutTemplate },
   { id: "students", label: "Students", href: "/instructor/students", icon: Users },
-  { id: "grading", label: "Grading", href: "/instructor/review", icon: ClipboardCheck },
-  { id: "more", label: "More", href: "/instructor/more", icon: MoreHorizontal },
+  { id: "grading", label: "Grading", href: "/instructor/review", icon: ClipboardCheck, match: ["/instructor/review"] },
+  {
+    id: "more",
+    label: "More",
+    href: "/instructor/more",
+    icon: MoreHorizontal,
+    match: ["/instructor/more", "/instructor/analytics", "/instructor/earnings"],
+  },
 ];
 
 /** Secondary destinations surfaced in the More hub (P3 §2). */

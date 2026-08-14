@@ -82,10 +82,10 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
   const isComplete = data.completedWeeks >= data.totalWeeks && data.totalWeeks > 0;
 
   return (
-    <Card className="border-primary/30 bg-primary/5">
+    <Card className="border-brand/30 bg-brand-subtle">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Award className="h-4 w-4 text-primary" /> Your progress
+          <Award className="h-4 w-4 text-brand" /> Your progress
         </CardTitle>
         <CardDescription>
           {data.completedWeeks} of {data.totalWeeks} weeks completed · avg score {data.avgScore}/100
@@ -95,8 +95,8 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
         {/* Overall progress bar */}
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Overall completion</span>
-            <span className="font-medium text-foreground">{pct}%</span>
+            <span className="text-fg-muted">Overall completion</span>
+            <span className="font-medium text-fg">{pct}%</span>
           </div>
           <Progress value={pct} className="h-2" />
         </div>
@@ -106,28 +106,28 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
           {data.weeklyBreakdown.map((w) => (
             <div
               key={w.week}
-              className="flex items-center justify-between gap-3 py-1.5 border-b border-border/40 last:border-0"
+              className="flex items-center justify-between gap-3 py-1.5 border-b border-line/40 last:border-0"
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 {w.completed ? (
                   <CheckCircle2 className="h-3.5 w-3.5 text-growth-sage flex-shrink-0" />
                 ) : (
-                  <Circle className="h-3.5 w-3.5 text-muted-foreground/50 flex-shrink-0" />
+                  <Circle className="h-3.5 w-3.5 text-fg-muted/50 flex-shrink-0" />
                 )}
                 <span className="text-sm font-medium">Week {w.week}</span>
                 {w.completed && (
                   <Badge variant="secondary" className="text-[10px]">Done</Badge>
                 )}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-fg-muted">
                 {w.score !== null ? (
                   <span className={cn("font-medium", scoreColor(w.score))}>
                     {w.score}/100
                   </span>
                 ) : w.completed ? (
-                  <span className="text-muted-foreground">Test pending</span>
+                  <span className="text-fg-muted">Test pending</span>
                 ) : (
-                  <span className="text-muted-foreground">—</span>
+                  <span className="text-fg-muted">—</span>
                 )}
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
         </div>
 
         {!data.hasCertificate && !data.certificateEligible && (
-          <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+          <p className="text-xs text-fg-muted text-center flex items-center justify-center gap-1">
             <Lock className="h-3 w-3" />
             Complete all weeks with a 75+ average to earn your certificate
           </p>

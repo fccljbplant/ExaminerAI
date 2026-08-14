@@ -46,23 +46,23 @@ export function ROICalculator() {
   }, [engineers, avgSalary, interns, hoursPerWeek]);
 
   return (
-    <section className="border-b border-border bg-muted/30">
+    <section className="border-b border-line bg-bg-subtle/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
         <div className="max-w-2xl mx-auto text-center mb-12">
-          <Badge variant="outline" className="mb-4 border-primary/30 text-primary">
+          <Badge variant="outline" className="mb-4 border-brand/30 text-brand">
             <Calculator className="h-3 w-3 mr-1" /> ROI Calculator
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
             See exactly how much you save.
           </h2>
-          <p className="mt-3 text-muted-foreground">
+          <p className="mt-3 text-fg-muted">
             Drag the sliders to match your team. Numbers update in real-time.
           </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2 max-w-5xl mx-auto">
           {/* LEFT: Inputs */}
-          <Card className="border-border">
+          <Card className="border-line">
             <CardHeader>
               <CardTitle className="text-base">Your team</CardTitle>
               <CardDescription>Adjust to match your situation.</CardDescription>
@@ -72,7 +72,7 @@ export function ROICalculator() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">Senior engineers mentoring</label>
-                  <span className="text-2xl font-bold text-primary tabular-nums">{engineers}</span>
+                  <span className="text-2xl font-bold text-brand tabular-nums">{engineers}</span>
                 </div>
                 <input
                   type="range" min={1} max={50} value={engineers}
@@ -85,7 +85,7 @@ export function ROICalculator() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">Avg engineer salary</label>
-                  <span className="text-2xl font-bold text-primary tabular-nums">${(avgSalary / 1000).toFixed(0)}K</span>
+                  <span className="text-2xl font-bold text-brand tabular-nums">${(avgSalary / 1000).toFixed(0)}K</span>
                 </div>
                 <input
                   type="range" min={60000} max={300000} step={10000} value={avgSalary}
@@ -98,7 +98,7 @@ export function ROICalculator() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">Trainees to onboard</label>
-                  <span className="text-2xl font-bold text-primary tabular-nums">{interns}</span>
+                  <span className="text-2xl font-bold text-brand tabular-nums">{interns}</span>
                 </div>
                 <input
                   type="range" min={1} max={100} value={interns}
@@ -111,7 +111,7 @@ export function ROICalculator() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">Hours/week per intern (current)</label>
-                  <span className="text-2xl font-bold text-primary tabular-nums">{hoursPerWeek}h</span>
+                  <span className="text-2xl font-bold text-brand tabular-nums">{hoursPerWeek}h</span>
                 </div>
                 <input
                   type="range" min={1} max={20} value={hoursPerWeek}
@@ -125,13 +125,13 @@ export function ROICalculator() {
           {/* RIGHT: Results */}
           <div className="space-y-4">
             {/* Headline savings */}
-            <Card className="border-primary/30 bg-primary/5">
+            <Card className="border-brand/30 bg-brand-subtle">
               <CardContent className="p-6 text-center">
-                <p className="text-xs font-bold uppercase tracking-widest text-primary">Annual Savings</p>
-                <p className="mt-2 text-4xl font-extrabold text-primary tabular-nums">
+                <p className="text-xs font-bold uppercase tracking-widest text-brand">Annual Savings</p>
+                <p className="mt-2 text-4xl font-extrabold text-brand tabular-nums">
                   ${calc.annualSavings.toLocaleString()}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-fg-muted">
                   {calc.roiMultiple}× ROI on TraineesAI subscription
                 </p>
               </CardContent>
@@ -139,24 +139,24 @@ export function ROICalculator() {
 
             {/* Breakdown */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-border">
+              <Card className="border-line">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="h-4 w-4 text-growth-sage" />
-                    <span className="text-xs text-muted-foreground">Hours returned</span>
+                    <span className="text-xs text-fg-muted">Hours returned</span>
                   </div>
-                  <p className="text-2xl font-bold text-foreground tabular-nums">{calc.hoursReturned}h</p>
-                  <p className="text-[10px] text-muted-foreground">per year, to your engineers</p>
+                  <p className="text-2xl font-bold text-fg tabular-nums">{calc.hoursReturned}h</p>
+                  <p className="text-[10px] text-fg-muted">per year, to your engineers</p>
                 </CardContent>
               </Card>
-              <Card className="border-border">
+              <Card className="border-line">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-1">
                     <DollarSign className="h-4 w-4 text-growth-sage" />
-                    <span className="text-xs text-muted-foreground">Current cost</span>
+                    <span className="text-xs text-fg-muted">Current cost</span>
                   </div>
-                  <p className="text-2xl font-bold text-foreground tabular-nums">${(calc.currentAnnualCost / 1000).toFixed(0)}K</p>
-                  <p className="text-[10px] text-muted-foreground">mentor time per year</p>
+                  <p className="text-2xl font-bold text-fg tabular-nums">${(calc.currentAnnualCost / 1000).toFixed(0)}K</p>
+                  <p className="text-[10px] text-fg-muted">mentor time per year</p>
                 </CardContent>
               </Card>
             </div>
@@ -169,7 +169,7 @@ export function ROICalculator() {
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="text-center text-xs text-fg-muted">
               30-day risk-free pilot · No credit card required
             </p>
           </div>

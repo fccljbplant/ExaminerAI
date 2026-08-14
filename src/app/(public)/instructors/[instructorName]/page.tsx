@@ -91,14 +91,14 @@ export default async function InstructorProfilePage({
   const bio = courses.find((c) => c.instructorBio)?.instructorBio ?? null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-bg text-fg">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30 sticky top-0 z-10">
+      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/courses" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5 text-brand" />
             <span>TraineesAI</span>
-            <span className="text-muted-foreground">/ Marketplace</span>
+            <span className="text-fg-muted">/ Marketplace</span>
           </Link>
           <Button asChild size="sm">
             <Link href="/app">Sign in</Link>
@@ -107,7 +107,7 @@ export default async function InstructorProfilePage({
       </header>
 
       {/* Breadcrumb + hero */}
-      <section className="border-b border-border bg-gradient-to-b from-primary/10 via-background to-background">
+      <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-4">
           <Breadcrumb>
             <BreadcrumbList>
@@ -134,7 +134,7 @@ export default async function InstructorProfilePage({
           </Breadcrumb>
 
           <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary flex-shrink-0">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand/15 text-brand flex-shrink-0">
               <GraduationCap className="h-8 w-8" />
             </div>
             <div className="flex-1 space-y-2">
@@ -142,11 +142,11 @@ export default async function InstructorProfilePage({
                 {name}
               </h1>
               {bio && (
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                <p className="text-sm text-fg-muted leading-relaxed max-w-3xl">
                   {bio}
                 </p>
               )}
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground pt-1">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-fg-muted pt-1">
                 <span className="flex items-center gap-1">
                   <BookOpen className="h-4 w-4" /> {courses.length} course{courses.length === 1 ? "" : "s"}
                 </span>
@@ -156,7 +156,7 @@ export default async function InstructorProfilePage({
                 {avgRating > 0 && (
                   <span className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-amber-400 text-growth-amber" />
-                    <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
+                    <span className="font-semibold text-fg">{avgRating.toFixed(1)}</span>
                     <span>({reviewCount} review{reviewCount === 1 ? "" : "s"})</span>
                   </span>
                 )}
@@ -169,7 +169,7 @@ export default async function InstructorProfilePage({
       {/* Courses */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-6">
         <div className="flex items-center gap-2">
-          <Award className="h-5 w-5 text-primary" />
+          <Award className="h-5 w-5 text-brand" />
           <h2 className="text-xl font-semibold">Courses by {name}</h2>
         </div>
 
@@ -185,8 +185,8 @@ export default async function InstructorProfilePage({
         </div>
       </main>
 
-      <footer className="border-t border-border py-6 mt-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-muted-foreground text-center">
+      <footer className="border-t border-line py-6 mt-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-fg-muted text-center">
           © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
         </div>
       </footer>

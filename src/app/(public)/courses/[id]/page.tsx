@@ -126,7 +126,7 @@ export default async function CourseDetailPage({ params }: Params) {
   const totalDays = course.weeks.reduce((sum, w) => sum + w.days.length, 0);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-bg text-fg">
       {/* JSON-LD structured data — schema.org Course so Google rich results
           can index this course (provider, offer, workload, instructor). */}
       <script
@@ -137,9 +137,9 @@ export default async function CourseDetailPage({ params }: Params) {
       />
 
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30 sticky top-0 z-10">
+      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/courses" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/courses" className="flex items-center gap-2 text-sm text-fg-muted hover:text-fg">
             <BookOpen className="h-4 w-4" />
             <span>Marketplace</span>
           </Link>
@@ -150,7 +150,7 @@ export default async function CourseDetailPage({ params }: Params) {
       </header>
 
       {/* Breadcrumb */}
-      <section className="border-b border-border bg-card/30">
+      <section className="border-b border-line bg-surface/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
           <Breadcrumb>
             <BreadcrumbList>
@@ -179,7 +179,7 @@ export default async function CourseDetailPage({ params }: Params) {
       </section>
 
       {/* Hero */}
-      <section className="border-b border-border bg-gradient-to-b from-primary/10 via-background to-background">
+      <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 grid lg:grid-cols-3 gap-8">
           {/* Left: title + meta */}
           <div className="lg:col-span-2 space-y-4">
@@ -187,7 +187,7 @@ export default async function CourseDetailPage({ params }: Params) {
               <Badge variant="secondary">{categoryLabel}</Badge>
               <Badge variant="outline">{levelLabel}</Badge>
               {course.featured && (
-                <Badge className="bg-primary text-primary-foreground">
+                <Badge className="bg-brand text-on-brand">
                   <Sparkles className="h-3 w-3 mr-1" /> Featured
                 </Badge>
               )}
@@ -196,15 +196,15 @@ export default async function CourseDetailPage({ params }: Params) {
               {course.name}
             </h1>
             {course.subtitle && (
-              <p className="text-lg text-muted-foreground">{course.subtitle}</p>
+              <p className="text-lg text-fg-muted">{course.subtitle}</p>
             )}
 
             {/* Meta row */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-fg-muted">
               {course.rating > 0 && (
                 <span className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-amber-400 text-growth-amber" />
-                  <span className="font-semibold text-foreground">{course.rating.toFixed(1)}</span>
+                  <span className="font-semibold text-fg">{course.rating.toFixed(1)}</span>
                   <span>({course.reviewCount} reviews)</span>
                 </span>
               )}
@@ -252,12 +252,12 @@ export default async function CourseDetailPage({ params }: Params) {
 
           {/* Right: thumbnail / trailer */}
           <div className="lg:col-span-1">
-            <div className="aspect-video rounded-xl border border-border bg-muted overflow-hidden flex items-center justify-center">
+            <div className="aspect-video rounded-xl border border-line bg-bg-subtle overflow-hidden flex items-center justify-center">
               {course.thumbnailUrl ? (
                  
                 <img src={course.thumbnailUrl} alt={course.name} className="h-full w-full object-cover" />
               ) : (
-                <BookOpen className="h-12 w-12 text-muted-foreground/40" />
+                <BookOpen className="h-12 w-12 text-fg-muted/40" />
               )}
             </div>
           </div>
@@ -272,7 +272,7 @@ export default async function CourseDetailPage({ params }: Params) {
           {course.whatYouWillLearn.length > 0 && (
             <section>
               <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary" /> What you&apos;ll learn
+                <Award className="h-5 w-5 text-brand" /> What you&apos;ll learn
               </h2>
               <div className="grid sm:grid-cols-2 gap-3">
                 {course.whatYouWillLearn.map((item, i) => (
@@ -289,7 +289,7 @@ export default async function CourseDetailPage({ params }: Params) {
           {course.description && (
             <section>
               <h2 className="text-xl font-semibold mb-3">About this course</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-fg-muted leading-relaxed whitespace-pre-line">
                 {course.description}
               </p>
             </section>
@@ -299,9 +299,9 @@ export default async function CourseDetailPage({ params }: Params) {
           {course.weeks.length > 0 && (
             <section>
               <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" /> Curriculum
+                <BookOpen className="h-5 w-5 text-brand" /> Curriculum
               </h2>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-fg-muted mb-4">
                 {course.weeks.length} weeks · {totalDays} lessons · capstone-ready
               </p>
               <CurriculumAccordion weeks={course.weeks} totalDays={totalDays} />
@@ -315,7 +315,7 @@ export default async function CourseDetailPage({ params }: Params) {
               <ul className="space-y-2">
                 {course.prerequisites.map((p, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-fg-muted flex-shrink-0" />
                     <span>{p}</span>
                   </li>
                 ))}
@@ -340,11 +340,11 @@ export default async function CourseDetailPage({ params }: Params) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary" /> Skills verified
+                  <ShieldCheck className="h-4 w-4 text-brand" /> Skills verified
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-fg-muted mb-2">
                   Each skill below is graded via Socratic assessment + capstone defense. You&apos;ll receive a verified credential once your final score ≥ 75.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -363,26 +363,26 @@ export default async function CourseDetailPage({ params }: Params) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-primary" /> Instructor
+                  <GraduationCap className="h-4 w-4 text-brand" /> Instructor
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <p className="font-medium text-sm">{course.instructorName}</p>
                 {course.instructorBio && (
-                  <p className="text-xs text-muted-foreground leading-relaxed">{course.instructorBio}</p>
+                  <p className="text-xs text-fg-muted leading-relaxed">{course.instructorBio}</p>
                 )}
               </CardContent>
             </Card>
           )}
 
           {/* Capstone + credential info */}
-          <Card className="border-primary/30 bg-primary/5">
+          <Card className="border-brand/30 bg-brand-subtle">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Code2 className="h-4 w-4 text-primary" /> Capstone + credential
+                <Code2 className="h-4 w-4 text-brand" /> Capstone + credential
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-xs text-muted-foreground">
+            <CardContent className="space-y-2 text-xs text-fg-muted">
               <p>Every course includes a hands-on capstone project — GitHub repo, live demo, and written reflection.</p>
               <p>On completion (score ≥ 75), you receive a verified digital credential with:</p>
               <ul className="space-y-1 pl-4 list-disc">
@@ -403,8 +403,8 @@ export default async function CourseDetailPage({ params }: Params) {
         </aside>
       </main>
 
-      <footer className="border-t border-border py-6 mt-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-muted-foreground text-center">
+      <footer className="border-t border-line py-6 mt-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-fg-muted text-center">
           © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
         </div>
       </footer>

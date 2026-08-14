@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { AppShellV2, ModeToggle } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
-import { FloatingTutor } from "@/modules/tutor";
 import { INSTRUCTOR_NAV, INSTRUCTOR_MORE } from "./nav";
 
 /**
@@ -53,7 +52,6 @@ export function InstructorShell({
       >
         {children}
       </AppShellV2>
-      <FloatingTutor />
     </>
   );
 }

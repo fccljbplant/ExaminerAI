@@ -42,12 +42,12 @@ export default function MarketplaceCourseCard({
     <Card
       className={`overflow-hidden py-0 gap-0 transition-shadow hover:shadow-md ${
         showFeaturedBorder || course.featured
-          ? "border-primary/60 ring-1 ring-primary/30"
+          ? "border-brand/60 ring-1 ring-brand/30"
           : ""
       }`}
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-video bg-bg-subtle flex items-center justify-center overflow-hidden">
         {course.thumbnailUrl ? (
            
           <img
@@ -59,7 +59,7 @@ export default function MarketplaceCourseCard({
           <CategoryGradient category={course.category} name={course.name} />
         )}
         {course.featured && (
-          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
+          <Badge className="absolute top-2 left-2 bg-brand text-on-brand">
             <Sparkles className="h-3 w-3 mr-1" /> Featured
           </Badge>
         )}
@@ -78,17 +78,17 @@ export default function MarketplaceCourseCard({
         <div>
           <h3 className="font-semibold text-base line-clamp-2 leading-snug">{course.name}</h3>
           {course.subtitle && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{course.subtitle}</p>
+            <p className="text-sm text-fg-muted line-clamp-2 mt-1">{course.subtitle}</p>
           )}
         </div>
 
         {/* Instructor */}
         {course.instructorName && (
-          <p className="text-xs text-muted-foreground">By {course.instructorName}</p>
+          <p className="text-xs text-fg-muted">By {course.instructorName}</p>
         )}
 
         {/* Stats row */}
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-fg-muted">
           <Badge variant="outline" className="capitalize">{course.level}</Badge>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" /> {course.durationWeeks}w
@@ -107,7 +107,7 @@ export default function MarketplaceCourseCard({
         </div>
 
         {/* Price + CTA */}
-        <div className="flex items-center justify-between pt-2 border-t border-border">
+        <div className="flex items-center justify-between pt-2 border-t border-line">
           <div>
             {isFree ? (
               <span className="text-base font-semibold text-growth-sage">Free</span>

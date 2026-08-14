@@ -16,14 +16,14 @@ export const metadata: Metadata = {
  */
 export default function PublicNotFound() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-bg text-fg flex flex-col">
       {/* Header — consistent with the rest of the marketplace */}
-      <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30">
+      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5 text-brand" />
             <span>TraineesAI</span>
-            <span className="text-muted-foreground">/ Marketplace</span>
+            <span className="text-fg-muted">/ Marketplace</span>
           </Link>
           <Button asChild size="sm">
             <Link href="/app">Sign in</Link>
@@ -37,22 +37,22 @@ export default function PublicNotFound() {
           {/* Big icon */}
           <div className="flex justify-center">
             <div className="relative">
-              <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full" aria-hidden />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
-                <BookOpen className="h-10 w-10 text-primary" />
+              <div className="absolute inset-0 blur-3xl bg-brand/20 rounded-full" aria-hidden />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-subtle border border-brand/20">
+                <BookOpen className="h-10 w-10 text-brand" />
               </div>
             </div>
           </div>
 
           {/* 404 mark + heading */}
           <div className="space-y-2">
-            <p className="text-7xl font-black tracking-tighter text-foreground/10 leading-none">
+            <p className="text-7xl font-black tracking-tighter text-fg/10 leading-none">
               404
             </p>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Page Not Found
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-fg-muted">
               The page you&apos;re looking for doesn&apos;t exist, may have been
               moved, or the link is no longer valid.
             </p>
@@ -82,8 +82,8 @@ export default function PublicNotFound() {
         </div>
       </main>
 
-      <footer className="border-t border-border py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-muted-foreground text-center">
+      <footer className="border-t border-line py-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-fg-muted text-center">
           © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
         </div>
       </footer>

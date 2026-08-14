@@ -80,8 +80,8 @@ export default function CurriculumAccordion({ weeks, totalDays }: Props) {
           <div
             key={week.id}
             className={cn(
-              "rounded-md border border-border bg-card/40 overflow-hidden transition-colors",
-              isOpen && "bg-card/80 border-primary/30"
+              "rounded-md border border-line bg-surface/40 overflow-hidden transition-colors",
+              isOpen && "bg-surface/80 border-brand/30"
             )}
           >
             {/* Header row — single line, click to expand */}
@@ -89,18 +89,18 @@ export default function CurriculumAccordion({ weeks, totalDays }: Props) {
               type="button"
               onClick={() => toggle(idx)}
               aria-expanded={isOpen}
-              className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted/40 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-bg-subtle/40 transition-colors"
             >
               {isOpen ? (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                <ChevronDown className="h-3.5 w-3.5 text-fg-muted flex-shrink-0" />
               ) : (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                <ChevronRight className="h-3.5 w-3.5 text-fg-muted flex-shrink-0" />
               )}
-              <Badge variant="outline" className="text-[10px] text-primary border-primary/30 flex-shrink-0">
+              <Badge variant="outline" className="text-[10px] text-brand border-brand/30 flex-shrink-0">
                 W{week.weekNumber}
               </Badge>
-              <span className="font-medium text-foreground truncate flex-1">{week.phase}</span>
-              <span className="text-[10px] text-muted-foreground flex-shrink-0">
+              <span className="font-medium text-fg truncate flex-1">{week.phase}</span>
+              <span className="text-[10px] text-fg-muted flex-shrink-0">
                 {week.days.length} {week.days.length === 1 ? "day" : "days"}
               </span>
               {week.milestone && (
@@ -112,23 +112,23 @@ export default function CurriculumAccordion({ weeks, totalDays }: Props) {
 
             {/* Day list — compact, one line per day */}
             {isOpen && (
-              <ul className="border-t border-border/60 px-3 py-2 space-y-1">
+              <ul className="border-t border-line/60 px-3 py-2 space-y-1">
                 {week.days.map((day) => (
                   <li
                     key={day.id}
                     className="flex items-start gap-2 text-xs leading-relaxed"
                   >
-                    <span className="font-mono text-muted-foreground/80 mt-0.5 flex-shrink-0 w-6">
+                    <span className="font-mono text-fg-muted/80 mt-0.5 flex-shrink-0 w-6">
                       D{day.day}
                     </span>
-                    <span className="font-medium text-foreground/90">{day.title}</span>
+                    <span className="font-medium text-fg/90">{day.title}</span>
                     {day.objective && (
-                      <span className="text-muted-foreground truncate">— {day.objective}</span>
+                      <span className="text-fg-muted truncate">— {day.objective}</span>
                     )}
                   </li>
                 ))}
                 {week.days.length === 0 && (
-                  <li className="text-xs text-muted-foreground italic flex items-center gap-1.5">
+                  <li className="text-xs text-fg-muted italic flex items-center gap-1.5">
                     <BookOpen className="h-3 w-3" /> Days to be announced
                   </li>
                 )}
@@ -146,7 +146,7 @@ export default function CurriculumAccordion({ weeks, totalDays }: Props) {
             variant="outline"
             size="sm"
             onClick={expandAll}
-            className="w-full border-dashed text-muted-foreground hover:text-foreground"
+            className="w-full border-dashed text-fg-muted hover:text-fg"
           >
             <ChevronDown className="h-3.5 w-3.5" />
             Show all {weeks.length} weeks ({hiddenCount} hidden)

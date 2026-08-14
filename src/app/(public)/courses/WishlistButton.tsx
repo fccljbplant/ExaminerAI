@@ -31,7 +31,7 @@ export default function WishlistButton({ courseId, variant = "icon" }: { courseI
         disabled={loading}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-          saved ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:bg-accent"
+          saved ? "border-brand bg-brand-subtle text-brand" : "border-line bg-bg hover:bg-bg-subtle"
         )}
       >
         <Bookmark className={cn("h-3.5 w-3.5", saved && "fill-current")} />

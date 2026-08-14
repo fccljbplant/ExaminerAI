@@ -25,13 +25,13 @@ const GESTURES: { name: string; gesture: string; description: string }[] = [
 export default function AvatarDemoClient() {
   return (
     <div className="space-y-6">
-      <Card className="border-primary/30 bg-primary/5">
+      <Card className="border-brand/30 bg-brand-subtle">
         <CardContent className="p-5 space-y-2">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand">
             Code-Drawn 2D Avatar
           </div>
           <h1 className="text-xl font-bold">AI Tutor — Entirely SVG, Only Eyes + Lips Animate</h1>
-          <p className="text-sm text-muted-foreground max-w-2xl">
+          <p className="text-sm text-fg-muted max-w-2xl">
             The entire character is drawn in code (SVG) — no photo, no raster assets.
             Only the eyes (blink, gaze, happy, wide, wink) and lips (idle, smile, talk, O)
             animate. Natural blink every 2-6 seconds + micro gaze drift. 100% consistent
@@ -45,7 +45,7 @@ export default function AvatarDemoClient() {
           <CardTitle className="text-base">Trigger Gestures</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-fg-muted">
             Click any button. The avatar (bottom-right) animates only eyes + lips.
             Natural blinks happen every 2-6 seconds when idle.
           </p>
@@ -66,7 +66,7 @@ export default function AvatarDemoClient() {
                 >
                   {g.name}
                 </Button>
-                <p className="text-[10px] text-muted-foreground text-center">{g.description}</p>
+                <p className="text-[10px] text-fg-muted text-center">{g.description}</p>
               </div>
             ))}
           </div>
@@ -83,7 +83,7 @@ export default function AvatarDemoClient() {
 
       <AvatarDock />
 
-      <div className="text-center text-xs text-muted-foreground py-4">
+      <div className="text-center text-xs text-fg-muted py-4">
         The avatar is drawn entirely in SVG code — no images. Drag the dock to reposition,
         click to cycle sizes (full → mini → dot). Eyes blink naturally and drift gaze when idle.
       </div>

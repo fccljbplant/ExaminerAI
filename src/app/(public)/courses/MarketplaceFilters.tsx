@@ -67,7 +67,7 @@ export function MarketplaceFilters({ categories, levels, current }: FilterProps)
     <div className="flex flex-col sm:flex-row sm:items-center gap-3">
       {/* Search */}
       <div className="relative flex-1 min-w-[200px]">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
         <Input
           placeholder="Search courses, skills, technologies…"
           defaultValue={current.search ?? ""}

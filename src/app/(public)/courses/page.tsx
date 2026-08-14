@@ -79,18 +79,18 @@ export default async function CoursesPage({
   const totalPublished = categoryCounts.reduce((sum, c) => sum + c._count._all, 0);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-bg text-fg">
       {/* Mark "visited /courses" in localStorage so the OnboardingGuide
           step 1 lights up for new students. */}
       <VisitedCoursesTracker />
 
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30 sticky top-0 z-10">
+      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5 text-brand" />
             <span>TraineesAI</span>
-            <span className="text-muted-foreground">/ Marketplace</span>
+            <span className="text-fg-muted">/ Marketplace</span>
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
@@ -107,7 +107,7 @@ export default async function CoursesPage({
       </header>
 
       {/* Hero */}
-      <section className="border-b border-border bg-gradient-to-b from-primary/10 via-background to-background">
+      <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16">
           <div className="max-w-3xl">
             <Badge variant="secondary" className="mb-3">
@@ -116,7 +116,7 @@ export default async function CoursesPage({
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
               Build the skills employers actually verify.
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-muted-foreground">
+            <p className="mt-4 text-base sm:text-lg text-fg-muted">
               Project-based courses with AI tutors, capstone deliverables, and
               skill-verified digital credentials. Every certificate links to a
               public verification page.
@@ -126,7 +126,7 @@ export default async function CoursesPage({
       </section>
 
       {/* Filters */}
-      <section className="border-b border-border bg-card/30">
+      <section className="border-b border-line bg-surface/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
           <MarketplaceFilters
             categories={MARKETPLACE_CATEGORIES}
@@ -137,10 +137,10 @@ export default async function CoursesPage({
       </section>
 
       {/* Category navigation */}
-      <section className="border-b border-border bg-card/20">
+      <section className="border-b border-line bg-surface/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
           <div className="flex items-center gap-2 mb-3">
-            <BookOpen className="h-4 w-4 text-primary" />
+            <BookOpen className="h-4 w-4 text-brand" />
             <h2 className="text-sm font-semibold">Browse by category</h2>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -148,8 +148,8 @@ export default async function CoursesPage({
               href="/courses"
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${
                 !category
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background hover:bg-accent"
+                  ? "border-brand bg-brand text-on-brand"
+                  : "border-line bg-bg hover:bg-bg-subtle"
               }`}
             >
               All Categories
@@ -167,8 +167,8 @@ export default async function CoursesPage({
                   href={`/courses/category/${c.value}`}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ${
                     active
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background hover:bg-accent"
+                      ? "border-brand bg-brand text-on-brand"
+                      : "border-line bg-bg hover:bg-bg-subtle"
                   }`}
                 >
                   {c.label}
@@ -193,8 +193,8 @@ export default async function CoursesPage({
         />
       </Suspense>
 
-      <footer className="border-t border-border py-6 mt-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-muted-foreground text-center">
+      <footer className="border-t border-line py-6 mt-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-fg-muted text-center">
           © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
         </div>
       </footer>
@@ -239,7 +239,7 @@ async function MarketplaceContent({
       {paths.length > 0 && (
         <section>
           <SectionHeading
-            icon={<RouteIcon className="h-5 w-5 text-primary" />}
+            icon={<RouteIcon className="h-5 w-5 text-brand" />}
             title="Learning Paths"
             subtitle="Bundles of courses that form a complete career trajectory — from fundamentals to capstone."
           />
@@ -253,9 +253,9 @@ async function MarketplaceContent({
 
       {courses.length === 0 && paths.length === 0 && (
         <div className="text-center py-20">
-          <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+          <BookOpen className="h-10 w-10 mx-auto text-fg-muted mb-3" />
           <h2 className="text-lg font-semibold">No courses match your filters</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-fg-muted mt-1">
             Try clearing some filters or browsing all courses.
           </p>
           <Button asChild variant="outline" size="sm" className="mt-4">
@@ -271,7 +271,7 @@ async function MarketplaceContent({
           {featuredCourses.length > 0 && (
             <section>
               <SectionHeading
-                icon={<TrendingUp className="h-5 w-5 text-primary" />}
+                icon={<TrendingUp className="h-5 w-5 text-brand" />}
                 title="Featured courses"
                 subtitle="Hand-picked programs recommended by our training team."
               />
@@ -282,7 +282,7 @@ async function MarketplaceContent({
           {paidCourses.length > 0 && (
             <section>
               <SectionHeading
-                icon={<Award className="h-5 w-5 text-primary" />}
+                icon={<Award className="h-5 w-5 text-brand" />}
                 title="All courses"
                 subtitle="Browse the full catalogue of professional programs."
               />
@@ -293,7 +293,7 @@ async function MarketplaceContent({
           {freeCourses.length > 0 && (
             <section>
               <SectionHeading
-                icon={<Sparkles className="h-5 w-5 text-primary" />}
+                icon={<Sparkles className="h-5 w-5 text-brand" />}
                 title="Free courses"
                 subtitle="Start learning today — no cost, full curriculum."
               />
@@ -327,7 +327,7 @@ function MarketplaceSkeleton() {
                 <Skeleton className="h-3 w-10" />
                 <Skeleton className="h-3 w-12" />
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-border">
+              <div className="flex items-center justify-between pt-2 border-t border-line">
                 <Skeleton className="h-5 w-16" />
                 <Skeleton className="h-8 w-20 rounded-md" />
               </div>
@@ -342,12 +342,12 @@ function MarketplaceSkeleton() {
 function SectionHeading({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
   return (
     <div className="mb-5 flex items-start gap-3">
-      <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+      <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-subtle">
         {icon}
       </div>
       <div>
         <h2 className="text-xl font-semibold">{title}</h2>
-        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-fg-muted">{subtitle}</p>}
       </div>
     </div>
   );
@@ -382,7 +382,7 @@ function LearningPathCard({
   return (
     <Card className="overflow-hidden py-0 gap-0 transition-shadow hover:shadow-md flex flex-col">
       {/* Header band — icon + category */}
-      <div className="relative bg-gradient-to-br from-primary/15 via-primary/5 to-background px-4 py-5 flex items-center gap-3 border-b border-border">
+      <div className="relative bg-gradient-to-br from-primary/15 via-primary/5 to-background px-4 py-5 flex items-center gap-3 border-b border-line">
         <span className="text-3xl leading-none" aria-hidden>
           {path.icon || "🎓"}
         </span>
@@ -391,25 +391,25 @@ function LearningPathCard({
             {path.title}
           </h3>
           {path.subtitle && (
-            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+            <p className="text-xs text-fg-muted line-clamp-1 mt-0.5">
               {path.subtitle}
             </p>
           )}
         </div>
         {path.featured && (
-          <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+          <Badge className="absolute top-2 right-2 bg-brand text-on-brand">
             <Sparkles className="h-3 w-3 mr-1" /> Featured
           </Badge>
         )}
       </div>
 
       <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-sm text-fg-muted line-clamp-3">
           {path.description}
         </p>
 
         {/* Stats row */}
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-fg-muted">
           <Badge variant="outline" className="capitalize">{path.level}</Badge>
           <span className="flex items-center gap-1">
             <BookOpen className="h-3 w-3" /> {path.courseCount} course{path.courseCount === 1 ? "" : "s"}
@@ -420,7 +420,7 @@ function LearningPathCard({
         </div>
 
         {/* Price + CTA */}
-        <div className="flex items-center justify-between pt-2 border-t border-border mt-auto">
+        <div className="flex items-center justify-between pt-2 border-t border-line mt-auto">
           <div>
             {isFree ? (
               <span className="text-base font-semibold text-growth-sage">Free</span>

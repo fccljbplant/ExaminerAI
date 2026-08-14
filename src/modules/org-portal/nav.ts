@@ -23,8 +23,14 @@ export const ORG_NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/org", icon: Home },
   { id: "people", label: "People", href: "/org/people", icon: Users },
   { id: "control", label: "Control", href: "/org/control", icon: ShieldCheck },
-  { id: "reports", label: "Reports", href: "/org/audit", icon: LayoutDashboard },
-  { id: "more", label: "More", href: "/org/more", icon: MoreHorizontal },
+  { id: "reports", label: "Reports", href: "/org/audit", icon: LayoutDashboard, match: ["/org/audit", "/org/analytics"] },
+  {
+    id: "more",
+    label: "More",
+    href: "/org/more",
+    icon: MoreHorizontal,
+    match: ["/org/more", "/org/registries", "/org/billing"],
+  },
 ];
 
 /** Secondary destinations for the More hub (O3/O6/O7). */

@@ -148,7 +148,7 @@ export default function CheckoutButton({
   if (justEnrolled || authState === "student-enrolled") {
     return (
       <div className="flex flex-col gap-2">
-        <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button asChild size="lg" className="bg-brand text-on-brand hover:bg-brand/90">
           <Link href="/app">
             <CheckCircle2 className="h-4 w-4" />
             {justEnrolled ? "Enrolled! Continue Learning" : "Continue Learning"}
@@ -213,28 +213,28 @@ export default function CheckoutButton({
 
               {/* Order summary */}
               <div className="space-y-3">
-                <div className="rounded-md border border-border bg-background/50 p-3 space-y-2">
+                <div className="rounded-md border border-line bg-bg/50 p-3 space-y-2">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold leading-tight">{courseName}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Full course access</p>
+                      <p className="text-xs text-fg-muted mt-0.5">Full course access</p>
                     </div>
                     <span className="text-lg font-bold">{priceLabel}</span>
                   </div>
                 </div>
 
                 {/* What's included */}
-                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
-                  <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" /> You&apos;ll get:
+                <div className="rounded-md border border-brand/20 bg-brand-subtle p-3 space-y-2">
+                  <p className="text-xs font-semibold text-fg flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-brand" /> You&apos;ll get:
                   </p>
-                  <ul className="space-y-1.5 text-xs text-foreground/80">
+                  <ul className="space-y-1.5 text-xs text-fg/80">
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-growth-sage flex-shrink-0" />
                       <span>Full course access — every lesson, every week</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Sparkles className="h-3.5 w-3.5 mt-0.5 text-primary flex-shrink-0" />
+                      <Sparkles className="h-3.5 w-3.5 mt-0.5 text-brand flex-shrink-0" />
                       <span>AI tutor — Socratic guidance, practice tests, weekly assessments</span>
                     </li>
                     <li className="flex items-start gap-2">
@@ -284,7 +284,7 @@ export default function CheckoutButton({
         </>
       )}
 
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1 text-xs text-fg-muted">
         <ShieldCheck className="h-3 w-3" />
         <span>Secure checkout · 30-day money-back guarantee</span>
       </div>

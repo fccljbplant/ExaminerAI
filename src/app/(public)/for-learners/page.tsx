@@ -23,21 +23,21 @@ export const dynamic = "force-dynamic";
 
 export default function ForLearnersPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-bg text-fg">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <GraduationCap className="h-5 w-5" />
             </div>
             TraineesAI
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/for-business" className="text-muted-foreground hover:text-foreground">For Teams</Link>
-            <Link href="/courses" className="text-muted-foreground hover:text-foreground">Courses</Link>
-            <Link href="/pricing" className="text-muted-foreground hover:text-foreground">Pricing</Link>
-            <Link href="/support" className="text-muted-foreground hover:text-foreground">Support</Link>
+            <Link href="/for-business" className="text-fg-muted hover:text-fg">For Teams</Link>
+            <Link href="/courses" className="text-fg-muted hover:text-fg">Courses</Link>
+            <Link href="/pricing" className="text-fg-muted hover:text-fg">Pricing</Link>
+            <Link href="/support" className="text-fg-muted hover:text-fg">Support</Link>
           </div>
           <Button asChild size="sm">
             <Link href="/app">Start Free <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
@@ -48,21 +48,21 @@ export default function ForLearnersPage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="absolute inset-0">
-          <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-brand/20 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-brand-subtle blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-20 sm:py-28">
           <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="outline" className="mb-6 gap-1.5 border-primary/30 bg-primary/5">
-              <GraduationCap className="h-3 w-3 text-primary" />
+            <Badge variant="outline" className="mb-6 gap-1.5 border-brand/30 bg-brand-subtle">
+              <GraduationCap className="h-3 w-3 text-brand" />
               FOR LEARNERS
             </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05]">
               Build skills employers
               <br />
-              <span className="text-primary">actually verify.</span>
+              <span className="text-brand">actually verify.</span>
             </h1>
-            <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+            <p className="mt-6 text-lg sm:text-xl text-fg-muted leading-relaxed max-w-2xl mx-auto">
               {COPY.learnerPromise}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -77,7 +77,7 @@ export default function ForLearnersPage() {
                 <Link href="/courses">Browse Courses</Link>
               </Button>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">
+            <p className="mt-4 text-xs text-fg-muted">
               Free daily test quota · Verified certificate · Cancel anytime
             </p>
           </div>
@@ -85,11 +85,11 @@ export default function ForLearnersPage() {
       </section>
 
       {/* What you get */}
-      <section className="border-t border-border">
+      <section className="border-t border-line">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="max-w-2xl mx-auto text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold">What you get</h2>
-            <p className="mt-4 text-muted-foreground">Everything you need to go from beginner to job-ready.</p>
+            <p className="mt-4 text-fg-muted">Everything you need to go from beginner to job-ready.</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {[
@@ -100,12 +100,12 @@ export default function ForLearnersPage() {
               { icon: TrendingUp, title: "Transparent progress", desc: "Your Learning Signal is a 0-100 score computed from your scores, completion, and activity. Nothing hidden. You can argue with it." },
               { icon: Clock, title: "Capstone project", desc: "Build a real project across the course. AI examines each phase. You graduate with a portfolio piece, not just a certificate." },
             ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-border bg-card p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mb-4">
-                  <item.icon className="h-5 w-5 text-primary" />
+              <div key={item.title} className="rounded-xl border border-line bg-surface p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-subtle mb-4">
+                  <item.icon className="h-5 w-5 text-brand" />
                 </div>
                 <h3 className="text-base font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                <p className="mt-2 text-sm text-fg-muted leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -113,11 +113,11 @@ export default function ForLearnersPage() {
       </section>
 
       {/* How it works for learners */}
-      <section className="border-t border-border bg-muted/30">
+      <section className="border-t border-line bg-bg-subtle/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="max-w-2xl mx-auto text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold">Your daily routine</h2>
-            <p className="mt-4 text-muted-foreground">3 steps. ~30 minutes a day. That's it.</p>
+            <p className="mt-4 text-fg-muted">3 steps. ~30 minutes a day. That's it.</p>
           </div>
           <div className="grid gap-8 sm:grid-cols-3 max-w-5xl mx-auto">
             {[
@@ -126,10 +126,10 @@ export default function ForLearnersPage() {
               { step: "03", title: "Build", desc: "Apply it to your capstone project. AI examines your work. Your mentor steps in if you're stuck." },
             ].map((s) => (
               <div key={s.step} className="relative">
-                <div className="text-5xl font-black text-primary/10 absolute -top-4 -left-2">{s.step}</div>
+                <div className="text-5xl font-black text-brand/10 absolute -top-4 -left-2">{s.step}</div>
                 <div className="relative">
                   <h3 className="text-lg font-semibold">{s.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                  <p className="mt-2 text-sm text-fg-muted leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -138,11 +138,11 @@ export default function ForLearnersPage() {
       </section>
 
       {/* Pricing strip */}
-      <section className="border-t border-border">
+      <section className="border-t border-line">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl sm:text-4xl font-bold">Start free. Upgrade when you're ready.</h2>
-            <p className="mt-4 text-muted-foreground">No credit card to start. No lock-in. Cancel anytime.</p>
+            <p className="mt-4 text-fg-muted">No credit card to start. No lock-in. Cancel anytime.</p>
             <Button asChild size="lg" className="mt-8 h-12 text-base">
               <Link href="/app?view=signup">
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -150,18 +150,18 @@ export default function ForLearnersPage() {
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
-            <p className="mt-4 text-xs text-muted-foreground">
-              <Link href="/pricing" className="text-primary hover:underline">See pricing →</Link>
+            <p className="mt-4 text-xs text-fg-muted">
+              <Link href="/pricing" className="text-brand hover:underline">See pricing →</Link>
             </p>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-muted/30">
+      <footer className="border-t border-line bg-bg-subtle/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 text-center">
-          <p className="text-xs text-muted-foreground">
-            © 2026 TraineesAI · <Link href="/support" className="hover:text-foreground">Support</Link> · <Link href="/for-business" className="hover:text-foreground">For Teams</Link> · <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
+          <p className="text-xs text-fg-muted">
+            © 2026 TraineesAI · <Link href="/support" className="hover:text-fg">Support</Link> · <Link href="/for-business" className="hover:text-fg">For Teams</Link> · <Link href="/pricing" className="hover:text-fg">Pricing</Link>
           </p>
         </div>
       </footer>

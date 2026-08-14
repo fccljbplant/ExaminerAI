@@ -111,16 +111,16 @@ export default async function VerifyCredentialPage({ params }: Params) {
         </div>
 
         {/* Certificate card */}
-        <div className="bg-card border-2 border-primary/30 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-surface border-2 border-brand/30 rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 p-6 sm:p-8 text-center border-b border-border">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground mb-3">
+          <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 p-6 sm:p-8 text-center border-b border-line">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand text-on-brand mb-3">
               <GraduationCap className="h-8 w-8" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-fg">
               {certificate.distinction ? "Certificate of Completion with Distinction" : "Certificate of Completion"}
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">This certifies that</p>
+            <p className="text-sm text-fg-muted mt-1">This certifies that</p>
             {certificate.distinction && (
               <Badge className="mt-3 bg-growth-amber/20 text-growth-amber dark:text-growth-amber border-growth-amber">
                 <Star className="h-3 w-3 mr-1 fill-amber-500 text-growth-amber" /> With Distinction
@@ -130,19 +130,19 @@ export default async function VerifyCredentialPage({ params }: Params) {
 
           {/* Student name */}
           <div className="p-6 sm:p-8 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-1">
+            <h2 className="text-3xl sm:text-4xl font-bold text-fg mb-1">
               {certificate.studentName}
             </h2>
-            <p className="text-sm text-muted-foreground">has successfully completed</p>
+            <p className="text-sm text-fg-muted">has successfully completed</p>
           </div>
 
           {/* Course + grade */}
           <div className="px-6 sm:px-8 pb-6 sm:pb-8 space-y-4">
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-4">
-              <BookOpen className="h-5 w-5 text-primary flex-shrink-0" />
+            <div className="flex items-center gap-3 rounded-lg border border-line bg-bg-subtle/50 p-4">
+              <BookOpen className="h-5 w-5 text-brand flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Course</p>
-                <p className="text-sm font-medium text-foreground">{certificate.courseName}</p>
+                <p className="text-xs text-fg-muted">Course</p>
+                <p className="text-sm font-medium text-fg">{certificate.courseName}</p>
                 {certificate.course && (
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <Badge variant="outline" className="text-[10px] capitalize">
@@ -151,7 +151,7 @@ export default async function VerifyCredentialPage({ params }: Params) {
                     <Badge variant="outline" className="text-[10px] capitalize">
                       {certificate.course.level}
                     </Badge>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-[10px] text-fg-muted">
                       {certificate.course.durationWeeks}-week program
                     </span>
                   </div>
@@ -161,20 +161,20 @@ export default async function VerifyCredentialPage({ params }: Params) {
 
             {/* Score + grade */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-4">
-                <Award className="h-5 w-5 text-primary flex-shrink-0" />
+              <div className="flex items-center gap-3 rounded-lg border border-line bg-bg-subtle/50 p-4">
+                <Award className="h-5 w-5 text-brand flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Grade</p>
+                  <p className="text-xs text-fg-muted">Grade</p>
                   <p className={`text-2xl font-bold ${gradeColor(certificate.grade)}`}>
                     {certificate.grade}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-4">
-                <Award className="h-5 w-5 text-primary flex-shrink-0" />
+              <div className="flex items-center gap-3 rounded-lg border border-line bg-bg-subtle/50 p-4">
+                <Award className="h-5 w-5 text-brand flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Final score</p>
-                  <p className="text-2xl font-bold text-foreground">{certificate.score}%</p>
+                  <p className="text-xs text-fg-muted">Final score</p>
+                  <p className="text-2xl font-bold text-fg">{certificate.score}%</p>
                 </div>
               </div>
             </div>
@@ -184,8 +184,8 @@ export default async function VerifyCredentialPage({ params }: Params) {
               <div className="flex items-center gap-3 rounded-lg border border-growth-sage bg-growth-sage-soft p-4">
                 <Code2 className="h-5 w-5 text-growth-sage flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Capstone project</p>
-                  <p className="text-sm font-medium text-foreground flex items-center gap-1">
+                  <p className="text-xs text-fg-muted">Capstone project</p>
+                  <p className="text-sm font-medium text-fg flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5 text-growth-sage" /> Defended and approved
                   </p>
                 </div>
@@ -194,8 +194,8 @@ export default async function VerifyCredentialPage({ params }: Params) {
 
             {/* Skills verified */}
             {skillsVerified.length > 0 && (
-              <div className="rounded-lg border border-border bg-muted/50 p-4">
-                <p className="text-xs text-muted-foreground mb-2">Skills verified</p>
+              <div className="rounded-lg border border-line bg-bg-subtle/50 p-4">
+                <p className="text-xs text-fg-muted mb-2">Skills verified</p>
                 <div className="flex flex-wrap gap-1.5">
                   {skillsVerified.map((skill) => (
                     <Badge key={skill} variant="secondary" className="text-xs">
@@ -209,22 +209,22 @@ export default async function VerifyCredentialPage({ params }: Params) {
 
             {/* Issue date + signed by */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-4">
-                <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <div className="flex items-center gap-3 rounded-lg border border-line bg-bg-subtle/50 p-4">
+                <Calendar className="h-4 w-4 text-fg-muted flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Issued</p>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-xs text-fg-muted">Issued</p>
+                  <p className="text-sm font-medium text-fg">
                     {new Date(certificate.issuedAt).toLocaleDateString("en-US", {
                       year: "numeric", month: "long", day: "numeric",
                     })}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-4">
-                <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <div className="flex items-center gap-3 rounded-lg border border-line bg-bg-subtle/50 p-4">
+                <User className="h-4 w-4 text-fg-muted flex-shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Signed by</p>
-                  <p className="text-sm font-medium text-foreground">{certificate.signedBy}</p>
+                  <p className="text-xs text-fg-muted">Signed by</p>
+                  <p className="text-sm font-medium text-fg">{certificate.signedBy}</p>
                 </div>
               </div>
             </div>
@@ -244,8 +244,8 @@ export default async function VerifyCredentialPage({ params }: Params) {
             </div>
 
             {/* Share section — secondary social actions */}
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+            <div className="mt-3 pt-3 border-t border-line">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-fg-muted mb-2">
                 Share your achievement
               </p>
               <div className="flex flex-wrap gap-2">
@@ -274,8 +274,8 @@ export default async function VerifyCredentialPage({ params }: Params) {
           </div>
 
           {/* Footer */}
-          <div className="bg-muted/30 border-t border-border p-4 text-center">
-            <p className="text-[10px] text-muted-foreground">
+          <div className="bg-bg-subtle/30 border-t border-line p-4 text-center">
+            <p className="text-[10px] text-fg-muted">
               Credential ID: <span className="font-mono">{certificate.credentialId ?? certificate.id}</span>
               {" · "}
               Issued by <span className="font-medium">TraineesAI</span>
@@ -284,7 +284,7 @@ export default async function VerifyCredentialPage({ params }: Params) {
         </div>
 
         {/* Verification timestamp */}
-        <p className="text-center text-xs text-muted-foreground mt-4">
+        <p className="text-center text-xs text-fg-muted mt-4">
           Verified on {new Date().toLocaleString()} · This credential was issued by TraineesAI
         </p>
 
@@ -302,20 +302,20 @@ export default async function VerifyCredentialPage({ params }: Params) {
 
 function InvalidCredential({ credentialId }: { credentialId: string }) {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
       <Card className="max-w-md w-full text-center border-destructive/30 bg-destructive/5">
         <CardContent className="p-8 space-y-3">
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
             <ShieldCheck className="h-7 w-7 text-destructive" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">Invalid credential</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl font-bold text-fg">Invalid credential</h1>
+          <p className="text-sm text-fg-muted">
             We couldn&apos;t find a TraineesAI credential with the ID
-            <span className="font-mono block mt-1 px-2 py-1 rounded bg-muted text-xs break-all">
+            <span className="font-mono block mt-1 px-2 py-1 rounded bg-bg-subtle text-xs break-all">
               {credentialId}
             </span>
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-fg-muted">
             Double-check the URL or contact the credential holder.
           </p>
           <Button asChild variant="outline" size="sm" className="mt-2">

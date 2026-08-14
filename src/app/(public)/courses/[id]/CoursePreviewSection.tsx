@@ -38,34 +38,34 @@ export default function CoursePreviewSection({ courseId }: { courseId: string })
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
-      <div className="rounded-xl border border-primary/30 bg-primary/5 overflow-hidden">
+      <div className="rounded-xl border border-brand/30 bg-brand-subtle overflow-hidden">
         <button
           onClick={() => setExpanded(!expanded)}
           className="w-full flex items-center justify-between p-5 text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
-              <Play className="h-5 w-5 text-primary" />
+            <div className="h-10 w-10 rounded-lg bg-brand/15 flex items-center justify-center">
+              <Play className="h-5 w-5 text-brand" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">Preview First Lesson</h3>
-              <p className="text-xs text-muted-foreground">
+              <h3 className="font-semibold text-fg">Preview First Lesson</h3>
+              <p className="text-xs text-fg-muted">
                 Week {preview.weekNumber}, Day {preview.day.day}: {preview.day.title}
               </p>
             </div>
           </div>
-          {expanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
+          {expanded ? <ChevronUp className="h-5 w-5 text-fg-muted" /> : <ChevronDown className="h-5 w-5 text-fg-muted" />}
         </button>
 
         {expanded && (
-          <div className="px-5 pb-5 space-y-4 border-t border-primary/20">
+          <div className="px-5 pb-5 space-y-4 border-t border-brand/20">
             <div>
-              <p className="text-sm font-medium text-foreground mt-3">Learning Objective</p>
-              <p className="text-sm text-muted-foreground mt-1">{preview.day.objective}</p>
+              <p className="text-sm font-medium text-fg mt-3">Learning Objective</p>
+              <p className="text-sm text-fg-muted mt-1">{preview.day.objective}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">Why It Matters</p>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{preview.day.whyItMatters}</p>
+              <p className="text-sm font-medium text-fg">Why It Matters</p>
+              <p className="text-sm text-fg-muted mt-1 line-clamp-3">{preview.day.whyItMatters}</p>
             </div>
             {preview.day.topicsCovered.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -75,7 +75,7 @@ export default function CoursePreviewSection({ courseId }: { courseId: string })
               </div>
             )}
             {preview.day.videoUrl && (
-              <div className="rounded-lg overflow-hidden border border-border">
+              <div className="rounded-lg overflow-hidden border border-line">
                 <iframe
                   src={preview.day.videoUrl}
                   className="w-full aspect-video"
@@ -85,10 +85,10 @@ export default function CoursePreviewSection({ courseId }: { courseId: string })
               </div>
             )}
             {preview.day.codeExamples.length > 0 && (
-              <div className="rounded-lg bg-zinc-950 border border-border p-4">
+              <div className="rounded-lg bg-zinc-950 border border-line p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Code2 className="h-4 w-4 text-cyan-500" />
-                  <span className="text-xs font-mono text-muted-foreground">{preview.day.codeExamples[0].filename}</span>
+                  <span className="text-xs font-mono text-fg-muted">{preview.day.codeExamples[0].filename}</span>
                 </div>
                 <pre className="text-xs font-mono text-slate-300 overflow-x-auto">
                   {preview.day.codeExamples[0].code.slice(0, 500)}
@@ -96,8 +96,8 @@ export default function CoursePreviewSection({ courseId }: { courseId: string })
                 </pre>
               </div>
             )}
-            <div className="flex items-center justify-between pt-2 border-t border-primary/20">
-              <p className="text-xs text-muted-foreground">
+            <div className="flex items-center justify-between pt-2 border-t border-brand/20">
+              <p className="text-xs text-fg-muted">
                 Like what you see? Enroll to access all {preview.totalDays} lessons across {preview.totalWeeks} weeks.
               </p>
               <Button asChild size="sm">

@@ -36,11 +36,11 @@ export default async function LearningPathDetailPage({ params }: Params) {
   const totalWeeks = path.courses.reduce((sum, c) => sum + c.durationWeeks, 0);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-bg text-fg">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30 sticky top-0 z-10">
+      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/courses" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/courses" className="flex items-center gap-2 text-sm text-fg-muted hover:text-fg">
             <RouteIcon className="h-4 w-4" />
             <span>Marketplace</span>
           </Link>
@@ -51,7 +51,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
       </header>
 
       {/* Hero */}
-      <section className="border-b border-border bg-gradient-to-b from-primary/10 via-background to-background">
+      <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 grid lg:grid-cols-3 gap-8">
           {/* Left: title + meta */}
           <div className="lg:col-span-2 space-y-4">
@@ -61,7 +61,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
               </Badge>
               <Badge variant="outline" className="capitalize">{path.level}</Badge>
               {path.featured && (
-                <Badge className="bg-primary text-primary-foreground">
+                <Badge className="bg-brand text-on-brand">
                   <Sparkles className="h-3 w-3 mr-1" /> Featured
                 </Badge>
               )}
@@ -75,11 +75,11 @@ export default async function LearningPathDetailPage({ params }: Params) {
               </h1>
             </div>
             {path.subtitle && (
-              <p className="text-lg text-muted-foreground">{path.subtitle}</p>
+              <p className="text-lg text-fg-muted">{path.subtitle}</p>
             )}
 
             {/* Meta row */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-fg-muted">
               <span className="flex items-center gap-1">
                 <BookOpen className="h-4 w-4" /> {path.courseCount} course{path.courseCount === 1 ? "" : "s"}
               </span>
@@ -107,7 +107,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                   )}
                 </span>
                 {hasSavings && (
-                  <span className="text-sm text-muted-foreground line-through">
+                  <span className="text-sm text-fg-muted line-through">
                     {formatPrice(individualTotal, path.currency)}
                   </span>
                 )}
@@ -125,20 +125,20 @@ export default async function LearningPathDetailPage({ params }: Params) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <RouteIcon className="h-4 w-4 text-primary" /> Path summary
+                  <RouteIcon className="h-4 w-4 text-brand" /> Path summary
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Courses</span>
+                  <span className="text-fg-muted">Courses</span>
                   <span className="font-medium">{path.courseCount}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total weeks</span>
+                  <span className="text-fg-muted">Total weeks</span>
                   <span className="font-medium">{totalWeeks}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bundle price</span>
+                  <span className="text-fg-muted">Bundle price</span>
                   <span className="font-medium">
                     {isFree ? "Free" : formatPrice(path.price, path.currency)}
                   </span>
@@ -168,7 +168,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
           {path.description && (
             <section>
               <h2 className="text-xl font-semibold mb-3">About this path</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-fg-muted leading-relaxed whitespace-pre-line">
                 {path.description}
               </p>
             </section>
@@ -178,17 +178,17 @@ export default async function LearningPathDetailPage({ params }: Params) {
           {path.courses.length > 0 && (
             <section>
               <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" /> Course sequence
+                <BookOpen className="h-5 w-5 text-brand" /> Course sequence
               </h2>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-fg-muted mb-4">
                 {path.courses.length} courses · {totalWeeks} weeks of content · capstone-ready
               </p>
               <ol className="space-y-3">
                 {path.courses.map((c) => (
                   <li key={c.id}>
-                    <Card className={c.isCapstone ? "border-primary/40 bg-primary/5" : ""}>
+                    <Card className={c.isCapstone ? "border-brand/40 bg-brand-subtle" : ""}>
                       <CardContent className="p-4 flex items-start gap-3">
-                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-subtle text-brand text-sm font-bold">
                           {c.order}
                         </span>
                         <div className="flex-1 min-w-0">
@@ -203,14 +203,14 @@ export default async function LearningPathDetailPage({ params }: Params) {
                                 </Link>
                               </h3>
                               {c.subtitle && (
-                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                                <p className="text-xs text-fg-muted mt-0.5 line-clamp-2">
                                   {c.subtitle}
                                 </p>
                               )}
                             </div>
                             <div className="flex flex-wrap items-center gap-1.5">
                               {c.isCapstone && (
-                                <Badge className="bg-primary/15 text-primary border-primary/30">
+                                <Badge className="bg-brand/15 text-brand border-brand/30">
                                   <Code2 className="h-3 w-3 mr-1" /> Capstone
                                 </Badge>
                               )}
@@ -219,7 +219,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                               </Badge>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-3 mt-2 text-xs text-fg-muted">
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" /> {c.durationWeeks}w
                             </span>
@@ -247,10 +247,10 @@ export default async function LearningPathDetailPage({ params }: Params) {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" /> What&apos;s included
+                <CheckCircle2 className="h-4 w-4 text-brand" /> What&apos;s included
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-xs text-muted-foreground">
+            <CardContent className="space-y-2 text-xs text-fg-muted">
               <p>Every learning path bundles:</p>
               <ul className="space-y-1 pl-4 list-disc">
                 <li>{path.courseCount} structured courses with daily objectives</li>
@@ -268,13 +268,13 @@ export default async function LearningPathDetailPage({ params }: Params) {
           </Card>
 
           {/* Capstone + credential info */}
-          <Card className="border-primary/30 bg-primary/5">
+          <Card className="border-brand/30 bg-brand-subtle">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Code2 className="h-4 w-4 text-primary" /> Capstone + credential
+                <Code2 className="h-4 w-4 text-brand" /> Capstone + credential
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-xs text-muted-foreground">
+            <CardContent className="space-y-2 text-xs text-fg-muted">
               <p>
                 The final course in this path is a capstone project — GitHub repo, live demo, and written reflection.
               </p>
@@ -292,8 +292,8 @@ export default async function LearningPathDetailPage({ params }: Params) {
         </aside>
       </main>
 
-      <footer className="border-t border-border py-6 mt-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-muted-foreground text-center">
+      <footer className="border-t border-line py-6 mt-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-fg-muted text-center">
           © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
         </div>
       </footer>

@@ -11,20 +11,19 @@ import {
   DropdownMenuTrigger,
 } from "@/modules/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { NavItem, ShellBrand } from "./types";
+import { resolveActiveItem, type NavItem, type ShellBrand } from "./types";
 
 /**
  * modules/shell — TopNav (xl full · lg condensed + More overflow)
  * Height 56px, sticky, hairline border — no shadow.
  */
 
-function isActive(pathname: string, item: NavItem): boolean {
-  const prefix = item.match ?? item.href;
-  return pathname === item.href || pathname.startsWith(prefix + "/") || pathname.startsWith(prefix);
+function isActive(pathname: string, item: NavItem, activeId?: string): boolean {
+  return item.id === activeId;
 }
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
-  const active = isActive(pathname, item);
+function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+  void isActive;
   const Icon = item.icon;
   return (
     <Link
@@ -48,7 +47,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
-function MoreMenu({ items, pathname }: { items: NavItem[]; pathname: string }) {
+function MoreMenu({ items, activeId }: { items: NavItem[]; activeId?: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -63,7 +62,7 @@ function MoreMenu({ items, pathname }: { items: NavItem[]; pathname: string }) {
       <DropdownMenuContent align="end" className="min-w-44">
         {items.map((item) => {
           const Icon = item.icon;
-          const active = isActive(pathname, item);
+          const active = item.id === activeId;
           return (
             <DropdownMenuItem key={item.id} asChild className={cn(active && "bg-brand-subtle")}>
               <Link href={item.href}>
@@ -94,6 +93,8 @@ export interface TopNavProps {
 
 export function TopNav({ nav, brand, trailing, visibleCount }: TopNavProps) {
   const pathname = usePathname();
+  // Single active tab: longest matching prefix wins.
+  const activeId = resolveActiveItem(pathname, nav)?.id;
   const condensed = typeof visibleCount === "number" && nav.length > visibleCount;
   const inline = condensed ? nav.slice(0, visibleCount) : nav;
   const overflow = condensed ? nav.slice(visibleCount) : [];
@@ -116,9 +117,9 @@ export function TopNav({ nav, brand, trailing, visibleCount }: TopNavProps) {
         )}
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
           {inline.map((item) => (
-            <NavLink key={item.id} item={item} pathname={pathname} />
+            <NavLink key={item.id} item={item} active={item.id === activeId} />
           ))}
-          {overflow.length > 0 && <MoreMenu items={overflow} pathname={pathname} />}
+          {overflow.length > 0 && <MoreMenu items={overflow} activeId={activeId} />}
         </div>
         {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
       </div>

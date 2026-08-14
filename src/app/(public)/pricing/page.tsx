@@ -14,20 +14,20 @@ export const dynamic = "force-dynamic";
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+    <div className="min-h-screen bg-bg text-fg">
+      <nav className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <GraduationCap className="h-5 w-5" />
             </div>
             TraineesAI
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/for-business" className="text-muted-foreground hover:text-foreground">For Teams</Link>
-            <Link href="/for-learners" className="text-muted-foreground hover:text-foreground">For Learners</Link>
-            <Link href="/courses" className="text-muted-foreground hover:text-foreground">Courses</Link>
-            <Link href="/support" className="text-muted-foreground hover:text-foreground">Support</Link>
+            <Link href="/for-business" className="text-fg-muted hover:text-fg">For Teams</Link>
+            <Link href="/for-learners" className="text-fg-muted hover:text-fg">For Learners</Link>
+            <Link href="/courses" className="text-fg-muted hover:text-fg">Courses</Link>
+            <Link href="/support" className="text-fg-muted hover:text-fg">Support</Link>
           </div>
           <Button asChild size="sm"><Link href="/app">Sign In</Link></Button>
         </div>
@@ -36,22 +36,22 @@ export default function PricingPage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
         <div className="max-w-2xl mx-auto text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">Simple, transparent pricing</h1>
-          <p className="mt-4 text-lg text-muted-foreground">For teams and individuals. No hidden fees. Cancel anytime.</p>
+          <p className="mt-4 text-lg text-fg-muted">For teams and individuals. No hidden fees. Cancel anytime.</p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 max-w-4xl mx-auto">
           {/* B2B — Teams */}
-          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-8 flex flex-col">
+          <div className="rounded-2xl border border-brand/30 bg-brand-subtle p-8 flex flex-col">
             <div className="flex items-center gap-2 mb-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              <Badge variant="outline" className="border-primary/30 text-primary">For Teams</Badge>
+              <Building2 className="h-5 w-5 text-brand" />
+              <Badge variant="outline" className="border-brand/30 text-brand">For Teams</Badge>
             </div>
             <h2 className="text-2xl font-bold">Teams &amp; Enterprises</h2>
             <div className="mt-4 flex items-baseline gap-1">
               <span className="text-4xl font-extrabold">$29</span>
-              <span className="text-muted-foreground">/seat/month</span>
+              <span className="text-fg-muted">/seat/month</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Billed monthly. Volume discounts above 50 seats.</p>
+            <p className="mt-2 text-sm text-fg-muted">Billed monthly. Volume discounts above 50 seats.</p>
 
             <ul className="mt-6 space-y-3 text-sm flex-1">
               {[
@@ -72,21 +72,21 @@ export default function PricingPage() {
             <Button asChild className="mt-8 w-full" size="lg">
               <Link href="/for-business">Book a Demo <ArrowRight className="h-4 w-4 ml-2" /></Link>
             </Button>
-            <p className="mt-3 text-center text-xs text-muted-foreground">No credit card for pilot</p>
+            <p className="mt-3 text-center text-xs text-fg-muted">No credit card for pilot</p>
           </div>
 
           {/* B2C — Learners */}
-          <div className="rounded-2xl border border-border bg-card p-8 flex flex-col">
+          <div className="rounded-2xl border border-line bg-surface p-8 flex flex-col">
             <div className="flex items-center gap-2 mb-2">
-              <GraduationCap className="h-5 w-5 text-primary" />
+              <GraduationCap className="h-5 w-5 text-brand" />
               <Badge variant="outline">For Learners</Badge>
             </div>
             <h2 className="text-2xl font-bold">Individual Learner</h2>
             <div className="mt-4 flex items-baseline gap-1">
               <span className="text-4xl font-extrabold">$0</span>
-              <span className="text-muted-foreground">/month to start</span>
+              <span className="text-fg-muted">/month to start</span>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">Free tier. Upgrade for unlimited tests + mentor access.</p>
+            <p className="mt-2 text-sm text-fg-muted">Free tier. Upgrade for unlimited tests + mentor access.</p>
 
             <ul className="mt-6 space-y-3 text-sm flex-1">
               {[
@@ -107,7 +107,7 @@ export default function PricingPage() {
             <Button asChild variant="outline" className="mt-8 w-full" size="lg">
               <Link href="/for-learners">Start Free <ArrowRight className="h-4 w-4 ml-2" /></Link>
             </Button>
-            <p className="mt-3 text-center text-xs text-muted-foreground">No credit card required</p>
+            <p className="mt-3 text-center text-xs text-fg-muted">No credit card required</p>
           </div>
         </div>
 
@@ -123,8 +123,8 @@ export default function PricingPage() {
               { q: "What if the AI is wrong?", a: "Mentors can always override AI grades. The platform surfaces AI confidence levels so mentors know when to step in." },
             ].map((faq) => (
               <div key={faq.q}>
-                <h3 className="font-semibold text-foreground">{faq.q}</h3>
-                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                <h3 className="font-semibold text-fg">{faq.q}</h3>
+                <p className="mt-1 text-sm text-fg-muted leading-relaxed">{faq.a}</p>
               </div>
             ))}
           </div>

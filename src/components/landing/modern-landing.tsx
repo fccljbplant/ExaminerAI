@@ -337,12 +337,12 @@ function BrowserFrame({
   className?: string;
 }) {
   return (
-    <div className={`relative rounded-xl overflow-hidden border shadow-2xl bg-background ${className}`}>
+    <div className={`relative rounded-xl overflow-hidden border shadow-2xl bg-bg ${className}`}>
       <div className="h-9 bg-slate-100 dark:bg-slate-800 border-b flex items-center px-4 gap-1.5">
         <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
         <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
         <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-        <div className="ml-3 text-xs text-muted-foreground font-mono truncate">{url}</div>
+        <div className="ml-3 text-xs text-fg-muted font-mono truncate">{url}</div>
       </div>
       <img src={src} alt={alt} className="w-full h-auto block" />
     </div>
@@ -384,11 +384,11 @@ export function ModernLanding() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background antialiased">
+    <div className="min-h-screen bg-bg antialiased">
       {/* ============================================ */}
       {/* NAV */}
       {/* ============================================ */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 w-full border-b bg-bg/80 backdrop-blur-md">
         <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
           <a href="#top" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center transition-transform group-hover:scale-105">
@@ -396,18 +396,18 @@ export function ModernLanding() {
             </div>
             <div>
               <div className="text-base font-bold leading-tight tracking-tight">TraineesAI</div>
-              <div className="text-[10px] text-muted-foreground leading-tight">AI-Powered Bootcamp Management</div>
+              <div className="text-[10px] text-fg-muted leading-tight">AI-Powered Bootcamp Management</div>
             </div>
           </a>
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#big-idea" className="text-muted-foreground hover:text-foreground transition-colors">Why</a>
-            <a href="#projects" className="text-muted-foreground hover:text-foreground transition-colors">Projects</a>
-            <a href="#testing" className="text-muted-foreground hover:text-foreground transition-colors">Testing</a>
-            <a href="#dashboards" className="text-muted-foreground hover:text-foreground transition-colors">Roles</a>
-            <a href="#mentorship" className="text-muted-foreground hover:text-foreground transition-colors">Mentoring</a>
-            <a href="#psychology" className="text-muted-foreground hover:text-foreground transition-colors">Mastery</a>
-            <a href="#tech" className="text-muted-foreground hover:text-foreground transition-colors">Platform</a>
+            <a href="#big-idea" className="text-fg-muted hover:text-fg transition-colors">Why</a>
+            <a href="#projects" className="text-fg-muted hover:text-fg transition-colors">Projects</a>
+            <a href="#testing" className="text-fg-muted hover:text-fg transition-colors">Testing</a>
+            <a href="#dashboards" className="text-fg-muted hover:text-fg transition-colors">Roles</a>
+            <a href="#mentorship" className="text-fg-muted hover:text-fg transition-colors">Mentoring</a>
+            <a href="#psychology" className="text-fg-muted hover:text-fg transition-colors">Mastery</a>
+            <a href="#tech" className="text-fg-muted hover:text-fg transition-colors">Platform</a>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -426,7 +426,7 @@ export function ModernLanding() {
         </div>
 
         {mobileNav && (
-          <div className="md:hidden border-t bg-background px-4 py-3 space-y-2 text-sm">
+          <div className="md:hidden border-t bg-bg px-4 py-3 space-y-2 text-sm">
             <a href="#big-idea" onClick={() => setMobileNav(false)} className="block py-1.5">Why</a>
             <a href="#projects" onClick={() => setMobileNav(false)} className="block py-1.5">Projects</a>
             <a href="#testing" onClick={() => setMobileNav(false)} className="block py-1.5">Testing</a>
@@ -552,17 +552,17 @@ export function ModernLanding() {
       {/* ============================================ */}
       {/* TRUSTED BY */}
       {/* ============================================ */}
-      <section className="border-b bg-muted/30 py-10">
+      <section className="border-b bg-bg-subtle/30 py-10">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-center md:text-left">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Built &amp; operated by</span>
+            <span className="text-xs uppercase tracking-wider text-fg-muted font-medium">Built &amp; operated by</span>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center text-growth-amber font-bold text-lg shadow-sm">
                 iE
               </div>
               <div>
                 <div className="text-sm font-semibold">Inzet Enterprises</div>
-                <div className="text-xs text-muted-foreground">Software bootcamp platform · 6-month cohorts · Socratic assessment + AI mentorship</div>
+                <div className="text-xs text-fg-muted">Software bootcamp platform · 6-month cohorts · Socratic assessment + AI mentorship</div>
               </div>
             </div>
           </div>
@@ -578,9 +578,9 @@ export function ModernLanding() {
             <Badge variant="outline" className="mb-3">Why TraineesAI exists</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               Software skills are learned by building.<br />
-              <span className="text-muted-foreground">Not by watching videos.</span>
+              <span className="text-fg-muted">Not by watching videos.</span>
             </h2>
-            <p className="text-muted-foreground text-lg leading-relaxed">
+            <p className="text-fg-muted text-lg leading-relaxed">
               Three convictions define the platform. Together they let one teacher mentor 50–500+ students without burning out — and let bootcamp owners see exactly what's happening across every cohort, in real time.
             </p>
           </div>
@@ -614,13 +614,13 @@ export function ModernLanding() {
             ].map(p => (
               <div key={p.num} className={`relative p-6 rounded-2xl bg-gradient-to-br ${p.gradient} border`}>
                 <div className="flex items-start justify-between mb-5">
-                  <div className={`w-12 h-12 rounded-xl bg-background flex items-center justify-center ${p.iconColor} shadow-sm`}>
+                  <div className={`w-12 h-12 rounded-xl bg-bg flex items-center justify-center ${p.iconColor} shadow-sm`}>
                     <p.icon className="w-6 h-6" />
                   </div>
-                  <div className="text-4xl font-bold text-muted-foreground/20">{p.num}</div>
+                  <div className="text-4xl font-bold text-fg-muted/20">{p.num}</div>
                 </div>
                 <h3 className="text-xl font-bold mb-2">{p.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
+                <p className="text-sm text-fg-muted leading-relaxed">{p.desc}</p>
               </div>
             ))}
           </div>
@@ -630,28 +630,28 @@ export function ModernLanding() {
       {/* ============================================ */}
       {/* SOCRATIC TESTING — not MCQs, never */}
       {/* ============================================ */}
-      <section id="testing" className="py-20 lg:py-28 bg-muted/30 border-y">
+      <section id="testing" className="py-20 lg:py-28 bg-bg-subtle/30 border-y">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-10 items-start mb-14">
             <div className="lg:col-span-6">
               <Badge variant="outline" className="mb-3"><MessageCircle className="w-3 h-3 mr-1" /> Socratic Assessment</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
                 No MCQs. No fill-in-the-blanks.<br />
-                <span className="text-muted-foreground">Just Socratic dialogue.</span>
+                <span className="text-fg-muted">Just Socratic dialogue.</span>
               </h2>
-              <p className="text-muted-foreground text-lg leading-relaxed">
+              <p className="text-fg-muted text-lg leading-relaxed">
                 Multiple-choice tests tell you a student picked the right letter. They tell you nothing about how the student reasons, whether they know what they don't know, or whether the answer was even theirs. TraineesAI uses the Socratic method instead — the AI probes with follow-up questions, the student articulates their reasoning, and the conversation itself becomes the evidence of understanding.
               </p>
               <div className="grid sm:grid-cols-2 gap-3 mt-8">
                 {SOCRATIC_PRINCIPLES.map(p => (
-                  <div key={p.title} className="p-4 rounded-lg border bg-background">
+                  <div key={p.title} className="p-4 rounded-lg border bg-bg">
                     <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <p.icon className="w-4 h-4 text-primary" />
+                      <div className="w-9 h-9 rounded-lg bg-brand-subtle flex items-center justify-center flex-shrink-0">
+                        <p.icon className="w-4 h-4 text-brand" />
                       </div>
                       <div>
                         <div className="font-semibold text-sm">{p.title}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{p.desc}</div>
+                        <div className="text-xs text-fg-muted mt-0.5 leading-relaxed">{p.desc}</div>
                       </div>
                     </div>
                   </div>
@@ -672,14 +672,14 @@ export function ModernLanding() {
             {TEST_TYPES.map(t => (
               <div key={t.name} className={`p-6 rounded-2xl bg-gradient-to-br ${t.accent} border`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-xl bg-background flex items-center justify-center ${t.iconColor} shadow-sm`}>
+                  <div className={`w-12 h-12 rounded-xl bg-bg flex items-center justify-center ${t.iconColor} shadow-sm`}>
                     <t.icon className="w-6 h-6" />
                   </div>
                   <Badge variant="secondary" className="text-[10px]">{t.cadence}</Badge>
                 </div>
                 <h3 className="text-lg font-bold mb-1">{t.name}</h3>
-                <div className="text-xs text-muted-foreground mb-3 font-mono">{t.questions}</div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{t.desc}</p>
+                <div className="text-xs text-fg-muted mb-3 font-mono">{t.questions}</div>
+                <p className="text-sm text-fg-muted leading-relaxed">{t.desc}</p>
               </div>
             ))}
           </div>
@@ -693,7 +693,7 @@ export function ModernLanding() {
               <div>
                 <div className="text-xs uppercase tracking-wider text-growth-amber dark:text-growth-amber font-bold mb-1">Why Socratic, not MCQ</div>
                 <h3 className="text-lg font-semibold mb-2">A score without reasoning is just a number.</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-fg-muted leading-relaxed">
                   Multiple-choice tests measure recognition, not understanding. They can't detect overconfidence, surface answers, AI-generated responses, or fading recall. Socratic dialogue can. Every conversation becomes evidence — feeding per-topic mastery, the attention score, the AI Assistant's action dialog, and the mentoring loop that follows.
                 </p>
               </div>
@@ -746,7 +746,7 @@ export function ModernLanding() {
             {PROJECT_LOOP.map(step => (
               <div key={step.num} className={`p-5 rounded-xl bg-gradient-to-br ${step.color} border border-white/10 hover:border-white/20 transition-all`}>
                 <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-background ${step.iconColor}`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-bg ${step.iconColor}`}>
                     <step.icon className="w-5 h-5" />
                   </div>
                   <div>
@@ -780,14 +780,14 @@ export function ModernLanding() {
       {/* ============================================ */}
       {/* ROLE DASHBOARDS SHOWCASE — all 6 roles */}
       {/* ============================================ */}
-      <section id="dashboards" className="py-20 lg:py-28 bg-muted/30 border-y">
+      <section id="dashboards" className="py-20 lg:py-28 bg-bg-subtle/30 border-y">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <Badge variant="outline" className="mb-3">Four dashboards</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               Every role. Their own cockpit.
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-fg-muted text-lg">
               No shared dashboard views. Each role sees exactly what they need — and nothing they shouldn't.
             </p>
           </div>
@@ -801,7 +801,7 @@ export function ModernLanding() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeRole === i
                     ? `bg-gradient-to-r ${r.accent} text-white shadow-md`
-                    : "bg-background border hover:bg-accent"
+                    : "bg-bg border hover:bg-bg-subtle"
                 }`}
               >
                 <r.icon className="w-4 h-4" />
@@ -822,14 +822,14 @@ export function ModernLanding() {
               </div>
               <Badge variant="secondary" className={`mb-3 ${ROLES[activeRole].chip}`}>{ROLES[activeRole].label}</Badge>
               <h3 className="text-2xl font-bold mb-2">{ROLES[activeRole].tagline}</h3>
-              <p className="text-muted-foreground mb-6 leading-relaxed">{ROLES[activeRole].desc}</p>
+              <p className="text-fg-muted mb-6 leading-relaxed">{ROLES[activeRole].desc}</p>
 
               {/* Per-role stats */}
               <div className="grid grid-cols-3 gap-3 mb-6">
                 {ROLES[activeRole].stats.map(s => (
-                  <div key={s.label} className="p-3 rounded-lg bg-background border text-center">
+                  <div key={s.label} className="p-3 rounded-lg bg-bg border text-center">
                     <div className="text-sm font-bold">{s.value}</div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{s.label}</div>
+                    <div className="text-[10px] text-fg-muted mt-0.5 leading-tight">{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -937,9 +937,9 @@ export function ModernLanding() {
             <Badge variant="outline" className="mb-3"><HeartPulse className="w-3 h-3 mr-1" /> Human Mentoring at Scale</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               AI surfaces signal.<br />
-              <span className="text-muted-foreground">Humans provide judgment.</span>
+              <span className="text-fg-muted">Humans provide judgment.</span>
             </h2>
-            <p className="text-muted-foreground text-lg leading-relaxed">
+            <p className="text-fg-muted text-lg leading-relaxed">
               Every student interaction feeds a 4-stage loop that turns activity into attention scores, attention scores into alerts, alerts into a drafted check-in message — with the AI drafting the action and the human confirming it. Every step is auditable. Every intervention is documented. The AI never acts alone.
             </p>
           </div>
@@ -949,35 +949,35 @@ export function ModernLanding() {
             {MENTOR_LOOP_STAGES.map(stage => (
               <div key={stage.num} className={`p-5 rounded-xl bg-gradient-to-br ${stage.color} border`}>
                 <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-background ${stage.iconColor}`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-bg ${stage.iconColor}`}>
                     <stage.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Stage {stage.num} · {stage.short}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-fg-muted font-bold">Stage {stage.num} · {stage.short}</div>
                     <h3 className="font-semibold text-sm">{stage.title}</h3>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{stage.desc}</p>
+                <p className="text-xs text-fg-muted leading-relaxed">{stage.desc}</p>
               </div>
             ))}
           </div>
 
           {/* Two parallel tracks: student + teacher */}
           <div className="grid md:grid-cols-2 gap-6 mb-14">
-            <div className="p-6 rounded-2xl border bg-card">
+            <div className="p-6 rounded-2xl border bg-surface">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/30 text-blue-600">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Track 1</div>
+                  <div className="text-xs uppercase tracking-wider text-fg-muted font-bold">Track 1</div>
                   <h3 className="font-semibold">Student academic mentoring</h3>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              <p className="text-sm text-fg-muted mb-4 leading-relaxed">
                 Teacher is the first responder. Coordinator sees institution-wide academics. The AI Assistant surfaces who needs help today and drafts the check-in message — the teacher sends it.
               </p>
-              <ul className="space-y-2 text-xs text-muted-foreground">
+              <ul className="space-y-2 text-xs text-fg-muted">
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Attention-scored triage queue ranks who needs help today</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> AI-drafted check-in messages with one-tap note presets</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Per-topic skill mastery highlights exactly what to review</li>
@@ -985,20 +985,20 @@ export function ModernLanding() {
               </ul>
             </div>
 
-            <div className="p-6 rounded-2xl border bg-card">
+            <div className="p-6 rounded-2xl border bg-surface">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-growth-sage-soft dark:bg-emerald-950/30 text-growth-sage">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Track 2</div>
+                  <div className="text-xs uppercase tracking-wider text-fg-muted font-bold">Track 2</div>
                   <h3 className="font-semibold">Teacher load management</h3>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              <p className="text-sm text-fg-muted mb-4 leading-relaxed">
                 Teachers are people too. Burned-out teachers fail students. Load score = students × 1 + batches × 15 + alerts × 5 + overdue × 3. Green &lt; 50, amber 50–99, red ≥ 100.
               </p>
-              <ul className="space-y-2 text-xs text-muted-foreground">
+              <ul className="space-y-2 text-xs text-fg-muted">
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Teacher sees their own load tier — full transparency</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> Coordinator sees staff load distribution + can reassign</li>
                 <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-growth-sage flex-shrink-0 mt-0.5" /> AI suggests co-teachers — never proposes warning/red candidates</li>
@@ -1015,19 +1015,19 @@ export function ModernLanding() {
               { title: "Not a replacement for teachers", desc: "AI drafts, humans decide. Teachers provide judgment the AI never will." },
               { title: "Not a black box", desc: "Every alert has a cited reason. Every action is logged. Every intervention is auditable." },
             ].map(item => (
-              <div key={item.title} className="p-3 rounded-lg border bg-muted/30">
+              <div key={item.title} className="p-3 rounded-lg border bg-bg-subtle/30">
                 <div className="text-xs font-bold mb-1 flex items-center gap-1.5">
-                  <X className="w-3 h-3 text-muted-foreground" />
+                  <X className="w-3 h-3 text-fg-muted" />
                   {item.title}
                 </div>
-                <div className="text-[11px] text-muted-foreground leading-relaxed">{item.desc}</div>
+                <div className="text-[11px] text-fg-muted leading-relaxed">{item.desc}</div>
               </div>
             ))}
           </div>
 
           {/* Deep-dive link */}
           <div className="mt-10 text-center">
-            <p className="text-xs text-muted-foreground mb-3">
+            <p className="text-xs text-fg-muted mb-3">
               The full loop — including the AI Tutor teaching rules, Socratic test chatbot logic, attention score, and the action dialog — is documented in:
             </p>
             <div className="inline-flex items-center gap-3 text-sm">
@@ -1050,7 +1050,7 @@ export function ModernLanding() {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
                 Build a capstone.<br />Get a certificate. Get a job.
               </h2>
-              <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
+              <p className="text-fg-muted text-lg mb-6 leading-relaxed">
                 From day-one project definition to final capstone analysis, every student builds a real portfolio piece. The AI Tutor teaches today's topic in your language, Socratic tests probe reasoning, and per-question explanations land immediately. Milestones, Gantt chart, weekly reports — all auto-tracked.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -1075,11 +1075,11 @@ export function ModernLanding() {
             {STUDENT_FEATURES.map(f => (
               <Card key={f.title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-primary/10 text-primary">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-brand-subtle text-brand">
                     <f.icon className="w-5 h-5" />
                   </div>
                   <h3 className="font-semibold text-sm mb-1.5">{f.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+                  <p className="text-xs text-fg-muted leading-relaxed">{f.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -1090,7 +1090,7 @@ export function ModernLanding() {
       {/* ============================================ */}
       {/* TEACHER FEATURES */}
       {/* ============================================ */}
-      <section id="instructor" className="py-20 lg:py-28 bg-muted/30 border-y">
+      <section id="instructor" className="py-20 lg:py-28 bg-bg-subtle/30 border-y">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-14">
             <div className="order-2 lg:order-1">
@@ -1109,7 +1109,7 @@ export function ModernLanding() {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
                 See every capstone.<br />Know who to mentor today.
               </h2>
-              <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
+              <p className="text-fg-muted text-lg mb-6 leading-relaxed">
                 The AI does the teaching. You do the mentoring. Attention-scored triage queue tells you who needs help most. Per-student portfolio shows project progress, skill mastery, and test history. AI Assistant answers batch questions in natural language. One teacher can now mentor 50–500+ students.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -1125,11 +1125,11 @@ export function ModernLanding() {
             {TEACHER_FEATURES.map(f => (
               <Card key={f.title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-primary/10 text-primary">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-brand-subtle text-brand">
                     <f.icon className="w-5 h-5" />
                   </div>
                   <h3 className="font-semibold text-sm mb-1.5">{f.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+                  <p className="text-xs text-fg-muted leading-relaxed">{f.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -1200,7 +1200,7 @@ export function ModernLanding() {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
                 Structured mentoring<br />that actually works.
               </h2>
-              <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
+              <p className="text-fg-muted text-lg mb-6 leading-relaxed">
                 Every intervention follows a clear structure: alert → AI-drafted check-in → teacher edits → send → outcome tracked → follow-up scheduled. The AI never sends anything on its own — it drafts, the teacher confirms.
               </p>
 
@@ -1211,13 +1211,13 @@ export function ModernLanding() {
                   { letter: "3", title: "Teacher confirms", desc: "Confirm disabled until teacher writes a note. Every action is logged with reason.", color: "bg-growth-sage-soft text-growth-sage-foreground dark:text-emerald-300" },
                   { letter: "4", title: "Outcome + follow-up", desc: "Teacher records outcome + optional follow-up date. Closes the loop.", color: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" },
                 ].map(item => (
-                  <div key={item.letter} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+                  <div key={item.letter} className="flex items-start gap-3 p-3 rounded-lg border bg-surface">
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold ${item.color} flex-shrink-0`}>
                       {item.letter}
                     </div>
                     <div>
                       <div className="font-semibold text-sm">{item.title}</div>
-                      <div className="text-xs text-muted-foreground">{item.desc}</div>
+                      <div className="text-xs text-fg-muted">{item.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -1237,7 +1237,7 @@ export function ModernLanding() {
       {/* ============================================ */}
       {/* EDUCATIONAL TAB */}
       {/* ============================================ */}
-      <section className="py-20 lg:py-28 bg-muted/30 border-y">
+      <section className="py-20 lg:py-28 bg-bg-subtle/30 border-y">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -1245,7 +1245,7 @@ export function ModernLanding() {
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
                 Skill mastery,<br />not just scores.
               </h2>
-              <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
+              <p className="text-fg-muted text-lg mb-6 leading-relaxed">
                 Per-topic mastery computed from interaction data — turns "week 3: 68%" into "database queries: developing, custom post types: proficient". Actionable specificity a teacher can act on.
               </p>
               <div className="space-y-3 mb-6">
@@ -1256,12 +1256,12 @@ export function ModernLanding() {
                   { icon: FileText, title: "Weekly tests + report cards", desc: "Full assessment history with strengths/weaknesses" },
                 ].map(item => (
                   <div key={item.title} className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-4 h-4 text-primary" />
+                    <div className="w-9 h-9 rounded-lg bg-brand-subtle flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-4 h-4 text-brand" />
                     </div>
                     <div>
                       <div className="font-semibold text-sm">{item.title}</div>
-                      <div className="text-xs text-muted-foreground">{item.desc}</div>
+                      <div className="text-xs text-fg-muted">{item.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -1290,7 +1290,7 @@ export function ModernLanding() {
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               Four themes. Switch live.
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-fg-muted text-lg">
               Pick the palette that fits your institution. Themes apply instantly via CSS variables — no reload, no flash, no locked-in look.
             </p>
           </div>
@@ -1316,9 +1316,9 @@ export function ModernLanding() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-3 bg-background">
+                  <div className="p-3 bg-bg">
                     <div className="text-sm font-semibold">{t.name}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{t.desc}</div>
+                    <div className="text-xs text-fg-muted mt-0.5">{t.desc}</div>
                   </div>
                 </div>
               </div>

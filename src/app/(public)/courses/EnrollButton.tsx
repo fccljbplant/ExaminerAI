@@ -128,7 +128,7 @@ export default function EnrollButton({ courseId }: { courseId: string }) {
   if (justEnrolled || authState === "student-enrolled") {
     return (
       <div className="flex flex-col gap-2">
-        <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button asChild size="lg" className="bg-brand text-on-brand hover:bg-brand/90">
           <Link href="/app">
             <CheckCircle2 className="h-4 w-4" />
             {justEnrolled ? "Enrolled! Continue Learning" : "Continue Learning"}
@@ -170,7 +170,7 @@ export default function EnrollButton({ courseId }: { courseId: string }) {
         {!busy && <ArrowRight className="h-4 w-4" />}
       </Button>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1 text-xs text-fg-muted">
         <Eye className="h-3 w-3" />
         <span>You&apos;ll get instant access to all lessons + the capstone project.</span>
       </div>

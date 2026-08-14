@@ -212,9 +212,9 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
     return (
       <section className="mt-10">
         <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-          <Star className="h-5 w-5 text-primary" /> Reviews
+          <Star className="h-5 w-5 text-brand" /> Reviews
         </h2>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-fg-muted">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading reviews…
         </div>
       </section>
@@ -225,7 +225,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
     return (
       <section className="mt-10">
         <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-          <Star className="h-5 w-5 text-primary" /> Reviews
+          <Star className="h-5 w-5 text-brand" /> Reviews
         </h2>
         <p className="text-sm text-destructive flex items-center gap-2">
           <AlertCircle className="h-4 w-4" /> {error}
@@ -237,7 +237,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
   return (
     <section className="mt-10">
       <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-        <Star className="h-5 w-5 text-primary" /> Reviews
+        <Star className="h-5 w-5 text-brand" /> Reviews
       </h2>
 
       {/* Rating summary */}
@@ -251,24 +251,24 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                 className={`h-4 w-4 ${
                   s <= Math.round(avgRating)
                     ? "fill-amber-400 text-growth-amber"
-                    : "text-muted-foreground/30"
+                    : "text-fg-muted/30"
                 }`}
               />
             ))}
           </div>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-fg-muted">
             ({total} review{total === 1 ? "" : "s"})
           </span>
         </div>
 
         {/* Write-a-review CTA */}
         {authState === "anon" && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-fg-muted">
             Sign in + complete the course to leave a review.
           </p>
         )}
         {authState === "student" && !canReview && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-fg-muted">
             Enroll in this course to leave a review.
           </p>
         )}
@@ -288,7 +288,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
               </DialogHeader>
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-foreground">Your rating</label>
+                  <label className="text-xs font-medium text-fg">Your rating</label>
                   <div className="flex gap-1">
                     {STAR_VALUES.map((s) => (
                       <button
@@ -302,7 +302,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                           className={`h-6 w-6 transition-colors ${
                             s <= rating
                               ? "fill-amber-400 text-growth-amber"
-                              : "text-muted-foreground/40 hover:text-growth-amber"
+                              : "text-fg-muted/40 hover:text-growth-amber"
                           }`}
                         />
                       </button>
@@ -310,7 +310,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-foreground">Title</label>
+                  <label className="text-xs font-medium text-fg">Title</label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -319,7 +319,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-foreground">Review</label>
+                  <label className="text-xs font-medium text-fg">Review</label>
                   <Textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -355,10 +355,10 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
 
       {/* Reviews list */}
       {reviews.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-8 text-center">
-          <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-          <p className="text-sm font-medium text-foreground">No reviews yet</p>
-          <p className="text-xs text-muted-foreground mt-1">
+        <div className="rounded-lg border border-dashed border-line p-8 text-center">
+          <MessageSquare className="h-8 w-8 mx-auto text-fg-muted/50 mb-2" />
+          <p className="text-sm font-medium text-fg">No reviews yet</p>
+          <p className="text-xs text-fg-muted mt-1">
             Be the first to review this course after completing it.
           </p>
         </div>
@@ -380,18 +380,18 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                               className={`h-3 w-3 ${
                                 s <= r.rating
                                   ? "fill-amber-400 text-growth-amber"
-                                  : "text-muted-foreground/30"
+                                  : "text-fg-muted/30"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-fg-muted">
                           by {r.userName} · {new Date(r.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+                  <p className="text-sm text-fg/80 leading-relaxed whitespace-pre-line">
                     {r.content}
                   </p>
                   <div className="flex items-center justify-end">
@@ -400,7 +400,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                       size="sm"
                       variant={voted ? "default" : "ghost"}
                       onClick={() => handleHelpful(r.id, r.helpful)}
-                      className={`h-7 text-xs ${voted ? "bg-primary/15 text-primary hover:bg-primary/20" : ""}`}
+                      className={`h-7 text-xs ${voted ? "bg-brand/15 text-brand hover:bg-brand/20" : ""}`}
                     >
                       <ThumbsUp className={`h-3 w-3 ${voted ? "fill-current" : ""}`} />
                       Helpful ({r.helpful})

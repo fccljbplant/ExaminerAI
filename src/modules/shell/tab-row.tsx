@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import type { NavItem } from "./types";
+import { resolveActiveItem, type NavItem } from "./types";
 
 /**
  * modules/shell — TabRow (md, 768–1023)
@@ -13,6 +13,8 @@ import type { NavItem } from "./types";
 
 export function TabRow({ items, className }: { items: NavItem[]; className?: string }) {
   const pathname = usePathname();
+  // Single active tab: longest matching prefix wins.
+  const activeId = resolveActiveItem(pathname, items)?.id;
   return (
     <div
       data-slot="tab-row"
@@ -23,7 +25,7 @@ export function TabRow({ items, className }: { items: NavItem[]; className?: str
       )}
     >
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(item.href);
+        const active = item.id === activeId;
         const Icon = item.icon;
         return (
           <Link
