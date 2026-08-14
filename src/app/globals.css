@@ -325,6 +325,69 @@
     background-color: var(--growth-coral-soft);
     color: var(--growth-coral-foreground);
   }
+
+  /* ---- Star Admin widget language ----
+     Panel headings, delta chips, status pills and the modern
+     table used across dashboards and the learner home. All
+     token-based — presets and light/dark keep working. */
+  .widget-title {
+    @apply text-base font-semibold leading-tight;
+  }
+  .widget-subtitle {
+    @apply mt-0.5 text-xs text-muted-foreground;
+  }
+
+  /* Delta chip — the small +0.5% / -0.5% badge next to a stat value. */
+  .chip-delta {
+    @apply inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold;
+  }
+  .chip-delta-up {
+    background-color: var(--growth-sage-soft);
+    color: var(--growth-sage-foreground);
+  }
+  .chip-delta-down {
+    @apply bg-destructive/10 text-destructive;
+  }
+  .chip-delta-flat {
+    @apply bg-muted text-muted-foreground;
+  }
+
+  /* Status pill — Star Admin table badges (In progress / Pending / Done). */
+  .badge-pill {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold;
+  }
+  .badge-pill-sage {
+    background-color: var(--growth-sage-soft);
+    color: var(--growth-sage-foreground);
+  }
+  .badge-pill-amber {
+    background-color: var(--growth-amber-soft);
+    color: var(--growth-amber-foreground);
+  }
+  .badge-pill-coral {
+    background-color: var(--growth-coral-soft);
+    color: var(--growth-coral-foreground);
+  }
+  .badge-pill-muted {
+    @apply bg-muted text-muted-foreground;
+  }
+
+  /* Modern table — hairline rows, hover tint, uppercase header labels. */
+  .table-modern {
+    @apply w-full text-sm;
+  }
+  .table-modern thead th {
+    @apply border-b border-border pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+  .table-modern tbody tr {
+    @apply transition-colors hover:bg-muted/40;
+  }
+  .table-modern tbody td {
+    @apply border-b border-border/60 py-3 align-middle;
+  }
+  .table-modern tbody tr:last-child td {
+    @apply border-b-0;
+  }
 }
 
 /* Custom scrollbar — adapts to theme */

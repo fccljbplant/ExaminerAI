@@ -9,7 +9,7 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 export type StatTone = "default" | "success" | "warning" | "danger" | "info";
 
@@ -41,6 +41,14 @@ const TONE_STYLES: Record<StatTone, { value: string; icon: string; ring: string 
   },
 };
 
+/** Star Admin-style delta badge (e.g. +12% vs last week). */
+export interface StatDelta {
+  /** Short text like "+12%" or "3 new". */
+  value: string;
+  /** up = success tint, down = destructive tint, flat = muted. */
+  direction: "up" | "down" | "flat";
+}
+
 export interface StatCardProps {
   /** The big number or short string (e.g. "42", "$3.2K", "68%"). */
   value: string | number;
@@ -48,6 +56,8 @@ export interface StatCardProps {
   label: string;
   /** Optional sub-label for context (e.g. "+12 this week"). */
   hint?: string;
+  /** Optional delta chip rendered next to the value (Star Admin pattern). */
+  delta?: StatDelta;
   /** Optional icon (any lucide icon component). */
   icon?: LucideIcon;
   /** Optional onClick — makes the card a button (e.g. jump to a tab). */
@@ -64,6 +74,7 @@ export function StatCard({
   value,
   label,
   hint,
+  delta,
   icon: Icon,
   onClick,
   tone = "default",
@@ -71,6 +82,7 @@ export function StatCard({
   progress,
 }: StatCardProps) {
   const styles = TONE_STYLES[tone];
+  const DeltaIcon = delta?.direction === "up" ? TrendingUp : delta?.direction === "down" ? TrendingDown : Minus;
 
   const content = (
     <CardContent className="p-4">
@@ -82,6 +94,19 @@ export function StatCard({
           <p className={cn("mt-1 text-2xl font-bold leading-none", styles.value)}>
             {value}
           </p>
+          {delta && (
+            <span
+              className={cn(
+                "chip-delta mt-1.5",
+                delta.direction === "up" && "chip-delta-up",
+                delta.direction === "down" && "chip-delta-down",
+                delta.direction === "flat" && "chip-delta-flat"
+              )}
+            >
+              <DeltaIcon className="h-3 w-3" aria-hidden />
+              {delta.value}
+            </span>
+          )}
           {hint && (
             <p className="mt-1.5 text-[11px] text-muted-foreground truncate">{hint}</p>
           )}
