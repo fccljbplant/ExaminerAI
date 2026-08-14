@@ -7,6 +7,7 @@
  */
 
 import {
+  Award,
   BarChart3,
   ClipboardCheck,
   Home,
@@ -36,4 +37,5 @@ export const INSTRUCTOR_NAV: NavItem[] = [
 export const INSTRUCTOR_MORE: NavItem[] = [
   { id: "analytics", label: "Analytics", href: "/instructor/analytics", icon: BarChart3 },
   { id: "earnings", label: "Earnings", href: "/instructor/earnings", icon: Wallet },
+  { id: "certificates", label: "Certificates", href: "/instructor/certificates", icon: Award },
 ];

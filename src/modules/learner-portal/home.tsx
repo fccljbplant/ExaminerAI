@@ -17,6 +17,7 @@ import {
 import { Kpi, StatStrip } from "@/modules/ui/kpi";
 import { ListCard, ListCardRow } from "@/modules/ui/list-card";
 import { useApi } from "./use-api";
+import { CheckInCard } from "./checkin-card";
 
 /**
  * modules/learner-portal — L1 Home (REDESIGN-P3 §L1)
@@ -100,6 +101,7 @@ export function LearnerHome() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7 lg:space-y-6">
           {data.continue && <ContinueCard info={data.continue} />}
+          <CheckInCard courseId={data.continue?.courseId} />
           <StatStrip>
             <Kpi
               label="Streak"

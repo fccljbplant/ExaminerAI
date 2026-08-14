@@ -52,16 +52,18 @@ interface ProgressData {
     icon: string;
     rarity: string;
   }[];
-  certificates: {
+  certificates: Array<{
     id: string;
     courseName: string;
     grade: string;
     score: number;
-    credentialId: string | null;
-    distinction: boolean;
     issuedAt: string;
-  }[];
+    verifyUrl: string | null;
+  }>;
   weakTopics: { topic: string; pillar: string; masteryLevel: string; trend: string }[];
+  reportCards: Array<{ id: string; week: number; grade: string; score: number; date: string; progress: string }>;
+  weeklyTests: Array<{ week: number; score: number | null }>;
+  checkins: Array<{ date: string; confidence: number }>;
 }
 
 /* ---------------- page ----------------------------------------------------- */
@@ -126,6 +128,9 @@ export function LearnerProgress() {
 
         <div className="space-y-4 lg:col-span-5 lg:space-y-6">
           <Credentials certificates={data.certificates} />
+          <WeeklyTests tests={data.weeklyTests} />
+          <ReportCards cards={data.reportCards} />
+          <CheckinsHeatmap checkins={data.checkins} />
           <Badges badges={data.badges} />
           <WeakTopics topics={data.weakTopics} />
         </div>
@@ -224,13 +229,23 @@ function Credentials({ certificates }: { certificates: ProgressData["certificate
                 <p className="truncate text-sm font-medium text-fg">{c.courseName}</p>
                 <p className="mt-0.5 truncate text-xs text-fg-muted">
                   {new Date(c.issuedAt).toLocaleDateString()}
-                  {c.credentialId ? ` · ${c.credentialId}` : ""}
-                  {c.distinction ? " · Distinction" : ""}
+                  {c.grade} · {c.score}%
                 </p>
               </div>
-              <span className="shrink-0 text-sm font-semibold tabular-nums text-fg">
-                {c.grade} · {c.score}%
-              </span>
+              {c.verifyUrl ? (
+                <a
+                  href={c.verifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong"
+                >
+                  Verify
+                </a>
+              ) : (
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-fg">
+                  {c.grade}
+                </span>
+              )}
             </li>
           ))}
         </ul>
@@ -240,6 +255,79 @@ function Credentials({ certificates }: { certificates: ProgressData["certificate
 }
 
 /* ---------------- badges ---------------------------------------------------------- */
+
+function WeeklyTests({ tests }: { tests: ProgressData["weeklyTests"] }) {
+  if (tests.length === 0) return null;
+  return (
+    <section aria-label="Weekly tests" className="rounded-xl border border-line bg-surface p-4 md:p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Weekly tests</h2>
+      <div className="mt-3 space-y-2">
+        {tests.map((t) => (
+          <div key={t.week} className="flex items-center gap-3">
+            <span className="w-16 shrink-0 text-xs tabular-nums text-fg-muted">Week {t.week}</span>
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
+              <div
+                className={`h-full rounded-full ${(t.score ?? 0) >= 60 ? "bg-success" : "bg-warning"}`}
+                style={{ width: `${t.score ?? 0}%` }}
+              />
+            </div>
+            <span className="w-12 shrink-0 text-right text-sm font-medium tabular-nums text-fg-secondary">
+              {t.score != null ? `${t.score}%` : "—"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ReportCards({ cards }: { cards: ProgressData["reportCards"] }) {
+  if (cards.length === 0) return null;
+  return (
+    <section aria-label="Report cards" className="rounded-xl border border-line bg-surface p-4 md:p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Report cards</h2>
+      <div className="mt-3 divide-y divide-line">
+        {cards.map((r) => (
+          <div key={r.id} className="flex items-center justify-between gap-3 py-2.5">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-fg">
+                Week {r.week} · {r.grade}
+              </p>
+              <p className="truncate text-xs text-fg-muted">
+                {new Date(r.date).toLocaleDateString()} · {r.progress}
+              </p>
+            </div>
+            <span className="shrink-0 text-sm font-medium tabular-nums text-fg-secondary">{r.score}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CheckinsHeatmap({ checkins }: { checkins: ProgressData["checkins"] }) {
+  if (checkins.length === 0) return null;
+  return (
+    <section aria-label="Daily check-ins" className="rounded-xl border border-line bg-surface p-4 md:p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
+        Daily check-ins · last 35 days
+      </h2>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {checkins.map((c) => (
+          <span
+            key={c.date}
+            title={`${c.date} · confidence ${c.confidence}/5`}
+            className={`rounded-md px-2 py-1 text-[11px] tabular-nums ${
+              c.confidence >= 3 ? "bg-success-subtle text-success-on" : "bg-bg-subtle text-fg-muted"
+            }`}
+          >
+            {c.date.slice(5)}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function Badges({ badges }: { badges: ProgressData["badges"] }) {
   return (

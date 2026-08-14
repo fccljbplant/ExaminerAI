@@ -18,7 +18,7 @@ export async function GET() {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
 
-  const [profiles, ledger, badges, certificates, skills] = await Promise.all([
+  const [profiles, ledger, badges, certificates, skills, reportCards, weeklyTests, dailyLogs] = await Promise.all([
     db.learnProfile.findMany({
       where: { userId: user.sub },
       include: { course: { select: { id: true, name: true } } },
@@ -47,6 +47,9 @@ export async function GET() {
       select: { topic: true, pillar: true, masteryLevel: true, trend: true },
       take: 6,
     }),
+    db.reportCard.findMany({ where: { userId: user.sub }, orderBy: { date: "desc" }, take: 10 }),
+    db.weeklyTest.findMany({ where: { userId: user.sub, score: { not: null } }, orderBy: { week: "asc" } }),
+    db.dailyLog.findMany({ where: { userId: user.sub }, orderBy: { date: "desc" }, take: 35 }),
   ]);
 
   // Week counts per course for ring denominators.
@@ -104,7 +107,27 @@ export async function GET() {
       awardedAt: b.awardedAt,
       ...b.badge,
     })),
-    certificates,
+    certificates: certificates.map((c) => ({
+      id: c.id,
+      courseName: c.courseName,
+      grade: c.grade,
+      score: c.score,
+      issuedAt: c.issuedAt.toISOString(),
+      verifyUrl: c.credentialId ? `/verify/${c.credentialId}` : null,
+    })),
+    reportCards: reportCards.map((r) => ({
+      id: r.id,
+      week: r.week,
+      grade: r.grade,
+      score: r.score,
+      date: r.date.toISOString(),
+      progress: r.progress,
+    })),
+    weeklyTests: weeklyTests.map((t) => ({ week: t.week, score: t.score })),
+    checkins: dailyLogs.map((l) => ({
+      date: l.date.toISOString().slice(0, 10),
+      confidence: l.confidence,
+    })),
     weakTopics: skills,
   });
 }

@@ -13,5 +13,6 @@ export { ReviewQueue } from "./review-queue";
 export { ReviewDetail } from "./review-detail";
 export { StudentsRoster } from "./students";
 export { StudentProfile } from "./student-profile";
+export { CertificatesPanel } from "./certificates";
 export { InstructorAnalytics } from "./analytics";
 export { InstructorEarnings } from "./earnings";

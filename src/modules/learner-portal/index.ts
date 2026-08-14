@@ -21,3 +21,5 @@ export { SubmissionFlow } from "./submission-flow";
 export type { AssignmentDetail, PartInput, PartView } from "./submission-flow";
 export { ExamRunner } from "./exam-runner";
 export { ExamResults } from "./exam-results";
+export { ProjectWorkspace } from "./project-workspace";
+export { CheckInCard } from "./checkin-card";
