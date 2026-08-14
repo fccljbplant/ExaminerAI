@@ -24,8 +24,10 @@ interface LearnerHomeProps {
   activeCourseId?: string;
   /** Switch dashboard view (StudentDashboard owns the view state). */
   onNavigate: (view: string) => void;
-  /** Refetch stats — used after switching the active course. */
+  /** Refetch stats — fallback after switching the active course. */
   onReload: () => void;
+  /** Notify the parent that the active course changed (preferred over onReload). */
+  onSelectCourse?: (courseId: string) => void;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -52,7 +54,7 @@ function weeklyTestSummary(stats: StatsResponse): { avg: number | null; delta: n
 
 // ── Component ──────────────────────────────────────────────────────
 
-export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, onReload }: LearnerHomeProps) {
+export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, onReload, onSelectCourse }: LearnerHomeProps) {
   const s = stats.stats;
   const tasks = stats.tasks ?? [];
   const testSummary = weeklyTestSummary(stats);
@@ -96,7 +98,13 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
       params.set("courseId", courseId);
       window.history.replaceState({}, "", `?${params.toString()}`);
     }
-    onReload();
+    // Parent-driven switch refetches with the new courseId; the bare reload
+    // fallback would reuse the stale courseId prop.
+    if (onSelectCourse) {
+      onSelectCourse(courseId);
+    } else {
+      onReload();
+    }
   }
 
   return (

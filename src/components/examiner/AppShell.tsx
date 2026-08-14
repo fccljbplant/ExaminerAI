@@ -52,9 +52,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { UnifiedThemeToggle } from "@/modules/theme";
 import { NotificationBell } from "@/components/examiner/NotificationBell";
+import { LearnerTopNav } from "@/components/examiner/LearnerTopNav";
 import { logger } from "@/lib/logger";
 
 export type ViewKey =
@@ -389,6 +389,9 @@ export default function AppShell() {
   }
 
   const isStudent = effectiveRole === "learner" || effectiveRole === "student";
+  // Learners get the Star Admin horizontal top-nav shell; staff roles keep
+  // the sidebar layout below.
+  const useTopNav = isStudent;
   const enrolled = isStudent ? enrollments.length > 0 : true;
   const activeEnrollment = enrollments.find(e => e.courseId === activeCourseId);
 
@@ -493,6 +496,68 @@ export default function AppShell() {
       >
         Skip to content
       </a>
+      {useTopNav ? (
+        /* ── Learner shell: Star Admin horizontal top nav (no sidebar) ── */
+        <>
+          <LearnerTopNav
+            userName={user.name}
+            userEmail={user.email}
+            navItems={visibleNav}
+            currentKey={currentNav?.key}
+            onNavigate={(k) => {
+              const key = k as ViewKey;
+              if (key === currentNav?.key) {
+                setNavClickCount(c => c + 1);
+              } else {
+                navigateTo(key);
+              }
+            }}
+            unreadCount={unreadCount}
+            courses={enrollments}
+            activeCourseId={activeCourseId}
+            onSelectCourse={(id) => { setActiveCourseId(id); setNavClickCount(c => c + 1); }}
+            onLogout={logout}
+            viewAsRole={isAdminEquivalent ? {
+              current: adminAs,
+              onSwitch: (role) => {
+                setAdminAs(role);
+                setView(
+                  role === "learner" ? "dashboard"
+                  : role === "instructor" ? "instructor-today"
+                  : role === "org_admin" ? "course-planner"
+                  : "admin-dashboard"
+                );
+                setViewHistory([]); // Reset back-button history on role switch
+              },
+            } : undefined}
+          />
+          <main id="main-content" className="flex flex-1 min-w-0 flex-col">
+            <div
+              className={cn(
+                "min-h-0 w-full min-w-0 flex-1",
+                view === "ai-tutor"
+                  ? "flex flex-col p-2 sm:p-3"
+                  : view === "course-outline"
+                  ? "p-2 sm:p-3"
+                  : "mx-auto max-w-7xl p-4 sm:p-6",
+                view !== "ai-tutor" && "pb-40 sm:pb-40"
+              )}
+            >
+              {/* Page title row — mirrors the sidebar shell's header bar. */}
+              <div className="mb-4 flex items-center gap-2 sm:gap-3">
+                {viewHistory.length > 0 && (
+                  <Button onClick={goBack} variant="outline" size="sm" className="flex-shrink-0 border-border px-2 sm:px-3">
+                    <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back</span>
+                  </Button>
+                )}
+                <h1 className="text-base font-semibold text-foreground sm:text-lg">{currentNav?.label ?? "Dashboard"}</h1>
+              </div>
+              {renderView()}
+            </div>
+          </main>
+          {view !== "messages" && <AskMyInstructor currentView={view} />}
+        </>
+      ) : (
       <div className="flex flex-1 min-h-0">
       <button
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border text-foreground shadow-sm"
@@ -719,6 +784,7 @@ export default function AppShell() {
         <AskMyInstructor currentView={view} />
       )}
       </div>
+      )}
     </div>
   );
 }

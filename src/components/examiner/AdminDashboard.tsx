@@ -2,7 +2,6 @@
 import { showError, showSuccess } from "@/lib/toast-helpers";
 import type { UserRow } from "@/components/examiner/admin/types";
 import { AdminOverview } from "@/components/examiner/admin/AdminOverview";
-import { OverviewStat } from "@/components/examiner/admin/OverviewStat";
 import { QuickAction } from "@/components/examiner/admin/QuickAction";
 import { FeaturesPanel } from "@/components/examiner/admin/FeaturesPanel";
 import { AdminPMTab } from "@/components/examiner/admin/AdminPMTab";

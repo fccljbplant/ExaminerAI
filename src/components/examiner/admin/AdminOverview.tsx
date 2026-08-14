@@ -10,7 +10,7 @@ import {
   ShieldCheck, Save,
 } from "lucide-react";
 import type { UserRow } from "@/components/examiner/admin/types";
-import { OverviewStat } from "@/components/examiner/admin/OverviewStat";
+import { StatCard } from "@/components/shared/stat-card";
 import { QuickAction } from "@/components/examiner/admin/QuickAction";
 
 export function AdminOverview({ users, pending, students, teachers, blocked, onTab }: {
@@ -19,13 +19,13 @@ export function AdminOverview({ users, pending, students, teachers, blocked, onT
 }) {
   return (
     <div className="space-y-4">
-      {/* Stat cards */}
+      {/* Stat tiles — shared Star Admin StatCard with tone variants */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <OverviewStat label="Total Users" value={users.length} icon={<Users className="h-4 w-4" />} color="text-primary" />
-        <OverviewStat label="Students" value={students.length} icon={<UserCheck className="h-4 w-4" />} color="text-growth-sage" />
-        <OverviewStat label="Pending" value={pending.length} icon={<Clock className="h-4 w-4" />} color="text-growth-amber" />
-        <OverviewStat label="Teachers" value={teachers.length} icon={<Users className="h-4 w-4" />} color="text-blue-500" />
-        <OverviewStat label="Blocked" value={blocked.length} icon={<Ban className="h-4 w-4" />} color="text-destructive" />
+        <StatCard label="Total Users" value={users.length} icon={Users} />
+        <StatCard label="Students" value={students.length} icon={UserCheck} tone="success" />
+        <StatCard label="Pending" value={pending.length} icon={Clock} tone="warning" />
+        <StatCard label="Teachers" value={teachers.length} icon={GraduationCap} tone="info" />
+        <StatCard label="Blocked" value={blocked.length} icon={Ban} tone="danger" />
       </div>
 
       {/* Pending approvals — quick action */}

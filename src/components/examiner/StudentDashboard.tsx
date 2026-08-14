@@ -63,6 +63,12 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
   const [error, setError] = useState("");
   const [view, setView] = useState<StudentView>("home");
   const [userId, setUserId] = useState<string>("");
+  // Course picked inside the dashboard (LearnerHome coverage widget). The
+  // AppShell-level activeCourseId prop wins again whenever it changes.
+  const [courseOverride, setCourseOverride] = useState<string | null>(null);
+  const effectiveCourseId = courseOverride ?? activeCourseId;
+
+  useEffect(() => { setCourseOverride(null); }, [activeCourseId]);
 
   // Fetch current user's ID (for comprehensive report)
   useEffect(() => {
@@ -75,7 +81,7 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
     setLoading(true);
     setError("");
     try {
-      const courseParam = activeCourseId ? `&courseId=${encodeURIComponent(activeCourseId)}` : "";
+      const courseParam = effectiveCourseId ? `&courseId=${encodeURIComponent(effectiveCourseId)}` : "";
       const res = await api.get<StatsResponse>(`/api/stats?as=student${courseParam}`);
       setStats(res);
     } catch (e) {
@@ -83,7 +89,7 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
     } finally {
       setLoading(false);
     }
-  }, [activeCourseId]);
+  }, [effectiveCourseId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -140,9 +146,10 @@ export default function StudentDashboard({ initialMode = "default", enrollments,
         <LearnerHome
           stats={stats!}
           enrollments={enrollments}
-          activeCourseId={activeCourseId}
+          activeCourseId={effectiveCourseId}
           onNavigate={(v) => setView(v as StudentView)}
           onReload={load}
+          onSelectCourse={setCourseOverride}
         />
       )}
       {view === "study" && <StudyView stats={stats!} onReload={load} onNavigate={setView} />}
