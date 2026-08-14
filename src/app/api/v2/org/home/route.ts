@@ -9,7 +9,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
-import { getOrgContext, listMembers, listOrgAudit, OrgError } from "@/modules/org-portal/lib/org-db";
+import { getOrgContext, listMembers, listOrgAudit, countMentors, countPendingInvites, OrgError } from "@/modules/org-portal/lib/org-db";
 import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
 import { orgErrorResponse } from "@/modules/org-portal/lib/http";
 
@@ -42,6 +42,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const { org, members, seatsUsed } = await listMembers(ctx.orgId);
+    const [mentors, pendingInvites] = await Promise.all([
+      countMentors(ctx.orgId),
+      countPendingInvites(ctx.orgId),
+    ]);
     const audit = await listOrgAudit(ctx.orgId, {
       action: parsed.data.action,
       cursor: parsed.data.cursor,
@@ -54,7 +58,8 @@ export async function GET(req: NextRequest) {
         members: members.length,
         seatsUsed,
         seatsTotal: org.seats,
-        pendingInvites: 0,
+        mentors,
+        pendingInvites,
       },
       members: members.slice(0, 5),
       audit: audit.items,

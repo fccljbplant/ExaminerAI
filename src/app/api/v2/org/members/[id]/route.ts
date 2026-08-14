@@ -10,7 +10,7 @@ import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { getOrgContext, setMemberStatus } from "@/modules/org-portal/lib/org-db";
+import { getOrgContext, setMemberStatus, setMemberSeat } from "@/modules/org-portal/lib/org-db";
 import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
 import { orgErrorResponse } from "@/modules/org-portal/lib/http";
 
@@ -18,7 +18,7 @@ export const runtime = "nodejs";
 
 const ORG_ROLES = new Set(["org_admin", "platform_admin"]);
 
-const Body = z.object({ status: z.enum(["active", "removed"]) });
+const Body = z.object({ status: z.enum(["active", "removed"]).optional(), seat: z.boolean().optional() });
 
 export async function PATCH(
   req: NextRequest,
@@ -48,7 +48,11 @@ export async function PATCH(
   }
 
   try {
-    const member = await setMemberStatus(ctx.orgId, id, { id: user.sub, name: user.name, role: user.role }, parsed.data.status);
+    const actor = { id: user.sub, name: user.name, role: user.role };
+    const member =
+      parsed.data.seat !== undefined
+        ? await setMemberSeat(ctx.orgId, id, actor, parsed.data.seat)
+        : await setMemberStatus(ctx.orgId, id, actor, parsed.data.status ?? "active");
     return apiSuccess({ member });
   } catch (err) {
     return orgErrorResponse(err);

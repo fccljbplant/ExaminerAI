@@ -88,6 +88,37 @@ export async function inviteMember(
   return member;
 }
 
+/** Count mentors (role=mentor) — W11 audit: V1 mentor KPI. */
+export async function countMentors(orgId: string) {
+  return db.orgMember.count({ where: { orgId, role: "mentor", status: "active" } });
+}
+
+/** Count members still in the invited state — W11 audit: V1 pending-invites KPI. */
+export async function countPendingInvites(orgId: string) {
+  return db.orgMember.count({ where: { orgId, status: "invited" } });
+}
+
+/** Toggle a member's seat flag (V1 per-member seat control). Audited. */
+export async function setMemberSeat(
+  orgId: string,
+  memberId: string,
+  actor: AuditActor,
+  seat: boolean,
+) {
+  const member = await db.orgMember.findFirst({ where: { id: memberId, orgId } });
+  if (!member) throw new OrgError("Member not found", "NOT_FOUND", 404);
+  if (member.seat === seat) return member;
+  const updated = await db.orgMember.update({ where: { id: member.id }, data: { seat } });
+  await logAudit({
+    actor,
+    action: "org_member_seat",
+    target: { type: "user", id: member.userId },
+    before: { seat: member.seat },
+    after: { seat },
+  });
+  return updated;
+}
+
 /** Deactivate (removed) or restore (active). Every change is audited. */
 export async function setMemberStatus(
   orgId: string,

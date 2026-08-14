@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, RefreshCw, UserPlus, Users } from "lucide-react";
+import { AlertTriangle, Armchair, BookOpen, RefreshCw, UserPlus, Users } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useApi } from "@/modules/learner-portal/use-api";
+import { OrgCourseAssigner } from "@/modules/b2b";
 
 /**
  * modules/org-portal — O2 People & Roles (REDESIGN-P3 §O2, W7)
@@ -58,6 +59,23 @@ export function OrgPeople() {
       setInviteError(err instanceof Error ? err.message : "Could not invite member.");
     } finally {
       setInviting(false);
+    }
+  }
+
+  async function toggleSeat(member: MemberRow) {
+    setBusyId(member.id);
+    try {
+      await api.patch(`/api/v2/org/members/${member.id}`, { seat: !member.seat });
+      toast.success(member.seat ? "Seat removed" : "Seat assigned", {
+        description: member.user.name,
+      });
+      retry();
+    } catch (err) {
+      toast.error("Couldn't update seat", {
+        description: err instanceof Error ? err.message : "Try again.",
+      });
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -149,6 +167,19 @@ export function OrgPeople() {
         )}
       </form>
 
+      {/* assign courses (v1 Assign Courses card) */}
+      {data && data.members.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+            <BookOpen className="h-3.5 w-3.5" aria-hidden />
+            Assign courses
+          </h2>
+          <OrgCourseAssigner
+            members={data.members.map((m) => ({ id: m.id, user: { id: m.user.id, name: m.user.name, email: m.user.email } }))}
+          />
+        </section>
+      )}
+
       {isLoading ? (
         <RosterSkeleton />
       ) : error ? (
@@ -192,6 +223,20 @@ export function OrgPeople() {
               >
                 {m.role}
               </span>
+              <button
+                type="button"
+                onClick={() => toggleSeat(m)}
+                disabled={busyId === m.id}
+                aria-pressed={m.seat}
+                aria-label={`${m.seat ? "Remove seat from" : "Assign seat to"} ${m.user.name}`}
+                className={
+                  m.seat
+                    ? "shrink-0 rounded-md bg-brand-subtle px-2 py-1 text-xs font-medium text-fg disabled:opacity-50"
+                    : "shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg-secondary hover:border-line-strong disabled:opacity-50"
+                }
+              >
+                <Armchair className="h-3.5 w-3.5" aria-hidden />
+              </button>
               <button
                 type="button"
                 onClick={() => setStatus(m, m.status === "active" ? "removed" : "active")}

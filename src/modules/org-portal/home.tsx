@@ -30,7 +30,7 @@ interface AuditRow {
 
 interface OrgHomeData {
   org: { id: string; name: string; plan: string; seats: number };
-  kpis: { members: number; seatsUsed: number; seatsTotal: number; pendingInvites: number };
+  kpis: { members: number; seatsUsed: number; seatsTotal: number; mentors: number; pendingInvites: number };
   members: OrgMemberRow[];
   audit: AuditRow[];
 }
@@ -74,8 +74,14 @@ export function OrgHome() {
           icon={Users}
           tone={seatsPct >= 90 ? "warning" : "muted"}
         />
-        <Kpi label="Plan" value={data.org.plan} hint="current tier" icon={AlertTriangle} tone="muted" />
-        <Kpi label="Audit actions" value={data.audit.length} hint="recent" icon={ScrollText} tone="info" />
+        <Kpi label="Mentors" value={data.kpis.mentors} hint="coaching" icon={Users} tone="info" />
+        <Kpi
+          label="Pending invites"
+          value={data.kpis.pendingInvites}
+          hint="not yet joined"
+          icon={ScrollText}
+          tone={data.kpis.pendingInvites > 0 ? "warning" : "muted"}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
