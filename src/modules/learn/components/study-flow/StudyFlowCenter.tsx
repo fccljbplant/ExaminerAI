@@ -235,7 +235,7 @@ export function StudyFlowCenter({ courseId }: { courseId?: string }) {
         />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         <WeeklyPlanCard
           items={plan.items}
           totalMin={plan.totalMin}
@@ -268,7 +268,7 @@ function StudyFlowSkeleton() {
       <div className="h-7 w-40 animate-pulse rounded-md bg-bg-subtle" />
       <div className="h-9 w-72 animate-pulse rounded-full bg-bg-subtle" />
       <div className="h-28 animate-pulse rounded-xl bg-bg-subtle" />
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         <div className="h-56 animate-pulse rounded-xl bg-bg-subtle" />
         <div className="h-56 animate-pulse rounded-xl bg-bg-subtle" />
       </div>

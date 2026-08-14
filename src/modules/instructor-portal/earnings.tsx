@@ -112,7 +112,7 @@ export function InstructorEarnings() {
           )}
 
           {/* top courses + recent sales */}
-          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
             {data.topCourses.length > 0 && (
               <section className="space-y-2">
                 <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">

@@ -68,7 +68,7 @@ export function LearnerExams() {
       {empty ? (
         <AllClear />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-6 lg:space-y-6">
             {data.dueToday.length > 0 && (
               <ListCard header="Due today">

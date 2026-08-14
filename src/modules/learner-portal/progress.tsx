@@ -118,7 +118,7 @@ export function LearnerProgress() {
         />
       </StatStrip>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7 lg:space-y-6">
           <CourseRings courses={data.courses} />
           <ActivityStrip activity={data.activity} />
@@ -307,7 +307,7 @@ function ProgressSkeleton() {
     <div className="space-y-4" aria-busy="true">
       <div className="h-7 w-36 animate-pulse rounded-md bg-bg-subtle" />
       <div className="h-24 animate-pulse rounded-xl bg-bg-subtle" />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="h-64 animate-pulse rounded-xl bg-bg-subtle" />
         <div className="h-64 animate-pulse rounded-xl bg-bg-subtle" />
       </div>

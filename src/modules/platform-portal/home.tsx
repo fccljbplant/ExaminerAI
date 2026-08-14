@@ -71,7 +71,7 @@ export function PlatformHome() {
         <Kpi label="Audit actions" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         {/* orgs table */}
         <section className="space-y-2 lg:col-span-7">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">

@@ -101,7 +101,7 @@ export function InstructorHome() {
         <Kpi label="In review" value={inReview} hint="being graded" tone="muted" icon={BarChart3} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         {/* grading queue preview */}
         <section className="space-y-2 lg:col-span-7">
           <div className="flex items-center justify-between gap-2">

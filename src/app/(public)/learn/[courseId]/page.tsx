@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { ClassroomShell } from "@/modules/learn/components/classroom/ClassroomShell";
+import { ClassroomChrome } from "./classroom-chrome";
 
 export const dynamic = "force-dynamic";
 
@@ -44,5 +45,9 @@ export default async function LearnSessionPage({
   });
   if (!course || !course.isActive) notFound();
 
-  return <ClassroomShell courseId={course.id} courseName={course.name} />;
+  return (
+    <ClassroomChrome courseName={course.name}>
+      <ClassroomShell courseId={course.id} courseName={course.name} />
+    </ClassroomChrome>
+  );
 }

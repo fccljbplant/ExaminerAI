@@ -69,7 +69,7 @@ export function InstructorAnalytics() {
         <Stat label="Completion" value={`${Math.round(data.completionRate)}%`} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         {/* weekly progress */}
         <section className="space-y-2 lg:col-span-7">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
@@ -132,7 +132,7 @@ export function InstructorAnalytics() {
       </div>
 
       {/* at-risk + top performers */}
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         <section className="space-y-2">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
             At risk

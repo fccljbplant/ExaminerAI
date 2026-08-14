@@ -134,7 +134,7 @@ export function LearnerCatalog() {
           }}
         />
       ) : data ? (
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {data.items.map((c) => (
             <CourseCard key={c.id} course={c} />
           ))}
@@ -229,7 +229,7 @@ function CourseCard({ course }: { course: CourseItem }) {
 
 function CatalogSkeleton() {
   return (
-    <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-busy="true">
+    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" aria-busy="true">
       {Array.from({ length: 6 }).map((_, i) => (
         <li key={i} className="h-56 animate-pulse rounded-xl bg-bg-subtle" />
       ))}

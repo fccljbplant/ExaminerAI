@@ -1,33 +1,27 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  BookOpen,
-  ClipboardCheck,
-  Home,
-  LineChart,
-  User,
-} from "lucide-react";
+import { usePathname } from "next/navigation";
 import { AppShellV2, ModeToggle } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { FloatingTutor } from "@/modules/tutor";
+import { LEARNER_NAV } from "./nav";
 
 /**
  * modules/learner-portal — PortalShell (REDESIGN-P3 §1)
  *
  * Learner portal chrome on the adaptive shell. Exactly five bottom
  * tabs on xs: Home / Learn / Exams / Progress / Profile. Help (L14)
- * hangs off Profile; the floating tutor FAB (W2) rides along on
- * every screen.
+ * hangs off Profile.
+ *
+ * The FloatingTutor FAB rides on every portal screen EXCEPT the
+ * dashboard itself (user decision 2026-08-15 — the dashboard's
+ * continue-card + study widgets are the focus; the classroom has its
+ * own on-stage avatar, and the tutor is one tap away on Learn/Exams).
+ * Deviation from P3 §0 ("FAB on all portal screens") is deliberate.
  */
 
-const NAV: NavItem[] = [
-  { id: "home", label: "Home", href: "/learner", icon: Home, match: "/learner" },
-  { id: "learn", label: "Learn", href: "/learner/learn", icon: BookOpen },
-  { id: "exams", label: "Exams", href: "/learner/exams", icon: ClipboardCheck },
-  { id: "progress", label: "Progress", href: "/learner/progress", icon: LineChart },
-  { id: "profile", label: "Profile", href: "/learner/profile", icon: User },
-];
+const NAV: NavItem[] = LEARNER_NAV;
 
 function initials(name: string): string {
   return name
@@ -39,6 +33,9 @@ function initials(name: string): string {
 }
 
 export function PortalShell({ userName, children }: { userName: string; children: ReactNode }) {
+  const pathname = usePathname();
+  const showTutor = pathname !== "/learner";
+
   return (
     <>
       <AppShellV2
@@ -58,7 +55,7 @@ export function PortalShell({ userName, children }: { userName: string; children
       >
         {children}
       </AppShellV2>
-      <FloatingTutor />
+      {showTutor && <FloatingTutor />}
     </>
   );
 }

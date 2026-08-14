@@ -7,7 +7,7 @@ import { MoreHorizontal } from "lucide-react";
 import { BottomSheet } from "@/modules/ui/bottom-sheet";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "./types";
-import { useScrollDirection } from "./use-scroll-direction";
+import { useNavVisibility } from "./use-scroll-direction";
 
 /**
  * modules/shell — BottomNav (xs, <768)
@@ -69,11 +69,12 @@ function BottomNavItem({ item, pathname }: { item: NavItem; pathname: string }) 
 export function BottomNav({ nav }: { nav: NavItem[] }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
-  const direction = useScrollDirection();
+  const visibility = useNavVisibility();
 
-  // Tuck the nav away while reading (scroll down), bring it back on
-  // scroll-up, at the top, or while the More sheet is open.
-  const hidden = !moreOpen && direction === "down";
+  // Tuck the nav away while reading (sustained scroll-down), bring it
+  // back on a deliberate scroll-up, at the top, or while the More sheet
+  // is open. Hysteresis in the hook keeps jitter from blinking the nav.
+  const hidden = !moreOpen && visibility === "hidden";
 
   const condensed = nav.length > MAX_INLINE;
   const inline = condensed ? nav.slice(0, MAX_INLINE - 1) : nav;

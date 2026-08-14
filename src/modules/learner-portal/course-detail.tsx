@@ -229,7 +229,7 @@ export function CourseDetail({ courseId }: { courseId: string }) {
 function OverviewTab({ data }: { data: OverviewData }) {
   const { course } = data;
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {course.whatYouWillLearn.length > 0 && (
         <Section title="What you'll learn">
           <ul className="space-y-2">

@@ -97,7 +97,7 @@ export function LearnerHome() {
         </span>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7 lg:space-y-6">
           {data.continue && <ContinueCard info={data.continue} />}
           <StatStrip>
@@ -246,7 +246,7 @@ function HomeSkeleton() {
   return (
     <div className="space-y-4 md:space-y-6" aria-busy="true">
       <div className="h-7 w-48 animate-pulse rounded-md bg-bg-subtle" />
-      <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7 lg:space-y-6">
           <div className="h-44 animate-pulse rounded-xl bg-bg-subtle" />
           <div className="h-24 animate-pulse rounded-xl bg-bg-subtle" />

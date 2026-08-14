@@ -93,6 +93,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
+  // xs: chat renders as an overlay sheet — the FAB toggles it.
+  const [chatOpen, setChatOpen] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [loadingSlide, setLoadingSlide] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -352,11 +354,11 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     : 0;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg pt-14 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       {/* ── Classroom header (96px PageHeader rule) ─────────────── */}
       <PageHeader
         crumbs={[
-          { label: "Learn", href: "/learn" },
+          { label: "Home", href: "/learner" },
           { label: courseName },
           ...(today ? [{ label: `Week ${today.topic.week} · Day ${today.topic.day}` }] : []),
         ]}
@@ -400,9 +402,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               Focus
             </button>
             <a
-              href="/learn"
-              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
-              title="Back to /learn"
+              href="/learner"
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-fg-muted hover:bg-bg-subtle"
+              title="Back to dashboard"
             >
               <X className="h-3.5 w-3.5" />
               Exit
@@ -555,22 +557,35 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           </div>
         </main>
 
-        {/* Tutor chat (right) */}
+        {/* Tutor chat (right) — xs: full-screen overlay sheet opened by
+            the chat FAB; md+: static rail beside the stage. */}
         <aside
           className={cn(
-            "w-80 flex-shrink-0 flex-col border-l bg-card transition-opacity",
-            focusMode ? "hidden opacity-40 hover:opacity-100 lg:flex" : "flex",
+            "bg-surface",
+            chatOpen &&
+              "fixed inset-x-0 top-14 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[var(--p-z-drawer)] flex w-full flex-col md:static md:bottom-auto md:top-auto md:z-auto md:w-80 md:flex-shrink-0 md:border-l",
+            !chatOpen && "hidden md:flex md:w-80 md:flex-shrink-0 md:flex-col md:border-l",
+            focusMode && "md:hidden md:opacity-40 md:hover:opacity-100 lg:md:flex",
           )}
         >
           {/* Chat header */}
           <div className="flex h-12 flex-shrink-0 items-center gap-2 border-b px-3">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold">AI Tutor</span>
-            <span className="text-[10px] text-muted-foreground">· {courseName}</span>
+            <span className="text-sm font-semibold text-fg">AI Tutor</span>
+            <span className="text-[10px] text-fg-muted">· {courseName}</span>
+            <button
+              type="button"
+              onClick={() => setChatOpen(false)}
+              className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-bg-subtle md:hidden"
+              aria-label="Close chat"
+              title="Close chat"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
             <button
               type="button"
               onClick={toggleTTS}
-              className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-muted"
+              className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-bg-subtle"
               title={ttsOn ? "Mute voice" : "Unmute voice"}
               aria-label={ttsOn ? "Mute tutor voice" : "Unmute tutor voice"}
             >
@@ -635,12 +650,21 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                 <Send className="h-4 w-4" />
               </button>
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">Enter to send · tap the mic to ask by voice</p>
+            <p className="mt-1 text-[10px] text-fg-muted">Enter to send · tap the mic to ask by voice</p>
           </div>
         </aside>
       </div>
 
       {/* ── Panel drawer (slide-over) ───────────────────────────── */}
+        {/* Chat FAB — xs only; opens the chat sheet above the bottom nav */}
+        <button
+          type="button"
+          onClick={() => setChatOpen(true)}
+          aria-label="Open tutor chat"
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-[var(--p-z-raised)] flex h-12 w-12 items-center justify-center rounded-full bg-brand text-on-brand shadow-lg transition-transform hover:scale-105 md:hidden"
+        >
+          <MessageSquare className="h-5 w-5" aria-hidden />
+        </button>
       {activePanel && (
         <div className="fixed inset-0 z-30 flex">
           {/* Backdrop */}
