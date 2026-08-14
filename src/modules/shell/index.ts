@@ -8,6 +8,7 @@
 export { AppShellV2 } from "./app-shell-v2";
 export type { AppShellV2Props } from "./app-shell-v2";
 export { TopNav } from "./top-nav";
+export { ClassicSidebar } from "./classic-sidebar";
 export type { TopNavProps } from "./top-nav";
 export { TabRow } from "./tab-row";
 export { BottomNav } from "./bottom-nav";

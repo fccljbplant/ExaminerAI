@@ -179,3 +179,68 @@ html[data-mode="bed"] {
   --tutor-ring: oklch(0.72 0.08 62);
   --tutor-fab: oklch(0.72 0.08 62);
 }
+
+/* CLASSIC MODE — Star Admin 2 Pro (vertical-default-light) adopted
+   onto the global theme engine (W14, user request "keep old ui intact").
+   Palette extracted from the bootstrapdash demo build:
+     primary #1F3BB3 (indigo) · secondary/cyan #05C3FB
+     canvas #F4F5F7 · cards #FFFFFF · line #E3E3E3 · text #1F1F1F
+     card radius 14px (--radius 10px → rounded-xl = 14px)
+   Sidebar (desktop) renders the classic left-rail layout; mobile keeps
+   the app bar + bottom nav. All other modes are untouched. */
+html[data-mode="classic"] {
+  /* surfaces — Star canvas + white cards */
+  --bg: oklch(0.969 0.002 250);
+  --bg-subtle: oklch(0.941 0.003 250);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(1 0 0);
+  --surface-overlay: oklch(1 0 0);
+
+  /* text — #1F1F1F body, bootstrap grays for secondary */
+  --text: oklch(0.245 0.003 255);
+  --text-secondary: oklch(0.54 0.012 250);
+  --text-muted: oklch(0.63 0.012 250);
+  --text-inverse: oklch(1 0 0);
+
+  /* lines */
+  --border: oklch(0.905 0.002 250);
+  --border-strong: oklch(0.83 0.005 250);
+
+  /* brand — Star Admin indigo #1F3BB3 */
+  --brand: oklch(0.44 0.185 266);
+  --brand-hover: oklch(0.36 0.16 266);
+  --brand-active: oklch(0.32 0.14 266);
+  --brand-subtle: oklch(0.93 0.03 268);
+  --on-brand: oklch(1 0 0);
+  --focus: oklch(0.44 0.185 266);
+
+  --scrim: oklch(0.2 0.01 260 / 0.5);
+
+  /* status — Star Admin palette (#00B25B / #FFAB00 / #F95F53 / #05C3FB) */
+  --success: oklch(0.69 0.16 152);
+  --success-subtle: oklch(0.95 0.05 152);
+  --success-on: oklch(0.44 0.12 152);
+  --warning: oklch(0.77 0.16 80);
+  --warning-subtle: oklch(0.96 0.07 85);
+  --warning-on: oklch(0.52 0.12 75);
+  --danger: oklch(0.63 0.19 25);
+  --danger-subtle: oklch(0.95 0.05 25);
+  --danger-on: oklch(0.5 0.17 25);
+  --info: oklch(0.73 0.14 232);
+  --info-subtle: oklch(0.95 0.05 232);
+  --info-on: oklch(0.48 0.12 232);
+
+  /* charts — the Star Admin 6-color family */
+  --chart-1: oklch(0.44 0.185 266);
+  --chart-2: oklch(0.73 0.14 232);
+  --chart-3: oklch(0.69 0.16 152);
+  --chart-4: oklch(0.77 0.16 80);
+  --chart-5: oklch(0.63 0.19 25);
+  --chart-6: oklch(0.5 0.2 300);
+
+  --tutor-ring: oklch(0.44 0.185 266);
+  --tutor-fab: oklch(0.44 0.185 266);
+
+  /* card geometry — Star 14px cards (rounded-xl = var(--radius) + 4px) */
+  --radius: 0.625rem;
+}

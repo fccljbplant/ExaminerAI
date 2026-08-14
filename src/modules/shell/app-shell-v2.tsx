@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useBreakpoint } from "./use-breakpoint";
+import { useThemeV2 } from "@/modules/theme";
+import { ClassicSidebar } from "./classic-sidebar";
 import { TopNav } from "./top-nav";
 import { TabRow } from "./tab-row";
 import { BottomNav } from "./bottom-nav";
@@ -56,6 +58,12 @@ export interface AppShellV2Props {
 export function AppShellV2({ nav, brand, trailing, children, className }: AppShellV2Props) {
   const bp = useBreakpoint();
   const withBottomNav = bp === "xs";
+  const { mode } = useThemeV2();
+  const desktop = bp === "xl" || bp === "lg";
+  // Classic mode (Star Admin vertical theme) swaps the horizontal
+  // TopNav for a fixed 220px left sidebar on desktop only — mobile
+  // keeps the app bar + bottom nav untouched.
+  const classicShell = mode === "classic" && desktop;
 
   return (
     <div data-slot="app-shell" className="min-h-dvh bg-bg text-fg">
@@ -66,17 +74,33 @@ export function AppShellV2({ nav, brand, trailing, children, className }: AppShe
         Skip to content
       </a>
 
-      {(bp === "md" || bp === "xs") && <AppBar brand={brand} trailing={trailing} />}
-      {bp === "md" && <TabRow items={nav} />}
-      {(bp === "xl" || bp === "lg") && (
-        <TopNav nav={nav} brand={brand} trailing={trailing} visibleCount={bp === "lg" ? 4 : undefined} />
+      {classicShell ? (
+        <>
+          <ClassicSidebar nav={nav} brand={brand} />
+          {/* Classic topbar — Star Admin's slim navbar right of the rail. */}
+          <header
+            data-slot="classic-topbar"
+            className="fixed inset-x-0 top-0 z-[var(--p-z-sticky)] flex h-16 items-center justify-end gap-2 border-b border-line bg-surface pl-[236px] pr-6"
+          >
+            {trailing}
+          </header>
+        </>
+      ) : (
+        <>
+          {(bp === "md" || bp === "xs") && <AppBar brand={brand} trailing={trailing} />}
+          {bp === "md" && <TabRow items={nav} />}
+          {desktop && (
+            <TopNav nav={nav} brand={brand} trailing={trailing} visibleCount={bp === "lg" ? 4 : undefined} />
+          )}
+        </>
       )}
 
       <main
         id="main-content"
         className={cn(
           "mx-auto w-full max-w-[1440px] px-4 pt-4 pb-24 md:px-6 md:pt-6 lg:px-8",
-          !withBottomNav && "md:pb-10",
+          classicShell && "pt-20 lg:max-w-none lg:pl-[244px] lg:pr-8",
+          !withBottomNav && !classicShell && "md:pb-10",
           className
         )}
       >

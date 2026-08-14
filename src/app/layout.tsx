@@ -53,7 +53,7 @@ export default function RootLayout({
             mirroring next-themes' storage keys (REDESIGN-P2 §2.2). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var d=document.documentElement;var t=localStorage.getItem("theme");var dark=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var bed=localStorage.getItem("tx-theme-bed")==="1";d.dataset.mode=bed?"bed":dark?"dark":"light";}catch(e){document.documentElement.dataset.mode="light";}})();`,
+            __html: `(function(){try{var d=document.documentElement;var t=localStorage.getItem("theme");var dark=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var bed=localStorage.getItem("tx-theme-bed")==="1";var classic=localStorage.getItem("tx-theme-classic")==="1";d.dataset.mode=classic?"classic":bed?"bed":dark?"dark":"light";}catch(e){document.documentElement.dataset.mode="light";}})();`,
           }}
         />
         <ThemeProvider>

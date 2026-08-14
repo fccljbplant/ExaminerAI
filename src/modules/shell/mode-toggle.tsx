@@ -1,6 +1,6 @@
 "use client";
 
-import { BedDouble, Moon, Sun } from "lucide-react";
+import { BedDouble, LayoutPanelLeft, Moon, Sun } from "lucide-react";
 import { useThemeV2, type ThemeModeV2 } from "@/modules/theme";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ const MODES: { mode: ThemeModeV2; label: string; icon: typeof Sun }[] = [
   { mode: "light", label: "Light", icon: Sun },
   { mode: "dark", label: "Dark", icon: Moon },
   { mode: "bed", label: "Bed", icon: BedDouble },
+  { mode: "classic", label: "Classic", icon: LayoutPanelLeft },
 ];
 
 export function ModeToggle({ className }: { className?: string }) {
@@ -25,7 +26,7 @@ export function ModeToggle({ className }: { className?: string }) {
     return (
       <div
         aria-hidden
-        className={cn("h-11 w-[152px] rounded-full bg-bg-subtle", className)}
+        className={cn("h-11 w-[204px] rounded-full bg-bg-subtle", className)}
       />
     );
   }
@@ -53,7 +54,7 @@ export function ModeToggle({ className }: { className?: string }) {
             className={cn(
               // ≥44px touch targets (P6 §1 tap law); the segmented control
               // keeps a tight pill look while staying thumb-friendly.
-              "flex h-10 w-12 items-center justify-center rounded-full transition-colors",
+              "flex h-10 min-w-12 flex-1 items-center justify-center gap-1 rounded-full px-2 transition-colors",
               "[-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
               active
                 ? "bg-surface text-fg shadow-elev-1"

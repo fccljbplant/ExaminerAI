@@ -33,10 +33,11 @@ import {
 import { useTheme } from "next-themes";
 import { deriveBrandPalette, paletteToCssVars, type BrandPalette } from "./lib/brand";
 
-export type ThemeModeV2 = "light" | "dark" | "bed";
+export type ThemeModeV2 = "light" | "dark" | "bed" | "classic";
 
 export const THEME_V2_STORAGE = {
   bed: "tx-theme-bed",
+  classic: "tx-theme-classic",
   brand: "tx-org-brand",
   legacyPreset: "examiner-theme-preset",
 } as const;
@@ -47,6 +48,8 @@ interface ThemeV2Value {
   /** Resolved mode currently applied to <html data-mode>. */
   mode: ThemeModeV2;
   bed: boolean;
+  /** Classic mode (Star Admin vertical theme) — light, indigo brand. */
+  classic: boolean;
   /** Layer bed mode over dark (or remove it). */
   setBed: (on: boolean) => void;
   /** Switch mode outright — the control the v2 shell uses. */
@@ -73,12 +76,14 @@ function readBool(key: string): boolean {
 export function ThemeV2Provider({ children }: { children: ReactNode }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [bed, setBedState] = useState(false);
+  const [classic, setClassicState] = useState(false);
   const [brandHex, setBrandHexState] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   /* ---- boot: read storage, run one-time preset migration (§2.5) ---- */
   useEffect(() => {
     setBedState(readBool(THEME_V2_STORAGE.bed));
+    setClassicState(readBool(THEME_V2_STORAGE.classic));
     // W10: the legacy preset migration is gone with presets.ts — the
     // org/global brand key is the only source.
     const hex = localStorage.getItem(THEME_V2_STORAGE.brand);
@@ -86,7 +91,13 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
     setMounted(true);
   }, []);
 
-  const mode: ThemeModeV2 = bed ? "bed" : resolvedTheme === "dark" ? "dark" : "light";
+  const mode: ThemeModeV2 = classic
+    ? "classic"
+    : bed
+      ? "bed"
+      : resolvedTheme === "dark"
+        ? "dark"
+        : "light";
 
   /* ---- apply data-mode (semantic tokens key off this) ---- */
   useEffect(() => {
@@ -108,6 +119,24 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
 
   const setMode = useCallback(
     (next: ThemeModeV2) => {
+      if (next === "classic") {
+        // Classic layers over light for legacy fallback (like bed over dark).
+        setClassicState(true);
+        setBedState(false);
+        setTheme("light");
+        try {
+          localStorage.setItem(THEME_V2_STORAGE.classic, "1");
+        } catch {
+          /* non-fatal */
+        }
+        return;
+      }
+      setClassicState(false);
+      try {
+        localStorage.setItem(THEME_V2_STORAGE.classic, "0");
+      } catch {
+        /* non-fatal */
+      }
       if (next === "bed") {
         setBed(true);
         return;
@@ -146,6 +175,9 @@ html[data-brand][data-mode="dark"] {
 }
 html[data-brand][data-mode="bed"] {
   ${paletteToCssVars(palette.bed)}
+}
+html[data-brand][data-mode="classic"] {
+  ${paletteToCssVars(palette.light)}
 }`;
   }, [brandHex, palette]);
 
@@ -160,8 +192,8 @@ html[data-brand][data-mode="bed"] {
   }, []);
 
   const value = useMemo<ThemeV2Value>(
-    () => ({ mode, bed, setBed, setMode, brandHex, setBrandHex, palette, mounted }),
-    [mode, bed, setBed, setMode, brandHex, setBrandHex, palette, mounted]
+    () => ({ mode, bed, classic, setBed, setMode, brandHex, setBrandHex, palette, mounted }),
+    [mode, bed, classic, setBed, setMode, brandHex, setBrandHex, palette, mounted]
   );
 
   return <ThemeV2Context.Provider value={value}>{children}</ThemeV2Context.Provider>;
@@ -174,6 +206,7 @@ export function useThemeV2(): ThemeV2Value {
     return {
       mode: "light",
       bed: false,
+      classic: false,
       setBed: () => {},
       setMode: () => {},
       brandHex: null,
