@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppShellV2, ModeToggle } from "@/modules/shell";
+import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { INSTRUCTOR_NAV, INSTRUCTOR_MORE } from "./nav";
 
@@ -17,14 +17,6 @@ const NAV: NavItem[] = INSTRUCTOR_NAV;
 
 export { INSTRUCTOR_MORE };
 
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
 
 export function InstructorShell({
   userName,
@@ -41,12 +33,7 @@ export function InstructorShell({
         trailing={
           <>
             <ModeToggle />
-            <span
-              title={userName}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-subtle text-xs font-semibold text-fg"
-            >
-              {initials(userName) || "?"}
-            </span>
+            <UserMenu userName={userName} profileHref="/instructor" profileLabel="Dashboard" />
           </>
         }
       >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -10,9 +10,15 @@ import {
   Bell,
   CheckCircle2,
   ClipboardCheck,
+  FilePlus2,
   Flame,
   Loader2,
+  LockOpen,
+  MessageCircle,
   RefreshCw,
+  RotateCcw,
+  Send,
+  Sparkles,
   TrendingUp,
   UserRound,
   Zap,
@@ -22,14 +28,21 @@ import { cn } from "@/lib/utils";
 import { useApi } from "@/modules/learner-portal/use-api";
 
 /**
- * modules/instructor-portal — I6 Student profile (REDESIGN-P3 §I6, W10 rebuild)
+ * modules/instructor-portal — I6 Student profile (REDESIGN-P3 §I6, W10
+ * rebuild + W11 audit extensions)
  *
  * Full student picture on the v2 stack (the cutover deleted the v1 UI
- * panels, never the data — this page re-homes the portfolio data):
- * academic (weekly tests, report cards, competencies), project tasks,
- * engagement (daily check-ins, events), certificates with public
- * verify links, and Phase-1-compliant academic attention signals.
- * One-tap nudge intervention (audited).
+ * panels, never the data):
+ *   - AI mentor briefing card (v1 StudentBriefing)
+ *   - academic (weekly tests with retake/unlock controls, report cards
+ *     with generation, competencies)
+ *   - project tasks, engagement (daily check-ins, events)
+ *   - certificates with public verify links
+ *   - comments thread (v1 Comments tab) + direct message composer
+ *   - Phase-1-compliant academic attention signals + one-tap nudge
+ *
+ * Writes go through the surviving RBAC-guarded v1 endpoints (same data
+ * model, audited) — the v2 shell is presentation-only.
  */
 
 /* ---------------- payload (mirror GET /api/v2/instructor/students/[id]) -- */
@@ -48,13 +61,35 @@ interface StudentProfileData {
   recentEvents: Array<{ type: string; at: string }>;
 }
 
-type TabKey = "academic" | "project" | "engagement" | "certificates";
+interface Briefing {
+  briefing: string;
+  suggestedTalkingPoint: string;
+  week: number;
+  day: number;
+  avgScore: number;
+  status: "on_track" | "needs_attention" | "at_risk";
+  weakTopics: string[];
+}
+
+interface CommentRow {
+  id: string;
+  body: string;
+  authorName: string;
+  createdAt: string;
+  taskId: string | null;
+  weeklyTestId: string | null;
+  dailyLogId: string | null;
+  interactionId: string | null;
+}
+
+type TabKey = "academic" | "project" | "engagement" | "certificates" | "comments";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "academic", label: "Academic" },
   { key: "project", label: "Project" },
   { key: "engagement", label: "Engagement" },
   { key: "certificates", label: "Certificates" },
+  { key: "comments", label: "Comments" },
 ];
 
 const TASK_TONE: Record<string, string> = {
@@ -64,12 +99,34 @@ const TASK_TONE: Record<string, string> = {
   blocked: "bg-warning-subtle text-warning-on",
 };
 
+const BRIEFING_TONE: Record<Briefing["status"], string> = {
+  on_track: "border-success-subtle bg-success-subtle/40 text-fg",
+  needs_attention: "border-warning-subtle bg-warning-subtle/40 text-fg",
+  at_risk: "border-danger-subtle bg-danger-subtle/40 text-fg",
+};
+
 export function StudentProfile({ studentId }: { studentId: string }) {
   const { data, error, isLoading, retry } = useApi<StudentProfileData>(
     `/api/v2/instructor/students/${studentId}`,
   );
   const [tab, setTab] = useState<TabKey>("academic");
   const [nudging, setNudging] = useState(false);
+  const [messaging, setMessaging] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [briefing, setBriefing] = useState<Briefing | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/instructor/student-briefing?studentId=${studentId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b: Briefing | null) => {
+        if (!cancelled) setBriefing(b);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId]);
 
   async function nudge() {
     setNudging(true);
@@ -84,6 +141,26 @@ export function StudentProfile({ studentId }: { studentId: string }) {
       });
     } finally {
       setNudging(false);
+    }
+  }
+
+  async function sendMessage() {
+    if (!messageText.trim()) return;
+    setMessaging(true);
+    try {
+      await api.post("/api/messages", {
+        toId: studentId,
+        subject: "Message from your instructor",
+        body: messageText.trim(),
+      });
+      toast.success("Message sent");
+      setMessageText("");
+    } catch (e) {
+      toast.error("Couldn't send message", {
+        description: e instanceof Error ? e.message : "Try again.",
+      });
+    } finally {
+      setMessaging(false);
     }
   }
 
@@ -127,20 +204,79 @@ export function StudentProfile({ studentId }: { studentId: string }) {
               : ""}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={nudge}
-          disabled={nudging}
-          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
-        >
-          {nudging ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-          ) : (
-            <Bell className="h-4 w-4" aria-hidden />
-          )}
-          Nudge
-        </button>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setMessaging((v) => !v)}
+            aria-pressed={messaging}
+            className={cn(
+              "inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors",
+              messaging
+                ? "border-brand bg-brand-subtle text-fg"
+                : "border-line bg-surface text-fg hover:border-line-strong"
+            )}
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden />
+            Message
+          </button>
+          <button
+            type="button"
+            onClick={nudge}
+            disabled={nudging}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+          >
+            {nudging ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Bell className="h-4 w-4" aria-hidden />
+            )}
+            Nudge
+          </button>
+        </div>
       </header>
+
+      {/* message composer */}
+      {messaging && (
+        <div className="rounded-xl border border-line bg-surface p-3">
+          <label htmlFor="instructor-message" className="text-xs font-medium text-fg-muted">
+            Message to {data.student.name}
+          </label>
+          <div className="mt-1.5 flex gap-2">
+            <textarea
+              id="instructor-message"
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              rows={2}
+              placeholder="Write a personal message…"
+              className="min-h-20 flex-1 resize-y rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            />
+            <button
+              type="button"
+              onClick={() => void sendMessage()}
+              disabled={messaging || !messageText.trim()}
+              className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+            >
+              {messaging ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
+              Send
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* mentor briefing (v1 StudentBriefing) */}
+      {briefing && (
+        <div className={cn("rounded-xl border px-4 py-3", BRIEFING_TONE[briefing.status])}>
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            Mentor briefing
+          </p>
+          <p className="mt-1 text-sm leading-relaxed">{briefing.briefing}</p>
+          <p className="mt-1.5 text-xs text-fg-muted">
+            <span className="font-medium text-fg-secondary">Talking point:</span>{" "}
+            {briefing.suggestedTalkingPoint}
+          </p>
+        </div>
+      )}
 
       {/* risk banner */}
       {atRisk && (
@@ -192,10 +328,11 @@ export function StudentProfile({ studentId }: { studentId: string }) {
         ))}
       </div>
 
-      {tab === "academic" && <AcademicTab data={data} />}
+      {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
       {tab === "project" && <ProjectTab data={data} />}
       {tab === "engagement" && <EngagementTab data={data} />}
       {tab === "certificates" && <CertificatesTab data={data} />}
+      {tab === "comments" && <CommentsTab studentId={studentId} />}
 
       <Link
         href="/instructor/students"
@@ -210,7 +347,47 @@ export function StudentProfile({ studentId }: { studentId: string }) {
 
 /* ---------------- tabs ------------------------------------------------ */
 
-function AcademicTab({ data }: { data: StudentProfileData }) {
+function AcademicTab({
+  data,
+  studentId,
+  onChanged,
+}: {
+  data: StudentProfileData;
+  studentId: string;
+  onChanged: () => void;
+}) {
+  const [busyWeek, setBusyWeek] = useState<number | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [week, setWeek] = useState(() =>
+    data.weeklyTests.length ? Math.max(...data.weeklyTests.map((t) => t.week)) + 1 : 1
+  );
+
+  async function testAction(path: string, w: number, label: string) {
+    setBusyWeek(w);
+    try {
+      await api.post(`/api/students/${studentId}/${path}`, { week: w });
+      toast.success(label);
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setBusyWeek(null);
+    }
+  }
+
+  async function generateReportCard() {
+    setGenerating(true);
+    try {
+      await api.post(`/api/students/${studentId}/generate-report-card`, { week });
+      toast.success(`Report card generated for Week ${week}`);
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <section className="space-y-2">
@@ -236,6 +413,37 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
                 <span className="w-12 shrink-0 text-right text-sm font-medium tabular-nums text-fg-secondary">
                   {t.score != null ? `${t.score}%` : "—"}
                 </span>
+                <div className="flex shrink-0 items-center gap-1">
+                  {t.status === "completed" ? (
+                    <button
+                      type="button"
+                      onClick={() => void testAction("allow-retake", t.week, "Retake allowed")}
+                      disabled={busyWeek === t.week}
+                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50"
+                    >
+                      {busyWeek === t.week ? (
+                        <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+                      ) : (
+                        <RotateCcw className="h-3 w-3" aria-hidden />
+                      )}
+                      Retake
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void testAction("unlock-test", t.week, "Test unlocked")}
+                      disabled={busyWeek === t.week}
+                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50"
+                    >
+                      {busyWeek === t.week ? (
+                        <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+                      ) : (
+                        <LockOpen className="h-3 w-3" aria-hidden />
+                      )}
+                      Unlock
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -243,9 +451,41 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
       </section>
 
       <section className="space-y-2">
-        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-          Report cards
-        </h2>
+        <div className="flex items-center justify-between gap-2 px-1">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
+            Report cards
+          </h2>
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="rc-week" className="sr-only">
+              Report card week
+            </label>
+            <select
+              id="rc-week"
+              value={week}
+              onChange={(e) => setWeek(Number(e.target.value))}
+              className="h-9 rounded-lg border border-line bg-surface px-2 text-xs text-fg"
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
+                <option key={w} value={w}>
+                  Week {w}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => void generateReportCard()}
+              disabled={generating}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50"
+            >
+              {generating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+              ) : (
+                <FilePlus2 className="h-3.5 w-3.5" aria-hidden />
+              )}
+              Generate
+            </button>
+          </div>
+        </div>
         {data.reportCards.length === 0 ? (
           <Empty label="No report cards yet." />
         ) : (
@@ -419,6 +659,107 @@ function CertificatesTab({ data }: { data: StudentProfileData }) {
         </div>
       )}
     </section>
+  );
+}
+
+function CommentsTab({ studentId }: { studentId: string }) {
+  const [comments, setComments] = useState<CommentRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [text, setText] = useState("");
+  const [posting, setPosting] = useState(false);
+
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      const res = await fetch(`/api/comments?studentId=${studentId}`);
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      setComments((await res.json()) as CommentRow[]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load comments");
+    }
+  }, [studentId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function post() {
+    if (!text.trim()) return;
+    setPosting(true);
+    try {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, body: text.trim() }),
+      });
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(payload.error || "Post failed");
+      setText("");
+      toast.success("Comment added");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Post failed");
+    } finally {
+      setPosting(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <label htmlFor="instructor-comment" className="sr-only">
+          Add a comment
+        </label>
+        <textarea
+          id="instructor-comment"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={2}
+          placeholder="Add a comment for this student…"
+          className="min-h-20 flex-1 resize-y rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        />
+        <button
+          type="button"
+          onClick={() => void post()}
+          disabled={posting || !text.trim()}
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+        >
+          {posting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
+          Post
+        </button>
+      </div>
+
+      {error && (
+        <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
+          <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
+          {error}
+          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
+          </button>
+        </div>
+      )}
+
+      {comments === null ? (
+        <div className="h-24 animate-pulse rounded-xl bg-bg-subtle" aria-busy="true" />
+      ) : comments.length === 0 ? (
+        <Empty label="No comments yet." />
+      ) : (
+        <div className="space-y-2">
+          {comments.map((c) => (
+            <div key={c.id} className="rounded-xl border border-line bg-surface px-4 py-3">
+              <p className="text-sm leading-relaxed text-fg">{c.body}</p>
+              <p className="mt-1.5 text-xs text-fg-muted">
+                {c.authorName} · {new Date(c.createdAt).toLocaleDateString()}
+                {c.taskId ? " · on a project task" : ""}
+                {c.weeklyTestId ? " · on a weekly test" : ""}
+                {c.dailyLogId ? " · on a check-in" : ""}
+                {c.interactionId ? " · on a practice answer" : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

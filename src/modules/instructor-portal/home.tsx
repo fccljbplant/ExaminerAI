@@ -11,6 +11,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useApi } from "@/modules/learner-portal/use-api";
+import { AIAssistantBox } from "./assistant-box";
 import { INSTRUCTOR_MORE } from "./portal-shell";
 
 /**
@@ -181,6 +182,9 @@ export function InstructorHome() {
           </Link>
         </section>
       </div>
+
+      {/* AI assistant (v1 AIAssistantBox) */}
+      <AIAssistantBox />
 
       {/* More destinations */}
       <div className="grid grid-cols-2 gap-2 md:hidden">

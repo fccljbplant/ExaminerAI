@@ -16,3 +16,4 @@ export { StudentProfile } from "./student-profile";
 export { CertificatesPanel } from "./certificates";
 export { InstructorAnalytics } from "./analytics";
 export { InstructorEarnings } from "./earnings";
+export { InstructorAssignments } from "./assignments";
