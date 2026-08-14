@@ -17,6 +17,7 @@
    in every route chunk, including dev-server incremental rebuilds. */
 @utility z-raised { z-index: var(--p-z-raised); }
 @utility z-sticky { z-index: var(--p-z-sticky); }
+@utility z-drawer { z-index: var(--p-z-drawer); }
 @utility z-modal { z-index: var(--p-z-modal); }
 @utility z-tutor { z-index: var(--p-z-tutor); }
 

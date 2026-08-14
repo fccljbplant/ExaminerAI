@@ -715,7 +715,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           <MessageSquare className="h-5 w-5" aria-hidden />
         </button>
       {activePanel && (
-        <div className="fixed inset-0 z-30 flex">
+        <div className="fixed inset-0 z-[var(--p-z-drawer)] flex">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/30"
@@ -800,7 +800,7 @@ function ActivityRailButton({
 
 function CoachMarks({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
         <div className="mb-3 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
