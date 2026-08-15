@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -59,6 +59,7 @@ interface CourseView {
   projectRequired?: boolean;
   projectDefaultDurationWeeks?: number;
   instructorName?: string | null;
+  thumbnailUrl?: string | null;
   weeks: WeekView[];
 }
 
@@ -237,6 +238,7 @@ export function CoursePlanner() {
         projectRequired: form.projectRequired,
         projectDefaultDurationWeeks: form.projectDefaultDurationWeeks,
         instructorName: form.instructorName,
+        thumbnailUrl: form.thumbnailUrl ?? null,
         weeks: form.weeks.map((w) => ({
           weekNumber: w.weekNumber,
           phase: w.phase,
@@ -328,6 +330,18 @@ export function CoursePlanner() {
               <Field label="Instructor name">
                 <input value={form.instructorName ?? ""} onChange={(e) => set("instructorName", e.target.value)} className={inputCls} />
               </Field>
+
+              {/* thumbnail — V1 CourseThumbnailPicker restored */}
+              <div>
+                <span className="text-xs font-medium text-fg-secondary">Thumbnail</span>
+                <ThumbnailEditor
+                  currentUrl={form.thumbnailUrl ?? null}
+                  courseName={form.name}
+                  category={form.category}
+                  onChange={(url) => set("thumbnailUrl", url)}
+                />
+              </div>
+
               <div className="flex flex-wrap gap-3 pt-1">
                 <SwitchRow label="Published" on={form.published} onToggle={(v) => set("published", v)} />
                 <SwitchRow label="Featured" on={form.featured} onToggle={(v) => set("featured", v)} />
@@ -532,5 +546,140 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
       </button>
       <h1 className="truncate text-lg font-semibold text-fg md:text-xl">{title}</h1>
     </div>
+  );
+}
+
+/* ── ThumbnailEditor — V1 CourseThumbnailPicker restored ──────────── */
+
+function ThumbnailEditor({
+  currentUrl,
+  courseName,
+  category,
+  onChange,
+}: {
+  currentUrl: string | null;
+  courseName: string;
+  category: string;
+  onChange: (url: string | null) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const refreshImages = (query: string) => {
+    const q = encodeURIComponent(query.trim() || "professional training");
+    setImages(Array.from({ length: 12 }, (_, i) => `https://picsum.photos/seed/${q}/600/400${i + 1}`));
+  };
+
+  const [images, setImages] = useState<string[]>(() => {
+    const q = encodeURIComponent(`${courseName} ${category}`.trim() || "professional training");
+    return Array.from({ length: 12 }, (_, i) => `https://picsum.photos/seed/${q}/600/400${i + 1}`);
+  });
+
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file");
+      return;
+    }
+    if (file.size > 500_000) {
+      setError("Image too large — max 500KB (the thumbnail is stored in the database).");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setError(null);
+      onChange(String(reader.result));
+      toast.success("Thumbnail uploaded");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
+  return (
+    <div className="mt-1 space-y-2">
+      {/* current */}
+      <div className="flex items-start gap-3">
+        <div className="relative aspect-video w-40 overflow-hidden rounded-lg border border-line bg-bg-subtle">
+          {currentUrl ? (
+            <img src={currentUrl} alt="Course thumbnail" className="h-full w-full object-cover" />
+          ) : (
+            <span className="flex h-full w-full items-center justify-center text-[10px] text-fg-muted">
+              No thumbnail
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-semibold text-fg hover:border-line-strong">
+            <UploadIcon />
+            Upload image
+            <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="sr-only" />
+          </label>
+          {currentUrl && !currentUrl.startsWith("data:") && (
+            <button
+              type="button"
+              onClick={() => onChange(null)}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-muted hover:border-danger hover:text-danger"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* stock picker */}
+      <div className="flex gap-2">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              refreshImages(search);
+            }
+          }}
+          placeholder="Search stock images… (Enter)"
+          className={inputCls}
+        />
+        <button
+          type="button"
+          onClick={() => refreshImages(search)}
+          className="inline-flex h-11 shrink-0 items-center rounded-lg border border-line bg-bg-subtle px-3 text-xs font-semibold text-fg hover:border-line-strong"
+        >
+          Refresh
+        </button>
+      </div>
+      {images.length > 0 && (
+        <div className="grid grid-cols-4 gap-1.5">
+          {images.map((url) => (
+            <button
+              key={url}
+              type="button"
+              onClick={() => {
+                onChange(url);
+                toast.success("Thumbnail selected");
+              }}
+              className={cn(
+                "aspect-video overflow-hidden rounded-md border-2 transition-colors",
+                currentUrl === url ? "border-brand" : "border-transparent hover:border-line-strong"
+              )}
+            >
+              <img src={url} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+      {error && <p role="alert" className="text-xs font-medium text-danger">{error}</p>}
+    </div>
+  );
+}
+
+function UploadIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+    </svg>
   );
 }
