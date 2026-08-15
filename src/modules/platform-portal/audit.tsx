@@ -19,6 +19,10 @@ interface AuditRow {
   action: string;
   targetType: string;
   targetId: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  reason: string | null;
+  ipAddress: string | null;
   createdAt: string;
 }
 
@@ -37,11 +41,16 @@ const ACTIONS = [
 
 export function PlatformAudit() {
   const [action, setAction] = useState("");
+  const [actorId, setActorId] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-  const path = useMemo(
-    () => `/api/v2/platform/audit${action ? `?action=${action}` : ""}`,
-    [action],
-  );
+  const path = useMemo(() => {
+    const params = new URLSearchParams();
+    if (action) params.set("action", action);
+    if (actorId.trim()) params.set("actorId", actorId.trim());
+    const qs = params.toString();
+    return `/api/v2/platform/audit${qs ? `?${qs}` : ""}`;
+  }, [action, actorId]);
   const { data, error, isLoading, retry } = useApi<AuditData>(path);
 
   function exportCsv() {
@@ -70,7 +79,16 @@ export function PlatformAudit() {
         </button>
       </div>
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          value={actorId}
+          onChange={(e) => setActorId(e.target.value)}
+          placeholder="Filter by actor user id…"
+          aria-label="Filter by actor user id"
+          className="h-11 w-64 rounded-lg border border-line bg-surface px-3 font-mono text-xs text-fg placeholder:text-fg-muted"
+        />
+        <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden]">
         {ACTIONS.map((a) => (
           <button
             key={a.key}
@@ -86,6 +104,7 @@ export function PlatformAudit() {
             {a.label}
           </button>
         ))}
+        </div>
       </div>
 
       {isLoading ? (
@@ -115,18 +134,49 @@ export function PlatformAudit() {
       ) : (
         <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {data?.items.map((r) => (
-            <div key={r.id} className="flex min-h-12 items-center gap-3 px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-fg">{r.action}</p>
-                <p className="truncate text-xs text-fg-muted">
-                  {r.actorName} ({r.actorRole}) · {r.targetType} ·{" "}
-                  {new Date(r.createdAt).toLocaleString()}
-                </p>
-              </div>
+            <div key={r.id} className="px-4 py-3">
+              <button
+                type="button"
+                onClick={() => setExpanded(expanded === r.id ? null : r.id)}
+                aria-expanded={expanded === r.id}
+                className="flex min-h-12 w-full items-center gap-3 text-left"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-fg">{r.action}</p>
+                  <p className="truncate text-xs text-fg-muted">
+                    {r.actorName} ({r.actorRole}) · {r.targetType}
+                    {r.reason ? ` · “${r.reason}”` : ""}
+                    {r.ipAddress ? ` · ${r.ipAddress}` : ""} ·{" "}
+                    {new Date(r.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                {(r.before || r.after) && (
+                  <span className="shrink-0 text-xs font-medium text-brand">
+                    {expanded === r.id ? "Hide" : "Details"}
+                  </span>
+                )}
+              </button>
+              {expanded === r.id && (r.before || r.after) && (
+                <div className="mt-2 grid grid-cols-1 gap-2 border-t border-line pt-2 md:grid-cols-2">
+                  <DiffBlock label="Before" value={r.before} />
+                  <DiffBlock label="After" value={r.after} />
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function DiffBlock({ label, value }: { label: string; value: Record<string, unknown> | null }) {
+  return (
+    <div className="rounded-lg bg-bg-subtle p-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">{label}</p>
+      <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-fg">
+        {value ? JSON.stringify(value, null, 2) : "—"}
+      </pre>
     </div>
   );
 }

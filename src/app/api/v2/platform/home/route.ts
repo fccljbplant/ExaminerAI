@@ -8,7 +8,7 @@
 
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
-import { getPlatformHome } from "@/modules/platform-portal/lib/platform-db";
+import { getPlatformHome, getUserOverview } from "@/modules/platform-portal/lib/platform-db";
 import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
 
 export const runtime = "nodejs";
@@ -24,8 +24,8 @@ export async function GET() {
   }
 
   try {
-    const data = await getPlatformHome();
-    return apiSuccess(data);
+    const [data, overview] = await Promise.all([getPlatformHome(), getUserOverview()]);
+    return apiSuccess({ ...data, overview });
   } catch (err) {
     return apiError(
       err instanceof Error ? err.message : "Failed to load platform data",

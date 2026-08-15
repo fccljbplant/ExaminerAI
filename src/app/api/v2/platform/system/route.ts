@@ -53,9 +53,21 @@ export async function GET() {
 
   const health = Object.values(checks).every(Boolean) ? "ok" : "degraded";
 
+  // Environment allowlist — names only, never values (W16: V1
+  // SystemPanel env-status restored without leaking secrets).
+  const env = {
+    DATABASE_URL: Boolean(process.env.DATABASE_URL),
+    JWT_SECRET: Boolean(process.env.JWT_SECRET),
+    DEEPSEEK_API_KEY: Boolean(process.env.DEEPSEEK_API_KEY),
+    DEEPSEEK_BASE_URL: Boolean(process.env.DEEPSEEK_BASE_URL),
+    NEXT_PUBLIC_APP_URL: Boolean(process.env.NEXT_PUBLIC_APP_URL),
+    VERCEL_ENV: process.env.VERCEL_ENV ?? null,
+  };
+
   return apiSuccess({
     health,
     checks,
+    env,
     crons: CRONS,
   });
 }

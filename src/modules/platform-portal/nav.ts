@@ -3,7 +3,7 @@
  * (plain TS — see W6 lesson on the RSC boundary).
  */
 
-import { Building2, Cpu, Home, KeyRound, LayoutDashboard, Server, SlidersHorizontal, Users } from "lucide-react";
+import { BookOpen, Building2, Cpu, Home, KeyRound, LayoutDashboard, Server, ShieldCheck, SlidersHorizontal, UserRound, Users } from "lucide-react";
 import type { NavItem } from "@/modules/shell";
 
 /** Platform admin: desktop-dense portal; mobile = alerts + approvals (P3 §4). */
@@ -17,5 +17,8 @@ export const PLATFORM_NAV: NavItem[] = [
 
 export const PLATFORM_MORE: NavItem[] = [
   { id: "features", label: "Features", href: "/platform/features", icon: SlidersHorizontal, match: ["/platform/features"] },
+  { id: "courses", label: "Courses", href: "/platform/courses", icon: BookOpen, match: ["/platform/courses"] },
+  { id: "b2c", label: "Independent learners", href: "/platform/b2c", icon: UserRound, match: ["/platform/b2c"] },
+  { id: "access", label: "Access grants", href: "/platform/access", icon: ShieldCheck, match: ["/platform/access"] },
   { id: "resets", label: "Password resets", href: "/platform/resets", icon: KeyRound, match: ["/platform/resets"] },
 ];

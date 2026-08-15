@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, RefreshCw, Server, XCircle } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useApi } from "@/modules/learner-portal/use-api";
+import { SystemEnvCard, CacheStatsCard } from "./admin-extras";
 
 /**
  * modules/platform-portal — P3 System health (V1 SystemPanel re-homed,
@@ -13,6 +14,7 @@ import { useApi } from "@/modules/learner-portal/use-api";
 interface SystemData {
   health: string;
   checks: { db: boolean; ai: boolean; jwt: boolean };
+  env?: Record<string, string | boolean | null>;
   crons: Array<{ path: string; schedule: string; label: string }>;
 }
 
@@ -127,6 +129,10 @@ export function PlatformSystem() {
           Purge
         </button>
       </section>
+
+      {/* W16: V1 SystemPanel env status + maintenance cache stats */}
+      {data.env && <SystemEnvCard env={data.env} />}
+      <CacheStatsCard />
     </div>
   );
 }

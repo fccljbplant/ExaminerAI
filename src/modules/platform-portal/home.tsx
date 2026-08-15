@@ -2,6 +2,7 @@
 
 import { AlertTriangle, Building2, RefreshCw, ScrollText, Users } from "lucide-react";
 import { useApi } from "@/modules/learner-portal/use-api";
+import { HomeOverview, type OverviewData } from "./admin-extras";
 
 /**
  * modules/platform-portal — P1 Home (REDESIGN-P3 §P1, W7)
@@ -35,6 +36,7 @@ interface PlatformHomeData {
   kpis: { orgs: number; activeMembers: number; users: number; auditActions: number };
   orgs: OrgRow[];
   recentAudit: AuditRow[];
+  overview?: OverviewData;
 }
 
 export function PlatformHome() {
@@ -70,6 +72,9 @@ export function PlatformHome() {
         <Kpi label="Users" value={data.kpis.users} icon={Users} tone="muted" />
         <Kpi label="Audit actions" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
       </div>
+
+      {/* user overview + action items (V1 AdminOverview/AdminPMTab) */}
+      {data.overview && <HomeOverview data={data.overview} />}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         {/* orgs table */}

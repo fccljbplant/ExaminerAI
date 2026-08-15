@@ -2,6 +2,7 @@
 
 import { AlertTriangle, Cpu, RefreshCw, Zap } from "lucide-react";
 import { useApi } from "@/modules/learner-portal/use-api";
+import { AILimitsCard, AIConnectionCard } from "./admin-extras";
 
 /**
  * modules/platform-portal — P4 AI usage (V1 AILimitsPanel re-homed,
@@ -47,6 +48,11 @@ export function PlatformAI() {
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
         <Kpi label="Requests" value={data.totals.requests} icon={Zap} tone="brand" />
         <Kpi label="Tokens" value={data.totals.tokens.toLocaleString()} icon={Cpu} tone="info" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+        <AILimitsCard />
+        <AIConnectionCard />
       </div>
 
       {data.byProvider.length > 0 && (

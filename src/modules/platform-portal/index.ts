@@ -12,3 +12,6 @@ export { PlatformSystem } from "./system";
 export { PlatformUsers } from "./users";
 export { PlatformFeatures } from "./features";
 export { PlatformResets } from "./resets";
+export { PlatformCourses } from "./courses";
+export { PlatformB2C } from "./b2c";
+export { PlatformAccess } from "./access";
