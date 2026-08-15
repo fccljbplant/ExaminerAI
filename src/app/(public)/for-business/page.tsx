@@ -212,35 +212,7 @@ const FAQS = [
 
 export default function ForBusinessPage() {
   return (
-    <div className="min-h-screen bg-bg text-fg">
-      {/* ────────────────────────────────────────────────────────────
-          Header — shared marketplace chrome + "Browse Courses" link
-         ──────────────────────────────────────────────────────────── */}
-      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand text-on-brand">
-              <Sparkles className="h-4 w-4" />
-            </span>
-            <span>TraineesAI</span>
-            <span className="text-fg-muted hidden sm:inline">/ For Business</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/courses">Browse Courses</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-              <Link href="/login">Sign in</Link>
-            </Button>
-            <Button asChild size="sm" className="px-3 sm:px-4">
-              <Link href="#cta">
-                Book a Demo
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div>
 
       {/* ────────────────────────────────────────────────────────────
           1. Hero — tagline + dual CTA

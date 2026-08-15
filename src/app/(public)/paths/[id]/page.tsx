@@ -36,19 +36,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
   const totalWeeks = path.courses.reduce((sum, c) => sum + c.durationWeeks, 0);
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
-      {/* Header */}
-      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/courses" className="flex items-center gap-2 text-sm text-fg-muted hover:text-fg">
-            <RouteIcon className="h-4 w-4" />
-            <span>Marketplace</span>
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
-        </div>
-      </header>
+    <div>
 
       {/* Hero */}
       <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">

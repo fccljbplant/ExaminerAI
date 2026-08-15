@@ -14,24 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-bg text-fg">
-      <nav className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
-              <GraduationCap className="h-5 w-5" />
-            </div>
-            TraineesAI
-          </Link>
-          <div className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/for-business" className="text-fg-muted hover:text-fg">For Teams</Link>
-            <Link href="/for-learners" className="text-fg-muted hover:text-fg">For Learners</Link>
-            <Link href="/courses" className="text-fg-muted hover:text-fg">Courses</Link>
-            <Link href="/support" className="text-fg-muted hover:text-fg">Support</Link>
-          </div>
-          <Button asChild size="sm"><Link href="/login">Sign In</Link></Button>
-        </div>
-      </nav>
+    <div>
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
         <div className="max-w-2xl mx-auto text-center mb-12">

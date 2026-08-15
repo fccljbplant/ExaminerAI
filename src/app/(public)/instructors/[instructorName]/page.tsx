@@ -91,20 +91,7 @@ export default async function InstructorProfilePage({
   const bio = courses.find((c) => c.instructorBio)?.instructorBio ?? null;
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
-      {/* Header */}
-      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/courses" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="h-5 w-5 text-brand" />
-            <span>TraineesAI</span>
-            <span className="text-fg-muted">/ Marketplace</span>
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
-        </div>
-      </header>
+    <div>
 
       {/* Breadcrumb + hero */}
       <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">

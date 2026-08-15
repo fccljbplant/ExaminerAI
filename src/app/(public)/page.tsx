@@ -85,80 +85,7 @@ export default async function LandingPage() {
   const hasFree = freeCourses.length > 0;
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
-      {/* ── ANNOUNCEMENT BAR ────────────────────────────────────── */}
-      <div className="bg-brand px-4 py-1.5 text-center text-xs font-medium text-on-brand">
-        🎉 AI-driven courses with verified certificates — start free today · New tracks every week
-      </div>
-
-      {/* ── HEADER — logo + big search + auth ───────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-line bg-surface/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 font-bold text-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
-              <GraduationCap className="h-5 w-5" />
-            </div>
-            <span className="hidden sm:inline">TraineesAI</span>
-          </Link>
-
-          {/* Big marketplace search — wired to the course marketplace */}
-          <form action="/courses" method="get" className="flex min-w-0 flex-1 items-center justify-center">
-            <label htmlFor="site-search" className="sr-only">Search courses</label>
-            <div className="flex h-10 w-full max-w-xl items-center overflow-hidden rounded-full border border-line bg-bg transition-colors focus-within:border-brand">
-              <Search className="ml-3 h-4 w-4 shrink-0 text-fg-muted" aria-hidden />
-              <input
-                id="site-search"
-                type="search"
-                name="search"
-                placeholder="Search courses, skills, topics…"
-                className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm text-fg placeholder:text-fg-muted focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="mr-1 hidden h-8 shrink-0 items-center rounded-full bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover sm:inline-flex"
-              >
-                Search
-              </button>
-            </div>
-          </form>
-
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
-              <Link href="/login">Sign in</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/for-learners">Start Free <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* ── CATEGORY STRIP — the storefront nav ─────────────── */}
-        <nav className="border-t border-line" aria-label="Course categories">
-          <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
-            <Link
-              href="/courses"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-xs font-semibold text-on-brand"
-            >
-              <PackageOpen className="h-3.5 w-3.5" aria-hidden />
-              All Courses
-              <span className="rounded-full bg-on-brand/20 px-1.5 text-[10px] tabular-nums">
-                {totalPublished}
-              </span>
-            </Link>
-            {MARKETPLACE_CATEGORIES.filter((c) => (countByCategory.get(c.value) ?? 0) > 0).map((c) => (
-              <Link
-                key={c.value}
-                href={`/courses/category/${c.value}`}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
-              >
-                <CategoryIcon category={c.value} />
-                {c.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-      </header>
-
+    <div>
       {/* ── HERO — compact marketplace hero ─────────────────────── */}
       <section className="relative overflow-hidden border-b border-line">
         <div aria-hidden className="absolute inset-0">
@@ -354,52 +281,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── FOOTER ──────────────────────────────────────────────── */}
-      <footer className="border-t border-line bg-bg-subtle/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <div className="flex items-center gap-2 font-bold mb-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-on-brand">
-                  <GraduationCap className="h-4 w-4" />
-                </div>
-                TraineesAI
-              </div>
-              <p className="text-xs text-fg-muted leading-relaxed">
-                AI-driven training OS. We share the training burden — your experts keep their time, your trainees keep their humans.
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-fg uppercase tracking-wider mb-3">Platform</p>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/for-business" className="text-fg-muted hover:text-fg transition-colors">For Teams</Link></li>
-                <li><Link href="/for-learners" className="text-fg-muted hover:text-fg transition-colors">For Learners</Link></li>
-                <li><Link href="/courses" className="text-fg-muted hover:text-fg transition-colors">Browse Courses</Link></li>
-                <li><Link href="/pricing" className="text-fg-muted hover:text-fg transition-colors">Pricing</Link></li>
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-fg uppercase tracking-wider mb-3">Resources</p>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/support" className="text-fg-muted hover:text-fg transition-colors">Help Center</Link></li>
-                <li><Link href="/support" className="text-fg-muted hover:text-fg transition-colors">Contact Support</Link></li>
-                <li><Link href="/login" className="text-fg-muted hover:text-fg transition-colors">Sign In</Link></li>
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-fg uppercase tracking-wider mb-3">Company</p>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/for-business" className="text-fg-muted hover:text-fg transition-colors">About</Link></li>
-                <li><Link href="/support" className="text-fg-muted hover:text-fg transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-line pt-8 sm:flex-row">
-            <p className="text-xs text-fg-muted">© 2026 TraineesAI by Inzet Enterprises. All rights reserved.</p>
-            <p className="text-xs text-fg-muted">AI = hands. Mentors = judgment.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -157,14 +157,6 @@ export default function ForLearnersPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-line bg-bg-subtle/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 text-center">
-          <p className="text-xs text-fg-muted">
-            © 2026 TraineesAI · <Link href="/support" className="hover:text-fg">Support</Link> · <Link href="/for-business" className="hover:text-fg">For Teams</Link> · <Link href="/pricing" className="hover:text-fg">Pricing</Link>
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

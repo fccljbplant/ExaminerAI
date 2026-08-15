@@ -26,17 +26,7 @@ export default async function PathsPage() {
   const paths = await fetchMarketplacePaths();
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
-      <header className="border-b border-line bg-surface/50 backdrop-blur sticky top-0 z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="h-5 w-5 text-brand" />
-            <span>TraineesAI</span>
-            <span className="text-fg-muted">/ Paths</span>
-          </Link>
-          <Button asChild variant="ghost" size="sm"><Link href="/courses">Browse Courses</Link></Button>
-        </div>
-      </header>
+    <div>
 
       <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12">

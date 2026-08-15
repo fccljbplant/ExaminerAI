@@ -16,20 +16,7 @@ export const metadata: Metadata = {
  */
 export default function PublicNotFound() {
   return (
-    <div className="min-h-screen bg-bg text-fg flex flex-col">
-      {/* Header — consistent with the rest of the marketplace */}
-      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="h-5 w-5 text-brand" />
-            <span>TraineesAI</span>
-            <span className="text-fg-muted">/ Marketplace</span>
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
-        </div>
-      </header>
+    <div className="flex flex-col">
 
       {/* Body — centered 404 */}
       <main className="flex-1 flex items-center justify-center px-4 py-20">

@@ -79,32 +79,10 @@ export default async function CoursesPage({
   const totalPublished = categoryCounts.reduce((sum, c) => sum + c._count._all, 0);
 
   return (
-    <div className="min-h-screen bg-bg text-fg">
+    <div>
       {/* Mark "visited /courses" in localStorage so the OnboardingGuide
           step 1 lights up for new students. */}
       <VisitedCoursesTracker />
-
-      {/* Header */}
-      <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30 sticky top-0 z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="h-5 w-5 text-brand" />
-            <span>TraineesAI</span>
-            <span className="text-fg-muted">/ Marketplace</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/paths">Learning Paths</Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/login">Sign in</Link>
-            </Button>
-            <Button asChild size="sm" className="px-3 sm:px-4">
-              <Link href="/login">Get started</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
 
       {/* Hero */}
       <section className="border-b border-line bg-gradient-to-b from-primary/10 via-background to-background">
@@ -192,12 +170,6 @@ export default async function CoursesPage({
           free={free}
         />
       </Suspense>
-
-      <footer className="border-t border-line py-6 mt-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-fg-muted text-center">
-          © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
-        </div>
-      </footer>
     </div>
   );
 }
