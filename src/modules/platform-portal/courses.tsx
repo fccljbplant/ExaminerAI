@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { AlertTriangle, BookOpen, Loader2, RefreshCw, Star } from "lucide-react";
+import { AlertTriangle, BookOpen, Loader2, RefreshCw, Star, Wand2 } from "lucide-react";
 import { useApi } from "@/modules/learner-portal/use-api";
 import { cn } from "@/lib/utils";
 
@@ -75,7 +76,16 @@ export function PlatformCourses() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <h1 className="text-lg font-semibold text-fg md:text-xl">Courses</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-lg font-semibold text-fg md:text-xl">Courses</h1>
+        <Link
+          href="/platform/courses/planner"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover"
+        >
+          <Wand2 className="h-4 w-4" aria-hidden />
+          Course planner
+        </Link>
+      </div>
 
       <input
         type="search"

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   BookOpen,
+  Wand2,
   KeyRound,
   LayoutDashboard,
   RefreshCw,
@@ -39,6 +40,7 @@ const TABS: TabDef[] = [
   { href: "/platform", label: "Overview", icon: LayoutDashboard },
   { href: "/platform/users", label: "Users", icon: Users },
   { href: "/platform/courses", label: "Courses", icon: BookOpen },
+  { href: "/platform/courses/planner", label: "Planner", icon: Wand2 },
   { href: "/platform/features", label: "Features", icon: SlidersHorizontal },
   { href: "/platform/resets", label: "Resets", icon: KeyRound },
   { href: "/platform/ai", label: "AI", icon: Zap },

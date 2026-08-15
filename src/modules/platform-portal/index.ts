@@ -17,3 +17,4 @@ export { PlatformB2C } from "./b2c";
 export { PlatformAccess } from "./access";
 export { PlatformTabs } from "./tabs";
 export { PlatformNavConfig } from "./nav-config";
+export { CoursePlanner } from "./course-planner";

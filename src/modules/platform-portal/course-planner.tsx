@@ -1,0 +1,620 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Save,
+  Sparkles,
+  Trash2,
+  Wand2,
+} from "lucide-react";
+import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
+import { MARKETPLACE_CATEGORIES } from "@/lib/constants";
+
+/**
+ * modules/platform-portal — CoursePlanner (W16: V1 CoursePlanner restored)
+ *
+ * The platform admin's course studio on the v2 stack:
+ *   list → AI-generate a course → edit (basics, marketplace, project,
+ *   weeks) → publish.
+ * Consumes the surviving staff-guarded V1 routes (same data model).
+ */
+
+interface WeekView {
+  id?: string;
+  weekNumber: number;
+  phase: string;
+  milestone?: string;
+  dayCount?: number;
+  days?: Array<{ day: number; title: string }>;
+}
+
+interface CourseView {
+  id: string;
+  name: string;
+  description: string | null;
+  subtitle: string | null;
+  category: string;
+  level: string;
+  price: number;
+  currency?: string;
+  durationWeeks: number;
+  domain: string | null;
+  isActive: boolean;
+  published: boolean;
+  featured: boolean;
+  projectEnabled?: boolean;
+  projectRequired?: boolean;
+  projectDefaultDurationWeeks?: number;
+  instructorName?: string | null;
+  weeks: WeekView[];
+}
+
+interface GeneratedCourse {
+  id?: string;
+  name: string;
+  description?: string;
+  domain?: string;
+  level?: string;
+  assessmentType?: string;
+  weeks: Array<{ weekNumber: number; phase: string; milestone?: string; days: Array<{ day: number; title: string }> }>;
+  projectEnabled?: boolean;
+  projectRequired?: boolean;
+  projectDefaultDurationWeeks?: number;
+}
+
+type View = "list" | "generate" | "edit";
+
+const LEVELS = ["beginner", "intermediate", "advanced"] as const;
+
+export function CoursePlanner() {
+  const [view, setView] = useState<View>("list");
+  const [courses, setCourses] = useState<CourseView[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<CourseView | null>(null);
+
+  // generate form
+  const [gen, setGen] = useState({ courseName: "", description: "", domain: "technology", level: "beginner", durationWeeks: 6, daysPerWeek: 5 });
+  const [generated, setGenerated] = useState<GeneratedCourse | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  // edit form
+  const [form, setForm] = useState<CourseView | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      const res = await fetch("/api/courses");
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const payload = (await res.json()) as { courses?: CourseView[] };
+      setCourses(payload.courses ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load courses");
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  /* ── AI generate ─────────────────────────────────────────────── */
+  async function generate() {
+    if (!gen.courseName.trim()) return;
+    setGenerating(true);
+    setError(null);
+    try {
+      const res = await api.post<{ course: GeneratedCourse; error?: string }>(
+        "/api/courses/generate",
+        {
+          courseName: gen.courseName.trim(),
+          description: gen.description.trim() || undefined,
+          domain: gen.domain,
+          level: gen.level,
+          durationWeeks: gen.durationWeeks,
+          daysPerWeek: gen.daysPerWeek,
+        },
+        AI_TIMEOUT_MS,
+      );
+      if (res.error) throw new Error(res.error);
+      setGenerated(res.course);
+      toast.success("Outline generated", { description: "Review it, then create the course." });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function createGenerated() {
+    if (!generated) return;
+    setSaving(true);
+    try {
+      const created = await api.post<{ id: string; name: string }>("/api/courses", {
+        name: generated.name,
+        description: generated.description || null,
+        domain: generated.domain,
+        level: generated.level,
+        assessmentType: generated.assessmentType,
+        weeks: generated.weeks,
+        projectEnabled: generated.projectEnabled,
+        projectRequired: generated.projectRequired,
+        projectDefaultDurationWeeks: generated.projectDefaultDurationWeeks,
+        published: true,
+        category: gen.domain,
+        durationWeeks: generated.weeks.length,
+        price: 0,
+      });
+      toast.success("Course created", { description: generated.name });
+      setGenerated(null);
+      setView("list");
+      await load();
+      const row = courses?.find((c) => c.id === created.id);
+      if (row) void openEdit(row);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Create failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /* ── Edit ────────────────────────────────────────────────────── */
+  async function openEdit(course: CourseView) {
+    setSelected(course);
+    setView("edit");
+    // Load the full detail — weeks come WITH their days so a save round-trip
+    // passes the validator (weeks replace-all requires >=1 day each).
+    setError(null);
+    try {
+      const res = await fetch(`/api/courses/${course.id}`);
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const payload = (await res.json()) as { course?: CourseView };
+      setForm(payload.course ?? (JSON.parse(JSON.stringify(course)) as CourseView));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load course detail");
+      setForm(JSON.parse(JSON.stringify(course)) as CourseView);
+    }
+  }
+
+  function set<K extends keyof CourseView>(key: K, value: CourseView[K]) {
+    setForm((f) => (f ? { ...f, [key]: value } : f));
+  }
+
+  function setWeek(weekNumber: number, patch: Partial<WeekView>) {
+    setForm((f) =>
+      f ? { ...f, weeks: f.weeks.map((w) => (w.weekNumber === weekNumber ? { ...w, ...patch } : w)) } : f
+    );
+  }
+
+  function addWeek() {
+    setForm((f) => {
+      if (!f) return f;
+      const next = f.weeks.length + 1;
+      return { ...f, weeks: [...f.weeks, { weekNumber: next, phase: "New phase", milestone: "" }] };
+    });
+  }
+
+  function removeWeek(weekNumber: number) {
+    setForm((f) => {
+      if (!f) return f;
+      const weeks = f.weeks
+        .filter((w) => w.weekNumber !== weekNumber)
+        .map((w, i) => ({ ...w, weekNumber: i + 1 }));
+      return { ...f, weeks };
+    });
+  }
+
+  async function save() {
+    if (!form) return;
+    setSaving(true);
+    try {
+      await api.put(`/api/courses/${form.id}`, {
+        name: form.name,
+        description: form.description || undefined,
+        subtitle: form.subtitle,
+        category: form.category,
+        level: form.level,
+        price: form.price,
+        durationWeeks: form.durationWeeks,
+        domain: form.domain || undefined,
+        isActive: form.isActive,
+        published: form.published,
+        featured: form.featured,
+        projectEnabled: form.projectEnabled,
+        projectRequired: form.projectRequired,
+        projectDefaultDurationWeeks: form.projectDefaultDurationWeeks,
+        instructorName: form.instructorName,
+        weeks: form.weeks.map((w) => ({
+          weekNumber: w.weekNumber,
+          phase: w.phase,
+          milestone: w.milestone ?? "",
+          days: w.days ?? [],
+        })),
+      });
+      toast.success("Course saved");
+      await load();
+      const updated = (await fetch("/api/courses").then((r) => r.json())) as { courses?: CourseView[] };
+      const row = (updated.courses ?? []).find((c) => c.id === form.id);
+      if (row) setSelected(row);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /* ── Render ──────────────────────────────────────────────────── */
+  if (view === "generate") {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <Header title="Course planner — generate" onBack={() => setView("list")} />
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+          {/* generate form */}
+          <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
+              <Wand2 className="h-4 w-4 text-fg-muted" aria-hidden />
+              AI course generation
+            </h2>
+            <Field label="Course name *">
+              <input value={gen.courseName} onChange={(e) => setGen({ ...gen, courseName: e.target.value })} placeholder="e.g. Frontend Engineering Fundamentals" className={inputCls} />
+            </Field>
+            <Field label="Description">
+              <textarea value={gen.description} onChange={(e) => setGen({ ...gen, description: e.target.value })} rows={3} placeholder="What will learners be able to do?" className={cn(inputCls, "resize-y")} />
+            </Field>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Domain">
+                <select value={gen.domain} onChange={(e) => setGen({ ...gen, domain: e.target.value })} className={inputCls}>
+                  {MARKETPLACE_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Level">
+                <select value={gen.level} onChange={(e) => setGen({ ...gen, level: e.target.value })} className={inputCls}>
+                  {LEVELS.map((l) => (
+                    <option key={l} value={l} className="capitalize">{l}</option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Weeks">
+                <input type="number" min={1} max={20} value={gen.durationWeeks} onChange={(e) => setGen({ ...gen, durationWeeks: Number(e.target.value) })} className={inputCls} />
+              </Field>
+              <Field label="Days / week">
+                <input type="number" min={1} max={7} value={gen.daysPerWeek} onChange={(e) => setGen({ ...gen, daysPerWeek: Number(e.target.value) })} className={inputCls} />
+              </Field>
+            </div>
+            <button
+              type="button"
+              onClick={() => void generate()}
+              disabled={generating || !gen.courseName.trim()}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50"
+            >
+              {generating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Sparkles className="h-4 w-4" aria-hidden />}
+              {generating ? "Designing the curriculum…" : "Generate outline"}
+            </button>
+            <p className="text-xs text-fg-muted">
+              The AI designs the full curriculum — every week, phase and day — from your course name.
+            </p>
+          </section>
+
+          {/* generated preview */}
+          <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
+              <BookOpen className="h-4 w-4 text-fg-muted" aria-hidden />
+              Preview
+            </h2>
+            {!generated ? (
+              <p className="rounded-xl border border-dashed border-line p-8 text-center text-sm text-fg-muted">
+                The generated outline appears here — review the weeks and days, then create the course.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-base font-semibold text-fg">{generated.name}</p>
+                  {generated.description && (
+                    <p className="mt-1 line-clamp-2 text-xs text-fg-muted">{generated.description}</p>
+                  )}
+                </div>
+                <div className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+                  {generated.weeks.map((w) => (
+                    <div key={w.weekNumber} className="px-3 py-2">
+                      <p className="text-sm font-medium text-fg">
+                        Week {w.weekNumber} · {w.phase || "—"}
+                      </p>
+                      <p className="truncate text-xs text-fg-muted">
+                        {w.milestone || "No milestone"} · {w.days?.length ?? 0} days
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void createGenerated()}
+                  disabled={saving}
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-success px-4 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
+                  {saving ? "Creating…" : "Create course"}
+                </button>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "edit" && form && selected) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <Header title={form.name} onBack={() => setView("list")} />
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+          {/* basics + marketplace */}
+          <div className="space-y-4">
+            <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+              <h2 className="text-sm font-semibold text-fg">Basics</h2>
+              <Field label="Name *">
+                <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inputCls} />
+              </Field>
+              <Field label="Description">
+                <textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value)} rows={3} className={cn(inputCls, "resize-y")} />
+              </Field>
+              <Field label="Subtitle">
+                <input value={form.subtitle ?? ""} onChange={(e) => set("subtitle", e.target.value)} className={inputCls} />
+              </Field>
+              <Field label="Domain">
+                <input value={form.domain ?? ""} onChange={(e) => set("domain", e.target.value)} className={inputCls} />
+              </Field>
+            </section>
+
+            <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+              <h2 className="text-sm font-semibold text-fg">Marketplace</h2>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Category">
+                  <select value={form.category} onChange={(e) => set("category", e.target.value)} className={inputCls}>
+                    {MARKETPLACE_CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Level">
+                  <select value={form.level} onChange={(e) => set("level", e.target.value)} className={inputCls}>
+                    {LEVELS.map((l) => (
+                      <option key={l} value={l} className="capitalize">{l}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Price (0 = free)">
+                  <input type="number" min={0} step={1} value={form.price} onChange={(e) => set("price", Number(e.target.value))} className={inputCls} />
+                </Field>
+                <Field label="Duration (weeks)">
+                  <input type="number" min={1} max={52} value={form.durationWeeks} onChange={(e) => set("durationWeeks", Number(e.target.value))} className={inputCls} />
+                </Field>
+              </div>
+              <Field label="Instructor name">
+                <input value={form.instructorName ?? ""} onChange={(e) => set("instructorName", e.target.value)} className={inputCls} />
+              </Field>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <SwitchRow label="Published" on={form.published} onToggle={(v) => set("published", v)} />
+                <SwitchRow label="Featured" on={form.featured} onToggle={(v) => set("featured", v)} />
+                <SwitchRow label="Active" on={form.isActive} onToggle={(v) => set("isActive", v)} />
+              </div>
+            </section>
+
+            <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+              <h2 className="text-sm font-semibold text-fg">Project</h2>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <SwitchRow label="Project enabled" on={Boolean(form.projectEnabled)} onToggle={(v) => set("projectEnabled", v)} />
+                <SwitchRow label="Project required" on={Boolean(form.projectRequired)} onToggle={(v) => set("projectRequired", v)} />
+              </div>
+              <Field label="Default project duration (weeks)">
+                <input type="number" min={1} max={20} value={form.projectDefaultDurationWeeks ?? 4} onChange={(e) => set("projectDefaultDurationWeeks", Number(e.target.value))} className={inputCls} />
+              </Field>
+            </section>
+          </div>
+
+          {/* weeks */}
+          <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-fg">Weeks ({form.weeks.length})</h2>
+              <button
+                type="button"
+                onClick={addWeek}
+                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-line px-2 text-xs font-semibold text-fg hover:border-line-strong"
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden /> Add week
+              </button>
+            </div>
+            <div className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+              {form.weeks.map((w) => (
+                <div key={w.weekNumber} className="px-3 py-2.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedWeeks((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(w.weekNumber)) next.delete(w.weekNumber);
+                        else next.add(w.weekNumber);
+                        return next;
+                      })
+                    }
+                    className="flex w-full items-center gap-2 text-left"
+                  >
+                    {expandedWeeks.has(w.weekNumber) ? (
+                      <ChevronDown className="h-3.5 w-3.5 text-fg-muted" aria-hidden />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5 text-fg-muted" aria-hidden />
+                    )}
+                    <span className="text-sm font-medium text-fg">Week {w.weekNumber}</span>
+                    <span className="truncate text-xs text-fg-muted">
+                      {w.phase} {w.dayCount != null ? `· ${w.dayCount} days` : ""}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeWeek(w.weekNumber);
+                      }}
+                      aria-label={`Delete week ${w.weekNumber}`}
+                      className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                  </button>
+                  {expandedWeeks.has(w.weekNumber) && (
+                    <div className="mt-2 grid grid-cols-1 gap-2 border-t border-line pt-2 sm:grid-cols-2">
+                      <Field label="Phase">
+                        <input value={w.phase} onChange={(e) => setWeek(w.weekNumber, { phase: e.target.value })} className={inputCls} />
+                      </Field>
+                      <Field label="Milestone">
+                        <input value={w.milestone ?? ""} onChange={(e) => setWeek(w.weekNumber, { milestone: e.target.value })} className={inputCls} />
+                      </Field>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={saving || !form.name.trim()}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
+              {saving ? "Saving…" : "Save course"}
+            </button>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  // list view
+  return (
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-lg font-semibold text-fg md:text-xl">Course planner</h1>
+        <button
+          type="button"
+          onClick={() => setView("generate")}
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand"
+        >
+          <Sparkles className="h-4 w-4" aria-hidden />
+          Generate with AI
+        </button>
+      </div>
+
+      {error && (
+        <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
+          <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
+          {error}
+          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
+          </button>
+        </div>
+      )}
+
+      {!courses ? (
+        <div className="h-40 animate-pulse rounded-xl bg-bg-subtle" aria-busy="true" />
+      ) : courses.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-line bg-surface p-10 text-center text-sm text-fg-muted">
+          No courses yet — generate your first one with AI.
+        </p>
+      ) : (
+        <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+          {courses.map((c) => (
+            <div key={c.id} className="flex min-h-16 items-center gap-3 px-4 py-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-subtle text-fg">
+                <BookOpen className="h-4 w-4" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-fg">
+                  <span className="truncate">{c.name}</span>
+                  {!c.published && (
+                    <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-[10px] font-semibold text-fg-muted">
+                      draft
+                    </span>
+                  )}
+                </p>
+                <p className="truncate text-xs text-fg-muted">
+                  {(c.weeks ?? []).length} weeks · {c.level} · {(c.category ?? "other").replace("-", " ")} ·{" "}
+                  {c.published ? "published" : "unpublished"} · {c.price === 0 ? "free" : `$${c.price}`}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void openEdit(c)}
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong"
+              >
+                <Pencil className="h-3.5 w-3.5" aria-hidden />
+                Edit
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── pieces ──────────────────────────────────────────────────────── */
+
+const inputCls =
+  "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none";
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-fg-secondary">{label}</span>
+      <span className="mt-1 block">{children}</span>
+    </label>
+  );
+}
+
+function SwitchRow({ label, on, onToggle }: { label: string; on: boolean; onToggle: (v: boolean) => void }) {
+  return (
+    <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm text-fg">
+      <input
+        type="checkbox"
+        checked={on}
+        onChange={(e) => onToggle(e.target.checked)}
+        className="h-4 w-4 accent-[var(--brand)]"
+      />
+      {label}
+    </label>
+  );
+}
+
+function Header({ title, onBack }: { title: string; onBack: () => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onBack}
+        aria-label="Back to course list"
+        className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+      </button>
+      <h1 className="truncate text-lg font-semibold text-fg md:text-xl">{title}</h1>
+    </div>
+  );
+}
