@@ -1,11 +1,15 @@
 "use client";
 
 // src/modules/learn/components/classroom/LessonStage.tsx — Slide stage (presentational).
-// Renders the topic banner, filmstrip dots, and the current slide's content.
-// All flow control (generate/complete/jump) is handled by the parent shell —
-// this component only displays state and forwards user events.
+// Renders the topic banner, filmstrip dots, and the current slide as a
+// proper presentation slide: gradient card, strong type hierarchy, and
+// only meaningful content (bullets, key terms, analogy, example,
+// check-question). The decorative 4-bar "visual board" was removed
+// (W16 user request) — slides are text-first and readable.
+// All flow control (generate/complete/jump) is handled by the parent
+// shell — this component only displays state and forwards user events.
 
-import { CheckCircle2, ListChecks, Shapes, Sparkles } from "lucide-react";
+import { CheckCircle2, Lightbulb, ListChecks, Sparkles, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
 
@@ -68,18 +72,20 @@ export function LessonStage({
 
   return (
     <div className="mx-auto w-full max-w-3xl">
-      {/* Topic banner */}
-      <div className="mb-4">
+      {/* Topic banner — compact on mobile */}
+      <div className="mb-3 md:mb-5">
         <div className="text-[10px] uppercase tracking-wide text-fg-muted">
           Week {topic.week} Day {topic.day} · {topic.phase}
         </div>
-        <h1 className="text-2xl font-bold leading-tight">{topic.title}</h1>
-        <p className="mt-1 text-sm text-fg-muted">{topic.objective}</p>
+        <h1 className="text-xl font-bold leading-tight md:text-2xl">{topic.title}</h1>
+        <p className="mt-0.5 text-xs leading-relaxed text-fg-muted md:mt-1 md:text-sm">
+          {topic.objective}
+        </p>
       </div>
 
       {/* Slide navigation — numbered dots; slides generate on load and
           on Next, never via a visible "generate" control. */}
-      <div className="mb-5 flex items-center gap-1.5" role="tablist" aria-label="Slides">
+      <div className="mb-3 flex items-center gap-1.5 md:mb-5" role="tablist" aria-label="Slides">
         {Array.from({ length: totalSlides }).map((_, i) => {
           const generated = i < slides.length;
           const isCurrent = i === slideIdx && generated;
@@ -93,7 +99,7 @@ export function LessonStage({
               disabled={!generated}
               aria-label={`Slide ${i + 1}`}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-colors",
+                "flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors md:h-8 md:w-8",
                 isCurrent
                   ? "bg-brand text-on-brand"
                   : generated
@@ -105,84 +111,109 @@ export function LessonStage({
             </button>
           );
         })}
-        <span className="ml-2 text-[10px] tabular-nums text-fg-muted">
+        <span className="ml-1.5 text-[10px] tabular-nums text-fg-muted md:ml-2">
           Slide {slides.length > 0 ? slideIdx + 1 : "—"} of {totalSlides}
         </span>
       </div>
 
-      {/* Slide content */}
+      {/* ── The slide — a proper presentation slide (W16 redesign) ── */}
       {currentSlide ? (
-        <article className="space-y-4">
-          <div className="text-[11px] font-medium text-fg-muted">Slide {slideIdx + 1}</div>
-          <h2 className="text-xl font-semibold leading-tight">{currentSlide.title}</h2>
+        <article
+          className="relative overflow-hidden rounded-2xl border border-line p-4 shadow-elev-1 md:p-8"
+          style={{
+            background:
+              "linear-gradient(165deg, var(--surface) 0%, color-mix(in oklab, var(--brand-subtle) 45%, var(--surface)) 55%, var(--surface) 100%)",
+          }}
+        >
+          {/* brand accent bar */}
+          <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-brand" />
 
+          {/* slide header */}
+          <header className="flex items-center justify-between gap-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-fg-muted">
+              Slide {slideIdx + 1}
+            </p>
+            <p className="truncate text-[10px] font-medium text-fg-muted">
+              {topic.phase}
+            </p>
+          </header>
+          <h2 className="mt-2 text-lg font-bold leading-snug text-fg md:mt-3 md:text-2xl md:leading-tight">
+            {currentSlide.title}
+          </h2>
+
+          {/* bullets — the meat of the slide */}
           {currentSlide.bullets.length > 0 && (
-            <ul className="space-y-2">
+            <ul className="mt-3 space-y-1.5 md:mt-5 md:space-y-2.5">
               {currentSlide.bullets.map((b, i) => (
-                <li key={i} className="flex gap-2 text-sm leading-relaxed">
-                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand" />
+                <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-fg md:text-base">
+                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand md:mt-2" />
                   <span>{b}</span>
                 </li>
               ))}
             </ul>
           )}
 
+          {/* key terms — quiet chips row */}
           {currentSlide.keyTerms.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="mt-3 flex flex-wrap gap-1.5 md:mt-4">
               {currentSlide.keyTerms.map((t, i) => (
-                <span key={i} className="rounded-full bg-bg-subtle px-2.5 py-0.5 text-xs font-medium">{t}</span>
+                <span
+                  key={i}
+                  className="rounded-full border border-line bg-surface/80 px-2.5 py-0.5 text-[11px] font-medium text-fg-secondary md:text-xs"
+                >
+                  {t}
+                </span>
               ))}
             </div>
           )}
 
-          {/* Visual board — renders the AI's visualSpec as a styled figure
-              so slides feel visual, not text-only */}
-          {currentSlide.visualSpec && (
-            <figure className="rounded-xl border border-dashed border-primary/40 bg-brand/5 p-4">
-              <figcaption className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                <Shapes className="h-3.5 w-3.5" aria-hidden />
-                Visual board
-              </figcaption>
-              {/* Abstract diagram bars — decorative, token-colored */}
-              <div className="mb-3 flex items-end gap-2" aria-hidden>
-                <div className="h-10 w-1/4 rounded-sm bg-brand/20" />
-                <div className="h-16 w-1/4 rounded-sm bg-brand/35" />
-                <div className="h-7 w-1/4 rounded-sm bg-brand/15" />
-                <div className="h-12 w-1/4 rounded-sm bg-brand/25" />
-              </div>
-              <p className="text-sm leading-relaxed text-fg-muted">{currentSlide.visualSpec}</p>
-            </figure>
-          )}
-
+          {/* analogy — one-line insight strip, not a box */}
           {currentSlide.analogy && (
-            <div className="rounded-md border-l-4 border-growth-amber bg-growth-amber-soft p-3 text-sm">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-growth-amber-foreground">
-                Analogy
-              </div>
-              <p className="leading-relaxed">{currentSlide.analogy}</p>
-            </div>
+            <p className="mt-3 flex items-start gap-2 rounded-lg bg-surface/60 p-2.5 text-sm leading-relaxed text-fg md:mt-4 md:text-[15px]">
+              <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" aria-hidden />
+              <span>
+                <span className="font-semibold text-fg">Think of it like this: </span>
+                {currentSlide.analogy}
+              </span>
+            </p>
           )}
 
+          {/* real-world example — quiet inline strip */}
           {currentSlide.realWorldExample && (
-            <div className="rounded-md border-l-4 border-growth-sage bg-growth-sage-soft p-3 text-sm">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-growth-sage-foreground">
-                Real-world example
+            <p className="mt-2 flex items-start gap-2 rounded-lg bg-surface/60 p-2.5 text-sm leading-relaxed text-fg md:mt-3 md:text-[15px]">
+              <Globe className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" aria-hidden />
+              <span>
+                <span className="font-semibold text-fg">In the real world: </span>
+                {currentSlide.realWorldExample}
+              </span>
+            </p>
+          )}
+
+          {/* check question — the slide's takeaway prompt */}
+          {currentSlide.checkQuestion && (
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-line bg-surface/90 p-3 md:mt-5 md:p-4">
+              <ListChecks className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand" aria-hidden />
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                  Check your understanding
+                </p>
+                <p className="mt-1 text-sm font-medium text-fg md:text-[15px]">
+                  {currentSlide.checkQuestion}
+                </p>
+                <p className="mt-1 text-xs text-fg-muted">
+                  Tip: ask the tutor (right pane) to evaluate your answer.
+                </p>
               </div>
-              <p className="leading-relaxed">{currentSlide.realWorldExample}</p>
             </div>
           )}
 
-          {currentSlide.checkQuestion && (
-            <div className="rounded-md border p-3 text-sm">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
-                Check your understanding
-              </div>
-              <p className="font-medium">{currentSlide.checkQuestion}</p>
-              <p className="mt-1 text-xs text-fg-muted">
-                Tip: ask the tutor (right pane) to evaluate your answer.
-              </p>
-            </div>
-          )}
+          {/* slide footer */}
+          <footer className="mt-4 flex items-center justify-between border-t border-line/70 pt-2.5 text-[10px] tabular-nums text-fg-muted md:mt-6">
+            <span className="truncate">{topic.title}</span>
+            <span className="shrink-0">
+              {slideIdx + 1} / {totalSlides}
+            </span>
+          </footer>
         </article>
       ) : (
         <div className="rounded-lg border-2 border-dashed py-16 text-center">
@@ -196,7 +227,7 @@ export function LessonStage({
 
       {/* Topic-complete resources panel */}
       {topicComplete && (
-        <div className="mt-6 rounded-lg border-2 border-primary/40 bg-brand/5 p-4">
+        <div className="mt-4 rounded-lg border-2 border-primary/40 bg-brand/5 p-4 md:mt-6">
           <div className="mb-2 flex items-center gap-2">
             <ListChecks className="h-4 w-4 text-primary" />
             <h3 className="font-semibold">Topic resources</h3>

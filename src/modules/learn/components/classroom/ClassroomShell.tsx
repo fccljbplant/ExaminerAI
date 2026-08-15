@@ -467,17 +467,23 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       />
 
       {/* ── Main classroom area ─────────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Activity rail (left) */}
-        <nav className="flex w-[72px] flex-shrink-0 flex-col items-center gap-1.5 border-r bg-card py-3" aria-label="Classroom panels">
+      <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
+        {/* Activity rail — top horizontal bar on mobile, left rail on
+            desktop (user request: mobile rail moves to the top) */}
+        <nav
+          className="flex w-full flex-shrink-0 items-center justify-start gap-1 overflow-x-auto border-b bg-card px-2 py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:w-[72px] lg:flex-col lg:items-center lg:gap-1.5 lg:overflow-visible lg:border-b-0 lg:border-r lg:px-0 lg:py-3"
+          aria-label="Classroom panels"
+        >
           <ActivityRailButton icon={MapIcon} label="Journey" active={activePanel === "journey"} onClick={() => setActivePanel(activePanel === "journey" ? null : "journey")} />
           <ActivityRailButton icon={Target} label="Project" active={activePanel === "project"} onClick={() => setActivePanel(activePanel === "project" ? null : "project")} />
           <ActivityRailButton icon={TrendingUp} label="Grow" active={activePanel === "grow"} onClick={() => setActivePanel(activePanel === "grow" ? null : "grow")} />
           <ActivityRailButton icon={BookOpen} label="Library" active={activePanel === "library"} onClick={() => setActivePanel(activePanel === "library" ? null : "library")} />
-          <div className="flex-1" />
-          {/* Daily-test quick badge */}
+          <div className="hidden flex-1 lg:block" />
+          {/* Daily-test quick badge (desktop only) */}
           {now?.dailyTest.status === "in_progress" && (
-            <div className="px-1 text-center text-[9px] font-medium text-growth-amber">test<br />open</div>
+            <div className="hidden px-1 text-center text-[9px] font-medium text-growth-amber lg:block">
+              test<br />open
+            </div>
           )}
         </nav>
 
@@ -503,7 +509,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
 
         {/* Lesson stage (center) */}
         <main className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="flex-1 overflow-y-auto px-3 py-3 md:px-6 md:py-6">
             {/* Media switcher — only when this topic has a video lesson */}
             {today?.media?.video && !today.courseCompleted && (
               <div className="mx-auto mb-5 flex w-full max-w-3xl items-center gap-1 rounded-lg border bg-card p-1">
@@ -662,14 +668,14 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           </div>
 
           {/* Quick bar */}
-          <div className="flex h-16 flex-shrink-0 items-center gap-2 border-t bg-surface px-4">
+          <div className="flex h-14 flex-shrink-0 items-center gap-1.5 border-t bg-surface px-2.5 md:h-16 md:gap-2 md:px-4">
             {postStage === "slides" && (
               <button
                 type="button"
                 onClick={() => jumpToSlide(Math.max(0, slideIdx - 1))}
                 disabled={isFirstSlide || slides.length === 0}
                 aria-label="Previous slide"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-md border hover:bg-bg-subtle disabled:opacity-40"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md border hover:bg-bg-subtle disabled:opacity-40 md:h-11 md:w-11"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -682,7 +688,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               <button
                 type="button"
                 onClick={() => setPostStage("test")}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-on-brand hover:bg-brand-hover md:min-h-11 md:gap-2 md:px-4 md:py-2 md:text-sm"
               >
                 <Brain className="h-4 w-4" />
                 Take the daily test
@@ -691,7 +697,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               <button
                 type="button"
                 onClick={() => setPostStage("slides")}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-bg-subtle"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-bg-subtle md:min-h-11 md:gap-2 md:px-4 md:py-2 md:text-sm"
               >
                 <Presentation className="h-4 w-4" />
                 Slides
@@ -701,7 +707,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                 type="button"
                 onClick={handleNextSlide}
                 disabled={loadingSlide || slides.length === 0}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50 md:min-h-11 md:gap-2 md:px-4 md:py-2 md:text-sm"
               >
                 {loadingSlide ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -925,11 +931,11 @@ function ActivityRailButton({
       title={label}
       aria-pressed={active}
       className={cn(
-        "flex h-14 w-14 flex-col items-center justify-center gap-1 rounded-md transition-colors",
+        "flex h-10 flex-shrink-0 items-center justify-center gap-1.5 rounded-md px-3 transition-colors lg:h-14 lg:w-14 lg:flex-col lg:px-0",
         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className="h-4 w-4 lg:h-5 lg:w-5" />
       <span className="text-[10px] font-medium">{label}</span>
     </button>
   );
