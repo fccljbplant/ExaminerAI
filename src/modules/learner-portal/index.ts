@@ -24,3 +24,5 @@ export { ExamResults } from "./exam-results";
 export { ProjectWorkspace } from "./project-workspace";
 export { CheckInCard } from "./checkin-card";
 export { LearnerMessages } from "./messages";
+
+export { AvatarEditor } from "./avatar-editor";

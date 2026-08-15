@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useThemeV2 } from "@/modules/theme";
-import { ChevronDown, CircleUserRound, HelpCircle, LogOut } from "lucide-react";
+import { ChevronDown, CircleUserRound, HelpCircle, LogOut, Settings, Monitor, Moon, BedDouble, Library } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,14 +67,17 @@ export function UserMenu({
   profileHref,
   profileLabel = "Profile",
   helpHref = "/support",
+  settingsHref,
 }: {
   userName: string;
   profileHref: string;
   profileLabel?: string;
   helpHref?: string;
+  /** User settings page (avatar, password, appearance). Hidden when omitted. */
+  settingsHref?: string;
 }) {
   const router = useRouter();
-  const { mode: themeMode, mounted: themeMounted } = useThemeV2();
+  const { mode: themeMode, mounted: themeMounted, setMode } = useThemeV2();
   const [me, setMe] = useState<MeUser | null>(null);
   const [badgeIcon, setBadgeIcon] = useState<string | null>(null);
 
@@ -151,7 +154,14 @@ export function UserMenu({
             <ChevronDown className="h-4 w-4 text-fg-muted" aria-hidden />
           </button>
         ) : (
-          <AvatarCircle avatar={me?.avatarData ?? null} name={displayName} badgeIcon={badgeIcon} size="icon" />
+          <button
+            type="button"
+            aria-label={`Account menu for ${displayName}`}
+            title={displayName}
+            className="rounded-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          >
+            <AvatarCircle avatar={me?.avatarData ?? null} name={displayName} badgeIcon={badgeIcon} size="icon" />
+          </button>
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-60">
@@ -179,6 +189,47 @@ export function UserMenu({
             <span>Help &amp; support</span>
           </Link>
         </DropdownMenuItem>
+        {settingsHref && (
+          <DropdownMenuItem asChild>
+            <Link href={settingsHref}>
+              <Settings className="h-4 w-4" aria-hidden />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+
+        {/* Theme — every portal, every breakpoint (2026-08-15): the old
+            ModeToggle was desktop-only, so phone/tablet users had no
+            theme control at all. */}
+        <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          Theme
+        </DropdownMenuLabel>
+        <div className="grid grid-cols-2 gap-1 px-2 pb-2">
+          {(
+            [
+              { mode: "light", label: "Light", icon: Monitor },
+              { mode: "dark", label: "Dark", icon: Moon },
+              { mode: "bed", label: "Bed", icon: BedDouble },
+              { mode: "classic", label: "Classic", icon: Library },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.mode}
+              type="button"
+              onClick={() => setMode(t.mode)}
+              aria-pressed={themeMounted && themeMode === t.mode}
+              className={
+                themeMounted && themeMode === t.mode
+                  ? "flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-2 text-xs font-semibold text-on-brand"
+                  : "flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
+              }
+            >
+              <t.icon className="h-3.5 w-3.5" aria-hidden />
+              {t.label}
+            </button>
+          ))}
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={(e) => {

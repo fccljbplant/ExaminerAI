@@ -16,6 +16,8 @@ export { AppFooter } from "./app-footer";
 export { ActionBar } from "./action-bar";
 export { ModeToggle } from "./mode-toggle";
 export { UserMenu, initialsOf, roleLabel } from "./user-menu";
+export { RoleSettings } from "./role-settings";
+export { RoleHelp, type HelpTopic } from "./role-help";
 export type { MeUser } from "./user-menu";
 export { useBreakpoint } from "./use-breakpoint";
 export type { BreakpointClass, NavItem, ShellBrand } from "./types";
