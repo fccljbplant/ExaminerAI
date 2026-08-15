@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { ModeToggle } from "@/modules/shell";
-import { CAPTIONS_MODES, useCaptionsStore } from "@/modules/theme";
+import { CAPTIONS_MODES, useCaptionsStore, ThemePackPicker } from "@/modules/theme";
 
 /**
  * modules/learner-portal — L13 Profile & settings (REDESIGN-P3 §L13)
@@ -110,9 +110,13 @@ function AccountCard({ user }: { user: ProfileInfo }) {
 function AppearanceCard() {
   return (
     <Card icon={Palette} title="Appearance">
+      <p className="mb-2 text-xs font-medium text-fg-secondary">Quick switch</p>
       <ModeToggle />
+      <p className="mt-3 mb-2 text-xs font-medium text-fg-secondary">Theme pack</p>
+      <ThemePackPicker />
       <p className="mt-3 text-xs text-fg-muted">
-        Bed mode dims everything for late-night study. Your organisation&apos;s brand colours apply
+        Bed mode dims everything for late-night study. Classic adopts the Star Admin
+        vertical layout with the sidebar on desktop. Your organisation&apos;s brand colours apply
         automatically.
       </p>
     </Card>

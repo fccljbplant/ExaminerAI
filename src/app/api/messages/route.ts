@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   const where =
     box === "sent" ? { fromId: payload.sub } :
     box === "received" ? { toId: payload.sub } :
+    box === "unread" ? { toId: payload.sub, isRead: false } :
     { OR: [{ fromId: payload.sub }, { toId: payload.sub }] };
 
   const [total, messages] = await Promise.all([

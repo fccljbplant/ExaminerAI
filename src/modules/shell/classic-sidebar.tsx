@@ -47,8 +47,11 @@ export function ClassicSidebar({
         </Link>
       </div>
 
-      {/* nav */}
+      {/* nav — Star Admin menu: section label + indented item rows */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+          Main
+        </p>
         <ul className="space-y-1">
           {nav.map((item) => {
             const Icon = item.icon;
@@ -59,14 +62,29 @@ export function ClassicSidebar({
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                    "group relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors",
                     "[-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
                     active
-                      ? "bg-brand-subtle text-brand"
-                      : "text-fg-secondary hover:bg-bg-subtle hover:text-fg"
+                      ? "bg-brand-subtle font-semibold text-brand"
+                      : "font-medium text-fg-secondary hover:bg-bg-subtle hover:text-fg"
                   )}
                 >
-                  {Icon && <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />}
+                  {/* active indicator — Star's left accent bar */}
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r bg-brand"
+                    />
+                  )}
+                  {Icon && (
+                    <Icon
+                      className={cn(
+                        "h-[18px] w-[18px] shrink-0 transition-colors",
+                        active ? "text-brand" : "text-fg-muted group-hover:text-fg-secondary"
+                      )}
+                      aria-hidden
+                    />
+                  )}
                   <span className="truncate">{item.label}</span>
                   {typeof item.badge === "number" && item.badge > 0 && (
                     <span className="ml-auto rounded-full bg-brand px-1.5 text-[10px] font-semibold tabular-nums text-on-brand">

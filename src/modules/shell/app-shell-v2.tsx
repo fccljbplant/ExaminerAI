@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useBreakpoint } from "./use-breakpoint";
 import { useThemeV2 } from "@/modules/theme";
 import { ClassicSidebar } from "./classic-sidebar";
+import { ClassicTopbar } from "./classic-topbar";
 import { TopNav } from "./top-nav";
 import { TabRow } from "./tab-row";
 import { BottomNav } from "./bottom-nav";
@@ -77,13 +78,7 @@ export function AppShellV2({ nav, brand, trailing, children, className }: AppShe
       {classicShell ? (
         <>
           <ClassicSidebar nav={nav} brand={brand} />
-          {/* Classic topbar — Star Admin's slim navbar right of the rail. */}
-          <header
-            data-slot="classic-topbar"
-            className="fixed inset-x-0 top-0 z-[var(--p-z-sticky)] flex h-16 items-center justify-end gap-2 border-b border-line bg-surface pl-[236px] pr-6"
-          >
-            {trailing}
-          </header>
+          <ClassicTopbar trailing={trailing} />
         </>
       ) : (
         <>

@@ -15,3 +15,4 @@ export { contrastRatio, hexToOklch, oklchToHex } from "./lib/color";
 export { CONTRAST_MANIFEST } from "./lib/contrast-manifest";
 export { captionsEnabled, useCaptionsStore, CAPTIONS_MODES } from "./lib/captions-store";
 export type { CaptionsMode } from "./lib/captions-store";
+export { ThemePackPicker } from "./theme-pack-picker";

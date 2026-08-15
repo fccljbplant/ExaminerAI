@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CircleUserRound, HelpCircle, LogOut } from "lucide-react";
+import { useThemeV2 } from "@/modules/theme";
+import { ChevronDown, CircleUserRound, HelpCircle, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,6 +73,7 @@ export function UserMenu({
   helpHref?: string;
 }) {
   const router = useRouter();
+  const { mode: themeMode, mounted: themeMounted } = useThemeV2();
   const [me, setMe] = useState<MeUser | null>(null);
 
   useEffect(() => {
@@ -102,18 +104,44 @@ export function UserMenu({
 
   const displayName = me?.name || userName;
   const displayEmail = me?.email;
+  // Classic mode renders the Star Admin profile chip (avatar + name +
+  // role + chevron) instead of the bare avatar — read AFTER hydration
+  // so the shell never flashes the wrong variant.
+  const classic = themeMounted && themeMode === "classic";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label={`Account menu for ${displayName}`}
-          title={displayName}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-subtle text-xs font-semibold text-fg ring-1 ring-inset ring-line transition-colors hover:bg-brand-subtle/80 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-        >
-          {initialsOf(displayName) || "?"}
-        </button>
+        {classic ? (
+          <button
+            type="button"
+            aria-label={`Account menu for ${displayName}`}
+            title={displayName}
+            className="flex h-10 shrink-0 items-center gap-2.5 rounded-lg px-2 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-semibold text-on-brand">
+              {initialsOf(displayName) || "?"}
+            </span>
+            <span className="hidden min-w-0 text-left md:block">
+              <span className="block max-w-36 truncate text-sm font-semibold text-fg">
+                {displayName}
+              </span>
+              <span className="block text-[11px] font-medium text-fg-muted">
+                {roleLabel(me?.role)}
+              </span>
+            </span>
+            <ChevronDown className="h-4 w-4 text-fg-muted" aria-hidden />
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label={`Account menu for ${displayName}`}
+            title={displayName}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-subtle text-xs font-semibold text-fg ring-1 ring-inset ring-line transition-colors hover:bg-brand-subtle/80 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          >
+            {initialsOf(displayName) || "?"}
+          </button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-60">
         <DropdownMenuLabel className="font-normal">

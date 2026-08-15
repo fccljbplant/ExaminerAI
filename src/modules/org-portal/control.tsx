@@ -6,6 +6,7 @@ import { AlertTriangle, BadgeCheck, Loader2, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useApi } from "@/modules/learner-portal/use-api";
 import { DEFAULT_BRAND_OKLCH, deriveBrandPalette, oklchToHex } from "@/modules/theme";
+import { ThemePackPicker } from "@/modules/theme";
 
 /**
  * modules/org-portal — O4 Control Center (REDESIGN-P3 §O4, W7)
@@ -98,6 +99,16 @@ export function OrgControl() {
   return (
     <div className="space-y-4 md:space-y-6">
       <h1 className="text-lg font-semibold text-fg md:text-xl">Control center</h1>
+
+      {/* theme pack (W15) */}
+      <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold text-fg">Theme pack</h2>
+        <p className="text-xs text-fg-muted">
+          The packs your team sees in the mode switch. Each member can still pick their own —
+          this is the default gallery shipped with the platform.
+        </p>
+        <ThemePackPicker />
+      </section>
 
       {/* branding */}
       <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
