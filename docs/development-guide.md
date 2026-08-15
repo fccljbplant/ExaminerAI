@@ -60,6 +60,43 @@ AI routes have extended timeouts: `/api/ai/*` (60s), `/api/project/generate-task
 
 ---
 
+## Database layout & Neon
+
+Three separate stores, never mixed:
+
+| Store | Where | Contents |
+| --- | --- | --- |
+| **Demo SQLite** | `prisma/db/custom.db` (local only) | Demo dataset — `npm run seed:demo` populates it. The seed refuses to run unless `DATABASE_URL` is a `file:` URL, so demo data can never reach a remote database. |
+| **Aiven (current prod)** | `AVEN_DATABASE_URL` / `AVEN_DIRECT_URL` in `.env` | Live production data (source of truth until the cutover). |
+| **Neon (target)** | `NEON_DATABASE_URL` / `NEON_DIRECT_URL` in `.env` | Migration target, ready for the prod cutover. |
+
+Neon URLs are tuned for Neon:
+
+- `NEON_DATABASE_URL` — the **pooled** endpoint (`-pooler` host, PgBouncer
+  transaction mode) for the app. `pgbouncer=true` disables Prisma prepared
+  statements (required under transaction pooling); `connect_timeout=15`
+  guards hangs. Do NOT add an `options=-c statement_timeout=…` startup
+  parameter — Neon's pooler rejects it (use the Neon console setting).
+- `NEON_DIRECT_URL` — the **unpooled** endpoint for schema pushes,
+  migrations and the transfer script.
+
+Transferring Aiven → Neon:
+
+```bash
+# If Aiven's schema fell behind the prod schema, sync it first (additive):
+npm run db:transfer:neon -- --yes --sync-aven-schema
+# Otherwise just transfer:
+npm run db:transfer:neon -- --yes
+```
+
+The script wipes Neon, pushes the current schema, copies all rows in
+foreign-key-safe dependency order, re-seats any autoincrement sequences
+and verifies per-table row counts. It regenerates
+`prisma/.neon-transfer.prisma` and the cached Postgres client from
+`schema.prod.prisma` on every run, so it can't drift.
+
+---
+
 ## Conventions
 
 - **TypeScript strict** — no `any` in app code

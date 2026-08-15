@@ -29,6 +29,14 @@ try {
   /* env already loaded */
 }
 
+// Demo data lives ONLY in the local SQLite file (prisma/db/custom.db) —
+// never in the remote Neon/Aiven databases.
+if (!(process.env.DATABASE_URL || "").startsWith("file:")) {
+  console.error("seed-demo-data refuses to run: DATABASE_URL is not a local SQLite file.");
+  console.error("Demo data must stay in the local db file, separate from the remote database.");
+  process.exit(1);
+}
+
 const db = new PrismaClient();
 
 const DAY_MS = 86_400_000;

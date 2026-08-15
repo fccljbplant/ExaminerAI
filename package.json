@@ -24,7 +24,8 @@
     "db:push:prod": "prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss",
     "db:generate:prod": "prisma generate --schema=prisma/schema.prod.prisma",
     "db:migrate:prod": "prisma migrate deploy --schema=prisma/schema.prod.prisma",
-    "seed:demo": "node scripts/seed-demo-data.ts"
+    "seed:demo": "node scripts/seed-demo-data.ts",
+    "db:transfer:neon": "node scripts/transfer-aven-to-neon.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
