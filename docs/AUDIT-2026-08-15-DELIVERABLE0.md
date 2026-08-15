@@ -202,6 +202,13 @@ Missing:
 
 ## 3. UI inconsistency list (desktop bottom-bar first)
 
+0. **Public site had NO footer and no consistent header** (found on user review, 2026-08-15 —
+   missed in the first pass, which covered the authenticated portals only). Each public page
+   hand-rolled its own banner; `/pricing`, `/support`, `/for-learners`, `/signup/b2b`, `/verify`
+   had no header at all; nothing had a footer. Fixed with shared `modules/site` chrome
+   (SiteHeader + SiteFooter) mounted via `(public)/layout.tsx`; the classroom moved to the
+   `(classroom)` group so it keeps its full-screen layout (commit dfebfb5).
+
 1. **Desktop bottom bar:** absent at md+ *by design* (TopNav at lg). The genuine desktop shell gaps are:
    - **No breadcrumbs anywhere in the four portals** — the `Breadcrumb` component is used only on two public marketplace pages (`(public)/courses/[id]/page.tsx:152-165`, `category/[...]/page.tsx:101-118`).
    - **Notifications bell only in classic mode** (`classic-topbar.tsx:94-105`). Non-classic desktop TopNav trailing = ModeToggle + UserMenu only — the single biggest desktop chrome gap.
