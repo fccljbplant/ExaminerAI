@@ -32,7 +32,9 @@ export function InstructorShell({
         brand={{ name: "TraineesAI" }}
         trailing={
           <>
-            <ModeToggle />
+            <span className="hidden lg:inline-flex">
+              <ModeToggle />
+            </span>
             <UserMenu userName={userName} profileHref="/instructor" profileLabel="Dashboard" />
           </>
         }

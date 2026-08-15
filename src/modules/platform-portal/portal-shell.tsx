@@ -34,7 +34,9 @@ export function PlatformShell({
         brand={{ name: "TraineesAI" }}
         trailing={
           <>
-            <ModeToggle />
+            <span className="hidden lg:inline-flex">
+              <ModeToggle />
+            </span>
             <UserMenu userName={userName} profileHref="/platform" profileLabel="Dashboard" />
           </>
         }

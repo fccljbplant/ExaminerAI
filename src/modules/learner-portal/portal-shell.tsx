@@ -30,7 +30,9 @@ export function PortalShell({ userName, children }: { userName: string; children
         brand={{ name: "TraineesAI" }}
         trailing={
           <>
-            <ModeToggle />
+            <span className="hidden lg:inline-flex">
+              <ModeToggle />
+            </span>
             <UserMenu userName={userName} profileHref="/learner/profile" profileLabel="Profile" />
           </>
         }
