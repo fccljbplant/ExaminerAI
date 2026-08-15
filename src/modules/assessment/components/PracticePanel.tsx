@@ -1,6 +1,6 @@
 "use client";
 
-import { showError } from "@/lib/toast-helpers";
+import { toast } from "sonner";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/modules/ui/card";
@@ -93,7 +93,7 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
       setConversation(res.conversation);
       setExchangeCount(res.exchangeCount);
     } catch (e) {
-      showError(e instanceof Error ? e.message : "Failed to start practice");
+      toast.error(e instanceof Error ? e.message : "Failed to start practice");
       setStarted(false);
     } finally { setBusy(false); }
   };
@@ -126,7 +126,7 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
         onAnswered();
       }
     } catch (e) {
-      showError(e instanceof Error ? e.message : "Failed");
+      toast.error(e instanceof Error ? e.message : "Failed");
     } finally { setBusy(false); }
   };
 
@@ -146,7 +146,7 @@ export function QuestionPanel({ currentWeek, onAnswered, stats }: { currentWeek:
       setScore(res.score);
       setFeedback(res.feedback ?? null);
       onAnswered();
-    } catch { showError("Failed"); }
+    } catch { toast.error("Failed"); }
     finally { setBusy(false); }
   };
 

@@ -126,6 +126,48 @@ function coerceMastery(raw: unknown): MasteryMap {
 }
 
 /**
+ * Overlay the course's own curriculum on the generic topic ladder.
+ *
+ * WEEKLY_TOPICS is a shared 6×5 scaffold (structure + progression).
+ * When a course defines its own weeks/days (Course Planner, seeds, AI
+ * generation), the learner must be taught THAT course's topics — not
+ * the generic ladder (2026-08-15 audit 9.5: an HSE learner was being
+ * taught "Building a homepage with WordPress blocks").
+ *
+ * Known limitation (content-model workstream): progression bounds
+ * still follow the ladder; a course whose current (week, day) has no
+ * DB row falls back to the generic topic.
+ */
+async function overlayDbTopic(
+ courseId: string,
+ week: number,
+ day: number,
+ base: DailyTopic,
+): Promise<{ topic: DailyTopic; phase: string | null }> {
+ const row = await db.courseDay.findFirst({
+ where: { day, courseWeek: { courseId, weekNumber: week } },
+ select: {
+ title: true,
+ objective: true,
+ activity: true,
+ deliverable: true,
+ courseWeek: { select: { phase: true } },
+ },
+ });
+ if (!row) return { topic: base, phase: null };
+ return {
+ topic: {
+ ...base,
+ title: row.title,
+ objective: row.objective || base.objective,
+ activity: row.activity ?? base.activity,
+ deliverable: row.deliverable ?? base.deliverable,
+ },
+ phase: row.courseWeek.phase || null,
+ };
+}
+
+/**
  * Read (or initialize) today's topic for a user+course.
  * If no `current` topic is set, picks Week 1 Day 1.
  */
@@ -140,16 +182,25 @@ export async function getTodayTopic(
 
  const mastery = coerceMastery(profile.masteryMap);
  const current = mastery.topicProgress.current ?? { week: 1, day: 1 };
- const topic = getTopicByWeekDay(current.week, current.day);
- if (!topic) return null;
+ const base = getTopicByWeekDay(current.week, current.day);
+ if (!base) return null;
+ const { topic, phase } = await overlayDbTopic(
+ courseId,
+ current.week,
+ current.day,
+ base,
+ );
 
  const slidesViewed = mastery.topicProgress.slidesViewed ?? 0;
  const completed = mastery.topicProgress.history.some(
  h => h.week === current.week && h.day === current.day,
  );
 
+ const ctx = toTopicContext(current.week, current.day, topic);
+ if (phase) ctx.phase = phase;
+
  return {
- topic: toTopicContext(current.week, current.day, topic),
+ topic: ctx,
  slidesViewed,
  totalSlides: SLIDES_PER_TOPIC,
  completed,

@@ -21,6 +21,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/modules/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/modules/ui/dialog";
+import { Button } from "@/modules/ui/button";
 import { initialsOf, roleLabel } from "@/modules/shell";
 
 /**
@@ -122,16 +130,61 @@ export function PlatformUsers() {
   function approve(u: UserRow) {
     void act(u.id, `/api/users/${u.id}/approve`, "PUT", {});
   }
-  function toggleBlock(u: UserRow) {
-    void act(u.id, `/api/users/${u.id}/block`, "PUT", { blocked: !u.blocked });
+  // Destructive/privilege actions confirm first (audit 9.6) — the old
+  // window.confirm blocked the page thread and role changes fired with
+  // no confirmation at all.
+  const [pending, setPending] = useState<
+    { kind: "block" | "role" | "delete"; user: UserRow; nextRole?: string } | null
+  >(null);
+
+  function requestBlock(u: UserRow) {
+    setPending({ kind: "block", user: u });
   }
-  function changeRole(u: UserRow, next: string) {
-    void act(u.id, `/api/users/${u.id}/role`, "PATCH", { role: next });
+  function requestRole(u: UserRow, next: string) {
+    setPending({ kind: "role", user: u, nextRole: next });
   }
-  function remove(u: UserRow) {
-    if (!window.confirm(`Delete ${u.name} (${u.email}) and all of their data? This cannot be undone.`)) return;
-    void act(u.id, `/api/users/${u.id}`, "DELETE");
+  function requestDelete(u: UserRow) {
+    setPending({ kind: "delete", user: u });
   }
+
+  function confirmPending() {
+    if (!pending) return;
+    const { kind, user, nextRole } = pending;
+    setPending(null);
+    if (kind === "block") {
+      void act(user.id, `/api/users/${user.id}/block`, "PUT", { blocked: !user.blocked });
+    } else if (kind === "role" && nextRole) {
+      void act(user.id, `/api/users/${user.id}/role`, "PATCH", { role: nextRole });
+    } else if (kind === "delete") {
+      void act(user.id, `/api/users/${user.id}`, "DELETE");
+    }
+  }
+
+  const pendingCopy = (() => {
+    if (!pending) return null;
+    const who = `${pending.user.name} (${pending.user.email})`;
+    if (pending.kind === "block") {
+      return pending.user.blocked
+        ? { title: "Unblock user", body: `Restore access for ${who}?`, cta: "Unblock" }
+        : {
+            title: "Block user",
+            body: `${who} will be signed out and unable to use the platform until unblocked.`,
+            cta: "Block",
+          };
+    }
+    if (pending.kind === "role") {
+      return {
+        title: `Make ${roleLabel(pending.nextRole ?? "")}`,
+        body: `${who} will get ${roleLabel(pending.nextRole ?? "")} permissions across the platform. This is audited.`,
+        cta: "Change role",
+      };
+    }
+    return {
+      title: "Delete user",
+      body: `Delete ${who} and ALL of their data — enrollments, submissions, progress, certificates? This cannot be undone.`,
+      cta: "Delete forever",
+    };
+  })();
 
   const visible =
     data?.users.filter((u) => status === "all" || statusOf(u) === status) ?? [];
@@ -227,7 +280,7 @@ export function PlatformUsers() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="min-w-44">
                       {u.role !== "platform_admin" && (
-                        <DropdownMenuItem onSelect={() => toggleBlock(u)}>
+                        <DropdownMenuItem onSelect={() => requestBlock(u)}>
                           {u.blocked ? <CheckCircle2 className="h-4 w-4" aria-hidden /> : <Ban className="h-4 w-4" aria-hidden />}
                           {u.blocked ? "Unblock" : "Block"}
                         </DropdownMenuItem>
@@ -235,7 +288,7 @@ export function PlatformUsers() {
                       {u.role !== "platform_admin" && (
                         <>
                           {ROLES.filter((r) => r !== u.role).map((r) => (
-                            <DropdownMenuItem key={r} onSelect={() => changeRole(u, r)}>
+                            <DropdownMenuItem key={r} onSelect={() => requestRole(u, r)}>
                               <ShieldCheck className="h-4 w-4" aria-hidden />
                               Make {roleLabel(r)}
                             </DropdownMenuItem>
@@ -244,7 +297,7 @@ export function PlatformUsers() {
                       )}
                       {u.role !== "platform_admin" && (
                         <DropdownMenuItem
-                          onSelect={() => remove(u)}
+                          onSelect={() => requestDelete(u)}
                           className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" aria-hidden />
@@ -284,6 +337,26 @@ export function PlatformUsers() {
           </button>
         </div>
       )}
+      {/* Destructive-action confirmation (audit 9.6) */}
+      <Dialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{pendingCopy?.title}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm leading-relaxed text-fg-secondary">{pendingCopy?.body}</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPending(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant={pending?.kind === "delete" ? "destructive" : "default"}
+              onClick={confirmPending}
+            >
+              {pendingCopy?.cta}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

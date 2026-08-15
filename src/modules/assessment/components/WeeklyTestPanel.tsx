@@ -9,7 +9,7 @@ import { Textarea } from "@/modules/ui/textarea";
 import { Badge } from "@/modules/ui/badge";
 import { Progress } from "@/modules/ui/progress";
 import { scoreToGrade, gradeColor, TEST_QUESTION_COUNT } from "@/lib/constants";
-import { showError } from "@/lib/toast-helpers";
+import { toast } from "sonner";
 import type { WeeklyTest, StatsResponse, Mode } from "@/modules/assessment/types";
 import { PostTestReflection } from "@/modules/assessment/components/PostTestReflection";
 import { TeachingFeedbackCard, type TeachingFeedback } from "@/modules/assessment/components/TeachingFeedbackCard";
@@ -193,7 +193,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
       setPlagiarismScore(null);
       setFeedback(null);
     } catch (e) {
-      showError(e instanceof Error ? e.message : "Failed to start test");
+      toast.error(e instanceof Error ? e.message : "Failed to start test");
     } finally {
       setBusy(false);
     }
@@ -252,7 +252,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         onReload();
       }
     } catch (e) {
-      showError(e instanceof Error ? e.message : "Failed");
+      toast.error(e instanceof Error ? e.message : "Failed");
     } finally {
       setBusy(false);
       // Auto-focus the input so the student can type their next reply
@@ -304,7 +304,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
       setFeedback(res.feedback ?? null);
       onReload();
     } catch (e) {
-      showError(e instanceof Error ? e.message : "Failed");
+      toast.error(e instanceof Error ? e.message : "Failed");
     } finally {
       setBusy(false);
     }

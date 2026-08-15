@@ -38,8 +38,17 @@ export async function GET() {
     /* db down */
   }
   try {
-    const { verifyToken } = await import("@/lib/auth");
-    checks.jwt = Boolean(verifyToken(""));
+    // Same semantics as /api/health but with the dev fallback respected:
+    // in development the built-in default secret IS the working config
+    // (the request running this very check is JWT-authenticated). Only
+    // production requires a real, non-default JWT_SECRET.
+    await import("@/lib/auth");
+    const isProd =
+      process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL_ENV);
+    checks.jwt = isProd
+      ? Boolean(process.env.JWT_SECRET) &&
+        process.env.JWT_SECRET !== "examiner-ai-dev-secret-change-me"
+      : true;
   } catch {
     /* jwt lib unavailable */
   }
@@ -54,10 +63,13 @@ export async function GET() {
   const health = Object.values(checks).every(Boolean) ? "ok" : "degraded";
 
   // Environment allowlist — names only, never values (W16: V1
-  // SystemPanel env-status restored without leaking secrets).
+  // SystemPanel env-status restored without leaking secrets). Z.ai is
+  // the PRIMARY provider; DeepSeek is the fallback — surface both.
   const env = {
     DATABASE_URL: Boolean(process.env.DATABASE_URL),
     JWT_SECRET: Boolean(process.env.JWT_SECRET),
+    ZAI_API_KEY: Boolean(process.env.ZAI_API_KEY),
+    ZAI_BASE_URL: Boolean(process.env.ZAI_BASE_URL),
     DEEPSEEK_API_KEY: Boolean(process.env.DEEPSEEK_API_KEY),
     DEEPSEEK_BASE_URL: Boolean(process.env.DEEPSEEK_BASE_URL),
     NEXT_PUBLIC_APP_URL: Boolean(process.env.NEXT_PUBLIC_APP_URL),
