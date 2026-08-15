@@ -21,6 +21,7 @@ import {
 import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { MARKETPLACE_CATEGORIES } from "@/lib/constants";
+import { CourseCreationWizard } from "./course-wizard";
 
 /**
  * modules/platform-portal — CoursePlanner (W16: V1 CoursePlanner restored)
@@ -258,104 +259,19 @@ export function CoursePlanner() {
   /* ── Render ──────────────────────────────────────────────────── */
   if (view === "generate") {
     return (
-      <div className="space-y-4 md:space-y-6">
-        <Header title="Course planner — generate" onBack={() => setView("list")} />
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-          {/* generate form */}
-          <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
-              <Wand2 className="h-4 w-4 text-fg-muted" aria-hidden />
-              AI course generation
-            </h2>
-            <Field label="Course name *">
-              <input value={gen.courseName} onChange={(e) => setGen({ ...gen, courseName: e.target.value })} placeholder="e.g. Frontend Engineering Fundamentals" className={inputCls} />
-            </Field>
-            <Field label="Description">
-              <textarea value={gen.description} onChange={(e) => setGen({ ...gen, description: e.target.value })} rows={3} placeholder="What will learners be able to do?" className={cn(inputCls, "resize-y")} />
-            </Field>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Domain">
-                <select value={gen.domain} onChange={(e) => setGen({ ...gen, domain: e.target.value })} className={inputCls}>
-                  {MARKETPLACE_CATEGORIES.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Level">
-                <select value={gen.level} onChange={(e) => setGen({ ...gen, level: e.target.value })} className={inputCls}>
-                  {LEVELS.map((l) => (
-                    <option key={l} value={l} className="capitalize">{l}</option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Weeks">
-                <input type="number" min={1} max={20} value={gen.durationWeeks} onChange={(e) => setGen({ ...gen, durationWeeks: Number(e.target.value) })} className={inputCls} />
-              </Field>
-              <Field label="Days / week">
-                <input type="number" min={1} max={7} value={gen.daysPerWeek} onChange={(e) => setGen({ ...gen, daysPerWeek: Number(e.target.value) })} className={inputCls} />
-              </Field>
-            </div>
-            <button
-              type="button"
-              onClick={() => void generate()}
-              disabled={generating || !gen.courseName.trim()}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50"
-            >
-              {generating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Sparkles className="h-4 w-4" aria-hidden />}
-              {generating ? "Designing the curriculum…" : "Generate outline"}
-            </button>
-            <p className="text-xs text-fg-muted">
-              The AI designs the full curriculum — every week, phase and day — from your course name.
-            </p>
-          </section>
-
-          {/* generated preview */}
-          <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
-              <BookOpen className="h-4 w-4 text-fg-muted" aria-hidden />
-              Preview
-            </h2>
-            {!generated ? (
-              <p className="rounded-xl border border-dashed border-line p-8 text-center text-sm text-fg-muted">
-                The generated outline appears here — review the weeks and days, then create the course.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <p className="text-base font-semibold text-fg">{generated.name}</p>
-                  {generated.description && (
-                    <p className="mt-1 line-clamp-2 text-xs text-fg-muted">{generated.description}</p>
-                  )}
-                </div>
-                <div className="divide-y divide-line overflow-hidden rounded-lg border border-line">
-                  {generated.weeks.map((w) => (
-                    <div key={w.weekNumber} className="px-3 py-2">
-                      <p className="text-sm font-medium text-fg">
-                        Week {w.weekNumber} · {w.phase || "—"}
-                      </p>
-                      <p className="truncate text-xs text-fg-muted">
-                        {w.milestone || "No milestone"} · {w.days?.length ?? 0} days
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void createGenerated()}
-                  disabled={saving}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-success px-4 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
-                  {saving ? "Creating…" : "Create course"}
-                </button>
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
+      <CourseCreationWizard
+        onBack={() => {
+          setGenerated(null);
+          setView("list");
+        }}
+        onCreated={(courseId) => {
+          setGenerated(null);
+          setView("list");
+          void load();
+          const row = courses?.find((c) => c.id === courseId);
+          if (row) void openEdit(row);
+        }}
+      />
     );
   }
 
