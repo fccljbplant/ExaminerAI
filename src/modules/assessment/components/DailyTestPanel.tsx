@@ -34,7 +34,7 @@ interface TestStatus {
   questionCount: number;
 }
 
-export function DailyTestPanel() {
+export function DailyTestPanel({ onComplete }: { onComplete?: (score: number) => void } = {}) {
   const [todays, setTodays] = useState<TestStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -69,6 +69,14 @@ export function DailyTestPanel() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Report completion to the host (classroom flow) when today's test is
+  // already done — fires once per mount, never during render.
+  useEffect(() => {
+    if (todays?.status === "completed" && !dailyTestId && todays.score != null) {
+      onComplete?.(todays.score);
+    }
+  }, [todays?.status, dailyTestId]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -142,6 +150,7 @@ export function DailyTestPanel() {
         setIsComplete(true);
         setScore(res.score ?? null);
         setFeedback(res.feedback ?? null);
+        if (res.score != null) onComplete?.(res.score);
         // Fire celebration animations if XP/badges were awarded
         if (res.celebration) {
           import("@/hooks/use-celebration").then(({ fireCelebrations }) => {
@@ -183,6 +192,7 @@ export function DailyTestPanel() {
       setIsComplete(true);
       setScore(res.score);
       setFeedback(res.feedback ?? null);
+      onComplete?.(res.score);
       // Fire celebration animations if XP/badges were awarded
       if (res.celebration) {
         import("@/hooks/use-celebration").then(({ fireCelebrations }) => {
