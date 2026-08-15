@@ -13,11 +13,15 @@ npx prisma generate --schema=prisma/schema.prod.prisma
 # The schema rarely changes between deploys; if it does and the push
 # fails, we'll catch it on the next successful build.
 echo "Syncing schema (data preserved, non-blocking)..."
-npx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate 2>&1 || {
+set +e
+npx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate 2>&1
+PUSH_EXIT=$?
+set -e
+if [ $PUSH_EXIT -ne 0 ]; then
   echo "⚠️  Schema sync skipped — DB connection unavailable."
   echo "    This is usually transient (connection slot exhaustion)."
   echo "    The build will continue with the existing schema."
-}
+fi
 
 # Step 3: Ensure admin + demo accounts exist (safe to run every build)
 echo "Ensuring admin + demo accounts..."
