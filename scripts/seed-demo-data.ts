@@ -270,6 +270,284 @@ const COURSES: CourseSpec[] = [
     prerequisites: ["Any skill you can deliver remotely"],
   },
 
+  // ── B2C — Mariam Baig (marketing + design) ─────────────────────────
+  {
+    key: "social-media",
+    name: "Social Media Marketing Bootcamp",
+    subtitle: "Content pillars, short video and a 30-day campaign plan",
+    description:
+      "Grow a brand account from zero: pick the right platforms, build a content system, and run a measurable 30-day campaign without a big budget.",
+    category: "business",
+    level: "beginner",
+    domain: "marketing",
+    price: 25,
+    instructorName: "Mariam Baig",
+    instructorBio:
+      "Digital marketer who grew three brand accounts past 100k followers. Mariam teaches the systems behind consistent, scroll-stopping content.",
+    weeks: [
+      {
+        phase: "Foundations",
+        days: [
+          "Choosing platforms that fit your audience",
+          "Setting up business profiles",
+          "Content pillars that sell",
+          "Hashtags & discovery",
+          "Week 1 recap: your content calendar",
+        ],
+      },
+      {
+        phase: "Content & growth",
+        days: [
+          "Short-video content that converts",
+          "Designing posts without a designer",
+          "Community engagement done right",
+          "Paid boosts on a budget",
+          "Week 2 recap: 5-post sprint",
+        ],
+      },
+      {
+        phase: "Measure & scale",
+        days: [
+          "Reading platform analytics",
+          "A/B testing hooks",
+          "Automation & scheduling",
+          "Collaborations & shoutouts",
+          "Final project: 30-day campaign plan",
+        ],
+      },
+    ],
+    skillsVerified: ["Content strategy", "Short video", "Campaign planning"],
+    whatYouWillLearn: ["Build a content system", "Grow without a big budget", "Measure what works"],
+    prerequisites: ["None — open to all creators"],
+  },
+  {
+    key: "canva",
+    name: "Canva & Visual Design Essentials",
+    subtitle: "Design principles, brand kits and polished deliverables",
+    description:
+      "Make professional visuals without a designer: design principles in plain language, a reusable brand kit, and a pack of ready-to-post deliverables.",
+    category: "technology",
+    level: "beginner",
+    domain: "design",
+    price: 15,
+    instructorName: "Mariam Baig",
+    instructorBio:
+      "Digital marketer who grew three brand accounts past 100k followers. Mariam teaches the systems behind consistent, scroll-stopping content.",
+    weeks: [
+      {
+        phase: "Design basics",
+        days: [
+          "Design principles in 60 minutes",
+          "Canva workspace tour",
+          "Brand kits & templates",
+          "Typography that reads",
+          "Week 1 recap: design a flyer",
+        ],
+      },
+      {
+        phase: "Deliverables",
+        days: [
+          "Social media post set",
+          "Presentations that impress",
+          "One-page business documents",
+          "Export & file formats",
+          "Final project: your brand kit",
+        ],
+      },
+    ],
+    skillsVerified: ["Design principles", "Brand kits", "Canva workflows"],
+    whatYouWillLearn: ["Apply design principles", "Build a reusable brand kit", "Ship polished deliverables"],
+    prerequisites: ["None — free Canva account"],
+  },
+  {
+    key: "content-writing",
+    name: "Content Writing that Converts",
+    subtitle: "Headlines, hooks, product copy and an editing workflow",
+    description:
+      "Write copy that gets read and gets results: headlines that earn clicks, hooks that hold attention, and product descriptions that sell.",
+    category: "business",
+    level: "beginner",
+    domain: "marketing",
+    price: 19,
+    instructorName: "Mariam Baig",
+    instructorBio:
+      "Digital marketer who grew three brand accounts past 100k followers. Mariam teaches the systems behind consistent, scroll-stopping content.",
+    weeks: [
+      {
+        phase: "Writing foundations",
+        days: [
+          "Write like you talk",
+          "Headlines that get clicks",
+          "Hooks & openers",
+          "Structure: the inverted pyramid",
+          "Week 1 recap: rewrite a weak post",
+        ],
+      },
+      {
+        phase: "Conversion & polish",
+        days: [
+          "Calls-to-action that work",
+          "Product descriptions that sell",
+          "Editing & proofreading workflow",
+          "Repurposing one idea into five formats",
+          "Final project: your content pack",
+        ],
+      },
+    ],
+    skillsVerified: ["Headline writing", "Product copy", "Editing"],
+    whatYouWillLearn: ["Write headlines that convert", "Describe products that sell", "Edit like a professional"],
+    prerequisites: ["Comfortable writing in any language"],
+  },
+
+  // ── B2C — Taimur Shah (data + e-commerce) ──────────────────────────
+  {
+    key: "excel",
+    name: "Excel to Dashboard Analytics",
+    subtitle: "From messy data to decision-ready dashboards",
+    description:
+      "Turn spreadsheet chaos into dashboards managers actually use: cleaning, pivot tables, lookups and a polished interactive dashboard.",
+    category: "technology",
+    level: "intermediate",
+    domain: "data",
+    price: 39,
+    instructorName: "Taimur Shah",
+    instructorBio:
+      "Analytics consultant who has built dashboards for 50+ SMBs. Taimur teaches the exact workflow from raw export to boardroom-ready.",
+    weeks: [
+      {
+        phase: "Data basics",
+        days: [
+          "Spreadsheet structure & tables",
+          "Formulas that matter",
+          "Data cleaning fundamentals",
+          "Conditional formatting",
+          "Week 1 recap: clean a messy dataset",
+        ],
+      },
+      {
+        phase: "Analysis",
+        days: [
+          "Pivot tables deep dive",
+          "Lookups: VLOOKUP & XLOOKUP",
+          "Summarizing with SUMIFS/COUNTIFS",
+          "Charts that convince",
+          "Week 2 recap: analyze sales data",
+        ],
+      },
+      {
+        phase: "Dashboards",
+        days: [
+          "Dashboard planning",
+          "Building your first dashboard",
+          "Slicers & interactivity",
+          "Design for decision-makers",
+          "Week 3 recap: dashboard v1",
+        ],
+      },
+      {
+        phase: "Deliver",
+        days: [
+          "Automating with Power Query",
+          "Forecasting basics",
+          "Presenting numbers to management",
+          "Maintaining & refreshing data",
+          "Final project: decision-ready dashboard",
+        ],
+      },
+    ],
+    skillsVerified: ["Data cleaning", "Pivot tables", "Dashboard design"],
+    whatYouWillLearn: ["Clean any dataset", "Build pivot analysis", "Ship a live dashboard"],
+    prerequisites: ["Basic spreadsheet navigation"],
+  },
+  {
+    key: "shopify",
+    name: "Shopify Store Setup",
+    subtitle: "Theme, products, payments and a launch checklist",
+    description:
+      "Launch a real online store end to end: pick a converting theme, set up products and payments, and run the pre-launch checklist.",
+    category: "business",
+    level: "beginner",
+    domain: "ecommerce",
+    price: 29,
+    instructorName: "Taimur Shah",
+    instructorBio:
+      "Analytics consultant who has built dashboards for 50+ SMBs. Taimur teaches the exact workflow from raw export to boardroom-ready.",
+    weeks: [
+      {
+        phase: "Store foundations",
+        days: [
+          "Shopify plans & setup",
+          "Choosing a theme that sells",
+          "Products, variants & collections",
+          "Payments & shipping setup",
+          "Week 1 recap: your store skeleton",
+        ],
+      },
+      {
+        phase: "Conversion & content",
+        days: [
+          "Product photography on a phone",
+          "Copy that converts",
+          "Store speed & mobile experience",
+          "Apps worth installing",
+          "Week 2 recap: conversion pass",
+        ],
+      },
+      {
+        phase: "Launch & traffic",
+        days: [
+          "Launch checklist",
+          "Social & ad traffic basics",
+          "Email capture & flows",
+          "Reading store analytics",
+          "Final project: launch your store",
+        ],
+      },
+    ],
+    skillsVerified: ["Store setup", "Product setup", "Launch checklist"],
+    whatYouWillLearn: ["Set up a store in a day", "Optimize conversions", "Launch with traffic"],
+    prerequisites: ["None — no inventory needed to start"],
+  },
+  {
+    key: "ai-tools",
+    name: "AI Tools for Small Business",
+    subtitle: "Prompting, content, and one AI-powered workflow",
+    description:
+      "A practical, no-hype tour of AI tools for small teams: prompt well, speed up content and support, and automate one real workflow.",
+    category: "technology",
+    level: "beginner",
+    domain: "technology",
+    price: 0,
+    instructorName: "Taimur Shah",
+    instructorBio:
+      "Analytics consultant who has built dashboards for 50+ SMBs. Taimur teaches the exact workflow from raw export to boardroom-ready.",
+    weeks: [
+      {
+        phase: "AI foundations",
+        days: [
+          "What AI can (and can't) do today",
+          "Prompting 101",
+          "AI for writing & content",
+          "AI for images & design",
+          "Week 1 recap: your AI toolkit",
+        ],
+      },
+      {
+        phase: "Workflow integration",
+        days: [
+          "Automating repetitive admin",
+          "AI for customer support",
+          "Choosing tools without hype",
+          "AI ethics & accuracy",
+          "Final project: one AI-powered workflow",
+        ],
+      },
+    ],
+    skillsVerified: ["Prompting", "Tool selection", "Workflow automation"],
+    whatYouWillLearn: ["Prompt like a pro", "Automate one workflow", "Pick tools without hype"],
+    prerequisites: ["None — open to everyone"],
+  },
+
   // ── B2B — Demo Training Co (industrial training) ───────────────────
   {
     key: "hse",
@@ -617,7 +895,25 @@ interface PersonSpec {
   role: "learner" | "instructor" | "org_admin";
 }
 
-const B2C_INSTRUCTOR: PersonSpec = { email: "ali.raza@demo.ai", name: "Ali Raza", role: "instructor" };
+const B2C_INSTRUCTORS: PersonSpec[] = [
+  { email: "ali.raza@demo.ai", name: "Ali Raza", role: "instructor" },
+  { email: "mariam.baig@demo.ai", name: "Mariam Baig", role: "instructor" },
+  { email: "taimur.shah@demo.ai", name: "Taimur Shah", role: "instructor" },
+];
+
+/** Which B2C instructor owns each B2C course (used for instructor enrollments). */
+const B2C_COURSE_INSTRUCTORS: Record<string, string> = {
+  ebay: "ali.raza@demo.ai",
+  seo: "ali.raza@demo.ai",
+  "phone-repair": "ali.raza@demo.ai",
+  freelance: "ali.raza@demo.ai",
+  "social-media": "mariam.baig@demo.ai",
+  canva: "mariam.baig@demo.ai",
+  "content-writing": "mariam.baig@demo.ai",
+  excel: "taimur.shah@demo.ai",
+  shopify: "taimur.shah@demo.ai",
+  "ai-tools": "taimur.shah@demo.ai",
+};
 
 const ORG_ADMIN: PersonSpec = { email: "orgadmin@demo.ai", name: "Dr. Asma Rauf", role: "org_admin" };
 
@@ -625,12 +921,15 @@ const ORG_INSTRUCTORS: PersonSpec[] = [
   { email: "instructor@demo.ai", name: "Sir Saeed Khan", role: "instructor" },
   { email: "fatima.noor@demo.ai", name: "Fatima Noor", role: "instructor" },
   { email: "bilal.ahmed@demo.ai", name: "Bilal Ahmed", role: "instructor" },
+  { email: "imran.sheikh@demo.ai", name: "Imran Sheikh", role: "instructor" },
 ];
 
 const B2C_LEARNER_NAMES = [
   "Sarah Ahmed", "Rehan Sheikh", "Maham Nadeem", "Bilawal Memon",
   "Zoya Irfan", "Adeel Chaudhry", "Hira Sultan", "Shayan Karim",
   "Anum Tariq", "Faisal Abbasi", "Emaan Qazi", "Yousuf Malik",
+  "Rida Fatima", "Shoaib Nawaz", "Maira Iqbal", "Junaid Akram",
+  "Areeba Sheikh", "Fahad Khan", "Sumbal Riaz", "Zaid Anwar",
 ];
 
 const ORG_LEARNER_NAMES = [
@@ -640,6 +939,7 @@ const ORG_LEARNER_NAMES = [
   "Ayesha Siddiqui", "Waqas Anwar", "Rabia Nasir", "Taimoor Malik",
   "Sadia Rehman", "Kamran Yusuf", "Mahnoor Haider", "Saad Qureshi",
   "Laiba Shahid", "Arslan Baig", "Amna Riaz", "Zubair Cheema",
+  "Shahzaib Khan", "Mehak Aslam", "Abdullah Naveed", "Kiran Masood",
 ];
 
 function emailFor(name: string, prefix: string): string {
@@ -651,9 +951,9 @@ function emailFor(name: string, prefix: string): string {
 const ORG_COURSE_INSTRUCTORS: Record<string, string[]> = {
   hse: ["instructor@demo.ai"],
   electrical: ["fatima.noor@demo.ai"],
-  mechanical: ["fatima.noor@demo.ai", "bilal.ahmed@demo.ai"],
+  mechanical: ["fatima.noor@demo.ai", "imran.sheikh@demo.ai"],
   hr: ["bilal.ahmed@demo.ai"],
-  finance: ["bilal.ahmed@demo.ai"],
+  finance: ["bilal.ahmed@demo.ai", "imran.sheikh@demo.ai"],
   "power-plant": ["instructor@demo.ai", "fatima.noor@demo.ai"],
 };
 
@@ -1101,17 +1401,24 @@ async function main() {
   }
   console.log("✓ badge definitions");
 
-  // ── B2C side — independent instructor + marketplace courses ────────
-  const ali = await makeUser(B2C_INSTRUCTOR, { createdAt: daysAgo(50) });
+  // ── B2C side — three independent instructors, 10 marketplace courses ─
+  const b2cInstructors: Record<string, { id: string; name: string }> = {};
+  for (const p of B2C_INSTRUCTORS) {
+    const u = await makeUser(p, { createdAt: daysAgo(range(45, 70)) });
+    b2cInstructors[p.email] = u;
+  }
+  const ali = b2cInstructors["ali.raza@demo.ai"];
+  const b2cCourseKeys = COURSES.slice(0, 10).map((c) => c.key);
   const b2cCourses: Record<string, CourseRow> = {};
-  for (const spec of COURSES.slice(0, 4)) {
+  for (const spec of COURSES.slice(0, 10)) {
     const course = await makeCourse(spec, true);
+    const instructor = b2cInstructors[B2C_COURSE_INSTRUCTORS[spec.key] ?? "ali.raza@demo.ai"];
     await db.courseEnrollment.create({
-      data: { userId: ali.id, courseId: course.id, role: "instructor" },
+      data: { userId: instructor.id, courseId: course.id, role: "instructor" },
     });
     b2cCourses[spec.key] = course;
   }
-  console.log("✓ B2C instructor Ali Raza + 4 marketplace courses");
+  console.log(`✓ 3 B2C instructors + ${Object.keys(b2cCourses).length} marketplace courses`);
 
   const b2cLearners: { user: { id: string; name: string } }[] = [];
   for (const name of B2C_LEARNER_NAMES) {
@@ -1122,13 +1429,19 @@ async function main() {
     b2cLearners.push({ user: { id: u.id, name: u.name } });
   }
 
-  // B2C enrollment plan: every course ≥10 students, overlaps between SEO & Fiverr
-  const b2cPlan: Record<string, string[]> = {
-    ebay: ["Sarah Ahmed", "Bilawal Memon", "Zoya Irfan", "Shayan Karim", "Faisal Abbasi", "Yousuf Malik", "Hira Sultan", "Adeel Chaudhry", "Emaan Qazi", "Anum Tariq"],
-    seo: ["Rehan Sheikh", "Maham Nadeem", "Sarah Ahmed", "Bilawal Memon", "Adeel Chaudhry", "Emaan Qazi", "Hira Sultan", "Shayan Karim", "Zoya Irfan", "Yousuf Malik", "Anum Tariq"],
-    "phone-repair": ["Faisal Abbasi", "Yousuf Malik", "Shayan Karim", "Bilawal Memon", "Adeel Chaudhry", "Emaan Qazi", "Hira Sultan", "Anum Tariq", "Zoya Irfan", "Rehan Sheikh", "Maham Nadeem", "Sarah Ahmed"],
-    freelance: ["Sarah Ahmed", "Rehan Sheikh", "Maham Nadeem", "Hira Sultan", "Anum Tariq", "Emaan Qazi", "Faisal Abbasi", "Zoya Irfan", "Adeel Chaudhry", "Bilawal Memon"],
-  };
+  // B2C enrollment plan (programmatic, 2026-08-15): every course gets
+  // 10-12 students; round-robin with an offset + jitter so a FEW students
+  // overlap multiple courses while most take one or two.
+  const b2cPlan: Record<string, string[]> = {};
+  for (const [idx, key] of b2cCourseKeys.entries()) {
+    const count = 10 + (idx % 3);
+    const start = (idx * 7) % b2cLearners.length;
+    const names: string[] = [];
+    for (let i = 0; i < count; i++) {
+      names.push(b2cLearners[(start + i) % b2cLearners.length].user.name);
+    }
+    b2cPlan[key] = names;
+  }
 
   for (const [key, names] of Object.entries(b2cPlan)) {
     const course = b2cCourses[key];
@@ -1212,7 +1525,7 @@ async function main() {
   }
 
   const orgCourses: Record<string, CourseRow> = {};
-  for (const spec of COURSES.slice(4)) {
+  for (const spec of COURSES.slice(10)) {
     const course = await makeCourse(spec, true);
     orgCourses[spec.key] = course;
     await db.orgCourse.create({ data: { orgId: org.id, courseId: course.id } });
@@ -1241,16 +1554,24 @@ async function main() {
   }
 
   // Org enrollment plan — every course ≥10 students, several multi-enrolled
-  const orgPlan: Record<string, string[]> = {
-    hse: ["Aisha Khan", "Hamza Ali", "Zainab Bibi", "Usman Tariq", "Maryam Javed", "Hassan Raza", "Sana Khalid", "Omar Farooq", "Iqra Saleem", "Fahad Mehmood", "Nimra Akhtar", "Danish Iqbal"],
-    electrical: ["Ayesha Siddiqui", "Waqas Anwar", "Rabia Nasir", "Taimoor Malik", "Sadia Rehman", "Kamran Yusuf", "Hamza Ali", "Usman Tariq", "Maryam Javed", "Zubair Cheema", "Amna Riaz"],
-    mechanical: ["Mahnoor Haider", "Saad Qureshi", "Laiba Shahid", "Arslan Baig", "Amna Riaz", "Zubair Cheema", "Hassan Raza", "Omar Farooq", "Nimra Akhtar", "Danish Iqbal", "Waqas Anwar", "Rabia Nasir"],
-    hr: ["Aisha Khan", "Sadia Rehman", "Mahnoor Haider", "Laiba Shahid", "Maryam Javed", "Sana Khalid", "Iqra Saleem", "Fahad Mehmood", "Kamran Yusuf", "Saad Qureshi"],
-    finance: ["Hamza Ali", "Zainab Bibi", "Ayesha Siddiqui", "Taimoor Malik", "Kamran Yusuf", "Mahnoor Haider", "Saad Qureshi", "Amna Riaz", "Zubair Cheema", "Arslan Baig"],
-    "power-plant": ["Aisha Khan", "Hamza Ali", "Usman Tariq", "Hassan Raza", "Omar Farooq", "Waqas Anwar", "Rabia Nasir", "Danish Iqbal", "Nimra Akhtar", "Fahad Mehmood", "Taimoor Malik", "Ayesha Siddiqui"],
-  };
+  // Org enrollment plan (programmatic, 2026-08-15): every org course gets
+  // 10-13 students from the 28-member roster; round-robin offsets create
+  // overlaps so some students carry 2-3 courses, most carry 1-2.
+  const orgPlan: Record<string, string[]> = {};
+  {
+    const orgCourseKeys = Object.keys(orgCourses);
+    for (const [idx, key] of orgCourseKeys.entries()) {
+      const count = 10 + (idx % 4);
+      const start = (idx * 9) % orgLearners.length;
+      const names: string[] = [];
+      for (let i = 0; i < count; i++) {
+        names.push(orgLearners[(start + i) % orgLearners.length].user.name);
+      }
+      orgPlan[key] = names;
+    }
+  }
 
-  const finisherNames = new Set(["Aisha Khan", "Hamza Ali", "Zainab Bibi", "Sarah Ahmed", "Rehan Sheikh"]);
+  const finisherNames = new Set(["Aisha Khan", "Hamza Ali", "Zainab Bibi", "Iqra Saleem"]);
   const primaryCourses = new Set<string>();
 
   for (const [key, names] of Object.entries(orgPlan)) {
@@ -1279,8 +1600,8 @@ async function main() {
   for (const [name, courseKey] of [
     ["Aisha Khan", "hse"],
     ["Hamza Ali", "hse"],
-    ["Zainab Bibi", "hr"],
-    ["Usman Tariq", "electrical"],
+    ["Zainab Bibi", "hse"],
+    ["Iqra Saleem", "electrical"],
   ] as const) {
     const learner = orgLearners.find((l) => l.user.name === name)!;
     const course = orgCourses[courseKey];
@@ -1631,14 +1952,17 @@ async function main() {
   console.log(`  ${totals.users} users · ${totals.courses} courses · ${totals.enrollments} enrollments`);
   console.log(`  ${totals.submissions} submissions · ${totals.projects} projects · ${totals.payments} payments · ${totals.certificates} certificates`);
   console.log("");
-  console.log("  B2C — independent instructor (marketplace):");
-  console.log("    ali.raza@demo.ai / demo123  (4 paid courses)");
+  console.log("  B2C — independent instructors (marketplace):");
+  console.log("    ali.raza@demo.ai / demo123  (Ali Raza — eBay, SEO, Phone Repair, Freelancing)");
+  console.log("    mariam.baig@demo.ai / demo123  (Mariam Baig — Social Media, Canva, Content Writing)");
+  console.log("    taimur.shah@demo.ai / demo123  (Taimur Shah — Excel Dashboards, Shopify, AI Tools)");
   console.log("    b2c.sarah.ahmed@demo.ai / demo123  (marketplace learner)");
   console.log("  B2B — Demo Training Co (org):");
   console.log("    orgadmin@demo.ai / demo123  (org admin)");
   console.log("    instructor@demo.ai / demo123  (Sir Saeed Khan — HSE + Power Plant)");
-  console.log("    fatima.noor@demo.ai / demo123  (Electrical + Mechanical)");
-  console.log("    bilal.ahmed@demo.ai / demo123  (HR + Finance)");
+  console.log("    fatima.noor@demo.ai / demo123  (Fatima Noor — Electrical + Mechanical)");
+  console.log("    bilal.ahmed@demo.ai / demo123  (Bilal Ahmed — HR + Finance)");
+  console.log("    imran.sheikh@demo.ai / demo123  (Imran Sheikh — Mechanical + Finance)");
   console.log("    learner@demo.ai / demo123  (Aisha Khan — org learner)");
   console.log("  Platform:");
   console.log("    admin@examiner.ai / admin123");
