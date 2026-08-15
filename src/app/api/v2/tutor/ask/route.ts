@@ -8,8 +8,11 @@ import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getTodayTopic } from "@/modules/learn/lib/today-topic";
 import { getTutorContext } from "@/modules/learn/lib/study-flow-db";
-import { getTutorStudentContext, tutorContextBlocks } from "@/modules/learn/lib/tutor-context";
-import { buildTutorBlocksFromPacks, pseudonym } from "@/modules/ai";
+import {
+  universalTutorSystemPrompt,
+  buildTutorContextMessage,
+  tutorQuestionPrefix,
+} from "@/modules/ai";
 import type { TutorContextResult } from "@/modules/learn/lib/study-flow";
 
 /**
@@ -97,37 +100,48 @@ export async function POST(req: NextRequest) {
   }
 
   const context = await buildContext(user.sub);
-  // W15: full student context — topic, scores, project. Degrades to
-  // empty blocks on any lookup failure; the tutor must never fail
-  // because a context lookup did.
-  // W15 + AI-cache (2026-08-15): the student context blocks now come
-  // from the per-subject pack caches (encrypted at rest, pseudonym-only,
-  // hit/miss visible in the admin cache panel). The old context builder
-  // still resolves the primary course + current topic coordinates.
-  const studentCtx = await getTutorStudentContext(user.sub).catch(() => null);
-  const studentBlocks =
-    studentCtx?.courseId && studentCtx.topic
-      ? await buildTutorBlocksFromPacks(user.sub, studentCtx.courseId, {
-          week: studentCtx.topic.week,
-          day: studentCtx.topic.day,
-        }).catch(() => "")
-      : studentCtx
-        ? tutorContextBlocks(studentCtx)
-        : "";
-  // W3 scenario packet — absence / cram / exam proximity. Degrades to a
-  // normal prompt when the study-flow engine can't resolve the learner
-  // (no enrollment, flag off): the tutor must never fail because a
-  // scenario lookup did.
+
+  // Universal subject-agnostic tutor (2026-08-15): the SYSTEM prompt is
+  // static and cacheable; the COURSE OUTLINE / CURRENT TOPIC / STUDENT
+  // PROJECT / STUDENT DATA block is assembled from the per-subject packs
+  // (encrypted at rest, anonymized) into ONE stable context message, so
+  // system + context form a long cacheable prefix — only the final
+  // "Student asks: …" message varies per turn.
   const studyFlow = context.courseId
     ? await getTutorContext(user.sub, context.courseId, surface ?? "").catch(() => null)
     : null;
-  const systemPrompt = buildSystemPrompt(pseudonym(user.sub), surface, context, studentBlocks, studyFlow);
+  const scenarioBlock =
+    studyFlow && studyFlow.activeScenario !== "normal"
+      ? [
+          `STUDY-FLOW: ${studyFlow.contextSummary}`,
+          `ACTIVE SCENARIO: ${studyFlow.activeScenario}`,
+          studyFlow.proactiveOffer
+            ? `PROACTIVE OFFER (mention at most once, only if it fits naturally, never nag): "${studyFlow.proactiveOffer.copy}" Options you may suggest: ${studyFlow.proactiveOffer.options.map((o) => o.label).join(" / ")}.`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : "";
+
+  const contextMessage = await buildTutorContextMessage({
+    userId: user.sub,
+    courseId: context.courseId,
+    topic: context.topic ? { week: context.topic.week, day: context.topic.day } : null,
+    studyFlow: scenarioBlock || undefined,
+  }).catch(() => "");
+
+  const questionPrefix = tutorQuestionPrefix(context.topic?.title, null);
+  const systemPrompt = universalTutorSystemPrompt({ surface });
 
   try {
     const stream = await streamAI(
       [
         { role: "system", content: systemPrompt },
-        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: "user", content: contextMessage || "The learner is not enrolled yet." },
+        ...messages.map((m) => ({
+          role: m.role,
+          content: m.role === "user" ? `${questionPrefix}${m.content}` : m.content,
+        })),
       ],
       { temperature: 0.7, maxTokens: 600, feature: "ai-tutor-v2", userId: user.sub }
     );
@@ -203,51 +217,4 @@ async function buildContext(userId: string): Promise<TutorContextLite> {
   };
 }
 
-function buildSystemPrompt(
-  learnerName: string,
-  surface: string | undefined,
-  ctx: TutorContextLite,
-  studentBlocks: string,
-  studyFlow: TutorContextResult | null,
-): string {
-  const courseBlock = ctx.courseName
-    ? [
-        `COURSE: ${ctx.courseName}${ctx.courseDomain ? ` (domain: ${ctx.courseDomain})` : ""}${ctx.courseLevel ? ` · level: ${ctx.courseLevel}` : ""}`,
-        `LEARNER STATUS: ${ctx.totalXP} XP · ${ctx.streak}-day streak`,
-        ctx.topic
-          ? `CURRENT LESSON: Week ${ctx.topic.week}, Day ${ctx.topic.day} — ${ctx.topic.title}. Objective: ${ctx.topic.objective}`
-          : "The learner is between lessons.",
-      ].join("\n")
-    : "The learner is not enrolled in a course yet — help them explore the catalog and pick one.";
 
-  // W3 scenario packet — only when a non-normal scenario is active.
-  const scenarioBlock =
-    studyFlow && studyFlow.activeScenario !== "normal"
-      ? [
-          `STUDY-FLOW: ${studyFlow.contextSummary}`,
-          `ACTIVE SCENARIO: ${studyFlow.activeScenario}`,
-          studyFlow.proactiveOffer
-            ? `PROACTIVE OFFER (mention at most once, only if it fits naturally, never nag): "${studyFlow.proactiveOffer.copy}" Options you may suggest: ${studyFlow.proactiveOffer.options.map((o) => o.label).join(" / ")}.`
-            : "",
-        ]
-          .filter(Boolean)
-          .join("\n")
-      : "";
-
-  return `You are the AI study tutor for ${learnerName || "the learner"} on TraineesAI, a training platform that teaches any subject.
-${surface ? `The learner is asking from: ${surface}` : ""}
-
-${courseBlock}
-${studentBlocks ? `\n${studentBlocks}\n` : ""}
-${scenarioBlock ? `\n${scenarioBlock}\n` : ""}
-RULES:
-- Short chat replies (3-8 sentences). This is a chat, not a lecture.
-- Plain text only: no emojis, no markdown, no bullet characters.
-- Warm, respectful teacher tone; domain-neutral wording whatever the subject.
-- You are TEXT-ONLY: you cannot open files, images, audio or video. If asked to read media, say plainly that you work with text and ask the learner to describe or paste it. Never fabricate content you cannot see.
-- Connect answers to the current lesson when one is active; otherwise help plan or review.
-- Use the student's scores to encourage and the weak topics to suggest what to review.
-- When the student asks about their project, coach from the project data above. If they have no project yet, help them choose one aligned with their course domain and suggest a first milestone.
-- Never guilt the learner about absence or pace — every scenario offer is framed as a helpful choice.
-- If a topic needs depth, give the core idea plus one example, then ask if they want more.`;
-}

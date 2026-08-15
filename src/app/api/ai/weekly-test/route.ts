@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { TOKEN_BUDGET } from "@/lib/ai-provider";
+import { callAIJson } from "@/lib/ai-json";
+import { z } from "zod";
 import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
 import { weeklyTestSystemPrompt, finalAnalysisPrompt } from "@/lib/ai-prompts";
 import { getCourseWeekTopicTitles, getCourseWeekPhase, getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { getTestConfig, getAIPrompts } from "@/lib/course-config";
 import { logger } from "@/lib/logger";
-import { applyPlagiarismDeduction } from "@/lib/plagiarism-scoring";
 import { isFeatureEnabled } from "@/lib/feature-flags";
-import { fallbackGrade, parseQuestionExplanations, type TeachingFeedback, type QuestionExplanation } from "@/lib/unified-grader";
+import { fallbackGrade, type TeachingFeedback, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
+import { buildTestLedger, ledgerToPrompt, buildNextQuestionPrompt } from "@/modules/assessment/lib/test-ledger";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { issueCertificate } from "@/lib/certificate";
 import { TEST_QUESTION_COUNT } from "@/lib/constants";
@@ -33,6 +35,7 @@ import { awardXP, awardBadge } from "@/modules/gamification";
 // disagreed with the constants file and the UI copy — that bug is now closed.
 // The prompt template below interpolates the same number, so config and prompt
 // can never drift again.
+export const maxDuration = 120; // ledger-based turns stay small; final analysis gets headroom
 const DEFAULT_MAX_MESSAGES = 5;
 const DEFAULT_TOTAL_QUESTIONS = TEST_QUESTION_COUNT.weekly;
 
@@ -323,12 +326,11 @@ export async function POST(req: NextRequest) {
   if (action === "start") {
     conversation = [];
     const context = `Week ${week}: ${phase}. Project: ${projectName || user.projectName || "your capstone project"}. Daily topics: ${topics.join(", ")}.`;
-    const firstMsgRaw = await callAILocal([
+    const firstTurn = await callAILocal([
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `${context}\n\nStart the test. You are on Question 1 of 10. Confirm the week's topics briefly (1 sentence), then ask your first beginner-level question about Day 1's topic: "${topics[0]}". Do NOT prefix with "Question 1:" — just ask the question directly.` },
     ], "weekly-test-start", undefined, user.id);
-    // Strip any "Question N:" prefix the AI might add
-    const firstMsg = firstMsgRaw.replace(/^Question\s*\d+\s*:\s*/i, "").trim();
+    const firstMsg = firstTurn.text.replace(/^Question\s*\d+\s*:\s*/i, "").trim();
     conversation.push({ role: "examiner", content: firstMsg, timestamp: new Date().toISOString(), questionIndex: 0 });
     await saveConversation(test.id, conversation, 0, 0, "in-progress");
     return NextResponse.json({
@@ -379,103 +381,65 @@ export async function POST(req: NextRequest) {
     const isLastMessage = newReplyCount >= MAX_MESSAGES_PER_QUESTION;
     const isLastQuestion = test.currentQuestion >= TOTAL_QUESTIONS - 1;
 
-    // Send MORE context to the AI — last 8 messages (was 4) so the AI
-    // can see the original question + follow-ups + behavioral patterns.
-    // This gives the AI enough context to probe effectively and detect
-    // inconsistency patterns for plagiarism detection.
-    const recentMessages = conversation.slice(-8);
+    // COMPACT LEDGER (2026-08-15): the AI never sees the raw chat
+    // history — it sees one bounded line per completed question plus the
+    // current question + latest answer. Every turn stays small and
+    // constant-size, so long sessions can no longer time out. The ledger
+    // is derived from data already saved locally per question.
+    const ledger = buildTestLedger(conversation);
+    const ledgerText = ledgerToPrompt(ledger);
+    const currentQuestionText = (conversation
+      .filter(m => m.role === "examiner" && m.questionIndex === test.currentQuestion)
+      .map(m => m.content)
+      .join(" ")
+      || `Week ${week} topics`).slice(0, 400);
+
     const aiMessages = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...recentMessages.map(m => ({
-        role: m.role === "examiner" ? "assistant" : "user",
-        content: m.content,
-      })),
-    ];
-
-    // For non-final replies, instruct the AI to probe or advance
-    if (!isLastMessage) {
-      aiMessages.push({
+      {
         role: "user",
         content: `[LANGUAGE CHECK — Re-read the student's LATEST message. If they wrote in Roman Urdu (e.g. "zaroori hota hai", "tum kon ho", "karna hai"), your ENTIRE response MUST be in Roman Urdu. If they wrote in English, use English. If they asked you to switch language ("explain in urdu"), comply. NEVER ask them to switch to English. Technical terms stay in English.]
 
-You are on Question ${test.currentQuestion + 1} of 10. Reply ${newReplyCount} of ${MAX_MESSAGES_PER_QUESTION}. ${pasteWarning} ${avoidanceWarning}
+TEST LEDGER (completed questions, compact):
+${ledgerText}
+
+CURRENT QUESTION (${test.currentQuestion + 1} of ${TOTAL_QUESTIONS}): "${currentQuestionText}"
+The student just answered (reply ${newReplyCount} of ${MAX_MESSAGES_PER_QUESTION}): "${studentMessage.slice(0, 800)}"
+${pasteWarning} ${avoidanceWarning}
 
 Give 1-2 sentences of brief feedback on the student's answer. Then decide:
-
-If the student's answer was clear enough to assess (even if partially wrong): ask the NEXT question (Question ${test.currentQuestion + 2} of 10) about ${isLastQuestion ? "wrap up the test" : `Day ${test.currentQuestion + 2}'s topic: "${topics[Math.min(test.currentQuestion + 1, topics.length - 1)]}"`}. End your response with [ADVANCE] on its own line. Ask the question ONLY ONCE — do not repeat it.
-
-If the student's answer is too unclear or brief to assess: ask ONE brief probing follow-up about the SAME topic to get them to explain their reasoning. Do NOT add [ADVANCE]. Do NOT ask a new question about a different topic. The goal of probing is to understand HOW they think, not to teach them.
-
-If the student is off-topic, distracting, or pasting your question back: redirect them firmly. Do NOT praise pasted answers. Do NOT add [ADVANCE] unless this is their 2nd attempt.
+- If the answer was clear enough to assess (even if partially wrong): set "advance": true.
+- If it's too unclear or brief: ask ONE brief probing follow-up about the SAME topic. Set "advance": false.
+- If off-topic or pasting the question back: redirect firmly, do NOT praise it. Set "advance": false unless this is their 2nd attempt.
 
 CRITICAL RULES:
-- Do NOT repeat the same sentence or question twice. Say everything exactly once.
-- Do NOT prefix with "Question N:" — just ask directly.
+- Do NOT ask the next question in this reply — the next question is generated separately.
+- Do NOT repeat sentences. Keep feedback under 3 sentences. No behavioral observations.
 - Do NOT explain concepts in detail. You are testing, not teaching.
-- Do NOT add behavioral observations to individual replies.
-- If the student pasted your question or gave a non-answer, do NOT say "correct" or "good".
-- Keep it SHORT — under 3 sentences of feedback + 1 question.]`,
-      });
-    }
+- Do NOT say "correct" or "good" for pasted or non-answers.`,
+      },
+    ];
 
-    if (isLastMessage) {
-      aiMessages.push({
-        role: "user",
-        content: `[LANGUAGE CHECK — Re-read the student's LATEST message. If they wrote in Roman Urdu, your ENTIRE response (including the next question or final summary) MUST be in Roman Urdu. If they wrote in English, use English. If they asked you to switch language, comply. NEVER ask them to switch to English. Technical terms stay in English.]
+    const examinerTurn = await callAILocal(aiMessages, "weekly-test-reply", undefined, user.id);
 
-This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. ${pasteWarning} ${avoidanceWarning} Give 1-2 sentences of brief feedback, then ${isLastQuestion ? "give the FINAL SUMMARY of the entire test (grade, concepts, psychological assessment, distraction analysis, next steps)." : `immediately ask the next question (Question ${test.currentQuestion + 2} of 10) about Day ${test.currentQuestion + 2}'s topic: "${topics[Math.min(test.currentQuestion + 1, topics.length - 1)]}". Do NOT prefix with "Question N:" — just ask directly. Do NOT add any observation lines or behavioral notes — just feedback + next question.`}]`,
-      });
-    }
+    // The prompt itself signals advancement via the JSON "advance" field
+    // (2026-08-15 JSON-mode sweep) — no marker scraping, no phrase
+    // heuristics. The 5-reply cap still forces the move.
+    const wantsAdvance = examinerTurn.advance;
+    const examinerResponse = examinerTurn.text.replace(/^Question\s*\d+\s*:\s*/im, "").trim();
 
-    const examinerResponseRaw = await callAILocal(aiMessages, "weekly-test-reply", undefined, user.id);
-
-    // Detect [ADVANCE] marker — the AI uses this to signal it wants to
-    // move to the next question even before 5 replies are used up.
-    const wantsAdvance = examinerResponseRaw.includes("[ADVANCE]");
-    // Strip [ADVANCE] marker AND any "Question N:" prefix the AI might add
-    let examinerResponse = examinerResponseRaw.replace(/\s*\[ADVANCE\]\s*/g, "").trim();
-    examinerResponse = examinerResponse.replace(/^Question\s*\d+\s*:\s*/im, "").trim();
-    // Remove duplicate sentences — the AI sometimes repeats a sentence
-    // twice in the same response (e.g. the question text appears 2x).
-    // Split by sentence-ending punctuation, deduplicate, rejoin.
-    const sentences = examinerResponse.match(/[^.!?]+[.!?]+|\S+$/g) || [examinerResponse];
-    const seenSentences = new Set<string>();
-    const uniqueSentences = sentences.filter(s => {
-      const normalized = s.trim().toLowerCase().replace(/\s+/g, " ");
-      if (normalized.length > 15 && seenSentences.has(normalized)) return false;
-      seenSentences.add(normalized);
-      return true;
-    });
-    examinerResponse = uniqueSentences.join(" ").trim();
-
-    // Detect advancement using multiple signals:
-    // 1. AI explicitly says [ADVANCE]
-    // 2. 5th reply reached (isLastMessage)
-    // 3. AI response contains feedback + a NEW question (detected by:
-    //    response has 2+ sentences, one of which is a question, AND
-    //    the response is longer than 100 chars — feedback is typically
-    //    1-2 sentences, so if there's a 3rd sentence with a question,
-    //    it's likely a new question)
-    const responseSentences = examinerResponse.match(/[^.!?]+[.!?]+/g) || [];
-    const questionSentences = responseSentences.filter(s => s.includes("?"));
-    const hasFeedbackAndNewQuestion = responseSentences.length >= 2 && questionSentences.length >= 1 && examinerResponse.length > 80;
-
-    // Additional check: if the AI said "Now," or "Let's move on" or "Next question"
-    // or "Let me ask" — these are strong signals it's advancing
-    const advancePhrases = ["now,", "let's move on", "next question", "let me ask", "let's talk about", "for your final", "moving on"];
-    const hasAdvancePhrase = advancePhrases.some(phrase => examinerResponse.toLowerCase().includes(phrase));
-
-    const shouldAdvance = wantsAdvance || isLastMessage || (hasFeedbackAndNewQuestion && (hasAdvancePhrase || newReplyCount >= 2));
+    const shouldAdvance = wantsAdvance || isLastMessage;
 
     let nextQuestion = test.currentQuestion;
     let nextReplyCount = newReplyCount;
     let isComplete = false;
 
-    // Per-question explanation: when the examiner advances (shouldAdvance=true),
-    // grade the question that JUST ended (test.currentQuestion) and attach the
-    // explanation to the examiner's advancing message. The student sees it
-    // immediately in the chat — they don't wait for the whole test to finish.
+    // Per-question explanation + AUTO-NEXT-QUESTION (2026-08-15): when the
+    // examiner advances, the question that just ended is graded AND the
+    // next question is generated by its OWN AI call — in parallel, so the
+    // turn stays fast. The next question is displayed as its own message.
     let perQuestionExplanation: QuestionExplanation | undefined;
+    let autoNextQuestion: string | null = null;
     if (shouldAdvance) {
       const questionJustEnded = conversation
         .filter(m => m.role === "examiner" && m.questionIndex === test.currentQuestion)
@@ -484,22 +448,35 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
       const studentAnswersToThisQuestion = conversation
         .filter(m => m.role === "student" && m.questionIndex === test.currentQuestion)
         .map(m => m.content);
-      if (questionJustEnded && studentAnswersToThisQuestion.length > 0) {
-        perQuestionExplanation = await gradeOneQuestion({
-          question: questionJustEnded,
-          studentAnswers: studentAnswersToThisQuestion,
-          topic: topics[Math.min(test.currentQuestion, topics.length - 1)] || `Week ${week}`,
-          testKind: "weekly_test",
-          studentName: user.name,
-        });
-      }
+      const grading = questionJustEnded && studentAnswersToThisQuestion.length > 0
+        ? gradeOneQuestion({
+            question: questionJustEnded,
+            studentAnswers: studentAnswersToThisQuestion,
+            topic: topics[Math.min(test.currentQuestion, topics.length - 1)] || `Week ${week}`,
+            testKind: "weekly_test",
+            studentName: user.name,
+          })
+        : Promise.resolve(undefined);
+      const nextQ = !isLastQuestion
+        ? generateNextQuestion({
+            systemPrompt: SYSTEM_PROMPT,
+            ledgerText,
+            questionNumber: test.currentQuestion + 2,
+            totalQuestions: TOTAL_QUESTIONS,
+            topic: topics[Math.min(test.currentQuestion + 1, topics.length - 1)] || `Week ${week}`,
+            weekLabel: `Week ${week} — ${phase}`,
+          })
+        : Promise.resolve(null);
+      const [explanation, nextQuestionText] = await Promise.all([grading, nextQ]);
+      perQuestionExplanation = explanation;
+      autoNextQuestion = nextQuestionText;
     }
 
     if (shouldAdvance) {
       if (isLastQuestion) {
         isComplete = true;
         const questionsAnswered = test.currentQuestion + 1;
-        const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics, user.id);
+        const analysis = await generateFinalAnalysis(ledgerText, user.name, week, phase, topics, user.id);
         conversation.push({
           role: "examiner", content: examinerResponse,
           timestamp: new Date().toISOString(), questionIndex: test.currentQuestion,
@@ -509,8 +486,18 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
         // atomically. Without this, a failure between the two queries leaves
         // the student with a completed test but stuck on the same week forever
         // (they can't retake, can't advance, can't see next-week content).
-        // Phase Plagiarism: apply score deduction BEFORE storing.
-        const plagiarismResult = applyPlagiarismDeduction(analysis.score, analysis.plagiarismScore);
+        // AI DOES ALL CALCULATIONS (2026-08-15): analysis.score is already
+        // the FINAL score — scaled for skipped questions and reduced for
+        // plagiarism by the AI itself. The app only clamps, stores, displays.
+        const finalScore = Math.max(0, Math.min(100, analysis.score));
+        const rawScore = Math.max(0, Math.min(100, analysis.rawScore ?? analysis.score));
+        const plagiarismResult = {
+          rawScore,
+          plagiarismScore: analysis.plagiarismScore,
+          deductedMarks: Math.max(0, rawScore - finalScore),
+          finalScore,
+          deductionPercent: analysis.plagiarismScore,
+        };
         await db.$transaction(async (tx) => {
           await tx.weeklyTest.update({
             where: { id: test.id },
@@ -518,7 +505,7 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
               status: "completed",
               completedAt: new Date(),
               conversation: JSON.stringify(conversation),
-              score: plagiarismResult.finalScore, // DEDUCTED score
+              score: finalScore, // AI-computed FINAL score (deductions applied)
               plagiarismScore: analysis.plagiarismScore,
               // Phase 1.6: Store the weaknesses array so the student dashboard
               // can show a study plan ("review these topics before retaking").
@@ -644,16 +631,23 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
       }
     }
 
-    // Tag the examiner's message with the correct question index.
-    // For mid-test advances (not last question, not complete), attach the
-    // per-question explanation here — the last-question branch already
-    // attached it inside its own push above.
-    const msgQuestionIndex = nextQuestion;
-    conversation.push({
-      role: "examiner", content: examinerResponse,
-      timestamp: new Date().toISOString(), questionIndex: msgQuestionIndex,
-      ...(perQuestionExplanation && !isComplete ? { questionExplanation: perQuestionExplanation } : {}),
-    });
+    // Feedback reply for the question that just ended, tagged with its
+    // question index + per-question explanation. Then the AUTO-generated
+    // next question (2026-08-15) is appended as its OWN message so the
+    // student sees the next question immediately without sending anything.
+    if (!isComplete) {
+      conversation.push({
+        role: "examiner", content: examinerResponse,
+        timestamp: new Date().toISOString(), questionIndex: test.currentQuestion,
+        ...(perQuestionExplanation ? { questionExplanation: perQuestionExplanation } : {}),
+      });
+      if (autoNextQuestion) {
+        conversation.push({
+          role: "examiner", content: autoNextQuestion,
+          timestamp: new Date().toISOString(), questionIndex: nextQuestion,
+        });
+      }
+    }
 
     // C2-fix: pass expected values for optimistic locking
     // C2-R1-fix: check the return value — if false, the optimistic lock
@@ -688,10 +682,9 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
 
   // ---- ACTION: FINISH (early) ----
   if (action === "finish") {
-    const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics, user.id);
-    // W16: skipped questions count as 0. The AI score reflects only the
-    // answered questions — scale it down by answered/total so an early
-    // finish cannot score higher by answering fewer questions well.
+    // The AI receives the COMPACT LEDGER (all data, bounded size) plus the
+    // answered/total stats — it computes the final score with every
+    // calculation (skip penalty + plagiarism deduction) itself.
     const answeredSet = new Set<number>();
     for (const m of conversation) {
       if (m.role === "student" && typeof m.questionIndex === "number") {
@@ -699,14 +692,28 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
       }
     }
     const answered = Math.min(answeredSet.size, TOTAL_QUESTIONS);
-    const adjustedScore =
-      TOTAL_QUESTIONS > 0
-        ? Math.round((analysis.score * answered) / TOTAL_QUESTIONS)
-        : analysis.score;
-    // TRANSACTION: same atomicity guarantee as the natural-completion path
-    // above — see the comment there for why this matters.
-    // Phase Plagiarism: apply score deduction BEFORE storing.
-    const plagiarismResult = applyPlagiarismDeduction(adjustedScore, analysis.plagiarismScore);
+    const finishLedger = ledgerToPrompt(buildTestLedger(conversation));
+    const analysis = await generateFinalAnalysis(
+      `${finishLedger}\n\nTEST STATS: answered ${answered} of ${TOTAL_QUESTIONS} questions — unanswered questions count as 0. Week ${week} (${phase}). Topics: ${topics.join(", ")}.`,
+      user.name,
+      week,
+      phase,
+      topics,
+      user.id,
+    );
+    // AI DOES ALL CALCULATIONS (2026-08-15): analysis.score already IS the
+    // final score — the AI scaled it for the skipped questions (unanswered
+    // = 0) and applied the plagiarism deduction itself. The app only
+    // clamps, stores and displays.
+    const finalScore = Math.max(0, Math.min(100, analysis.score));
+    const rawScore = Math.max(0, Math.min(100, analysis.rawScore ?? analysis.score));
+    const plagiarismResult = {
+      rawScore,
+      plagiarismScore: analysis.plagiarismScore,
+      deductedMarks: Math.max(0, rawScore - finalScore),
+      finalScore,
+      deductionPercent: analysis.plagiarismScore,
+    };
     await db.$transaction(async (tx) => {
       await tx.weeklyTest.update({
         where: { id: test.id },
@@ -714,7 +721,7 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
           status: "completed",
           completedAt: new Date(),
           conversation: JSON.stringify(conversation),
-          score: plagiarismResult.finalScore, // DEDUCTED score
+          score: finalScore, // AI-computed FINAL score (deductions applied)
           plagiarismScore: analysis.plagiarismScore,
           // Phase 1.6: Store weaknesses for the study plan
           weaknesses: JSON.stringify(analysis.weaknesses || []),
@@ -793,19 +800,91 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 }
 
-/** Call AI via shared ai-provider.ts — catches errors and returns a
- *  fallback prompt so a single AI failure doesn't crash the whole test. */
-async function callAILocal(messages: { role: string; content: string }[], feature: string, maxTokens?: number, userId?: string): Promise<string> {
+/** The examiner's reply — structured by the prompt itself, not by
+ *  post-processing: `text` is the message and `advance` is the model's
+ *  explicit move-to-next-question signal (replaces the old [ADVANCE]
+ *  marker + regex heuristics, 2026-08-15 JSON-mode sweep). */
+const ExaminerTurnSchema = z.object({
+  text: z.string().min(1),
+  advance: z.boolean(),
+});
+
+/** The final-analysis payload — validated by zod instead of defensive
+ *  field-by-field parsing (2026-08-15 JSON-mode sweep). */
+const FinalAnalysisSchema = z.object({
+  rawScore: z.number().min(0).max(100).optional(),
+  psychAnalysis: z.string().optional(),
+  examinerComment: z.string().optional(),
+  strengthSignal: z.string().optional(),
+  score: z.number().min(0).max(100).optional(),
+  plagiarismScore: z.number().min(0).max(100).optional(),
+  plagiarismNotes: z.string().optional(),
+  weaknesses: z.array(z.string()).optional(),
+  plagiarismBreakdown: z
+    .object({
+      voiceConsistency: z.string(),
+      perAnswerFlags: z.array(
+        z.object({
+          questionIndex: z.number(),
+          flagged: z.boolean(),
+          reason: z.string(),
+        }),
+      ),
+      strongestSignal: z.string(),
+      instructorNote: z.string(),
+    })
+    .nullable()
+    .optional(),
+  engagementFeedback: z
+    .object({
+      subjectChanges: z.number(),
+      avoidanceCount: z.number(),
+      distractedQuestions: z.array(z.number()),
+      overallEngagement: z.string(),
+      studentFeedback: z.string(),
+      instructorNote: z.string(),
+    })
+    .nullable()
+    .optional(),
+  modelAnswer: z.string().optional(),
+  missedPoints: z.array(z.string()).optional(),
+  nextTime: z.string().optional(),
+  questionExplanations: z
+    .array(
+      z.object({
+        questionIndex: z.number().optional(),
+        question: z.string().optional(),
+        studentAnswer: z.string().optional(),
+        correctAnswer: z.string().optional(),
+        explanation: z.string().optional(),
+        encouragement: z.string().optional(),
+        score: z.number().min(0).max(100).optional(),
+      }),
+    )
+    .optional(),
+});
+
+/** Call AI via JSON mode — catches errors and returns a fallback prompt
+ *  so a single AI failure doesn't crash the whole test. */
+async function callAILocal(messages: { role: string; content: string }[], feature: string, maxTokens?: number, userId?: string): Promise<{ text: string; advance: boolean }> {
   try {
-    const result = await callAI(
+    const result = await callAIJson<z.infer<typeof ExaminerTurnSchema>>(
       messages.map(m => ({ role: m.role as "system" | "user" | "assistant", content: m.content })),
-      { temperature: 0.5, maxTokens: maxTokens ?? TOKEN_BUDGET.WEEKLY_TEST_REPLY, feature, userId }
+      {
+        schema: ExaminerTurnSchema,
+        feature,
+        userId,
+        temperature: 0.5,
+        maxTokens: maxTokens ?? TOKEN_BUDGET.WEEKLY_TEST_REPLY,
+      },
     );
-    if (result.text) return sanitizeExaminerText(result.text);
+    if (result.ok) {
+      return { text: sanitizeExaminerText(result.data.text), advance: result.data.advance };
+    }
   } catch (err) {
     logger.warn("Weekly test AI call failed", { feature, error: err instanceof Error ? err.message : String(err) });
   }
-  return "Can you elaborate on that? Walk me through your reasoning.";
+  return { text: "Can you elaborate on that? Walk me through your reasoning.", advance: false };
 }
 
 /** Generate final analysis — uses course-aligned context.
@@ -813,13 +892,14 @@ async function callAILocal(messages: { role: string; content: string }[], featur
  *  + engagement feedback. All of this is stored on the WeeklyTest row and
  *  surfaced to the student (constructive version) and teacher (full detail). */
 async function generateFinalAnalysis(
-  conversation: ChatMessage[],
+  testData: string,
   studentName: string,
   week: number,
   phase: string,
   topics: string[],
   studentUserId?: string
 ): Promise<{
+  rawScore: number;
   psychAnalysis: string;
   examinerComment: string;
   strengthSignal: string;
@@ -843,127 +923,68 @@ async function generateFinalAnalysis(
   } | null;
   feedback: TeachingFeedback;
 }> {
-  const transcript = conversation
-    .filter(m => m.role === "student" || m.content.includes("Observation:") || m.content.includes("Behavior:"))
-    .map(m => `${m.role === "student" ? "Student" : "Examiner"}: ${m.content.slice(0, 150)}`)
-    .join("\n")
-    .slice(0, 2000);
+  // The prompt receives the compact per-question LEDGER + test stats
+  // (bounded size — long sessions can't time out the final analysis).
+  const transcript = testData;
 
   try {
-    const result = await callAI([
-      { role: "user", content: finalAnalysisPrompt(studentName, transcript) },
-    ], { temperature: 0.3, maxTokens: TOKEN_BUDGET.FINAL_ANALYSIS, feature: "final-analysis", userId: studentUserId });
-    const raw = result.text || "{}";
-    const match = raw.match(/\{[\s\S]*\}/);
-    const parsed = match ? JSON.parse(match[0]) : {};
-    // Store the REAL score (0-100). The previous 50% floor was pedagogically
-    // dishonest — a student who answered nothing got 50, which destroyed the
-    // signal for the instructor and gave the student a false sense of passing.
-    // The student-facing UI now buffers low scores with a study-plan message
-    // (see StudentDashboard WeeklyTestPanel). Teachers see the real score.
-    const rawScore = Number(parsed.score ?? 70);
-    // Guard against NaN — if the AI returns { score: null } or { score: "abc" },
-    // Number() returns 0 or NaN. NaN would propagate through Math.max/min and
-    // corrupt the stored score.
-    const safeScore = Number.isFinite(rawScore) ? rawScore : 70;
-    const clampedScore = Math.max(0, Math.min(100, safeScore));
-    const rawPlagiarism = Number(parsed.plagiarismScore ?? 0);
-    let clampedPlagiarism = Math.max(0, Math.min(100, rawPlagiarism));
-
-    let plagiarismNotes = String(parsed.plagiarismNotes ?? "No signs of plagiarism detected.");
-
-    // Parse the weaknesses array (Phase 1.6). The AI returns 1-3 specific
-    // topics the student should review. We store these on the WeeklyTest row
-    // and surface them to the student as a study plan in the dashboard.
-    let weaknesses: string[] = [];
-    try {
-      const rawWeaknesses = parsed.weaknesses;
-      if (Array.isArray(rawWeaknesses)) {
-        weaknesses = rawWeaknesses
-          .filter((w): w is string => typeof w === "string" && w.trim().length > 0)
-          .map(w => w.trim())
-          .slice(0, 5); // cap at 5 — the UI doesn't need more
-      }
-    } catch {
-      weaknesses = [];
+    // JSON-mode final analysis (2026-08-15 sweep): the prompt itself
+    // demands this exact schema — zod validates it, no regex extraction,
+    // no defensive field-by-field parsing.
+    const result = await callAIJson<z.infer<typeof FinalAnalysisSchema>>(
+      [{ role: "user", content: finalAnalysisPrompt(studentName, transcript) }],
+      {
+        schema: FinalAnalysisSchema,
+        feature: "final-analysis",
+        userId: studentUserId,
+        temperature: 0.3,
+        maxTokens: TOKEN_BUDGET.FINAL_ANALYSIS,
+      },
+    );
+    if (!result.ok) {
+      throw new Error(result.error);
     }
+    const d = result.data;
+    const replies = (testData.match(/Student: "/g) || []).length || 1;
+    const fb = fallbackGrade(topics[0] || `Week ${week}`, "weekly_test", replies).feedback;
 
-    // Phase 1.2 v2: Parse the plagiarism breakdown (per-answer analysis +
-    // voice consistency + instructor note). Stored on WeeklyTest.examinerObs
-    // as JSON so the instructor can review the full analysis.
-    let plagiarismBreakdown: {
-      voiceConsistency: string;
-      perAnswerFlags: { questionIndex: number; flagged: boolean; reason: string }[];
-      strongestSignal: string;
-      instructorNote: string;
-    } | null = null;
-    try {
-      const rawBreakdown = parsed.plagiarismBreakdown;
-      if (rawBreakdown && typeof rawBreakdown === "object") {
-        const b = rawBreakdown as Record<string, unknown>;
-        const perAnswerFlags = Array.isArray(b.perAnswerFlags)
-          ? (b.perAnswerFlags as unknown[])
-              .filter((f): f is Record<string, unknown> => typeof f === "object" && f !== null)
-              .map((f, i) => ({
-                questionIndex: typeof f.questionIndex === "number" ? f.questionIndex : i,
-                flagged: f.flagged === true,
-                reason: typeof f.reason === "string" ? f.reason : "no reason provided",
-              }))
-          : [];
-        plagiarismBreakdown = {
-          voiceConsistency: typeof b.voiceConsistency === "string" ? b.voiceConsistency : "Analysis unavailable.",
-          perAnswerFlags,
-          strongestSignal: typeof b.strongestSignal === "string" ? b.strongestSignal : "No concerning patterns.",
-          instructorNote: typeof b.instructorNote === "string" ? b.instructorNote : "No instructor action needed.",
-        };
-      }
-    } catch {
-      plagiarismBreakdown = null;
-    }
+    // Store the REAL score (0-100) — zod already clamped NaN/strings out.
+    const clampedScore = Math.max(0, Math.min(100, d.score ?? 70));
+    const clampedPlagiarism = Math.max(0, Math.min(100, d.plagiarismScore ?? 0));
 
-    // Phase 1.3 v2: Parse the engagement feedback (subject changes +
-    // avoidance + constructive student feedback + instructor note).
-    let engagementFeedback: {
-      subjectChanges: number;
-      avoidanceCount: number;
-      distractedQuestions: number[];
-      overallEngagement: string;
-      studentFeedback: string;
-      instructorNote: string;
-    } | null = null;
-    try {
-      const rawEngagement = parsed.engagementFeedback;
-      if (rawEngagement && typeof rawEngagement === "object") {
-        const e = rawEngagement as Record<string, unknown>;
-        engagementFeedback = {
-          subjectChanges: typeof e.subjectChanges === "number" ? e.subjectChanges : 0,
-          avoidanceCount: typeof e.avoidanceCount === "number" ? e.avoidanceCount : 0,
-          distractedQuestions: Array.isArray(e.distractedQuestions)
-            ? (e.distractedQuestions as unknown[]).filter((n): n is number => typeof n === "number")
-            : [],
-          overallEngagement: typeof e.overallEngagement === "string" ? e.overallEngagement : "unknown",
-          studentFeedback: typeof e.studentFeedback === "string" ? e.studentFeedback : "Engagement analysis unavailable.",
-          instructorNote: typeof e.instructorNote === "string" ? e.instructorNote : "No concerns.",
-        };
-      }
-    } catch {
-      engagementFeedback = null;
-    }
+    const missed = (d.missedPoints ?? []).filter((s) => s.trim().length > 0).slice(0, 4);
 
     return {
-      psychAnalysis: String(parsed.psychAnalysis || "Engagement was consistent. Cognitive load appeared moderate."),
-      examinerComment: String(parsed.examinerComment || "Practitioner level. Solid fundamentals with room for deeper reasoning."),
-      strengthSignal: String(parsed.strengthSignal || "You showed up and engaged with the material — that's the foundation everything else builds on."),
+      rawScore: d.rawScore ?? clampedScore,
+      psychAnalysis: d.psychAnalysis ?? "Engagement was consistent. Cognitive load appeared moderate.",
+      examinerComment: d.examinerComment ?? "Practitioner level. Solid fundamentals with room for deeper reasoning.",
+      strengthSignal: d.strengthSignal ?? "You showed up and engaged with the material — that's the foundation everything else builds on.",
       score: clampedScore,
       plagiarismScore: clampedPlagiarism,
-      plagiarismNotes,
-      weaknesses,
-      plagiarismBreakdown,
-      engagementFeedback,
-      feedback: parseTeachingFeedback(parsed, topics, conversation),
+      plagiarismNotes: d.plagiarismNotes ?? "No signs of plagiarism detected.",
+      weaknesses: (d.weaknesses ?? []).filter((w) => w.trim().length > 0).slice(0, 5),
+      plagiarismBreakdown: d.plagiarismBreakdown ?? null,
+      engagementFeedback: d.engagementFeedback ?? null,
+      feedback: {
+        modelAnswer: d.modelAnswer?.trim() || fb.modelAnswer,
+        missedPoints: missed.length > 0 ? missed : fb.missedPoints,
+        nextTime: d.nextTime?.trim() || fb.nextTime,
+        questionExplanations: (d.questionExplanations ?? [])
+          .filter((x) => Boolean(x.correctAnswer && x.explanation))
+          .map((x, i) => ({
+            questionIndex: x.questionIndex ?? i,
+            question: x.question?.trim() || "(question unavailable)",
+            studentAnswer: x.studentAnswer?.trim() || "(no answer captured)",
+            correctAnswer: x.correctAnswer as string,
+            explanation: x.explanation as string,
+            encouragement:
+              x.encouragement?.trim() || "Keep practicing — every attempt teaches you something.",
+            score: Math.round(x.score ?? 50),
+          })),
+      },
     };
   } catch {
-    const replies = conversation.filter(m => m.role === "student").length;
+    const replies = (testData.match(/Student: "/g) || []).length || 1;
     // Fallback when the AI call itself failed (network, quota, etc.).
     // Score based on engagement level — a student who replied more at least
     // engaged. The student-facing UI buffers low scores with a study plan.
@@ -972,6 +993,7 @@ async function generateFinalAnalysis(
     // student something concrete to review.
     const fallbackWeaknesses = topics.slice(0, 3);
     return {
+      rawScore: fallbackScore,
       psychAnalysis: `Completed ${replies} replies across the test. Engagement was consistent.`,
       examinerComment: `Beginner level based on Week ${week} (${phase}). Keep practicing!`,
       strengthSignal: `You completed ${replies} replies and engaged with every question — showing up consistently is the most important habit for learning.`,
@@ -986,39 +1008,35 @@ async function generateFinalAnalysis(
   }
 }
 
-/** Parse the teaching feedback fields (modelAnswer / missedPoints /
- *  nextTime / questionExplanations) from the final-analysis AI response.
- *  Falls back to the shared fallbackGrade() when the AI didn't return
- *  them. */
-function parseTeachingFeedback(
-  parsed: Record<string, unknown>,
-  topics: string[],
-  conversation: ChatMessage[],
-): TeachingFeedback {
-  const topicLabel = topics[0] || "the weekly test topics";
-  const replies = conversation.filter(m => m.role === "student").length;
-  const fallback = fallbackGrade(topicLabel, "weekly_test", replies).feedback;
-
-  const missedRaw = parsed.missedPoints;
-  const missed = Array.isArray(missedRaw)
-    ? missedRaw
-        .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
-        .map(s => s.trim())
-        .slice(0, 4)
-    : [];
-
-  return {
-    modelAnswer:
-      typeof parsed.modelAnswer === "string" && parsed.modelAnswer.trim()
-        ? parsed.modelAnswer.trim()
-        : fallback.modelAnswer,
-    missedPoints: missed.length > 0 ? missed : fallback.missedPoints,
-    nextTime:
-      typeof parsed.nextTime === "string" && parsed.nextTime.trim()
-        ? parsed.nextTime.trim()
-        : fallback.nextTime,
-    questionExplanations: parseQuestionExplanations(parsed.questionExplanations),
-  };
+/** AUTO-NEXT-QUESTION (2026-08-15): after a question's final reply, this
+ *  generates the next question with its OWN small AI call. The payload is
+ *  the compact ledger + the next topic — bounded and constant-size, so a
+ *  long session can never make this call time out. */
+async function generateNextQuestion(args: {
+  systemPrompt: string;
+  ledgerText: string;
+  questionNumber: number;
+  totalQuestions: number;
+  topic: string;
+  weekLabel: string;
+}): Promise<string> {
+  try {
+    const result = await callAIJson<{ text: string }>(
+      buildNextQuestionPrompt(args),
+      {
+        schema: z.object({ text: z.string().min(1).max(400) }),
+        feature: "weekly-test-next-question",
+        temperature: 0.6,
+        maxTokens: 200,
+      },
+    );
+    if (result.ok && result.data.text.trim()) {
+      return result.data.text.replace(/^Question\s*\d+\s*:\s*/im, "").trim();
+    }
+  } catch (err) {
+    logger.warn("next-question generation failed", { error: err instanceof Error ? err.message : String(err) });
+  }
+  return `Tell me what you know about "${args.topic}" — and give me one example.`;
 }
 
 /** Save conversation (only during in-progress; cleared on completion). */

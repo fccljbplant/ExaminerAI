@@ -35,3 +35,9 @@ export {
   type CohortPack,
   type ProjectPack,
 } from "./context-packs";
+
+export {
+  universalTutorSystemPrompt,
+  buildTutorContextMessage,
+  tutorQuestionPrefix,
+} from "./universal-tutor";

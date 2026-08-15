@@ -26,7 +26,7 @@ import { apiError, apiForbidden, apiNotFound, apiSuccess, apiUnauthorized, apiVa
 import { callAI } from "@/modules/assessment/lib/ai-provider";
 import { LEVEL_DIRECTIVES, type TeachingLevel } from "@/modules/learn/types";
 import { getTutorStudentContext, tutorContextBlocks } from "@/modules/learn/lib/tutor-context";
-import { buildTutorBlocksFromPacks } from "@/modules/ai";
+import { buildTutorBlocksFromPacks, universalTutorSystemPrompt } from "@/modules/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -84,9 +84,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   const level = (session.teachingLevel ?? 4) as TeachingLevel;
 
-  // W15: the tutor knows the learner — today's topic, scores, project.
-  // Degrades to empty blocks on any lookup failure (never breaks Q&A).
-  // Cached + anonymized per-subject packs feed the blocks (2026-08-15).
+  // W15 + cacheable universal tutor (2026-08-15): the system prompt is
+  // the static universal rules + the lesson KB (stable within a lesson);
+  // the anonymized student blocks move into a stable leading user
+  // message so system + context form the cacheable prefix.
   const studentCtx = await getTutorStudentContext(user.sub).catch(() => null);
   const studentBlocks =
     studentCtx?.courseId && studentCtx.topic
@@ -99,22 +100,22 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         : "";
 
   const systemPrompt = [
-    "You are an AI tutor on the TraineesAI Learn platform.",
+    universalTutorSystemPrompt(),
     LEVEL_DIRECTIVES[level],
     "Below is the course knowledge base — each block starts with a [Week/Day/Slide] citation. ALWAYS ground your answer in these blocks. If the answer is in the KB, cite the [Week/Day/Slide] tag at the end of your answer. If the KB does not cover the question, say so honestly and offer to explain at a higher level using general knowledge (no citation).",
-    "Keep answers short — 3-6 sentences. No code blocks unless the question specifically asks for code. No URLs. No markdown tables.",
-    "LANGUAGE: use very simple English — short sentences, everyday words, polite and encouraging, like a friendly mentor to a beginner. Explain any technical term the first time you use it.",
-    "Use the STUDENT CONTEXT to personalize every answer: reference their current lesson, encourage based on their scores, and point at weak topics when they ask what to review. When they ask about their project, coach from the PROJECT block — and if they have no project yet, help them choose one aligned with the course domain and break it into milestone-sized first steps.",
-    "",
-    "=== STUDENT CONTEXT ===",
-    studentBlocks || "(No learner data yet.)",
     "",
     "=== COURSE KNOWLEDGE BASE ===",
     knowledge,
   ].join("\n");
 
+  const contextMessage = [
+    "=== STUDENT CONTEXT ===",
+    studentBlocks || "(No learner data yet.)",
+  ].join("\n");
+
   const messages = [
     { role: "system" as const, content: systemPrompt },
+    { role: "user" as const, content: contextMessage },
     ...history,
     { role: "user" as const, content: question },
   ];
