@@ -142,6 +142,8 @@ export function OrgControl() {
       toast.success("Settings saved", {
         description: "Branding and organization profile are live (30s cache).",
       });
+      // The shell header shows the org logo + name — refresh it in place.
+      window.dispatchEvent(new Event("org-profile-updated"));
     } catch (e) {
       toast.error("Couldn't save settings", {
         description: e instanceof Error ? e.message : "Try again.",
