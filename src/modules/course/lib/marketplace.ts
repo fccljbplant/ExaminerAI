@@ -126,13 +126,9 @@ export interface MarketplaceCourseDetail {
     weekNumber: number;
     phase: string;
     milestone: string;
-    days: Array<{
-      id: string;
-      day: number;
-      title: string;
-      objective: string;
-      topicsCovered: string[];
-    }>;
+    // Public pages see the WEEKLY outline only — the day-by-day
+    // syllabus is reserved for enrolled learners (2026-08-15).
+    dayCount: number;
   }>;
 }
 
@@ -172,16 +168,7 @@ export async function fetchMarketplaceCourseDetail(id: string): Promise<Marketpl
           weekNumber: true,
           phase: true,
           milestone: true,
-          days: {
-            orderBy: { day: "asc" },
-            select: {
-              id: true,
-              day: true,
-              title: true,
-              objective: true,
-              topicsCovered: true,
-            },
-          },
+          _count: { select: { days: true } },
         },
       },
     },
@@ -221,13 +208,7 @@ export async function fetchMarketplaceCourseDetail(id: string): Promise<Marketpl
       weekNumber: w.weekNumber,
       phase: w.phase,
       milestone: w.milestone,
-      days: w.days.map(d => ({
-        id: d.id,
-        day: d.day,
-        title: d.title,
-        objective: d.objective,
-        topicsCovered: parseJSON<string[]>(d.topicsCovered, []),
-      })),
+      dayCount: w._count.days,
     })),
   };
 }
@@ -259,6 +240,31 @@ export async function fetchCertificateForVerification(credentialId: string) {
   });
 
   return certificate;
+}
+
+/** The issuing organization for a certificate (2026-08-15): prefer the
+ *  org captured at issuance (institutionId), then fall back to the
+ *  learner's current active org. Returns null for independent learners. */
+export async function fetchCertificateIssuer(certificate: {
+  institutionId: string | null;
+  userId: string;
+}): Promise<{ id: string; name: string; slug: string; logoUrl: string | null } | null> {
+  if (certificate.institutionId) {
+    const org = await db.organization
+      .findUnique({
+        where: { id: certificate.institutionId },
+        select: { id: true, name: true, slug: true, logoUrl: true },
+      })
+      .catch(() => null);
+    if (org) return org;
+  }
+  const member = await db.orgMember
+    .findFirst({
+      where: { userId: certificate.userId, status: "active" },
+      select: { org: { select: { id: true, name: true, slug: true, logoUrl: true } } },
+    })
+    .catch(() => null);
+  return member?.org ?? null;
 }
 
 // ============================================================

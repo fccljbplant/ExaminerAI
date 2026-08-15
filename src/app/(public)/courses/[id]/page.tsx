@@ -123,7 +123,7 @@ export default async function CourseDetailPage({ params }: Params) {
   const levelLabel =
     MARKETPLACE_LEVELS.find((l) => l.value === course.level)?.label ?? course.level;
 
-  const totalDays = course.weeks.reduce((sum, w) => sum + w.days.length, 0);
+  const totalDays = course.weeks.reduce((sum, w) => sum + w.dayCount, 0);
 
   return (
     <div>

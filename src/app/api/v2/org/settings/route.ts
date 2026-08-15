@@ -35,6 +35,16 @@ const PutBody = z
         mode: z.enum(["light", "dark", "bed"]).optional(),
       })
       .optional(),
+    organization: z
+      .object({
+        name: z.string().min(2).max(80).optional(),
+        slug: z.string().min(3).max(40).optional(),
+        logoUrl: z.string().max(300_000).nullable().optional(),
+        description: z.string().max(300).nullable().optional(),
+        address: z.string().max(200).nullable().optional(),
+        website: z.string().max(200).nullable().optional(),
+      })
+      .optional(),
     flags: z.record(z.string().min(1).max(40), z.boolean()).optional(),
   })
   .strict();

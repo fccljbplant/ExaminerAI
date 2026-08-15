@@ -3,14 +3,15 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   GraduationCap, ShieldCheck, Award, Calendar, User, BookOpen,
-  ExternalLink, Download, Sparkles, CheckCircle2, Star, Code2,
+  ExternalLink, Download, Sparkles, CheckCircle2, Star, Code2, LinkIcon,
 } from "lucide-react";
 import { Button } from "@/modules/ui/button";
 import { Badge } from "@/modules/ui/badge";
 import { Card, CardContent } from "@/modules/ui/card";
-import { fetchCertificateForVerification } from "@/lib/marketplace";
+import { fetchCertificateForVerification, fetchCertificateIssuer } from "@/lib/marketplace";
 import { scoreToGrade, gradeColor } from "@/lib/constants";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { PrintButton } from "./PrintButton";
 
 type Params = { params: Promise<{ credentialId: string }> };
 
@@ -77,9 +78,16 @@ export default async function VerifyCredentialPage({ params }: Params) {
     skillsVerified = [];
   }
 
-  // LinkedIn "Add certification" deep link
-  const certIdForLinkedIn = certificate.credentialId ?? certificate.id;
-  const certUrl = `https://examiner-ai-tau.vercel.app/verify/${encodeURIComponent(certIdForLinkedIn)}`;
+  // Unique public verification address (printed on the certificate).
+  const siteBase = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://trainees.ai";
+  const certIdForLinkedIn = certificate.credentialId ?? certificate.verifyToken ?? certificate.id;
+  const certUrl = `${siteBase.replace(/\/$/, "")}/verify/${encodeURIComponent(certIdForLinkedIn)}`;
+
+  // Issuing organization — logo + name shown on the certificate.
+  const issuer = await fetchCertificateIssuer({
+    institutionId: certificate.institutionId,
+    userId: certificate.userId,
+  });
   const linkedInUrl =
     `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME` +
     `&name=${encodeURIComponent(certificate.courseName)}` +
@@ -114,9 +122,32 @@ export default async function VerifyCredentialPage({ params }: Params) {
         <div className="bg-surface border-2 border-brand/30 rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 p-6 sm:p-8 text-center border-b border-line">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand text-on-brand mb-3">
-              <GraduationCap className="h-8 w-8" />
-            </div>
+            {issuer ? (
+              <div className="mb-3 flex flex-col items-center gap-2">
+                {issuer.logoUrl ? (
+                   
+                  <img
+                    src={issuer.logoUrl}
+                    alt={`${issuer.name} logo`}
+                    className="h-16 w-16 rounded-2xl border border-line object-cover"
+                  />
+                ) : (
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand text-on-brand">
+                    <GraduationCap className="h-8 w-8" aria-hidden />
+                  </div>
+                )}
+                <Link
+                  href={`/${issuer.slug}`}
+                  className="text-xs font-semibold text-brand hover:underline"
+                >
+                  Issued by {issuer.name}
+                </Link>
+              </div>
+            ) : (
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand text-on-brand mb-3">
+                <GraduationCap className="h-8 w-8" aria-hidden />
+              </div>
+            )}
             <h2 className="text-2xl sm:text-3xl font-bold text-fg">
               {certificate.distinction ? "Certificate of Completion with Distinction" : "Certificate of Completion"}
             </h2>
@@ -229,6 +260,16 @@ export default async function VerifyCredentialPage({ params }: Params) {
               </div>
             </div>
 
+            {/* Unique verification address (2026-08-15) */}
+            <div className="flex items-center gap-3 rounded-lg border border-line bg-bg-subtle/50 p-4">
+              <LinkIcon className="h-4 w-4 text-brand flex-shrink-0" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-fg-muted">Verification address</p>
+                <p className="truncate font-mono text-xs text-fg">{certUrl}</p>
+              </div>
+              <CopyLinkButton url={certUrl} />
+            </div>
+
             {/* CTAs — primary actions */}
             <div className="flex flex-wrap gap-2 pt-2">
               <Button asChild size="sm" className="flex-1">
@@ -236,11 +277,7 @@ export default async function VerifyCredentialPage({ params }: Params) {
                   <ExternalLink className="h-4 w-4" /> Add to LinkedIn
                 </a>
               </Button>
-              <Button asChild variant="outline" size="sm" className="flex-1">
-                <a href="#" onClick={(e) => { e.preventDefault(); window.print(); }}>
-                  <Download className="h-4 w-4" /> Download PDF
-                </a>
-              </Button>
+              <PrintButton className="flex-1" />
             </div>
 
             {/* Share section — secondary social actions */}
@@ -273,13 +310,25 @@ export default async function VerifyCredentialPage({ params }: Params) {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="bg-bg-subtle/30 border-t border-line p-4 text-center">
+          {/* Footer — credential ID + powered-by corner (2026-08-15) */}
+          <div className="relative bg-bg-subtle/30 border-t border-line p-4 text-center">
             <p className="text-[10px] text-fg-muted">
-              Credential ID: <span className="font-mono">{certificate.credentialId ?? certificate.id}</span>
-              {" · "}
-              Issued by <span className="font-medium">TraineesAI</span>
+              Credential ID:{" "}
+              <span className="font-mono">{certificate.credentialId ?? certificate.id}</span>
+              {issuer && (
+                <>
+                  {" · "}
+                  Issued by <span className="font-medium">{issuer.name}</span>
+                </>
+              )}
             </p>
+            <Link
+              href="/"
+              className="absolute bottom-2 right-3 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-fg-muted transition-colors hover:text-brand"
+            >
+              <GraduationCap className="h-3 w-3" aria-hidden />
+              Powered by TraineesAI
+            </Link>
           </div>
         </div>
 

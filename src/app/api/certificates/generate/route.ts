@@ -5,6 +5,7 @@ import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth"
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseDurationWeeks, getCourseMetadata } from "@/lib/course-db";
 import { logAudit, AuditAction } from "@/lib/audit-log";
+import { generateCredentialId } from "@/lib/certificate";
 import crypto from "crypto";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logger } from "@/lib/logger";
@@ -200,14 +201,45 @@ export async function POST(req: NextRequest) {
       actualCourseId = enrollment?.courseId ?? null;
     } catch {}
 
+    // Issuer: the learner's organization signs certificates issued to
+    // its members (logo shown on the public verification page);
+    // independent learners are signed by the approving instructor.
+    let issuer = payload.name;
+    let institutionId: string | null = null;
+    try {
+      const membership = await db.orgMember.findFirst({
+        where: { userId: targetUserId, status: "active" },
+        select: { orgId: true, org: { select: { name: true } } },
+      });
+      if (membership) {
+        issuer = membership.org.name;
+        institutionId = membership.orgId;
+      }
+    } catch {}
+
+    // Public credential ID ("TRN-AI-2026-08-NA-87") with collision retry —
+    // this is the unique address printed on the certificate.
+    const certCourseName = courseMeta?.name ?? request.courseName;
+    let credentialId = generateCredentialId(user.name, certCourseName, avgScore);
+    for (let salt = 1; salt <= 5; salt++) {
+      const clash = await db.certificate.findUnique({
+        where: { credentialId },
+        select: { id: true },
+      });
+      if (!clash || clash.id === request.id) break;
+      credentialId = generateCredentialId(user.name, certCourseName, avgScore, salt);
+    }
+
     const certificate = await db.certificate.update({
       where: { id: request.id },
       data: {
         grade,
         score: avgScore,
-        signedBy: payload.name,
+        signedBy: issuer,
+        institutionId,
+        credentialId,
         courseId: actualCourseId,
-        courseName: courseMeta?.name ?? request.courseName,
+        courseName: certCourseName,
         studentName: user.name,
       },
     });
@@ -222,7 +254,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       certificate,
-      verifyUrl: `/verify/${certificate.verifyToken}`,
+      verifyUrl: `/verify/${certificate.credentialId ?? certificate.verifyToken}`,
       approved: true,
     });
   }

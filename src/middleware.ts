@@ -96,6 +96,18 @@ const RATE_LIMITS: Array<{ pattern: RegExp; max: number; windowMs: number }> = [
 ];
 
 // ── Helper: is this path public? ───────────────────────────────
+
+/** Authenticated portal roots — single-segment paths that must NOT be
+ *  treated as public org storefront slugs. */
+const PROTECTED_ROOTS = new Set([
+  "/learner",
+  "/instructor",
+  "/org",
+  "/platform",
+  "/dashboard",
+  "/preview",
+]);
+
 function isPublicPath(pathname: string): boolean {
   // Check exact matches
   if (PUBLIC_ROUTES.includes(pathname)) return true;
@@ -103,6 +115,11 @@ function isPublicPath(pathname: string): boolean {
   for (const route of PUBLIC_ROUTES) {
     if (pathname.startsWith(route + "/")) return true;
   }
+  // Org storefront slugs (2026-08-15): any single-segment path that is
+  // not a protected portal root is the public /[orgSlug] page. Unknown
+  // slugs 404 inside the page itself.
+  const isSingleSegment = !pathname.slice(1).includes("/");
+  if (isSingleSegment && !PROTECTED_ROOTS.has(pathname)) return true;
   return false;
 }
 

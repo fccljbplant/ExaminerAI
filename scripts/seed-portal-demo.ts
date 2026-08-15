@@ -141,7 +141,24 @@ async function main() {
       });
     }
   }
-  console.log("✓ demo org ensured (Demo Training Co, 3 members)");
+  // Public storefront profile (2026-08-15): the org's page at
+  // /demo-training-co shows its profile + catalog, and its logo
+  // appears on member certificates.
+  await db.organization.update({
+    where: { id: org.id },
+    data: {
+      logoUrl:
+        "data:image/svg+xml;utf8," +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="128" height="128" rx="24" fill="#1d4ed8"/><text x="64" y="82" font-family="sans-serif" font-size="56" font-weight="700" fill="#ffffff" text-anchor="middle">D</text></svg>',
+        ),
+      description:
+        "Skills training for engineering and industrial teams — HSE, operations and business fundamentals.",
+      address: "Lahore, Pakistan",
+      website: "https://example.com",
+    },
+  });
+  console.log("✓ demo org storefront profile ensured");
 
   /* ---- courses ---- */
   const hse = await ensureCourse(
@@ -288,6 +305,15 @@ async function main() {
     ]
   );
   console.log("✓ courses ensured (weeks + days)");
+
+  /* ---- org catalog: link HSE + customer-service to the storefront ---- */
+  const hseLinked = await db.orgCourse.findUnique({
+    where: { orgId_courseId: { orgId: org.id, courseId: hse.id } },
+  });
+  if (!hseLinked) {
+    await db.orgCourse.create({ data: { orgId: org.id, courseId: hse.id } });
+    console.log("✓ HSE linked to the demo org catalog");
+  }
 
   /* ---- learner enrollment: HSE course at W2D1 ---- */
   const profile = await db.learnProfile.upsert({

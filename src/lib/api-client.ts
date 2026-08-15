@@ -97,6 +97,7 @@ export const api = {
   post: <T>(url: string, body?: unknown, timeoutMs?: number) => request<T>("POST", url, body, timeoutMs),
   put: <T>(url: string, body?: unknown, timeoutMs?: number) => request<T>("PUT", url, body, timeoutMs),
   patch: <T>(url: string, body?: unknown, timeoutMs?: number) => request<T>("PATCH", url, body, timeoutMs),
+  delete: <T>(url: string, timeoutMs?: number) => request<T>("DELETE", url, undefined, timeoutMs),
   del: <T>(url: string, body?: unknown, timeoutMs?: number) => request<T>("DELETE", url, body, timeoutMs),
 };
 

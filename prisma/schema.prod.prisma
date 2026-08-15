@@ -92,6 +92,7 @@ model Course {
   institution        Institution?         @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   events             Event[]
   groupTasks         GroupTask[]
+  orgLinks           OrgCourse[]
   dailyLogs          DailyLog[]
   projectTasks       ProjectTask[]
   projectWeeks       ProjectWeek[]
@@ -988,9 +989,27 @@ model Organization {
   slug      String     @unique
   plan      String     @default("free") // free | team | enterprise
   seats     Int        @default(5)
+  logoUrl   String?    // org logo (data URL or https) — shown on certificates + org storefront
+  description String?  // one-liner for the org's public storefront page
+  address   String?    // org HQ address (org profile)
+  website   String?    // org website (org profile)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   members   OrgMember[]
+  courses   OrgCourse[]
+}
+
+model OrgCourse {
+  id        String   @id @default(cuid())
+  orgId     String
+  courseId  String
+  createdAt DateTime @default(now())
+
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  course Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, courseId])
+  @@index([orgId])
 }
 
 model OrgMember {

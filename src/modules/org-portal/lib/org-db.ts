@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit-log";
 import type { AuditActor } from "@/lib/audit-log";
 import { DEFAULT_BRAND_OKLCH, oklchToHex } from "@/modules/theme";
+import { ORG_SLUG_PATTERN, ORG_SLUG_RESERVED } from "@/modules/site/lib/org-storefront";
 
 /** Platform default brand — token-defined, never a literal hex (audit law). */
 const DEFAULT_BRAND_HEX = oklchToHex(DEFAULT_BRAND_OKLCH);
@@ -155,10 +156,32 @@ export interface BrandingInput {
   mode?: "light" | "dark" | "bed";
 }
 
+export interface OrgProfileInput {
+  name?: string;
+  slug?: string;
+  logoUrl?: string | null;
+  description?: string | null;
+  address?: string | null;
+  website?: string | null;
+}
+
 export async function getOrgSettings(orgId: string) {
-  const rows = await db.setting.findMany({
-    where: { key: { startsWith: `${ORG_SETTING_PREFIX}${orgId}` } },
-  });
+  const [rows, org] = await Promise.all([
+    db.setting.findMany({
+      where: { key: { startsWith: `${ORG_SETTING_PREFIX}${orgId}` } },
+    }),
+    db.organization.findUnique({
+      where: { id: orgId },
+      select: {
+        name: true,
+        slug: true,
+        logoUrl: true,
+        description: true,
+        address: true,
+        website: true,
+      },
+    }),
+  ]);
   const themeRow = rows.find((r) => r.key === `${ORG_SETTING_PREFIX}${orgId}`);
   let branding: { brandHex: string; mode: string; derivedAt: string } | null = null;
   if (themeRow?.value) {
@@ -168,18 +191,43 @@ export async function getOrgSettings(orgId: string) {
       branding = null;
     }
   }
-  return { branding };
+  return { branding, organization: org };
+}
+
+/** Slug availability for the org's public storefront address ( /<slug> ).
+ *  Reserved platform slugs ( /courses, /pricing … ) are never available. */
+export async function checkOrgSlug(
+  slug: string,
+  excludeOrgId?: string,
+): Promise<{ available: boolean; slug: string; reason?: string }> {
+  const clean = slug.toLowerCase().trim();
+  if (!ORG_SLUG_PATTERN.test(clean) || clean.length < 3 || clean.length > 40) {
+    return {
+      available: false,
+      slug: clean,
+      reason: "Use 3–40 lowercase letters, numbers and single hyphens",
+    };
+  }
+  if (ORG_SLUG_RESERVED.has(clean)) {
+    return { available: false, slug: clean, reason: "That address is reserved by the platform" };
+  }
+  const existing = await db.organization.findUnique({ where: { slug: clean } });
+  if (existing && existing.id !== excludeOrgId) {
+    return { available: false, slug: clean, reason: "That address is already taken" };
+  }
+  return { available: true, slug: clean };
 }
 
 /** Persist branding (Setting `org-theme:<orgId>` — migrate-org-themes
- *  convention, idempotent). Audited.
+ *  convention, idempotent) + the organization profile (name, public
+ *  storefront slug, logo, description, address, website). Audited.
  *
  *  Portal rollout flags are intentionally not writable here (audit
  *  9.2): they are global platform-level rows. */
 export async function updateOrgSettings(
   orgId: string,
   actor: AuditActor,
-  input: { branding?: BrandingInput },
+  input: { branding?: BrandingInput; organization?: OrgProfileInput },
 ) {
   const changes: string[] = [];
 
@@ -197,6 +245,30 @@ export async function updateOrgSettings(
       create: { key: `${ORG_SETTING_PREFIX}${orgId}`, value },
     });
     changes.push("branding");
+  }
+
+  if (input.organization) {
+    const profile = input.organization;
+    const data: Record<string, unknown> = {};
+    if (profile.name !== undefined && profile.name.trim().length >= 2) {
+      data.name = profile.name.trim();
+    }
+    if (profile.slug !== undefined) {
+      const check = await checkOrgSlug(profile.slug, orgId);
+      if (!check.available) {
+        throw new OrgError(check.reason ?? "Address unavailable", "ORG_SLUG_TAKEN", 409);
+      }
+      data.slug = check.slug;
+    }
+    if (profile.logoUrl !== undefined) data.logoUrl = profile.logoUrl;
+    if (profile.description !== undefined) data.description = profile.description?.trim() || null;
+    if (profile.address !== undefined) data.address = profile.address?.trim() || null;
+    if (profile.website !== undefined) data.website = profile.website?.trim() || null;
+
+    if (Object.keys(data).length > 0) {
+      await db.organization.update({ where: { id: orgId }, data });
+      changes.push("organization");
+    }
   }
 
   if (changes.length > 0) {
