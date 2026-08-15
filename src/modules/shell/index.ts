@@ -12,6 +12,7 @@ export { ClassicSidebar } from "./classic-sidebar";
 export type { TopNavProps } from "./top-nav";
 export { TabRow } from "./tab-row";
 export { BottomNav } from "./bottom-nav";
+export { AppFooter } from "./app-footer";
 export { ActionBar } from "./action-bar";
 export { ModeToggle } from "./mode-toggle";
 export { UserMenu, initialsOf, roleLabel } from "./user-menu";

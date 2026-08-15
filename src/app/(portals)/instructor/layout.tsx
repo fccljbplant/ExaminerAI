@@ -18,7 +18,7 @@ import { InstructorShell } from "@/modules/instructor-portal";
  */
 export default async function InstructorPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   if (user.role !== "instructor" && user.role !== "org_admin") redirect(homeForRole(user.role));
 
   const membership = await db.orgMember.findFirst({

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { homeForRole } from "@/lib/portal-home";
 import { COPY } from "@/content/copy";
 import { Button } from "@/modules/ui/button";
+import { Card, CardContent, CardHeader } from "@/modules/ui/card";
+import { LoginForm } from "@/modules/auth/login-form";
 import { Badge } from "@/modules/ui/badge";
 import {
   ArrowRight, Bot, Brain, ShieldCheck, Award, CheckCircle2, Sparkles,
@@ -93,38 +95,56 @@ export default async function LandingPage() {
           <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-brand-subtle blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="outline" className="mb-5 gap-1.5 border-brand/30 bg-brand-subtle">
-              <Sparkles className="h-3 w-3 text-brand" />
-              {COPY.heroEyebrow}
-            </Badge>
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl sm:leading-[1.05]">
-              Learn a skill that <span className="text-brand">actually ships.</span>
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-fg-muted sm:text-base">
-              Project-based courses with an AI tutor that teaches, probes and grades —
-              plus a verified certificate employers can check. Your mentors stay in the loop.
-            </p>
-            <div className="mt-6 flex flex-col justify-center gap-2.5 sm:flex-row">
-              <Button asChild size="lg" className="h-12 text-base">
-                <Link href="/courses">
-                  <PackageOpen className="h-4 w-4 mr-2" />
-                  Browse Courses
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 text-base">
-                <Link href="/for-business">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  For Teams — Book a Demo
-                </Link>
-              </Button>
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_400px]">
+            {/* Left — the pitch */}
+            <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:text-left">
+              <Badge variant="outline" className="mb-5 gap-1.5 border-brand/30 bg-brand-subtle">
+                <Sparkles className="h-3 w-3 text-brand" />
+                {COPY.heroEyebrow}
+              </Badge>
+              <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl sm:leading-[1.05]">
+                Learn a skill that <span className="text-brand">actually ships.</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fg-muted sm:text-base lg:mx-0 mx-auto">
+                Project-based courses with an AI tutor that teaches, probes and grades —
+                plus a verified certificate employers can check. Your mentors stay in the loop.
+              </p>
+              <div className="mt-6 flex flex-col justify-center gap-2.5 sm:flex-row lg:justify-start">
+                <Button asChild size="lg" className="h-12 text-base">
+                  <Link href="/courses">
+                    <PackageOpen className="h-4 w-4 mr-2" />
+                    Browse Courses
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="h-12 text-base">
+                  <Link href="/for-business">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    For Teams — Book a Demo
+                  </Link>
+                </Button>
+              </div>
+              {/* trust line */}
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-fg-muted lg:justify-start">
+                <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-success" aria-hidden /> No credit card</span>
+                <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-success" aria-hidden /> 30-day team pilot</span>
+                <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-success" aria-hidden /> Verified certificates</span>
+              </div>
             </div>
-            {/* trust line */}
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-fg-muted">
-              <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-success" aria-hidden /> No credit card</span>
-              <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-success" aria-hidden /> 30-day team pilot</span>
-              <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-success" aria-hidden /> Verified certificates</span>
+
+            {/* Right — sign in, embedded in the hero (2026-08-15) */}
+            <div className="mx-auto w-full max-w-sm lg:max-w-none">
+              <Card className="shadow-xl shadow-brand/5">
+                <CardHeader className="pb-2 text-center">
+                  <h2 className="text-xl font-bold text-fg">Sign in</h2>
+                  <p className="text-xs text-fg-muted">
+                    Continue learning — or jump into a demo account.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <LoginForm />
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

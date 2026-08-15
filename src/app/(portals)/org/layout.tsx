@@ -21,7 +21,7 @@ import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
 
 export default async function OrgPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   if (user.role !== "org_admin" && user.role !== "platform_admin") redirect(homeForRole(user.role));
 
   if (!(await isOrgPortalEnabled())) {

@@ -14,7 +14,7 @@ import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
 
 export default async function PlatformPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   if (user.role !== "platform_admin" && user.role !== "admin") redirect(homeForRole(user.role));
 
   // /app no longer exists (legacy deleted) — the /learn catalog is the

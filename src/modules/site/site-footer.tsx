@@ -27,7 +27,7 @@ const RESOURCE_LINKS = [
   { href: "/support", label: "Help Center" },
   { href: "/support", label: "Contact Support" },
   { href: "/verify", label: "Verify a certificate" },
-  { href: "/login", label: "Sign In" },
+  { href: "/", label: "Sign In" },
 ] as const;
 
 export function SiteFooter() {

@@ -10,6 +10,7 @@ import { ClassicTopbar } from "./classic-topbar";
 import { TopNav } from "./top-nav";
 import { TabRow } from "./tab-row";
 import { BottomNav } from "./bottom-nav";
+import { AppFooter } from "./app-footer";
 import type { NavItem, ShellBrand } from "./types";
 
 /**
@@ -101,6 +102,9 @@ export function AppShellV2({ nav, brand, trailing, children, className }: AppShe
       >
         {children}
       </main>
+
+      {/* In-app footer — every portal page closes with it (2026-08-15) */}
+      <AppFooter classic={classicShell} withBottomNav={withBottomNav} />
 
       {withBottomNav && <BottomNav nav={nav} />}
     </div>

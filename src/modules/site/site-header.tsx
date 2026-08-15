@@ -144,7 +144,7 @@ export function SiteHeader({
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
-                  <Link href="/login">Sign in</Link>
+                  <Link href="/">Sign in</Link>
                 </Button>
                 <Button asChild size="sm">
                   <Link href="/for-learners">
@@ -223,7 +223,7 @@ export function SiteHeader({
               ) : (
                 <>
                   <Button asChild variant="outline">
-                    <Link href="/login" onClick={() => setMenuOpen(false)}>
+                    <Link href="/" onClick={() => setMenuOpen(false)}>
                       Sign in
                     </Link>
                   </Button>

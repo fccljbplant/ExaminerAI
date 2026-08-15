@@ -187,7 +187,7 @@ export async function middleware(req: NextRequest) {
       );
     }
     // Page → redirect to /app (AppShell shows login form when unauthenticated)
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/", req.url)); // sign-in lives in the homepage hero
   }
 
   // ── Verify JWT ───────────────────────────────────────────────
@@ -214,7 +214,7 @@ export async function middleware(req: NextRequest) {
       );
     }
     // Page → redirect to /app (AppShell shows login form when unauthenticated)
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/", req.url)); // sign-in lives in the homepage hero
   }
 }
 

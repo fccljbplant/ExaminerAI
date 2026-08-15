@@ -17,7 +17,7 @@ import { PortalShell } from "@/modules/learner-portal";
  */
 export default async function LearnerPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   if (user.role !== "learner" && user.role !== "student") redirect(homeForRole(user.role));
 
   const membership = await db.orgMember.findFirst({
