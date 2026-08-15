@@ -8,6 +8,7 @@ import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getTodayTopic } from "@/modules/learn/lib/today-topic";
 import { getTutorContext } from "@/modules/learn/lib/study-flow-db";
+import { getTutorStudentContext, tutorContextBlocks } from "@/modules/learn/lib/tutor-context";
 import type { TutorContextResult } from "@/modules/learn/lib/study-flow";
 
 /**
@@ -95,6 +96,11 @@ export async function POST(req: NextRequest) {
   }
 
   const context = await buildContext(user.sub);
+  // W15: full student context — topic, scores, project. Degrades to
+  // empty blocks on any lookup failure; the tutor must never fail
+  // because a context lookup did.
+  const studentCtx = await getTutorStudentContext(user.sub).catch(() => null);
+  const studentBlocks = studentCtx ? tutorContextBlocks(studentCtx) : "";
   // W3 scenario packet — absence / cram / exam proximity. Degrades to a
   // normal prompt when the study-flow engine can't resolve the learner
   // (no enrollment, flag off): the tutor must never fail because a
@@ -102,7 +108,7 @@ export async function POST(req: NextRequest) {
   const studyFlow = context.courseId
     ? await getTutorContext(user.sub, context.courseId, surface ?? "").catch(() => null)
     : null;
-  const systemPrompt = buildSystemPrompt(user.name, surface, context, studyFlow);
+  const systemPrompt = buildSystemPrompt(user.name, surface, context, studentBlocks, studyFlow);
 
   try {
     const stream = await streamAI(
@@ -188,6 +194,7 @@ function buildSystemPrompt(
   learnerName: string,
   surface: string | undefined,
   ctx: TutorContextLite,
+  studentBlocks: string,
   studyFlow: TutorContextResult | null,
 ): string {
   const courseBlock = ctx.courseName
@@ -218,6 +225,7 @@ function buildSystemPrompt(
 ${surface ? `The learner is asking from: ${surface}` : ""}
 
 ${courseBlock}
+${studentBlocks ? `\n${studentBlocks}\n` : ""}
 ${scenarioBlock ? `\n${scenarioBlock}\n` : ""}
 RULES:
 - Short chat replies (3-8 sentences). This is a chat, not a lecture.
@@ -225,6 +233,8 @@ RULES:
 - Warm, respectful teacher tone; domain-neutral wording whatever the subject.
 - You are TEXT-ONLY: you cannot open files, images, audio or video. If asked to read media, say plainly that you work with text and ask the learner to describe or paste it. Never fabricate content you cannot see.
 - Connect answers to the current lesson when one is active; otherwise help plan or review.
+- Use the student's scores to encourage and the weak topics to suggest what to review.
+- When the student asks about their project, coach from the project data above. If they have no project yet, help them choose one aligned with their course domain and suggest a first milestone.
 - Never guilt the learner about absence or pace — every scenario offer is framed as a helpful choice.
 - If a topic needs depth, give the core idea plus one example, then ask if they want more.`;
 }
