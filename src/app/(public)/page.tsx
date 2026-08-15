@@ -10,6 +10,8 @@ import {
   ArrowRight, Bot, Users, ShieldCheck, Zap, Brain, Award,
   TrendingUp, Clock, CheckCircle2, Sparkles, Building2, GraduationCap,
 } from "lucide-react";
+import { fetchMarketplaceCourses, MARKETPLACE_CATEGORIES } from "@/lib/marketplace";
+import MarketplaceCourseCard from "./courses/MarketplaceCourseCard";
 
 export const metadata: Metadata = {
   title: "TraineesAI — AI-Driven Training OS for Engineers & Teams",
@@ -30,6 +32,10 @@ export default async function LandingPage() {
   // Authenticated users skip the marketing page → go straight to dashboard.
   const user = await getAuthUser();
   if (user) redirect(homeForRole(user.role));
+
+  // Marketplace preview — featured courses first, else any published.
+  const featuredCourses = await fetchMarketplaceCourses({ featured: true });
+  const marketplaceCourses = (featuredCourses.length ? featuredCourses : await fetchMarketplaceCourses({})).slice(0, 6);
 
   return (
     <div className="min-h-screen bg-bg text-fg">
@@ -232,6 +238,74 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── COURSE MARKETPLACE ─────────────────────────────────── */}
+      {marketplaceCourses.length > 0 && (
+        <section className="border-t border-line bg-bg-subtle/30">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <Badge variant="outline" className="mb-4 border-brand/30 text-brand">Course Marketplace</Badge>
+                <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
+                  Learn something that ships.
+                </h2>
+                <p className="mt-3 max-w-xl text-base text-fg-muted leading-relaxed">
+                  Project-based courses with an AI tutor, Socratic testing and a verified
+                  credential at the end — pick a track and start today.
+                </p>
+              </div>
+              <Button asChild variant="outline" className="shrink-0">
+                <Link href="/courses">
+                  View all courses <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
+
+            {/* category chips */}
+            <div className="mt-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <Link href="/courses" className="shrink-0 rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-on-brand">
+                All
+              </Link>
+              {MARKETPLACE_CATEGORIES.slice(0, 8).map((c) => (
+                <Link
+                  key={c.value}
+                  href={`/courses/category/${c.value}`}
+                  className="shrink-0 rounded-full border border-line bg-surface px-4 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong hover:text-fg"
+                >
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* course grid — e-commerce storefront cards */}
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {marketplaceCourses.map((course) => (
+                <MarketplaceCourseCard
+                  key={course.id}
+                  course={course}
+                  highlightFeatured
+                  showWishlist={false}
+                />
+              ))}
+            </div>
+
+            {/* storefront CTA banner */}
+            <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-brand/30 bg-brand-subtle p-6 sm:flex-row">
+              <div>
+                <p className="text-sm font-semibold text-fg">Hundreds of hours of project-based learning</p>
+                <p className="mt-1 text-xs text-fg-muted">
+                  New courses drop every week — AI-driven curriculum, capstone projects, verified certificates.
+                </p>
+              </div>
+              <Button asChild size="lg" className="shrink-0">
+                <Link href="/courses">
+                  Browse the marketplace <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── DUAL CTA ────────────────────────────────────────────── */}
       <section className="border-t border-line">
