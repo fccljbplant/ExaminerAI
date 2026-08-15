@@ -171,13 +171,19 @@ export async function PUT(req: NextRequest) {
   const hash = await hashPassword(password);
   const answerHash = securityQuestion && securityAnswer ? await hashPassword(securityAnswer) : null;
   try {
+    // AUTO-APPROVE (2026-08-15): when public signup is open, the account
+    // is active immediately — the old "pending approval" flow left every
+    // email/password user locked out until an admin noticed them (demo
+    // accounts were pre-approved, which is why only demo logins worked).
+    // A review-gated signup can be reintroduced behind a flag if needed.
     const user = await db.user.create({
       data: {
         name,
         email,
         passwordHash: hash,
         role: "learner",
-        status: "pending",
+        status: "active",
+        approvedAt: new Date(),
         securityQuestion: securityQuestion || null,
         securityAnswer: answerHash,
       },

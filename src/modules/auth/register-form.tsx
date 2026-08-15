@@ -79,8 +79,7 @@ export function RegisterForm() {
       <div className="space-y-4 rounded-xl border border-line bg-surface p-6 text-center">
         <p className="text-sm font-medium text-fg">Account created</p>
         <p className="text-sm text-fg-secondary">
-          Your account is pending approval. You&apos;ll be able to sign in once an
-          administrator activates it.
+          You&apos;re all set — sign in with your email and password to start learning.
         </p>
         <Button asChild className="h-11 w-full">
           <Link href="/login">Go to sign in</Link>
