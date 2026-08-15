@@ -25,7 +25,9 @@ import { homeForRole } from "@/lib/portal-home";
 const DEMO_ACCOUNTS = [
   { email: "learner@demo.ai", label: "Learner" },
   { email: "instructor@demo.ai", label: "Instructor" },
-  { email: "org_admin@demo.ai", label: "Org Admin" },
+  // seeded account is orgadmin@demo.ai (no underscore) — the old
+  // org_admin@demo.ai address never existed (audit 9.7)
+  { email: "orgadmin@demo.ai", label: "Org Admin" },
 ] as const;
 
 const DEMO_PASSWORD = "demo123";

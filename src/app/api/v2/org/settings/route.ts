@@ -2,9 +2,13 @@
  * GET/PUT /api/v2/org/settings — O4 Control Center (REDESIGN-P4 §2 O4, W7)
  *
  * GET: current branding (org-theme:<orgId> Setting). PUT: branding
- * (brandHex/mode) + portal flag switches — all audited. The client
- * previews the derived palette live via deriveBrandPalette before
- * saving.
+ * (brandHex/mode) — audited. The client previews the derived palette
+ * live via deriveBrandPalette before saving.
+ *
+ * Portal rollout flags are deliberately NOT writable here (2026-08-15
+ * audit 9.2): they are global platform rows, so an org admin writing
+ * them would flip portals for EVERY org. Platform Admin → Features is
+ * the only writer.
  */
 
 import { NextRequest } from "next/server";
@@ -20,18 +24,20 @@ export const runtime = "nodejs";
 
 const ORG_ROLES = new Set(["org_admin", "platform_admin"]);
 
-const PutBody = z.object({
-  branding: z
-    .object({
-      brandHex: z
-        .string()
-        .regex(/^#[0-9a-fA-F]{6}$/, "brandHex must be #RRGGBB")
-        .optional(),
-      mode: z.enum(["light", "dark", "bed"]).optional(),
-    })
-    .optional(),
-  flags: z.record(z.string().min(1).max(40), z.boolean()).optional(),
-});
+const PutBody = z
+  .object({
+    branding: z
+      .object({
+        brandHex: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/, "brandHex must be #RRGGBB")
+          .optional(),
+        mode: z.enum(["light", "dark", "bed"]).optional(),
+      })
+      .optional(),
+    flags: z.record(z.string().min(1).max(40), z.boolean()).optional(),
+  })
+  .strict();
 
 export async function GET() {
   const user = await getAuthUser();
@@ -75,6 +81,13 @@ export async function PUT(req: NextRequest) {
   const parsed = PutBody.safeParse(body);
   if (!parsed.success) {
     return apiError("Invalid settings body", "VALIDATION_ERROR", 400, parsed.error.flatten());
+  }
+  if (parsed.data.flags) {
+    return apiError(
+      "Portal rollout flags are platform-level — manage them in Platform Admin → Features",
+      "FORBIDDEN",
+      403,
+    );
   }
 
   try {

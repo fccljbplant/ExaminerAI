@@ -26,7 +26,9 @@ export default async function InstructorPortalLayout({ children }: { children: R
     select: { orgId: true },
   });
   const enabled = await isPortalEnabled("instructor", membership?.orgId);
-  if (!enabled) redirect(homeForRole(user.role));
+  // homeForRole("instructor") is /instructor itself — redirecting there
+  // would loop. The legacy /learn catalog is the safe flag-off fallback.
+  if (!enabled) redirect("/learn");
 
   return <InstructorShell userName={user.name}>{children}</InstructorShell>;
 }

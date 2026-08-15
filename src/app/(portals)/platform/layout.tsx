@@ -17,7 +17,9 @@ export default async function PlatformPortalLayout({ children }: { children: Rea
   if (!user) redirect("/login");
   if (user.role !== "platform_admin" && user.role !== "admin") redirect(homeForRole(user.role));
 
-  if (!(await isPlatformPortalEnabled())) redirect("/app");
+  // /app no longer exists (legacy deleted) — the /learn catalog is the
+  // safe flag-off fallback instead of a 404.
+  if (!(await isPlatformPortalEnabled())) redirect("/learn");
 
   return <PlatformShell userName={user.name}>{children}</PlatformShell>;
 }

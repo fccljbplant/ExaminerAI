@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default async function LearnerProfilePage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/app");
+  if (!user) redirect("/login");
 
   return (
     <LearnerProfile

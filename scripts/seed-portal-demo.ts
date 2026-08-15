@@ -23,9 +23,12 @@ const db = new PrismaClient();
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000);
 
 async function upsertUser(email: string, name: string, role: string, passwordHash: string) {
+  // Always reset the password too (same contract as ensure-accounts.js):
+  // demo seats must be reachable with demo123 no matter how the row
+  // drifted (audit 9.7 — orgadmin@demo.ai had an unknown password).
   return db.user.upsert({
     where: { email },
-    update: {},
+    update: { name, passwordHash, role, status: "active" },
     create: {
       email,
       name,
@@ -47,8 +50,34 @@ async function ensureCourse(
     update: {},
     create: { name, ...data },
   });
-  const existingWeeks = await db.courseWeek.count({ where: { courseId: course.id } });
-  if (existingWeeks === 0) {
+
+  // Repair drifted weeks (audit 9.5): these courses are seed-owned, but
+  // AI-generation or manual edits can overwrite their curriculum (the
+  // HSE course ended up teaching "Building a homepage with WordPress
+  // blocks"). If week/day content no longer matches the spec, rebuild.
+  const existingWeeks = await db.courseWeek.findMany({
+    where: { courseId: course.id },
+    orderBy: { weekNumber: "asc" },
+    include: { days: { orderBy: { day: "asc" } } },
+  });
+  const matches =
+    existingWeeks.length === weeks.length &&
+    weeks.every(
+      (w, i) =>
+        existingWeeks[i].phase === w.phase &&
+        existingWeeks[i].days.length === w.days.length &&
+        w.days.every((d, j) => existingWeeks[i].days[j]?.title === d.title),
+    );
+  if (matches) return course;
+
+  if (existingWeeks.length > 0) {
+    console.log(`↻ rebuilding drifted curriculum for "${name}"`);
+    await db.courseDay.deleteMany({
+      where: { courseWeekId: { in: existingWeeks.map((w) => w.id) } },
+    });
+    await db.courseWeek.deleteMany({ where: { courseId: course.id } });
+  }
+  {
     for (let w = 0; w < weeks.length; w++) {
       const week = await db.courseWeek.create({
         data: {
@@ -80,9 +109,39 @@ async function main() {
 
   /* ---- demo seats (match the login form) ---- */
   const learner = await upsertUser("learner@demo.ai", "Aisha Khan", "learner", pwd);
-  await upsertUser("instructor@demo.ai", "Sir Saeed Khan", "instructor", pwd);
-  await upsertUser("orgadmin@demo.ai", "Dr. Asma Rauf", "org_admin", pwd);
+  const instructor = await upsertUser("instructor@demo.ai", "Sir Saeed Khan", "instructor", pwd);
+  const orgAdmin = await upsertUser("orgadmin@demo.ai", "Dr. Asma Rauf", "org_admin", pwd);
   console.log("✓ demo seats ensured");
+
+  /* ---- demo organization (audit 9.1/9.7: an org_admin without an
+     active OrgMember row hard-loops /org and the org demo shows
+     nothing). Idempotent: only creates what's missing. ---- */
+  const org = await db.organization.upsert({
+    where: { slug: "demo-training-co" },
+    update: {},
+    create: { name: "Demo Training Co", slug: "demo-training-co", plan: "team", seats: 10 },
+  });
+  for (const m of [
+    { userId: orgAdmin.id, role: "admin", seat: true },
+    { userId: instructor.id, role: "mentor", seat: true },
+    { userId: learner.id, role: "member", seat: true },
+  ]) {
+    const existing = await db.orgMember.findFirst({
+      where: { orgId: org.id, userId: m.userId },
+      select: { id: true },
+    });
+    if (!existing) {
+      await db.orgMember.create({
+        data: { orgId: org.id, ...m, status: "active" },
+      });
+    } else if (existing) {
+      await db.orgMember.update({
+        where: { id: existing.id },
+        data: { status: "active", seat: true },
+      });
+    }
+  }
+  console.log("✓ demo org ensured (Demo Training Co, 3 members)");
 
   /* ---- courses ---- */
   const hse = await ensureCourse(

@@ -172,12 +172,14 @@ export async function getOrgSettings(orgId: string) {
 }
 
 /** Persist branding (Setting `org-theme:<orgId>` — migrate-org-themes
- *  convention, idempotent) + portal flag switches (global rows, the same
- *  keys the layouts read). Audited. */
+ *  convention, idempotent). Audited.
+ *
+ *  Portal rollout flags are intentionally not writable here (audit
+ *  9.2): they are global platform-level rows. */
 export async function updateOrgSettings(
   orgId: string,
   actor: AuditActor,
-  input: { branding?: BrandingInput; flags?: Record<string, boolean> },
+  input: { branding?: BrandingInput },
 ) {
   const changes: string[] = [];
 
@@ -195,18 +197,6 @@ export async function updateOrgSettings(
       create: { key: `${ORG_SETTING_PREFIX}${orgId}`, value },
     });
     changes.push("branding");
-  }
-
-  if (input.flags) {
-    for (const [name, enabled] of Object.entries(input.flags)) {
-      const key = `feature_portal_${name}_v2`;
-      await db.setting.upsert({
-        where: { key },
-        update: { value: String(enabled) },
-        create: { key, value: String(enabled) },
-      });
-      changes.push(key);
-    }
   }
 
   if (changes.length > 0) {

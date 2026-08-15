@@ -14,17 +14,12 @@ import { ThemePackPicker } from "@/modules/theme";
  * Branding: brand-color input → LIVE derived palette preview via
  * deriveBrandPalette (WCAG-guaranteed by construction — the AA badge
  * comes from the derivation math) + save (persists org-theme:<orgId>,
- * audited). Portal flags: switches that flip the feature_portal_*_v2
- * rows the layouts read.
+ * audited).
+ *
+ * Portal rollout flags are PLATFORM-level controls (2026-08-15 audit
+ * 9.2): an org admin flipping them would toggle the portal for every
+ * org. They live in Platform Admin → Features only.
  */
-
-const PORTAL_FLAGS = [
-  { name: "learner", label: "Learner portal" },
-  { name: "study_flow", label: "Study-flow engine" },
-  { name: "submissions", label: "Assignments & submissions" },
-  { name: "exams", label: "Exams runner" },
-  { name: "instructor", label: "Instructor portal" },
-] as const;
 
 interface SettingsData {
   branding: { brandHex: string; mode: string; derivedAt: string } | null;
@@ -34,7 +29,6 @@ export function OrgControl() {
   const { data, error, isLoading, retry } = useApi<SettingsData>("/api/v2/org/settings");
 
   const [brandHex, setBrandHex] = useState(oklchToHex(DEFAULT_BRAND_OKLCH));
-  const [flags, setFlags] = useState<Record<string, boolean>>({});
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -63,10 +57,9 @@ export function OrgControl() {
     try {
       await api.put("/api/v2/org/settings", {
         branding: { brandHex },
-        flags,
       });
       toast.success("Settings saved", {
-        description: "Branding and flags are live (30s cache).",
+        description: "Branding is live (30s cache).",
       });
     } catch (e) {
       toast.error("Couldn't save settings", {
@@ -161,42 +154,6 @@ export function OrgControl() {
           >
             Primary button
           </div>
-        </div>
-      </section>
-
-      {/* portal flags */}
-      <section className="space-y-2 rounded-xl border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold text-fg">Portal flags</h2>
-        <p className="text-xs text-fg-muted">
-          Global rollout switches (feature_portal_*_v2) — same rows the portal layouts read. Off
-          falls back to the legacy /app experience.
-        </p>
-        <div className="divide-y divide-line">
-          {PORTAL_FLAGS.map((f) => (
-            <label key={f.name} className="flex min-h-12 cursor-pointer items-center justify-between gap-3 py-2">
-              <span className="text-sm text-fg">{f.label}</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={flags[f.name] ?? false}
-                aria-label={`${f.label} flag`}
-                onClick={() => setFlags((prev) => ({ ...prev, [f.name]: !(prev[f.name] ?? false) }))}
-                className={
-                  flags[f.name]
-                    ? "relative h-7 w-12 rounded-full bg-brand transition-colors"
-                    : "relative h-7 w-12 rounded-full bg-bg-subtle transition-colors"
-                }
-              >
-                <span
-                  className={
-                    flags[f.name]
-                      ? "absolute left-6 top-0.5 h-6 w-6 rounded-full bg-surface shadow transition-all"
-                      : "absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-surface shadow transition-all"
-                  }
-                />
-              </button>
-            </label>
-          ))}
         </div>
       </section>
 
