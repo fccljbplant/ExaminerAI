@@ -15,3 +15,5 @@ export { PlatformResets } from "./resets";
 export { PlatformCourses } from "./courses";
 export { PlatformB2C } from "./b2c";
 export { PlatformAccess } from "./access";
+export { PlatformTabs } from "./tabs";
+export { PlatformNavConfig } from "./nav-config";

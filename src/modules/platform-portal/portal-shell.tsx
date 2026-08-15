@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { PLATFORM_NAV, PLATFORM_MORE } from "./nav";
+import { PlatformTabs } from "./tabs";
 
 /**
  * modules/platform-portal — PlatformShell (REDESIGN-P3 §4, W7)
@@ -38,6 +39,9 @@ export function PlatformShell({
           </>
         }
       >
+        <div className="mb-4 md:mb-6">
+          <PlatformTabs />
+        </div>
         {children}
       </AppShellV2>
     </>
