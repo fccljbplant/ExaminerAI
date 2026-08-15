@@ -246,17 +246,36 @@ export async function fetchCertificateForVerification(credentialId: string) {
  *  org captured at issuance (institutionId), then fall back to the
  *  learner's current active org. Returns null for independent learners. */
 export async function fetchCertificateIssuer(certificate: {
+  orgId: string | null;
   institutionId: string | null;
   userId: string;
 }): Promise<{ id: string; name: string; slug: string; logoUrl: string | null } | null> {
-  if (certificate.institutionId) {
+  // orgId is the real issuing organization (2026-08); institutionId is
+  // the legacy model — certificates issued before orgs existed carry it.
+  if (certificate.orgId) {
     const org = await db.organization
       .findUnique({
-        where: { id: certificate.institutionId },
+        where: { id: certificate.orgId },
         select: { id: true, name: true, slug: true, logoUrl: true },
       })
       .catch(() => null);
     if (org) return org;
+  }
+  if (certificate.institutionId) {
+    const inst = await db.institution
+      .findUnique({
+        where: { id: certificate.institutionId },
+        select: { id: true, name: true },
+      })
+      .catch(() => null);
+    if (inst) {
+      return {
+        id: inst.id,
+        name: inst.name,
+        slug: inst.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        logoUrl: null,
+      };
+    }
   }
   const member = await db.orgMember
     .findFirst({

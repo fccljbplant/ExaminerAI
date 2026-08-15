@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
     // its members (logo shown on the public verification page);
     // independent learners are signed by the approving instructor.
     let issuer = payload.name;
-    let institutionId: string | null = null;
+    let orgId: string | null = null;
     try {
       const membership = await db.orgMember.findFirst({
         where: { userId: targetUserId, status: "active" },
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
       });
       if (membership) {
         issuer = membership.org.name;
-        institutionId = membership.orgId;
+        orgId = membership.orgId;
       }
     } catch {}
 
@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
         grade,
         score: avgScore,
         signedBy: issuer,
-        institutionId,
+        orgId,
         credentialId,
         courseId: actualCourseId,
         courseName: certCourseName,

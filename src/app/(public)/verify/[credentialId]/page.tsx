@@ -85,6 +85,7 @@ export default async function VerifyCredentialPage({ params }: Params) {
 
   // Issuing organization — logo + name shown on the certificate.
   const issuer = await fetchCertificateIssuer({
+    orgId: certificate.orgId,
     institutionId: certificate.institutionId,
     userId: certificate.userId,
   });

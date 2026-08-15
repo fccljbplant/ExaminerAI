@@ -640,7 +640,8 @@ model Certificate {
   signedBy      String
   verifyToken   String   @unique
   pdfUrl        String?
-  institutionId String?
+  institutionId String?  // legacy Institution reference (pre-org model)
+  orgId         String?  // issuing Organization (B2B certificates)
 
   // Phase 6 — marketplace credential fields
   credentialId    String?  @unique  // public ID like "TRN-AI-2026-08-NA-87"
@@ -652,6 +653,7 @@ model Certificate {
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   course      Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)
   institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([courseId])
@@ -997,6 +999,7 @@ model Organization {
   updatedAt DateTime   @updatedAt
   members   OrgMember[]
   courses   OrgCourse[]
+  certificates Certificate[]
 }
 
 model OrgCourse {
