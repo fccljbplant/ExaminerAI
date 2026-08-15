@@ -4,7 +4,7 @@
  * ensure-accounts.js — Create admin + demo accounts if they don't exist.
  * Safe to run on every Vercel build (upsert, won't overwrite existing data).
  *
- * Admin:   admin@examiner.ai / helloworld
+ * Admin:   admin@examiner.ai / admin123
  * Demo:     demo@examiner.ai / demo123
  */
 const { PrismaClient } = require("@prisma/client");
@@ -13,7 +13,7 @@ const bcrypt = require("bcryptjs");
 async function main() {
   const db = new PrismaClient();
   try {
-    const adminPwd = await bcrypt.hash("helloworld", 10);
+    const adminPwd = await bcrypt.hash("admin123", 10);
     const demoPwd = await bcrypt.hash("demo123", 10);
 
     // Admin account — always reset password to known value on every build.
