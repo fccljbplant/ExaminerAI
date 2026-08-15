@@ -10,6 +10,7 @@ import { getAIPrompts } from "@/lib/course-config";
 import { logger } from "@/lib/logger";
 import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
+import { pseudonym } from "@/modules/ai";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /**
@@ -180,22 +181,30 @@ export async function POST(req: NextRequest) {
       });
       const examinerResponse = sanitizeExaminerText(result.text || "") || "Can you elaborate on that?";
 
-      // Per-question explanation: on the LAST exchange, grade the practice
-      // conversation and attach the explanation to the examiner's final reply.
-      // The student sees it immediately — they don't wait for the test to end.
+      // Per-question explanation + conversation grade (2026-08-15):
+      // both graders are independent of each other — run them in
+      // PARALLEL to cut the last-exchange latency in half. Names are
+      // pseudonyms — no personal data goes to the AI.
+      const studentLabel = pseudonym(user.id);
       let questionExplanation: QuestionExplanation | undefined;
+      let grade: GradeResult | null = null;
       if (isLastExchange) {
         const questionText = conversation.find(m => m.role === "examiner")?.content || practiceTopic;
         const studentAnswers = conversation.filter(m => m.role === "student").map(m => m.content);
-        if (questionText && studentAnswers.length > 0) {
-          questionExplanation = await gradeOneQuestion({
-            question: questionText,
-            studentAnswers,
-            topic: practiceTopic,
-            testKind: "practice",
-            studentName: user.name,
-          });
-        }
+        const [explanation, conversationGrade] = await Promise.all([
+          questionText && studentAnswers.length > 0
+            ? gradeOneQuestion({
+                question: questionText,
+                studentAnswers,
+                topic: practiceTopic,
+                testKind: "practice",
+                studentName: studentLabel,
+              })
+            : Promise.resolve(undefined),
+          gradeConversation(conversation, practiceTopic, studentLabel),
+        ]);
+        questionExplanation = explanation;
+        grade = conversationGrade;
       }
 
       conversation.push({
@@ -205,8 +214,7 @@ export async function POST(req: NextRequest) {
       });
 
       // If last exchange, grade the conversation
-      if (isLastExchange) {
-        const grade = await gradeConversation(conversation, practiceTopic, user.name);
+      if (isLastExchange && grade) {
 
         // Write a unified ChatSession row (chatbotType="practice") so all
         // chatbot sessions live in one model for cross-chatbot analysis.

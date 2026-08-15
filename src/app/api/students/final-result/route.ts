@@ -117,6 +117,11 @@ export async function GET(req: Request) {
 
   // ---- Per-week breakdown ----
   const weekBreakdown: { week: number; phase: string; weeklyTestScore: number | null; weeklyTestStatus: string; questionsAnswered: number; practiceCount: number; practiceAvg: number | null; plagiarismScore: number | null; }[] = [];
+  // Phase lookups are DB-only + independent — fetch in PARALLEL
+  // (2026-08-15) instead of one await per week.
+  const phases = await Promise.all(
+    Array.from({ length: courseDurationWeeks }, (_, i) => getCourseWeekPhase(targetUserId, i + 1)),
+  );
   for (let w = 1; w <= courseDurationWeeks; w++) {
     const wt = user.weeklyTests.find(t => t.week === w);
     const weekInteractions = user.interactions.filter(i => i.week === w);
@@ -125,7 +130,7 @@ export async function GET(req: Request) {
       : null;
     weekBreakdown.push({
       week: w,
-      phase: await getCourseWeekPhase(targetUserId, w),
+      phase: phases[w - 1] ?? `Week ${w}`,
       weeklyTestScore: wt?.score ?? null,
       weeklyTestStatus: wt?.status ?? "not-started",
       questionsAnswered: wt?.score !== null && wt ? Math.min(wt.currentQuestion > 0 ? wt.currentQuestion : 1, QUESTIONS_PER_WEEK) : 0,
@@ -137,12 +142,12 @@ export async function GET(req: Request) {
 
   // ---- Generate AI behavioral analysis ----
   // Build a summary for the AI to analyze
-  const testSummariesArr: string[] = [];
-  for (const t of completedTests) {
-    const w = t.week;
-    const phase = await getCourseWeekPhase(targetUserId, w);
-    testSummariesArr.push(`Week ${w} (${phase}): Score ${t.score}%, Questions answered: ${t.currentQuestion > 0 ? t.currentQuestion : 10}/10.`);
-  }
+  const testSummariesArr = await Promise.all(
+    completedTests.map(async (t) => {
+      const phase = await getCourseWeekPhase(targetUserId, t.week);
+      return `Week ${t.week} (${phase}): Score ${t.score}%, Questions answered: ${t.currentQuestion > 0 ? t.currentQuestion : 10}/10.`;
+    }),
+  );
   const testSummaries = testSummariesArr.join("\n");
 
   const practiceSummary = `Practice questions answered: ${totalPracticeQuestions}, Average score: ${practiceAvg}%`;

@@ -196,7 +196,7 @@ Return ONLY a JSON object matching this exact shape — no markdown, no explanat
       ],
       {
         temperature: 0.6,
-        maxTokens: 30_000, // outlines can be large — give the AI room to expand
+        maxTokens: 8192, // provider output cap — 30k was clamped/truncated anyway
         feature: "course-gen",
         userId: payload.sub,
       },

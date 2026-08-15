@@ -269,10 +269,15 @@ No markdown. No explanation. Just the JSON.`;
     // Batched generation for long courses (> 8 weeks)
     // Generate BATCH_SIZE weeks at a time, then merge
     logger.info("Course generation: batched mode", { totalWeeks: weeks, batchSize: BATCH_SIZE });
-    const allWeeks: unknown[] = [];
     let courseMeta: { domain?: string; level?: string; toolsUsed?: string[]; deliverableTypes?: string[]; assessmentType?: string } = {};
 
-    for (let batchStart = 0; batchStart < weeks; batchStart += BATCH_SIZE) {
+    // Batches are independent — generate them in PARALLEL (2026-08-15):
+    // N serial AI round-trips collapse into one.
+    const batchStarts: number[] = [];
+    for (let batchStart = 0; batchStart < weeks; batchStart += BATCH_SIZE) batchStarts.push(batchStart);
+
+    const batchResults = await Promise.all(
+      batchStarts.map(async (batchStart) => {
       const batchEnd = Math.min(batchStart + BATCH_SIZE, weeks);
       const batchWeeks = batchEnd - batchStart;
 
@@ -318,27 +323,34 @@ No markdown. Just the JSON.`;
       const batchMatch = batchRaw.match(/\{[\s\S]*\}/);
       if (!batchMatch) {
         logger.error("Course generation batch failed: no JSON", { batch: batchStart });
-        continue; // skip failed batch, continue with what we have
+        return { batchStart, weeks: [] as unknown[], meta: null as { domain?: string; level?: string; toolsUsed?: string[]; deliverableTypes?: string[]; assessmentType?: string } | null };
       }
 
       try {
         const batchParsed = JSON.parse(batchMatch[0]);
-        if (batchParsed.weeks && Array.isArray(batchParsed.weeks)) {
-          allWeeks.push(...batchParsed.weeks);
-        }
-        // Capture metadata from the first batch
-        if (batchStart === 0) {
-          courseMeta = {
+        return {
+          batchStart,
+          weeks: (batchParsed.weeks && Array.isArray(batchParsed.weeks) ? batchParsed.weeks : []) as unknown[],
+          meta: {
             domain: batchParsed.domain || courseDomain,
             level: batchParsed.level || courseLevel,
             toolsUsed: batchParsed.toolsUsed || [],
             deliverableTypes: batchParsed.deliverableTypes || [],
             assessmentType: batchParsed.assessmentType || assessment,
-          };
-        }
+          } as { domain?: string; level?: string; toolsUsed?: string[]; deliverableTypes?: string[]; assessmentType?: string },
+        };
       } catch {
         logger.error("Course generation batch: JSON parse failed", { batch: batchStart });
+        return { batchStart, weeks: [] as unknown[], meta: null as { domain?: string; level?: string; toolsUsed?: string[]; deliverableTypes?: string[]; assessmentType?: string } | null };
       }
+      }),
+    );
+
+    // Merge batches in order; metadata comes from the FIRST batch.
+    const allWeeks: unknown[] = [];
+    for (const r of batchResults.sort((a, b) => a.batchStart - b.batchStart)) {
+      allWeeks.push(...r.weeks);
+      if (r.batchStart === 0 && r.meta) courseMeta = r.meta;
     }
 
     if (allWeeks.length === 0) {

@@ -59,56 +59,45 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   weeklyTests.forEach(t => weeks.add(t.week));
   const sortedWeeks = Array.from(weeks).sort((a, b) => a - b);
 
-  const narratives: Array<{ week: number; text: string; cached: boolean }> = [];
+  // Weeks are independent — generate them in PARALLEL (2026-08-15):
+  // N serial AI round-trips collapse into one. Output order preserved.
+  const narratives = await Promise.all(
+    sortedWeeks.map(async (week): Promise<{ week: number; text: string; cached: boolean }> => {
+      const weekInteractions = interactions.filter(i => i.week === week);
+      const weekTest = weeklyTests.find(t => t.week === week);
+      const cacheKey = crypto.createHash("sha256").update(`narrative:${id}:week${week}`).digest("hex");
 
-  for (const week of sortedWeeks) {
-    const weekInteractions = interactions.filter(i => i.week === week);
-    const weekTest = weeklyTests.find(t => t.week === week);
-
-    // Cache key per week (invalidated when new academic data for that week arrives)
-    const cacheKey = crypto.createHash("sha256").update(`narrative:${id}:week${week}`).digest("hex");
-
-    const isCurrentWeek = week === student.currentWeek;
-    // Past weeks: try cache. Current week: always regenerate (or use cache if no new evidence)
-    if (!isCurrentWeek) {
       const cached = await db.aICache.findUnique({ where: { cacheKey } });
       if (cached) {
-        narratives.push({ week, text: cached.response, cached: true });
-        continue;
+        return { week, text: cached.response, cached: true };
       }
-    } else {
-      const cached = await db.aICache.findUnique({ where: { cacheKey } });
-      if (cached) {
-        narratives.push({ week, text: cached.response, cached: true });
-        continue;
-      }
-    }
 
-    // Generate paragraph for this week
-    const weekData = {
-      week, testScore: weekTest?.score ?? null,
-      interactions: weekInteractions.map(i => ({ score: i.correctness, topic: i.topic })),
-    };
+      // Generate paragraph for this week
+      const weekData = {
+        week, testScore: weekTest?.score ?? null,
+        interactions: weekInteractions.map(i => ({ score: i.correctness, topic: i.topic })),
+      };
 
-    try {
-      const result = await callAI([
+      try {
+        const result = await callAI([
         { role: "system", content: "Write one paragraph (2-3 sentences) about this student's week. Plain language. Note what changed. Note uncertainty. Never diagnose. Roman script." },
         { role: "user", content: `Student: ${student.name}, Week ${week}\nData: ${JSON.stringify(weekData)}\nParagraph:` },
       ], { feature: "narrative-week", temperature: 0.4, maxTokens: 150, userId: payload.sub });
 
-      const text = result.text?.trim() || "No data for this week.";
-      // Cache
-      await db.aICache.upsert({
-        where: { cacheKey },
-        create: { cacheKey, response: text, provider: "deepseek" },
-        update: { response: text, createdAt: new Date() },
-      }).catch((err) => { logger.warn("Operation failed", { err }); });
-      narratives.push({ week, text, cached: false });
-    } catch (err) {
-      logger.warn("Narrative generation failed", { studentId: id, week, error: err instanceof Error ? err.message : String(err) });
-      narratives.push({ week, text: "Unable to generate narrative for this week.", cached: false });
-    }
-  }
+        const text = result.text?.trim() || "No data for this week.";
+        // Cache
+        await db.aICache.upsert({
+          where: { cacheKey },
+          create: { cacheKey, response: text, provider: "deepseek" },
+          update: { response: text, createdAt: new Date() },
+        }).catch((err) => { logger.warn("Operation failed", { err }); });
+        return { week, text, cached: false };
+      } catch (err) {
+        logger.warn("Narrative generation failed", { studentId: id, week, error: err instanceof Error ? err.message : String(err) });
+        return { week, text: "Unable to generate narrative for this week.", cached: false };
+      }
+    }),
+  );
 
   return NextResponse.json({ studentName: student.name, narratives });
 }

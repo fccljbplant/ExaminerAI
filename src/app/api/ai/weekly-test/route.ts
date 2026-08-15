@@ -13,6 +13,7 @@ import { isFeatureEnabled } from "@/lib/feature-flags";
 import { fallbackGrade, type TeachingFeedback, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { buildTestLedger, ledgerToPrompt, buildNextQuestionPrompt } from "@/modules/assessment/lib/test-ledger";
+import { pseudonym } from "@/modules/ai";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { issueCertificate } from "@/lib/certificate";
 import { TEST_QUESTION_COUNT } from "@/lib/constants";
@@ -454,7 +455,7 @@ CRITICAL RULES:
             studentAnswers: studentAnswersToThisQuestion,
             topic: topics[Math.min(test.currentQuestion, topics.length - 1)] || `Week ${week}`,
             testKind: "weekly_test",
-            studentName: user.name,
+            studentName: pseudonym(user.id), // privacy — the AI grades a pseudonym
           })
         : Promise.resolve(undefined);
       const nextQ = !isLastQuestion

@@ -21,6 +21,7 @@ import { logger } from "@/lib/logger";
 import { awardTypedXP, getOrCreateProfile, getTodayTopic, getTopicByWeekDay } from "@/modules/learn";
 import { callAIJson } from "./ai-json";
 import { gradeOneQuestion } from "./unified-test-engine";
+import { pseudonym } from "@/modules/ai";
 import {
   examSlug,
   parseExamSlug,
@@ -372,7 +373,8 @@ export async function saveExamAnswer(
     studentAnswers: [input.answer],
     topic: session.course.name ?? "the course",
     testKind: session.kind === "daily" ? "daily_test" : "weekly_test",
-    studentName,
+    // Privacy (2026-08-15): the AI grades a pseudonym, never the name.
+    studentName: pseudonym(userId),
   });
 
   const answers = upsertAnswer(parseAnswers(session.answersJson), input, question.question, question.format, {

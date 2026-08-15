@@ -105,6 +105,10 @@ Generate 5 project suggestions:`;
       temperature: 0.6,
       maxTokens: 1500,
       userId: user.id,
+      // Stable per (course + outline + project): cache 24h — the same
+      // course generates the same suggestions for every student.
+      cacheable: true,
+      cacheTtlMs: 24 * 60 * 60 * 1000,
     });
 
     // Parse JSON

@@ -112,7 +112,7 @@ IMPORTANT: This is a SIMULATION for teacher practice. It is NOT a prediction of 
   // ---- ACTION: REPLY ----
   if (action === "reply" && teacherReply?.trim()) {
     const conv: RehearseMessage[] = [...(conversation || []), {
-      role: "instructor", content: teacherReply.trim(),
+      role: "instructor", content: teacherReply.trim().slice(0, 8000),
       timestamp: new Date().toISOString(),
     }];
 

@@ -72,23 +72,29 @@ export async function POST(req: NextRequest) {
       select: { courseId: true },
       take: 3,
     });
-    for (const enr of teaching) {
-      const [cohort, outline] = await Promise.all([
-        getCohortPack(user.id, enr.courseId),
-        getCourseOutlinePack(enr.courseId),
-      ]);
-      if (cohort) {
-        cohortBlock += `\nCOURSE: ${cohort.courseName} (${cohort.students.length} students): ${cohort.students
+    // Courses are independent — fetch all packs in PARALLEL (2026-08-15).
+    const blocks = await Promise.all(
+      teaching.map(async (enr) => {
+        const [cohort, outline] = await Promise.all([
+          getCohortPack(user.id, enr.courseId),
+          getCourseOutlinePack(enr.courseId),
+        ]);
+        let block = "";
+        if (cohort) {
+          block += `\nCOURSE: ${cohort.courseName} (${cohort.students.length} students): ${cohort.students
           .slice(0, 12)
           .map((s) => `${s.label} w${s.week} ${s.latestScore != null ? `${s.latestScore}%` : "n/a"} streak${s.streak} ${s.risk}`)
           .join("; ")}\n`;
       }
       if (outline) {
-        cohortBlock += `OUTLINE: ${outline.weeks
+          block += `OUTLINE: ${outline.weeks
           .map((w) => `W${w.week} ${w.phase} (${w.days.length} days)`)
           .join(" | ")}\n`;
       }
-    }
+        return block;
+      }),
+    );
+    cohortBlock = blocks.join("");
   } catch {
     /* cohort context is best-effort */
   }

@@ -96,7 +96,7 @@ ${projectContext}
 
 Student's report (Week ${week}):
 """
-${reportText.trim()}
+${reportText.trim().slice(0, 20_000)}
 """
 
 Evaluate this report on these dimensions (each 0-100):
