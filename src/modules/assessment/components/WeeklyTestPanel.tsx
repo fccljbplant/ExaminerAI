@@ -51,6 +51,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
   const [psychAnalysis, setPsychAnalysis] = useState<string | null>(null);
   const [examinerComment, setExaminerComment] = useState<string | null>(null);
   const [score, setScore] = useState<number | null>(null);
+  const [rawScore, setRawScore] = useState<number | null>(null);
   const [plagiarismScore, setPlagiarismScore] = useState<number | null>(null);
   // Phase 1.6: weaknesses array for the study plan + needsStudyPlan flag
   // (Phase 1.1: when true, the UI shows a kind message instead of the raw score)
@@ -210,6 +211,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         currentQuestion: number;
         replyCount: number;
         isComplete: boolean;
+        rawScore?: number;
         psychAnalysis?: string;
         examinerComment?: string;
         score?: number;
@@ -240,6 +242,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
         setPsychAnalysis(res.psychAnalysis ?? null);
         setExaminerComment(res.examinerComment ?? null);
         setScore(res.score ?? null);
+        setRawScore(res.rawScore ?? null);
         setPlagiarismScore(res.plagiarismScore ?? null);
         // Phase 1.6: capture weaknesses + compute needsStudyPlan
         setWeaknesses(res.weaknesses ?? []);
@@ -268,6 +271,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
       const res = await api.post<{
         conversation: ChatMsg[];
         isComplete: boolean;
+        rawScore?: number;
         psychAnalysis: string;
         examinerComment: string;
         score: number;
@@ -294,6 +298,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
       setPsychAnalysis(res.psychAnalysis);
       setExaminerComment(res.examinerComment);
       setScore(res.score);
+      setRawScore(res.rawScore ?? null);
       // Phase 1.6: capture weaknesses + compute needsStudyPlan
       setWeaknesses(res.weaknesses ?? []);
       setNeedsStudyPlan(res.score < 60);
@@ -534,7 +539,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 text-xs">
                       <div className="rounded-md bg-bg/50 p-2">
                         <p className="text-[9px] text-fg-muted">Raw Score</p>
-                        <p className="text-sm font-bold text-fg">{plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score}%</p>
+                        <p className="text-sm font-bold text-fg">{rawScore ?? (plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score)}%</p>
                       </div>
                       <div className="rounded-md bg-bg/50 p-2">
                         <p className="text-[9px] text-fg-muted">Plagiarism</p>
@@ -542,7 +547,7 @@ export function WeeklyTestPanel({ stats, onReload, onMode }: { stats: StatsRespo
                       </div>
                       <div className="rounded-md bg-bg/50 p-2">
                         <p className="text-[9px] text-fg-muted">Marks Deducted</p>
-                        <p className="text-sm font-bold text-destructive">-{Math.round((plagiarismScore > 0 ? Math.round(score / (1 - plagiarismScore / 100)) : score) * plagiarismScore / 100)}</p>
+                        <p className="text-sm font-bold text-destructive">-{Math.max(0, Math.round((rawScore ?? (plagiarismScore > 0 ? score / (1 - plagiarismScore / 100) : score)) - score))}</p>
                       </div>
                       <div className="rounded-md bg-bg/50 p-2">
                         <p className="text-[9px] text-fg-muted">Final Score</p>

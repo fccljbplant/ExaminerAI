@@ -356,11 +356,11 @@ export function finalAnalysisPrompt(
   studentName: string,
   transcript: string
 ): string {
-  return `You are a mentor assessing ${studentName} based on this weekly test transcript. You are FOR this student — your job is to see them clearly (strengths AND gaps) and help them grow. You are not surveillance. You are a mentor who genuinely cares.
+  return `You are a mentor assessing ${studentName} based on this weekly test data. You are FOR this student — your job is to see them clearly (strengths AND gaps) and help them grow. You are not surveillance. You are a mentor who genuinely cares.
 
 ${GLOBAL_AI_RULES}
 
-Transcript:
+TEST DATA (compact per-question ledger + test stats — the full transcript is NOT included, use this):
 ${transcript}
 
 Your assessment must include:
@@ -381,12 +381,15 @@ SCORING RULES — HONEST BUT KIND:
 - A student who showed exceptional understanding should score 95-100.
 - Be honest. A fake "70" for a student who actually scored 30 helps no one — the instructor can't intervene, the student doesn't know what to study, and the next test will be even harder.
 - When in doubt between two scores, you MAY nudge up by 5 (not 20) to be kind. But don't lie.
+- YOU DO ALL THE CALCULATIONS (2026-08-15): unanswered/skipped questions count as 0 marks — scale your score by answered/total from the TEST DATA. Then apply the plagiarism deduction yourself: final = scaled × (1 − plagiarismScore/100). The "score" you return MUST be this FINAL score, already scaled and deducted.
+- "rawScore" = your score BEFORE the plagiarism deduction (after skip-scaling).
 
 Return ONLY a JSON object (no prose, no markdown fences):
 {
   "examinerComment": "<3-4 sentences in SIMPLE English: their grade level, concepts they understood, concepts to work on, and the implementation intention (specific next action). Shown to BOTH student and teacher.>",
   "strengthSignal": "<1-2 sentences identifying a SPECIFIC, genuine strength the student demonstrated. Must reference something they actually said or did during this test. Not generic praise. This is REQUIRED — do not leave it empty.>",
-  "score": <0-100>,
+  "rawScore": <0-100, your score BEFORE the plagiarism deduction (after skip-scaling)>,
+  "score": <0-100, the FINAL score — skip-scaled AND plagiarism-deducted>,
   "weaknesses": ["<specific topic 1>", "<specific topic 2>", "<specific topic 3>"],
   "plagiarismScore": <0-100>,
   "plagiarismNotes": "<one sentence summary for the student. If score > 50, frame as 'some answers may need review' — NOT an accusation. If score <= 30, say 'No signs of plagiarism detected.'>",

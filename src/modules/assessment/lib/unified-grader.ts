@@ -27,7 +27,8 @@
  * the JSON schema.
  */
 
-import { callAI } from "@/lib/ai-provider";
+import { z } from "zod";
+import { callAIJson } from "@/lib/ai-json";
 import { logger } from "@/lib/logger";
 
 export type TestKind = "practice" | "daily_test" | "weekly_test";
@@ -71,6 +72,9 @@ export interface TeachingFeedback {
 
 export interface GradeResult {
   score: number;
+  /** AI-computed score BEFORE the plagiarism deduction (2026-08-15).
+   *  Present only when the grader itself applied the deduction. */
+  rawScore?: number;
   feedback: TeachingFeedback;
 }
 
@@ -89,11 +93,15 @@ export interface GradeTestInput {
    *  (correctAnswer + explanation + encouragement for each question).
    *  Defaults to false for practice, true for daily/weekly. */
   includeQuestionExplanations?: boolean;
+  /** Heuristic plagiarism-risk percentage (0-100). The AI judges for
+   *  itself and returns the FINAL score with any deduction applied
+   *  (plus rawScore = pre-deduction). 2026-08-15 — AI does all math. */
+  plagiarismSignal?: number;
 }
 
 /** Build the grading prompt. Exported for testing. */
 export function buildGradePrompt(input: GradeTestInput): string {
-  const { transcript, topic, studentName, testKind, includeQuestionExplanations } = input;
+  const { transcript, topic, studentName, testKind, includeQuestionExplanations, plagiarismSignal } = input;
 
   const kindFraming: Record<TestKind, string> = {
     practice:
@@ -108,11 +116,18 @@ export function buildGradePrompt(input: GradeTestInput): string {
     ? `\n\nALSO produce per-question explanations so the student can see the RIGHT answer for every question:\n- "questionExplanations": JSON array, one entry per question in the test. Each entry:\n  {\n    "questionIndex": <0-based index>,\n    "question": "<the question you asked, verbatim or close>",\n    "studentAnswer": "<student's answer, summarized in 1-2 sentences>",\n    "correctAnswer": "<the RIGHT answer, 1-2 sentences, plain language. What they SHOULD have said.>",\n    "explanation": "<2-3 sentences explaining WHY the correct answer is correct — cause-and-effect, the trade-off. Teach the concept.>",\n    "encouragement": "<ONE sentence specific encouragement for THIS question — what they did well OR what to try next time. Never harsh.>"\n  }\nCover EVERY question — do not skip any. Write in the SAME language the student used during the test (Urdu replies → Urdu explanations; English → English; mixed → dominant language). Technical terms stay in English.`
     : "";
 
-  const jsonShape = includeQuestionExplanations
-    ? `{"score": <number>, "modelAnswer": "...", "missedPoints": ["...", "..."], "nextTime": "...", "questionExplanations": [{"questionIndex": 0, "question": "...", "studentAnswer": "...", "correctAnswer": "...", "explanation": "...", "encouragement": "..."}]}`
-    : `{"score": <number>, "modelAnswer": "...", "missedPoints": ["...", "..."], "nextTime": "..."}`;
+  const signalBlock =
+    typeof plagiarismSignal === "number"
+      ? `
 
-  return `You are grading ${studentName}'s ${testKind.replace("_", " ")} on "${topic}".
+IMPORTANT — YOU DO ALL THE CALCULATIONS: a heuristic flagged plagiarism risk around ${Math.round(plagiarismSignal)}%. Judge the transcript for yourself. Return "score" as the FINAL score with your plagiarism deduction ALREADY applied (final = raw x (1 - deduction/100)), and "rawScore" as the score before that deduction. Unanswered/skipped questions count as 0 — scale accordingly.`
+      : "";
+
+  const jsonShape = includeQuestionExplanations
+    ? `{"rawScore": <number, before deduction>, "score": <number, FINAL with deductions>, "modelAnswer": "...", "missedPoints": ["...", "..."], "nextTime": "...", "questionExplanations": [{"questionIndex": 0, "question": "...", "studentAnswer": "...", "correctAnswer": "...", "explanation": "...", "encouragement": "..."}]}`
+    : `{"rawScore": <number, before deduction>, "score": <number, FINAL with deductions>, "modelAnswer": "...", "missedPoints": ["...", "..."], "nextTime": "..."}`;
+
+  return `You are grading ${studentName}'s ${testKind.replace("_", " ")} on "${topic}".${signalBlock}
 
 ${kindFraming[testKind]}
 
@@ -170,49 +185,6 @@ export function fallbackGrade(topic: string, testKind: TestKind, repliesCount: n
   };
 }
 
-/** Parse the AI's JSON response. Returns null on any parse failure. */
-function parseGradeResponse(text: string | undefined, topic: string, testKind: TestKind, repliesCount: number): GradeResult | null {
-  if (!text) return null;
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(match[0]);
-  } catch {
-    return null;
-  }
-
-  const score = Math.max(0, Math.min(100, Number(parsed.score ?? 70)));
-  if (!Number.isFinite(score)) return null;
-
-  const missedRaw = parsed.missedPoints;
-  const missed = Array.isArray(missedRaw)
-    ? missedRaw
-        .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
-        .map(s => s.trim())
-        .slice(0, 4)
-    : [];
-
-  const fallback = fallbackGrade(topic, testKind, repliesCount);
-
-  return {
-    score,
-    feedback: {
-      modelAnswer:
-        typeof parsed.modelAnswer === "string" && parsed.modelAnswer.trim()
-          ? parsed.modelAnswer.trim()
-          : fallback.feedback.modelAnswer,
-      missedPoints: missed.length > 0 ? missed : fallback.feedback.missedPoints,
-      nextTime:
-        typeof parsed.nextTime === "string" && parsed.nextTime.trim()
-          ? parsed.nextTime.trim()
-          : fallback.feedback.nextTime,
-      questionExplanations: parseQuestionExplanations(parsed.questionExplanations),
-    },
-  };
-}
-
 /** Parse the questionExplanations array from the AI response. Returns []
  *  on any parse failure or if the field is missing. Each item is
  *  validated — invalid entries are dropped, not the whole array.
@@ -257,6 +229,29 @@ export function parseQuestionExplanations(raw: unknown): QuestionExplanation[] {
  * malformed response, returns fallbackGrade(...) so the student still
  * gets a score + teaching feedback.
  */
+/** The grading payload — zod-validated (2026-08-15 JSON-mode sweep).
+ *  The prompt itself demands this exact shape; no regex extraction. */
+const GradeSchema = z.object({
+  rawScore: z.number().min(0).max(100).optional(),
+  score: z.number().min(0).max(100),
+  modelAnswer: z.string().optional(),
+  missedPoints: z.array(z.string()).optional(),
+  nextTime: z.string().optional(),
+  questionExplanations: z
+    .array(
+      z.object({
+        questionIndex: z.number().optional(),
+        question: z.string().optional(),
+        studentAnswer: z.string().optional(),
+        correctAnswer: z.string().optional(),
+        explanation: z.string().optional(),
+        encouragement: z.string().optional(),
+        score: z.number().min(0).max(100).optional(),
+      }),
+    )
+    .optional(),
+});
+
 export async function gradeTest(input: GradeTestInput): Promise<GradeResult> {
   const { topic, testKind, transcript, includeQuestionExplanations } = input;
 
@@ -268,21 +263,46 @@ export async function gradeTest(input: GradeTestInput): Promise<GradeResult> {
   const maxTokens = includeQuestionExplanations ? 2500 : 600;
 
   try {
-    const result = await callAI(
+    const result = await callAIJson<z.infer<typeof GradeSchema>>(
       [{ role: "user", content: buildGradePrompt(input) }],
       {
+        schema: GradeSchema,
+        feature: `${testKind}-grade`,
         temperature: 0.4,
         maxTokens,
-        feature: `${testKind}-grade`,
       },
     );
 
-    const parsed = parseGradeResponse(result.text, topic, testKind, repliesCount);
-    if (parsed) return parsed;
+    if (result.ok) {
+      const d = result.data;
+      const fallback = fallbackGrade(topic, testKind, repliesCount);
+      const missed = (d.missedPoints ?? []).filter((s) => s.trim().length > 0).slice(0, 4);
+      return {
+        score: d.score,
+        rawScore: d.rawScore ?? d.score,
+        feedback: {
+          modelAnswer: d.modelAnswer?.trim() || fallback.feedback.modelAnswer,
+          missedPoints: missed.length > 0 ? missed : fallback.feedback.missedPoints,
+          nextTime: d.nextTime?.trim() || fallback.feedback.nextTime,
+          questionExplanations: (d.questionExplanations ?? [])
+            .filter((x) => Boolean(x.correctAnswer && x.explanation))
+            .map((x, i) => ({
+              questionIndex: x.questionIndex ?? i,
+              question: x.question?.trim() || "(question unavailable)",
+              studentAnswer: x.studentAnswer?.trim() || "(no answer captured)",
+              correctAnswer: x.correctAnswer as string,
+              explanation: x.explanation as string,
+              encouragement:
+                x.encouragement?.trim() || "Keep practicing — every attempt teaches you something.",
+              score: Math.round(x.score ?? 50),
+            })),
+        },
+      };
+    }
 
-    logger.warn(`${testKind} grading returned unparseable response`, {
+    logger.warn(`${testKind} grading returned an invalid payload`, {
       topic,
-      textPreview: result.text?.slice(0, 200),
+      error: result.error,
     });
   } catch (err) {
     logger.warn(`${testKind} grading failed`, {
