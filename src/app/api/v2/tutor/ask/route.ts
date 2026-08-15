@@ -9,6 +9,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
 import { getTodayTopic } from "@/modules/learn/lib/today-topic";
 import { getTutorContext } from "@/modules/learn/lib/study-flow-db";
 import { getTutorStudentContext, tutorContextBlocks } from "@/modules/learn/lib/tutor-context";
+import { buildTutorBlocksFromPacks, pseudonym } from "@/modules/ai";
 import type { TutorContextResult } from "@/modules/learn/lib/study-flow";
 
 /**
@@ -99,8 +100,20 @@ export async function POST(req: NextRequest) {
   // W15: full student context — topic, scores, project. Degrades to
   // empty blocks on any lookup failure; the tutor must never fail
   // because a context lookup did.
+  // W15 + AI-cache (2026-08-15): the student context blocks now come
+  // from the per-subject pack caches (encrypted at rest, pseudonym-only,
+  // hit/miss visible in the admin cache panel). The old context builder
+  // still resolves the primary course + current topic coordinates.
   const studentCtx = await getTutorStudentContext(user.sub).catch(() => null);
-  const studentBlocks = studentCtx ? tutorContextBlocks(studentCtx) : "";
+  const studentBlocks =
+    studentCtx?.courseId && studentCtx.topic
+      ? await buildTutorBlocksFromPacks(user.sub, studentCtx.courseId, {
+          week: studentCtx.topic.week,
+          day: studentCtx.topic.day,
+        }).catch(() => "")
+      : studentCtx
+        ? tutorContextBlocks(studentCtx)
+        : "";
   // W3 scenario packet — absence / cram / exam proximity. Degrades to a
   // normal prompt when the study-flow engine can't resolve the learner
   // (no enrollment, flag off): the tutor must never fail because a
@@ -108,7 +121,7 @@ export async function POST(req: NextRequest) {
   const studyFlow = context.courseId
     ? await getTutorContext(user.sub, context.courseId, surface ?? "").catch(() => null)
     : null;
-  const systemPrompt = buildSystemPrompt(user.name, surface, context, studentBlocks, studyFlow);
+  const systemPrompt = buildSystemPrompt(pseudonym(user.sub), surface, context, studentBlocks, studyFlow);
 
   try {
     const stream = await streamAI(

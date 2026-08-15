@@ -26,6 +26,7 @@ import { apiError, apiForbidden, apiNotFound, apiSuccess, apiUnauthorized, apiVa
 import { callAI } from "@/modules/assessment/lib/ai-provider";
 import { LEVEL_DIRECTIVES, type TeachingLevel } from "@/modules/learn/types";
 import { getTutorStudentContext, tutorContextBlocks } from "@/modules/learn/lib/tutor-context";
+import { buildTutorBlocksFromPacks } from "@/modules/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -85,8 +86,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   // W15: the tutor knows the learner — today's topic, scores, project.
   // Degrades to empty blocks on any lookup failure (never breaks Q&A).
+  // Cached + anonymized per-subject packs feed the blocks (2026-08-15).
   const studentCtx = await getTutorStudentContext(user.sub).catch(() => null);
-  const studentBlocks = studentCtx ? tutorContextBlocks(studentCtx) : "";
+  const studentBlocks =
+    studentCtx?.courseId && studentCtx.topic
+      ? await buildTutorBlocksFromPacks(user.sub, studentCtx.courseId, {
+          week: studentCtx.topic.week,
+          day: studentCtx.topic.day,
+        }).catch(() => "")
+      : studentCtx
+        ? tutorContextBlocks(studentCtx)
+        : "";
 
   const systemPrompt = [
     "You are an AI tutor on the TraineesAI Learn platform.",

@@ -680,7 +680,7 @@ async function resetDb() {
     "payment", "passwordResetRequest", "comment", "chatSession", "tutorMessage",
     "tutorSession", "journeyStep", "journeyPlan", "learnSlide", "learnNarration",
     "reportCard", "competency", "skillMastery", "accessGrant", "event",
-    "auditLog", "aICache", "aIUsageLog", "milestone", "courseReviewHelpfulVote",
+    "auditLog", "aICache", "aICacheStats", "aIUsageLog", "milestone", "courseReviewHelpfulVote",
     "courseReview", "courseFAQ", "courseDay", "courseWeek", "courseEnrollment",
     "learnProfile", "orgCourse", "orgMember", "assignment", "rubricCriterion",
     "rubric", "learningPathCourse", "learningPath", "registryRow",

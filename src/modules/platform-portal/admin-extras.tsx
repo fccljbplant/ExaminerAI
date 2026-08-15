@@ -408,16 +408,39 @@ interface CacheStats {
   tokensSaved?: number;
 }
 
+interface CacheNamespaceRow {
+  namespace: string;
+  entries: number;
+  hits: number;
+  misses: number;
+  hitRate: number;
+  tokensSaved: number;
+}
+
+const NAMESPACE_LABELS: Record<string, string> = {
+  "course-outline": "Course outline",
+  "tutor-topic": "Tutor lesson (per subject)",
+  learner: "Learner profile",
+  cohort: "Class cohort (instructor)",
+  project: "Project context",
+  response: "AI responses",
+};
+
 export function CacheStatsCard() {
   const [stats, setStats] = useState<CacheStats | null>(null);
-  const [clearing, setClearing] = useState(false);
+  const [namespaces, setNamespaces] = useState<CacheNamespaceRow[]>([]);
+  const [clearing, setClearing] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/cache");
       if (!res.ok) return;
-      const payload = (await res.json()) as { stats: CacheStats };
+      const payload = (await res.json()) as {
+        stats: CacheStats;
+        namespaces: CacheNamespaceRow[];
+      };
       setStats(payload.stats);
+      setNamespaces(payload.namespaces ?? []);
     } catch {
       /* non-blocking */
     }
@@ -427,17 +450,20 @@ export function CacheStatsCard() {
     void load();
   }, [load]);
 
-  async function clear() {
-    setClearing(true);
+  async function clear(namespace?: string) {
+    setClearing(namespace ?? "memory");
     try {
-      const res = await fetch("/api/admin/cache", { method: "DELETE" });
+      const res = await fetch(
+        namespace ? `/api/admin/cache?namespace=${encodeURIComponent(namespace)}` : "/api/admin/cache",
+        { method: "DELETE" },
+      );
       if (!res.ok) throw new Error("Clear failed");
-      toast.success("Token cache cleared");
+      toast.success(namespace ? `Cleared "${namespace}"` : "Token cache cleared");
       void load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Clear failed");
     } finally {
-      setClearing(false);
+      setClearing(null);
     }
   }
 
@@ -469,14 +495,70 @@ export function CacheStatsCard() {
               <p className="text-[10px] uppercase tracking-wide text-fg-muted">tokens saved</p>
             </div>
           </div>
+
+          {/* hits / misses — the memory response cache */}
+          <div className="grid grid-cols-2 gap-2 rounded-lg border border-line bg-bg-subtle/40 p-2 text-center">
+            <div>
+              <p className="text-sm font-semibold tabular-nums text-success">{stats.hits.toLocaleString()}</p>
+              <p className="text-[10px] uppercase tracking-wide text-fg-muted">cache hits</p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold tabular-nums text-fg-muted">{stats.misses.toLocaleString()}</p>
+              <p className="text-[10px] uppercase tracking-wide text-fg-muted">cache misses</p>
+            </div>
+          </div>
+
+          {/* per-subject namespaces — the instructor/tutor context packs */}
+          {namespaces.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                Subject caches
+              </p>
+              <div className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+                {namespaces.map((n) => (
+                  <div key={n.namespace} className="flex items-center gap-2 px-2.5 py-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-fg">
+                        {NAMESPACE_LABELS[n.namespace] ?? n.namespace}
+                      </p>
+                      <p className="text-[10px] tabular-nums text-fg-muted">
+                        {n.entries} entries · {n.hits} hits · {n.misses} misses ·{" "}
+                        {n.tokensSaved.toLocaleString()} tokens saved
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        n.hitRate >= 60
+                          ? "bg-success-subtle text-success-on"
+                          : n.hitRate > 0
+                            ? "bg-warning-subtle text-warning-on"
+                            : "bg-bg-subtle text-fg-muted"
+                      }`}
+                    >
+                      {n.hitRate}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void clear(n.namespace)}
+                      disabled={clearing !== null}
+                      className="shrink-0 rounded-md px-1.5 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger disabled:opacity-50"
+                    >
+                      {clearing === n.namespace ? "…" : "Clear"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => void clear()}
-            disabled={clearing}
+            disabled={clearing !== null}
             className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50"
           >
-            {clearing ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <UserCheck className="h-3.5 w-3.5" aria-hidden />}
-            Clear cache
+            {clearing === "memory" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <UserCheck className="h-3.5 w-3.5" aria-hidden />}
+            Clear response cache
           </button>
         </div>
       )}

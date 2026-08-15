@@ -6,6 +6,8 @@ import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
 import { isStaffRole } from "@/lib/rbac";
+import { db } from "@/lib/db";
+import { getCohortPack, getCourseOutlinePack, pseudonym } from "@/modules/ai";
 import { demoWriteBlock } from "@/lib/demo-guard";
 
 /** POST /api/ai/instructor-tutor — AI Assistant chatbot for INSTRUCTORS.
@@ -53,16 +55,52 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "messages array required" }, { status: 400 });
   }
 
-  // Build context from the instructor's profile
+  // Build context from the instructor's profile — ANONYMIZED (2026-08-15):
+  // the AI never learns the instructor's real name; a stable pseudonym is
+  // used instead. Cohort + course-outline data comes from the per-subject
+  // caches (encrypted at rest, hit/miss in the admin panel).
   const teacherContext = [
-    `Instructor name: ${user.name}`,
+    `Instructor: ${pseudonym(user.id, "instructor")}`,
     `Role: ${user.role}`,
   ].join("\n");
+
+  // Instructor's own courses → cohort pack + outline pack (anonymized).
+  let cohortBlock = "";
+  try {
+    const teaching = await db.courseEnrollment.findMany({
+      where: { userId: user.id, role: "instructor" },
+      select: { courseId: true },
+      take: 3,
+    });
+    for (const enr of teaching) {
+      const [cohort, outline] = await Promise.all([
+        getCohortPack(user.id, enr.courseId),
+        getCourseOutlinePack(enr.courseId),
+      ]);
+      if (cohort) {
+        cohortBlock += `\nCOURSE: ${cohort.courseName} (${cohort.students.length} students): ${cohort.students
+          .slice(0, 12)
+          .map((s) => `${s.label} w${s.week} ${s.latestScore != null ? `${s.latestScore}%` : "n/a"} streak${s.streak} ${s.risk}`)
+          .join("; ")}\n`;
+      }
+      if (outline) {
+        cohortBlock += `OUTLINE: ${outline.weeks
+          .map((w) => `W${w.week} ${w.phase} (${w.days.length} days)`)
+          .join(" | ")}\n`;
+      }
+    }
+  } catch {
+    /* cohort context is best-effort */
+  }
+  if (cohortBlock) {
+    cohortBlock = `\nYOUR CLASSES (students are anonymized — refer to them by their labels):\n${cohortBlock}`;
+  }
 
   const systemPrompt = `You are a friendly, practical AI Assistant for an instructor / mentor at an educational bootcamp. Your role is to help the instructor with lesson preparation, student case review, rubric design, parent communication, and pedagogical guidance.
 
 INSTRUCTOR CONTEXT:
 ${teacherContext}
+${cohortBlock}
 
 --- ASSISTANT RULES ---
 

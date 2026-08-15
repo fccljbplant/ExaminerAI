@@ -538,16 +538,32 @@ model ReportCard {
 }
 
 model AICache {
-  id               String   @id @default(cuid())
-  cacheKey         String   @unique
-  response         String
-  provider         String   @default("deepseek")
-  promptTokens     Int      @default(0)
-  completionTokens Int      @default(0)
-  hitCount         Int      @default(0)
-  createdAt        DateTime @default(now())
+  id               String    @id @default(cuid())
+  cacheKey         String    @unique
+  response         String // plaintext (legacy) OR encrypted payload JSON for context packs
+  provider         String    @default("deepseek")
+  namespace        String    @default("response") // response | course-outline | learner | cohort | project | tutor-topic
+  promptTokens     Int       @default(0) // estimated input tokens the entry saves on a hit
+  completionTokens Int       @default(0)
+  hitCount         Int       @default(0)
+  expiresAt        DateTime? // TTL — expired entries are lazily dropped
+  lastHitAt        DateTime?
+  createdAt        DateTime  @default(now())
 
   @@index([cacheKey])
+  @@index([namespace, expiresAt])
+  @@index([namespace])
+}
+
+/// Per-namespace cache accounting — drives the admin hit/miss panel.
+model AICacheStats {
+  namespace   String   @id
+  hits        Int      @default(0)
+  misses      Int      @default(0)
+  tokensSaved Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@index([namespace])
 }
 
 model AIUsageLog {
