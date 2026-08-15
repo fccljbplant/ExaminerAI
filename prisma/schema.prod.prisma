@@ -246,6 +246,7 @@ model User {
   id                   String    @id @default(cuid())
   email                String    @unique
   name                 String
+  avatarData           String?   // data-URL profile picture (<=20KB, cropped client-side)
   passwordHash         String
   // Role values (4-role model + demo, post-purge 2026-08):
   //   learner | instructor | org_admin | platform_admin | demo

@@ -49,8 +49,7 @@ export { ClassroomShell } from "./components/classroom/ClassroomShell";
 export { LessonStage } from "./components/classroom/LessonStage";
 export { VideoStage } from "./components/classroom/VideoStage";
 export { VoiceBar } from "./components/classroom/VoiceBar";
-export { AvatarStage } from "./components/avatar/AvatarStage";
-export { AvatarRig, tutor } from "./components/avatar/avatar-rig";
+export { tutor } from "./lib/tutor-bus";
 
 // ── Dashboard components (client-only) ────────────────────────
 export { LearnerHome } from "./components/dashboard/LearnerHome";

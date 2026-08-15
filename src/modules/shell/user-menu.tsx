@@ -31,6 +31,7 @@ export interface MeUser {
   email: string;
   name: string;
   role: string;
+  avatarData?: string | null;
 }
 
 export function initialsOf(name: string): string {
@@ -75,6 +76,7 @@ export function UserMenu({
   const router = useRouter();
   const { mode: themeMode, mounted: themeMounted } = useThemeV2();
   const [me, setMe] = useState<MeUser | null>(null);
+  const [badgeIcon, setBadgeIcon] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +92,24 @@ export function UserMenu({
       cancelled = true;
     };
   }, []);
+
+  // Badge icon for the DP overlay (learners only; guarded fetch).
+  useEffect(() => {
+    if (me?.role !== "learner" && me?.role !== "student") return;
+    let cancelled = false;
+    fetch("/api/learner/badges")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { earned?: Array<{ icon?: string }>; latestBadge?: { icon?: string } } | null) => {
+        if (cancelled) return;
+        const icon =
+          d?.earned?.[0]?.icon ?? d?.latestBadge?.icon ?? null;
+        setBadgeIcon(icon);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [me?.role]);
 
   async function signOut() {
     try {
@@ -119,9 +139,7 @@ export function UserMenu({
             title={displayName}
             className="flex h-10 shrink-0 items-center gap-2.5 rounded-lg px-2 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-semibold text-on-brand">
-              {initialsOf(displayName) || "?"}
-            </span>
+            <AvatarCircle avatar={me?.avatarData ?? null} name={displayName} badgeIcon={badgeIcon} size="sm" />
             <span className="hidden min-w-0 text-left md:block">
               <span className="block max-w-36 truncate text-sm font-semibold text-fg">
                 {displayName}
@@ -133,14 +151,7 @@ export function UserMenu({
             <ChevronDown className="h-4 w-4 text-fg-muted" aria-hidden />
           </button>
         ) : (
-          <button
-            type="button"
-            aria-label={`Account menu for ${displayName}`}
-            title={displayName}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-subtle text-xs font-semibold text-fg ring-1 ring-inset ring-line transition-colors hover:bg-brand-subtle/80 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-          >
-            {initialsOf(displayName) || "?"}
-          </button>
+          <AvatarCircle avatar={me?.avatarData ?? null} name={displayName} badgeIcon={badgeIcon} size="icon" />
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-60">
@@ -181,5 +192,43 @@ export function UserMenu({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function AvatarCircle({
+  avatar,
+  name,
+  badgeIcon,
+  size,
+}: {
+  avatar: string | null | undefined;
+  name: string;
+  badgeIcon: string | null;
+  size: "icon" | "sm";
+}) {
+  const cls =
+    size === "icon"
+      ? "h-10 w-10 shrink-0 rounded-full text-xs ring-1 ring-inset ring-line"
+      : "h-8 w-8 shrink-0 rounded-full text-xs";
+  return (
+    <span className="relative inline-flex">
+      {avatar ? (
+        <img src={avatar} alt="" className={`${cls} object-cover`} />
+      ) : (
+        <span
+          className={`flex items-center justify-center bg-brand-subtle font-semibold text-fg ${cls}`}
+        >
+          {initialsOf(name) || "?"}
+        </span>
+      )}
+      {badgeIcon && (
+        <span
+          title="Latest badge"
+          className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-surface bg-brand-subtle text-[10px] leading-none"
+        >
+          {badgeIcon}
+        </span>
+      )}
+    </span>
   );
 }

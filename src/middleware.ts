@@ -54,7 +54,6 @@ const PUBLIC_ROUTES = [
   "/learn", // learn catalog is public; /learn/[courseId] auto-creates profile on first visit (auth required)
   "/login",
   "/register",
-  "/avatars-demo", // public avatar demo page
   "/preview", // dev-only design preview routes (not-found in production)
 ];
 

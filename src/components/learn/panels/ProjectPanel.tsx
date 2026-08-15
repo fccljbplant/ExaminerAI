@@ -9,7 +9,7 @@ import {
  CheckCircle2, Circle, Loader2, Plus, Lightbulb, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { tutor } from "@/components/learn/TutorAvatar";
+import { tutor } from "@/modules/learn/lib/tutor-bus";
 
 interface Milestone {
  id: string;

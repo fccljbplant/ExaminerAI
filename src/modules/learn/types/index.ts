@@ -12,7 +12,7 @@
  */
 
 // ── Teaching levels ────────────────────────────────────────────────
-// The avatar's "teaching level" slider controls vocabulary, sentence
+// The tutor's "teaching level" setting controls vocabulary, sentence
 // length, and analogy complexity. Stored on LearnProfile.teachingLevel.
 export type TeachingLevel = 1 | 2 | 3 | 4;
 

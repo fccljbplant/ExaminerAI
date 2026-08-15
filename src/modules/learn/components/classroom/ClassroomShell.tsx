@@ -19,8 +19,7 @@ import { cn } from "@/lib/utils";
 import PageHeader from "@/modules/ui/PageHeader";
 import { prepareForTTS, speakTTS, stopTTS, warmVoices } from "@/modules/learn/lib/tts-filter";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
-import { tutor } from "@/modules/learn/components/avatar/avatar-rig";
-import { AvatarStage } from "@/modules/learn/components/avatar/AvatarStage";
+import { tutor } from "@/modules/learn/lib/tutor-bus";
 import { LessonStage } from "@/modules/learn/components/classroom/LessonStage";
 import { VideoStage } from "@/modules/learn/components/classroom/VideoStage";
 import { DailyTestPanel } from "@/modules/assessment/components/DailyTestPanel";
@@ -482,14 +481,24 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           )}
         </nav>
 
-        {/* Teacher avatar — on stage beside the lesson (desktop only) */}
+        {/* Tutor panel — the avatar was removed; a compact tutor card
+            keeps the desktop stage layout (voice + chat remain) */}
         <div
           className={cn(
-            "hidden w-60 flex-shrink-0 flex-col items-center justify-center border-r bg-card px-4 transition-opacity lg:flex",
+            "hidden w-60 flex-shrink-0 flex-col justify-center gap-2 border-r bg-card px-4 transition-opacity lg:flex",
             focusMode && "opacity-30 hover:opacity-100",
           )}
         >
-          <AvatarStage size={168} />
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            AI Tutor
+          </p>
+          <p className="text-sm font-medium text-foreground">
+            Ask me anything about today&apos;s topic — type in the chat or tap the mic.
+          </p>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
+            Ready in the chat panel
+          </p>
         </div>
 
         {/* Lesson stage (center) */}

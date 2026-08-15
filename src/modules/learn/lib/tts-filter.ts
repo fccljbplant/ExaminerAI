@@ -1,7 +1,7 @@
 // src/modules/learn/lib/tts-filter.ts — Browser-side TTS (text-to-speech) helpers.
 /**
  * Browser-side TTS (text-to-speech) helpers.
- * The TutorAvatar narrates each slide. We can't just feed the raw
+ * The AI tutor narrates the lesson. We can't just feed the raw
  * markdown to speechSynthesis — it would read code blocks, URLs, and
  * table syntax aloud, which sounds terrible. prepareForTTS() strips
  * those and replaces them with short spoken placeholders so the user

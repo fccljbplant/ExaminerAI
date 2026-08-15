@@ -16,7 +16,7 @@ import {
   isVoiceInputAvailable,
   type VoiceInputSession,
 } from "@/modules/learn/lib/voice-input";
-import { tutor } from "@/modules/learn/components/avatar/avatar-rig";
+import { tutor } from "@/modules/learn/lib/tutor-bus";
 
 interface VoiceBarProps {
   /** Live partial transcript — parent mirrors it into the textarea. */

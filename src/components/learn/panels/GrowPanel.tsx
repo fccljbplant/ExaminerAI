@@ -7,7 +7,7 @@ import { api, AI_TIMEOUT_MS } from "@/lib/api-client";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle, AlertCircle, Trophy, Flame, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { tutor } from "@/components/learn/TutorAvatar";
+import { tutor } from "@/modules/learn/lib/tutor-bus";
 
 interface Question {
  question: string;

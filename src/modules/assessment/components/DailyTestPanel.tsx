@@ -51,9 +51,6 @@ export function DailyTestPanel({ onComplete }: { onComplete?: (score: number) =>
   const [feedback, setFeedback] = useState<TeachingFeedback | null>(null);
   const [topic, setTopic] = useState("");
   const [error, setError] = useState("");
-  // Confidence rating captured BEFORE each answer — feeds the Dunning-Kruger
-  // calibration chart on the teacher's Psychological tab.
-  const [confidence, setConfidence] = useState<"low" | "medium" | "high">("medium");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
@@ -111,9 +108,7 @@ export function DailyTestPanel({ onComplete }: { onComplete?: (score: number) =>
   const sendReply = async () => {
     if (!dailyTestId || !input.trim() || busy) return;
     const msg = input.trim();
-    const currentConfidence = confidence; // capture before reset
     setInput("");
-    setConfidence("medium"); // reset for next answer
     setError("");
     setBusy(true);
 
@@ -141,7 +136,6 @@ export function DailyTestPanel({ onComplete }: { onComplete?: (score: number) =>
         action: "reply",
         dailyTestId,
         studentReply: msg,
-        confidenceRating: currentConfidence,
       }, AI_TIMEOUT_MS);
       setConversation(res.conversation || []);
       setCurrentQuestion(res.currentQuestion);
@@ -163,45 +157,6 @@ export function DailyTestPanel({ onComplete }: { onComplete?: (score: number) =>
       setError(e instanceof Error ? e.message : "Failed to send reply");
       // Remove the optimistic message on failure
       setConversation(prev => prev.filter(m => m !== studentMsg));
-    } finally { setBusy(false); }
-  };
-
-  const finishEarly = async () => {
-    if (!dailyTestId || busy) return;
-    if (!confirm("End the daily test early? You'll be graded on what you've answered so far.")) return;
-    setBusy(true); setError("");
-    try {
-      const res = await api.post<{
-        conversation: ChatMessage[];
-        isComplete: boolean;
-        score: number;
-        feedback?: TeachingFeedback;
-        celebration?: {
-          xpAwarded: number;
-          newTotal: number;
-          level: number | null;
-          levelLabel: string | null;
-          badges: Array<{ id: string; name: string; icon: string; description: string }>;
-        };
-      }>(
-        "/api/daily-test",
-        { action: "finish", dailyTestId },
-        AI_TIMEOUT_MS,
-      );
-      setConversation(res.conversation || []);
-      setIsComplete(true);
-      setScore(res.score);
-      setFeedback(res.feedback ?? null);
-      onComplete?.(res.score);
-      // Fire celebration animations if XP/badges were awarded
-      if (res.celebration) {
-        import("@/hooks/use-celebration").then(({ fireCelebrations }) => {
-          fireCelebrations(res.celebration!);
-        });
-      }
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to finish test");
     } finally { setBusy(false); }
   };
 
@@ -281,33 +236,10 @@ export function DailyTestPanel({ onComplete }: { onComplete?: (score: number) =>
             input={input}
             onInputChange={setInput}
             onSend={sendReply}
-            onEndEarly={finishEarly}
             busy={busy}
             currentQuestion={currentQuestion}
             questionCountLabel={`This daily test asks ${totalQuestions} questions`}
             topicBadge={topic}
-            confidenceSelector={
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-fg-muted flex-shrink-0">Your confidence:</span>
-                {(["low", "medium", "high"] as const).map(c => (
-                  <button
-                    key={c}
-                    onClick={() => setConfidence(c)}
-                    disabled={busy}
-                    className={cn(
-                      "px-2 py-0.5 text-[10px] rounded-md border transition-colors capitalize disabled:opacity-50",
-                      confidence === c
-                        ? c === "low" ? "bg-red-500/20 text-destructive border-red-500/40"
-                        : c === "medium" ? "bg-growth-amber/20 text-growth-amber border-growth-amber"
-                        : "bg-growth-sage/20 text-growth-sage border-growth-sage"
-                        : "bg-bg-subtle text-fg-muted border-line"
-                    )}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            }
           />
         )}
       </CardContent>

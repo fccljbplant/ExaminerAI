@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  Award,
   Bell,
   CircleHelp,
   KeyRound,
@@ -12,8 +13,10 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   UserRound,
+  Zap,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
+import { AvatarEditor } from "./avatar-editor";
 import { ModeToggle } from "@/modules/shell";
 import { CAPTIONS_MODES, useCaptionsStore, ThemePackPicker } from "@/modules/theme";
 
@@ -38,6 +41,8 @@ export function LearnerProfile({ user }: { user: ProfileInfo }) {
       <h1 className="text-lg font-semibold text-fg md:text-xl">Profile & settings</h1>
 
       <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+        <ProfilePictureCard user={user} />
+        <BadgesXP />
         <AccountCard user={user} />
         <AppearanceCard />
         <SecurityCard />
@@ -103,6 +108,96 @@ function AccountCard({ user }: { user: ProfileInfo }) {
           </dd>
         </div>
       </dl>
+    </Card>
+  );
+}
+
+function ProfilePictureCard({ user }: { user: ProfileInfo }) {
+  const [me, setMe] = useState<{ avatarData?: string | null; badges?: Array<{ icon?: string }> } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { user: { avatarData?: string | null } | null } | null) => {
+        if (!cancelled) setMe((prev) => ({ ...prev, avatarData: d?.user?.avatarData ?? null }));
+      })
+      .catch(() => {});
+    fetch("/api/learner/badges")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { earned?: Array<{ icon?: string }> } | null) => {
+        if (!cancelled) setMe((prev) => ({ ...prev, badges: d?.earned ?? [] }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <Card icon={UserRound} title="Profile picture">
+      <AvatarEditor
+        initial={me?.avatarData ?? null}
+        badgeIcon={me?.badges?.[0]?.icon ?? null}
+        onChange={(dataUrl) => setMe((prev) => ({ ...prev, avatarData: dataUrl }))}
+      />
+    </Card>
+  );
+}
+
+function BadgesXP() {
+  const [data, setData] = useState<{
+    learner?: { totalXP: number; level: string };
+    badges?: Array<{ id: string; name: string; icon: string; rarity: string; description: string }>;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v2/learner/progress")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { data?: typeof data } | null) => {
+        if (!cancelled) setData(d?.data ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <Card icon={Award} title="Badges & XP">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-subtle text-fg">
+          <Zap className="h-4 w-4" aria-hidden />
+        </span>
+        <div>
+          <p className="text-xl font-bold tabular-nums text-fg">
+            {(data?.learner?.totalXP ?? 0).toLocaleString()} XP
+          </p>
+          <p className="text-xs text-fg-muted">Level {data?.learner?.level ?? "Rookie"}</p>
+        </div>
+      </div>
+      {data?.badges && data.badges.length > 0 ? (
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {data.badges.map((b) => (
+            <li
+              key={b.id}
+              title={`${b.name} — ${b.description}`}
+              className="flex items-center gap-1.5 rounded-full border border-line bg-bg-subtle px-2.5 py-1 text-xs text-fg-secondary"
+            >
+              <span aria-hidden>{b.icon}</span>
+              {b.name}
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                {b.rarity}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-xs text-fg-muted">
+          Badges appear as you hit milestones — keep learning to earn your first.
+        </p>
+      )}
     </Card>
   );
 }

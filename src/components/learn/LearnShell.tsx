@@ -13,7 +13,7 @@ import {
  X, GraduationCap, MessageSquare, StickyNote, CheckCircle2, ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AvatarDock, tutor } from "@/components/learn/TutorBadge";
+import { tutor } from "@/modules/learn/lib/tutor-bus";
 import { prepareForTTS, speakTTS, stopTTS } from "@/modules/learn/lib/tts-filter";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
 import { JourneyPanel } from "@/components/learn/panels/JourneyPanel";
@@ -313,7 +313,6 @@ export function LearnShell({ courseId, courseName }: Props) {
 
  return (
  <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
- <AvatarDock />
 
  {/* ── Status strip ─────────────────────────────────────────── */}
  <header className="h-12 border-b flex items-center gap-2 px-3 flex-shrink-0 bg-card">

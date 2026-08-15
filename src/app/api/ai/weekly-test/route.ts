@@ -689,10 +689,24 @@ This is the last reply (5 of 5) for Question ${test.currentQuestion + 1} of 10. 
   // ---- ACTION: FINISH (early) ----
   if (action === "finish") {
     const analysis = await generateFinalAnalysis(conversation, user.name, week, phase, topics, user.id);
+    // W16: skipped questions count as 0. The AI score reflects only the
+    // answered questions — scale it down by answered/total so an early
+    // finish cannot score higher by answering fewer questions well.
+    const answeredSet = new Set<number>();
+    for (const m of conversation) {
+      if (m.role === "student" && typeof m.questionIndex === "number") {
+        answeredSet.add(m.questionIndex);
+      }
+    }
+    const answered = Math.min(answeredSet.size, TOTAL_QUESTIONS);
+    const adjustedScore =
+      TOTAL_QUESTIONS > 0
+        ? Math.round((analysis.score * answered) / TOTAL_QUESTIONS)
+        : analysis.score;
     // TRANSACTION: same atomicity guarantee as the natural-completion path
     // above — see the comment there for why this matters.
     // Phase Plagiarism: apply score deduction BEFORE storing.
-    const plagiarismResult = applyPlagiarismDeduction(analysis.score, analysis.plagiarismScore);
+    const plagiarismResult = applyPlagiarismDeduction(adjustedScore, analysis.plagiarismScore);
     await db.$transaction(async (tx) => {
       await tx.weeklyTest.update({
         where: { id: test.id },
