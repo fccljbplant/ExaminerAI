@@ -56,7 +56,7 @@ export function BottomSheet({
       </DrawerHeader>
       <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
       {footer && (
-        <div className="border-t border-line p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="border-t border-line p-4 pb-[calc(1rem_+_env(safe-area-inset-bottom))]">
           {footer}
         </div>
       )}

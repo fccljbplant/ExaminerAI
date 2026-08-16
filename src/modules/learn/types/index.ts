@@ -101,6 +101,12 @@ export interface MasteryMap {
  topicProgress: {
  current: { week: number; day: number } | null;
  history: { week: number; day: number; completedAt: string }[];
+ /**
+  * Furthest topic the learner has REACHED (current or advanced to).
+  * Kept separate from `current` so re-learning an earlier topic never
+  * locks the topics ahead of it (2026-08-16 flow-sync audit).
+  */
+ furthest?: { week: number; day: number } | null;
  slidesViewed?: number;
  resourcesShown?: boolean;
  };

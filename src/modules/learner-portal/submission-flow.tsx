@@ -535,7 +535,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
       {/* bottom action bar — on xs it sits ABOVE the fixed BottomNav
           (56px + safe inset) so the primary action is never covered;
           md+ it returns to the flow. */}
-      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[var(--p-z-raised)] border-t border-line bg-surface p-3 md:static md:bottom-auto md:z-auto md:border-0 md:bg-transparent md:p-0">
+      <div className="fixed inset-x-0 bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] z-[var(--p-z-raised)] border-t border-line bg-surface p-3 md:static md:bottom-auto md:z-auto md:border-0 md:bg-transparent md:p-0">
         <div className="mx-auto flex max-w-3xl items-center gap-2">
           {step > 0 && step < 3 && (
             <button

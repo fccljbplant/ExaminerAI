@@ -45,7 +45,7 @@ export function AuthLayout({
 
       <main
         className={cn(
-          "mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-6",
+          "mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-[calc(2rem_+_env(safe-area-inset-bottom))] pt-6",
           className
         )}
       >

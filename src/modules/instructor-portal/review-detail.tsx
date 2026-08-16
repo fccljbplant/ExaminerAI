@@ -420,7 +420,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
 
       {/* decision bar */}
       {activeReview && (
-        <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[var(--p-z-raised)] border-t border-line bg-surface p-3 md:static md:bottom-auto md:z-auto md:border-0 md:bg-transparent md:p-0">
+        <div className="fixed inset-x-0 bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] z-[var(--p-z-raised)] border-t border-line bg-surface p-3 md:static md:bottom-auto md:z-auto md:border-0 md:bg-transparent md:p-0">
           <div className="mx-auto flex max-w-4xl items-center gap-2">
             <button
               type="button"

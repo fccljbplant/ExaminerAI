@@ -130,6 +130,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [loadingSlide, setLoadingSlide] = useState(false);
+  // Incremented to re-arm the auto-gen effect after a failed attempt
+  // (with a short backoff) — see the retry block in handleNextSlide.
+  const [genRetryTick, setGenRetryTick] = useState(0);
   const [completing, setCompleting] = useState(false);
   const [topicComplete, setTopicComplete] = useState(false);
   const [showCoachMarks, setShowCoachMarks] = useState(false);
@@ -146,6 +149,16 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   // learner never sees a "Start learning" generation button. Keyed by
   // topic so every topic advance regenerates fresh slides for that day.
   const autoStartedForRef = useRef<string | null>(null);
+  // Bounded auto-retry for failed slide generation (transient AI errors
+  // would otherwise strand the learner on an empty board forever).
+  const autoGenAttemptsRef = useRef<{ key: string | null; attempts: number }>({ key: null, attempts: 0 });
+  // Generation + fetch sequence numbers: any slide POST or today GET in
+  // flight is invalidated the moment a newer one starts, so a slow
+  // response from the PREVIOUS topic can never overwrite the current
+  // topic's board with its old slides (2026-08-16 audit).
+  const genSeqRef = useRef(0);
+  const fetchSeqRef = useRef(0);
+  const currentTopicKeyRef = useRef<string | null>(null);
 
   // Warm the browser voice list on mount so the male-voice picker is
   // ready when the learner opts in (getVoices populates asynchronously).
@@ -189,8 +202,10 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   }, [courseId]);
 
   const fetchToday = useCallback(async () => {
+    const seq = ++fetchSeqRef.current;
     try {
       const res = await api.get<{ data: TodayData }>(`/api/learn/today?courseId=${courseId}`);
+      if (seq !== fetchSeqRef.current) return; // a newer fetch superseded this one
       const data = res.data;
       setToday(data);
       // Browser-memory slide cache: server slides hydrate the cache; a
@@ -206,10 +221,18 @@ export function ClassroomShell({ courseId, courseName }: Props) {
         }
       }
       setSlides(nextSlides);
-      setSlideIdx(Math.max(0, nextSlides.length - 1));
+      // Resume mid-topic at the last generated slide; a re-learned
+      // (completed) topic always starts fresh at slide 1.
+      setSlideIdx(data.completed ? 0 : Math.max(0, nextSlides.length - 1));
       setTopicComplete(false);
       setPostStage("slides");
       setDailyScore(null);
+      // Any in-flight slide generation belongs to the previous topic —
+      // drop it and clear the auto-start keys so the new topic starts clean.
+      genSeqRef.current++;
+      autoStartedForRef.current = null;
+      autoGenAttemptsRef.current = { key: null, attempts: 0 };
+      currentTopicKeyRef.current = data.topic ? `${data.topic.week}-${data.topic.day}` : null;
       // Video lesson leads when one exists for the new topic.
       setStageMode(data.media?.kind === "video" ? "video" : "slides");
     } catch (e) {
@@ -267,7 +290,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     if (autoStartedForRef.current === topicKey) return;
     autoStartedForRef.current = topicKey;
     void handleNextSlide();
-  }, [today, topicKey, slides.length, topicComplete, loadingSlide, handleNextSlide]);
+    // genRetryTick re-arms this effect after a failed attempt (bounded).
+  }, [today, topicKey, slides.length, topicComplete, loadingSlide, handleNextSlide, genRetryTick]);
 
   // ── Auto-scroll transcript ────────────────────────────────────────
   useEffect(() => {
@@ -280,6 +304,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   async function handleNextSlide() {
     if (loadingSlide || topicComplete) return;
     setLoadingSlide(true);
+    const seq = ++genSeqRef.current;
     try {
       const res = await api.post<{
         data: {
@@ -292,6 +317,10 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           slidesViewed: number;
         } | { topicComplete: true; resources: { label: string; url: string }[]; message: string };
       }>(`/api/learn/today/next-slide?courseId=${courseId}`, {}, AI_TIMEOUT_MS);
+
+      // The learner advanced / jumped topics while this was generating —
+      // this response belongs to the old topic and must not touch the board.
+      if (seq !== genSeqRef.current) return;
 
       if ("topicComplete" in res.data) {
         setTopicComplete(true);
@@ -306,12 +335,32 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       const next = [...slides, slide];
       setSlides(next);
       if (today) cacheSlides(courseId, today.topic.week, today.topic.day, next);
-      setSlideIdx(prev => prev + 1);
+      // Point at the slide that was JUST generated (next.length - 1).
+      // The old `prev + 1` was off by one for a fresh topic (idx 0 with
+      // 0 slides → idx 1 with 1 slide), which rendered an empty board
+      // after every generated slide.
+      setSlideIdx(next.length - 1);
       tutor.play("idea");
       captionOnly(narration || message);
       fetchNow();
     } catch (e) {
+      if (seq !== genSeqRef.current) return; // stale — the newer flow owns the board
       toast.error("Couldn't generate the next slide", { description: e instanceof Error ? e.message : undefined });
+      // Auto-retry a failed FIRST slide up to 2 more times (transient AI
+      // errors); after that the "Start learning" CTA acts as manual retry.
+      const attempts = autoGenAttemptsRef.current.key === currentTopicKeyRef.current
+        ? autoGenAttemptsRef.current.attempts + 1
+        : 1;
+      if (attempts < 3) {
+        autoGenAttemptsRef.current = { key: currentTopicKeyRef.current, attempts };
+        // Back off briefly, then re-arm the auto-gen effect. The tick is
+        // a state dep so the effect re-runs with a fresh closure (the
+        // timeout alone would capture a stale handleNextSlide).
+        setTimeout(() => {
+          autoStartedForRef.current = null;
+          setGenRetryTick((t) => t + 1);
+        }, 900);
+      }
     } finally {
       setLoadingSlide(false);
     }
@@ -339,7 +388,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
         speakWithAvatar(`Topic complete. Plus ${xpAwarded} XP. Onto the next topic!`);
         toast.success("Topic complete", { description: `+${xpAwarded} XP` });
       }
-      // Refetch everything for the new topic.
+      // Refetch everything for the new topic — fetchToday drops any
+      // in-flight generation and resets the board to the new topic.
       setPostStage("slides");
       setDailyScore(null);
       await fetchToday();
@@ -444,7 +494,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     : 0;
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg pt-[env(safe-area-inset-top)] md:pt-14 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg pt-[env(safe-area-inset-top)] md:pt-14 pb-[calc(3.5rem_+_env(safe-area-inset-bottom))] md:pb-0">
       {/* ── Classroom header (96px PageHeader rule) ─────────────── */}
       <PageHeader
         crumbs={[
@@ -767,7 +817,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               <button
                 type="button"
                 onClick={handleNextSlide}
-                disabled={loadingSlide || slides.length === 0}
+                disabled={loadingSlide}
                 className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50 md:min-h-11 md:gap-2 md:px-4 md:py-2 md:text-sm"
               >
                 {loadingSlide ? (
@@ -775,7 +825,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                 ) : (
                   <ArrowRight className="h-4 w-4" />
                 )}
-                {slides.length === 0 ? "Loading lesson…" : "Next slide"}
+                {loadingSlide ? "Generating…" : slides.length === 0 ? "Start learning" : "Next slide"}
               </button>
             )}
 
@@ -816,7 +866,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           className={cn(
             "bg-surface",
             chatOpen &&
-              "fixed inset-x-0 top-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[var(--p-z-drawer)] flex w-full flex-col md:static md:bottom-auto md:top-auto md:z-auto md:w-80 md:flex-shrink-0 md:border-l",
+              "fixed inset-x-0 top-0 bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] z-[var(--p-z-drawer)] flex w-full flex-col md:static md:bottom-auto md:top-auto md:z-auto md:w-80 md:flex-shrink-0 md:border-l",
             !chatOpen && "hidden md:flex md:w-80 md:flex-shrink-0 md:flex-col md:border-l",
             focusMode && "md:hidden md:opacity-40 md:hover:opacity-100 lg:md:flex",
           )}
@@ -914,7 +964,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           type="button"
           onClick={() => setChatOpen(true)}
           aria-label="Open tutor chat"
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-[var(--p-z-raised)] flex h-12 w-12 items-center justify-center rounded-full bg-brand text-on-brand shadow-lg transition-transform hover:scale-105 md:hidden"
+          className="fixed bottom-[calc(4.5rem_+_env(safe-area-inset-bottom))] right-4 z-[var(--p-z-raised)] flex h-12 w-12 items-center justify-center rounded-full bg-brand text-on-brand shadow-lg transition-transform hover:scale-105 md:hidden"
         >
           <MessageSquare className="h-5 w-5" aria-hidden />
         </button>

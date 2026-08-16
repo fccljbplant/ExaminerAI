@@ -21,7 +21,7 @@ export function ActionBar({
     <div
       data-slot="action-bar"
       className={cn(
-        "sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[var(--p-z-raised)] flex items-center justify-end gap-2 border-t border-line bg-surface p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:bottom-0 md:pb-3",
+        "sticky bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] z-[var(--p-z-raised)] flex items-center justify-end gap-2 border-t border-line bg-surface p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] md:bottom-0 md:pb-3",
         className
       )}
     >

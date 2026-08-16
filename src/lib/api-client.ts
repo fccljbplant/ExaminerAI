@@ -26,29 +26,11 @@ const DEFAULT_TIMEOUT_MS = 8000;
 const AI_TIMEOUT_MS = 60_000;
 
 async function request<T>(method: string, url: string, body?: unknown, timeoutMs?: number): Promise<T> {
-  // DEMO GUARD — block writes for demo account on the client side.
-  // CRITICAL: auth routes (login, logout, me, password reset) are ALWAYS
-  // allowed, even if the demo flag is set. Otherwise the user can't log
-  // in or out — the flag persists in localStorage from a previous demo
-  // session and blocks the login POST itself.
-  const isWrite = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
-  const isAuthRoute =
-    url.includes("/api/auth/login") ||
-    url.includes("/api/auth/logout") ||
-    url.includes("/api/auth/me") ||
-    url.includes("/api/auth/forgot") ||
-    url.includes("/api/auth/reset") ||
-    url.includes("/api/auth/change") ||
-    url.includes("/api/auth/set-security");
-  if (isWrite && !isAuthRoute && typeof window !== "undefined" && localStorage.getItem("examiner-is-demo") === "1") {
-    const { toast } = await import("sonner");
-    toast.error("Demo Account Restriction", {
-      description:
-        "🚫 This is a demo account — writes are blocked. You can open all forms, menus, and dialogs for preview, but no changes will be saved.",
-      duration: 5000,
-    });
-    throw new ApiError(403, "Demo account — writes are blocked", { code: "DEMO_BLOCKED" });
-  }
+  // No client-side demo write guard: demo sessions are routed server-side
+  // to the local SQLite demo db (src/lib/db.ts), so writes are safe — they
+  // never touch the remote database. Blocking them here used to freeze the
+  // whole learning flow (slide generation, topic completion, daily test,
+  // check-ins) for demo learners.
 
   const controller = new AbortController();
   const timeout = timeoutMs ?? DEFAULT_TIMEOUT_MS;

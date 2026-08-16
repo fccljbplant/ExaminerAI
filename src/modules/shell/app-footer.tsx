@@ -32,7 +32,7 @@ export function AppFooter({
         className={cn(
           "mx-auto w-full max-w-[1440px] px-4 py-6 md:px-6 lg:px-8",
           classic && "lg:max-w-none lg:pl-[244px] lg:pr-8",
-          withBottomNav && "pb-[calc(3.5rem+env(safe-area-inset-bottom)+1.5rem)]",
+          withBottomNav && "pb-[calc(3.5rem_+_env(safe-area-inset-bottom)_+_1.5rem)]",
         )}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

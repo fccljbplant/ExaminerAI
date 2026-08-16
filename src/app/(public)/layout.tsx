@@ -40,7 +40,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
   ).map((c) => ({ value: c.value, label: c.label, count: countByCategory.get(c.value) ?? 0 }));
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg text-fg">
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-bg text-fg">
       <SiteHeader categories={categories} signedIn={Boolean(user)} dashboardHref={dashboardHref} />
       <div className="flex-1">{children}</div>
       <SiteFooter />

@@ -112,10 +112,62 @@ function emptyMasteryMap(): MasteryMap {
  topicProgress: {
  current: { week: 1, day: 1 },
  history: [],
+ furthest: { week: 1, day: 1 },
  slidesViewed: 0,
  resourcesShown: false,
  },
  };
+}
+
+/** True when topic `a` is at or before topic `b` in course order. */
+function isAtOrBefore(
+ a: { week: number; day: number },
+ b: { week: number; day: number },
+): boolean {
+ return a.week < b.week || (a.week === b.week && a.day <= b.day);
+}
+
+/**
+ * The furthest topic this learner has reached, derived from:
+ *  1. the stored `furthest` marker (written on every advance/jump),
+ *  2. the completion history,
+ *  3. the per-user XP ledger — every `slide_taught` award references the
+ *     slide's id, and the slide's moduleId is its "{week}-{day}" topic.
+ *     This recovers pre-marker data: a topic the learner generated
+ *     slides for was clearly reached.
+ */
+async function furthestReached(
+ userId: string,
+ courseId: string,
+ mastery: MasteryMap,
+): Promise<{ week: number; day: number }> {
+ let furthest =
+   mastery.topicProgress.furthest ??
+   mastery.topicProgress.current ??
+   { week: 1, day: 1 };
+ for (const h of mastery.topicProgress.history) {
+   if (isAtOrBefore(furthest, h)) furthest = h;
+ }
+ const slideXp = await db.xPLedger.findMany({
+   where: { userId, courseId, reason: "slide_taught" },
+   select: { referenceId: true },
+ });
+ const slideIds = slideXp
+   .map((r) => r.referenceId?.replace(/^slide:/, ""))
+   .filter((id): id is string => Boolean(id));
+ if (slideIds.length > 0) {
+   const slides = await db.learnSlide.findMany({
+     where: { id: { in: slideIds } },
+     select: { moduleId: true },
+   });
+   for (const s of slides) {
+     const m = s.moduleId ? /^(\d+)-(\d+)$/.exec(s.moduleId) : null;
+     if (!m) continue;
+     const topic = { week: Number(m[1]), day: Number(m[2]) };
+     if (isAtOrBefore(furthest, topic)) furthest = topic;
+   }
+ }
+ return furthest;
 }
 
 /** Coerce a Prisma JSON value into a MasteryMap (with defaults). */
@@ -127,6 +179,7 @@ function coerceMastery(raw: unknown): MasteryMap {
  topicProgress: {
  current: tp.current ?? { week: 1, day: 1 },
  history: Array.isArray(tp.history) ? tp.history : [],
+ furthest: tp.furthest ?? tp.current ?? { week: 1, day: 1 },
  slidesViewed: typeof tp.slidesViewed === "number" ? tp.slidesViewed : 0,
  resourcesShown: !!tp.resourcesShown,
  },
@@ -351,6 +404,10 @@ export async function completeTopicAndAdvance(
  mastery.topicProgress.current = next;
  mastery.topicProgress.slidesViewed = 0;
  mastery.topicProgress.resourcesShown = false;
+ // Track the furthest topic ever reached so a later re-learn jump
+ // never locks the topics the learner has already seen.
+ const furthest = mastery.topicProgress.furthest ?? current;
+ if (isAtOrBefore(furthest, next)) mastery.topicProgress.furthest = next;
  } else {
  // Course finished
  courseCompleted = true;
@@ -381,8 +438,10 @@ export async function completeTopicAndAdvance(
 
 /**
  * Jump to a specific (week, day) topic. Used by the JourneyPanel to
- * let the learner revisit a completed topic or jump ahead. Only allows
- * jumping to topics that are already completed or the current one.
+ * let the learner revisit a completed topic or jump ahead. Allows
+ * jumping to any topic the learner has already REACHED (completed,
+ * current, or at/before the furthest topic ever advanced to) — a
+ * re-learn jump must never lock the topics that came after it.
  */
 export async function jumpToTopic(
  userId: string,
@@ -403,17 +462,22 @@ export async function jumpToTopic(
  if (!profile) return false;
 
  const mastery = coerceMastery(profile.masteryMap);
+ const target = { week, day };
  const isCompleted = mastery.topicProgress.history.some(
  h => h.week === week && h.day === day,
  );
  const isCurrent =
  mastery.topicProgress.current?.week === week &&
  mastery.topicProgress.current?.day === day;
- if (!isCompleted && !isCurrent) return false; // locked
+ const furthest = await furthestReached(userId, courseId, mastery);
+ if (!isCompleted && !isCurrent && !isAtOrBefore(target, furthest)) return false; // locked
 
- mastery.topicProgress.current = { week, day };
+ mastery.topicProgress.current = target;
  mastery.topicProgress.slidesViewed = 0;
  mastery.topicProgress.resourcesShown = false;
+ if (isAtOrBefore(mastery.topicProgress.furthest ?? target, target)) {
+   mastery.topicProgress.furthest = target;
+ }
 
  await db.learnProfile.update({
  where: { id: profile.id },
@@ -422,17 +486,38 @@ export async function jumpToTopic(
  return true;
 }
 
+/** Per-topic status for the picker/journey:
+ *  - current: the topic the learner is on now
+ *  - completed: in history (re-learnable)
+ *  - unlocked: already REACHED (≤ furthest) but not completed — e.g. the
+ *    topic they jumped back from to re-learn an earlier one
+ *  - locked: never reached yet */
+type TopicStatus = "completed" | "current" | "unlocked" | "locked";
+
+function topicStatus(
+ current: { week: number; day: number } | null,
+ history: { week: number; day: number }[],
+ furthest: { week: number; day: number } | null | undefined,
+ week: number,
+ day: number,
+): TopicStatus {
+ if (current && current.week === week && current.day === day) return "current";
+ if (history.some((h) => h.week === week && h.day === day)) return "completed";
+ if (furthest && isAtOrBefore({ week, day }, furthest)) return "unlocked";
+ return "locked";
+}
+
 /**
  * List every topic in the course (outline-first, ladder fallback) with
- * per-topic status — completed / current / locked — for the topic picker
- * and the journey map. Re-learning a completed topic is allowed; jumping
- * ahead to a locked one is not.
+ * per-topic status — completed / current / unlocked / locked — for the
+ * topic picker and the journey map. Re-learning a completed topic is
+ * allowed; jumping to a never-reached one is not.
  */
 export async function listCourseTopics(
  userId: string,
  courseId: string,
 ): Promise<{
- weeks: { week: number; phase: string; days: { day: number; title: string; objective: string; status: "completed" | "current" | "locked" }[] }[];
+ weeks: { week: number; phase: string; days: { day: number; title: string; objective: string; status: TopicStatus }[] }[];
  current: { week: number; day: number } | null;
  courseCompleted: boolean;
 } | null> {
@@ -444,6 +529,7 @@ export async function listCourseTopics(
  const mastery = coerceMastery(profile.masteryMap);
  const current = mastery.topicProgress.current;
  const history = mastery.topicProgress.history;
+ const furthest = await furthestReached(userId, courseId, mastery);
 
  const outline = await getCourseOutline(courseId);
  if (outline) {
@@ -455,12 +541,7 @@ export async function listCourseTopics(
          day: d.day,
          title: d.title,
          objective: d.objective,
-         status:
-           current && current.week === w.week && current.day === d.day
-             ? "current"
-             : history.some((h) => h.week === w.week && h.day === d.day)
-               ? "completed"
-               : "locked",
+         status: topicStatus(current, history, furthest, w.week, d.day),
        })),
      })),
      current,
@@ -477,12 +558,7 @@ export async function listCourseTopics(
        day: i + 1,
        title: t.title,
        objective: t.objective,
-       status:
-         current && current.week === w.week && current.day === i + 1
-           ? "current"
-           : history.some((h) => h.week === w.week && h.day === i + 1)
-             ? "completed"
-             : "locked",
+       status: topicStatus(current, history, furthest, w.week, i + 1),
      })),
    })),
    current,

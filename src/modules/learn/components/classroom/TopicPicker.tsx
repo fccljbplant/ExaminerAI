@@ -15,7 +15,7 @@ interface TopicDay {
   day: number;
   title: string;
   objective: string;
-  status: "completed" | "current" | "locked";
+  status: "completed" | "current" | "unlocked" | "locked";
 }
 
 interface TopicsData {
@@ -87,6 +87,7 @@ export function TopicPicker({ courseId, onJump }: Props) {
               const locked = d.status === "locked";
               const current = d.status === "current";
               const done = d.status === "completed";
+              const unlocked = d.status === "unlocked";
               return (
                 <button
                   key={key}
@@ -106,6 +107,8 @@ export function TopicPicker({ courseId, onJump }: Props) {
                       <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
                     ) : current ? (
                       <Radio className="h-4 w-4 text-brand" aria-hidden />
+                    ) : unlocked ? (
+                      <Circle className="h-4 w-4 text-fg-muted" aria-hidden />
                     ) : (
                       <Lock className="h-4 w-4 text-fg-muted" aria-hidden />
                     )}
@@ -119,6 +122,9 @@ export function TopicPicker({ courseId, onJump }: Props) {
                   </span>
                   {done && !current && (
                     <span className="shrink-0 text-[10px] font-medium text-fg-muted">re-learn</span>
+                  )}
+                  {unlocked && (
+                    <span className="shrink-0 text-[10px] font-medium text-fg-muted">resume</span>
                   )}
                   {current && (
                     <span className="shrink-0 text-[10px] font-semibold text-brand">now</span>

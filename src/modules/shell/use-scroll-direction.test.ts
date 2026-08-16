@@ -6,7 +6,12 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { computeDirection, nextNavVisibility } from "./use-scroll-direction";
+import {
+  computeDirection,
+  nextNavVisibility,
+  HIDE_DOWN_PX,
+  REVEAL_UP_PX,
+} from "./use-scroll-direction";
 
 describe("computeDirection", () => {
   it("returns top at the page top regardless of lastY", () => {
@@ -42,8 +47,12 @@ describe("nextNavVisibility (hysteresis — no blink)", () => {
   });
 
   it("hides only after scrolling down ≥ HIDE_DOWN_PX from the reveal point", () => {
-    const r = nextNavVisibility("visible", 100, 126);
-    expect(r).toEqual({ next: "hidden", anchor: 126 });
+    const r = nextNavVisibility("visible", 100, 100 + HIDE_DOWN_PX);
+    expect(r).toEqual({ next: "hidden", anchor: 100 + HIDE_DOWN_PX });
+    expect(nextNavVisibility("visible", 100, 100 + HIDE_DOWN_PX - 1)).toEqual({
+      next: "visible",
+      anchor: 100,
+    });
   });
 
   it("stays hidden for small upward jitter below the reveal threshold", () => {
@@ -61,7 +70,9 @@ describe("nextNavVisibility (hysteresis — no blink)", () => {
   });
 
   it("keeps the anchor when a state decision is rejected", () => {
-    expect(nextNavVisibility("hidden", 300, 262).anchor).toBe(300);
-    expect(nextNavVisibility("visible", 100, 120).anchor).toBe(100);
+    // 300 → (300 - REVEAL_UP_PX + 1): below the reveal threshold, so the
+    // hidden state is kept and the anchor must not move.
+    expect(nextNavVisibility("hidden", 300, 300 - REVEAL_UP_PX + 1).anchor).toBe(300);
+    expect(nextNavVisibility("visible", 100, 100 + HIDE_DOWN_PX - 1).anchor).toBe(100);
   });
 });

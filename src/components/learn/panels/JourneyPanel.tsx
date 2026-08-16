@@ -17,7 +17,7 @@ interface TopicDay {
   day: number;
   title: string;
   objective: string;
-  status: "completed" | "current" | "locked";
+  status: "completed" | "current" | "unlocked" | "locked";
 }
 
 interface JourneyData {
@@ -129,6 +129,7 @@ export function JourneyPanel({ courseId, onClose, onJump }: Props) {
                   const key = `${week.week}-${d.day}`;
                   const isCurrent = d.status === "current";
                   const isCompleted = d.status === "completed";
+                  const isUnlocked = d.status === "unlocked";
                   const locked = d.status === "locked";
                   return (
                     <li key={key}>
@@ -142,7 +143,7 @@ export function JourneyPanel({ courseId, onClose, onJump }: Props) {
                           isCompleted && "hover:bg-muted/60",
                           locked && "cursor-not-allowed opacity-60",
                         )}
-                        title={locked ? "Complete earlier topics to unlock" : isCompleted ? "Re-learn this topic" : d.title}
+                        title={locked ? "Complete earlier topics to unlock" : isCompleted ? "Re-learn this topic" : isUnlocked ? "Resume this topic" : d.title}
                       >
                         <span className="mt-0.5 flex-shrink-0">
                           {busyKey === key ? (
@@ -151,6 +152,8 @@ export function JourneyPanel({ courseId, onClose, onJump }: Props) {
                             <CheckCircle2 className="h-4 w-4 text-growth-sage" />
                           ) : isCurrent ? (
                             <Circle className="h-4 w-4 animate-pulse text-primary" />
+                          ) : isUnlocked ? (
+                            <Circle className="h-4 w-4 text-muted-foreground/70" />
                           ) : (
                             <Lock className="h-4 w-4 text-muted-foreground/60" />
                           )}
@@ -165,6 +168,9 @@ export function JourneyPanel({ courseId, onClose, onJump }: Props) {
                             )}
                             {isCompleted && !isCurrent && (
                               <span className="text-[10px] font-medium text-muted-foreground">· re-learn</span>
+                            )}
+                            {isUnlocked && (
+                              <span className="text-[10px] font-medium text-muted-foreground">· resume</span>
                             )}
                           </div>
                           <p className="truncate font-medium leading-snug">{d.title}</p>

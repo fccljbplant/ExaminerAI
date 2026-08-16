@@ -95,9 +95,9 @@ export default async function LandingPage() {
           <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-brand-subtle blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16">
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_400px]">
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
             {/* Left — the pitch */}
-            <div className="mx-auto max-w-3xl text-center lg:mx-0 lg:text-left">
+            <div className="mx-auto w-full min-w-0 max-w-3xl text-center lg:mx-0 lg:text-left">
               <Badge variant="outline" className="mb-5 gap-1.5 border-brand/30 bg-brand-subtle">
                 <Sparkles className="h-3 w-3 text-brand" />
                 {COPY.heroEyebrow}
@@ -110,17 +110,20 @@ export default async function LandingPage() {
                 plus a verified certificate employers can check. Your mentors stay in the loop.
               </p>
               <div className="mt-6 flex flex-col justify-center gap-2.5 sm:flex-row lg:justify-start">
-                <Button asChild size="lg" className="h-12 text-base">
+                <Button asChild size="lg" className="h-12 min-w-0 text-base">
                   <Link href="/courses">
                     <PackageOpen className="h-4 w-4 mr-2" />
                     Browse Courses
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-12 text-base">
+                <Button asChild size="lg" variant="outline" className="h-12 min-w-0 text-base">
                   <Link href="/for-business">
                     <Building2 className="h-4 w-4 mr-2" />
-                    For Teams — Book a Demo
+                    {/* The full label can't fit a 320px viewport (Button is
+                        whitespace-nowrap) — short label on phones. */}
+                    <span className="sm:hidden">For Teams</span>
+                    <span className="hidden sm:inline">For Teams — Book a Demo</span>
                   </Link>
                 </Button>
               </div>
@@ -133,7 +136,7 @@ export default async function LandingPage() {
             </div>
 
             {/* Right — sign in, embedded in the hero (2026-08-15) */}
-            <div className="mx-auto w-full max-w-sm lg:max-w-none">
+            <div className="mx-auto w-full min-w-0 max-w-sm lg:max-w-none">
               <Card className="shadow-xl shadow-brand/5">
                 <CardHeader className="pb-2 text-center">
                   <h2 className="text-xl font-bold text-fg">Sign in</h2>
