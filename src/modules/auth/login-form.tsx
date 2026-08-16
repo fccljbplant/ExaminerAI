@@ -134,6 +134,11 @@ export function LoginForm() {
         <p className="text-xs font-medium uppercase tracking-wider text-fg-muted">
           Try a demo (read-only)
         </p>
+        <p className="text-[11px] leading-relaxed text-fg-muted">
+          Demo accounts live in the local SQLite demo db — sign in from your local app
+          (<code className="rounded bg-bg-subtle px-1">npm run dev</code> +{" "}
+          <code className="rounded bg-bg-subtle px-1">npm run db:seed</code>).
+        </p>
         <div className="grid grid-cols-3 gap-2">
           {DEMO_ACCOUNTS.map((demo) => (
             <Button

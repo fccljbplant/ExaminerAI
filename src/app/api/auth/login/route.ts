@@ -44,6 +44,19 @@ export async function POST(req: NextRequest) {
 
   const user = await db.user.findUnique({ where: { email } });
   if (!user) {
+    // Demo accounts live ONLY in the local SQLite demo db
+    // (prisma/db/custom.db, `npm run db:seed`). Remote databases are
+    // demo-free by design — point the user at the local setup.
+    if (email.endsWith("@demo.ai")) {
+      return NextResponse.json(
+        {
+          error:
+            "Demo accounts aren't in this database — they live in the local SQLite demo db. " +
+            "Run the app locally (DATABASE_URL=file:./db/custom.db) and seed with `npm run db:seed` to view demo data.",
+        },
+        { status: 401 }
+      );
+    }
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
   const ok = await comparePassword(password, user.passwordHash);
