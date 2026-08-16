@@ -535,27 +535,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           )}
         </nav>
 
-        {/* Tutor panel — the avatar was removed; a compact tutor card
-            keeps the desktop stage layout (voice + chat remain) */}
-        <div
-          className={cn(
-            "hidden w-60 flex-shrink-0 flex-col justify-center gap-2 border-r bg-card px-4 transition-opacity lg:flex",
-            focusMode && "opacity-30 hover:opacity-100",
-          )}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            AI Tutor
-          </p>
-          <p className="text-sm font-medium text-foreground">
-            Ask me anything about today&apos;s topic — type in the chat or tap the mic.
-          </p>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
-            Ready in the chat panel
-          </p>
-        </div>
-
-        {/* Lesson stage (center) */}
+        {/* Lesson stage (center) — the old static "AI Tutor" side card
+            was removed (2026-08-16, user request); the real tutor lives
+            in the chat rail, so the placeholder duplicated it. */}
         <main className="flex flex-1 flex-col overflow-hidden">
           <div data-main-scroll className="flex-1 overflow-y-auto px-3 py-3 md:px-6 md:py-6">
             {/* Media switcher — only when this topic has a video lesson */}
