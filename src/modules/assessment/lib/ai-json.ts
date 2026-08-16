@@ -52,6 +52,9 @@ export async function callAIJson<T>(
       maxTokens: options.maxTokens ?? 1000,
       feature: options.feature ?? "json-call",
       userId: options.userId,
+      // Proper JSON mode: the provider enforces JSON output
+      // (response_format json_object), not just prompt instructions.
+      jsonMode: true,
     });
 
     const raw = result.text || "";

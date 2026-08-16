@@ -26,6 +26,18 @@ import {
 import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { useApi } from "@/modules/learner-portal/use-api";
+import {
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  ZAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  ReferenceLine,
+} from "recharts";
+import { useChartColors, tooltipStyle } from "@/lib/chart-theme";
 
 /**
  * modules/instructor-portal — I6 Student profile (REDESIGN-P3 §I6, W10
@@ -84,6 +96,18 @@ interface StudentProfileData {
   }>;
   certificates: Array<{ id: string; courseName: string; grade: string; score: number; issuedAt: string; verifyUrl: string }>;
   recentEvents: Array<{ type: string; at: string }>;
+  psychWeekly: {
+    weeks: Array<{
+      weekLabel: string;
+      confidencePct: number | null;
+      actualPct: number | null;
+      gap: number | null;
+      coherence: number | null;
+      days: number;
+    }>;
+    avgCoherence: number | null;
+    calibration: "overconfident" | "underconfident" | "well_calibrated" | "no_data";
+  } | null;
 }
 
 interface Briefing {
@@ -723,10 +747,96 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
 
 function PsychologyTab({ data }: { data: StudentProfileData }) {
   const completed = data.weeklyTests.filter((t) => t.status === "completed");
-  if (completed.length === 0)
-    return <Empty label="No completed tests yet — psychology signals appear after the first weekly test." />;
+  const psych = data.psychWeekly;
+  const dkPoints = (psych?.weeks ?? [])
+    .filter((w) => w.confidencePct !== null && w.actualPct !== null)
+    .map((w) => ({
+      confidence: w.confidencePct as number,
+      actual: w.actualPct as number,
+      week: w.weekLabel,
+      gap: w.gap,
+    }));
+
+  if (completed.length === 0 && !psych)
+    return <Empty label="No psychology data yet — signals appear after the first check-ins and tests." />;
+
   return (
     <div className="space-y-4">
+      {/* Dunning-Kruger calibration — confidence vs actual, weekly averages */}
+      <section className="space-y-2">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          Calibration (Dunning-Kruger)
+        </h2>
+        <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
+          {dkPoints.length === 0 ? (
+            <p className="py-6 text-center text-xs text-fg-muted">
+              No calibration data yet — needs daily check-in confidence alongside daily test scores.
+            </p>
+          ) : (
+            <DunningKrugerChart points={dkPoints} />
+          )}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-medium text-fg-secondary">Weekly coherence:</span>
+            {psych?.avgCoherence != null ? (
+              <>
+                <span className="font-semibold tabular-nums text-fg">{psych.avgCoherence}%</span>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    psych.calibration === "overconfident" && "bg-warning-subtle text-warning-on",
+                    psych.calibration === "underconfident" && "bg-info-subtle text-info-on",
+                    psych.calibration === "well_calibrated" && "bg-success-subtle text-success-on",
+                    psych.calibration === "no_data" && "bg-bg-subtle text-fg-muted",
+                  )}
+                >
+                  {psych.calibration === "overconfident"
+                    ? "Overconfident"
+                    : psych.calibration === "underconfident"
+                      ? "Underconfident"
+                      : psych.calibration === "well_calibrated"
+                        ? "Well calibrated"
+                        : "No data"}
+                </span>
+              </>
+            ) : (
+              <span className="text-fg-muted">no calibration weeks yet</span>
+            )}
+          </div>
+          {(psych?.weeks ?? []).filter((w) => w.coherence !== null).length > 0 && (
+            <ul className="divide-y divide-line rounded-lg border border-line">
+              {(psych?.weeks ?? [])
+                .filter((w) => w.coherence !== null)
+                .slice(-6)
+                .reverse()
+                .map((w) => (
+                  <li key={w.weekLabel} className="flex items-center gap-3 px-3 py-2 text-xs">
+                    <span className="w-12 shrink-0 font-medium text-fg-secondary">{w.weekLabel}</span>
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-subtle">
+                      <span
+                        className="block h-full rounded-full bg-brand"
+                        style={{ width: `${w.coherence}%` }}
+                      />
+                    </span>
+                    <span className="w-16 shrink-0 text-right tabular-nums text-fg">{w.coherence}%</span>
+                    {w.gap !== null && (
+                      <span
+                        className={cn(
+                          "w-24 shrink-0 text-right text-[10px] font-medium",
+                          w.gap > 20 && "text-warning-on",
+                          w.gap < -20 && "text-info-on",
+                          w.gap >= -20 && w.gap <= 20 && "text-success-on",
+                        )}
+                      >
+                        {w.gap > 20 ? "overconfident" : w.gap < -20 ? "underconfident" : "on point"}
+                      </span>
+                    )}
+                  </li>
+                ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
       <p className="px-1 text-xs leading-relaxed text-fg-muted">
         Derived from the Socratic examiner&apos;s per-test analysis: plagiarism flags,
         strengths and weaknesses, the recommended next action, and reply engagement.
@@ -963,6 +1073,54 @@ function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?:
         </div>
       )}
     </section>
+  );
+}
+
+function DunningKrugerChart({
+  points,
+}: {
+  points: Array<{ confidence: number; actual: number; week: string; gap: number | null }>;
+}) {
+  const c = useChartColors();
+  return (
+    <div className="h-60 w-full" aria-label="Calibration scatter: self-rated confidence vs actual score">
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart margin={{ top: 16, right: 20, bottom: 20, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
+          <XAxis
+            type="number"
+            dataKey="confidence"
+            name="Confidence"
+            domain={[0, 100]}
+            stroke={c.axis}
+            tick={{ fontSize: 11 }}
+            label={{ value: "Confidence %", position: "insideBottom", offset: -10, fontSize: 11, fill: c.axis }}
+          />
+          <YAxis
+            type="number"
+            dataKey="actual"
+            name="Actual"
+            domain={[0, 100]}
+            stroke={c.axis}
+            tick={{ fontSize: 11 }}
+            label={{ value: "Actual %", angle: -90, position: "insideLeft", fontSize: 11, fill: c.axis }}
+          />
+          <ZAxis type="number" range={[80, 80]} />
+          <Tooltip
+            cursor={{ strokeDasharray: "3 3" }}
+            contentStyle={tooltipStyle(c)}
+            formatter={(value: number | string, name: string) => [`${value}%`, name]}
+            labelFormatter={() => ""}
+          />
+          {/* Diagonal = perfectly calibrated; below-right = overconfident */}
+          <ReferenceLine segment={[{ x: 0, y: 0 }, { x: 100, y: 100 }]} stroke={c.chart3} strokeDasharray="4 4" />
+          <Scatter data={points} fill={c.chart1} />
+        </ScatterChart>
+      </ResponsiveContainer>
+      <p className="mt-1 text-center text-[10px] text-fg-muted">
+        One point per week (daily averages rolled up). Diagonal = perfectly calibrated; below-right = overconfident.
+      </p>
+    </div>
   );
 }
 

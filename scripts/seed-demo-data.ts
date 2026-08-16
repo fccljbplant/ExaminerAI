@@ -1169,6 +1169,24 @@ async function seedLearnerCourseData(
         completedAt: daysAgo(i),
       },
     });
+    // Check-in confidence for the SAME day — the Dunning-Kruger signal
+    // (self-rated confidence vs actual score) needs both on one day.
+    // Occasionally overconfident (5/5 on a weak score) so the calibration
+    // chart shows real spread.
+    const overconfident = (arch === "rare" || arch === "newly" || arch === "left") && chance(0.35);
+    const confidence = overconfident
+      ? 5
+      : score >= 85 ? range(4, 5) : score >= 70 ? range(3, 4) : range(2, 3);
+    await db.dailyLog.create({
+      data: {
+        userId: user.id,
+        courseId: course.id,
+        date: daysAgo(i),
+        week: week > 0 ? week : 1,
+        whatDidYouDo: `Worked through the day's topic and took the daily check-in test (scored ${score}).`,
+        confidence,
+      },
+    });
   }
 
   // Weekly tests — per completed week

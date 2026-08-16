@@ -282,12 +282,16 @@ export async function callAI(
     cacheable?: boolean;
     cacheTtlMs?: number;
     userId?: string; // for per-user daily rate limiting + usage attribution
+    /** Proper JSON mode: sends response_format json_object to the
+     *  provider (DeepSeek + Z.ai are OpenAI-compatible). */
+    jsonMode?: boolean;
   }
 ): Promise<AIResult> {
   const temp = options?.temperature ?? 0.5;
   const maxTokens = options?.maxTokens ?? TOKEN_BUDGET.QUESTION_GEN;
   const feature = options?.feature ?? "unknown";
   const startedAt = Date.now();
+  const jsonMode = options?.jsonMode === true;
 
   // ---- 0. Token cache check (opt-in via `cacheable: true`) ----
   // Caches the FULL message array (including system prompt + user messages)
@@ -338,6 +342,7 @@ export async function callAI(
           messages: apiMessages,
           temperature: temp,
           max_tokens: maxTokens,
+          ...(jsonMode ? { response_format: { type: "json_object" as const } } : {}),
         }) as any; // DeepSeek V4 returns reasoning_content not in OpenAI type returns reasoning_content
         trackDailyRequest();
         // DeepSeek V4 reasoning models sometimes return content in
@@ -390,6 +395,7 @@ export async function callAI(
         messages: apiMessages,
         temperature: temp,
         max_tokens: maxTokens,
+        ...(jsonMode ? { response_format: { type: "json_object" as const } } : {}),
       });
       trackDailyRequest();
       const text = completion.choices[0]?.message?.content?.trim();

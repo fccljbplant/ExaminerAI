@@ -19,11 +19,12 @@
  */
 
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { apiError, apiForbidden, apiNotFound, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
-import { callAI } from "@/modules/assessment/lib/ai-provider";
+import { callAIJson } from "@/modules/assessment/lib/ai-json";
 import { LEVEL_DIRECTIVES, type TeachingLevel } from "@/modules/learn/types";
 import { getTutorStudentContext, tutorContextBlocks } from "@/modules/learn/lib/tutor-context";
 import { buildTutorBlocksFromPacks, universalTutorSystemPrompt } from "@/modules/ai";
@@ -121,14 +122,35 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   ];
 
   let answer: string;
+  let citation: string | null = null;
   try {
-    const result = await callAI(messages, {
-      feature: "learn-tutor-ask",
-      userId: user.sub,
-      temperature: 0.7,
-      maxTokens: 600, // keep replies SHORT — chat, not essays
-    });
-    answer = result.text || "";
+    // Proper JSON mode: the provider enforces JSON output
+    // (response_format json_object) and the AI returns the reply in a
+    // structured envelope — no local scraping or reply engineering.
+    const result = await callAIJson<{ reply: string; citation?: string | null }>(
+      messages,
+      {
+        schema: z.object({
+          reply: z.string().min(1),
+          citation: z.string().nullable().optional(),
+        }),
+        feature: "learn-tutor-ask",
+        userId: user.sub,
+        temperature: 0.7,
+        maxTokens: 600, // keep replies SHORT — chat, not essays
+        jsonInstruction:
+          "Respond with ONLY a valid JSON object matching the schema. " +
+          "Put the entire visible chat message in `reply` (plain flowing text, 3-8 sentences, " +
+          "no reasoning, no notes to yourself, no [Coherence Check], no formatting markers). " +
+          "Set `citation` to the [Week/Day/Slide] tag only when your answer came from the knowledge base; otherwise null.",
+      },
+    );
+    if (result.ok) {
+      answer = result.data.reply;
+      citation = result.data.citation ?? null;
+    } else {
+      answer = "I'm having trouble responding right now — please try again in a moment. Your progress is safe.";
+    }
   } catch (err) {
     logger.error("AI Tutor failed", { feature: "learn-tutor-ask", error: err instanceof Error ? err.message : String(err) });
     answer = "I'm having trouble responding right now — please try again in a moment. Your progress is safe.";
@@ -138,11 +160,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     answer = "I'm having trouble responding right now — please try again in a moment. Your progress is safe.";
   }
 
-  // Extract the first [Week/Day/Slide] citation if present (best-effort).
-  const citationMatch = answer.match(/\[Week\s*\d+\/Day\s*\d+\/Slide\s*\d+\]/i);
-  const citation = citationMatch ? citationMatch[0] : null;
-
-  // Persist the tutor's answer.
+  // Persist the tutor's answer (citation comes from the AI's JSON).
   await db.tutorMessage.create({
     data: {
       sessionId,

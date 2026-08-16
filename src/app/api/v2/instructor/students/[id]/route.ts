@@ -20,6 +20,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
+import { computePsychWeekly } from "@/modules/learn/lib/psych-weekly";
 
 export const runtime = "nodejs";
 
@@ -63,7 +64,7 @@ export async function GET(
     return apiError("You do not teach this student", "FORBIDDEN", 403);
   }
 
-  const [weeklyTests, reportCards, competencies, dailyLogs, tasks, certificates, events, projects] =
+  const [weeklyTests, reportCards, competencies, dailyLogs, tasks, certificates, events, projects, psychWeekly] =
     await Promise.all([
       db.weeklyTest.findMany({
         where: { userId: id },
@@ -118,6 +119,7 @@ export async function GET(
         orderBy: { updatedAt: "desc" },
         include: { tasks: { select: { id: true, status: true } } },
       }),
+      computePsychWeekly(id, sharedCourse.courseId).catch(() => null),
     ]);
 
   // Academic attention signals (Phase-1 compliant — no psych layer).
@@ -244,5 +246,19 @@ export async function GET(
       type: e.eventType,
       at: e.createdAt.toISOString(),
     })),
+    psychWeekly: psychWeekly
+      ? {
+          weeks: psychWeekly.weeks.map((w) => ({
+            weekLabel: w.weekLabel,
+            confidencePct: w.confidencePct,
+            actualPct: w.actualPct,
+            gap: w.gap,
+            coherence: w.coherence,
+            days: w.days,
+          })),
+          avgCoherence: psychWeekly.avgCoherence,
+          calibration: psychWeekly.calibration,
+        }
+      : null,
   });
 }
