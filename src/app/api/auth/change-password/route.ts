@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser, hashPassword, comparePassword } from "@/lib/auth";
-import { demoWriteBlock } from "@/lib/demo-guard";
 import { logger } from "@/lib/logger";
 
 /**
@@ -10,16 +9,23 @@ import { logger } from "@/lib/logger";
  * Logged-in user changes their password. Requires current password for
  * verification. Sets the new password if the current one matches.
  *
- * CR-7 fix (audit 2026-07-26 FINAL): added demoWriteBlock — the demo account
- * shares a password across all visitors. Without this block, any visitor could
- * change the demo password and lock out all future demo visitors.
+ * CR-7: demo accounts (@demo.ai) share a password across all visitors —
+ * they can never change it, or one visitor would lock out every future
+ * demo visitor. demoWriteBlock() is a no-op since demo-routing, so the
+ * check is explicit here.
  *
  * Body: { currentPassword: string, newPassword: string }
  */
 export async function POST(req: NextRequest) {
-  const _demoBlock = await demoWriteBlock("changing password"); if (_demoBlock) return _demoBlock;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if ((user.email ?? "").toLowerCase().endsWith("@demo.ai")) {
+    return NextResponse.json(
+      { error: "Demo accounts can't change their password — it's shared by all demo visitors." },
+      { status: 403 },
+    );
+  }
 
   const body = await req.json().catch(() => ({}));
   const currentPassword = body.currentPassword ?? "";

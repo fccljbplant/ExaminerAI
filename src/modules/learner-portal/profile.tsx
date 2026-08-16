@@ -45,7 +45,7 @@ export function LearnerProfile({ user }: { user: ProfileInfo }) {
         <BadgesXP />
         <AccountCard user={user} />
         <AppearanceCard />
-        <SecurityCard />
+        <SecurityCard user={user} />
         <SecurityQuestionCard />
         <HelpCard />
         <UpcomingCard
@@ -259,7 +259,7 @@ function AccessibilityCard() {
   );
 }
 
-function SecurityCard() {
+function SecurityCard({ user }: { user: ProfileInfo }) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [busy, setBusy] = useState(false);
@@ -283,6 +283,12 @@ function SecurityCard() {
 
   return (
     <Card icon={ShieldCheck} title="Security">
+      {user.email.toLowerCase().endsWith("@demo.ai") ? (
+        <p className="text-xs leading-relaxed text-fg-muted">
+          Demo accounts share a password with all demo visitors, so it can&apos;t be
+          changed here.
+        </p>
+      ) : (
       <form onSubmit={submit} className="space-y-3">
         <label className="block">
           <span className="text-xs font-medium text-fg-secondary">Current password</span>
@@ -323,6 +329,7 @@ function SecurityCard() {
           {busy ? "Saving…" : "Change password"}
         </button>
       </form>
+      )}
     </Card>
   );
 }

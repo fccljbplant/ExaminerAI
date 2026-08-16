@@ -60,6 +60,21 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Audit trail — flag flips must never be a silent direct-DB edit
+    // (operational rule, enforced here in code).
+    await db.auditLog.create({
+      data: {
+        actorUserId: user.sub,
+        actorName: user.name || user.email,
+        actorRole: user.role,
+        action: "feature_flag.update",
+        targetType: "setting",
+        targetId: "feature_portal_flags",
+        afterJson: JSON.stringify({ enable, portals }),
+        metadata: "portal-flags endpoint",
+      },
+    });
+
     const flags = await db.setting.findMany({
       where: { key: { startsWith: "feature_portal_" } },
       select: { key: true, value: true },

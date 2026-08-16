@@ -30,6 +30,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
 
+  // Demo accounts share one password across all visitors — never allow a
+  // reset flow to change it (CR-7, kept after demoWriteBlock neutralization).
+  if (email.endsWith("@demo.ai")) {
+    return NextResponse.json(
+      { error: "Demo accounts can't reset their password — it's shared by all demo visitors." },
+      { status: 403 },
+    );
+  }
+
   const user = await db.user.findUnique({ where: { email } });
 
   // Always return a generic success message to prevent email enumeration

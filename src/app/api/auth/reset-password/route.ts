@@ -24,6 +24,16 @@ export async function POST(req: NextRequest) {
   const answer = (body.answer ?? "").trim();
   const newPassword = body.newPassword ?? "";
 
+  // Demo accounts share one password across all visitors — never allow a
+  // self-service reset to change it (CR-7, kept after demoWriteBlock
+  // neutralization).
+  if (email.endsWith("@demo.ai")) {
+    return NextResponse.json(
+      { error: "Demo accounts can't reset their password — it's shared by all demo visitors." },
+      { status: 403 },
+    );
+  }
+
   if (!email || !answer || !newPassword) {
     return NextResponse.json(
       { error: "Email, answer, and new password are required" },

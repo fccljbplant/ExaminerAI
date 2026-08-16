@@ -111,45 +111,52 @@ export function RoleSettings({
         </CardContent>
       </Card>
 
-      {/* Security */}
+      {/* Security — demo accounts share one password across all visitors,
+          so the change form is not offered to them (CR-7). */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <KeyRound className="h-4 w-4" aria-hidden /> Change password
           </CardTitle>
-          <CardDescription>Use at least 6 characters.</CardDescription>
+          <CardDescription>
+            {user.email.toLowerCase().endsWith("@demo.ai")
+              ? "Demo accounts share a password with all demo visitors, so it can't be changed here."
+              : "Use at least 6 characters."}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={changePassword} className="max-w-md space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="cp-current">Current password</Label>
-              <Input
-                id="cp-current"
-                type="password"
-                autoComplete="current-password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="h-11"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="cp-new">New password</Label>
-              <Input
-                id="cp-new"
-                type="password"
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="h-11"
-                required
-              />
-            </div>
-            <Button type="submit" disabled={busy} className="h-11">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Change password"}
-            </Button>
-          </form>
-        </CardContent>
+        {!user.email.toLowerCase().endsWith("@demo.ai") && (
+          <CardContent>
+            <form onSubmit={changePassword} className="max-w-md space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="cp-current">Current password</Label>
+                <Input
+                  id="cp-current"
+                  type="password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="h-11"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="cp-new">New password</Label>
+                <Input
+                  id="cp-new"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="h-11"
+                  required
+                />
+              </div>
+              <Button type="submit" disabled={busy} className="h-11">
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Change password"}
+              </Button>
+            </form>
+          </CardContent>
+        )}
       </Card>
     </div>
   );
