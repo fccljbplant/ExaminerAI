@@ -198,6 +198,20 @@ export async function isDemoAIBlocked(isDemo: boolean): Promise<boolean> {
  * @param isDemo  Whether the user is the demo account (demo can be blocked entirely).
  * @returns null if allowed, or a NextResponse-shaped object if blocked.
  */
+/** Features whose per-user daily AI limit does not apply — they are
+ *  single heavy generations (courses, project timelines) rather than
+ *  chat-style calls, and blocking them mid-session bricks the tools. */
+export const AI_LIMIT_EXEMPT_FEATURES = new Set([
+  "course-gen",
+  "course-gen-batch",
+  "course-outline",
+  "project-summary-gen",
+  "project-plan",
+  "project-task-gen",
+  "project-timeline",
+  "project-suggestions",
+]);
+
 export async function enforceAIRateLimit(
   userId: string,
   feature: string,
@@ -210,7 +224,14 @@ export async function enforceAIRateLimit(
       body: { error: "AI access for demo accounts is currently disabled by the administrator." },
     };
   }
-  // 2. Per-user daily rate limit
+  // 2. Per-user daily rate limit — GENERATION features are exempt
+  // (2026-08-15): course generation and project/timeline generation
+  // need thousands of tokens per call; capping them by call-count made
+  // the tools unusable. They are still rate-limited by the middleware's
+  // global AI RPM guard and still logged per call.
+  if (AI_LIMIT_EXEMPT_FEATURES.has(feature)) {
+    return null;
+  }
   const category = categoryForFeature(feature);
   const limit = await checkUserAILimit(userId, category);
   if (!limit.allowed) {

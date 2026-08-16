@@ -12,6 +12,7 @@ import { getBootcampDayNumber } from "@/lib/course-topics";
 import { getAIPrompts } from "@/lib/course-config";
 import { logger } from "@/lib/logger";
 import { buildTestLedger, ledgerToPrompt, buildNextQuestionPrompt } from "@/modules/assessment/lib/test-ledger";
+import { pseudonym } from "@/modules/ai";
 import { gradeTest, type GradeResult, type QuestionExplanation } from "@/lib/unified-grader";
 import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { isFeatureEnabled } from "@/lib/feature-flags";
@@ -351,7 +352,7 @@ CRITICAL RULES:
               studentAnswers: studentAnswersToThisQuestion,
               topic: test.topic || `Week ${week} material`,
               testKind: "daily_test",
-              studentName: user.name,
+              studentName: pseudonym(user.id), // privacy — the AI grades a pseudonym
             })
           : Promise.resolve(undefined),
         generateNextDailyQuestion({
@@ -378,7 +379,7 @@ CRITICAL RULES:
           studentAnswers: studentAnswersToThisQuestion,
           topic: test.topic || `Week ${week} material`,
           testKind: "daily_test",
-          studentName: user.name,
+          studentName: pseudonym(user.id), // privacy — the AI grades a pseudonym
         });
       }
     }
