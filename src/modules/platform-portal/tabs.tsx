@@ -8,6 +8,7 @@ import {
   Wand2,
   KeyRound,
   LayoutDashboard,
+  LifeBuoy,
   RefreshCw,
   ScrollText,
   Server,
@@ -38,7 +39,9 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { href: "/platform", label: "Overview", icon: LayoutDashboard },
+  { href: "/platform/orgs", label: "Tenants", icon: Activity },
   { href: "/platform/users", label: "Users", icon: Users },
+  { href: "/platform/support", label: "Support", icon: LifeBuoy },
   { href: "/platform/courses", label: "Courses", icon: BookOpen },
   { href: "/platform/courses/planner", label: "Planner", icon: Wand2 },
   { href: "/platform/features", label: "Features", icon: SlidersHorizontal },

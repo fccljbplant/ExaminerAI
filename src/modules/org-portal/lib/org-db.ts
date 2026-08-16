@@ -68,12 +68,30 @@ export async function inviteMember(
   const existing = await db.orgMember.findFirst({ where: { orgId, userId: user.id } });
   if (existing) throw new OrgError("Already a member", "CONFLICT", 409);
 
+  // Seat enforcement (2026-08-17): a seat-holding invite must fit within
+  // the org's purchased seats — seats are a paid subscription dimension,
+  // not a cosmetic KPI.
+  const wantsSeat = input.seat ?? false;
+  if (wantsSeat) {
+    const [org, seatRows] = await Promise.all([
+      db.organization.findUnique({ where: { id: orgId }, select: { seats: true } }),
+      db.orgMember.count({ where: { orgId, seat: true, status: "active" } }),
+    ]);
+    if (org && seatRows >= org.seats) {
+      throw new OrgError(
+        `Seat limit reached — this org has ${org.seats} seats and ${seatRows} are taken. Upgrade the plan or invite without a seat.`,
+        "CONFLICT",
+        409,
+      );
+    }
+  }
+
   const member = await db.orgMember.create({
     data: {
       orgId,
       userId: user.id,
       role: input.role === "admin" ? "admin" : input.role === "mentor" ? "mentor" : "member",
-      seat: input.seat ?? false,
+      seat: wantsSeat,
       status: "active",
     },
     include: { user: { select: { id: true, name: true, email: true, lastLogin: true } } },

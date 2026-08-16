@@ -27,6 +27,11 @@ export async function PUT(
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const blocked = Boolean(body.blocked);
+  // Optional ban reason (2026-08-17 SaaS support): recorded on block,
+  // cleared on unblock. Surfaced in the support/user audit surfaces.
+  const reason = typeof body.reason === "string" && body.reason.trim()
+    ? body.reason.trim().slice(0, 300)
+    : null;
 
   // Check target user
   const target = await db.user.findUnique({ where: { id }, select: { role: true, email: true } });
@@ -52,7 +57,11 @@ export async function PUT(
 
   const user = await db.user.update({
     where: { id },
-    data: { blocked },
+    data: {
+      blocked,
+      banReason: blocked ? reason : null,
+      banExpiresAt: null,
+    },
   });
 
   // R4-fix: invalidate the auth cache so the block takes effect immediately

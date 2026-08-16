@@ -59,6 +59,11 @@ export interface JwtPayload {
   email: string;
   role: string;
   name: string;
+  /** Support impersonation (2026-08-17): true when this token was issued
+   *  by a platform admin acting on behalf of a user. */
+  sup?: boolean;
+  /** The impersonated user's id (equals sub when sup is true). */
+  actedFor?: string;
 }
 
 export function signToken(payload: JwtPayload): string {

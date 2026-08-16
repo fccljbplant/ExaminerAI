@@ -147,3 +147,193 @@ export async function getCourseManagement() {
     })
   );
 }
+
+// ── Tenants (SaaS control plane, 2026-08-17) ─────────────────────────
+
+export const ORG_STATUSES = ["trial", "active", "suspended", "cancelled"] as const;
+export type OrgStatus = (typeof ORG_STATUSES)[number];
+
+export interface TenantRow {
+  id: string;
+  name: string;
+  slug: string;
+  plan: string;
+  seats: number;
+  seatsUsed: number;
+  members: number;
+  status: OrgStatus;
+  trialEndsAt: string | null;
+  suspendedReason: string | null;
+  createdAt: string;
+}
+
+async function toTenantRow(o: {
+  id: string;
+  name: string;
+  slug: string;
+  plan: string;
+  seats: number;
+  status: string;
+  trialEndsAt: Date | null;
+  suspendedReason: string | null;
+  createdAt: Date;
+  members: { seat: boolean; status: string }[];
+}): Promise<TenantRow> {
+  const active = o.members.filter((m) => m.status === "active");
+  return {
+    id: o.id,
+    name: o.name,
+    slug: o.slug,
+    plan: o.plan,
+    seats: o.seats,
+    seatsUsed: active.filter((m) => m.seat).length,
+    members: active.length,
+    status: o.status as OrgStatus,
+    trialEndsAt: o.trialEndsAt ? o.trialEndsAt.toISOString() : null,
+    suspendedReason: o.suspendedReason,
+    createdAt: o.createdAt.toISOString(),
+  };
+}
+
+/** Tenant list with optional search (name/slug contains). */
+export async function listTenants(search?: string): Promise<TenantRow[]> {
+  const orgs = await db.organization.findMany({
+    where: search
+      ? {
+          OR: [
+            { name: { contains: search } },
+            { slug: { contains: search } },
+          ],
+        }
+      : undefined,
+    include: { members: { select: { id: true, seat: true, status: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  return Promise.all(orgs.map(toTenantRow));
+}
+
+/** Tenant detail — lifecycle + subscription + invoice + flag overrides. */
+export async function getTenantDetail(orgId: string) {
+  const org = await db.organization.findUnique({
+    where: { id: orgId },
+    include: {
+      members: { select: { id: true, seat: true, status: true } },
+      subscription: true,
+      invoices: { orderBy: { createdAt: "desc" }, take: 10 },
+    },
+  });
+  if (!org) return null;
+
+  const flagOverrides = await db.setting.findMany({
+    where: {
+      AND: [
+        { key: { startsWith: "feature_portal_" } },
+        { key: { endsWith: `_org:${orgId}` } },
+      ],
+    },
+    select: { key: true, value: true },
+  });
+
+  return {
+    ...(await toTenantRow(org)),
+    description: org.description,
+    website: org.website,
+    subscription: org.subscription
+      ? {
+          id: org.subscription.id,
+          stripeSubscriptionId: org.subscription.stripeSubscriptionId,
+          plan: org.subscription.plan,
+          seats: org.subscription.seats,
+          status: org.subscription.status,
+          currentPeriodEnd: org.subscription.currentPeriodEnd?.toISOString() ?? null,
+        }
+      : null,
+    invoices: org.invoices.map((i) => ({
+      id: i.id,
+      amount: i.amount,
+      currency: i.currency,
+      status: i.status,
+      periodEnd: i.periodEnd?.toISOString() ?? null,
+      createdAt: i.createdAt.toISOString(),
+    })),
+    flagOverrides: flagOverrides.map((f) => ({
+      key: f.key.replace(`_org:${orgId}`, ""),
+      enabled: f.value === "true",
+    })),
+  };
+}
+
+export interface TenantUpdate {
+  plan?: string;
+  seats?: number;
+  status?: OrgStatus;
+  trialEndsAt?: string | null;
+  suspendedReason?: string | null;
+}
+
+/** Update tenant lifecycle fields (platform admin only — enforced in the route). */
+export async function updateTenant(
+  orgId: string,
+  patch: TenantUpdate,
+): Promise<{ ok: boolean; error?: string }> {
+  const org = await db.organization.findUnique({ where: { id: orgId }, select: { id: true } });
+  if (!org) return { ok: false, error: "Organization not found" };
+
+  const data: Record<string, unknown> = {};
+  if (patch.plan !== undefined) data.plan = patch.plan;
+  if (patch.seats !== undefined) {
+    if (patch.seats < 1 || patch.seats > 100_000) {
+      return { ok: false, error: "seats must be between 1 and 100000" };
+    }
+    data.seats = patch.seats;
+  }
+  if (patch.status !== undefined) {
+    if (!ORG_STATUSES.includes(patch.status)) {
+      return { ok: false, error: `status must be one of ${ORG_STATUSES.join(", ")}` };
+    }
+    data.status = patch.status;
+  }
+  if (patch.trialEndsAt !== undefined) {
+    data.trialEndsAt = patch.trialEndsAt ? new Date(patch.trialEndsAt) : null;
+  }
+  if (patch.suspendedReason !== undefined) {
+    data.suspendedReason = patch.suspendedReason ?? null;
+  }
+
+  if (Object.keys(data).length === 0) {
+    return { ok: false, error: "Nothing to update" };
+  }
+
+  await db.organization.update({ where: { id: orgId }, data });
+  return { ok: true };
+}
+
+/** Per-org portal flag overrides — GET/PUT backing the rollout matrix. */
+export async function getOrgFlagOverrides(orgId: string): Promise<{ key: string; enabled: boolean }[]> {
+  const rows = await db.setting.findMany({
+    where: { key: { endsWith: `_org:${orgId}` } },
+    select: { key: true, value: true },
+  });
+  return rows.map((r) => ({
+    key: r.key.replace(`_org:${orgId}`, ""),
+    enabled: r.value === "true",
+  }));
+}
+
+export async function setOrgFlagOverride(
+  orgId: string,
+  key: string,
+  enabled: boolean,
+): Promise<{ ok: boolean; error?: string }> {
+  const org = await db.organization.findUnique({ where: { id: orgId }, select: { id: true } });
+  if (!org) return { ok: false, error: "Organization not found" };
+  if (!/^feature_portal_[a-z_]+_v2$/.test(key)) {
+    return { ok: false, error: "Invalid portal flag key" };
+  }
+  await db.setting.upsert({
+    where: { key: `${key}_org:${orgId}` },
+    update: { value: String(enabled) },
+    create: { key: `${key}_org:${orgId}`, value: String(enabled) },
+  });
+  return { ok: true };
+}

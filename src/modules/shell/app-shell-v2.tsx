@@ -12,6 +12,7 @@ import { TopNav } from "./top-nav";
 import { TabRow } from "./tab-row";
 import { BottomNav } from "./bottom-nav";
 import { AppFooter } from "./app-footer";
+import { SupportModeBanner } from "./support-mode-banner";
 import type { NavItem, ShellBrand } from "./types";
 
 /**
@@ -77,6 +78,10 @@ export function AppShellV2({ nav, brand, trailing, children, className }: AppShe
       >
         Skip to content
       </a>
+
+      {/* Support-mode warning + exit — shown in every portal while a
+          platform admin is impersonating a user (sup token). */}
+      <SupportModeBanner />
 
       {classicShell ? (
         <>

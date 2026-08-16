@@ -68,15 +68,26 @@ export function PlatformAudit() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-lg font-semibold text-fg md:text-xl">Audit</h1>
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={!data || data.items.length === 0}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-50"
-        >
-          <Download className="h-4 w-4" aria-hidden />
-          Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Server-side export (2026-08-17) — the full feed with metadata,
+              not just the client-visible page. */}
+          <a
+            href="/api/v2/platform/audit/export"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong"
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            Server export
+          </a>
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={!data || data.items.length === 0}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
