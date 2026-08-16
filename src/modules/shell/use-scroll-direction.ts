@@ -110,23 +110,56 @@ export function useNavVisibility(): NavVisibility {
 
     const show = () => {
       if (visibilityRef.current === "visible") {
-        anchorRef.current = window.scrollY;
+        anchorRef.current = currentY();
         return;
       }
       visibilityRef.current = "visible";
-      anchorRef.current = window.scrollY;
+      anchorRef.current = currentY();
       setVisibility("visible");
     };
 
-    const onScroll = () => {
+    /** The current scroll offset of the ACTIVE scroller. */
+    const currentY = () => {
+      const el = lastScroller;
+      if (el instanceof HTMLElement && el !== document.documentElement && el !== document.body) {
+        return el.scrollTop;
+      }
+      return window.scrollY;
+    };
+
+    /** Only the window (page scroll) or containers explicitly marked
+     *  [data-main-scroll] drive the nav — nested scrollers (chat
+     *  transcripts, drawers) must never hide it. */
+    const isMainScroller = (el: EventTarget | null): boolean => {
+      if (el === document || el === window || el === document.documentElement || el === null) {
+        return true;
+      }
+      return el instanceof HTMLElement && el.hasAttribute("data-main-scroll");
+    };
+
+    let lastScroller: EventTarget | null = null;
+
+    const onScroll = (e: Event) => {
       const now = Date.now();
       if (now - lastCall < THROTTLE_MS) return;
+      const target = e.target;
+      if (!isMainScroller(target)) return;
       lastCall = now;
+      lastScroller = target;
 
-      const y = window.scrollY;
-      // End of the page always reveals the nav.
-      const doc = document.documentElement;
-      if (y + window.innerHeight >= doc.scrollHeight - BOTTOM_REVEAL_PX) {
+      const y = currentY();
+
+      // End of the page (or container) always reveals the nav.
+      const el =
+        target instanceof HTMLElement &&
+        target !== document.documentElement &&
+        target !== document.body
+          ? target
+          : null;
+      const atBottom = el
+        ? el.scrollTop + el.clientHeight >= el.scrollHeight - BOTTOM_REVEAL_PX
+        : y + window.innerHeight >= document.documentElement.scrollHeight - BOTTOM_REVEAL_PX;
+      if (atBottom) {
         show();
         return;
       }
@@ -143,7 +176,10 @@ export function useNavVisibility(): NavVisibility {
       anchorRef.current = anchor;
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    // capture: true — scroll events don't bubble, so capture is the only
+    // way to see INTERNAL container scrolls (the classroom is h-dvh with
+    // its own scroller; the window never scrolls there).
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
     // Back/forward (bfcache) restores scroll WITHOUT firing a scroll
     // event — without this the nav would stay hidden after Back.
     window.addEventListener("pageshow", show);
@@ -156,7 +192,7 @@ export function useNavVisibility(): NavVisibility {
     window.addEventListener("orientationchange", show);
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("scroll", onScroll, { capture: true });
       window.removeEventListener("pageshow", show);
       document.removeEventListener("touchstart", show, { capture: true });
       document.removeEventListener("focusin", show);

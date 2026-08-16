@@ -557,7 +557,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
 
         {/* Lesson stage (center) */}
         <main className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-3 py-3 md:px-6 md:py-6">
+          <div data-main-scroll className="flex-1 overflow-y-auto px-3 py-3 md:px-6 md:py-6">
             {/* Media switcher — only when this topic has a video lesson */}
             {today?.media?.video && !today.courseCompleted && (
               <div className="mx-auto mb-5 flex w-full max-w-3xl items-center gap-1 rounded-lg border bg-card p-1">
@@ -589,7 +589,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
             )}
 
             {postStage === "test" ? (
-              <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="data-main-scroll min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
                 <PostFlowStepper stage="test" hasProject={Boolean(now?.project)} onStage={setPostStage} />
                 <div className="mx-auto max-w-2xl">
                   <DailyTestPanel
@@ -605,7 +605,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                 </div>
               </div>
             ) : postStage === "results" ? (
-              <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="data-main-scroll min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
                 <PostFlowStepper stage="results" hasProject={Boolean(now?.project)} onStage={setPostStage} />
                 <div className="mx-auto flex max-w-lg flex-col items-center rounded-2xl border border-line bg-surface p-6 text-center shadow-sm md:p-8">
                   <span className="flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle text-success-on">
@@ -658,7 +658,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                 onStage={setPostStage}
               />
             ) : postStage === "next" ? (
-              <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="data-main-scroll min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
                 <PostFlowStepper stage="next" hasProject={Boolean(now?.project)} onStage={setPostStage} />
                 <div className="mx-auto flex max-w-lg flex-col items-center rounded-2xl border border-line bg-surface p-6 text-center shadow-sm md:p-8">
                   <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-subtle text-fg">
@@ -1190,7 +1190,7 @@ function ProjectStage({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+    <div className="data-main-scroll min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
       <PostFlowStepper stage="project" hasProject={hasProject} onStage={onStage} />
       <div className="mx-auto max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-sm md:p-8">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-info-subtle text-info-on">
@@ -1288,7 +1288,7 @@ function CheckinStage({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+    <div className="data-main-scroll min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
       <PostFlowStepper stage="checkin" hasProject={hasProject} onStage={onStage} />
       <form onSubmit={submit} className="mx-auto max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-sm md:p-8">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-warning-subtle text-warning-on">
