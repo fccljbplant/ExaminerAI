@@ -21,6 +21,14 @@ import {
  getWeekPhase,
  type DailyTopic,
 } from "@/modules/course/lib/course-topics";
+import {
+ getCourseOutline,
+ topicInOutline,
+ nextTopicInOutline,
+ prevTopicInOutline,
+ isLastTopicInOutline,
+ type OutlineWeek,
+} from "./course-outline";
 import type {
  MasteryMap,
  TopicContext,
@@ -169,7 +177,11 @@ async function overlayDbTopic(
 
 /**
  * Read (or initialize) today's topic for a user+course.
- * If no `current` topic is set, picks Week 1 Day 1.
+ *
+ * Progression is bound to the COURSE'S OWN outline (CourseWeek/CourseDay)
+ * when it has one — a learner in a 2-week HSE course never spills into
+ * the generic 6×5 ladder's unrelated topics (audit 9.5). Courses without
+ * outline rows keep the legacy ladder.
  */
 export async function getTodayTopic(
  userId: string,
@@ -182,6 +194,13 @@ export async function getTodayTopic(
 
  const mastery = coerceMastery(profile.masteryMap);
  const current = mastery.topicProgress.current ?? { week: 1, day: 1 };
+
+ const outline = await getCourseOutline(courseId);
+ if (outline) {
+   return getOutlineTopicResult(current, outline, mastery);
+ }
+
+ // ── Legacy ladder fallback (no course outline rows) ─────────────
  const base = getTopicByWeekDay(current.week, current.day);
  if (!base) return null;
  const { topic, phase } = await overlayDbTopic(
@@ -208,6 +227,40 @@ export async function getTodayTopic(
  nextTopic: getNextTopic(current.week, current.day),
  prevTopic: getPrevTopic(current.week, current.day),
  isLastTopicInCourse: isLastTopicInCourse(current.week, current.day),
+ };
+}
+
+/** Build the TodayTopicResult from the course's own outline. */
+function getOutlineTopicResult(
+ current: { week: number; day: number },
+ outline: OutlineWeek[],
+ mastery: MasteryMap,
+): TodayTopicResult | null {
+ const day = topicInOutline(outline, current.week, current.day);
+ if (!day) return null; // past the course's outline → course complete
+ const week = outline.find((w) => w.week === current.week);
+
+ const slidesViewed = mastery.topicProgress.slidesViewed ?? 0;
+ const completed = mastery.topicProgress.history.some(
+   (h) => h.week === current.week && h.day === current.day,
+ );
+
+ return {
+   topic: {
+     week: current.week,
+     day: current.day,
+     title: day.title,
+     objective: day.objective,
+     resources: [],
+     phase: week?.phase ?? `Week ${current.week}`,
+   },
+   slidesViewed,
+   totalSlides: SLIDES_PER_TOPIC,
+   completed,
+   resourcesShown: !!mastery.topicProgress.resourcesShown,
+   nextTopic: nextTopicInOutline(outline, current.week, current.day),
+   prevTopic: prevTopicInOutline(outline, current.week, current.day),
+   isLastTopicInCourse: isLastTopicInOutline(outline, current.week, current.day),
  };
 }
 
@@ -269,7 +322,12 @@ export async function completeTopicAndAdvance(
 
  const mastery = coerceMastery(profile.masteryMap);
  const current = mastery.topicProgress.current ?? { week: 1, day: 1 };
- const next = getNextTopic(current.week, current.day);
+
+ // Progression bounds follow the course's own outline when present.
+ const outline = await getCourseOutline(courseId);
+ const next = outline
+   ? nextTopicInOutline(outline, current.week, current.day)
+   : getNextTopic(current.week, current.day);
 
  // Move current → history
  mastery.topicProgress.history.push({
@@ -332,7 +390,13 @@ export async function jumpToTopic(
  week: number,
  day: number,
 ): Promise<boolean> {
- if (!getTopicByWeekDay(week, day)) return false;
+ // Bounds check against the course's own outline (or the legacy ladder).
+ const outline = await getCourseOutline(courseId);
+ const inBounds = outline
+   ? topicInOutline(outline, week, day) !== null
+   : getTopicByWeekDay(week, day) !== null;
+ if (!inBounds) return false;
+
  const profile = await db.learnProfile.findUnique({
  where: { userId_courseId: { userId, courseId } },
  });
@@ -356,4 +420,72 @@ export async function jumpToTopic(
  data: { masteryMap: mastery as unknown as Prisma.InputJsonValue },
  });
  return true;
+}
+
+/**
+ * List every topic in the course (outline-first, ladder fallback) with
+ * per-topic status — completed / current / locked — for the topic picker
+ * and the journey map. Re-learning a completed topic is allowed; jumping
+ * ahead to a locked one is not.
+ */
+export async function listCourseTopics(
+ userId: string,
+ courseId: string,
+): Promise<{
+ weeks: { week: number; phase: string; days: { day: number; title: string; objective: string; status: "completed" | "current" | "locked" }[] }[];
+ current: { week: number; day: number } | null;
+ courseCompleted: boolean;
+} | null> {
+ const profile = await db.learnProfile.findUnique({
+   where: { userId_courseId: { userId, courseId } },
+ });
+ if (!profile) return null;
+
+ const mastery = coerceMastery(profile.masteryMap);
+ const current = mastery.topicProgress.current;
+ const history = mastery.topicProgress.history;
+
+ const outline = await getCourseOutline(courseId);
+ if (outline) {
+   return {
+     weeks: outline.map((w) => ({
+       week: w.week,
+       phase: w.phase,
+       days: w.days.map((d) => ({
+         day: d.day,
+         title: d.title,
+         objective: d.objective,
+         status:
+           current && current.week === w.week && current.day === d.day
+             ? "current"
+             : history.some((h) => h.week === w.week && h.day === d.day)
+               ? "completed"
+               : "locked",
+       })),
+     })),
+     current,
+     courseCompleted: current === null,
+   };
+ }
+
+ // Ladder fallback.
+ return {
+   weeks: WEEKLY_TOPICS.map((w) => ({
+     week: w.week,
+     phase: w.phase,
+     days: w.topics.map((t, i) => ({
+       day: i + 1,
+       title: t.title,
+       objective: t.objective,
+       status:
+         current && current.week === w.week && current.day === i + 1
+           ? "current"
+           : history.some((h) => h.week === w.week && h.day === i + 1)
+             ? "completed"
+             : "locked",
+     })),
+   })),
+   current,
+   courseCompleted: current === null,
+ };
 }

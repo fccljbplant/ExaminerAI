@@ -11,17 +11,19 @@ import { api, AI_TIMEOUT_MS, ApiError } from "@/lib/api-client";
 import { toast } from "sonner";
 import {
   Map as MapIcon, Target, TrendingUp, BookOpen, Sparkles, Flame, Star,
-  ChevronRight, ChevronLeft, Send, Loader2, Volume2, VolumeX, Focus,
+  ChevronRight, ChevronLeft, ArrowLeft, Send, Loader2, Volume2, VolumeX, Focus,
   X, GraduationCap, MessageSquare, StickyNote, CheckCircle2, ArrowRight, MonitorPlay,
-  Presentation, Brain, Trophy, ClipboardList, CalendarCheck,
+  Presentation, Brain, Trophy, ClipboardList, CalendarCheck, ListTree,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/modules/ui/PageHeader";
 import { prepareForTTS, speakTTS, stopTTS, warmVoices } from "@/modules/learn/lib/tts-filter";
 import type { SlideData, TopicContext } from "@/modules/learn/types";
 import { tutor } from "@/modules/learn/lib/tutor-bus";
+import { getCachedSlides, cacheSlides } from "@/modules/learn/lib/slide-cache";
 import { LessonStage } from "@/modules/learn/components/classroom/LessonStage";
 import { VideoStage } from "@/modules/learn/components/classroom/VideoStage";
+import { TopicPicker } from "@/modules/learn/components/classroom/TopicPicker";
 import { DailyTestPanel } from "@/modules/assessment/components/DailyTestPanel";
 import { VoiceBar } from "@/modules/learn/components/classroom/VoiceBar";
 import type { LessonMedia } from "@/modules/learn/lib/lesson-media";
@@ -130,6 +132,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [completing, setCompleting] = useState(false);
   const [topicComplete, setTopicComplete] = useState(false);
   const [showCoachMarks, setShowCoachMarks] = useState(false);
+  // Topic map drawer (re-learn previously learned topics).
+  const [showTopics, setShowTopics] = useState(false);
   // Stage: video lesson first (when the topic has one), then slides.
   const [stageMode, setStageMode] = useState<"video" | "slides">("slides");
   const videoIntroRef = useRef<string | null>(null);
@@ -137,9 +141,10 @@ export function ClassroomShell({ courseId, courseName }: Props) {
 
   const speakWithAvatar = useSpeakWithAvatar(ttsOn);
   const captionOnly = useCaptionOnly();
-  // Auto-generate the first slide on page load — the learner never sees
-  // a "Start learning" generation button (user requirement 2026-08-15).
-  const autoStartedRef = useRef(false);
+  // Auto-generate the first slide for each NEW topic on load — the
+  // learner never sees a "Start learning" generation button. Keyed by
+  // topic so every topic advance regenerates fresh slides for that day.
+  const autoStartedForRef = useRef<string | null>(null);
 
   // Warm the browser voice list on mount so the male-voice picker is
   // ready when the learner opts in (getVoices populates asynchronously).
@@ -187,8 +192,20 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       const res = await api.get<{ data: TodayData }>(`/api/learn/today?courseId=${courseId}`);
       const data = res.data;
       setToday(data);
-      setSlides(data.slides ?? []);
-      setSlideIdx(Math.max(0, (data.slides?.length ?? 1) - 1));
+      // Browser-memory slide cache: server slides hydrate the cache; a
+      // cache hit makes re-learning a topic instant (and keeps the board
+      // alive if the server copy is slow to arrive).
+      let nextSlides: SlideData[] = data.slides ?? [];
+      if (data.topic) {
+        if (nextSlides.length > 0) {
+          cacheSlides(courseId, data.topic.week, data.topic.day, nextSlides);
+        } else {
+          const cached = getCachedSlides(courseId, data.topic.week, data.topic.day);
+          if (cached && cached.length > 0) nextSlides = cached;
+        }
+      }
+      setSlides(nextSlides);
+      setSlideIdx(Math.max(0, nextSlides.length - 1));
       setTopicComplete(false);
       setPostStage("slides");
       setDailyScore(null);
@@ -241,13 +258,15 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     };
   }, [courseId, fetchNow, fetchToday, fetchSession, speakWithAvatar]);
 
-  // ── Auto-generate the first slide once the topic is loaded ────────
+  // ── Auto-generate the first slide for each NEW topic ──────────────
+  const topicKey = today ? `${today.topic.week}-${today.topic.day}` : null;
   useEffect(() => {
-    if (autoStartedRef.current) return;
-    if (!today || slides.length > 0 || topicComplete || loadingSlide) return;
-    autoStartedRef.current = true;
+    if (!today || !topicKey || topicComplete || loadingSlide) return;
+    if (slides.length > 0) return; // cached or already generated
+    if (autoStartedForRef.current === topicKey) return;
+    autoStartedForRef.current = topicKey;
     void handleNextSlide();
-  }, [today, slides.length, topicComplete, loadingSlide, handleNextSlide]);
+  }, [today, topicKey, slides.length, topicComplete, loadingSlide, handleNextSlide]);
 
   // ── Auto-scroll transcript ────────────────────────────────────────
   useEffect(() => {
@@ -283,7 +302,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       }
 
       const { slide, narration, message } = res.data;
-      setSlides(prev => [...prev, slide]);
+      const next = [...slides, slide];
+      setSlides(next);
+      if (today) cacheSlides(courseId, today.topic.week, today.topic.day, next);
       setSlideIdx(prev => prev + 1);
       tutor.play("idea");
       captionOnly(narration || message);
@@ -377,6 +398,21 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     tutor.play("slide:highlight");
   }
 
+  /** Jump to another topic (re-learn a completed one, or the previous
+   *  one in sequence). Refetches the classroom for the new topic. */
+  async function jumpTopic(week: number, day: number) {
+    try {
+      await api.post(`/api/learn/topics/jump?courseId=${courseId}`, { week, day });
+      setPostStage("slides");
+      setTopicComplete(false);
+      setDailyScore(null);
+      await fetchToday();
+      await fetchNow();
+    } catch (e) {
+      toast.error("Couldn't switch topic", { description: e instanceof Error ? e.message : undefined });
+    }
+  }
+
   // ── Video lesson ────────────────────────────────────────────────
   // Avatar introduces the video once per topic; recaps when it ends.
   useEffect(() => {
@@ -442,6 +478,15 @@ export function ClassroomShell({ courseId, courseName }: Props) {
         }
         actions={
           <>
+            <button
+              type="button"
+              onClick={() => setShowTopics(true)}
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+              title="Browse all topics — re-learn any completed topic"
+            >
+              <ListTree className="h-3.5 w-3.5" />
+              Topics
+            </button>
             <button
               type="button"
               onClick={() => setFocusMode(f => !f)}
@@ -681,18 +726,49 @@ export function ClassroomShell({ courseId, courseName }: Props) {
               </button>
             )}
 
-            {/* Contextual CTA — clean navigation. Slides generate on load
-                and on Next; no generation buttons are ever shown. After
-                the slides, the daily Socratic test takes the stage. */}
-            {topicComplete && postStage === "slides" ? (
+            {/* Re-learn the previous topic in the course sequence */}
+            {postStage === "slides" && today?.prevTopic && (
               <button
                 type="button"
-                onClick={() => setPostStage("test")}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-on-brand hover:bg-brand-hover md:min-h-11 md:gap-2 md:px-4 md:py-2 md:text-sm"
+                onClick={() => void jumpTopic(today.prevTopic!.week, today.prevTopic!.day)}
+                aria-label="Previous topic"
+                title="Go back to the previous topic"
+                className="inline-flex min-h-10 items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs font-medium hover:bg-bg-subtle md:min-h-11 md:px-3"
               >
-                <Brain className="h-4 w-4" />
-                Take the daily test
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden md:inline">Prev topic</span>
               </button>
+            )}
+
+            {/* Contextual CTA — clean navigation. Slides generate on load
+                and on Next; no generation buttons are ever shown. After
+                the slides, the daily Socratic test takes the stage — and
+                the topic can be finished right away, which advances the
+                learner to the next topic (fresh slides next day). */}
+            {topicComplete && postStage === "slides" ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setPostStage("test")}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-bg-subtle md:min-h-11 md:gap-2 md:px-4 md:py-2 md:text-sm"
+                >
+                  <Brain className="h-4 w-4" />
+                  Daily test
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCompleteTopic}
+                  disabled={completing}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-success px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50 md:min-h-11 md:gap-2 md:px-4 md:py-2 md:text-sm"
+                >
+                  {completing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+                  {today?.isLastTopicInCourse ? "Finish course" : "Finish topic"}
+                </button>
+              </>
             ) : postStage !== "slides" ? (
               <button
                 type="button"
@@ -881,7 +957,14 @@ export function ClassroomShell({ courseId, courseName }: Props) {
             </div>
             <div className="flex-1 overflow-hidden">
               {activePanel === "journey" && (
-                <JourneyPanel courseId={courseId} onClose={() => setActivePanel(null)} />
+                <JourneyPanel
+                  courseId={courseId}
+                  onClose={() => setActivePanel(null)}
+                  onJump={(week, day) => {
+                    setActivePanel(null);
+                    void jumpTopic(week, day);
+                  }}
+                />
               )}
               {activePanel === "project" && (
                 <ProjectPanel courseId={courseId} onMilestoneComplete={fetchNow} />
@@ -901,6 +984,44 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                   slideId={null}
                 />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Topic map drawer — browse + re-learn topics ─────────── */}
+      {showTopics && (
+        <div className="fixed inset-0 z-[var(--p-z-drawer)] flex">
+          <div
+            className="absolute inset-0 bg-black/30"
+            onClick={() => setShowTopics(false)}
+          />
+          <div className="relative z-10 flex h-full w-full max-w-full flex-col border-r bg-background shadow-xl animate-in slide-in-from-left sm:w-[480px]">
+            <div className="flex h-12 flex-shrink-0 items-center justify-between border-b px-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Course topics
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowTopics(false)}
+                aria-label="Close topics"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-muted"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <TopicPicker
+                courseId={courseId}
+                onJump={(week, day) => {
+                  setShowTopics(false);
+                  setPostStage("slides");
+                  setTopicComplete(false);
+                  setDailyScore(null);
+                  void fetchToday();
+                  void fetchNow();
+                }}
+              />
             </div>
           </div>
         </div>
