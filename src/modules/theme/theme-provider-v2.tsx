@@ -33,12 +33,13 @@ import {
 import { useTheme } from "next-themes";
 import { deriveBrandPalette, paletteToCssVars, type BrandPalette } from "./lib/brand";
 
-export type ThemeModeV2 = "light" | "dark" | "bed" | "classic" | "ocean" | "forest" | "sunset";
+export type ThemeModeV2 = "light" | "dark" | "bed" | "classic" | "zinc" | "ocean" | "forest" | "sunset";
 
-/** The original v1 preset themes (re-added 2026-08-15 — user request:
- *  "get default themes of old versions"). Each preset carries its own
- *  light + dark variant (dark layers via the .dark class). */
-export const THEME_PRESET_MODES = ["ocean", "forest", "sunset"] as const;
+/** The original preset themes (re-added 2026-08-15 — user request:
+ *  "restore all old color themes"). Each preset carries its own light +
+ *  dark variant (dark layers via the .dark class). Zinc is the very
+ *  first shadcn default; Modern Slate is the default light/dark. */
+export const THEME_PRESET_MODES = ["zinc", "ocean", "forest", "sunset"] as const;
 export type ThemePresetMode = (typeof THEME_PRESET_MODES)[number];
 
 export const THEME_V2_STORAGE = {
@@ -217,10 +218,10 @@ html[data-brand][data-mode="bed"] {
 html[data-brand][data-mode="classic"] {
   ${paletteToCssVars(palette.light)}
 }
-html[data-brand][data-mode="ocean"], html[data-brand][data-mode="forest"], html[data-brand][data-mode="sunset"] {
+html[data-brand][data-mode="zinc"], html[data-brand][data-mode="ocean"], html[data-brand][data-mode="forest"], html[data-brand][data-mode="sunset"] {
   ${paletteToCssVars(palette.light)}
 }
-html[data-brand][data-mode="ocean"].dark, html[data-brand][data-mode="forest"].dark, html[data-brand][data-mode="sunset"].dark {
+html[data-brand][data-mode="zinc"].dark, html[data-brand][data-mode="ocean"].dark, html[data-brand][data-mode="forest"].dark, html[data-brand][data-mode="sunset"].dark {
   ${paletteToCssVars(palette.dark)}
 }`;
   }, [brandHex, palette]);

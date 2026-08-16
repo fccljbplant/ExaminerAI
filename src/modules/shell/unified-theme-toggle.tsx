@@ -57,8 +57,15 @@ export function UnifiedThemeToggle({ className }: { className?: string }) {
       apply: () => setMode(resolvedTheme === "dark" ? "dark" : "light"),
     },
     {
+      label: "Zinc",
+      desc: "first version — neutral shadcn",
+      swatches: { light: "#18181B", dark: "#F4F4F5", accent: "#71717A" },
+      active: (m) => m === "zinc",
+      apply: () => setMode("zinc"),
+    },
+    {
       label: "Ocean",
-      desc: "v1 preset — blue + teal",
+      desc: "original app — blue + teal",
       swatches: { light: "#1A73E8", dark: "#8AB4F8", accent: "#1A73E8" },
       active: (m) => m === "ocean",
       apply: () => setMode("ocean"),

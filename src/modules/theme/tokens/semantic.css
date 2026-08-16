@@ -249,6 +249,104 @@ html[data-mode="classic"] {
   --radius: 0.625rem;
 }
 
+/* ZINC — the very first shadcn default (white + near-black, muted zinc
+   surfaces) that shipped with the original app. Restored as a preset. */
+html[data-mode="zinc"] {
+  --bg: #ffffff;
+  --bg-subtle: #f4f4f5;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+
+  --text: #09090b;
+  --text-secondary: #3f3f46;
+  --text-muted: #71717a;
+  --text-inverse: #fafafa;
+
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+
+  --brand: #18181b;
+  --brand-hover: #27272a;
+  --brand-active: #3f3f46;
+  --brand-subtle: #f4f4f5;
+  --on-brand: #fafafa;
+  --focus: #d4d4d8;
+
+  --scrim: oklch(0.2 0 0 / 0.5);
+
+  --success: #16a34a;
+  --success-subtle: #f0fdf4;
+  --success-on: #166534;
+  --warning: #d97706;
+  --warning-subtle: #fffbeb;
+  --warning-on: #92400e;
+  --danger: #dc2626;
+  --danger-subtle: #fef2f2;
+  --danger-on: #b91c1c;
+  --info: #2563eb;
+  --info-subtle: #eff6ff;
+  --info-on: #1d4ed8;
+
+  --chart-1: #f97316;
+  --chart-2: #14b8a6;
+  --chart-3: #2563eb;
+  --chart-4: #facc15;
+  --chart-5: #f59e0b;
+  --chart-6: #e879f9;
+
+  --tutor-ring: #d4d4d8;
+  --tutor-fab: #18181b;
+}
+
+html[data-mode="zinc"].dark {
+  --bg: #09090b;
+  --bg-subtle: #131316;
+  --surface: #18181b;
+  --surface-raised: #1f1f23;
+  --surface-overlay: #1f1f23;
+
+  --text: #fafafa;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --text-inverse: #18181b;
+
+  --border: #27272a;
+  --border-strong: #3f3f46;
+
+  --brand: #f4f4f5;
+  --brand-hover: #ffffff;
+  --brand-active: #d4d4d8;
+  --brand-subtle: #27272a;
+  --on-brand: #18181b;
+  --focus: #8e8e8e;
+
+  --scrim: oklch(0.15 0 0 / 0.6);
+
+  --success: #34d399;
+  --success-subtle: #0f2e22;
+  --success-on: #a7f3d0;
+  --warning: #fbbf24;
+  --warning-subtle: #3d2e0e;
+  --warning-on: #fde68a;
+  --danger: #f87171;
+  --danger-subtle: #3a1517;
+  --danger-on: #fecaca;
+  --info: #60a5fa;
+  --info-subtle: #152238;
+  --info-on: #bfdbfe;
+
+  --chart-1: #818cf8;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #e879f9;
+  --chart-5: #f43f5e;
+  --chart-6: #22d3ee;
+
+  --tutor-ring: #8e8e8e;
+  --tutor-fab: #f4f4f5;
+}
+
 /* OCEAN — the original v1 preset (blue + teal, NotebookLM-inspired).
    Light values under the mode; dark variant layers via .dark so the
    light/dark toggle keeps working inside every preset. */

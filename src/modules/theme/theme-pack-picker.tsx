@@ -56,9 +56,16 @@ const PACKS: PackDef[] = [
     swatches: { canvas: "#F4F5F7", card: "#FFFFFF", brand: "#1F3BB3", text: "#1F1F1F" },
   },
   {
+    mode: "zinc",
+    label: "Zinc",
+    tagline: "First version — neutral shadcn",
+    icon: Palette,
+    swatches: { canvas: "#FFFFFF", card: "#FFFFFF", brand: "#18181B", text: "#09090B" },
+  },
+  {
     mode: "ocean",
     label: "Ocean",
-    tagline: "v1 preset — Google-blue + teal",
+    tagline: "Original app — Google-blue + teal",
     icon: Palette,
     swatches: { canvas: "#F8F9FA", card: "#FFFFFF", brand: "#1A73E8", text: "#202124" },
   },

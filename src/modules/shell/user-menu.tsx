@@ -212,6 +212,7 @@ export function UserMenu({
               { mode: "dark", label: "Dark", icon: Moon },
               { mode: "bed", label: "Bed", icon: BedDouble },
               { mode: "classic", label: "Classic", icon: Library },
+              { mode: "zinc", label: "Zinc", icon: Palette },
               { mode: "ocean", label: "Ocean", icon: Palette },
               { mode: "forest", label: "Forest", icon: Palette },
               { mode: "sunset", label: "Sunset", icon: Palette },
