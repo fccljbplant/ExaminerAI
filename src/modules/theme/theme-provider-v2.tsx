@@ -33,11 +33,18 @@ import {
 import { useTheme } from "next-themes";
 import { deriveBrandPalette, paletteToCssVars, type BrandPalette } from "./lib/brand";
 
-export type ThemeModeV2 = "light" | "dark" | "bed" | "classic";
+export type ThemeModeV2 = "light" | "dark" | "bed" | "classic" | "ocean" | "forest" | "sunset";
+
+/** The original v1 preset themes (re-added 2026-08-15 — user request:
+ *  "get default themes of old versions"). Each preset carries its own
+ *  light + dark variant (dark layers via the .dark class). */
+export const THEME_PRESET_MODES = ["ocean", "forest", "sunset"] as const;
+export type ThemePresetMode = (typeof THEME_PRESET_MODES)[number];
 
 export const THEME_V2_STORAGE = {
   bed: "tx-theme-bed",
   classic: "tx-theme-classic",
+  preset: "tx-theme-preset",
   brand: "tx-org-brand",
   legacyPreset: "examiner-theme-preset",
 } as const;
@@ -77,6 +84,7 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [bed, setBedState] = useState(false);
   const [classic, setClassicState] = useState(false);
+  const [preset, setPresetState] = useState<ThemePresetMode | null>(null);
   const [brandHex, setBrandHexState] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -84,6 +92,14 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setBedState(readBool(THEME_V2_STORAGE.bed));
     setClassicState(readBool(THEME_V2_STORAGE.classic));
+    try {
+      const p = localStorage.getItem(THEME_V2_STORAGE.preset);
+      if (p && (THEME_PRESET_MODES as readonly string[]).includes(p)) {
+        setPresetState(p as ThemePresetMode);
+      }
+    } catch {
+      /* non-fatal */
+    }
     // W10: the legacy preset migration is gone with presets.ts — the
     // org/global brand key is the only source.
     const hex = localStorage.getItem(THEME_V2_STORAGE.brand);
@@ -95,9 +111,11 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
     ? "classic"
     : bed
       ? "bed"
-      : resolvedTheme === "dark"
-        ? "dark"
-        : "light";
+      : preset
+        ? preset
+        : resolvedTheme === "dark"
+          ? "dark"
+          : "light";
 
   /* ---- apply data-mode (semantic tokens key off this) ---- */
   useEffect(() => {
@@ -123,9 +141,11 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
         // Classic layers over light for legacy fallback (like bed over dark).
         setClassicState(true);
         setBedState(false);
+        setPresetState(null);
         setTheme("light");
         try {
           localStorage.setItem(THEME_V2_STORAGE.classic, "1");
+          localStorage.removeItem(THEME_V2_STORAGE.preset);
         } catch {
           /* non-fatal */
         }
@@ -139,9 +159,27 @@ export function ThemeV2Provider({ children }: { children: ReactNode }) {
       }
       if (next === "bed") {
         setBed(true);
+        setPresetState(null);
         return;
       }
       setBed(false);
+      if ((THEME_PRESET_MODES as readonly string[]).includes(next)) {
+        // Original v1 preset — keeps its own light/dark via the normal
+        // light/dark toggle (data-mode stays the preset, .dark layers on).
+        setPresetState(next as ThemePresetMode);
+        try {
+          localStorage.setItem(THEME_V2_STORAGE.preset, next);
+        } catch {
+          /* non-fatal */
+        }
+        return;
+      }
+      setPresetState(null);
+      try {
+        localStorage.removeItem(THEME_V2_STORAGE.preset);
+      } catch {
+        /* non-fatal */
+      }
       setTheme(next);
     },
     [setBed, setTheme]
@@ -178,6 +216,12 @@ html[data-brand][data-mode="bed"] {
 }
 html[data-brand][data-mode="classic"] {
   ${paletteToCssVars(palette.light)}
+}
+html[data-brand][data-mode="ocean"], html[data-brand][data-mode="forest"], html[data-brand][data-mode="sunset"] {
+  ${paletteToCssVars(palette.light)}
+}
+html[data-brand][data-mode="ocean"].dark, html[data-brand][data-mode="forest"].dark, html[data-brand][data-mode="sunset"].dark {
+  ${paletteToCssVars(palette.dark)}
 }`;
   }, [brandHex, palette]);
 

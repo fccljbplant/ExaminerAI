@@ -1,6 +1,6 @@
 "use client";
 
-import { BedDouble, LayoutPanelLeft, Moon, Sun } from "lucide-react";
+import { BedDouble, LayoutPanelLeft, Moon, Palette, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useThemeV2, type ThemeModeV2 } from "./theme-provider-v2";
 
@@ -30,16 +30,16 @@ const PACKS: PackDef[] = [
   {
     mode: "light",
     label: "Light",
-    tagline: "The default v2 canvas — neutral-cool surfaces",
+    tagline: "Modern Slate — the original default",
     icon: Sun,
-    swatches: { canvas: "#F7F7F8", card: "#FFFFFF", brand: "#B45309", text: "#3F3F46" },
+    swatches: { canvas: "#FAFAFA", card: "#FFFFFF", brand: "#0F172A", text: "#0F172A" },
   },
   {
     mode: "dark",
     label: "Dark",
-    tagline: "Elevated dark surfaces, reduced saturation",
+    tagline: "Modern Slate dark — amber on near-black",
     icon: Moon,
-    swatches: { canvas: "#23232E", card: "#2E2E3A", brand: "#E8B45A", text: "#EAEAEF" },
+    swatches: { canvas: "#0A0A0F", card: "#16161F", brand: "#FBBF24", text: "#FAFAFA" },
   },
   {
     mode: "bed",
@@ -54,6 +54,27 @@ const PACKS: PackDef[] = [
     tagline: "Star Admin vertical — indigo, light sidebar",
     icon: LayoutPanelLeft,
     swatches: { canvas: "#F4F5F7", card: "#FFFFFF", brand: "#1F3BB3", text: "#1F1F1F" },
+  },
+  {
+    mode: "ocean",
+    label: "Ocean",
+    tagline: "v1 preset — Google-blue + teal",
+    icon: Palette,
+    swatches: { canvas: "#F8F9FA", card: "#FFFFFF", brand: "#1A73E8", text: "#202124" },
+  },
+  {
+    mode: "forest",
+    label: "Forest",
+    tagline: "v1 preset — sage greens, growth-oriented",
+    icon: Palette,
+    swatches: { canvas: "#F7F8F5", card: "#FFFFFF", brand: "#2F5D4A", text: "#1A2E22" },
+  },
+  {
+    mode: "sunset",
+    label: "Sunset",
+    tagline: "v1 preset — warm rose + amber",
+    icon: Palette,
+    swatches: { canvas: "#FEFCFD", card: "#FFFFFF", brand: "#9F1239", text: "#1F1916" },
   },
 ];
 

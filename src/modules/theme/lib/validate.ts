@@ -71,9 +71,17 @@ function parseSemanticCss(css: string): Record<ThemeMode, TokenMap> {
     const declRe = /--([\w-]+)\s*:\s*([^;]+);/g;
     let decl: RegExpExecArray | null;
     while ((decl = declRe.exec(block[2]))) {
-      const oklch = parseOklch(decl[2]);
-      if (!oklch) continue;
-      const hex = oklchToHex(oklch);
+      const value = decl[2].trim();
+      // Values may be hex (#rrggbb — the restored v1 preset palettes) or
+      // oklch(...) (the native v2 modes).
+      let hex: string | null = null;
+      if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+        hex = value.toLowerCase();
+      } else {
+        const oklch = parseOklch(value);
+        if (oklch) hex = oklchToHex(oklch);
+      }
+      if (!hex) continue;
       for (const mode of modes) out[mode][decl[1]] = hex;
     }
   }

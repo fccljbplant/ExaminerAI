@@ -24,107 +24,111 @@
 
 :root,
 html[data-mode="light"] {
-  /* surfaces */
-  --bg: oklch(0.985 0 0);
-  --bg-subtle: oklch(0.965 0 0);
-  --surface: oklch(1 0 0);
-  --surface-raised: oklch(1 0 0);
-  --surface-overlay: oklch(1 0 0);
+  /* surfaces — Modern Slate (the original v1 default theme) */
+  --bg: #fafafa;
+  --bg-subtle: #f1f5f9;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
 
-  /* text */
-  --text: oklch(0.24 0.01 260);
-  --text-secondary: oklch(0.45 0.015 260);
-  --text-muted: oklch(0.55 0.015 260);
-  --text-inverse: oklch(0.985 0 0);
+  /* text — slate-900 body, slate-600/500 secondary */
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
 
-  /* lines */
-  --border: oklch(0.925 0.005 260);
-  --border-strong: oklch(0.82 0.01 260);
+  /* lines — slate-200 / slate-300 */
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
 
-  /* brand — default amber hue; orgs override via [data-brand] */
-  --brand: oklch(0.48 0.12 60);
-  --brand-hover: oklch(0.43 0.12 58);
-  --brand-active: oklch(0.4 0.11 56);
-  --brand-subtle: oklch(0.95 0.045 70);
-  --on-brand: oklch(1 0 0);
-  --focus: oklch(0.65 0.14 65);
+  /* brand — slate-900 primary with amber accents (old default);
+     orgs override via [data-brand] */
+  --brand: #0f172a;
+  --brand-hover: #1e293b;
+  --brand-active: #334155;
+  --brand-subtle: #f1f5f9;
+  --on-brand: #ffffff;
+  --focus: #f59e0b;
 
   /* overlay */
-  --scrim: oklch(0.2 0.02 260 / 0.45);
+  --scrim: oklch(0.23 0.03 262 / 0.45);
 
   /* status — fixed, never brand-derived */
-  --success: oklch(0.58 0.13 155);
-  --success-subtle: oklch(0.96 0.035 155);
-  --success-on: oklch(0.36 0.08 155);
-  --warning: oklch(0.66 0.15 80);
-  --warning-subtle: oklch(0.96 0.05 85);
-  --warning-on: oklch(0.38 0.08 70);
-  --danger: oklch(0.55 0.2 27);
-  --danger-subtle: oklch(0.96 0.03 27);
-  --danger-on: oklch(0.37 0.11 27);
-  --info: oklch(0.55 0.13 250);
-  --info-subtle: oklch(0.96 0.02 250);
-  --info-on: oklch(0.4 0.09 250);
+  --success: #16a34a;
+  --success-subtle: #f0fdf4;
+  --success-on: #166534;
+  --warning: #d97706;
+  --warning-subtle: #fffbeb;
+  --warning-on: #92400e;
+  --danger: #dc2626;
+  --danger-subtle: #fef2f2;
+  --danger-on: #b91c1c;
+  --info: #2563eb;
+  --info-subtle: #eff6ff;
+  --info-on: #1d4ed8;
 
-  /* charts (6 series; wrappers fill via var/currentColor) */
-  --chart-1: oklch(0.7 0.15 65);
-  --chart-2: oklch(0.62 0.13 155);
-  --chart-3: oklch(0.58 0.14 250);
-  --chart-4: oklch(0.58 0.19 27);
-  --chart-5: oklch(0.55 0.16 300);
-  --chart-6: oklch(0.62 0.1 190);
+  /* charts — the original Modern Slate 5-color family + cyan */
+  --chart-1: #f59e0b;
+  --chart-2: #10b981;
+  --chart-3: #3b82f6;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  --chart-6: #06b6d4;
 
   /* tutor */
-  --tutor-ring: oklch(0.65 0.14 65);
-  --tutor-fab: oklch(0.48 0.12 60);
+  --tutor-ring: #f59e0b;
+  --tutor-fab: #0f172a;
 }
 
 html[data-mode="dark"] {
-  --bg: oklch(0.185 0.015 270);
-  --bg-subtle: oklch(0.16 0.015 270);
-  --surface: oklch(0.235 0.015 270);
-  --surface-raised: oklch(0.27 0.015 270);
-  --surface-overlay: oklch(0.29 0.017 270);
+  /* surfaces — Modern Slate dark (near-black blue, elevated cards) */
+  --bg: #0a0a0f;
+  --bg-subtle: #12121b;
+  --surface: #16161f;
+  --surface-raised: #1c1c28;
+  --surface-overlay: #1c1c28;
 
-  --text: oklch(0.95 0.005 260);
-  --text-secondary: oklch(0.78 0.01 260);
-  --text-muted: oklch(0.65 0.012 260);
-  --text-inverse: oklch(0.2 0.015 270);
+  --text: #fafafa;
+  --text-secondary: #e5e7eb;
+  --text-muted: #9ca3af;
+  --text-inverse: #0a0a0f;
 
-  --border: oklch(0.32 0.015 270);
-  --border-strong: oklch(0.42 0.015 270);
+  --border: #2a2a3a;
+  --border-strong: #3d3d52;
 
-  --brand: oklch(0.75 0.13 65);
-  --brand-hover: oklch(0.8 0.13 66);
-  --brand-active: oklch(0.7 0.13 64);
-  --brand-subtle: oklch(0.27 0.045 65);
-  --on-brand: oklch(0.18 0.02 70);
-  --focus: oklch(0.75 0.13 65);
+  /* brand — amber-400 primary on dark (old default dark) */
+  --brand: #fbbf24;
+  --brand-hover: #fcd34d;
+  --brand-active: #f59e0b;
+  --brand-subtle: #3d2e0e;
+  --on-brand: #0a0a0f;
+  --focus: #fbbf24;
 
   --scrim: oklch(0.1 0.01 270 / 0.6);
 
-  --success: oklch(0.72 0.12 155);
-  --success-subtle: oklch(0.28 0.05 155);
-  --success-on: oklch(0.85 0.09 155);
-  --warning: oklch(0.78 0.13 82);
-  --warning-subtle: oklch(0.3 0.05 80);
-  --warning-on: oklch(0.88 0.1 85);
-  --danger: oklch(0.68 0.17 25);
-  --danger-subtle: oklch(0.28 0.06 25);
-  --danger-on: oklch(0.85 0.1 25);
-  --info: oklch(0.7 0.11 245);
-  --info-subtle: oklch(0.28 0.05 245);
-  --info-on: oklch(0.84 0.08 245);
+  --success: #34d399;
+  --success-subtle: #0f2e22;
+  --success-on: #a7f3d0;
+  --warning: #fbbf24;
+  --warning-subtle: #3d2e0e;
+  --warning-on: #fde68a;
+  --danger: #f87171;
+  --danger-subtle: #3a1517;
+  --danger-on: #fecaca;
+  --info: #60a5fa;
+  --info-subtle: #152238;
+  --info-on: #bfdbfe;
 
-  --chart-1: oklch(0.8 0.14 68);
-  --chart-2: oklch(0.75 0.12 155);
-  --chart-3: oklch(0.72 0.12 250);
-  --chart-4: oklch(0.72 0.15 25);
-  --chart-5: oklch(0.72 0.13 300);
-  --chart-6: oklch(0.75 0.09 190);
+  /* charts — Modern Slate dark family */
+  --chart-1: #fbbf24;
+  --chart-2: #34d399;
+  --chart-3: #60a5fa;
+  --chart-4: #f472b6;
+  --chart-5: #a78bfa;
+  --chart-6: #22d3ee;
 
-  --tutor-ring: oklch(0.75 0.13 65);
-  --tutor-fab: oklch(0.75 0.13 65);
+  --tutor-ring: #fbbf24;
+  --tutor-fab: #fbbf24;
 }
 
 /* BED MODE — warm dimmed dark for night/bedtime study.
@@ -243,4 +247,297 @@ html[data-mode="classic"] {
 
   /* card geometry — Star 14px cards (rounded-xl = var(--radius) + 4px) */
   --radius: 0.625rem;
+}
+
+/* OCEAN — the original v1 preset (blue + teal, NotebookLM-inspired).
+   Light values under the mode; dark variant layers via .dark so the
+   light/dark toggle keeps working inside every preset. */
+html[data-mode="ocean"] {
+  --bg: #f8f9fa;
+  --bg-subtle: #f1f3f4;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+
+  --text: #202124;
+  --text-secondary: #5f6368;
+  --text-muted: #5f6368;
+  --text-inverse: #ffffff;
+
+  --border: #dadce0;
+  --border-strong: #bdc1c6;
+
+  --brand: #1a73e8;
+  --brand-hover: #1765cc;
+  --brand-active: #1557b0;
+  --brand-subtle: #e8f0fe;
+  --on-brand: #ffffff;
+  --focus: #1a73e8;
+
+  --scrim: rgba(32, 33, 36, 0.45);
+
+  --success: #16a34a;
+  --success-subtle: #f0fdf4;
+  --success-on: #166534;
+  --warning: #d97706;
+  --warning-subtle: #fffbeb;
+  --warning-on: #92400e;
+  --danger: #d93025;
+  --danger-subtle: #fef2f2;
+  --danger-on: #b91c1c;
+  --info: #1967d2;
+  --info-subtle: #e8f0fe;
+  --info-on: #1967d2;
+
+  --chart-1: #1a73e8;
+  --chart-2: #34a853;
+  --chart-3: #fbbc04;
+  --chart-4: #ea4335;
+  --chart-5: #9334e8;
+  --chart-6: #12b5cb;
+
+  --tutor-ring: #1a73e8;
+  --tutor-fab: #1a73e8;
+}
+
+html[data-mode="ocean"].dark {
+  --bg: #1e1f20;
+  --bg-subtle: #2a2b2d;
+  --surface: #28292c;
+  --surface-raised: #2e2f32;
+  --surface-overlay: #2e2f32;
+
+  --text: #e8eaed;
+  --text-secondary: #bdc1c6;
+  --text-muted: #9aa0a6;
+  --text-inverse: #1e1f20;
+
+  --border: #3c4043;
+  --border-strong: #5f6368;
+
+  --brand: #8ab4f8;
+  --brand-hover: #aecbfa;
+  --brand-active: #669df6;
+  --brand-subtle: #1f3049;
+  --on-brand: #1e1f20;
+  --focus: #8ab4f8;
+
+  --scrim: rgba(0, 0, 0, 0.6);
+
+  --success: #81c995;
+  --success-subtle: #12301d;
+  --success-on: #c4eed0;
+  --warning: #fdd663;
+  --warning-subtle: #3a2f0a;
+  --warning-on: #fdeeb0;
+  --danger: #f28b82;
+  --danger-subtle: #3a1517;
+  --danger-on: #f7cfcb;
+  --info: #8ab4f8;
+  --info-subtle: #152238;
+  --info-on: #c5d8fb;
+
+  --chart-1: #8ab4f8;
+  --chart-2: #81c995;
+  --chart-3: #fdd663;
+  --chart-4: #f28b82;
+  --chart-5: #c58af9;
+  --chart-6: #78d9ec;
+
+  --tutor-ring: #8ab4f8;
+  --tutor-fab: #8ab4f8;
+}
+
+/* FOREST — the original v1 preset (sage greens, growth-oriented). */
+html[data-mode="forest"] {
+  --bg: #f7f8f5;
+  --bg-subtle: #eef2ed;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+
+  --text: #1a2e22;
+  --text-secondary: #5a6b5f;
+  --text-muted: #5a6b5f;
+  --text-inverse: #ffffff;
+
+  --border: #d4dccd;
+  --border-strong: #b6c3ae;
+
+  --brand: #2f5d4a;
+  --brand-hover: #274c3d;
+  --brand-active: #1f3d31;
+  --brand-subtle: #d8ebe0;
+  --on-brand: #ffffff;
+  --focus: #5b8a72;
+
+  --scrim: rgba(26, 46, 34, 0.45);
+
+  --success: #2f5d4a;
+  --success-subtle: #eef5ef;
+  --success-on: #1f3d31;
+  --warning: #c98a2b;
+  --warning-subtle: #fbe8c4;
+  --warning-on: #6b4a14;
+  --danger: #c0392b;
+  --danger-subtle: #fbeae7;
+  --danger-on: #8c2a1e;
+  --info: #3b82f6;
+  --info-subtle: #eff6ff;
+  --info-on: #1d4ed8;
+
+  --chart-1: #5b8a72;
+  --chart-2: #c98a2b;
+  --chart-3: #3b82f6;
+  --chart-4: #d97766;
+  --chart-5: #8b5cf6;
+  --chart-6: #2a9d8f;
+
+  --tutor-ring: #5b8a72;
+  --tutor-fab: #2f5d4a;
+}
+
+html[data-mode="forest"].dark {
+  --bg: #1a2e22;
+  --bg-subtle: #20372a;
+  --surface: #243528;
+  --surface-raised: #2a3d2f;
+  --surface-overlay: #2a3d2f;
+
+  --text: #e8f0ea;
+  --text-secondary: #b6c6bb;
+  --text-muted: #8fa395;
+  --text-inverse: #1a2e22;
+
+  --border: #3d5240;
+  --border-strong: #54705a;
+
+  --brand: #7ab896;
+  --brand-hover: #97c9ad;
+  --brand-active: #5ea37e;
+  --brand-subtle: #223c2d;
+  --on-brand: #1a2e22;
+  --focus: #7ab896;
+
+  --scrim: rgba(0, 0, 0, 0.6);
+
+  --success: #7ab896;
+  --success-subtle: #223c2d;
+  --success-on: #c2e2cd;
+  --warning: #fbbf24;
+  --warning-subtle: #3d2e0e;
+  --warning-on: #fde68a;
+  --danger: #f87171;
+  --danger-subtle: #3a1517;
+  --danger-on: #fecaca;
+  --info: #60a5fa;
+  --info-subtle: #152238;
+  --info-on: #bfdbfe;
+
+  --chart-1: #7ab896;
+  --chart-2: #fbbf24;
+  --chart-3: #60a5fa;
+  --chart-4: #f87171;
+  --chart-5: #a78bfa;
+  --chart-6: #2dd4bf;
+
+  --tutor-ring: #7ab896;
+  --tutor-fab: #7ab896;
+}
+
+/* SUNSET — the original v1 preset (warm rose + amber). */
+html[data-mode="sunset"] {
+  --bg: #fefcfd;
+  --bg-subtle: #fef2f4;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+
+  --text: #1f1916;
+  --text-secondary: #6b5b54;
+  --text-muted: #6b5b54;
+  --text-inverse: #ffffff;
+
+  --border: #fecdd3;
+  --border-strong: #fda4af;
+
+  --brand: #9f1239;
+  --brand-hover: #881337;
+  --brand-active: #701a2b;
+  --brand-subtle: #ffe4e6;
+  --on-brand: #ffffff;
+  --focus: #e11d48;
+
+  --scrim: rgba(31, 25, 22, 0.45);
+
+  --success: #16a34a;
+  --success-subtle: #f0fdf4;
+  --success-on: #166534;
+  --warning: #d97706;
+  --warning-subtle: #fffbeb;
+  --warning-on: #92400e;
+  --danger: #e11d48;
+  --danger-subtle: #fff1f2;
+  --danger-on: #be123c;
+  --info: #8b5cf6;
+  --info-subtle: #f5f3ff;
+  --info-on: #6d28d9;
+
+  --chart-1: #e11d48;
+  --chart-2: #f59e0b;
+  --chart-3: #8b5cf6;
+  --chart-4: #10b981;
+  --chart-5: #3b82f6;
+  --chart-6: #f97316;
+
+  --tutor-ring: #e11d48;
+  --tutor-fab: #9f1239;
+}
+
+html[data-mode="sunset"].dark {
+  --bg: #1a0f12;
+  --bg-subtle: #221417;
+  --surface: #2a171c;
+  --surface-raised: #321b21;
+  --surface-overlay: #321b21;
+
+  --text: #fce7eb;
+  --text-secondary: #d4b6bd;
+  --text-muted: #b89aa0;
+  --text-inverse: #1a0f12;
+
+  --border: #4d2d3a;
+  --border-strong: #66404c;
+
+  --brand: #fb7185;
+  --brand-hover: #fda4af;
+  --brand-active: #f43f5e;
+  --brand-subtle: #47212d;
+  --on-brand: #1a0f12;
+  --focus: #fb7185;
+
+  --scrim: rgba(0, 0, 0, 0.6);
+
+  --success: #34d399;
+  --success-subtle: #0f2e22;
+  --success-on: #a7f3d0;
+  --warning: #fbbf24;
+  --warning-subtle: #3d2e0e;
+  --warning-on: #fde68a;
+  --danger: #fb7185;
+  --danger-subtle: #47212d;
+  --danger-on: #fecdd3;
+  --info: #a78bfa;
+  --info-subtle: #2e2147;
+  --info-on: #ddd6fe;
+
+  --chart-1: #fb7185;
+  --chart-2: #fbbf24;
+  --chart-3: #a78bfa;
+  --chart-4: #34d399;
+  --chart-5: #60a5fa;
+  --chart-6: #fb923c;
+
+  --tutor-ring: #fb7185;
+  --tutor-fab: #fb7185;
 }

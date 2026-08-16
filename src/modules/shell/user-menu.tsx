@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useThemeV2 } from "@/modules/theme";
-import { ChevronDown, CircleUserRound, HelpCircle, LogOut, Settings, Monitor, Moon, BedDouble, Library } from "lucide-react";
+import { ChevronDown, CircleUserRound, HelpCircle, LogOut, Settings, Monitor, Moon, BedDouble, Library, Palette } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -212,6 +212,9 @@ export function UserMenu({
               { mode: "dark", label: "Dark", icon: Moon },
               { mode: "bed", label: "Bed", icon: BedDouble },
               { mode: "classic", label: "Classic", icon: Library },
+              { mode: "ocean", label: "Ocean", icon: Palette },
+              { mode: "forest", label: "Forest", icon: Palette },
+              { mode: "sunset", label: "Sunset", icon: Palette },
             ] as const
           ).map((t) => (
             <button
