@@ -120,14 +120,23 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     { role: "user" as const, content: question },
   ];
 
-  const result = await callAI(messages, {
-    feature: "learn-tutor-ask",
-    userId: user.sub,
-    temperature: 0.4,
-    maxTokens: 600,
-  });
+  let answer: string;
+  try {
+    const result = await callAI(messages, {
+      feature: "learn-tutor-ask",
+      userId: user.sub,
+      temperature: 0.7,
+      maxTokens: 600, // keep replies SHORT — chat, not essays
+    });
+    answer = result.text || "";
+  } catch (err) {
+    logger.error("AI Tutor failed", { feature: "learn-tutor-ask", error: err instanceof Error ? err.message : String(err) });
+    answer = "I'm having trouble responding right now — please try again in a moment. Your progress is safe.";
+  }
 
-  const answer = result.text || "I'm sorry — I couldn't generate an answer just now. Please try again in a moment.";
+  if (!answer.trim()) {
+    answer = "I'm having trouble responding right now — please try again in a moment. Your progress is safe.";
+  }
 
   // Extract the first [Week/Day/Slide] citation if present (best-effort).
   const citationMatch = answer.match(/\[Week\s*\d+\/Day\s*\d+\/Slide\s*\d+\]/i);
