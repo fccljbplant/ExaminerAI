@@ -29,11 +29,13 @@ datasource db {
 // For TAs: role = "instructor"
 // This replaces the old Batch model + User.batchId + BatchTeacher.
 model CourseEnrollment {
-  id         String   @id @default(cuid())
-  userId     String
-  courseId   String
-  role       String // "student" | "instructor"
-  enrolledAt DateTime @default(now())
+  id              String    @id @default(cuid())
+  userId          String
+  courseId        String
+  role            String // "student" | "instructor"
+  enrolledAt      DateTime  @default(now())
+  expiresAt       DateTime? // compliance: re-take required after this date
+  retakeAfterDays Int? // compliance window in days
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -92,96 +94,103 @@ model Course {
   isDefault Boolean @default(false)
 
   // Marketplace fields (Phase 6 — professional course platform)
-  subtitle        String?
-  category        String  @default("technology")  // web-dev, cloud, data, mobile, security, soft-skills
-  price           Float   @default(0)              // 0 = free
-  currency        String  @default("USD")
-  durationWeeks   Int     @default(6)
-  language        String  @default("en")
-  thumbnailUrl    String?
-  trailerVideoUrl String?
-  rating          Float   @default(0)
-  reviewCount     Int     @default(0)
-  enrollmentCount Int     @default(0)
-  published       Boolean @default(false)          // visible on marketplace?
-  featured        Boolean @default(false)          // shown on homepage?
-  instructorName  String?                          // display name for marketing
-  instructorBio   String?                          // short bio
-  skillsVerified  String  @default("[]")           // JSON: ["JavaScript", "React", ...]
-  whatYouWillLearn String @default("[]")           // JSON: ["Build a REST API", ...]
-  prerequisites   String  @default("[]")           // JSON: ["Basic HTML", ...]
+  subtitle         String?
+  category         String  @default("technology") // web-dev, cloud, data, mobile, security, soft-skills
+  price            Float   @default(0) // 0 = free
+  currency         String  @default("USD")
+  durationWeeks    Int     @default(6)
+  language         String  @default("en")
+  thumbnailUrl     String?
+  trailerVideoUrl  String?
+  rating           Float   @default(0)
+  reviewCount      Int     @default(0)
+  enrollmentCount  Int     @default(0)
+  published        Boolean @default(false) // visible on marketplace?
+  featured         Boolean @default(false) // shown on homepage?
+  instructorName   String? // display name for marketing
+  instructorBio    String? // short bio
+  skillsVerified   String  @default("[]") // JSON: ["JavaScript", "React", ...]
+  whatYouWillLearn String  @default("[]") // JSON: ["Build a REST API", ...]
+  prerequisites    String  @default("[]") // JSON: ["Basic HTML", ...]
 
   institutionId String?
+  ownerUserId   String? // creator account (course ownership)
 
   // Marketplace revenue tracking — aggregates of all Payment rows for this
   // course. Updated on every successful payment.
-  instructorEarnings Float @default(0)  // total earnings paid out to instructors (80% share)
-  platformFee       Float @default(0)  // platform's 20% cut
+  instructorEarnings Float @default(0) // total earnings paid out to instructors (80% share)
+  platformFee        Float @default(0) // platform's 20% cut
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  weeks              CourseWeek[]
-  enrollments        CourseEnrollment[]
-  certificates       Certificate[]
-  reviews            CourseReview[]
-  institution        Institution?         @relation(fields: [institutionId], references: [id], onDelete: SetNull)
-  events             Event[]
-  groupTasks         GroupTask[]
-  orgLinks           OrgCourse[]
-  dailyLogs          DailyLog[]
-  projectTasks       ProjectTask[]
-  projectWeeks       ProjectWeek[]
-  projectReports     ProjectReport[]
-  interactions       Interaction[]
-  weeklyTests        WeeklyTest[]
-  reportCards        ReportCard[]
-  dailyTests         DailyTest[]
-  curriculumProgress CurriculumProgress[]
+  weeks               CourseWeek[]
+  enrollments         CourseEnrollment[]
+  certificates        Certificate[]
+  reviews             CourseReview[]
+  institution         Institution?         @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  owner               User?                @relation("CourseOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  events              Event[]
+  groupTasks          GroupTask[]
+  orgLinks            OrgCourse[]
+  coupons             Coupon[]
+  materials           CourseMaterial[]
+  embeddings          CourseEmbedding[]
+  roleplayScenarios   RoleplayScenario[]
+  dailyLogs           DailyLog[]
+  projectTasks        ProjectTask[]
+  projectWeeks        ProjectWeek[]
+  projectReports      ProjectReport[]
+  interactions        Interaction[]
+  weeklyTests         WeeklyTest[]
+  reportCards         ReportCard[]
+  dailyTests          DailyTest[]
+  curriculumProgress  CurriculumProgress[]
   learningPathCourses LearningPathCourse[]
-  payments           Payment[]
-  faqs               CourseFAQ[]
+  payments            Payment[]
+  faqs                CourseFAQ[]
 
   // === LEARN PLATFORM (reverse relations) ===
-  learnProfiles      LearnProfile[]
-  journeyPlans       JourneyPlan[]
-  learnSlides        LearnSlide[]
-  tutorSessions      TutorSession[]
-  learnDailyTests    LearnDailyTest[]
-  learnWeeklyTests   LearnWeeklyTest[]
-  examSessions       ExamSession[]
-  learnNotes         LearnNote[]
-  assignments        Assignment[]
+  learnProfiles    LearnProfile[]
+  journeyPlans     JourneyPlan[]
+  learnSlides      LearnSlide[]
+  tutorSessions    TutorSession[]
+  learnDailyTests  LearnDailyTest[]
+  learnWeeklyTests LearnWeeklyTest[]
+  examSessions     ExamSession[]
+  learnNotes       LearnNote[]
+  assignments      Assignment[]
+  DepartmentCourse DepartmentCourse[]
 }
 
 /// Course reviews — students rate courses after completion.
 /// One review per user per course (@@unique on [userId, courseId]).
 model CourseReview {
-  id          String   @id @default(cuid())
-  userId      String
-  courseId    String
-  rating      Int      // 1-5 stars
-  title       String
-  content     String
-  helpful     Int      @default(0)  // upvote count
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  rating    Int // 1-5 stars
+  title     String
+  content   String
+  helpful   Int      @default(0) // upvote count
+  createdAt DateTime @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course                    @relation(fields: [courseId], references: [id], onDelete: Cascade)
   votes  CourseReviewHelpfulVote[]
 
-  @@unique([userId, courseId])  // one review per user per course
+  @@unique([userId, courseId]) // one review per user per course
   @@index([courseId])
 }
 
 /// Course FAQs — common questions and answers displayed on course detail page.
 model CourseFAQ {
-  id          String   @id @default(cuid())
-  courseId    String
-  question    String
-  answer      String
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  courseId  String
+  question  String
+  answer    String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
 
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
@@ -205,38 +214,38 @@ model CourseReviewHelpfulVote {
 
 /// A learning path — a sequence of courses that form a career trajectory.
 model LearningPath {
-  id          String   @id @default(cuid())
-  title       String   @unique
-  subtitle    String?
-  description String
-  category    String   @default("technology")
-  icon        String   @default("🎓")
-  price       Float    @default(0)     // bundle price (0 = free)
-  currency    String   @default("USD")
-  durationWeeks Int    @default(12)
-  level       String   @default("beginner")
-  published   Boolean  @default(false)
-  featured    Boolean  @default(false)
-  sortOrder   Int      @default(0)
+  id            String  @id @default(cuid())
+  title         String  @unique
+  subtitle      String?
+  description   String
+  category      String  @default("technology")
+  icon          String  @default("🎓")
+  price         Float   @default(0) // bundle price (0 = free)
+  currency      String  @default("USD")
+  durationWeeks Int     @default(12)
+  level         String  @default("beginner")
+  published     Boolean @default(false)
+  featured      Boolean @default(false)
+  sortOrder     Int     @default(0)
 
-  courses     LearningPathCourse[]
+  courses LearningPathCourse[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([published, featured])
 }
 
 /// Junction table — courses in a learning path, with order.
 model LearningPathCourse {
-  id              String       @id @default(cuid())
-  learningPathId  String
-  courseId        String
-  order           Int          // 1, 2, 3... — the sequence
-  isCapstone      Boolean      @default(false)  // the final project course
+  id             String  @id @default(cuid())
+  learningPathId String
+  courseId       String
+  order          Int // 1, 2, 3... — the sequence
+  isCapstone     Boolean @default(false) // the final project course
 
-  learningPath    LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
-  course          Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  learningPath LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([learningPathId, courseId])
   @@index([learningPathId, order])
@@ -257,21 +266,21 @@ model CourseWeek {
 }
 
 model CourseDay {
-  id             String @id @default(cuid())
+  id             String  @id @default(cuid())
   courseWeekId   String
   day            Int // 1-7 (configurable per course)
   title          String
-  objective      String @default("")
-  whyItMatters   String @default("")
-  topicsCovered  String @default("[]")
-  activity       String @default("")
-  deliverable    String @default("")
-  resources      String @default("[]")
-  instructorNote String @default("")
+  objective      String  @default("")
+  whyItMatters   String  @default("")
+  topicsCovered  String  @default("[]")
+  activity       String  @default("")
+  deliverable    String  @default("")
+  resources      String  @default("[]")
+  instructorNote String  @default("")
   videoUrl       String? // YouTube embed URL for the video slide
   videoTitle     String? // Title of the video
-  codeExamples   String @default("[]") // JSON: [{filename, language, code, explanation}]
-  webImages      String @default("[]") // JSON: [{url, caption, source}]
+  codeExamples   String  @default("[]") // JSON: [{filename, language, code, explanation}]
+  webImages      String  @default("[]") // JSON: [{url, caption, source}]
 
   courseWeek CourseWeek @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
 
@@ -283,8 +292,12 @@ model User {
   id                   String    @id @default(cuid())
   email                String    @unique
   name                 String
-  avatarData           String?   // data-URL profile picture (<=20KB, cropped client-side)
+  avatarData           String? // data-URL profile picture (<=20KB, cropped client-side)
   passwordHash         String
+  stripeAccountId      String? // Stripe Connect account (creator payouts)
+  stripeCustomerId     String? // Stripe customer (subscriptions)
+  banReason            String? // why the account was banned (support audit)
+  banExpiresAt         DateTime? // temporary bans
   // Role values (4-role model + demo, post-purge 2026-08):
   //   learner | instructor | org_admin | platform_admin | demo
   // `pending` is no longer a role — it's now the `status` field below.
@@ -334,50 +347,54 @@ model User {
   competencies            Competency[]
   reportCards             ReportCard[]
   curriculumProgress      CurriculumProgress[]
-  commentsGiven           Comment[]              @relation("CommentAuthor")
-  commentsRecv            Comment[]              @relation("CommentTarget")
-  messagesSent            Message[]              @relation("MsgSender")
-  messagesRecv            Message[]              @relation("MsgRecipient")
+  commentsGiven           Comment[]                 @relation("CommentAuthor")
+  commentsRecv            Comment[]                 @relation("CommentTarget")
+  messagesSent            Message[]                 @relation("MsgSender")
+  messagesRecv            Message[]                 @relation("MsgRecipient")
   resetRequests           PasswordResetRequest[]
   certificates            Certificate[]
-  accessGrantsReceived    AccessGrant[]          @relation("AccessGrantGrantee")
-  accessGrantsGiven       AccessGrant[]          @relation("AccessGrantGrantor")
+  accessGrantsReceived    AccessGrant[]             @relation("AccessGrantGrantee")
+  accessGrantsGiven       AccessGrant[]             @relation("AccessGrantGrantor")
   auditLogs               AuditLog[]
   skillMastery            SkillMastery[]
   dailyTests              DailyTest[]
   drillCards              DrillCard[]
   chatSessions            ChatSession[]
   institutionId           String?
-  institution             Institution?           @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  institution             Institution?              @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   groupTaskSubmissions    GroupTaskSubmission[]
   submissions             Submission[]
   eventsCreated           Event[]
-  instructorGroupTasks    GroupTask[]            @relation("GroupTaskInstructor")
-  peerAssessmentsGiven    PeerAssessment[]       @relation("PeerAssessor")
-  peerAssessmentsReceived PeerAssessment[]       @relation("PeerAssessee")
-  instructorRules         InstructorRule[]       @relation("InstructorRuleOwner")
+  instructorGroupTasks    GroupTask[]               @relation("GroupTaskInstructor")
+  peerAssessmentsGiven    PeerAssessment[]          @relation("PeerAssessor")
+  peerAssessmentsReceived PeerAssessment[]          @relation("PeerAssessee")
+  instructorRules         InstructorRule[]          @relation("InstructorRuleOwner")
   milestones              Milestone[]
   courseReviews           CourseReview[]
   reviewVotes             CourseReviewHelpfulVote[]
   notifications           Notification[]
   payments                Payment[]
+  ownedCourses            Course[]                  @relation("CourseOwner")
+  payouts                 Payout[]
+  courseMaterials         CourseMaterial[]          @relation("MaterialAuthor")
+  roleplayRuns            RoleplayRun[]
   // Organization membership — multi-org support (replaces single institutionId
   // for the new B2B model). A user can belong to multiple orgs with different
   // roles (admin | mentor | member).
   organizationMembers     OrgMember[]
 
   // === LEARN PLATFORM (reverse relations) ===
-  learnProfiles      LearnProfile[]
-  journeyPlans       JourneyPlan[]
-  tutorSessions      TutorSession[]
-  learnProjects      LearnProject[]
-  xpLedger           XPLedger[]
-  userBadges         UserBadge[]
-  learnNotes         LearnNote[]
-  engagementEvents   EngagementEvent[]
-  learnDailyTests    LearnDailyTest[]
-  learnWeeklyTests   LearnWeeklyTest[]
-  examSessions       ExamSession[]
+  learnProfiles    LearnProfile[]
+  journeyPlans     JourneyPlan[]
+  tutorSessions    TutorSession[]
+  learnProjects    LearnProject[]
+  xpLedger         XPLedger[]
+  userBadges       UserBadge[]
+  learnNotes       LearnNote[]
+  engagementEvents EngagementEvent[]
+  learnDailyTests  LearnDailyTest[]
+  learnWeeklyTests LearnWeeklyTest[]
+  examSessions     ExamSession[]
 }
 
 // Admin-reset workflow: student requests a reset, admin approves + sets temp password
@@ -632,9 +649,12 @@ model AIUsageLog {
   success          Boolean  @default(true)
   errorMessage     String?
   durationMs       Int      @default(0)
+  orgId            String? // org attribution for per-org AI budgets
+  costUsd          Float? // estimated cost of this call
   createdAt        DateTime @default(now())
 
   @@index([provider, createdAt])
+  @@index([orgId, createdAt])
   @@index([feature, createdAt])
   @@index([createdAt])
   @@index([userId, feature, createdAt])
@@ -711,19 +731,19 @@ model Certificate {
   signedBy      String
   verifyToken   String   @unique
   pdfUrl        String?
-  institutionId String?  // legacy Institution reference (pre-org model)
-  orgId         String?  // issuing Organization (B2B certificates)
+  institutionId String? // legacy Institution reference (pre-org model)
+  orgId         String? // issuing Organization (B2B certificates)
 
   // Phase 6 — marketplace credential fields
-  credentialId    String?  @unique  // public ID like "TRN-AI-2026-08-NA-87"
-  capstonePassed  Boolean  @default(false)
-  skillsVerified  String   @default("[]")  // JSON: ["JavaScript", "React", ...]
-  completedAt     DateTime @default(now())
-  distinction     Boolean  @default(false)  // "with Distinction" (score >= 85)
+  credentialId   String?  @unique // public ID like "TRN-AI-2026-08-NA-87"
+  capstonePassed Boolean  @default(false)
+  skillsVerified String   @default("[]") // JSON: ["JavaScript", "React", ...]
+  completedAt    DateTime @default(now())
+  distinction    Boolean  @default(false) // "with Distinction" (score >= 85)
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course      Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)
-  institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course       Course?       @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  institution  Institution?  @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
   @@index([userId])
@@ -734,17 +754,17 @@ model Certificate {
 model Milestone {
   id          String   @id @default(cuid())
   userId      String
-  type        String   // course_completion, distinction, capstone_certified, skill_mastery, consistent_performer, peer_recognized, mentor_endorsed
-  courseId     String?
-  title       String   // "Modern Web Dev & AI Integration — Score: 87"
-  description String   // "Completed 6-week professional training program"
-  evidence    String   @default("{}")  // JSON: { score, capstoneUrl, skills, ... }
+  type        String // course_completion, distinction, capstone_certified, skill_mastery, consistent_performer, peer_recognized, mentor_endorsed
+  courseId    String?
+  title       String // "Modern Web Dev & AI Integration — Score: 87"
+  description String // "Completed 6-week professional training program"
+  evidence    String   @default("{}") // JSON: { score, capstoneUrl, skills, ... }
   earnedAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@unique([userId, type, courseId])
+  @@index([userId])
 }
 
 // AccessGrant — scoped least-privilege access
@@ -840,17 +860,17 @@ model DailyTest {
 /// with the question digest + correct explanation. Due in 2 days,
 /// then re-queued until the trainee demonstrates mastery.
 model DrillCard {
-  id              String   @id @default(cuid())
-  userId          String
-  topic           String
-  questionDigest  String
-  explanation     String   @default("")
-  dueAt           DateTime
-  attempts        Int      @default(0)
-  lastScore       Int      @default(0)
-  masteredAt      DateTime?
-  createdAt       DateTime @default(now())
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String    @id @default(cuid())
+  userId         String
+  topic          String
+  questionDigest String
+  explanation    String    @default("")
+  dueAt          DateTime
+  attempts       Int       @default(0)
+  lastScore      Int       @default(0)
+  masteredAt     DateTime?
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, dueAt])
   @@index([userId, masteredAt])
@@ -1048,15 +1068,19 @@ model Notification {
 // derived from this table (incremented on each successful payment).
 // ============================================================
 model Payment {
-  id              String   @id @default(cuid())
-  userId          String   // student who paid
-  courseId        String
-  amount          Float
-  currency        String   @default("USD")
-  platformFee     Float    // 20% of amount
-  instructorShare Float    // 80% of amount
-  status          String   @default("completed") // completed, refunded, pending
-  createdAt       DateTime @default(now())
+  id                    String    @id @default(cuid())
+  userId                String // student who paid
+  courseId              String
+  amount                Float
+  currency              String    @default("USD")
+  platformFee           Float // 20% of amount
+  instructorShare       Float // 80% of amount
+  status                String    @default("completed") // completed, refunded, pending
+  stripeSessionId       String? // checkout.session id
+  stripePaymentIntentId String? // payment_intent id
+  instructorId          String? // who earned the instructor share
+  refundedAt            DateTime?
+  createdAt             DateTime  @default(now())
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -1072,20 +1096,27 @@ model Payment {
 // Institution model is kept for backward compatibility.
 // ============================================================
 model Organization {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  plan      String     @default("free") // free | team | enterprise
-  seats     Int        @default(5)
-  logoUrl   String?    // org logo (data URL or https) — shown on certificates + org storefront
-  description String?  // one-liner for the org's public storefront page
-  address   String?    // org HQ address (org profile)
-  website   String?    // org website (org profile)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  members   OrgMember[]
-  courses   OrgCourse[]
-  certificates Certificate[]
+  id              String         @id @default(cuid())
+  name            String
+  slug            String         @unique
+  plan            String         @default("free") // free | team | enterprise
+  seats           Int            @default(5)
+  status          String         @default("trial") // trial | active | suspended | cancelled
+  trialEndsAt     DateTime? // self-serve trial window (SaaS admin can extend)
+  suspendedReason String? // why the platform suspended this tenant
+  logoUrl         String? // org logo (data URL or https) — shown on certificates + org storefront
+  description     String? // one-liner for the org's public storefront page
+  address         String? // org HQ address (org profile)
+  website         String? // org website (org profile)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  members         OrgMember[]
+  courses         OrgCourse[]
+  certificates    Certificate[]
+  departments     Department[]
+  subscription    Subscription?
+  invoices        OrgInvoice[]
+  announcements   Announcement[]
 }
 
 model OrgCourse {
@@ -1102,218 +1133,230 @@ model OrgCourse {
 }
 
 model OrgMember {
-  id      String   @id @default(cuid())
-  orgId   String
-  userId  String
-  role    String   @default("member") // admin | mentor | member
-  status  String   @default("active") // invited | active | removed
-  seat    Boolean  @default(false)
-  joined  DateTime @default(now())
+  id           String   @id @default(cuid())
+  orgId        String
+  userId       String
+  role         String   @default("member") // admin | mentor | member
+  status       String   @default("active") // invited | active | removed
+  seat         Boolean  @default(false)
+  departmentId String? // org department assignment (People & Departments)
+  joined       DateTime @default(now())
 
-  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   @@unique([orgId, userId])
   @@index([orgId, role])
 }
 
-
 // === LEARN PLATFORM (AI Audio-Visual Learning) ===
 
 model LearnProfile {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   userId            String
   courseId          String
-  preferredLanguage String   @default("en")
-  teachingLevel     Int      @default(4) // 1=kindergarten, 2=school, 3=college, 4=university
-  totalXP           Int      @default(0)
-  learnerLevel      String   @default("Rookie")
-  streakCurrent     Int      @default(0)
-  streakLongest     Int      @default(0)
+  preferredLanguage String    @default("en")
+  teachingLevel     Int       @default(4) // 1=kindergarten, 2=school, 3=college, 4=university
+  totalXP           Int       @default(0)
+  learnerLevel      String    @default("Rookie")
+  streakCurrent     Int       @default(0)
+  streakLongest     Int       @default(0)
   lastActivityDate  DateTime?
-  masteryMap        Json?    // { topicProgress: { current, history[] } }
-  leaderboardOptIn  Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  masteryMap        Json? // { topicProgress: { current, history[] } }
+  leaderboardOptIn  Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
   @@unique([userId, courseId])
   @@index([userId])
 }
 
 model JourneyPlan {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   userId      String
   courseId    String
-  status      String   @default("active")
-  totalSteps  Int      @default(0)
-  currentStep Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  steps  JourneyStep[]
+  status      String        @default("active")
+  totalSteps  Int           @default(0)
+  currentStep Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  steps       JourneyStep[]
+
   @@unique([userId, courseId])
 }
 
 model JourneyStep {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   journeyId   String
   stepOrder   Int
-  stepType    String   // slide | daily_test | weekly_test | project_milestone | completion
+  stepType    String // slide | daily_test | weekly_test | project_milestone | completion
   slideId     String?
   title       String
   description String?
-  status      String   @default("pending") // pending | active | completed
-  xpReward    Int      @default(5)
+  status      String      @default("pending") // pending | active | completed
+  xpReward    Int         @default(5)
   completedAt DateTime?
   metadata    Json?
-  journey JourneyPlan @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  journey     JourneyPlan @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+
   @@index([journeyId, stepOrder])
 }
 
 model LearnSlide {
-  id           String   @id @default(cuid())
-  courseId     String
-  moduleId     String?
-  lessonId     String?
-  slideOrder   Int
-  title        String
-  bullets      Json     // string[]
-  visualSpec   String?
-  keyTerms     Json     // string[]
-  checkQuestion String?
+  id               String           @id @default(cuid())
+  courseId         String
+  moduleId         String?
+  lessonId         String?
+  slideOrder       Int
+  title            String
+  bullets          Json // string[]
+  visualSpec       String?
+  keyTerms         Json // string[]
+  checkQuestion    String?
   realWorldExample String?
-  analogy      String?
-  createdAt    DateTime @default(now())
-  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  narrations  LearnNarration[]
+  analogy          String?
+  createdAt        DateTime         @default(now())
+  course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  narrations       LearnNarration[]
+
   @@index([courseId, slideOrder])
 }
 
 model LearnNarration {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   slideId   String
-  level     Int      // 1-4
-  language  String   @default("en")
+  level     Int // 1-4
+  language  String     @default("en")
   text      String
-  createdAt DateTime @default(now())
-  slide LearnSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  slide     LearnSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
+
   @@unique([slideId, level, language])
 }
 
 model TutorSession {
-  id          String   @id @default(cuid())
-  userId      String
-  courseId    String
-  slideId     String?
-  status      String   @default("active")
-  language    String   @default("en")
-  teachingLevel Int    @default(4)
-  startedAt   DateTime @default(now())
-  endedAt     DateTime?
-  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course   Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  messages TutorMessage[]
+  id            String         @id @default(cuid())
+  userId        String
+  courseId      String
+  slideId       String?
+  status        String         @default("active")
+  language      String         @default("en")
+  teachingLevel Int            @default(4)
+  startedAt     DateTime       @default(now())
+  endedAt       DateTime?
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  messages      TutorMessage[]
+
   @@index([userId, courseId])
 }
 
 model TutorMessage {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   sessionId   String
-  role        String   // tutor | student | system
+  role        String // tutor | student | system
   content     String
-  messageType String   @default("text")
+  messageType String       @default("text")
   metadata    Json?
-  createdAt   DateTime @default(now())
-  session TutorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  session     TutorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   @@index([sessionId, createdAt])
 }
 
 model LearnDailyTest {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  date      DateTime
-  questions Json     // array of { question, format, conceptId, isSpacedRepetition }
-  answers   Json?    // array of { answer, evaluation, score }
-  status    String   @default("in_progress") // in_progress | completed
-  score     Int?
-  xpAwarded Int      @default(0)
-  startedAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  date        DateTime
+  questions   Json // array of { question, format, conceptId, isSpacedRepetition }
+  answers     Json? // array of { answer, evaluation, score }
+  status      String    @default("in_progress") // in_progress | completed
+  score       Int?
+  xpAwarded   Int       @default(0)
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
   @@unique([userId, courseId, date])
 }
 
 model LearnWeeklyTest {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  week      Int
-  questions Json     // array of { question, format, conceptId, difficulty }
-  answers   Json?
-  status    String   @default("in_progress")
-  score     Int?
-  xpAwarded Int      @default(0)
-  startedAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  week        Int
+  questions   Json // array of { question, format, conceptId, difficulty }
+  answers     Json?
+  status      String    @default("in_progress")
+  score       Int?
+  xpAwarded   Int       @default(0)
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
   @@unique([userId, courseId, week])
 }
 
 model LearnProject {
-  id          String   @id @default(cuid())
-  userId      String
-  courseId    String?
-  title       String
-  goal        String?
-  stack       String?
-  currentState String?
-  deadline    DateTime?
+  id            String               @id @default(cuid())
+  userId        String
+  courseId      String?
+  title         String
+  goal          String?
+  stack         String?
+  currentState  String?
+  deadline      DateTime?
   // status: pending_approval | approved | rejected | active (legacy)
-  status      String   @default("pending_approval")
-  description String?  // proposal detail for the instructor's approval review
-  objectives  String?  // JSON array of project objectives
-  durationWeeks Int?   // timeline length (drives AI week generation)
-  approvalNote String? // instructor's note on approve/reject
-  approvedById String?
-  approvedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  milestones ProjectMilestone[]
-  helpSessions ProjectHelpSession[]
-  weeks       ProjectWeek[]
-  tasks       ProjectTask[]
+  status        String               @default("pending_approval")
+  description   String? // proposal detail for the instructor's approval review
+  objectives    String? // JSON array of project objectives
+  durationWeeks Int? // timeline length (drives AI week generation)
+  approvalNote  String? // instructor's note on approve/reject
+  approvedById  String?
+  approvedAt    DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones    ProjectMilestone[]
+  helpSessions  ProjectHelpSession[]
+  weeks         ProjectWeek[]
+  tasks         ProjectTask[]
+
   @@index([userId])
   @@index([status])
 }
 
 model ProjectMilestone {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   projectId   String
   title       String
   description String?
-  order       Int      @default(0)
-  status      String   @default("pending") // pending | in_progress | completed
+  order       Int          @default(0)
+  status      String       @default("pending") // pending | in_progress | completed
   completedAt DateTime?
-  project LearnProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     LearnProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   @@index([projectId, order])
 }
 
 model ProjectHelpSession {
-  id        String   @id @default(cuid())
-  projectId String
-  blocker   String
-  hint      String?
-  hintLevel Int      @default(0)
-  resolved  Boolean  @default(false)
+  id           String       @id @default(cuid())
+  projectId    String
+  blocker      String
+  hint         String?
+  hintLevel    Int          @default(0)
+  resolved     Boolean      @default(false)
   conversation Json?
-  createdAt DateTime @default(now())
-  project LearnProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  project      LearnProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model XPLedger {
@@ -1324,31 +1367,33 @@ model XPLedger {
   reason      String
   referenceId String?
   createdAt   DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, createdAt])
 }
 
 model BadgeDefinition {
-  id          String   @id @default(cuid())
-  code        String   @unique
+  id          String      @id @default(cuid())
+  code        String      @unique
   name        String
   description String
   icon        String
-  rarity      String   @default("common")
-  xpReward    Int      @default(0)
+  rarity      String      @default("common")
+  xpReward    Int         @default(0)
   criteria    Json?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime    @default(now())
   userBadges  UserBadge[]
 }
 
 model UserBadge {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   userId    String
   badgeId   String
-  courseId   String?
-  awardedAt DateTime @default(now())
-  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge BadgeDefinition @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  courseId  String?
+  awardedAt DateTime        @default(now())
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     BadgeDefinition @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
   @@unique([userId, badgeId, courseId])
 }
 
@@ -1360,20 +1405,22 @@ model LearnNote {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
   @@index([userId, courseId])
 }
 
 model EngagementEvent {
-  id          String   @id @default(cuid())
-  userId      String
-  courseId    String?
-  eventType   String
-  sentiment   String?
-  metadata    Json?
-  createdAt   DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String?
+  eventType String
+  sentiment String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, createdAt])
 }
 
@@ -1474,8 +1521,8 @@ model Submission {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  assignment Assignment        @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignment Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   parts      SubmissionPart[]
   thread     FeedbackThread?
   signOffs   SignOff[]
@@ -1534,14 +1581,14 @@ model FeedbackMsg {
 /// expected signer in order has a row; the submission flips to signed_off
 /// on the last one.
 model SignOff {
-  id          String   @id @default(cuid())
+  id           String   @id @default(cuid())
   submissionId String
-  signerId    String
-  signerName  String   @default("")
-  signerRole  String   @default("instructor")
-  order       Int      @default(0)
-  note        String   @default("")
-  decidedAt   DateTime @default(now())
+  signerId     String
+  signerName   String   @default("")
+  signerRole   String   @default("instructor")
+  order        Int      @default(0)
+  note         String   @default("")
+  decidedAt    DateTime @default(now())
 
   submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 
@@ -1570,17 +1617,17 @@ model GradeEntry {
 /// LearnWeeklyTest rows; this tracks runner position, per-question grades
 /// (via gradeOneQuestion), and completion state for resume/autosave.
 model ExamSession {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
   courseId      String
-  kind          String   // "daily" | "weekly"
-  slug          String   // "daily-<courseId>-<YYYY-MM-DD>" | "weekly-<courseId>-<week>"
-  questionIndex Int      @default(0)
+  kind          String // "daily" | "weekly"
+  slug          String // "daily-<courseId>-<YYYY-MM-DD>" | "weekly-<courseId>-<week>"
+  questionIndex Int       @default(0)
   answersJson   Json? // [{ question, format, answer, score, explanation, correctAnswer, flagged }]
-  status        String   @default("in_progress") // in_progress | completed
+  status        String    @default("in_progress") // in_progress | completed
   score         Float?
-  xpAwarded     Int      @default(0)
-  startedAt     DateTime @default(now())
+  xpAwarded     Int       @default(0)
+  startedAt     DateTime  @default(now())
   completedAt   DateTime?
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1589,4 +1636,182 @@ model ExamSession {
   @@unique([userId, courseId, kind, slug])
   @@index([userId, status])
   @@index([courseId, kind])
+}
+
+// ============================================================
+// SAAS PLATFORM LAYER (2026-08-17) — multi-tenant core, creator
+// economy, B2B operations and AI-engine data. All additions are
+// additive (nullable/defaulted) so existing data is preserved.
+// ============================================================
+
+model Coupon {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  percentOff Int? // e.g. 20 = 20% off
+  amountOff  Float? // fixed amount off (in the course currency)
+  courseId   String? // null = valid for any published course
+  orgId      String? // null = platform-wide coupon
+  maxUses    Int?
+  usedCount  Int       @default(0)
+  active     Boolean   @default(true)
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@index([courseId])
+  @@index([orgId])
+}
+
+model Payout {
+  id               String    @id @default(cuid())
+  instructorId     String
+  amount           Float
+  status           String    @default("pending") // pending | paid | failed
+  stripeTransferId String?
+  scheduledFor     DateTime?
+  createdAt        DateTime  @default(now())
+
+  instructor User @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  @@index([instructorId, status])
+}
+
+model Department {
+  id         String   @id @default(cuid())
+  orgId      String
+  name       String
+  managerIds String   @default("[]") // JSON array of member user ids
+  createdAt  DateTime @default(now())
+
+  org     Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members OrgMember[]
+  courses DepartmentCourse[]
+
+  @@unique([orgId, name])
+}
+
+model DepartmentCourse {
+  id           String   @id @default(cuid())
+  departmentId String
+  courseId     String
+  createdAt    DateTime @default(now())
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([departmentId, courseId])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  orgId                String    @unique
+  stripeSubscriptionId String?
+  plan                 String
+  seats                Int       @default(5)
+  status               String    @default("trialing") // trialing | active | past_due | canceled | incomplete
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+model OrgInvoice {
+  id              String    @id @default(cuid())
+  orgId           String
+  subscriptionId  String?
+  stripeInvoiceId String?
+  amount          Float
+  currency        String    @default("USD")
+  status          String    @default("open") // open | paid | past_due | void
+  periodStart     DateTime?
+  periodEnd       DateTime?
+  createdAt       DateTime  @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, status])
+}
+
+model Announcement {
+  id           String   @id @default(cuid())
+  orgId        String
+  authorUserId String
+  title        String
+  body         String
+  createdAt    DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+}
+
+model CourseMaterial {
+  id            String   @id @default(cuid())
+  courseId      String
+  title         String
+  kind          String   @default("text") // text | pdf | docx
+  content       String // extracted text — chunked for RAG indexing
+  addedByUserId String
+  createdAt     DateTime @default(now())
+
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  addedBy User   @relation("MaterialAuthor", fields: [addedByUserId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+}
+
+model CourseEmbedding {
+  id            String   @id @default(cuid())
+  courseId      String
+  moduleId      String? // "{week}-{day}" for slide/day sources
+  sourceType    String // slide | day | material | narration
+  sourceId      String
+  chunkIndex    Int      @default(0)
+  content       String
+  citation      String // e.g. "Week 2 Day 3 · Slide 2"
+  embeddingJson String? // JSON float array — cosine search (pgvector-ready)
+  createdAt     DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+}
+
+model RoleplayScenario {
+  id            String   @id @default(cuid())
+  orgId         String? // null = platform library
+  courseId      String? // optional course binding
+  key           String   @unique
+  title         String
+  personaName   String
+  personaPrompt String
+  goal          String
+  turnBudget    Int      @default(8)
+  rubricId      String? // optional Rubric grounding (scalar — no FK coupling)
+  difficulty    String   @default("beginner") // beginner | intermediate | advanced
+  published     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  course      Course?       @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  RoleplayRun RoleplayRun[]
+
+  @@index([orgId])
+}
+
+model RoleplayRun {
+  id          String    @id @default(cuid())
+  userId      String
+  scenarioId  String
+  status      String    @default("in_progress") // in_progress | completed | abandoned
+  turnsJson   String    @default("[]")
+  score       Int? // 0-100 aggregate
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario RoleplayScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

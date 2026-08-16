@@ -17,9 +17,11 @@ npx prisma generate --schema=prisma/.demo.prisma
 # temporarily unreachable (connection slot exhaustion, maintenance, etc).
 # The schema rarely changes between deploys; if it does and the push
 # fails, we'll catch it on the next successful build.
+# NOTE: --accept-data-loss is deliberately NOT used — all schema changes
+# must be additive (2026-08-17); a destructive change must fail loudly.
 echo "Syncing schema (data preserved, non-blocking)..."
 set +e
-npx prisma db push --schema=prisma/schema.prod.prisma --accept-data-loss --skip-generate 2>&1
+npx prisma db push --schema=prisma/schema.prod.prisma --skip-generate 2>&1
 PUSH_EXIT=$?
 set -e
 if [ $PUSH_EXIT -ne 0 ]; then
