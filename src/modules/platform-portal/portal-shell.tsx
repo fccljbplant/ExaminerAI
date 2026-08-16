@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
+import { AppShellV2, UnifiedThemeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { PLATFORM_NAV, PLATFORM_MORE } from "./nav";
 import { PlatformTabs } from "./tabs";
@@ -34,10 +34,8 @@ export function PlatformShell({
         brand={{ name: "TraineesAI" }}
         trailing={
           <>
-            <span className="hidden lg:inline-flex">
-              <ModeToggle />
-            </span>
-            <UserMenu userName={userName} profileHref="/platform" profileLabel="Dashboard" />
+            <UnifiedThemeToggle />
+            <UserMenu userName={userName} profileHref="/platform" profileLabel="Dashboard" settingsHref="/platform/settings" helpHref="/platform/help" />
           </>
         }
       >

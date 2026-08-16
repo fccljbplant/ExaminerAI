@@ -15,6 +15,7 @@ export { BottomNav } from "./bottom-nav";
 export { AppFooter } from "./app-footer";
 export { ActionBar } from "./action-bar";
 export { ModeToggle } from "./mode-toggle";
+export { UnifiedThemeToggle } from "./unified-theme-toggle";
 export { UserMenu, initialsOf, roleLabel } from "./user-menu";
 export { RoleSettings } from "./role-settings";
 export { RoleHelp, type HelpTopic } from "./role-help";

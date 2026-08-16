@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
+import { AppShellV2, UnifiedThemeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { api } from "@/lib/api-client";
 import { ORG_NAV, ORG_MORE } from "./nav";
@@ -81,10 +81,8 @@ export function OrgShell({
         }
         trailing={
           <>
-            <span className="hidden lg:inline-flex">
-              <ModeToggle />
-            </span>
-            <UserMenu userName={userName} profileHref="/org" profileLabel="Dashboard" />
+            <UnifiedThemeToggle />
+            <UserMenu userName={userName} profileHref="/org" profileLabel="Dashboard" settingsHref="/org/settings" helpHref="/org/help" />
           </>
         }
       >

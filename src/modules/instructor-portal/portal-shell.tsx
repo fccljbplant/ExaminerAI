@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
+import { AppShellV2, UnifiedThemeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { INSTRUCTOR_NAV, INSTRUCTOR_MORE } from "./nav";
 
@@ -32,10 +32,8 @@ export function InstructorShell({
         brand={{ name: "TraineesAI" }}
         trailing={
           <>
-            <span className="hidden lg:inline-flex">
-              <ModeToggle />
-            </span>
-            <UserMenu userName={userName} profileHref="/instructor" profileLabel="Dashboard" />
+            <UnifiedThemeToggle />
+            <UserMenu userName={userName} profileHref="/instructor" profileLabel="Dashboard" settingsHref="/instructor/settings" helpHref="/instructor/help" />
           </>
         }
       >

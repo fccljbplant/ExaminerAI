@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppShellV2, ModeToggle, UserMenu } from "@/modules/shell";
+import { AppShellV2, UnifiedThemeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { LEARNER_NAV } from "./nav";
 
@@ -30,10 +30,8 @@ export function PortalShell({ userName, children }: { userName: string; children
         brand={{ name: "TraineesAI" }}
         trailing={
           <>
-            <span className="hidden lg:inline-flex">
-              <ModeToggle />
-            </span>
-            <UserMenu userName={userName} profileHref="/learner/profile" profileLabel="Profile" />
+            <UnifiedThemeToggle />
+            <UserMenu userName={userName} profileHref="/learner/profile" profileLabel="Profile" settingsHref="/learner/profile" helpHref="/learner/help" />
           </>
         }
       >

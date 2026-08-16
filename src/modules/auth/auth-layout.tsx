@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { GraduationCap } from "lucide-react";
-import { ModeToggle } from "@/modules/shell";
+import { UnifiedThemeToggle } from "@/modules/shell";
 import { cn } from "@/lib/utils";
 
 /**
@@ -39,7 +39,7 @@ export function AuthLayout({
           >
             Browse courses
           </Link>
-          <ModeToggle />
+          <UnifiedThemeToggle />
         </div>
       </header>
 
