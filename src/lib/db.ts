@@ -1,3 +1,4 @@
+import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { PrismaClient } from "@prisma/client";
 import { getDemoDb } from "./demo-db";
