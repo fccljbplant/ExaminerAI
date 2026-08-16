@@ -244,6 +244,10 @@ export async function POST(req: NextRequest) {
     data: {
       name: name.trim(),
       description: description?.trim() || "",
+      // Creator ownership (2026-08-17): the account that built the
+      // course owns it — marketplace earnings attribute to them and the
+      // instructor studio shows only their own courses.
+      ownerUserId: payload.sub,
       ...(domain ? { domain } : {}),
       ...(level ? { level } : {}),
       ...(assessmentType ? { assessmentType } : {}),

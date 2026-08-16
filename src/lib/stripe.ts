@@ -11,7 +11,11 @@ export function getStripe(): Stripe | null {
   return stripeInstance;
 }
 
-/** Create a Stripe Checkout Session for a course purchase. */
+/** Create a Stripe Checkout Session for a course purchase.
+ *  Creator economy (2026-08-17): when the course owner has completed
+ *  Stripe Connect onboarding, the charge becomes a DESTINATION charge
+ *  (transfer_data) so the owner's 80% share goes straight to them.
+ *  `unitAmountOverride` carries a coupon-discounted price. */
 export async function createCheckoutSession(params: {
   courseId: string;
   courseName: string;
@@ -20,6 +24,9 @@ export async function createCheckoutSession(params: {
   userId: string;
   successUrl: string;
   cancelUrl: string;
+  unitAmountOverride?: number;
+  transferDestination?: string | null;
+  couponCode?: string | null;
 }): Promise<{ url: string; sessionId: string } | null> {
   const stripe = getStripe();
   if (!stripe) return null;
@@ -30,16 +37,81 @@ export async function createCheckoutSession(params: {
       price_data: {
         currency: params.currency.toLowerCase(),
         product_data: { name: params.courseName },
-        unit_amount: Math.round(params.price * 100),
+        unit_amount: Math.round((params.unitAmountOverride ?? params.price) * 100),
       },
       quantity: 1,
     }],
-    metadata: { courseId: params.courseId, userId: params.userId },
+    metadata: {
+      courseId: params.courseId,
+      userId: params.userId,
+      couponCode: params.couponCode ?? "",
+    },
+    ...(params.transferDestination
+      ? {
+          payment_intent_data: {
+            transfer_data: { destination: params.transferDestination },
+          },
+        }
+      : {}),
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
   });
 
   return { url: session.url!, sessionId: session.id };
+}
+
+/** Create a Stripe Connect onboarding account link for a creator. */
+export async function createConnectAccountLink(params: {
+  userId: string;
+  email: string;
+  refreshUrl: string;
+  returnUrl: string;
+}): Promise<{ url: string; accountId: string } | null> {
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  const account = await stripe.accounts.create({
+    type: "express",
+    email: params.email,
+    metadata: { userId: params.userId },
+  });
+  const link = await stripe.accountLinks.create({
+    account: account.id,
+    refresh_url: params.refreshUrl,
+    return_url: params.returnUrl,
+    type: "account_onboarding",
+  });
+  return { url: link.url, accountId: account.id };
+}
+
+/** Pay out a creator's available balance via a Connect transfer. */
+export async function createPayoutTransfer(params: {
+  stripeAccountId: string;
+  amountUsd: number;
+  description: string;
+}): Promise<{ transferId: string } | null> {
+  const stripe = getStripe();
+  if (!stripe) return null;
+
+  const transfer = await stripe.transfers.create({
+    amount: Math.round(params.amountUsd * 100),
+    currency: "usd",
+    destination: params.stripeAccountId,
+    description: params.description,
+  });
+  return { transferId: transfer.id };
+}
+
+/** Refund a payment intent (full refund) — platform refund flow. */
+export async function refundPaymentIntent(paymentIntentId: string): Promise<boolean> {
+  const stripe = getStripe();
+  if (!stripe) return false;
+  try {
+    await stripe.refunds.create({ payment_intent: paymentIntentId });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Verify a Stripe webhook signature. */
