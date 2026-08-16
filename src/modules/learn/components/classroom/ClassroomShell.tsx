@@ -24,6 +24,7 @@ import { getCachedSlides, cacheSlides } from "@/modules/learn/lib/slide-cache";
 import { LessonStage } from "@/modules/learn/components/classroom/LessonStage";
 import { VideoStage } from "@/modules/learn/components/classroom/VideoStage";
 import { TopicPicker } from "@/modules/learn/components/classroom/TopicPicker";
+import { UnifiedThemeToggle } from "@/modules/shell";
 import { DailyTestPanel } from "@/modules/assessment/components/DailyTestPanel";
 import { VoiceBar } from "@/modules/learn/components/classroom/VoiceBar";
 import type { LessonMedia } from "@/modules/learn/lib/lesson-media";
@@ -443,7 +444,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     : 0;
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg pt-14 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg pt-[env(safe-area-inset-top)] md:pt-14 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       {/* ── Classroom header (96px PageHeader rule) ─────────────── */}
       <PageHeader
         crumbs={[
@@ -478,6 +479,8 @@ export function ClassroomShell({ courseId, courseName }: Props) {
         }
         actions={
           <>
+            {/* Old theme menu — available on mobile AND desktop */}
+            <UnifiedThemeToggle />
             <button
               type="button"
               onClick={() => setShowTopics(true)}
@@ -831,7 +834,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
           className={cn(
             "bg-surface",
             chatOpen &&
-              "fixed inset-x-0 top-14 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[var(--p-z-drawer)] flex w-full flex-col md:static md:bottom-auto md:top-auto md:z-auto md:w-80 md:flex-shrink-0 md:border-l",
+              "fixed inset-x-0 top-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-[var(--p-z-drawer)] flex w-full flex-col md:static md:bottom-auto md:top-auto md:z-auto md:w-80 md:flex-shrink-0 md:border-l",
             !chatOpen && "hidden md:flex md:w-80 md:flex-shrink-0 md:flex-col md:border-l",
             focusMode && "md:hidden md:opacity-40 md:hover:opacity-100 lg:md:flex",
           )}
