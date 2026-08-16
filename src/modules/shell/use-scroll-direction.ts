@@ -23,10 +23,14 @@ export type NavVisibility = "visible" | "hidden";
 
 const DELTA = 8;
 const THROTTLE_MS = 50;
-/** Downward scroll needed (from the reveal point) before hiding. */
-export const HIDE_DOWN_PX = 24;
-/** Upward scroll needed (from the hide point) before revealing. */
-export const REVEAL_UP_PX = 40;
+/** Downward scroll needed (from the reveal point) before hiding —
+ *  deliberately generous so the nav only tucks on a real scroll-down. */
+export const HIDE_DOWN_PX = 56;
+/** Upward scroll needed (from the hide point) before revealing —
+ *  small, so a light flick up brings it straight back. */
+export const REVEAL_UP_PX = 24;
+/** Distance from the page bottom that always reveals the nav. */
+export const BOTTOM_REVEAL_PX = 96;
 
 /** Pure direction decision — unit-tested; the hooks are thin wrappers. */
 export function computeDirection(lastY: number, y: number): ScrollDirection | null {
@@ -81,7 +85,21 @@ export function useScrollDirection(): ScrollDirection {
   return direction;
 }
 
-/** Bottom-nav visibility with hysteresis — no blink on jitter. */
+/**
+ * Bottom-nav visibility with hysteresis — no blink on jitter — plus
+ * hard guarantees that the nav NEVER goes missing when it is needed:
+ *
+ *   - any touch on the page reveals it (the user is interacting)
+ *   - reaching the bottom of the page reveals it
+ *   - back/forward (bfcache restores scroll WITHOUT a scroll event)
+ *     reveals it via `pageshow`
+ *   - focusing an input or a resize/orientation change reveals it
+ *
+ * Route changes are handled by the shell: it remounts the nav (keyed
+ * by pathname) so every page starts with the nav visible.
+ *
+ * Hiding is a convenience (more reading room), never a trap.
+ */
 export function useNavVisibility(): NavVisibility {
   const [visibility, setVisibility] = useState<NavVisibility>("visible");
   const anchorRef = useRef(0);
@@ -90,15 +108,33 @@ export function useNavVisibility(): NavVisibility {
   useEffect(() => {
     let lastCall = 0;
 
+    const show = () => {
+      if (visibilityRef.current === "visible") {
+        anchorRef.current = window.scrollY;
+        return;
+      }
+      visibilityRef.current = "visible";
+      anchorRef.current = window.scrollY;
+      setVisibility("visible");
+    };
+
     const onScroll = () => {
       const now = Date.now();
       if (now - lastCall < THROTTLE_MS) return;
       lastCall = now;
 
+      const y = window.scrollY;
+      // End of the page always reveals the nav.
+      const doc = document.documentElement;
+      if (y + window.innerHeight >= doc.scrollHeight - BOTTOM_REVEAL_PX) {
+        show();
+        return;
+      }
+
       const { next, anchor } = nextNavVisibility(
         visibilityRef.current,
         anchorRef.current,
-        window.scrollY,
+        y,
       );
       if (next !== visibilityRef.current) {
         visibilityRef.current = next;
@@ -108,7 +144,25 @@ export function useNavVisibility(): NavVisibility {
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    // Back/forward (bfcache) restores scroll WITHOUT firing a scroll
+    // event — without this the nav would stay hidden after Back.
+    window.addEventListener("pageshow", show);
+    // Any touch brings the nav back — the user is interacting.
+    document.addEventListener("touchstart", show, { passive: true, capture: true });
+    // Focusing an input (keyboard opens) reveals the nav.
+    document.addEventListener("focusin", show);
+    // Rotation / address-bar resize re-reveals instead of trapping.
+    window.addEventListener("resize", show);
+    window.addEventListener("orientationchange", show);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pageshow", show);
+      document.removeEventListener("touchstart", show, { capture: true });
+      document.removeEventListener("focusin", show);
+      window.removeEventListener("resize", show);
+      window.removeEventListener("orientationchange", show);
+    };
   }, []);
 
   return visibility;

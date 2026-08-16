@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useBreakpoint } from "./use-breakpoint";
 import { useThemeV2 } from "@/modules/theme";
@@ -59,6 +60,7 @@ export interface AppShellV2Props {
 
 export function AppShellV2({ nav, brand, trailing, children, className }: AppShellV2Props) {
   const bp = useBreakpoint();
+  const pathname = usePathname();
   const withBottomNav = bp === "xs";
   const { mode } = useThemeV2();
   const desktop = bp === "xl" || bp === "lg";
@@ -91,6 +93,12 @@ export function AppShellV2({ nav, brand, trailing, children, className }: AppShe
         </>
       )}
 
+      {/* Bottom nav first in DOM order so it is part of the very first
+          paint on mobile — navigation must never wait on content.
+          key={pathname} remounts it per route: every page starts with
+          the nav visible. */}
+      {withBottomNav && <BottomNav key={pathname} nav={nav} />}
+
       <main
         id="main-content"
         className={cn(
@@ -105,8 +113,6 @@ export function AppShellV2({ nav, brand, trailing, children, className }: AppShe
 
       {/* In-app footer — every portal page closes with it (2026-08-15) */}
       <AppFooter classic={classicShell} withBottomNav={withBottomNav} />
-
-      {withBottomNav && <BottomNav nav={nav} />}
     </div>
   );
 }

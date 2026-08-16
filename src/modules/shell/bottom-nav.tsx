@@ -63,6 +63,9 @@ function BottomNavItem({ item, active }: { item: NavItem; active: boolean }) {
 export function BottomNav({ nav }: { nav: NavItem[] }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  // The shell remounts this nav on every route change (key={pathname}),
+  // so each page starts with the nav visible — a hidden nav can never
+  // carry over into a new screen.
   const visibility = useNavVisibility();
   // Single active tab: the LONGEST matching prefix wins (fixes Home
   // staying selected on every sub-route across all portals).
