@@ -432,13 +432,16 @@ model ProjectTask {
   taskNotes        String?
   timeEstimate     String?
   courseId         String?
+  projectId        String?
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?       @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  project LearnProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([userId, week])
   @@index([userId, week, day])
   @@index([courseId])
+  @@index([projectId])
 }
 
 model ProjectWeek {
@@ -451,13 +454,16 @@ model ProjectWeek {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   courseId   String?
+  projectId  String?
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course?       @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  project LearnProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, weekNumber])
+  @@unique([userId, projectId, weekNumber])
   @@index([userId])
   @@index([courseId])
+  @@index([projectId])
 }
 
 model ProjectReport {
@@ -1267,13 +1273,23 @@ model LearnProject {
   stack       String?
   currentState String?
   deadline    DateTime?
-  status      String   @default("active")
+  // status: pending_approval | approved | rejected | active (legacy)
+  status      String   @default("pending_approval")
+  description String?  // proposal detail for the instructor's approval review
+  objectives  String?  // JSON array of project objectives
+  durationWeeks Int?   // timeline length (drives AI week generation)
+  approvalNote String? // instructor's note on approve/reject
+  approvedById String?
+  approvedAt  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   milestones ProjectMilestone[]
   helpSessions ProjectHelpSession[]
+  weeks       ProjectWeek[]
+  tasks       ProjectTask[]
   @@index([userId])
+  @@index([status])
 }
 
 model ProjectMilestone {

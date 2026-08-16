@@ -52,14 +52,19 @@ export async function POST(req: Request) {
     stack?: string;
     currentState?: string;
     deadline?: string;
+    description?: string;
+    objectives?: string[];
+    durationWeeks?: number;
   } = {};
   try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   if (!body.title || !body.title.trim()) return apiValidationError({ title: "title is required" });
 
-  // Idempotent on (userId, courseId) when courseId is provided.
+  // Idempotent on (userId, courseId) when courseId is provided: any
+  // project that hasn't been fully decided (pending / approved / rejected
+  // that the learner may still edit) counts as "in flight".
   if (body.courseId) {
     const existing = await db.learnProject.findFirst({
-      where: { userId: user.sub, courseId: body.courseId, status: "active" },
+      where: { userId: user.sub, courseId: body.courseId, status: { in: ["pending_approval", "approved"] } },
       include: { milestones: { orderBy: { order: "asc" } } },
     });
     if (existing) return apiSuccess({ project: existing, alreadyExisted: true });
@@ -74,11 +79,41 @@ export async function POST(req: Request) {
       stack: body.stack ?? null,
       currentState: body.currentState ?? null,
       deadline: body.deadline ? new Date(body.deadline) : null,
-      status: "active",
+      description: body.description?.trim() || null,
+      objectives: Array.isArray(body.objectives)
+        ? JSON.stringify(body.objectives.map(String).filter(Boolean))
+        : null,
+      durationWeeks: Math.min(Math.max(Math.round(Number(body.durationWeeks) || 4), 2), 26),
+      // v2 project flow: new projects start unapproved — task generation
+      // stays locked until the instructor approves the proposal.
+      status: "pending_approval",
       milestones: { create: DEFAULT_MILESTONES },
     },
     include: { milestones: { orderBy: { order: "asc" } } },
   });
+
+  // Alert the course instructors so the proposal actually gets reviewed.
+  if (body.courseId) {
+    try {
+      const instructors = await db.courseEnrollment.findMany({
+        where: { courseId: body.courseId, role: "instructor" },
+        select: { userId: true },
+      });
+      if (instructors.length > 0) {
+        await db.notification.createMany({
+          data: instructors.map((i) => ({
+            userId: i.userId,
+            type: "project_submitted",
+            title: "New project proposal",
+            body: `"${project.title}" is awaiting your approval.`,
+            link: `/instructor/students/${user.sub}`,
+          })),
+        });
+      }
+    } catch (err) {
+      logger.warn("failed to notify instructors of project submission", { err });
+    }
+  }
 
   return apiSuccess({ project, alreadyExisted: false });
 }

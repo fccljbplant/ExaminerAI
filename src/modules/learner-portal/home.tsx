@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Play,
   RefreshCw,
+  Target,
   Trophy,
   Zap,
 } from "lucide-react";
@@ -55,6 +56,15 @@ interface Announcement {
   createdAt: string;
 }
 
+interface ProjectRow {
+  id: string;
+  title: string;
+  status: string;
+  courseName: string | null;
+  taskProgress: number;
+  tasksDone: string;
+}
+
 interface HomeData {
   learner: {
     totalXP: number;
@@ -65,6 +75,7 @@ interface HomeData {
   continue: ContinueInfo | null;
   dueToday: DueItem[];
   announcements: Announcement[];
+  projects: ProjectRow[];
 }
 
 /* ---------------- time budget chips (15m / 30m / 1h / open) ---------- */
@@ -128,6 +139,7 @@ export function LearnerHome() {
 
         <div className="space-y-4 lg:col-span-5 lg:space-y-6">
           <DueToday items={data.dueToday} />
+          {data.projects.length > 0 && <Projects items={data.projects} />}
           <Announcements items={data.announcements} />
         </div>
       </div>
@@ -207,6 +219,36 @@ function DueToday({ items }: { items: DueItem[] }) {
           />
         ))
       )}
+    </ListCard>
+  );
+}
+
+/* ---------------- projects (v2 flow) ------------------------------------ */
+
+const PROJECT_STATUS_LABEL: Record<string, string> = {
+  pending_approval: "Awaiting approval",
+  approved: "Approved",
+  rejected: "Needs changes",
+  active: "In progress",
+};
+
+function Projects({ items }: { items: ProjectRow[] }) {
+  return (
+    <ListCard header="Projects">
+      {items.map((p) => (
+        <ListCardRow
+          key={p.id}
+          href={`/learner/projects/${p.id}`}
+          leading={
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-subtle text-fg">
+              <Target className="h-4 w-4" aria-hidden />
+            </span>
+          }
+          title={p.title}
+          meta={`${p.courseName ?? "Project"} · ${PROJECT_STATUS_LABEL[p.status] ?? p.status} · ${p.tasksDone} tasks`}
+          trailing={<ChevronRight className="h-4 w-4 text-fg-muted" aria-hidden />}
+        />
+      ))}
     </ListCard>
   );
 }

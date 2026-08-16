@@ -68,6 +68,20 @@ interface StudentProfileData {
   competencies: Array<{ topic: string; level: string }>;
   dailyLogs: Array<{ date: string; confidence: number | null }>;
   tasks: Array<{ id: string; title: string; status: string; week: number }>;
+  projects: Array<{
+    id: string;
+    title: string;
+    goal: string | null;
+    description: string | null;
+    objectives: string[];
+    durationWeeks: number | null;
+    status: string;
+    approvalNote: string | null;
+    approvedAt: string | null;
+    deadline: string | null;
+    updatedAt: string;
+    kpis: { taskProgress: number; tasksDone: string };
+  }>;
   certificates: Array<{ id: string; courseName: string; grade: string; score: number; issuedAt: string; verifyUrl: string }>;
   recentEvents: Array<{ type: string; at: string }>;
 }
@@ -344,7 +358,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
       {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
       {tab === "growth" && <GrowthTab data={data} studentId={studentId} />}
       {tab === "psychology" && <PsychologyTab data={data} />}
-      {tab === "project" && <ProjectTab data={data} />}
+      {tab === "project" && <ProjectTab data={data} onChanged={retry} />}
       {tab === "engagement" && <EngagementTab data={data} />}
       {tab === "certificates" && <CertificatesTab data={data} />}
       {tab === "comments" && <CommentsTab studentId={studentId} />}
@@ -770,11 +784,154 @@ function PsychologyTab({ data }: { data: StudentProfileData }) {
 }
 
 
-function ProjectTab({ data }: { data: StudentProfileData }) {
+function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?: () => void }) {
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function decide(projectId: string, decision: "approve" | "reject") {
+    setBusyId(projectId);
+    try {
+      await api.post(`/api/v2/projects/${projectId}/approve`, {
+        decision,
+        note: decision === "reject" ? note : undefined,
+      });
+      toast.success(
+        decision === "approve"
+          ? "Project approved — the learner can now generate their timeline"
+          : "Proposal sent back for changes",
+      );
+      setNoteFor(null);
+      setNote("");
+      onChanged?.();
+    } catch (e) {
+      toast.error("Couldn't update the project", {
+        description: e instanceof Error ? e.message : "Try again.",
+      });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <section className="space-y-2">
       <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-        Project tasks
+        Projects
+      </h2>
+      {data.projects.length === 0 ? (
+        <Empty label="No projects yet." />
+      ) : (
+        <div className="space-y-3">
+          {data.projects.map((p) => (
+            <div key={p.id} className="space-y-2 rounded-xl border border-line bg-surface p-4">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-semibold text-fg">{p.title}</p>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                    p.status === "pending_approval" && "bg-warning-subtle text-warning-on",
+                    p.status === "approved" && "bg-success-subtle text-success-on",
+                    p.status === "rejected" && "bg-danger/10 text-danger",
+                    p.status === "active" && "bg-info-subtle text-info-on",
+                  )}
+                >
+                  {p.status === "pending_approval"
+                    ? "Awaiting approval"
+                    : p.status === "rejected"
+                      ? "Needs changes"
+                      : p.status === "approved"
+                        ? "Approved"
+                        : p.status.replace("_", " ")}
+                </span>
+              </div>
+              {p.goal && <p className="text-xs text-fg-secondary">{p.goal}</p>}
+              {p.description && (
+                <p className="text-xs leading-relaxed text-fg-muted">{p.description}</p>
+              )}
+              {p.objectives.length > 0 && (
+                <ul className="space-y-0.5">
+                  {p.objectives.map((o, i) => (
+                    <li key={i} className="text-xs text-fg-muted">• {o}</li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-fg-muted">
+                {p.durationWeeks ? <span>{p.durationWeeks}-week timeline</span> : null}
+                {p.deadline ? <span>Due {new Date(p.deadline).toLocaleDateString()}</span> : null}
+                <span>{p.kpis.tasksDone} tasks</span>
+                {p.approvedAt ? <span>Decided {new Date(p.approvedAt).toLocaleDateString()}</span> : null}
+              </div>
+              {(p.status === "approved" || p.status === "rejected") && p.approvalNote && (
+                <p className="text-xs italic text-fg-muted">&ldquo;{p.approvalNote}&rdquo;</p>
+              )}
+              {p.status === "pending_approval" && (
+                <div className="space-y-2 border-t border-line pt-3">
+                  {noteFor === p.id && (
+                    <textarea
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      rows={2}
+                      placeholder="Feedback for the learner (shown with the decision)"
+                      aria-label="Approval note"
+                      className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-fg placeholder:text-fg-muted"
+                    />
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => decide(p.id, "approve")}
+                      disabled={busyId === p.id}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+                    >
+                      {busyId === p.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      ) : (
+                        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                      )}
+                      Approve
+                    </button>
+                    {noteFor === p.id ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => decide(p.id, "reject")}
+                          disabled={busyId === p.id || !note.trim()}
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 text-xs font-semibold text-danger disabled:opacity-50"
+                        >
+                          Send back with note
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNoteFor(null);
+                            setNote("");
+                          }}
+                          className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-fg-muted hover:text-fg"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setNoteFor(p.id)}
+                        disabled={busyId === p.id}
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong disabled:opacity-50"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+                        Send back…
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h2 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+        Task activity
       </h2>
       {data.tasks.length === 0 ? (
         <Empty label="No project tasks yet." />

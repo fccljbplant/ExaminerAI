@@ -45,21 +45,33 @@ export async function POST(req: NextRequest) {
   const weekNum = weekNumber as number;
   const milestonesJson = Array.isArray(milestones) ? JSON.stringify(milestones) : "[]";
 
-  const week = await db.projectWeek.upsert({
-    where: { userId_weekNumber: { userId: user.id, weekNumber: weekNum } },
-    create: {
-      userId: user.id,
-      weekNumber: weekNum,
-      title: title.trim(),
-      summary: summary?.trim() || "",
-      milestones: milestonesJson,
-    },
-    update: {
-      title: title.trim(),
-      ...(summary !== undefined ? { summary: summary.trim() } : {}),
-      ...(milestones !== undefined ? { milestones: milestonesJson } : {}),
-    },
+  // Unique key is now (userId, projectId, weekNumber) — legacy rows live
+  // at projectId = null, so use find/create/update instead of upsert.
+  const existing = await db.projectWeek.findFirst({
+    where: { userId: user.id, projectId: null, weekNumber: weekNum },
   });
+  let week;
+  if (existing) {
+    week = await db.projectWeek.update({
+      where: { id: existing.id },
+      data: {
+        title: title.trim(),
+        ...(summary !== undefined ? { summary: summary.trim() } : {}),
+        ...(milestones !== undefined ? { milestones: milestonesJson } : {}),
+      },
+    });
+  } else {
+    week = await db.projectWeek.create({
+      data: {
+        userId: user.id,
+        projectId: null,
+        weekNumber: weekNum,
+        title: title.trim(),
+        summary: summary?.trim() || "",
+        milestones: milestonesJson,
+      },
+    });
+  }
 
   return NextResponse.json({ week });
 }

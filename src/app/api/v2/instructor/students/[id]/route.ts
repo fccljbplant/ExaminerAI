@@ -63,7 +63,7 @@ export async function GET(
     return apiError("You do not teach this student", "FORBIDDEN", 403);
   }
 
-  const [weeklyTests, reportCards, competencies, dailyLogs, tasks, certificates, events] =
+  const [weeklyTests, reportCards, competencies, dailyLogs, tasks, certificates, events, projects] =
     await Promise.all([
       db.weeklyTest.findMany({
         where: { userId: id },
@@ -112,6 +112,11 @@ export async function GET(
         orderBy: { createdAt: "desc" },
         take: 12,
         select: { eventType: true, createdAt: true },
+      }),
+      db.learnProject.findMany({
+        where: { userId: id, courseId: { in: courseIds } },
+        orderBy: { updatedAt: "desc" },
+        include: { tasks: { select: { id: true, status: true } } },
       }),
     ]);
 
@@ -199,6 +204,34 @@ export async function GET(
       confidence: l.confidence,
     })),
     tasks: tasks.map((t) => ({ id: t.id, title: t.description, status: t.status, week: t.week })),
+    projects: projects.map((p) => {
+      const total = p.tasks.length;
+      const done = p.tasks.filter((t) => t.status === "completed").length;
+      let objectives: string[] = [];
+      try {
+        const parsed = JSON.parse(p.objectives ?? "[]");
+        objectives = Array.isArray(parsed) ? parsed.map(String) : [];
+      } catch {
+        objectives = [];
+      }
+      return {
+        id: p.id,
+        title: p.title,
+        goal: p.goal,
+        description: p.description,
+        objectives,
+        durationWeeks: p.durationWeeks,
+        status: p.status,
+        approvalNote: p.approvalNote,
+        approvedAt: p.approvedAt?.toISOString() ?? null,
+        deadline: p.deadline?.toISOString() ?? null,
+        updatedAt: p.updatedAt.toISOString(),
+        kpis: {
+          taskProgress: total > 0 ? Math.round((done / total) * 100) : 0,
+          tasksDone: `${done}/${total}`,
+        },
+      };
+    }),
     certificates: certificates.map((c) => ({
       id: c.id,
       courseName: c.courseName,

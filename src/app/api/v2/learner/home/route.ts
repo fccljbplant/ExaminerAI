@@ -86,6 +86,44 @@ export async function GET() {
     select: { id: true, type: true, title: true, body: true, link: true, read: true, createdAt: true },
   });
 
+  /* ---- projects (v2 flow) — recent LearnProjects with status + task rollup ---- */
+  let projects: {
+    id: string;
+    title: string;
+    status: string;
+    courseName: string | null;
+    taskProgress: number;
+    tasksDone: string;
+  }[] = [];
+  try {
+    const rows = await db.learnProject.findMany({
+      where: { userId: user.sub },
+      orderBy: { updatedAt: "desc" },
+      take: 4,
+      include: { tasks: { select: { id: true, status: true } } },
+    });
+    const courseRows = await db.course.findMany({
+      where: { id: { in: rows.map((p) => p.courseId).filter(Boolean) as string[] } },
+      select: { id: true, name: true },
+    });
+    const courseNames = new Map(courseRows.map((c) => [c.id, c.name]));
+    projects = rows.map((p) => {
+      const total = p.tasks.length;
+      const done = p.tasks.filter((t) => t.status === "completed").length;
+      return {
+        id: p.id,
+        title: p.title,
+        status: p.status,
+        courseName: p.courseId ? courseNames.get(p.courseId) ?? null : null,
+        taskProgress: total > 0 ? Math.round((done / total) * 100) : 0,
+        tasksDone: `${done}/${total}`,
+      };
+    });
+  } catch (e) {
+    // LearnProject table might not exist yet — continue with empty list
+    console.warn("Could not fetch projects:", e instanceof Error ? e.message : String(e));
+  }
+
   /* ---- learner totals across courses ---- */
   const totalXP = profiles.reduce((sum, p) => sum + p.totalXP, 0);
   const streakCurrent = profiles.reduce((max, p) => Math.max(max, p.streakCurrent), 0);
@@ -100,5 +138,6 @@ export async function GET() {
     continue: continueCard,
     dueToday,
     announcements,
+    projects,
   });
 }

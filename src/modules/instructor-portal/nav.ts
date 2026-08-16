@@ -10,6 +10,7 @@ import {
   Award,
   BarChart3,
   ClipboardCheck,
+  FolderKanban,
   Home,
   LayoutTemplate,
   MoreHorizontal,
@@ -35,6 +36,7 @@ export const INSTRUCTOR_NAV: NavItem[] = [
 
 /** Secondary destinations surfaced in the More hub (P3 §2). */
 export const INSTRUCTOR_MORE: NavItem[] = [
+  { id: "projects", label: "Projects", href: "/instructor/projects", icon: FolderKanban },
   { id: "analytics", label: "Analytics", href: "/instructor/analytics", icon: BarChart3 },
   { id: "earnings", label: "Earnings", href: "/instructor/earnings", icon: Wallet },
   { id: "certificates", label: "Certificates", href: "/instructor/certificates", icon: Award },

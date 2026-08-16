@@ -1244,40 +1244,126 @@ async function seedLearnerCourseData(
     });
   }
 
-  // Project — most engaged org learners build one
+  // Project — most engaged learners build one. v2 flow: proposal →
+  // instructor approval → AI timeline + tasks. The seed covers every
+  // state so the approval queue, workspace and dashboards all show data.
   if (chance(arch === "active" || finisher ? 0.75 : 0.25)) {
+    const projectTitle = pick([
+      "Permit-to-work site audit",
+      "Motor control panel inspection",
+      "Pump overhaul checklist",
+      "Onboarding plan for new operators",
+      "Monthly variance report template",
+      "Startup logbook digitization",
+      "Store launch playbook",
+      "Repair pricing calculator",
+    ]);
+    const roll = rng();
+    // 40% pending · 10% rejected · 35% approved · 15% legacy active
+    const status =
+      roll < 0.4 ? "pending_approval" :
+      roll < 0.5 ? "rejected" :
+      roll < 0.85 ? "approved" : "active";
+    const durationWeeks = Math.min(range(2, Math.max(2, course.durationWeeks)), 6);
+    const instructorLink = await db.courseEnrollment.findFirst({
+      where: { courseId: course.id, role: "instructor" },
+      select: { userId: true },
+    });
+    const decided = status === "approved" || status === "rejected" || status === "active";
+
     const project = await db.learnProject.create({
       data: {
         userId: user.id,
         courseId: course.id,
-        title: pick([
-          "Permit-to-work site audit",
-          "Motor control panel inspection",
-          "Pump overhaul checklist",
-          "Onboarding plan for new operators",
-          "Monthly variance report template",
-          "Startup logbook digitization",
-          "Store launch playbook",
-          "Repair pricing calculator",
-        ]),
+        title: projectTitle,
         goal: "Apply the course in a real deliverable and get it signed off by the mentor.",
         currentState: arch === "left" ? "stalled after the first milestone" : "in progress — milestone 2 of 4",
         deadline: daysFromNow(range(7, 30)),
-        status: "active",
+        description: pick([
+          `Build a "${projectTitle.toLowerCase()}" from scratch, applying the course methods end to end, and hand over a reusable template with sign-off steps.`,
+          `Adapt the course techniques into a "${projectTitle.toLowerCase()}" for a real scenario, with before/after evidence and a one-page lessons-learned note.`,
+        ]),
+        objectives: JSON.stringify([
+          "Apply each week's course techniques to the deliverable",
+          "Produce a mentor-reviewable draft by the halfway point",
+          "Ship a final version with documented results",
+        ]),
+        durationWeeks,
+        status,
+        ...(decided && instructorLink
+          ? { approvedById: instructorLink.userId, approvedAt: daysAgo(range(1, 12)) }
+          : {}),
+        ...(status === "rejected"
+          ? { approvalNote: pick([
+              "Scope this tighter — pick ONE checklist and go deep.",
+              "Add measurable success criteria before resubmitting.",
+              "Too similar to the course demo — make it your own.",
+            ]) }
+          : {}),
       },
     });
     const milestones = ["Plan & scope", "First draft", "Mentor review", "Final sign-off"];
     for (let m = 0; m < milestones.length; m++) {
+      const done = m === 0 ? decided && chance(0.8) : m === 1 && (status === "active" || status === "approved") && chance(0.6);
       await db.projectMilestone.create({
         data: {
           projectId: project.id,
           title: milestones[m],
           order: m + 1,
-          status: m === 0 ? "completed" : m === 1 && (arch === "active" || finisher) ? "in_progress" : "pending",
-          completedAt: m === 0 ? daysAgo(range(1, 10)) : null,
+          status: done ? "completed" : m === 1 && decided ? "in_progress" : "pending",
+          completedAt: done ? daysAgo(range(1, 10)) : null,
         },
       });
     }
+
+    // Timeline + tasks only exist once a project is decided.
+    if (status === "approved" || status === "active") {
+      const outline = await db.courseWeek.findMany({
+        where: { courseId: course.id },
+        orderBy: { weekNumber: "asc" },
+        include: { days: { orderBy: { day: "asc" } } },
+      });
+      const maxW = Math.min(durationWeeks, outline.length);
+      const progressWeeks = finisher ? maxW : Math.min(Math.max(week - 1, 1), maxW);
+      for (let w = 1; w <= maxW; w++) {
+        const cw = outline[w - 1];
+        await db.projectWeek.create({
+          data: {
+            userId: user.id,
+            courseId: course.id,
+            projectId: project.id,
+            weekNumber: w,
+            title: `Week ${w}: ${cw?.phase ?? "Build"}`,
+            summary: `Apply this week's "${cw?.phase ?? "topics"}" concepts to the "${projectTitle}" deliverable.`,
+            milestones: JSON.stringify(
+              w === maxW ? [`"${projectTitle}" ready for sign-off`] : [`Week ${w} deliverable for "${projectTitle}"`],
+            ),
+          },
+        });
+        for (let d = 1; d <= 5; d++) {
+          const dayRow = cw?.days[d - 1];
+          const topic = dayRow?.title ?? `Day ${d} concept`;
+          const completed =
+            (w < progressWeeks || (w === progressWeeks && d <= day)) &&
+            status === "active";
+          await db.projectTask.create({
+            data: {
+              userId: user.id,
+              courseId: course.id,
+              projectId: project.id,
+              description: `Apply "${topic}" to "${projectTitle}" — deliver the day's build step.`,
+              status: completed ? "completed" : w < progressWeeks || (w === progressWeeks && d <= day) ? "in_progress" : "planned",
+              week: w,
+              day: d,
+              isMilestone: d === 5,
+              taskNotes: `Builds on course topic: ${topic}`,
+              completedAt: completed ? daysAgo(range(0, 20)) : null,
+            },
+          });
+        }
+      }
+    }
+
     if (chance(0.2)) {
       await db.projectHelpSession.create({
         data: {

@@ -88,7 +88,11 @@ function syncAvenSchema() {
     );
   writeFileSync("prisma/.aven-push.prisma", patched);
   console.log("Syncing Aiven schema to schema.prod.prisma (additive)...");
-  execSync("npx prisma db push --schema=prisma/.aven-push.prisma --skip-generate", EXEC_OPTS);
+  // --accept-data-loss: dropping ProjectWeek's old unique index
+  // (userId, weekNumber) for the project-scoped one is safe — the old
+  // constraint already guaranteed no duplicates and legacy rows have
+  // projectId = NULL (distinct in PG15+).
+  execSync("npx prisma db push --schema=prisma/.aven-push.prisma --skip-generate --accept-data-loss", EXEC_OPTS);
 }
 
 interface DmmfModel {
