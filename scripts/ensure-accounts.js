@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-require-imports -- CommonJS node script */
 /**
- * ensure-accounts.js — Create admin + demo accounts if they don't exist.
+ * ensure-accounts.js — Create the platform admin if it doesn't exist.
  * Safe to run on every Vercel build (upsert, won't overwrite existing data).
  *
- * Admin:   admin@examiner.ai / admin123
- * Demo:     demo@examiner.ai / demo123
+ * Admin: admin@examiner.ai / admin123
+ *
+ * Demo accounts are NOT created here — demo data is served exclusively
+ * from the bundled local SQLite demo db (see src/lib/demo-db.ts).
  */
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
@@ -14,7 +16,6 @@ async function main() {
   const db = new PrismaClient();
   try {
     const adminPwd = await bcrypt.hash("admin123", 10);
-    const demoPwd = await bcrypt.hash("demo123", 10);
 
     // Admin account — always reset password to known value on every build.
     await db.user.upsert({
@@ -31,20 +32,8 @@ async function main() {
     }).catch(() => {});
     console.log("✓ admin@examiner.ai ensured");
 
-    // Demo account — always reset password to known value on every build.
-    await db.user.upsert({
-      where: { email: "demo@examiner.ai" },
-      update: { passwordHash: demoPwd, status: "active", approvedAt: new Date() },
-      create: {
-        email: "demo@examiner.ai",
-        name: "Demo User",
-        passwordHash: demoPwd,
-        role: "demo",
-        status: "active",
-        approvedAt: new Date(),
-      },
-    }).catch(() => {});
-    console.log("✓ demo@examiner.ai ensured");
+    // Demo accounts are NOT created here — demo data is served
+    // exclusively from the bundled local SQLite demo db (see src/lib/demo-db.ts).
 
     console.log("Core accounts ready.");
   } finally {

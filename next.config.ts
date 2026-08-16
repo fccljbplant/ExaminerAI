@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  // Bundle the local SQLite demo db into the serverless output so demo
+  // accounts can be served from it (demo data never lives in the remote db).
+  outputFileTracingIncludes: {
+    "/**": ["./prisma/db/**/*"],
+  },
   // Aggressive cache-busting for HTML pages so users always get the latest
   // UI. Static assets (JS/CSS) are already content-hashed by Next.js so they
   // cache safely. This prevents users from seeing a stale teacher panel

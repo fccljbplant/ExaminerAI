@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db, enterDemoSessionBox } from "@/lib/db";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 import {
   comparePassword,
@@ -15,6 +15,9 @@ import { logger } from "@/lib/logger";
 
 /** POST /api/auth/login — email/password login, sets JWT cookie. */
 export async function POST(req: NextRequest) {
+  // Demo-session box, entered synchronously before the first await.
+  const demoBox = enterDemoSessionBox();
+
   // C3-security: rate limit login attempts — 10 per 10 min per IP
   const ip = getClientIp(req);
   if (!checkRateLimit(`login:${ip}`, 10, 600_000)) {
@@ -36,6 +39,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Demo accounts authenticate against the LOCAL demo SQLite db —
+  // wherever the app runs. Remote databases stay demo-free.
+  if (email.endsWith("@demo.ai")) demoBox.demo = true;
+
   // Best-effort admin ensure — don't block login if DB is read-only.
   try { await ensureAdminUser(); } catch (err) {
     // Log but don't block login — admin user creation is best-effort
@@ -44,15 +51,15 @@ export async function POST(req: NextRequest) {
 
   const user = await db.user.findUnique({ where: { email } });
   if (!user) {
-    // Demo accounts live ONLY in the local SQLite demo db
-    // (prisma/db/custom.db, `npm run db:seed`). Remote databases are
-    // demo-free by design — point the user at the local setup.
+    // Demo accounts are served from the bundled LOCAL SQLite demo db
+    // (routed via demoSession). This path only triggers when that db is
+    // unavailable in the current deployment.
     if (email.endsWith("@demo.ai")) {
       return NextResponse.json(
         {
           error:
-            "Demo accounts aren't in this database — they live in the local SQLite demo db. " +
-            "Run the app locally (DATABASE_URL=file:./db/custom.db) and seed with `npm run db:seed` to view demo data.",
+            "The demo database isn't available in this deployment. " +
+            "Demo data ships in the local SQLite demo db (prisma/db/custom.db) — run the app locally or check the build's demo-db bundling.",
         },
         { status: 401 }
       );

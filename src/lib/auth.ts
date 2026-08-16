@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { db } from "./db";
+import { db, enterDemoSessionBox } from "./db";
 import { logger } from "./logger";
 
 /** In production, JWT_SECRET MUST be set via env var.
@@ -96,11 +96,19 @@ const AUTH_CACHE_TTL_MS = 60_000; // 60 seconds
  *  - User doesn't exist in DB
  *  - User is blocked */
 export async function getAuthUser(): Promise<JwtPayload | null> {
+  // Enter the demo-session box SYNCHRONOUSLY (before any await) so the
+  // caller's continuations share it; the flag flips once the JWT is known.
+  const demoBox = enterDemoSessionBox();
   const store = await cookies();
   const token = store.get(TOKEN_COOKIE)?.value;
   if (!token) return null;
   const payload = verifyToken(token);
   if (!payload) return null;
+
+  // Demo accounts are routed to the LOCAL demo SQLite db — every db call
+  // in this request (including the blocked/role re-check below) then
+  // reads demo data, not the remote database.
+  if ((payload.email ?? "").endsWith("@demo.ai")) demoBox.demo = true;
 
   // Check cache
   const now = Date.now();

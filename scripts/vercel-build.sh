@@ -8,6 +8,11 @@ echo "=== TraineesAI Vercel Build ==="
 echo "Generating Prisma client (prod schema)..."
 npx prisma generate --schema=prisma/schema.prod.prisma
 
+# Step 1b: Generate the SQLite demo client (demo accounts route to the
+# bundled local demo db — the prod client is Postgres and can't open it)
+echo "Generating demo (SQLite) client..."
+npx prisma generate --schema=prisma/.demo.prisma
+
 # Step 2: Push schema to DB — but don't fail the build if the DB is
 # temporarily unreachable (connection slot exhaustion, maintenance, etc).
 # The schema rarely changes between deploys; if it does and the push

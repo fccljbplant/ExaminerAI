@@ -1498,6 +1498,15 @@ async function main() {
   });
   console.log("✓ platform admin ensured");
 
+  // ── Feature settings — demo AI stays OFF (demo is read-only and must
+  // never burn production AI credits); portal flags preserved as-is. ──
+  await db.setting.upsert({
+    where: { key: "demo_ai_enabled" },
+    update: { value: "false" },
+    create: { key: "demo_ai_enabled", value: "false" },
+  });
+  console.log("✓ demo AI disabled (demo_ai_enabled=false)");
+
   // ── Badge definitions ──────────────────────────────────────────────
   const badges = [
     { code: "first_lesson", name: "First Steps", description: "Completed your first daily lesson", icon: "rocket", rarity: "common", xpReward: 20 },
