@@ -38,9 +38,19 @@ export async function POST(
 
   const project = await db.learnProject.findFirst({
     where: { id, userId: user.sub }, // IDOR: owner-only
-    select: { id: true, courseId: true },
+    select: { id: true, courseId: true, status: true },
   });
   if (!project) return apiError("Project not found", "NOT_FOUND", 404);
+
+  // Milestone work starts after the instructor approves the proposal —
+  // nothing is completable while pending or rejected.
+  if (project.status === "pending_approval" || project.status === "rejected") {
+    return apiError(
+      "Milestones unlock after your instructor approves the project",
+      "FORBIDDEN",
+      403,
+    );
+  }
 
   const milestone = await db.projectMilestone.findFirst({
     where: { id: mid, projectId: project.id },

@@ -177,6 +177,20 @@ async function main() {
 
   const totalStart = Date.now();
   try {
+    // 0 ── Demo-data guard: the remote databases must never carry demo
+    // accounts. Demo data lives ONLY in the local SQLite file.
+    const srcDemo = await src.$queryRawUnsafe(
+      `SELECT count(*)::int AS n FROM "User" WHERE email LIKE '%@demo.ai'`,
+    );
+    if (srcDemo[0].n > 0) {
+      console.error(
+        `✗ Source database contains ${srcDemo[0].n} demo account(s). Demo data must not reach the remote db.`,
+      );
+      console.error("  Run `node scripts/purge-demo-accounts.ts --yes` first, then re-transfer.");
+      process.exitCode = 1;
+      return;
+    }
+
     // 1 ── Wipe Neon
     console.log("── 1. Wiping Neon public schema ──");
     await dst.$executeRawUnsafe("DROP SCHEMA public CASCADE");
@@ -226,7 +240,7 @@ async function main() {
       }
     }
 
-    // 5 ── Verify counts
+    // 5 ── Verify counts + demo-data guard on the target
     console.log("\n── 5. Verifying row counts ──");
     let mismatches = 0;
     let totalRows = 0;
@@ -239,6 +253,13 @@ async function main() {
         mismatches++;
         console.error(`  MISMATCH ${table}: aiven=${a[0].n} neon=${b[0].n}`);
       }
+    }
+    const dstDemo = await dst.$queryRawUnsafe(
+      `SELECT count(*)::int AS n FROM "User" WHERE email LIKE '%@demo.ai'`,
+    );
+    if (Number(dstDemo[0].n) > 0) {
+      mismatches++;
+      console.error(`  DEMO LEAK: target contains ${dstDemo[0].n} demo account(s).`);
     }
     const secs = ((Date.now() - totalStart) / 1000).toFixed(1);
     if (mismatches === 0) {

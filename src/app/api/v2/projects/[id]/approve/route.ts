@@ -51,11 +51,13 @@ export async function POST(
   if (!project) return apiError("Project not found", "NOT_FOUND", 404);
   if (!project.courseId) return apiError("Project is not linked to a course", "CONFLICT", 409);
 
-  // IDOR: caller teaches the project's course.
+  // IDOR: caller must TEACH the project's course. Org admins who don't
+  // hold an instructor enrollment on the course cannot touch it — same
+  // scoping as the student drill-down route.
   const teaching = await db.courseEnrollment.findFirst({
     where: { userId: user.sub, role: "instructor", courseId: project.courseId },
   });
-  if (!teaching && user.role !== "org_admin") {
+  if (!teaching) {
     return apiError("You do not teach this project's course", "FORBIDDEN", 403);
   }
 

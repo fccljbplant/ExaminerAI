@@ -210,7 +210,9 @@ Return ONLY this JSON shape:
     tasks = fallback.tasks;
   }
 
-  // 2 ── Sanitize
+  // 2 ── Sanitize (weeks deduped by weekNumber — the AI occasionally
+  // repeats a week, which would violate the unique index).
+  const seenWeeks = new Set<number>();
   const sanitizedWeeks = weeks
     .slice(0, weeksRequested)
     .map((w) => ({
@@ -221,7 +223,11 @@ Return ONLY this JSON shape:
         Array.isArray(w.milestones) ? w.milestones.map((m) => String(m).slice(0, 200)).filter(Boolean).slice(0, 3) : [],
       ),
     }))
-    .filter((w) => w.title.length > 0);
+    .filter((w) => {
+      if (seenWeeks.has(w.weekNumber) || w.title.length === 0) return false;
+      seenWeeks.add(w.weekNumber);
+      return true;
+    });
 
   const sanitizedTasks = tasks
     .slice(0, weeksRequested * tasksPerWeek)

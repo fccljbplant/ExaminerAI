@@ -234,7 +234,16 @@ const PROJECT_STATUS_LABEL: Record<string, string> = {
 
 function Projects({ items }: { items: ProjectRow[] }) {
   return (
-    <ListCard header="Projects">
+    <ListCard
+      header={
+        <span className="flex items-center justify-between">
+          Projects
+          <Link href="/learner/projects" className="text-xs font-medium text-brand hover:underline">
+            See all
+          </Link>
+        </span>
+      }
+    >
       {items.map((p) => (
         <ListCardRow
           key={p.id}

@@ -67,8 +67,8 @@ Three separate stores, never mixed:
 | Store | Where | Contents |
 | --- | --- | --- |
 | **Demo SQLite** | `prisma/db/custom.db` (local only) | Demo dataset — `npm run seed:demo` populates it. The seed refuses to run unless `DATABASE_URL` is a `file:` URL, so demo data can never reach a remote database. |
-| **Aiven (current prod)** | `AVEN_DATABASE_URL` / `AVEN_DIRECT_URL` in `.env` | Live production data (source of truth until the cutover). |
-| **Neon (target)** | `NEON_DATABASE_URL` / `NEON_DIRECT_URL` in `.env` | Migration target, ready for the prod cutover. |
+| **Aiven (current prod)** | `AVEN_DATABASE_URL` / `AVEN_DIRECT_URL` in `.env` | Live production data (source of truth until the cutover). Demo accounts are FORBIDDEN here — `npm run db:purge:demo -- --yes` removes them. |
+| **Neon (target)** | `NEON_DATABASE_URL` / `NEON_DIRECT_URL` in `.env` | Migration target, ready for the prod cutover. The transfer script refuses to run if the source contains `@demo.ai` accounts and verifies the target is demo-free after copying. |
 
 Neon URLs are tuned for Neon:
 

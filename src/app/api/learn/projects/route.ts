@@ -12,6 +12,7 @@
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { demoWriteBlock } from "@/lib/demo-guard";
 import { apiError, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 
 export const runtime = "nodejs";
@@ -30,20 +31,52 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const courseId = url.searchParams.get("courseId");
 
-  const projects = await db.learnProject.findMany({
-    where: { userId: user.sub, ...(courseId ? { courseId } : {}) },
-    orderBy: { createdAt: "desc" },
-    include: {
-      milestones: { orderBy: { order: "asc" } },
-    },
-  });
+  const [projects, enrollments] = await Promise.all([
+    db.learnProject.findMany({
+      where: { userId: user.sub, ...(courseId ? { courseId } : {}) },
+      orderBy: { createdAt: "desc" },
+      include: {
+        milestones: { orderBy: { order: "asc" } },
+        tasks: { select: { id: true, status: true } },
+      },
+    }),
+    db.courseEnrollment.findMany({
+      where: { userId: user.sub, role: "student" },
+      select: { courseId: true, course: { select: { id: true, name: true } } },
+    }),
+  ]);
 
-  return apiSuccess({ projects });
+  return apiSuccess({
+    projects: projects.map((p) => {
+      const total = p.tasks.length;
+      const done = p.tasks.filter((t) => t.status === "completed").length;
+      return {
+        id: p.id,
+        title: p.title,
+        goal: p.goal,
+        status: p.status,
+        durationWeeks: p.durationWeeks,
+        deadline: p.deadline?.toISOString() ?? null,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
+        milestones: p.milestones,
+        kpis: {
+          taskProgress: total > 0 ? Math.round((done / total) * 100) : 0,
+          tasksDone: `${done}/${total}`,
+        },
+      };
+    }),
+    // Enrolled courses — used by the new-project form's course picker.
+    courses: enrollments.map((e) => ({ id: e.course.id, name: e.course.name })),
+  });
 }
 
 export async function POST(req: Request) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
+
+  const demoBlock = await demoWriteBlock("creating a project");
+  if (demoBlock) return demoBlock;
 
   let body: {
     courseId?: string;
@@ -59,12 +92,16 @@ export async function POST(req: Request) {
   try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   if (!body.title || !body.title.trim()) return apiValidationError({ title: "title is required" });
 
-  // Idempotent on (userId, courseId) when courseId is provided: any
-  // project that hasn't been fully decided (pending / approved / rejected
-  // that the learner may still edit) counts as "in flight".
+  // Idempotent on (userId, courseId) when courseId is provided: pending,
+  // approved AND rejected projects all count as "in flight" — a rejected
+  // proposal is edited and resubmitted, never silently duplicated.
   if (body.courseId) {
     const existing = await db.learnProject.findFirst({
-      where: { userId: user.sub, courseId: body.courseId, status: { in: ["pending_approval", "approved"] } },
+      where: {
+        userId: user.sub,
+        courseId: body.courseId,
+        status: { in: ["pending_approval", "approved", "rejected"] },
+      },
       include: { milestones: { orderBy: { order: "asc" } } },
     });
     if (existing) return apiSuccess({ project: existing, alreadyExisted: true });

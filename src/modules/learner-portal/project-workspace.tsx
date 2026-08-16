@@ -223,6 +223,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
   }
 
   const { project, milestones, weeks, tasks, kpis } = data;
+  const canWork = CAN_GENERATE(project.status);
   const maxWeek = tasks.reduce((m, t) => Math.max(m, t.week), weeks.length);
 
   return (
@@ -328,7 +329,8 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
                     <button
                       type="button"
                       onClick={() => completeMilestone(m.id)}
-                      disabled={busyId === m.id}
+                      disabled={busyId === m.id || !canWork}
+                      title={canWork ? undefined : "Unlocks after instructor approval"}
                       className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50"
                     >
                       {busyId === m.id ? (
@@ -527,7 +529,7 @@ function ProposalCard({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-brand-subtle"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-brand-subtle"
             >
               <Pencil className="h-3.5 w-3.5" aria-hidden />
               Edit
