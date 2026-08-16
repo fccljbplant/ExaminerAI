@@ -10,6 +10,15 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Demo accounts must never create real Stripe payment sessions —
+  // their courses live in the local demo db only.
+  if (user.email?.toLowerCase().endsWith("@demo.ai")) {
+    return NextResponse.json(
+      { error: "Demo accounts can't purchase courses. Create a real account to enroll." },
+      { status: 403 },
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const { courseId } = body as { courseId?: string };
   if (!courseId) return NextResponse.json({ error: "courseId required" }, { status: 400 });

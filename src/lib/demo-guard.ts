@@ -2,20 +2,16 @@ import { NextResponse } from "next/server";
 import { getAuthUser } from "./auth";
 
 /**
- * DEMO WRITE GUARD
+ * DEMO GUARD (neutralized since demo-routing, 2026-08-16)
  *
- * The demo account (demo@examiner.ai) has READ access to everything but
- * CANNOT perform any write action (create/update/delete). This keeps the
- * demo data stable for all visitors.
+ * Demo accounts (@demo.ai + legacy demo@examiner.ai) are served from the
+ * LOCAL SQLite demo db — every db call routes there per-request — so demo
+ * writes are inherently safe and `demoWriteBlock` is a no-op. The old
+ * blanket 403 caused a stream of "Demo account restriction" UI errors
+ * across the demo instructor/learner flows.
  *
- * Usage at the top of any POST/PUT/PATCH/DELETE handler:
- *
- *   const block = await demoWriteBlock();
- *   if (block) return block;
- *
- * The guard checks if the authenticated user is the demo account (by email)
- * and returns a 403 response with a friendly message if so. Returns null
- * if the user is NOT the demo account (write allowed).
+ * `isDemoUser()` is still exported for routes that need CONDITIONAL
+ * behavior (e.g. hiding org-settings UI for preview accounts).
  */
 
 const DEMO_EMAIL = "demo@examiner.ai";
@@ -37,18 +33,15 @@ export async function isDemoUser(): Promise<boolean> {
 
 /**
  * Call this at the top of any write handler.
- * Returns a 403 NextResponse if the user is demo, or null if write is allowed.
+ *
+ * INTENTIONALLY A NO-OP since demo-routing (2026-08): demo sessions route
+ * EVERY db call to the local SQLite demo db (src/lib/db.ts AsyncLocalStorage
+ * proxy), so demo writes are fully isolated — they can never touch
+ * production data. The old 403 here used to block every learning and
+ * instructor write for @demo.ai accounts, which surfaced as a stream of
+ * "Demo account restriction" UI errors. Real-AI cost stays blocked
+ * centrally in the AI provider (callAI/streamAI degrade for demo sessions).
  */
-export async function demoWriteBlock(action?: string): Promise<NextResponse | null> {
-  if (await isDemoUser()) {
-    return NextResponse.json(
-      {
-        error: "Demo account restriction",
-        message: `🚫 This is a demo account — ${action || "this action"} is not allowed. You can open all forms, menus, and dialogs for preview, but no changes will be saved. Sign up your institution to enable full functionality.`,
-        code: "DEMO_BLOCKED",
-      },
-      { status: 403 }
-    );
-  }
+export async function demoWriteBlock(_action?: string): Promise<NextResponse | null> {
   return null;
 }

@@ -157,6 +157,10 @@ async function maybeDispatchEmailWebhook(input: SendNotificationInput): Promise<
   });
   if (!user) return;
 
+  // Never dispatch external email for demo accounts (@demo.ai) — their
+  // addresses are fake and the webhook would send real mail to nowhere.
+  if (user.email.toLowerCase().endsWith("@demo.ai")) return;
+
   const payload = {
     to: user.email,
     recipientName: user.name,

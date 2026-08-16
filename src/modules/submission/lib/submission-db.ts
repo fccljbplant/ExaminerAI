@@ -11,6 +11,7 @@
  */
 
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { Prisma } from "@prisma/client";
 import {
   type AssignmentFilter,
@@ -150,7 +151,11 @@ async function upsertDefaultRow(
 }
 
 /** Seed platform-default registry rows (orgId = null). Zero-code domains:
- *  a new domain = a RegistryRow insert, never a code change (P4 §5). */
+ *  a new domain = a RegistryRow insert, never a code change (P4 §5).
+ *
+ *  Best-effort: one failed row (e.g. a read-only demo db on a serverless
+ *  instance) must never take down the whole queue — reads still work and
+ *  the seeding re-runs on the next process. */
 export async function ensureDefaultRegistries(): Promise<void> {
   if (registriesEnsured) return;
   for (const [i, t] of DEFAULT_SUBMISSION_TYPES.entries()) {
@@ -159,6 +164,8 @@ export async function ensureDefaultRegistries(): Promise<void> {
       maxBytes: t.maxBytes,
       acceptMime: t.acceptMime,
       aiVisible: t.aiVisible,
+    }).catch((err) => {
+      logger.warn("Registry seed failed (submission_type)", { key: t.key, err });
     });
   }
   for (const [i, tpl] of SAMPLE_DOMAIN_TEMPLATES.entries()) {
@@ -169,6 +176,8 @@ export async function ensureDefaultRegistries(): Promise<void> {
       rubricTitle: tpl.rubricTitle,
       criteria: tpl.criteria,
       instructions: tpl.instructions,
+    }).catch((err) => {
+      logger.warn("Registry seed failed (assignment_template)", { key: tpl.key, err });
     });
   }
   registriesEnsured = true;

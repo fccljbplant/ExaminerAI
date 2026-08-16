@@ -221,6 +221,18 @@ function isRateLimitError(e: unknown): boolean {
 
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
+/** True when the current request belongs to a demo session (AsyncLocalStorage
+ *  routing in src/lib/db.ts). Dynamic import avoids a static cycle and keeps
+ *  this module bundle-safe. */
+async function isDemoSessionActive(): Promise<boolean> {
+  try {
+    const { isDemoSession } = await import("@/lib/db");
+    return isDemoSession();
+  } catch {
+    return false;
+  }
+}
+
 // === Usage logging ===
 
 interface UsageLog {
@@ -315,6 +327,23 @@ export async function callAI(
         durationMs: Date.now() - startedAt, // typically <1ms
       };
     }
+  }
+
+  // ---- 0.5 Demo sessions never bill real AI ----
+  // Demo accounts read/write the local SQLite demo db, but the AI API is
+  // paid. Degrade gracefully (empty fallback result) instead of charging
+  // for preview traffic — callers already have fallback paths for this.
+  // Cached responses above are still served: they cost nothing.
+  if (await isDemoSessionActive()) {
+    return {
+      text: "",
+      provider: "fallback",
+      fallback: true,
+      promptTokens: 0,
+      completionTokens: 0,
+      model: "none",
+      durationMs: Date.now() - startedAt,
+    };
   }
 
   const apiMessages = messages.map(m => ({ role: m.role, content: m.content }));
@@ -514,6 +543,16 @@ export async function streamAI(
 
   const encoder = new TextEncoder();
   let fullText = ""; // accumulated for usage logging on stream end
+
+  // Demo sessions never bill real AI — emit a clean degradation marker.
+  if (await isDemoSessionActive()) {
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode("[stream-degraded: AI disabled for demo account]"));
+        controller.close();
+      },
+    });
+  }
 
   // Pick the best available provider client (DeepSeek preferred, then Z.ai).
   const client = await getDeepSeekClient();
