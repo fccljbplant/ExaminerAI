@@ -11,6 +11,8 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
+import { clearTokenCache, getCacheStats } from "@/modules/assessment/lib/token-cache";
+import { clearNamespace, getCacheOverview } from "@/modules/ai";
 
 export const runtime = "nodejs";
 
@@ -18,6 +20,12 @@ const CRONS = [
   { path: "/api/cron/srs-due", schedule: "0 3 * * *", label: "SRS due cards" },
   { path: "/api/cron/study-plan-refresh", schedule: "0 6 * * *", label: "Study plan refresh" },
   { path: "/api/cron/absence-scan", schedule: "0 7 * * *", label: "Absence scan" },
+  { path: "/api/cron/compliance-expiry", schedule: "0 4 * * *", label: "Compliance expiry + nudges" },
+  { path: "/api/cron/trials-expiry", schedule: "0 8 * * *", label: "Org trial expiry" },
+  { path: "/api/cron/billing-dunning", schedule: "0 9 * * *", label: "Billing dunning" },
+  { path: "/api/cron/payouts-sweep", schedule: "0 5 1 * *", label: "Monthly payout sweep" },
+  { path: "/api/cron/ai-budget-alerts", schedule: "0 * * * *", label: "AI budget threshold alerts" },
+  { path: "/api/cron/audit-retention", schedule: "0 10 * * 0", label: "Audit log retention" },
 ];
 
 export async function GET() {
@@ -96,10 +104,18 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   if (body.action === "purge-cache") {
-    // In-memory caches self-expire (feature flags 30s, rate limits per
-    // window) — nothing to hard-purge server-side; report success so
-    // operators get the confirmation the old panel gave.
-    return apiSuccess({ purged: true });
+    // Real purge (2026-08-17): clear the in-memory token cache and every
+    // DB-backed AI context-cache namespace (course-gen, tutor-topic,
+    // learner, cohort, project, course-outline). Previously this was a
+    // fake success — operators got confirmation but nothing happened.
+    const namespaces = await getCacheOverview();
+    let dbRows = 0;
+    for (const ns of namespaces) {
+      dbRows += await clearNamespace(ns.namespace).catch(() => 0);
+    }
+    const memoryEntries = getCacheStats().size;
+    clearTokenCache();
+    return apiSuccess({ purged: true, dbRows, memoryEntries, namespaces: namespaces.length });
   }
 
   return apiError("Unknown action", "VALIDATION_ERROR", 400);

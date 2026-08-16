@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES, UserRole } from "@/lib/rbac";
+import { hasRole, PLATFORM_ADMIN_ROLES, UserRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -26,7 +26,7 @@ export async function GET() {
   if (!payload || payload.role === UserRole.DEMO) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  if (!hasRole(payload.role, ADMIN_ROLES)) {
+  if (!hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (!payload || payload.role === UserRole.DEMO) {
     return NextResponse.json({ error: "Demo accounts cannot manage AI limits" }, { status: 403 });
   }
-  if (!hasRole(payload.role, ADMIN_ROLES)) {
+  if (!hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

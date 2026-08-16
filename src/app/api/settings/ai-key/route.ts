@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { hasRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { setAIKey, isAIConfigured, hasAI } from "@/lib/ai-provider";
@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
  *  Supports both Z.ai (primary) and DeepSeek (fallback). */
 export async function GET() {
   const payload = await getAuthUser();
-  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+  if (!payload || !hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -33,7 +33,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing settings"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+  if (!payload || !hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("managing settings"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+  if (!payload || !hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

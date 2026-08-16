@@ -14,8 +14,10 @@ import { logger } from "@/lib/logger";
  * published course without waiting for an admin to assign them. The flow is:
  *
  *   1. Auth required (student only — staff should manage via /api/enrollments).
- *   2. Demo accounts (@demo.ai) are blocked — they keep the demo data stable.
- *   3. The course must be published.
+ *   2. The course must be published.
+ *   3. PAID courses require a completed Payment (from Stripe Checkout) —
+ *      the checkout webhook creates the payment, which is proof of purchase.
+ *      Free courses enroll directly.
  *   4. If already enrolled as a student → 409 "Already enrolled".
  *   5. Otherwise — create CourseEnrollment(role="student") + bump the
  *      course's enrollmentCount. Returns 201 with the enrollment row.
@@ -23,7 +25,9 @@ import { logger } from "@/lib/logger";
  * Body: { courseId: string }
  */
 export async function POST(req: NextRequest) {
-  // 1) Demo write guard — @demo.ai accounts cannot mutate state.
+  // demoWriteBlock is a no-op since demo-routing (demo sessions write to
+  // the isolated local demo db) — kept for compatibility with the guard
+  // contract; @demo.ai enrollments land in the demo db only.
   const _demoBlock = await demoWriteBlock("self-enrolling in courses");
   if (_demoBlock) return _demoBlock;
 
@@ -50,13 +54,31 @@ export async function POST(req: NextRequest) {
   // 4) Fetch the course — must exist AND be published.
   const course = await db.course.findUnique({
     where: { id: courseId },
-    select: { id: true, name: true, published: true, enrollmentCount: true },
+    select: { id: true, name: true, published: true, enrollmentCount: true, price: true },
   });
   if (!course) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
   if (!course.published) {
     return NextResponse.json({ error: "Course not available" }, { status: 403 });
+  }
+
+  // 4b) Payment enforcement — a paid course can only be enrolled through
+  //     Stripe Checkout. The checkout webhook creates the Payment row, so
+  //     its presence is the proof of purchase. (2026-08-17: previously this
+  //     endpoint enrolled ANY published course for free — the UI routed
+  //     paid buyers to Stripe, but the API itself never checked.)
+  if ((course.price ?? 0) > 0) {
+    const payment = await db.payment.findFirst({
+      where: { userId: payload.sub, courseId, status: "completed" },
+      select: { id: true },
+    });
+    if (!payment) {
+      return NextResponse.json(
+        { error: "This is a paid course — complete checkout to enroll.", code: "PAYMENT_REQUIRED" },
+        { status: 402 },
+      );
+    }
   }
 
   // 5) Already-enrolled check — unique on [userId, courseId, role="student"].

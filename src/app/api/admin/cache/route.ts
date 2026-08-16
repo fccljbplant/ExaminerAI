@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES } from "@/lib/rbac";
+import { hasRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { getCacheStats, clearTokenCache } from "@/modules/assessment/lib/token-cache";
@@ -16,7 +16,7 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  */
 export async function GET() {
   const payload = await getAuthUser();
-  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+  if (!payload || !hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   await evictExpired();
@@ -42,7 +42,7 @@ export async function GET() {
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("clearing cache"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
-  if (!payload || !hasRole(payload.role, ADMIN_ROLES)) {
+  if (!payload || !hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

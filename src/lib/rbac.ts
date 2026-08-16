@@ -64,6 +64,14 @@ export const ADMIN_ROLES: UserRoleValue[] = [
   UserRole.DEMO,
 ];
 
+/** Platform-scoped roles — SaaS control-plane operations (tenant lifecycle,
+ *  platform revenue, global AI limits, cache, feature flags). Org admins
+ *  and demo accounts are deliberately EXCLUDED: their admin surface is the
+ *  org portal, not the platform plane (2026-08-17 guard hygiene). */
+export const PLATFORM_ADMIN_ROLES: UserRoleValue[] = [
+  UserRole.PLATFORM_ADMIN,
+];
+
 export const TECHNICAL_ROLES: UserRoleValue[] = [
   UserRole.PLATFORM_ADMIN,
 ];
