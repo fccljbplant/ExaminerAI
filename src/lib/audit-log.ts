@@ -95,6 +95,34 @@ export async function logAudit(params: LogAuditParams): Promise<void> {
       error: err instanceof Error ? err.message : String(err),
     });
   }
+
+  // Optional SIEM webhook sink (2026-08-17): when AUDIT_WEBHOOK_URL is
+  // configured, every audit event is streamed out for external log
+  // aggregation. Fire-and-forget — never blocks or breaks the caller.
+  const webhookUrl = process.env.AUDIT_WEBHOOK_URL;
+  if (webhookUrl) {
+    const payload = {
+      action,
+      actor: { id: actor.id, name: actor.name, role: actor.role },
+      target: { type: target?.type ?? "system", id: target?.id ?? "system" },
+      before: before ?? null,
+      after: after ?? null,
+      metadata: metadata ?? null,
+      ipAddress,
+      occurredAt: new Date().toISOString(),
+    };
+    void fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(4000),
+    }).catch((err) => {
+      logger.warn("Audit webhook dispatch failed", {
+        action,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
+  }
 }
 
 export function logAuditAsync(params: LogAuditParams): void {

@@ -663,3 +663,30 @@ which can refuse DDL — production schema changes are applied with
 `npm run db:sync:prod` (scripts/sync-prod-schema.mjs): direct
 (PROD_DIRECT_URL) connection, additive-only (no --accept-data-loss),
 with a post-push verification of the new SaaS tables.
+
+### 10.8 Platform control plane (final surface)
+
+- **Tenant lifecycle**: `Organization.status` (pending → trial → active /
+  suspended / cancelled) is enforced at login — members of suspended or
+  pending orgs are rejected (`TENANT_BLOCKED`, `src/lib/tenant-access.ts`).
+  Org signup honors `org_signup_requires_approval` (pending start);
+  Tenants has Create org, Approve & start trial, suspend/reactivate,
+  extend trial, edit seats, per-org flag overrides, subscription state.
+- **Revenue & payouts**: `GET /api/v2/platform/revenue` (MRR from active
+  seat subscriptions, pipeline MRR, B2C fees 30d, payout queue, trials
+  ending, AI spend) feeds the revenue-first Overview KPIs and the
+  `/platform/revenue` screen; `POST /api/v2/platform/payouts` runs the
+  payout sweep manually; `POST /api/v2/platform/refunds/[paymentId]`
+  refunds via Stripe and reverses aggregates (audited).
+- **Audit ops**: server-side CSV export for the global feed
+  (`/api/v2/platform/audit/export`) and per-org
+  (`/api/v2/org/audit/export`); weekly retention (400d); optional
+  `AUDIT_WEBHOOK_URL` SIEM sink streamed from `logAudit` (fire-and-forget).
+- **Support**: audited login-as (`sup` JWT + parked admin cookie + exit),
+  bans with reason that also write `User.status:"suspended"`, user
+  lookup, platform tenant announcements (`POST
+  /api/v2/platform/announcements` fans out Notification rows to every
+  active member).
+- **RAG index**: `/api/cron/embeddings-reindex` (published courses with
+  content but no embeddings, capped per run) runs inside the saas-daily
+  fan-out.
