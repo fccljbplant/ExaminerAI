@@ -73,7 +73,18 @@ export function PlatformAccess() {
     }
   }
 
-
+  async function revokeGrant(id: string) {
+    if (!window.confirm("Revoke this access grant?")) return;
+    try {
+      const res = await fetch(`/api/access-grants?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(payload.error || "Revoke failed");
+      toast.success("Grant revoked");
+      void retry();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Revoke failed");
+    }
+  }
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -154,6 +165,14 @@ export function PlatformAccess() {
               <span className="shrink-0 rounded-md bg-brand-subtle px-2 py-0.5 text-xs font-semibold capitalize text-brand">
                 {g.dataScope}
               </span>
+              <button
+                type="button"
+                onClick={() => void revokeGrant(g.id)}
+                className="inline-flex min-h-9 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger"
+                title="Revoke this grant"
+              >
+                Revoke
+              </button>
             </div>
           ))}
         </div>

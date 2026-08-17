@@ -86,3 +86,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to create access grant" }, { status: 500 });
   }
 }
+
+/** DELETE /api/access-grants?id=… — revoke a grant (soft: sets revokedAt).
+ *  Admin only (2026-08-17 — grants could previously be created but never
+ *  revoked via API/UI). */
+export async function DELETE(req: NextRequest) {
+  const _demoBlock = await demoWriteBlock("revoking access grants"); if (_demoBlock) return _demoBlock;
+  const auth = await requireRole([UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN, UserRole.DEMO]);
+  if (!auth.ok) return auth.response;
+
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+  const existing = await db.accessGrant.findUnique({ where: { id }, select: { id: true, revokedAt: true, granteeUserId: true } });
+  if (!existing) return NextResponse.json({ error: "Grant not found" }, { status: 404 });
+  if (existing.revokedAt) return NextResponse.json({ error: "Grant already revoked" }, { status: 409 });
+
+  const grant = await db.accessGrant.update({ where: { id }, data: { revokedAt: new Date() } });
+  await logAudit({
+    actor: { id: auth.ctx.payload.sub, name: auth.ctx.payload.name, role: auth.ctx.payload.role },
+    action: AuditAction.ACCESS_GRANT_REVOKED,
+    target: { type: "accessGrant", id },
+    after: { revoked: true, granteeUserId: existing.granteeUserId },
+    req,
+  }).catch(() => {});
+  return NextResponse.json({ grant });
+}

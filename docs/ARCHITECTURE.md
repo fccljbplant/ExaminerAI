@@ -646,6 +646,20 @@ fails the deploy loudly.
 
 ### 10.6 Cron registry
 
-`/api/cron/*`: srs-due, study-plan-refresh, absence-scan,
-compliance-expiry, trials-expiry, billing-dunning, payouts-sweep,
-ai-budget-alerts, audit-retention (listed in the platform System panel).
+Vercel cron slots are limited (the 9-job registration was rejected at
+deploy time), so jobs are consolidated into TWO registered schedules,
+each fanning out to per-job `run()` functions (individual routes stay
+for manual triggering):
+
+- `/api/cron/legacy` 03:00 — srs-due, study-plan-refresh, absence-scan
+- `/api/cron/saas-daily` 04:00 — compliance-expiry, trials-expiry,
+  billing-dunning, ai-budget-alerts daily; payouts-sweep on the 1st;
+  audit-retention on Sundays.
+
+### 10.7 Production schema sync
+
+The Vercel build's `prisma db push` targets the POOLED DATABASE_URL,
+which can refuse DDL — production schema changes are applied with
+`npm run db:sync:prod` (scripts/sync-prod-schema.mjs): direct
+(PROD_DIRECT_URL) connection, additive-only (no --accept-data-loss),
+with a post-push verification of the new SaaS tables.
