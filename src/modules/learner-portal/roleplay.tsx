@@ -63,8 +63,8 @@ export function RoleplayPractice() {
   const loadScenarios = useCallback(async () => {
     setLoadError(null);
     try {
-      const res = await api.get<{ scenarios: Scenario[] }>("/api/v2/roleplay/scenarios");
-      setScenarios(res.scenarios ?? []);
+      const res = await api.get<{ data: { scenarios: Scenario[] } }>("/api/v2/roleplay/scenarios");
+      setScenarios(res.data.scenarios ?? []);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : "Failed to load scenarios");
     }
@@ -81,9 +81,9 @@ export function RoleplayPractice() {
   async function start(scenario: Scenario) {
     setStarting(scenario.id);
     try {
-      const res = await api.post<{ run: Run }>("/api/v2/roleplay/runs", { scenarioId: scenario.id });
+      const res = await api.post<{ data: { run: Run } }>("/api/v2/roleplay/runs", { scenarioId: scenario.id });
       setActive(scenario);
-      setRun(res.run);
+      setRun(res.data.run);
       setInput("");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to start roleplay");
@@ -102,19 +102,19 @@ export function RoleplayPractice() {
       prev ? { ...prev, turns: [...prev.turns, { role: "student", content: text }] } : prev,
     );
     try {
-      const res = await api.post<{ run: Run; personaTurn: Turn }>(
+      const res = await api.post<{ data: { run: Run; personaTurn: Turn } }>(
         `/api/v2/roleplay/runs/${run.id}`,
         { message: text },
         60_000,
       );
-      setRun(res.run);
+      setRun(res.data.run);
     } catch (e) {
       if (e instanceof ApiError && e.status === 503) {
         // The student turn was still persisted server-side — resync.
         const fresh = await api
-          .get<{ run: Run }>(`/api/v2/roleplay/runs/${run.id}`)
+          .get<{ data: { run: Run } }>(`/api/v2/roleplay/runs/${run.id}`)
           .catch(() => null);
-        if (fresh) setRun(fresh.run);
+        if (fresh) setRun(fresh.data.run);
         toast.error(e.message || "AI unavailable — try again");
       } else {
         toast.error(e instanceof Error ? e.message : "Failed to send");
