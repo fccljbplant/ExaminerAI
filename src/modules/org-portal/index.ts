@@ -12,3 +12,4 @@ export { OrgAudit } from "./audit";
 export { OrgRegistries } from "./registries";
 export { OrgAnalytics } from "./analytics";
 export { OrgBilling } from "./billing";
+export { OrgCompliance } from "./compliance";

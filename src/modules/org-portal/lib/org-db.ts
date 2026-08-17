@@ -508,6 +508,143 @@ export async function getOrgAnalytics(orgId: string) {
   };
 }
 
+// ── Departments (B2B enterprise ops, 2026-08-17) ────────────────────────
+
+/** Parse a JSON-array string column (managerIds) without throwing. */
+function safeJsonArray(value: string): string[] {
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function listDepartments(orgId: string) {
+  const org = await db.organization.findUnique({ where: { id: orgId } });
+  if (!org) throw new OrgError("Organization not found", "NOT_FOUND", 404);
+
+  const departments = await db.department.findMany({
+    where: { orgId },
+    orderBy: { name: "asc" },
+    include: {
+      _count: { select: { members: true, courses: true } },
+      courses: { select: { course: { select: { id: true, name: true } } } },
+    },
+  });
+
+  return departments.map((d) => ({
+    id: d.id,
+    name: d.name,
+    managerIds: safeJsonArray(d.managerIds),
+    memberCount: d._count.members,
+    courseRuleCount: d._count.courses,
+    courses: d.courses.map((c) => ({ id: c.course.id, name: c.course.name })),
+  }));
+}
+
+export async function createDepartment(orgId: string, name: string) {
+  const clean = name.trim();
+  if (!clean) throw new OrgError("Department name is required", "VALIDATION", 400);
+  if (clean.length > 80) {
+    throw new OrgError("Department name is too long (max 80 characters)", "VALIDATION", 400);
+  }
+  const existing = await db.department.findFirst({ where: { orgId, name: clean } });
+  if (existing) {
+    throw new OrgError("A department with that name already exists", "CONFLICT", 409);
+  }
+  return db.department.create({ data: { orgId, name: clean } });
+}
+
+export async function renameDepartment(id: string, orgId: string, name: string) {
+  const clean = name.trim();
+  if (!clean) throw new OrgError("Department name is required", "VALIDATION", 400);
+  const department = await db.department.findFirst({ where: { id, orgId } });
+  if (!department) throw new OrgError("Department not found", "NOT_FOUND", 404);
+  const duplicate = await db.department.findFirst({
+    where: { orgId, name: clean, id: { not: id } },
+  });
+  if (duplicate) {
+    throw new OrgError("A department with that name already exists", "CONFLICT", 409);
+  }
+  return db.department.update({ where: { id }, data: { name: clean } });
+}
+
+export async function deleteDepartment(id: string, orgId: string) {
+  const department = await db.department.findFirst({ where: { id, orgId } });
+  if (!department) throw new OrgError("Department not found", "NOT_FOUND", 404);
+
+  await db.$transaction([
+    // Members keep their accounts — only the assignment is removed.
+    db.orgMember.updateMany({ where: { departmentId: id }, data: { departmentId: null } }),
+    db.departmentCourse.deleteMany({ where: { departmentId: id } }),
+    db.department.delete({ where: { id } }),
+  ]);
+  return { id };
+}
+
+export async function assignMemberToDepartment(
+  orgId: string,
+  memberUserId: string,
+  departmentId: string | null,
+) {
+  const member = await db.orgMember.findFirst({
+    where: { orgId, userId: memberUserId, status: { not: "removed" } },
+  });
+  if (!member) throw new OrgError("Member not found", "NOT_FOUND", 404);
+
+  if (departmentId !== null) {
+    const department = await db.department.findFirst({ where: { id: departmentId, orgId } });
+    if (!department) throw new OrgError("Department not found", "NOT_FOUND", 404);
+  }
+
+  return db.orgMember.update({ where: { id: member.id }, data: { departmentId } });
+}
+
+export async function setDepartmentCourses(
+  departmentId: string,
+  orgId: string,
+  courseIds: string[],
+) {
+  const department = await db.department.findFirst({ where: { id: departmentId, orgId } });
+  if (!department) throw new OrgError("Department not found", "NOT_FOUND", 404);
+
+  const uniqueIds = [...new Set(courseIds.map((c) => c.trim()).filter(Boolean))];
+  if (uniqueIds.length > 0) {
+    const found = await db.course.count({ where: { id: { in: uniqueIds } } });
+    if (found !== uniqueIds.length) {
+      throw new OrgError("One or more courses were not found", "NOT_FOUND", 404);
+    }
+  }
+
+  // Replace the department's course rules in one transaction.
+  await db.$transaction([
+    db.departmentCourse.deleteMany({ where: { departmentId } }),
+    db.departmentCourse.createMany({
+      data: uniqueIds.map((courseId) => ({ departmentId, courseId })),
+    }),
+  ]);
+
+  return uniqueIds;
+}
+
+/** Flattened course rules across all of the org's departments. */
+export async function listDepartmentCourses(orgId: string) {
+  const departments = await db.department.findMany({
+    where: { orgId },
+    orderBy: { name: "asc" },
+    include: { courses: { include: { course: { select: { name: true } } } } },
+  });
+  return departments.flatMap((d) =>
+    d.courses.map((dc) => ({
+      departmentId: d.id,
+      departmentName: d.name,
+      courseId: dc.courseId,
+      courseName: dc.course.name,
+    })),
+  );
+}
+
 // ── Billing (O6) ────────────────────────────────────────────────────────
 
 /** Org billing view: plan + seats usage + recent member payments. */

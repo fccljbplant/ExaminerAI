@@ -9,6 +9,7 @@
 import {
   BarChart3,
   Building2,
+  ClipboardCheck,
   Home,
   LayoutDashboard,
   MoreHorizontal,
@@ -29,13 +30,14 @@ export const ORG_NAV: NavItem[] = [
     label: "More",
     href: "/org/more",
     icon: MoreHorizontal,
-    match: ["/org/more", "/org/registries", "/org/billing"],
+    match: ["/org/more", "/org/registries", "/org/billing", "/org/compliance"],
   },
 ];
 
-/** Secondary destinations for the More hub (O3/O6/O7). */
+/** Secondary destinations for the More hub (O3/O6/O7 + compliance). */
 export const ORG_MORE: NavItem[] = [
   { id: "registries", label: "Registries", href: "/org/registries", icon: ServerCog },
   { id: "analytics", label: "Study analytics", href: "/org/analytics", icon: BarChart3 },
   { id: "billing", label: "Billing & seats", href: "/org/billing", icon: Building2 },
+  { id: "compliance", label: "Compliance", href: "/org/compliance", icon: ClipboardCheck },
 ];

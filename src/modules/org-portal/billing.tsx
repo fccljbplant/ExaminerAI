@@ -1,14 +1,18 @@
 "use client";
 
-import { AlertTriangle, CreditCard, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { AlertTriangle, CreditCard, RefreshCw, Rocket } from "lucide-react";
+import { api } from "@/lib/api-client";
 import { useApi } from "@/modules/learner-portal/use-api";
 
 /**
  * modules/org-portal — O6 Billing & seats (REDESIGN-P3 §O6, W7)
  *
- * Plan card + seat usage bar + recent member payments. The upgrade CTA
- * connects to the existing Stripe checkout in a later pass — for now
- * the plan is read-only and seats are managed from People.
+ * Plan card + seat usage bar + recent member payments. B2B enterprise
+ * ops (2026-08-17): real Stripe upgrade — one plan card per tier with a
+ * seats input (floor = the tier's minimum) that POSTs
+ * /api/v2/org/billing { plan, seats } and follows the checkout URL.
  */
 
 interface BillingData {
@@ -25,8 +29,53 @@ interface BillingData {
   }>;
 }
 
+const SEAT_PRICE_USD = 29;
+
+const PLANS = [
+  { id: "starter", label: "Starter", minSeats: 5, blurb: "Small teams getting started" },
+  { id: "team", label: "Team", minSeats: 50, blurb: "Growing departments" },
+  { id: "business", label: "Business", minSeats: 200, blurb: "Scaling training programs" },
+  { id: "enterprise", label: "Enterprise", minSeats: 500, blurb: "Company-wide compliance" },
+] as const;
+
+type PlanId = (typeof PLANS)[number]["id"];
+
 export function OrgBilling() {
   const { data, error, isLoading, retry } = useApi<BillingData>("/api/v2/org/billing");
+  const [seatsInput, setSeatsInput] = useState<Record<PlanId, string>>(() =>
+    Object.fromEntries(PLANS.map((p) => [p.id, String(p.minSeats)])) as Record<PlanId, string>,
+  );
+  const [busyPlan, setBusyPlan] = useState<PlanId | null>(null);
+
+  async function upgrade(plan: PlanId) {
+    const seats = Number(seatsInput[plan]);
+    const minSeats = PLANS.find((p) => p.id === plan)?.minSeats ?? 1;
+    if (!Number.isInteger(seats) || seats < minSeats) {
+      toast.error(`The ${plan} plan starts at ${minSeats} seats`);
+      return;
+    }
+    setBusyPlan(plan);
+    try {
+      const envelope = await api.post<{ ok: boolean; data: { url: string | null } }>(
+        "/api/v2/org/billing",
+        { plan, seats },
+      );
+      const url = envelope.data?.url;
+      if (!url) {
+        toast.error("Checkout unavailable", {
+          description: "Stripe is not configured on this server.",
+        });
+        return;
+      }
+      window.location.href = url;
+    } catch (err) {
+      toast.error("Couldn't start checkout", {
+        description: err instanceof Error ? err.message : "Try again.",
+      });
+    } finally {
+      setBusyPlan(null);
+    }
+  }
 
   if (isLoading) return <BillingSkeleton />;
   if (error || !data) {
@@ -73,6 +122,74 @@ export function OrgBilling() {
             : "Manage seats from the People tab."}
         </p>
       </div>
+
+      {/* upgrade plans */}
+      <section className="space-y-2">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          Upgrade plan
+        </h2>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {PLANS.map((plan) => {
+            const current = data.plan === plan.id;
+            const seats = Number(seatsInput[plan.id]) || plan.minSeats;
+            return (
+              <div
+                key={plan.id}
+                className={
+                  current
+                    ? "flex flex-col gap-2 rounded-xl border border-brand bg-brand-subtle/40 p-4"
+                    : "flex flex-col gap-2 rounded-xl border border-line bg-surface p-4"
+                }
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-fg">{plan.label}</p>
+                  {current && (
+                    <span className="rounded-md bg-brand px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-on-brand">
+                      Current
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-fg-muted">{plan.blurb}</p>
+                <p className="text-xs text-fg-secondary">
+                  {plan.minSeats}+ seats ·{" "}
+                  <span className="font-medium text-fg">
+                    ${SEAT_PRICE_USD}/seat/mo
+                  </span>
+                </p>
+                <label className="flex items-center gap-2 text-xs text-fg-muted">
+                  Seats
+                  <input
+                    type="number"
+                    min={plan.minSeats}
+                    value={seatsInput[plan.id]}
+                    onChange={(e) =>
+                      setSeatsInput((prev) => ({ ...prev, [plan.id]: e.target.value }))
+                    }
+                    aria-label={`Seats for ${plan.label} plan`}
+                    className="h-9 w-24 rounded-lg border border-line bg-surface px-2 text-sm tabular-nums text-fg focus:border-brand focus:outline-none"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={busyPlan === plan.id}
+                  onClick={() => void upgrade(plan.id)}
+                  className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+                >
+                  <Rocket className="h-3.5 w-3.5" aria-hidden />
+                  {busyPlan === plan.id
+                    ? "Opening checkout…"
+                    : current
+                      ? `Upgrade · $${(seats * SEAT_PRICE_USD).toLocaleString()}/mo`
+                      : `Switch · $${(seats * SEAT_PRICE_USD).toLocaleString()}/mo`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-fg-muted">
+          Plans renew monthly. Seats below the tier minimum are rounded up at checkout.
+        </p>
+      </section>
 
       {/* recent payments */}
       <section className="space-y-2">

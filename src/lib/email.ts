@@ -20,7 +20,14 @@ export type NotificationType =
   | "course_completed"
   | "credential_earned"
   | "message_received"
-  | "milestone_earned";
+  | "milestone_earned"
+  // B2B enterprise ops (2026-08-17): org announcements, compliance
+  // expiry nudges and payment-failure dunning all persist Notification
+  // rows; Notification.type is a free String column so the union here
+  // is the only place that needs to know about the new values.
+  | "announcement"
+  | "training_due"
+  | "payment_failed";
 
 export interface SendNotificationInput {
   userId: string;

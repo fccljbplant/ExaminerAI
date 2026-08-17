@@ -1,7 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, RefreshCw, ScrollText, Users } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Megaphone,
+  RefreshCw,
+  ScrollText,
+  Users,
+} from "lucide-react";
+import { api } from "@/lib/api-client";
 import { useApi } from "@/modules/learner-portal/use-api";
 
 /**
@@ -9,6 +19,8 @@ import { useApi } from "@/modules/learner-portal/use-api";
  *
  * Mobile order: members + seat KPIs first, then the recent audit feed.
  * One aggregate endpoint (GET /api/v2/org/home) feeds the whole fold.
+ * B2B enterprise ops (2026-08-17): announcements card (post + recent
+ * list) hangs below the fold — additive, no changes to the O1 API.
  */
 
 interface OrgMemberRow {
@@ -151,6 +163,9 @@ export function OrgHome() {
           )}
         </section>
       </div>
+
+      {/* announcements (B2B enterprise ops) */}
+      <OrgAnnouncements />
     </div>
   );
 }
@@ -199,5 +214,135 @@ function HomeSkeleton() {
       </div>
       <div className="h-64 rounded-xl bg-bg-subtle" />
     </div>
+  );
+}
+
+// ── Announcements (B2B enterprise ops, 2026-08-17) ──────────────────────
+
+interface AnnouncementRow {
+  id: string;
+  title: string;
+  body: string;
+  authorName: string;
+  createdAt: string;
+}
+
+interface AnnouncementsData {
+  announcements: AnnouncementRow[];
+}
+
+/** Compact post form + recent list. Own data (GET /api/v2/org/announcements)
+ *  so the O1 aggregate endpoint stays untouched. */
+function OrgAnnouncements() {
+  const { data, error, isLoading, retry } =
+    useApi<AnnouncementsData>("/api/v2/org/announcements");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [posting, setPosting] = useState(false);
+
+  async function post(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !body.trim()) return;
+    setPosting(true);
+    try {
+      const envelope = await api.post<{ ok: boolean; data: { notified: number } }>(
+        "/api/v2/org/announcements",
+        { title: title.trim(), body: body.trim() },
+      );
+      toast.success("Announcement posted", {
+        description: `Notified ${envelope.data?.notified ?? 0} member(s).`,
+      });
+      setTitle("");
+      setBody("");
+      retry();
+    } catch (err) {
+      toast.error("Couldn't post announcement", {
+        description: err instanceof Error ? err.message : "Try again.",
+      });
+    } finally {
+      setPosting(false);
+    }
+  }
+
+  const announcements = data?.announcements ?? [];
+
+  return (
+    <section className="space-y-2">
+      <h2 className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+        <Megaphone className="h-3.5 w-3.5" aria-hidden />
+        Announcements
+      </h2>
+
+      <form
+        onSubmit={post}
+        className="space-y-2 rounded-xl border border-line bg-surface p-4"
+      >
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+          maxLength={140}
+          aria-label="Announcement title"
+          className="h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+        />
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Share something with the team…"
+          maxLength={2000}
+          rows={2}
+          aria-label="Announcement body"
+          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+        />
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[11px] text-fg-muted">
+            Everyone in the org gets an in-app notification.
+          </p>
+          <button
+            type="submit"
+            disabled={posting || !title.trim() || !body.trim()}
+            className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+          >
+            {posting ? "Posting…" : "Post announcement"}
+          </button>
+        </div>
+      </form>
+
+      {isLoading ? (
+        <div className="h-20 animate-pulse rounded-xl border border-line bg-surface" aria-busy="true" />
+      ) : error ? (
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface px-4 py-3">
+          <p className="text-xs text-danger-on">Couldn&apos;t load announcements — {error}</p>
+          <button
+            type="button"
+            onClick={retry}
+            className="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs font-medium text-fg-secondary hover:border-line-strong"
+          >
+            <RefreshCw className="h-3 w-3" aria-hidden />
+            Retry
+          </button>
+        </div>
+      ) : announcements.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-line bg-surface p-6 text-center text-sm text-fg-muted">
+          No announcements yet — post the first one above.
+        </p>
+      ) : (
+        <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+          {announcements.slice(0, 5).map((a) => (
+            <div key={a.id} className="px-4 py-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-sm font-medium text-fg">{a.title}</p>
+                <p className="shrink-0 text-[11px] text-fg-muted">
+                  {new Date(a.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <p className="mt-0.5 line-clamp-2 text-xs text-fg-secondary">{a.body}</p>
+              <p className="mt-1 text-[11px] text-fg-muted">{a.authorName}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
