@@ -91,6 +91,9 @@ export async function POST(req: Request) {
   } = {};
   try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   if (!body.title || !body.title.trim()) return apiValidationError({ title: "title is required" });
+  if (!body.courseId) {
+    return apiValidationError({ courseId: "courseId is required — every project belongs to a course" });
+  }
 
   // Idempotent on (userId, courseId) when courseId is provided: pending,
   // approved AND rejected projects all count as "in flight" — a rejected
@@ -100,7 +103,7 @@ export async function POST(req: Request) {
       where: {
         userId: user.sub,
         courseId: body.courseId,
-        status: { in: ["pending_approval", "approved", "rejected"] },
+        status: { in: ["pending_approval", "approved", "rejected", "active", "completed"] },
       },
       include: { milestones: { orderBy: { order: "asc" } } },
     });

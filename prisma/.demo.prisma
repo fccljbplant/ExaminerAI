@@ -1317,6 +1317,7 @@ model LearnProject {
   tasks         ProjectTask[]
 
   @@index([userId])
+  @@index([courseId])
   @@index([status])
 }
 

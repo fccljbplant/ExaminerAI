@@ -26,6 +26,7 @@ import { VideoStage } from "@/modules/learn/components/classroom/VideoStage";
 import { TopicPicker } from "@/modules/learn/components/classroom/TopicPicker";
 import { UnifiedThemeToggle } from "@/modules/shell";
 import { DailyTestPanel } from "@/modules/assessment/components/DailyTestPanel";
+import { WeeklyTestPanel } from "@/modules/assessment/components/WeeklyTestPanel";
 import { VoiceBar } from "@/modules/learn/components/classroom/VoiceBar";
 import type { LessonMedia } from "@/modules/learn/lib/lesson-media";
 import { JourneyPanel } from "@/components/learn/panels/JourneyPanel";
@@ -117,8 +118,9 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [activePanel, setActivePanel] = useState<PanelKey | null>(null);
   // Post-lesson flow (W12): after the slides, the daily Socratic test
   // launches in place of the stage; results unlock "complete & next topic".
-  const [postStage, setPostStage] = useState<"slides" | "test" | "results" | "project" | "checkin" | "next">("slides");
+  const [postStage, setPostStage] = useState<"slides" | "test" | "results" | "weekly" | "project" | "checkin" | "next">("slides");
   const [dailyScore, setDailyScore] = useState<number | null>(null);
+  const [weeklyScore, setWeeklyScore] = useState<number | null>(null);
   // Sound is OFF by default — learners opt in via the voice toggle
   // (user requirement 2026-08-15).
   const [ttsOn, setTtsOn] = useState(false);
@@ -142,6 +144,13 @@ export function ClassroomShell({ courseId, courseName }: Props) {
   const [stageMode, setStageMode] = useState<"video" | "slides">("slides");
   const videoIntroRef = useRef<string | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
+
+  // The weekly test is due on the LAST day of each course week: the next
+  // topic either belongs to a later week or the course is complete.
+  const weeklyDue = Boolean(
+    today?.topic && !today.courseCompleted &&
+    (today.nextTopic === null || today.nextTopic.week > today.topic.week),
+  );
 
   const speakWithAvatar = useSpeakWithAvatar(ttsOn);
   const captionOnly = useCaptionOnly();
@@ -227,6 +236,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
       setTopicComplete(false);
       setPostStage("slides");
       setDailyScore(null);
+      setWeeklyScore(null);
       // Any in-flight slide generation belongs to the previous topic —
       // drop it and clear the auto-start keys so the new topic starts clean.
       genSeqRef.current++;
@@ -661,7 +671,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                   <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                     <button
                       type="button"
-                      onClick={() => setPostStage(now?.project ? "project" : "checkin")}
+                      onClick={() => setPostStage(weeklyDue ? "weekly" : now?.project ? "project" : "checkin")}
                       className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover"
                     >
                       Continue
@@ -676,6 +686,38 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                       Review slides
                     </button>
                   </div>
+                </div>
+              </div>
+            ) : postStage === "weekly" ? (
+              <div className="data-main-scroll min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+                <PostFlowStepper stage="weekly" hasProject={Boolean(now?.project)} onStage={setPostStage} />
+                <div className="mx-auto max-w-2xl">
+                  <WeeklyTestPanel
+                    courseId={courseId}
+                    week={today?.topic.week ?? 1}
+                    weekLabel={
+                      today?.topic
+                        ? `Week ${today.topic.week} — end-of-week test`
+                        : undefined
+                    }
+                    onComplete={(score) => {
+                      setWeeklyScore(score);
+                      tutor.play("cheer");
+                      speakWithAvatar("Week complete! Great work on the weekly test.");
+                    }}
+                  />
+                  {weeklyScore !== null && (
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setPostStage(now?.project ? "project" : "checkin")}
+                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover"
+                      >
+                        Continue
+                        <ArrowRight className="h-4 w-4" aria-hidden />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : postStage === "project" && now?.project ? (
@@ -1138,12 +1180,13 @@ function PostFlowStepper({
   hasProject,
   onStage,
 }: {
-  stage: "test" | "results" | "project" | "checkin" | "next";
+  stage: "test" | "results" | "weekly" | "project" | "checkin" | "next";
   hasProject: boolean;
-  onStage: (s: "slides" | "test" | "results" | "project" | "checkin" | "next") => void;
+  onStage: (s: "slides" | "test" | "results" | "weekly" | "project" | "checkin" | "next") => void;
 }) {
   const steps = [
     { key: "test" as const, label: "Test" },
+    { key: "weekly" as const, label: "Weekly" },
     ...(hasProject ? [{ key: "project" as const, label: "Project" }] : []),
     { key: "checkin" as const, label: "Check-in" },
     { key: "next" as const, label: "Next topic" },
@@ -1203,7 +1246,7 @@ function ProjectStage({
   week: number;
   onDone: () => void;
   onBack: () => void;
-  onStage: (s: "slides" | "test" | "results" | "project" | "checkin" | "next") => void;
+  onStage: (s: "slides" | "test" | "results" | "weekly" | "project" | "checkin" | "next") => void;
   hasProject: boolean;
 }) {
   const [note, setNote] = useState("");
@@ -1304,7 +1347,7 @@ function CheckinStage({
   hasProject: boolean;
   onDone: () => void;
   onBack: () => void;
-  onStage: (s: "slides" | "test" | "results" | "project" | "checkin" | "next") => void;
+  onStage: (s: "slides" | "test" | "results" | "weekly" | "project" | "checkin" | "next") => void;
 }) {
   const [confidence, setConfidence] = useState(3);
   const [note, setNote] = useState("");

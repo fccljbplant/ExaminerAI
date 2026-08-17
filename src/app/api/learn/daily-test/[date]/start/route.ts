@@ -21,6 +21,7 @@ import { getAuthUser } from "@/lib/auth";
 import { apiError, apiNotFound, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 import { callAIJson } from "@/modules/assessment/lib/ai-json";
 import { getTodayTopic, getTopicByWeekDay } from "@/modules/learn/lib/today-topic";
+import { getCourseOutline } from "@/modules/learn/lib/course-outline";
 import { getOrCreateProfile } from "@/modules/learn/lib/learner-profile";
 import { logger } from "@/lib/logger";
 

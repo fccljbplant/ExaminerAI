@@ -33,6 +33,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!project) return apiNotFound("Project not found");
   if (project.userId !== user.sub) return apiForbidden("This project belongs to another user");
 
+  // Approval gate (2026-08-18 audit): an unapproved proposal must not be
+  // completable — mirrors the v2 route so the drawer and the v2 flow agree.
+  if (project.status === "pending_approval" || project.status === "rejected") {
+    return apiForbidden("This project is awaiting approval — milestones unlock once an instructor approves it");
+  }
+
   const milestone = project.milestones.find((m) => m.id === milestoneId);
   if (!milestone) return apiNotFound("Milestone not found");
   if (milestone.status === "completed") {

@@ -62,6 +62,18 @@ export async function POST(
       where: { id: mid },
       data: { status: "completed", completedAt: new Date() },
     });
+
+    // Last milestone → project completed (matches the v1 route semantics;
+    // 2026-08-18 audit: v2 previously never updated the project status).
+    const remaining = await db.projectMilestone.count({
+      where: { projectId: project.id, status: { not: "completed" } },
+    });
+    if (remaining === 0) {
+      await db.learnProject.update({
+        where: { id: project.id },
+        data: { status: "completed" },
+      });
+    }
     try {
       await awardTypedXP(user.sub, "project_step", project.courseId ?? undefined, `milestone:${mid}`);
     } catch {

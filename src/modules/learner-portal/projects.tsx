@@ -153,7 +153,7 @@ export function LearnerProjects() {
 
 function NewProjectForm({ courses, onCreated }: { courses: CourseRow[]; onCreated: () => void }) {
   const [open, setOpen] = useState(false);
-  const [courseId, setCourseId] = useState("");
+  const [courseId, setCourseId] = useState(() => courses[0]?.id ?? "");
   const [title, setTitle] = useState("");
   const [goal, setGoal] = useState("");
   const [description, setDescription] = useState("");
@@ -167,8 +167,12 @@ function NewProjectForm({ courses, onCreated }: { courses: CourseRow[]; onCreate
     if (!title.trim()) return;
     setSaving(true);
     try {
+      if (!courseId) {
+        toast.error("Pick the course this project belongs to");
+        return;
+      }
       await api.post("/api/learn/projects", {
-        courseId: courseId || null,
+        courseId,
         title: title.trim(),
         goal: goal.trim() || null,
         description: description.trim() || null,
@@ -229,7 +233,7 @@ function NewProjectForm({ courses, onCreated }: { courses: CourseRow[]; onCreate
             onChange={(e) => setCourseId(e.target.value)}
             className="h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg"
           >
-            <option value="">No specific course</option>
+            <option value="">Select a course…</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}

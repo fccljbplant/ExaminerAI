@@ -1,23 +1,24 @@
 "use client";
 
-import { SocraticShell } from "./components/socratic-shell";
 import { WeeklyTestPanel } from "./components/WeeklyTestPanel";
 
 /**
- * modules/assessment — SocraticWeeklyTest (W10 audit: concept restored)
+ * modules/assessment — SocraticWeeklyTest
  *
- * Standalone entry for the classic 10-question Socratic weekly test —
- * wraps the restored WeeklyTestPanel in the SocraticShell so it runs
- * as its own v2 page (mode switch is a no-op outside the old
- * dashboard).
+ * Course-scoped weekly test (2026-08-18 audit): the host page resolves
+ * the learner's enrolled course + current progression week server-side
+ * and passes both through — the panel never derives context from the
+ * first enrollment or the legacy User.currentWeek.
  */
 
-export function SocraticWeeklyTest() {
-  return (
-    <SocraticShell
-      render={({ stats, reload }) => (
-        <WeeklyTestPanel stats={stats} onReload={reload} onMode={() => undefined} />
-      )}
-    />
-  );
+export function SocraticWeeklyTest({
+  courseId,
+  week,
+  weekLabel,
+}: {
+  courseId: string;
+  week: number;
+  weekLabel?: string;
+}) {
+  return <WeeklyTestPanel courseId={courseId} week={week} weekLabel={weekLabel} />;
 }

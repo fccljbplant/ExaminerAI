@@ -197,7 +197,7 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  <header className="px-5 py-4 border-b">
  <h2 className="text-lg font-semibold truncate">{project.title}</h2>
  <p className="text-xs text-muted-foreground mt-0.5">
- {completedMilestones}/{project.milestones.length} milestones · {project.status === "completed" ? "Completed" : "In progress"}
+ {completedMilestones}/{project.milestones.length} milestones · {project.status === "completed" ? "Completed" : project.status === "approved" ? "Approved — in progress" : project.status === "pending_approval" ? "Awaiting approval" : project.status === "rejected" ? "Changes requested" : "In progress"}
  </p>
  {project.goal && <p className="text-sm text-muted-foreground mt-2">{project.goal}</p>}
  </header>
@@ -212,6 +212,11 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  </div>
  <h3 className="font-semibold">{activeMilestone.title}</h3>
  {activeMilestone.description && <p className="text-sm text-muted-foreground mt-1">{activeMilestone.description}</p>}
+ {project.status === "pending_approval" || project.status === "rejected" ? (
+ <p className="mt-3 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+ {project.status === "rejected" ? "Your instructor requested changes — milestones unlock once it is approved again." : "Awaiting instructor approval — milestones unlock once the project is approved."}
+ </p>
+ ) : (
  <button
  onClick={() => handleCompleteMilestone(activeMilestone.id)}
  disabled={completingId === activeMilestone.id}
@@ -220,6 +225,7 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  {completingId === activeMilestone.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
  Mark complete (+15 XP)
  </button>
+ )}
  </section>
  )}
 
