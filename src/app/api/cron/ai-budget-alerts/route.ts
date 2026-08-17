@@ -21,12 +21,8 @@ const BUDGET_KEY_PREFIX = "ai_budget_org:";
 const ALERT_THRESHOLD = 0.8;
 const DEDUPE_DAYS = 6;
 
-export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req)) {
-    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  const settings = await db.setting.findMany({
+export async function run() {
+    const settings = await db.setting.findMany({
     where: { key: { startsWith: BUDGET_KEY_PREFIX } },
   });
 
@@ -75,4 +71,12 @@ export async function GET(req: NextRequest) {
 
   logger.info("ai-budget-alerts complete", { notified, skipped, orgs: settings.length });
   return Response.json({ ok: true, notified, skipped, orgs: settings.length });
+}
+
+export async function GET(req: NextRequest) {
+if (!isCronAuthorized(req)) {
+    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  return run();
 }

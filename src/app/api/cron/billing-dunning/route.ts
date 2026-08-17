@@ -17,12 +17,8 @@ export const dynamic = "force-dynamic";
 
 const ORG_BATCH = 100;
 
-export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req)) {
-    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  const startedAt = Date.now();
+export async function run() {
+    const startedAt = Date.now();
   const subscriptions = await db.subscription.findMany({
     where: { status: "past_due" },
     select: { orgId: true, plan: true, org: { select: { name: true } } },
@@ -57,4 +53,12 @@ export async function GET(req: NextRequest) {
     notified,
     durationMs: Date.now() - startedAt,
   });
+}
+
+export async function GET(req: NextRequest) {
+if (!isCronAuthorized(req)) {
+    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  return run();
 }

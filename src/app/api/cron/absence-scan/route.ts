@@ -37,12 +37,8 @@ const COPY = {
   },
 } as const;
 
-export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req)) {
-    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!(await isStudyFlowEnabled())) {
+export async function run() {
+    if (!(await isStudyFlowEnabled())) {
     return Response.json({ ok: true, skipped: "flag-off", processed: 0 });
   }
 
@@ -113,4 +109,12 @@ export async function GET(req: NextRequest) {
     skipped,
     durationMs: Date.now() - startedAt,
   });
+}
+
+export async function GET(req: NextRequest) {
+if (!isCronAuthorized(req)) {
+    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  return run();
 }

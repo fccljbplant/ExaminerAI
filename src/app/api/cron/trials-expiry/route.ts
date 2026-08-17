@@ -19,12 +19,8 @@ export const dynamic = "force-dynamic";
 
 const DEDUPE_DAYS = 6;
 
-export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req)) {
-    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  const now = Date.now();
+export async function run() {
+    const now = Date.now();
   const soon = new Date(now + 7 * 86_400_000);
   const orgs = await db.organization.findMany({
     where: {
@@ -73,4 +69,12 @@ export async function GET(req: NextRequest) {
   }
 
   return Response.json({ ok: true, data: { orgsChecked: orgs.length, notified } });
+}
+
+export async function GET(req: NextRequest) {
+if (!isCronAuthorized(req)) {
+    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  return run();
 }

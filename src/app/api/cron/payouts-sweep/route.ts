@@ -17,12 +17,8 @@ import { createPayoutTransfer } from "@/lib/stripe";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req)) {
-    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  const due = await db.payout.findMany({
+export async function run() {
+    const due = await db.payout.findMany({
     where: {
       status: "pending",
       OR: [{ scheduledFor: null }, { scheduledFor: { lte: new Date() } }],
@@ -65,4 +61,12 @@ export async function GET(req: NextRequest) {
   }
 
   return Response.json({ ok: true, data: { due: due.length, paid, failed, deferred } });
+}
+
+export async function GET(req: NextRequest) {
+if (!isCronAuthorized(req)) {
+    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  return run();
 }

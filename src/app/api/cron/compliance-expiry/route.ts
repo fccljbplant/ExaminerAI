@@ -21,12 +21,8 @@ const SCAN_BATCH = 500;
 const DEDUPE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const DUE_SOON_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 
-export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req)) {
-    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  const startedAt = Date.now();
+export async function run() {
+    const startedAt = Date.now();
   const now = new Date();
   const windowEnd = new Date(now.getTime() + DUE_SOON_WINDOW_MS);
   const dedupeSince = new Date(now.getTime() - DEDUPE_WINDOW_MS);
@@ -91,4 +87,12 @@ export async function GET(req: NextRequest) {
     skipped,
     durationMs: Date.now() - startedAt,
   });
+}
+
+export async function GET(req: NextRequest) {
+if (!isCronAuthorized(req)) {
+    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  return run();
 }

@@ -26,12 +26,8 @@ export const dynamic = "force-dynamic";
 const BATCH_SIZE = 200;
 const ACTIVE_WINDOW_DAYS = 30;
 
-export async function GET(req: NextRequest) {
-  if (!isCronAuthorized(req)) {
-    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!(await isStudyFlowEnabled())) {
+export async function run() {
+    if (!(await isStudyFlowEnabled())) {
     return Response.json({ ok: true, skipped: "flag-off", processed: 0 });
   }
 
@@ -79,4 +75,12 @@ export async function GET(req: NextRequest) {
     failed,
     durationMs: Date.now() - startedAt,
   });
+}
+
+export async function GET(req: NextRequest) {
+if (!isCronAuthorized(req)) {
+    return Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  return run();
 }
