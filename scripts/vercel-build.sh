@@ -43,8 +43,7 @@ timeout 60 node scripts/ensure-accounts.js || echo "⚠️  Account seeding fail
 
 # Step 4: Seed marketplace metadata on existing courses (non-blocking)
 echo "Seeding marketplace metadata..."
-node scripts/seed-marketplace-prod.js || echo "Seed skipped (already done or error)"
-
+timeout 60 node scripts/seed-marketplace-prod.js || echo "Seed skipped (already done or error)"
 # Step 5: Build Next.js
 echo "Building Next.js..."
 npx next build

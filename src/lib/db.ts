@@ -7,10 +7,23 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+/** Postgres pool cap for serverless (2026-08-17): every function instance
+ *  opens its own Prisma pool, and Neon's pooled endpoint has a small
+ *  slot ceiling — uncapped pools exhaust it ("remaining connection slots
+ *  are reserved for roles with the SUPERUSER attribute"). 4 connections
+ *  per instance is plenty for request-scoped queries. */
+const MAIN_DATABASE_URL =
+  process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("connection_limit=")
+    ? process.env.DATABASE_URL +
+      (process.env.DATABASE_URL.includes("?") ? "&" : "?") +
+      "connection_limit=4&pool_timeout=10"
+    : process.env.DATABASE_URL;
+
 const mainDb =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === "production" ? ["error"] : ["error", "warn"],
+    ...(MAIN_DATABASE_URL ? { datasourceUrl: MAIN_DATABASE_URL } : {}),
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = mainDb;
