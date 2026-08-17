@@ -451,3 +451,22 @@ export async function listPayoutQueue() {
   });
   return { pending: pending.map(toView), recent: recent.map(toView) };
 }
+
+/** Recent B2C payments for the revenue screen's refund actions. */
+export async function listRecentPayments() {
+  const payments = await db.payment.findMany({
+    where: { status: "completed" },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+    include: { course: { select: { name: true } }, user: { select: { email: true } } },
+  });
+  return payments.map((p) => ({
+    id: p.id,
+    courseName: p.course.name,
+    buyerEmail: p.user.email,
+    amount: p.amount,
+    currency: p.currency,
+    createdAt: p.createdAt.toISOString(),
+    refundable: Boolean(p.stripePaymentIntentId) || !process.env.STRIPE_SECRET_KEY,
+  }));
+}

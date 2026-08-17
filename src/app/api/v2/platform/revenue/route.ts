@@ -7,7 +7,7 @@
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
-import { getPlatformRevenue } from "@/modules/platform-portal/lib/platform-db";
+import { getPlatformRevenue, listRecentPayments } from "@/modules/platform-portal/lib/platform-db";
 
 export const runtime = "nodejs";
 
@@ -21,5 +21,6 @@ export async function GET() {
     return apiError("Platform portal is not enabled yet", "FORBIDDEN", 403);
   }
 
-  return apiSuccess({ revenue: await getPlatformRevenue() });
+  const [revenue, recentPayments] = await Promise.all([getPlatformRevenue(), listRecentPayments()]);
+  return apiSuccess({ revenue, recentPayments });
 }

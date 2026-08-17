@@ -21,7 +21,7 @@ const PatchBody = z
   .object({
     plan: z.string().min(1).max(30).optional(),
     seats: z.number().int().min(1).max(100000).optional(),
-    status: z.enum(["trial", "active", "suspended", "cancelled"]).optional(),
+    status: z.enum(["pending", "trial", "active", "suspended", "cancelled"]).optional(),
     trialEndsAt: z.string().nullable().optional(),
     suspendedReason: z.string().max(500).nullable().optional(),
   })

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Award,
-  Bell,
   CircleHelp,
   KeyRound,
   LogOut,
@@ -48,11 +47,6 @@ export function LearnerProfile({ user }: { user: ProfileInfo }) {
         <SecurityCard user={user} />
         <SecurityQuestionCard />
         <HelpCard />
-        <UpcomingCard
-          icon={Bell}
-          title="Notifications"
-          body="Email and in-app notification preferences arrive with the messaging update."
-        />
         <AccessibilityCard />
         <SignOutCard />
       </div>
@@ -253,7 +247,7 @@ function AccessibilityCard() {
         </div>
       </fieldset>
       <p className="mt-4 text-xs text-fg-muted">
-        Type scale, reduced motion and audio-only defaults are coming soon.
+        Captions and reduced-motion are the defaults here — more accessibility preferences are planned.
       </p>
     </Card>
   );
@@ -414,17 +408,6 @@ function HelpCard() {
       >
         Open help center
       </Link>
-    </Card>
-  );
-}
-
-function UpcomingCard({ icon, title, body }: { icon: typeof Bell; title: string; body: string }) {
-  return (
-    <Card icon={icon} title={title}>
-      <p className="text-xs text-fg-muted">{body}</p>
-      <span className="mt-3 inline-flex rounded-full bg-bg-subtle px-2.5 py-0.5 text-[11px] font-semibold text-fg-muted">
-        Coming soon
-      </span>
     </Card>
   );
 }

@@ -10,6 +10,11 @@
 // Pages and components can register their own commands via the
 // `useCommandRegistry()` hook — see src/components/shared/command-registry.tsx.
 //
+// Built-in navigation commands are ROLE-AWARE (2026-08-17): the palette
+// reads /api/auth/me once and swaps the destination set per role —
+// previously every role got learner-only commands that bounced them
+// around the learner portal.
+//
 // Voice: casual-yet-professional (per docs/UI-STANDARDS.md).
 // "Jump to anything. Try 'math week 3' or 'message sarah'."
 
@@ -36,7 +41,7 @@ import {
 } from "lucide-react";
 
 // Built-in navigation commands — always available.
-const NAV_COMMANDS: CommandEntry[] = [
+const LEARNER_NAV_COMMANDS: CommandEntry[] = [
   { id: "nav-home", label: "Today", hint: "Your daily routine", group: "Navigate", icon: Home, action: () => window.location.assign("/learner") },
   { id: "nav-courses", label: "My Courses", hint: "Browse and switch courses", group: "Navigate", icon: BookOpen, action: () => window.location.assign("/learner/learn") },
   { id: "nav-study", label: "Study", hint: "Practice, daily test, weekly test", group: "Navigate", icon: ClipboardList, action: () => window.location.assign("/learner/exams") },
@@ -49,16 +54,63 @@ const NAV_COMMANDS: CommandEntry[] = [
 ];
 
 // Quick actions — the "do something" commands.
-const ACTION_COMMANDS: CommandEntry[] = [
+const LEARNER_ACTION_COMMANDS: CommandEntry[] = [
   { id: "act-daily-test", label: "Start today's daily test", hint: "3 Socratic questions · ~5 min", group: "Actions", icon: GraduationCap, action: () => window.location.assign("/learner/exams/daily") },
   { id: "act-weekly-test", label: "Take weekly test", hint: "10 questions · full Socratic exam", group: "Actions", icon: ClipboardList, action: () => window.location.assign("/learner/exams/weekly") },
   { id: "act-practice", label: "Practice drills", hint: "Wrong answers come back", group: "Actions", icon: Sparkles, action: () => window.location.assign("/learner/practice") },
   { id: "act-ask-mentor", label: "Ask your mentor", hint: "Send a question to your mentor", group: "Actions", icon: MessageSquare, action: () => window.location.assign("/learner/messages") },
 ];
 
+// ── Role-aware built-in commands (2026-08-17) ─────────────────────────
+// Each role gets navigation + quick actions that actually land somewhere
+// useful for them. The learner set is the default fallback.
+
+const INSTRUCTOR_NAV_COMMANDS: CommandEntry[] = [
+  { id: "nav-home", label: "Home", hint: "Grading queue overview", group: "Navigate", icon: Home, action: () => window.location.assign("/instructor") },
+  { id: "nav-courses", label: "Courses", hint: "Assignments & events", group: "Navigate", icon: BookOpen, action: () => window.location.assign("/instructor/courses") },
+  { id: "nav-students", label: "Students", hint: "Roster and at-risk", group: "Navigate", icon: Users, action: () => window.location.assign("/instructor/students") },
+  { id: "nav-grading", label: "Grading", hint: "Review queue", group: "Navigate", icon: ClipboardList, action: () => window.location.assign("/instructor/review") },
+  { id: "nav-studio", label: "Studio", hint: "Create a course", group: "Navigate", icon: Sparkles, action: () => window.location.assign("/instructor/studio") },
+  { id: "nav-payouts", label: "Payouts", hint: "Earnings & payouts", group: "Navigate", icon: Award, action: () => window.location.assign("/instructor/payouts") },
+  { id: "nav-settings", label: "Settings", hint: "Account, theme, security", group: "Navigate", icon: Settings, action: () => window.location.assign("/instructor/settings") },
+];
+
+const ORG_NAV_COMMANDS: CommandEntry[] = [
+  { id: "nav-home", label: "Home", hint: "Org command center", group: "Navigate", icon: Home, action: () => window.location.assign("/org") },
+  { id: "nav-people", label: "People", hint: "Roster, departments, invites", group: "Navigate", icon: Users, action: () => window.location.assign("/org/people") },
+  { id: "nav-control", label: "Control", hint: "Branding & catalog", group: "Navigate", icon: Settings, action: () => window.location.assign("/org/control") },
+  { id: "nav-compliance", label: "Compliance", hint: "Training status matrix", group: "Navigate", icon: ClipboardList, action: () => window.location.assign("/org/compliance") },
+  { id: "nav-billing", label: "Billing", hint: "Plans & seats", group: "Navigate", icon: Award, action: () => window.location.assign("/org/billing") },
+  { id: "nav-audit", label: "Audit", hint: "Activity log", group: "Navigate", icon: BarChart3, action: () => window.location.assign("/org/audit") },
+];
+
+const PLATFORM_NAV_COMMANDS: CommandEntry[] = [
+  { id: "nav-home", label: "Overview", hint: "Platform KPIs & revenue", group: "Navigate", icon: Home, action: () => window.location.assign("/platform") },
+  { id: "nav-tenants", label: "Tenants", hint: "Org lifecycle", group: "Navigate", icon: Users, action: () => window.location.assign("/platform/orgs") },
+  { id: "nav-revenue", label: "Revenue", hint: "MRR & payouts", group: "Navigate", icon: BarChart3, action: () => window.location.assign("/platform/revenue") },
+  { id: "nav-users", label: "Users", hint: "Manage accounts", group: "Navigate", icon: Users, action: () => window.location.assign("/platform/users") },
+  { id: "nav-support", label: "Support", hint: "Lookup & login-as", group: "Navigate", icon: MessageSquare, action: () => window.location.assign("/platform/support") },
+  { id: "nav-features", label: "Features", hint: "Flags & rollouts", group: "Navigate", icon: Settings, action: () => window.location.assign("/platform/features") },
+];
+
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
   const { commands: registered } = useCommandRegistry();
+
+  // Read the user's role once so built-in commands match their portal.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { user?: { role?: string } } | null) => {
+        if (!cancelled && d?.user?.role) setRole(d.user.role);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Global ⌘K / Ctrl+K listener.
   useEffect(() => {
@@ -77,16 +129,25 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Merge built-in + registered commands, dedupe by id.
+  // Merge built-in + registered commands, dedupe by id. Built-ins are
+  // chosen by role (learner default).
   const allCommands = useMemo(() => {
-    const merged = [...NAV_COMMANDS, ...ACTION_COMMANDS, ...registered];
+    const nav = role === "instructor"
+      ? INSTRUCTOR_NAV_COMMANDS
+      : role === "org_admin"
+        ? ORG_NAV_COMMANDS
+        : role === "platform_admin"
+          ? PLATFORM_NAV_COMMANDS
+          : LEARNER_NAV_COMMANDS;
+    const actions = role === "learner" || role === null ? LEARNER_ACTION_COMMANDS : [];
+    const merged = [...nav, ...actions, ...registered];
     const seen = new Set<string>();
     return merged.filter((c) => {
       if (seen.has(c.id)) return false;
       seen.add(c.id);
       return true;
     });
-  }, [registered]);
+  }, [registered, role]);
 
   // Group commands by their `group` field.
   const grouped = useMemo(() => {

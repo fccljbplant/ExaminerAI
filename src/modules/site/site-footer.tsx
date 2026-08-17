@@ -18,8 +18,6 @@ const LEARN_LINKS = [
 
 const COMPANY_LINKS = [
   { href: "/for-business", label: "For Business" },
-  { href: "/for-business", label: "About" },
-  { href: "/support", label: "Contact" },
   { href: "/register", label: "Create an account" },
 ] as const;
 
@@ -27,7 +25,7 @@ const RESOURCE_LINKS = [
   { href: "/support", label: "Help Center" },
   { href: "/support", label: "Contact Support" },
   { href: "/verify", label: "Verify a certificate" },
-  { href: "/", label: "Sign In" },
+  { href: "/login", label: "Sign In" },
 ] as const;
 
 export function SiteFooter() {

@@ -20,7 +20,7 @@ const TOPICS: HelpTopic[] = [
   },
   {
     q: "How do I send announcements to my students?",
-    a: "Use Messages → outreach to draft a note to your enrolled students. The AI assistant on your home page can draft the message for you.",
+    a: "Use the Students tab → open a student profile → Message to draft a note to an individual learner.",
   },
   {
     q: "Where are my earnings?",

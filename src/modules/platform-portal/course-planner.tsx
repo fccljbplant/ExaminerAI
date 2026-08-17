@@ -441,6 +441,11 @@ export function CoursePlanner({
               {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
               {saving ? "Saving…" : "Save course"}
             </button>
+
+            {/* AI tools (creator studio, 2026-08-17): material upload,
+                quiz-from-module and RAG reindex — the APIs existed but had
+                no UI. Only shown in the instructor studio (showOwnership). */}
+            {showOwnership && <AITools courseId={form.id} weeks={form.weeks} />}
           </section>
         </div>
       </div>
@@ -562,6 +567,223 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
       <h1 className="truncate text-lg font-semibold text-fg md:text-xl">{title}</h1>
     </div>
   );
+}
+
+/* ── AI tools (creator studio, 2026-08-17) ──────────────────────────── */
+
+/**
+ * Course AI tools: upload source material (feeds the RAG index),
+ * generate a quiz from a module, and reindex embeddings. Wired to the
+ * /api/v2/instructor/courses/[id]/{material,quiz,reindex} routes that
+ * previously had no UI caller.
+ */
+function AITools({
+  courseId,
+  weeks,
+}: {
+  courseId: string;
+  weeks: WeekView[];
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [materialTitle, setMaterialTitle] = useState("");
+  const [materialKind, setMaterialKind] = useState<"text" | "pdf" | "docx">("text");
+  const [materialText, setMaterialText] = useState("");
+  const [module, setModule] = useState("");
+
+  const days = weeks.flatMap((w) =>
+    (w.days?.length ? w.days : Array.from({ length: w.dayCount ?? 1 }, (_, i) => ({ day: i + 1, title: "" }))).map((d) => ({
+      moduleId: `${w.weekNumber}-${d.day}`,
+      label: `Week ${w.weekNumber} · Day ${d.day}${d.title ? ` — ${d.title}` : ""}`,
+    })),
+  );
+
+  async function uploadMaterial(e: React.FormEvent) {
+    e.preventDefault();
+    if (!materialTitle.trim()) return;
+    setBusy("material");
+    try {
+      await api.post(`/api/v2/instructor/courses/${courseId}/material`, {
+        title: materialTitle.trim(),
+        kind: materialKind,
+        content: materialKind === "text" ? materialText : undefined,
+      });
+      toast.success("Material added", { description: "Indexed for the AI tutor — cite it in any lesson." });
+      setMaterialTitle("");
+      setMaterialText("");
+    } catch (err) {
+      toast.error("Upload failed", { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function uploadFile(file: File | undefined) {
+    if (!file) return;
+    const kind = file.name.endsWith(".pdf") ? "pdf" : file.name.endsWith(".docx") ? "docx" : "text";
+    setBusy("material");
+    try {
+      const dataUrl = kind === "text" ? undefined : await readAsDataUrl(file);
+      await api.post(`/api/v2/instructor/courses/${courseId}/material`, {
+        title: materialTitle.trim() || file.name,
+        kind,
+        ...(kind === "text" ? { content: await file.text() } : { dataUrl }),
+      });
+      toast.success("File added", { description: `${file.name} extracted and indexed for the AI tutor.` });
+      setMaterialTitle("");
+    } catch (err) {
+      toast.error("Upload failed", { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function generateQuiz() {
+    if (!module) return;
+    setBusy("quiz");
+    try {
+      const res = await api.post<{ data: { questions: unknown[] } }>(
+        `/api/v2/instructor/courses/${courseId}/quiz`,
+        { moduleId: module },
+        AI_TIMEOUT_MS,
+      );
+      toast.success("Quiz generated", { description: `${res.data.questions?.length ?? 0} questions saved to the module.` });
+    } catch (err) {
+      toast.error("Quiz generation failed", { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function reindex() {
+    setBusy("reindex");
+    try {
+      const res = await api.post<{ data: { indexed?: number; withEmbeddings?: number } }>(
+        `/api/v2/instructor/courses/${courseId}/reindex`,
+      );
+      toast.success("Index rebuilt", {
+        description: `${res.data.indexed ?? 0} chunks indexed (${res.data.withEmbeddings ?? 0} with embeddings).`,
+      });
+    } catch (err) {
+      toast.error("Reindex failed", { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <section className="space-y-3 rounded-xl border border-line bg-surface p-4">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-fg">
+        <Sparkles className="h-4 w-4 text-brand" aria-hidden />
+        AI tools
+      </h2>
+
+      {/* material upload */}
+      <form onSubmit={uploadMaterial} className="space-y-2">
+        <p className="text-xs text-fg-muted">
+          Upload lesson material (PDF/DOCX/text) — the AI tutor cites it with sources.
+        </p>
+        <div className="flex gap-2">
+          <input
+            value={materialTitle}
+            onChange={(e) => setMaterialTitle(e.target.value)}
+            placeholder="Material title"
+            aria-label="Material title"
+            className={cn(inputCls, "min-w-0 flex-1")}
+          />
+          <select
+            value={materialKind}
+            onChange={(e) => setMaterialKind(e.target.value as "text" | "pdf" | "docx")}
+            aria-label="Material kind"
+            className={cn(inputCls, "w-24 shrink-0")}
+          >
+            <option value="text">Text</option>
+            <option value="pdf">PDF</option>
+            <option value="docx">DOCX</option>
+          </select>
+        </div>
+        {materialKind === "text" ? (
+          <textarea
+            value={materialText}
+            onChange={(e) => setMaterialText(e.target.value)}
+            rows={2}
+            placeholder="Paste the material text…"
+            aria-label="Material text"
+            className={cn(inputCls, "resize-y")}
+          />
+        ) : (
+          <label className="flex min-h-10 cursor-pointer items-center justify-center rounded-lg border border-dashed border-line text-xs font-medium text-fg-secondary hover:border-line-strong">
+            Choose a {materialKind.toUpperCase()} file
+            <input
+              type="file"
+              accept={materialKind === "pdf" ? "application/pdf" : ".docx"}
+              className="sr-only"
+              onChange={(e) => void uploadFile(e.target.files?.[0])}
+            />
+          </label>
+        )}
+        <button
+          type="submit"
+          disabled={busy === "material" || !materialTitle.trim()}
+          className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+        >
+          {busy === "material" && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+          {materialKind === "text" ? "Add material" : "Upload file"}
+        </button>
+      </form>
+
+      {/* quiz from module */}
+      <div className="space-y-2">
+        <p className="text-xs text-fg-muted">Generate a quiz from one module (5 questions, saved to the module).</p>
+        <div className="flex gap-2">
+          <select
+            value={module}
+            onChange={(e) => setModule(e.target.value)}
+            aria-label="Module"
+            className={cn(inputCls, "min-w-0 flex-1")}
+          >
+            <option value="">Pick a week · day…</option>
+            {days.map((d) => (
+              <option key={d.moduleId} value={d.moduleId}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => void generateQuiz()}
+            disabled={busy === "quiz" || !module}
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+          >
+            {busy === "quiz" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <Wand2 className="h-3.5 w-3.5" aria-hidden />}
+            Generate
+          </button>
+        </div>
+      </div>
+
+      {/* reindex */}
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-fg-muted">Rebuild the tutor&apos;s search index after big edits.</p>
+        <button
+          type="button"
+          onClick={() => void reindex()}
+          disabled={busy === "reindex"}
+          className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50"
+        >
+          {busy === "reindex" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <RefreshCw className="h-3.5 w-3.5" aria-hidden />}
+          Reindex
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => reject(new Error("Couldn't read file"));
+    reader.readAsDataURL(file);
+  });
 }
 
 /* ── ThumbnailEditor — V1 CourseThumbnailPicker restored ──────────── */

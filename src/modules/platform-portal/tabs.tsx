@@ -10,7 +10,6 @@ import {
   KeyRound,
   LayoutDashboard,
   LifeBuoy,
-  RefreshCw,
   ScrollText,
   Server,
   ShieldCheck,
@@ -54,7 +53,6 @@ const TABS: TabDef[] = [
   { href: "/platform/access", label: "Access", icon: ShieldCheck },
   { href: "/platform/b2c", label: "B2C", icon: UserRound },
   { href: "/platform/nav-config", label: "Nav Config", icon: Activity },
-  { href: "/platform/system", label: "Maintenance", icon: RefreshCw },
 ];
 
 export function PlatformTabs({ className }: { className?: string }) {
