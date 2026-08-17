@@ -36,10 +36,10 @@ fi
 echo "Ensuring admin + demo accounts..."
 timeout 60 node scripts/ensure-accounts.js || echo "⚠️  Account seeding failed (non-blocking)"
 
-# Step 3b: Seed the roleplay scenario library for real (non-demo) users —
-# idempotent upserts keyed on RoleplayScenario.key (2026-08-17).
-echo "Seeding roleplay scenarios..."
-timeout 60 node scripts/seed-roleplay-scenarios.mjs --prod || echo "⚠️  Roleplay seed skipped (non-blocking)"
+# NOTE (2026-08-17): the roleplay scenario library is lazily seeded at
+# runtime (GET /api/v2/roleplay/scenarios → ensureRoleplayScenarios) —
+# NO prod DB writes happen during the build, so a pooled-connection
+# stall can never wedge a deploy.
 
 # Step 4: Seed marketplace metadata on existing courses (non-blocking)
 echo "Seeding marketplace metadata..."
