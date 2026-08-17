@@ -1,6 +1,9 @@
 "use client";
 
-import { AlertTriangle, Cpu, RefreshCw, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, Cpu, RefreshCw, Save, Zap } from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/api-client";
 import { useApi } from "@/modules/learner-portal/use-api";
 import { AILimitsCard, AIConnectionCard } from "./admin-extras";
 
@@ -54,6 +57,8 @@ export function PlatformAI() {
         <AILimitsCard />
         <AIConnectionCard />
       </div>
+
+      <OrgBudgetsSection />
 
       {data.byProvider.length > 0 && (
         <section className="space-y-2">
@@ -150,5 +155,155 @@ function AISkeleton() {
       </div>
       <div className="h-64 rounded-xl bg-bg-subtle" />
     </div>
+  );
+}
+
+// ── Per-org AI budgets (2026-08-16) ────────────────────────────────────────
+//
+// Compact additive section: a row per organization with the current
+// month's token usage and an editable monthly token limit. Saving writes
+// the `ai_budget_org:<orgId>` Setting via /api/v2/platform/ai-budgets;
+// an empty input clears the budget (unlimited).
+
+interface OrgBudgetRow {
+  orgId: string;
+  name: string;
+  limit: number | null;
+  used: number;
+}
+
+function OrgBudgetsSection() {
+  const { data, error, isLoading, retry } = useApi<{ budgets: OrgBudgetRow[] }>(
+    "/api/v2/platform/ai-budgets",
+  );
+  const [limits, setLimits] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (data?.budgets) {
+      setLimits(
+        Object.fromEntries(
+          data.budgets.map((b) => [b.orgId, b.limit === null ? "" : String(b.limit)]),
+        ),
+      );
+    }
+  }, [data]);
+
+  async function save(orgId: string) {
+    const raw = (limits[orgId] ?? "").trim();
+    const limit = raw === "" ? null : Number(raw);
+    if (limit !== null && (!Number.isInteger(limit) || limit < 0)) {
+      toast.error("Limit must be a non-negative whole number of tokens");
+      return;
+    }
+    setSaving(orgId);
+    try {
+      await api.put("/api/v2/platform/ai-budgets", { orgId, limit });
+      toast.success(limit === null ? "Budget cleared — unlimited" : "Budget updated");
+      retry();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to update budget");
+    } finally {
+      setSaving(null);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <section className="space-y-2" aria-busy="true">
+        <div className="h-4 w-40 animate-pulse rounded-md bg-bg-subtle" />
+        <div className="h-32 animate-pulse rounded-xl bg-bg-subtle" />
+      </section>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <section className="space-y-2">
+        <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          Per-org AI budgets
+        </h2>
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface p-4">
+          <p className="text-xs text-danger">Couldn&apos;t load org budgets: {error}</p>
+          <button
+            type="button"
+            onClick={retry}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+            Retry
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-2">
+      <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+        Per-org AI budgets
+      </h2>
+      <p className="px-1 text-xs text-fg-muted">
+        Monthly token ceilings per organization (enforced on the AI Tutor — the highest-volume
+        AI surface). Empty limit = unlimited.
+      </p>
+      <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+        {data.budgets.length === 0 && (
+          <p className="px-4 py-6 text-center text-xs text-fg-muted">
+            No organizations yet — budgets can be set once orgs exist.
+          </p>
+        )}
+        {data.budgets.map((b) => {
+          const limit = limits[b.orgId];
+          const limitValue = limit !== undefined && limit.trim() !== "" ? Number(limit) : null;
+          const pct =
+            limitValue !== null && Number.isFinite(limitValue) && limitValue > 0
+              ? Math.min(1, b.used / limitValue)
+              : 0;
+          return (
+            <div key={b.orgId} className="flex flex-wrap items-center gap-3 px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-fg">{b.name}</p>
+                <p className="text-xs tabular-nums text-fg-muted">
+                  {b.used.toLocaleString()} tokens used this month
+                  {limitValue !== null ? ` / ${limitValue.toLocaleString()}` : ""}
+                </p>
+                <div className="mt-1.5 h-1.5 w-full max-w-56 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
+                  <div
+                    className={`h-full rounded-full ${pct >= 0.8 ? "bg-danger" : "bg-brand"}`}
+                    style={{ width: `${Math.round(pct * 100)}%` }}
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-1.5 text-xs text-fg-muted">
+                <span className="sr-only">Monthly token limit for {b.name}</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={limits[b.orgId] ?? ""}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, [b.orgId]: e.target.value }))}
+                  placeholder="Unlimited"
+                  className="w-32 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs tabular-nums text-fg placeholder:text-fg-muted"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => void save(b.orgId)}
+                disabled={saving === b.orgId}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+              >
+                {saving === b.orgId ? (
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : (
+                  <Save className="h-3.5 w-3.5" aria-hidden />
+                )}
+                Save
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

@@ -247,6 +247,7 @@ interface UsageLog {
   retriesUsed?: number;
   errorMessage?: string;
   userId?: string | null;
+  orgId?: string | null;
 }
 
 async function logUsage(log: UsageLog) {
@@ -255,6 +256,7 @@ async function logUsage(log: UsageLog) {
     await db.aIUsageLog.create({
       data: {
         userId: log.userId ?? null,
+        orgId: log.orgId ?? null, // per-org AI budget attribution
         provider: log.provider,
         model: log.model,
         feature: log.feature,
@@ -294,6 +296,10 @@ export async function callAI(
     cacheable?: boolean;
     cacheTtlMs?: number;
     userId?: string; // for per-user daily rate limiting + usage attribution
+    /** Organization attribution for per-org AI budgets. Stored on the
+     *  AIUsageLog row; the budget gate itself lives at the route level
+     *  (see ai-rate-limits.orgOverBudget). */
+    orgId?: string;
     /** Proper JSON mode: sends response_format json_object to the
      *  provider (DeepSeek + Z.ai are OpenAI-compatible). */
     jsonMode?: boolean;
@@ -390,6 +396,7 @@ export async function callAI(
             promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
             success: true, durationMs: Date.now() - startedAt,
             userId: options?.userId,
+            orgId: options?.orgId,
           }).catch((err) => { logger.warn("Operation failed", { err }); });
           maybeCache(text, promptTokens, completionTokens, DEEPSEEK_MODEL);
           return { text, provider: "deepseek", fallback: false, promptTokens, completionTokens, model: DEEPSEEK_MODEL, durationMs: Date.now() - startedAt };
@@ -408,6 +415,7 @@ export async function callAI(
           success: false, durationMs: Date.now() - startedAt,
           errorMessage: e instanceof Error ? e.message : String(e),
           userId: options?.userId,
+          orgId: options?.orgId,
         }).catch((err) => { logger.warn("Operation failed", { err }); });
       }
     }
@@ -436,6 +444,7 @@ export async function callAI(
           promptTokens, completionTokens, totalTokens: promptTokens + completionTokens,
           success: true, durationMs: Date.now() - startedAt,
           userId: options?.userId,
+          orgId: options?.orgId,
         }).catch((err) => { logger.warn("Operation failed", { err }); });
         maybeCache(text, promptTokens, completionTokens, ZAI_MODEL);
         return { text, provider: "zai", fallback: false, promptTokens, completionTokens, model: ZAI_MODEL, durationMs: Date.now() - startedAt };
@@ -534,6 +543,8 @@ export async function streamAI(
     maxTokens?: number;
     feature?: string;
     userId?: string;
+    /** Organization attribution for per-org AI budgets (AIUsageLog.orgId). */
+    orgId?: string;
   },
 ): Promise<ReadableStream<Uint8Array>> {
   const temp = options?.temperature ?? 0.5;
@@ -613,6 +624,7 @@ export async function streamAI(
             success: true,
             durationMs: Date.now() - startedAt,
             userId: options?.userId,
+            orgId: options?.orgId,
           }).catch((err) => { logger.warn("Operation failed", { err }); });
         } catch (err) {
           // Mid-stream error — emit marker so client UI can fall back.

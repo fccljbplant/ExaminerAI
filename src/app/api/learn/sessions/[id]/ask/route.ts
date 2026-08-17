@@ -4,14 +4,15 @@
  * Body: { question }
  *
  * Tutor session Q&A — answers a learner question using RAG over the
- * course's existing LearnSlide content. Every answer cites the
- * [Week/Day/Slide] the answer was drawn from.
+ * course's CourseEmbedding index (slides, course days, narrations,
+ * materials). Every answer cites the [Week/Day/Slide] or material
+ * source the answer was drawn from; retrieval falls back to the legacy
+ * full-course slide block when the index has nothing useful.
  *
  * Flow:
  *  1. Load the TutorSession (must belong to the authed user).
- *  2. Fetch all slides for the course (cheap — small dataset).
- *  3. Build a "course knowledge" context block from slide titles +
- *     bullets + keyTerms + analogy.
+ *  2. retrieveForQuery() → top-5 chunks (cosine or keyword fallback).
+ *  3. Build the knowledge block (or the legacy full-course block).
  *  4. Call callAI with a system prompt that demands a cited answer.
  *  5. Persist both messages (student + tutor) to TutorMessage.
  *
@@ -28,6 +29,8 @@ import { callAIJson } from "@/modules/assessment/lib/ai-json";
 import { LEVEL_DIRECTIVES, type TeachingLevel } from "@/modules/learn/types";
 import { getTutorStudentContext, tutorContextBlocks } from "@/modules/learn/lib/tutor-context";
 import { buildTutorBlocksFromPacks, universalTutorSystemPrompt } from "@/modules/ai";
+import { buildKnowledgeBlock } from "@/modules/ai/lib/rag";
+import { getFullCourseSlidesBlock, retrieveForQuery } from "@/modules/ai/lib/rag-db";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -55,25 +58,26 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     data: { sessionId, role: "student", content: question, messageType: "text" },
   });
 
-  // RAG: load all slides for this course.
-  const slides = await db.learnSlide.findMany({
-    where: { courseId: session.courseId },
-    orderBy: { slideOrder: "asc" },
-    include: { narrations: true },
-  });
-
-  // Build a compact knowledge block: each slide is one block.
-  const knowledgeBlocks = slides.map((s) => {
-    const meta = s.moduleId ?? "0-0"; // "{week}-{day}"
-    const [w, d] = meta.split("-");
-    const citation = `[Week ${w}/Day ${d}/Slide ${s.slideOrder}]`;
-    const bullets = (s.bullets as string[]).map((b) => `  • ${b}`).join("\n");
-    const keyTerms = (s.keyTerms as string[]).length ? `Key terms: ${(s.keyTerms as string[]).join(", ")}` : "";
-    const analogy = s.analogy ? `Analogy: ${s.analogy}` : "";
-    const rwe = s.realWorldExample ? `Real-world example: ${s.realWorldExample}` : "";
-    return `${citation} ${s.title}\n${bullets}${keyTerms ? "\n" + keyTerms : ""}${analogy ? "\n" + analogy : ""}${rwe ? "\n" + rwe : ""}`;
-  });
-  const knowledge = knowledgeBlocks.join("\n\n---\n\n") || "(The tutor is preparing slides for this topic — answer from general knowledge and cite the topic.)";
+  // RAG: retrieve the most relevant knowledge chunks for this question.
+  // If retrieval comes back empty (or scores 0), fall back to the legacy
+  // full-course prompt-stuffing block.
+  let knowledge: string;
+  let sources: string[] = [];
+  try {
+    const chunks = await retrieveForQuery(session.courseId, question, 5);
+    const useful = chunks.filter((c) => c.score > 0);
+    if (useful.length > 0) {
+      knowledge = buildKnowledgeBlock(useful);
+      sources = useful.map((c) => c.citation);
+    } else {
+      knowledge = await getFullCourseSlidesBlock(session.courseId);
+    }
+  } catch (err) {
+    logger.warn("RAG retrieval failed — falling back to full-course block", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    knowledge = await getFullCourseSlidesBlock(session.courseId);
+  }
 
   // Build the conversation history (last 8 messages, compact).
   const history = session.messages
@@ -103,7 +107,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const systemPrompt = [
     universalTutorSystemPrompt(),
     LEVEL_DIRECTIVES[level],
-    "Below is the course knowledge base — each block starts with a [Week/Day/Slide] citation. ALWAYS ground your answer in these blocks. If the answer is in the KB, cite the [Week/Day/Slide] tag at the end of your answer. If the KB does not cover the question, say so honestly and offer to explain at a higher level using general knowledge (no citation).",
+    "Below is the course knowledge base — each block starts with a `Citation:` line identifying its source (e.g. `Week 2 Day 3 · Slide 2` or `Material: ...`). ALWAYS ground your answer in these blocks. If the answer is in the KB, cite the source tag at the end of your answer. If the KB does not cover the question, say so honestly and offer to explain at a higher level using general knowledge (no citation).",
     "",
     "=== COURSE KNOWLEDGE BASE ===",
     knowledge,
@@ -142,7 +146,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
           "Respond with ONLY a valid JSON object matching the schema. " +
           "Put the entire visible chat message in `reply` (plain flowing text, 3-8 sentences, " +
           "no reasoning, no notes to yourself, no [Coherence Check], no formatting markers). " +
-          "Set `citation` to the [Week/Day/Slide] tag only when your answer came from the knowledge base; otherwise null.",
+          "Set `citation` to the source tag from the knowledge base (e.g. `Week 2 Day 3 · Slide 2`) only when your answer came from the knowledge base; otherwise null.",
       },
     );
     if (result.ok) {
@@ -160,14 +164,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     answer = "I'm having trouble responding right now — please try again in a moment. Your progress is safe.";
   }
 
-  // Persist the tutor's answer (citation comes from the AI's JSON).
+  // Persist the tutor's answer (citation comes from the AI's JSON;
+  // `sources` records every knowledge chunk the answer was grounded on).
   await db.tutorMessage.create({
     data: {
       sessionId,
       role: "tutor",
       content: answer,
       messageType: "text",
-      ...(citation ? { metadata: { citation } as unknown as Prisma.InputJsonValue } : {}),
+      ...(citation || sources.length > 0
+        ? { metadata: { citation: citation ?? null, sources } as unknown as Prisma.InputJsonValue }
+        : {}),
     },
   });
 

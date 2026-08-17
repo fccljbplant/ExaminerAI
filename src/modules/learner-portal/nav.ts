@@ -3,10 +3,10 @@
  * (plain TS — safe across the RSC boundary).
  */
 
-import { BookOpen, ClipboardCheck, Home, LineChart, User } from "lucide-react";
+import { BookOpen, ClipboardCheck, Home, LineChart, MessagesSquare, User } from "lucide-react";
 import type { NavItem } from "@/modules/shell";
 
-/** Bottom tabs: Home / Learn / Exams / Progress / Profile (5 slots). */
+/** Bottom tabs: Home / Learn / Practice / Exams / Progress / Profile. */
 export const LEARNER_NAV: NavItem[] = [
   // Home is active ONLY on the exact dashboard route (no prefix match) —
   // nested routes highlight their own tab via match arrays.
@@ -17,6 +17,13 @@ export const LEARNER_NAV: NavItem[] = [
     href: "/learner/learn",
     icon: BookOpen,
     match: ["/learner/learn", "/learner/courses", "/learner/assignments"],
+  },
+  {
+    id: "practice",
+    label: "Practice",
+    href: "/learner/practice",
+    icon: MessagesSquare,
+    match: ["/learner/practice"],
   },
   { id: "exams", label: "Exams", href: "/learner/exams", icon: ClipboardCheck, match: ["/learner/exams"] },
   { id: "progress", label: "Progress", href: "/learner/progress", icon: LineChart, match: ["/learner/progress", "/learner/study"] },

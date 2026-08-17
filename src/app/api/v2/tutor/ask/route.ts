@@ -4,7 +4,8 @@ import { db } from "@/lib/db";
 import { streamAI } from "@/modules/assessment/lib/ai-provider";
 import { logger } from "@/lib/logger";
 import { isFeatureEnabled } from "@/lib/feature-flags";
-import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
+import { checkUserAILimit, isDemoAIBlocked, categoryForFeature, isOrgOverBudget } from "@/lib/ai-rate-limits";
+import { apiError } from "@/lib/api-response";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getTodayTopic } from "@/modules/learn/lib/today-topic";
 import { getTutorContext } from "@/modules/learn/lib/study-flow-db";
@@ -78,6 +79,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Per-org AI budget (2026-08-16): the tutor is the single
+  // highest-volume AI surface, so org budgets are enforced here via the
+  // learner's org membership. Other AI surfaces follow the same pattern.
+  const membership = await db.orgMember
+    .findFirst({
+      where: { userId: user.sub, status: { not: "removed" } },
+      select: { orgId: true },
+    })
+    .catch(() => null);
+  const orgId = membership?.orgId ?? null;
+  if (orgId) {
+    const budget = await isOrgOverBudget(orgId);
+    if (budget.over) {
+      return apiError("Your organization's AI budget is exhausted", "RATE_LIMITED", 429);
+    }
+  }
+
   const body = await req.json().catch(() => ({}));
   const { messages, surface } = body as {
     messages?: { role: "user" | "assistant"; content: string }[];
@@ -143,7 +161,7 @@ export async function POST(req: NextRequest) {
           content: m.role === "user" ? `${questionPrefix}${m.content}` : m.content,
         })),
       ],
-      { temperature: 0.7, maxTokens: 600, feature: "ai-tutor-v2", userId: user.sub }
+      { temperature: 0.7, maxTokens: 600, feature: "ai-tutor-v2", userId: user.sub, orgId: orgId ?? undefined }
     );
 
     return new Response(stream, {

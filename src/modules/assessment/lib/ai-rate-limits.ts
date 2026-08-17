@@ -180,6 +180,81 @@ export async function isDemoAIBlocked(isDemo: boolean): Promise<boolean> {
   return !enabled;
 }
 
+// === Per-org AI budgets ===================================================
+//
+// Monthly token budgets per organization, admin-configurable via the
+// Setting key `ai_budget_org:<orgId>` (value = monthly token limit as a
+// string; an absent key means unlimited). Usage is the sum of
+// AIUsageLog.totalTokens attributed to the org (orgId column) since the
+// 1st of the current month.
+
+export interface OrgBudgetResult {
+  over: boolean;
+  used: number;
+  limit: number | null; // null = unlimited (no Setting row)
+}
+
+/** Setting key for an org's monthly AI token budget. */
+export function orgBudgetSettingKey(orgId: string): string {
+  return `ai_budget_org:${orgId}`;
+}
+
+/** Start of the current month (UTC). */
+export function startOfUTCMonth(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
+
+/** Read the configured limit for an org (null = unlimited / unset). */
+export async function getOrgBudgetLimit(orgId: string): Promise<number | null> {
+  try {
+    const setting = await db.setting.findUnique({ where: { key: orgBudgetSettingKey(orgId) } });
+    if (setting) {
+      const parsed = parseInt(setting.value, 10);
+      if (!Number.isNaN(parsed) && parsed >= 0) return parsed;
+    }
+  } catch (err) {
+    logger.warn("Failed to read org AI budget setting", {
+      orgId,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+  return null;
+}
+
+/** Sum the org's successful AI token usage since the 1st of the month. */
+async function sumOrgMonthUsage(orgId: string): Promise<number> {
+  try {
+    const aggregate = await db.aIUsageLog.aggregate({
+      where: { orgId, createdAt: { gte: startOfUTCMonth() }, success: true },
+      _sum: { totalTokens: true },
+    });
+    return aggregate._sum.totalTokens ?? 0;
+  } catch (err) {
+    logger.warn("Failed to count org AI usage", {
+      orgId,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return 0; // fail-open: an uncountable budget must not block AI
+  }
+}
+
+/** Check an org's monthly AI budget. `{ over: false, used: 0, limit: null }`
+ *  when no budget is configured (unlimited). */
+export async function isOrgOverBudget(orgId: string): Promise<OrgBudgetResult> {
+  const limit = await getOrgBudgetLimit(orgId);
+  if (limit === null) return { over: false, used: 0, limit: null };
+  const used = await sumOrgMonthUsage(orgId);
+  return { over: used >= limit, used, limit };
+}
+
+/** Route-level org budget gate — same call as isOrgOverBudget.
+ *  `userId` is reserved for future per-member budget attribution and is
+ *  currently unused. */
+export async function orgOverBudget(orgId: string, _userId?: string): Promise<OrgBudgetResult> {
+  return isOrgOverBudget(orgId);
+}
+
 /**
  * H1 fix (audit 2026-07-26): unified rate-limit + demo-block check.
  *
