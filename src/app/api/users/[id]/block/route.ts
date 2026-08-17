@@ -61,6 +61,10 @@ export async function PUT(
       blocked,
       banReason: blocked ? reason : null,
       banExpiresAt: null,
+      // User.status "suspended" is enforced by the login route — write it
+      // so bans take effect at the status gate as well as the flag
+      // (2026-08-17).
+      status: blocked ? "suspended" : "active",
     },
   });
 

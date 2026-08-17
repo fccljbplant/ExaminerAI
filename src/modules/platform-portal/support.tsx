@@ -29,6 +29,29 @@ export function PlatformSupport() {
   const [query, setQuery] = useState("");
   const [user, setUser] = useState<UserCard | null>(null);
   const [busy, setBusy] = useState(false);
+  const [announceOrg, setAnnounceOrg] = useState("");
+  const [announceTitle, setAnnounceTitle] = useState("");
+  const [announceBody, setAnnounceBody] = useState("");
+
+  async function broadcast(e: React.FormEvent) {
+    e.preventDefault();
+    if (!announceOrg.trim() || !announceTitle.trim() || !announceBody.trim()) return;
+    setBusy(true);
+    try {
+      const res = await api.post<{ data: { notified: number } }>("/api/v2/platform/announcements", {
+        orgId: announceOrg.trim(),
+        title: announceTitle.trim(),
+        body: announceBody.trim(),
+      });
+      toast.success(`Announcement sent to ${res.data.notified} members`);
+      setAnnounceTitle("");
+      setAnnounceBody("");
+    } catch (err) {
+      toast.error("Broadcast failed", { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function lookup(e: React.FormEvent) {
     e.preventDefault();
@@ -166,6 +189,42 @@ export function PlatformSupport() {
         a banner is shown to you and every support action is written to the audit log with your
         identity and the reason above.
       </p>
+
+      <form onSubmit={broadcast} className="max-w-xl space-y-2 rounded-xl border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold text-fg">Tenant announcement</h2>
+        <input
+          value={announceOrg}
+          onChange={(e) => setAnnounceOrg(e.target.value)}
+          placeholder="Organization id"
+          aria-label="Organization id"
+          className="h-11 w-full rounded-lg border border-line bg-bg px-3 font-mono text-sm text-fg placeholder:text-fg-muted"
+          required
+        />
+        <input
+          value={announceTitle}
+          onChange={(e) => setAnnounceTitle(e.target.value)}
+          placeholder="Subject"
+          aria-label="Announcement subject"
+          className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+          required
+        />
+        <textarea
+          value={announceBody}
+          onChange={(e) => setAnnounceBody(e.target.value)}
+          placeholder="Message — sent as a notification to every active member of the org."
+          aria-label="Announcement body"
+          rows={3}
+          className="w-full resize-y rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted"
+          required
+        />
+        <button
+          type="submit"
+          disabled={busy}
+          className="inline-flex min-h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50"
+        >
+          Broadcast to org
+        </button>
+      </form>
     </div>
   );
 }

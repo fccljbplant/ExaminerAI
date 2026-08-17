@@ -31,12 +31,20 @@ export async function getPlatformHome() {
     }),
   ]);
 
+  // SaaS P&L KPIs (2026-08-17) — platform Overview is revenue-first.
+  const revenue = await getPlatformRevenue();
+
   return {
     kpis: {
       orgs: orgs.length,
       activeMembers: memberCount,
       users: userCount,
       auditActions: auditCount,
+      mrr: revenue.mrr,
+      pipelineMrr: revenue.pipelineMrr,
+      fees30d: revenue.platformFees30d,
+      payoutsPending: revenue.payoutsPending.sum,
+      aiSpend30d: revenue.aiSpend30d,
     },
     orgs: orgs.map((o) => ({
       id: o.id,
@@ -150,7 +158,7 @@ export async function getCourseManagement() {
 
 // ── Tenants (SaaS control plane, 2026-08-17) ─────────────────────────
 
-export const ORG_STATUSES = ["trial", "active", "suspended", "cancelled"] as const;
+export const ORG_STATUSES = ["pending", "trial", "active", "suspended", "cancelled"] as const;
 export type OrgStatus = (typeof ORG_STATUSES)[number];
 
 export interface TenantRow {
@@ -336,4 +344,110 @@ export async function setOrgFlagOverride(
     create: { key: `${key}_org:${orgId}`, value: String(enabled) },
   });
   return { ok: true };
+}
+
+// ── Platform revenue & payouts (SaaS P&L, 2026-08-17) ────────────────
+
+const SEAT_PRICE_USD = 29;
+
+/** Platform revenue rollup: MRR from active subscriptions, B2C fees,
+ *  pending creator payouts, trial health and AI spend. */
+export async function getPlatformRevenue() {
+  const now = new Date();
+  const since30d = new Date(now.getTime() - 30 * 86_400_000);
+  const since7d = new Date(now.getTime() - 7 * 86_400_000);
+
+  const [
+    subscriptions,
+    fees30d,
+    payoutsPending,
+    trialsEnding,
+    aiSpend30d,
+    payments30d,
+    refunded30d,
+  ] = await Promise.all([
+    db.subscription.findMany({
+      where: { status: { in: ["active", "trialing"] } },
+      select: { plan: true, seats: true, status: true },
+    }),
+    db.payment.aggregate({
+      where: { status: "completed", createdAt: { gte: since30d } },
+      _sum: { platformFee: true, amount: true },
+    }),
+    db.payout.findMany({
+      where: { status: "pending" },
+      select: { id: true, instructorId: true, amount: true, scheduledFor: true },
+    }),
+    db.organization.findMany({
+      where: { status: "trial", trialEndsAt: { lte: new Date(now.getTime() + 7 * 86_400_000), gte: now } },
+      select: { id: true, name: true, trialEndsAt: true },
+      orderBy: { trialEndsAt: "asc" },
+    }),
+    db.aIUsageLog.aggregate({
+      where: { createdAt: { gte: since30d }, costUsd: { not: null } },
+      _sum: { costUsd: true },
+    }),
+    db.payment.count({ where: { createdAt: { gte: since30d } } }),
+    db.payment.count({ where: { status: "refunded", refundedAt: { gte: since30d } } }),
+  ]);
+
+  // MRR: active subscriptions at $29/seat/month (trialing counts as
+  // pipeline, shown separately).
+  const active = subscriptions.filter((s) => s.status === "active");
+  const mrr = active.reduce((sum, s) => sum + s.seats * SEAT_PRICE_USD, 0);
+  const pipelineMrr = subscriptions
+    .filter((s) => s.status === "trialing")
+    .reduce((sum, s) => sum + s.seats * SEAT_PRICE_USD, 0);
+
+  return {
+    mrr,
+    pipelineMrr,
+    b2cGross30d: Math.round((fees30d._sum.amount ?? 0) * 100) / 100,
+    platformFees30d: Math.round((fees30d._sum.platformFee ?? 0) * 100) / 100,
+    payments30d,
+    refunded30d,
+    payoutsPending: {
+      count: payoutsPending.length,
+      sum: Math.round(payoutsPending.reduce((s, p) => s + p.amount, 0) * 100) / 100,
+    },
+    aiSpend30d: Math.round((aiSpend30d._sum.costUsd ?? 0) * 100) / 100,
+    trialsEnding7d: trialsEnding.map((t) => ({
+      id: t.id,
+      name: t.name,
+      trialEndsAt: t.trialEndsAt?.toISOString() ?? null,
+    })),
+    subscriptionStates: subscriptions.reduce<Record<string, number>>((acc, s) => {
+      acc[s.status] = (acc[s.status] ?? 0) + 1;
+      return acc;
+    }, {}),
+  };
+}
+
+/** Payout queue for platform oversight + a manual sweep trigger. */
+export async function listPayoutQueue() {
+  const [pending, recent] = await Promise.all([
+    db.payout.findMany({
+      where: { status: "pending" },
+      include: { instructor: { select: { email: true, name: true, stripeAccountId: true } } },
+      orderBy: { scheduledFor: "asc" },
+      take: 100,
+    }),
+    db.payout.findMany({
+      where: { status: { in: ["paid", "failed"] } },
+      include: { instructor: { select: { email: true, name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+  ]);
+  const toView = (p: typeof pending[number] | typeof recent[number]) => ({
+    id: p.id,
+    instructorEmail: p.instructor.email,
+    instructorName: p.instructor.name,
+    amount: p.amount,
+    status: p.status,
+    stripeTransferId: p.stripeTransferId,
+    scheduledFor: p.scheduledFor?.toISOString() ?? null,
+    createdAt: p.createdAt.toISOString(),
+  });
+  return { pending: pending.map(toView), recent: recent.map(toView) };
 }

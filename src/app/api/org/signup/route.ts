@@ -81,6 +81,14 @@ export async function POST(req: NextRequest) {
   const plan = PLAN_BY_SEATS[seats || "1-10"] || "starter";
   const seatsNum = seats === "200+" ? 200 : parseInt(seats?.split("-").pop() || "10", 10);
 
+  // Approval gate (2026-08-17): when org_signup_requires_approval is on,
+  // new orgs start as "pending" and their admins can't sign in until the
+  // platform admin approves them in Platform → Tenants.
+  const requiresApproval =
+    ((await db.setting.findUnique({ where: { key: "org_signup_requires_approval" } }))?.value ?? "false") ===
+    "true";
+  const initialStatus = requiresApproval ? "pending" : "trial";
+
   try {
     // Create org + admin user + org membership in a transaction
     const result = await db.$transaction(async (tx) => {
@@ -91,6 +99,7 @@ export async function POST(req: NextRequest) {
           slug,
           plan,
           seats: seatsNum,
+          status: initialStatus,
         },
       });
 

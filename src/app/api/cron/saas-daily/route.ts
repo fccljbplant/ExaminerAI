@@ -18,6 +18,7 @@ import { run as runBillingDunning } from "../billing-dunning/route";
 import { run as runAIBudgetAlerts } from "../ai-budget-alerts/route";
 import { run as runPayoutsSweep } from "../payouts-sweep/route";
 import { run as runAuditRetention } from "../audit-retention/route";
+import { run as runEmbeddingsReindex } from "../embeddings-reindex/route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
     ["trials-expiry", runTrialsExpiry],
     ["billing-dunning", runBillingDunning],
     ["ai-budget-alerts", runAIBudgetAlerts],
+    ["embeddings-reindex", runEmbeddingsReindex],
   ];
   if (isMonthly) daily.push(["payouts-sweep", runPayoutsSweep]);
   if (isWeekly) daily.push(["audit-retention", runAuditRetention]);

@@ -85,6 +85,22 @@ export function PlatformTenants() {
     }
   }
 
+  async function createOrg() {
+    const name = window.prompt("New organization name:");
+    if (!name) return;
+    setBusy(true);
+    try {
+      const res = await api.post<{ data: { tenant: { id: string } } }>("/api/v2/platform/orgs", { name });
+      toast.success("Organization created");
+      void load();
+      void openDetail(res.data.tenant.id);
+    } catch (e) {
+      toast.error("Create failed", { description: e instanceof Error ? e.message : undefined });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function patchTenant(id: string, patch: Record<string, unknown>, successMsg: string) {
     setBusy(true);
     try {
@@ -142,6 +158,14 @@ export function PlatformTenants() {
             className="inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover"
           >
             Search
+          </button>
+          <button
+            type="button"
+            onClick={() => void createOrg()}
+            disabled={busy}
+            className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:bg-bg-subtle disabled:opacity-50"
+          >
+            + Create org
           </button>
         </form>
       </div>
@@ -243,6 +267,19 @@ export function PlatformTenants() {
                   </p>
                 )}
                 <div className="flex flex-wrap gap-2">
+                  {detail.status === "pending" && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        const end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+                        void patchTenant(detail.id, { status: "trial", trialEndsAt: end }, "Tenant approved — trial started");
+                      }}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="h-4 w-4" aria-hidden /> Approve &amp; start trial
+                    </button>
+                  )}
                   {detail.status === "suspended" ? (
                     <button
                       type="button"
@@ -297,6 +334,12 @@ export function PlatformTenants() {
                       : ""}
                   </p>
                 )}
+                <a
+                  href="/platform/support"
+                  className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle"
+                >
+                  Support tools →
+                </a>
               </section>
 
               <section className="space-y-2">

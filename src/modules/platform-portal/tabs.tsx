@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
+  Banknote,
   BookOpen,
   Wand2,
   KeyRound,
@@ -40,6 +41,7 @@ interface TabDef {
 const TABS: TabDef[] = [
   { href: "/platform", label: "Overview", icon: LayoutDashboard },
   { href: "/platform/orgs", label: "Tenants", icon: Activity },
+  { href: "/platform/revenue", label: "Revenue", icon: Banknote },
   { href: "/platform/users", label: "Users", icon: Users },
   { href: "/platform/support", label: "Support", icon: LifeBuoy },
   { href: "/platform/courses", label: "Courses", icon: BookOpen },

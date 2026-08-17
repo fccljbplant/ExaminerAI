@@ -10,6 +10,7 @@ import {
   getCookieOptions,
 } from "@/lib/auth";
 import { normalizeRole } from "@/lib/rbac";
+import { getTenantBlock } from "@/lib/tenant-access";
 import { logAudit } from "@/lib/audit-log";
 import { logger } from "@/lib/logger";
 
@@ -103,6 +104,17 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       data: { role: canonicalRole },
     }).catch((err: unknown) => logger.warn("Failed to normalize user role", { error: err instanceof Error ? err.message : String(err) }));
+  }
+
+  // Tenant lifecycle gate (2026-08-17): members of suspended / pending
+  // organizations cannot sign in until the platform admin acts.
+  const tenantBlock = await getTenantBlock(user.id);
+  if (tenantBlock) {
+    const reason =
+      tenantBlock.status === "suspended"
+        ? `${tenantBlock.orgName} has been suspended. Contact support for details.`
+        : `${tenantBlock.orgName} is pending approval. You'll be able to sign in once it's approved.`;
+    return NextResponse.json({ error: reason, code: "TENANT_BLOCKED" }, { status: 403 });
   }
 
   const token = signToken({

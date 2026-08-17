@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Building2, RefreshCw, ScrollText, Users } from "lucide-react";
+import { AlertTriangle, Banknote, Building2, Clock, RefreshCw, ScrollText, TrendingUp, Users, Zap } from "lucide-react";
 import { useApi } from "@/modules/learner-portal/use-api";
 import { HomeOverview, type OverviewData } from "./admin-extras";
 
@@ -33,7 +33,17 @@ interface AuditRow {
 }
 
 interface PlatformHomeData {
-  kpis: { orgs: number; activeMembers: number; users: number; auditActions: number };
+  kpis: {
+    orgs: number;
+    activeMembers: number;
+    users: number;
+    auditActions: number;
+    mrr: number;
+    pipelineMrr: number;
+    fees30d: number;
+    payoutsPending: number;
+    aiSpend30d: number;
+  };
   orgs: OrgRow[];
   recentAudit: AuditRow[];
   overview?: OverviewData;
@@ -65,10 +75,14 @@ export function PlatformHome() {
     <div className="space-y-4 md:space-y-6">
       <h1 className="text-lg font-semibold text-fg md:text-xl">Platform</h1>
 
-      {/* KPI row */}
+      {/* KPI row — revenue-first (2026-08-17) */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
         <Kpi label="Organizations" value={data.kpis.orgs} icon={Building2} tone="brand" />
         <Kpi label="Active members" value={data.kpis.activeMembers} icon={Users} tone="info" />
+        <Kpi label="MRR" value={`$${data.kpis.mrr.toLocaleString()}`} icon={TrendingUp} tone="success" />
+        <Kpi label="Fees (30d)" value={`$${data.kpis.fees30d.toLocaleString()}`} icon={Banknote} tone="muted" />
+        <Kpi label="Payouts pending" value={`$${data.kpis.payoutsPending.toLocaleString()}`} icon={Clock} tone="warning" />
+        <Kpi label="AI spend (30d)" value={`$${data.kpis.aiSpend30d.toLocaleString()}`} icon={Zap} tone="info" />
         <Kpi label="Users" value={data.kpis.users} icon={Users} tone="muted" />
         <Kpi label="Audit actions" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
       </div>
@@ -141,9 +155,9 @@ function Kpi({
   tone,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   icon: typeof Users;
-  tone: "brand" | "info" | "warning" | "muted";
+  tone: "brand" | "info" | "warning" | "muted" | "success";
 }) {
   const tones = {
     brand: "bg-brand-subtle text-fg",
