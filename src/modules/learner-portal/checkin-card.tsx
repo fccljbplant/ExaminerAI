@@ -59,7 +59,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
     setShowHistory((v) => {
       if (!v) {
         setHistory(null);
-        fetch("/api/daily-logs")
+        fetch("/api/daily-logs" + (courseId ? `?courseId=${encodeURIComponent(courseId)}` : ""))
           .then((r) => (r.ok ? r.json() : null))
           .then((d: { logs?: typeof history } | null) => setHistory(d?.logs ?? []))
           .catch(() => setHistory([]));

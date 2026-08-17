@@ -93,7 +93,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   // the static universal rules + the lesson KB (stable within a lesson);
   // the anonymized student blocks move into a stable leading user
   // message so system + context form the cacheable prefix.
-  const studentCtx = await getTutorStudentContext(user.sub).catch(() => null);
+  const studentCtx = await getTutorStudentContext(user.sub, session.courseId).catch(() => null);
   const studentBlocks =
     studentCtx?.courseId && studentCtx.topic
       ? await buildTutorBlocksFromPacks(user.sub, studentCtx.courseId, {

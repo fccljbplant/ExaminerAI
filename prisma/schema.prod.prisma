@@ -408,6 +408,7 @@ model DailyLog {
   userId             String
   date               DateTime @default(now())
   week               Int
+  day                Int? // topic day this check-in belongs to (2026-08-18)
   whatDidYouDo       String
   anyErrors          String   @default("")
   confidence         Int      @default(3)

@@ -52,11 +52,14 @@ export async function POST(req: NextRequest) {
     where: { userId_courseId: { userId: user.sub, courseId: parsed.data.courseId } },
     select: { masteryMap: true },
   });
-  const mastery = (profile?.masteryMap as { topicProgress?: { current?: { week?: number } } } | null) ?? {};
+  const mastery = (profile?.masteryMap as { topicProgress?: { current?: { week?: number; day?: number } } } | null) ?? {};
   const week = mastery.topicProgress?.current?.week ?? 1;
+  const day = mastery.topicProgress?.current?.day ?? 1;
 
+  // One check-in per (user, course, day) — checking in on another course
+  // the same day must never overwrite this course's row (2026-08-18 audit).
   const existing = await db.dailyLog.findFirst({
-    where: { userId: user.sub, date: { gte: start, lt: end } },
+    where: { userId: user.sub, courseId: parsed.data.courseId, date: { gte: start, lt: end } },
   });
 
   const log = existing
@@ -68,13 +71,17 @@ export async function POST(req: NextRequest) {
           anyErrors: parsed.data.anyErrors ?? "",
           learningReflection: parsed.data.learningReflection ?? "",
           week,
+          day,
+          courseId: parsed.data.courseId,
         },
       })
     : await db.dailyLog.create({
         data: {
           userId: user.sub,
+          courseId: parsed.data.courseId,
           date: new Date(),
           week,
+          day,
           whatDidYouDo: parsed.data.whatDidYouDo,
           confidence: parsed.data.confidence,
           anyErrors: parsed.data.anyErrors ?? "",

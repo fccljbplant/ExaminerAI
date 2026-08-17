@@ -625,6 +625,12 @@ export function ClassroomShell({ courseId, courseName }: Props) {
                 <PostFlowStepper stage="test" hasProject={Boolean(now?.project)} onStage={setPostStage} />
                 <div className="mx-auto max-w-2xl">
                   <DailyTestPanel
+                    courseId={courseId}
+                    topicLabel={
+                      today?.topic
+                        ? `Week ${today.topic.week} · Day ${today.topic.day} — ${today.topic.title}`
+                        : undefined
+                    }
                     onComplete={(score) => {
                       setDailyScore(score);
                       setPostStage("results");
@@ -675,6 +681,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
             ) : postStage === "project" && now?.project ? (
               <ProjectStage
                 project={now.project}
+                courseId={courseId}
                 week={today?.topic.week ?? 1}
                 onDone={() => setPostStage("checkin")}
                 onBack={() => setPostStage("results")}
@@ -1184,6 +1191,7 @@ function PostFlowStepper({
 
 function ProjectStage({
   project,
+  courseId,
   week,
   onDone,
   onBack,
@@ -1191,6 +1199,7 @@ function ProjectStage({
   hasProject,
 }: {
   project: { id: string; title: string; activeMilestone: { id: string; title: string } | null };
+  courseId: string;
   week: number;
   onDone: () => void;
   onBack: () => void;
@@ -1210,6 +1219,8 @@ function ProjectStage({
       await api.post("/api/tasks", {
         description: `[Topic update] ${note.trim()}`,
         week,
+        courseId,
+        projectId: project.id,
       });
       toast.success("Project updated", { description: "The note is attached to your project tasks." });
       onDone();

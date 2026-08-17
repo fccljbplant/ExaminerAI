@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const {
     description, status, week, day, dueDate,
-    estimatedMinutes, isMilestone, taskNotes,
+    estimatedMinutes, isMilestone, taskNotes, courseId, projectId,
   } = body as {
     description?: string;
     status?: string;
@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
     estimatedMinutes?: number;
     isMilestone?: boolean;
     taskNotes?: string;
+    courseId?: string;
+    projectId?: string;
   };
   if (!description?.trim()) {
     return NextResponse.json({ error: "description required" }, { status: 400 });
@@ -77,6 +79,10 @@ export async function POST(req: NextRequest) {
         estimatedMinutes: estimatedMinutes ?? null,
         isMilestone: isMilestone ?? false,
         taskNotes: taskNotes?.trim() || null,
+        // Course/project attachment (2026-08-18 audit): classroom topic
+        // updates were floating tasks unattached to any course.
+        courseId: courseId ?? null,
+        projectId: projectId ?? null,
       },
     });
     return NextResponse.json({ task });

@@ -55,10 +55,14 @@ function parseList(raw: string | null | undefined): string[] {
   }
 }
 
-/** Loads the learner's course profile; null when there is no enrollment. */
-async function loadProfile(userId: string) {
+/** Loads the learner's course profile; null when there is no enrollment.
+ *  When courseId is given the profile is scoped to THAT course — the
+ *  tutor must know which course the student is in (2026-08-18 audit).
+ *  Without courseId (legacy callers) the most-recently-updated profile
+ *  is used as the fallback. */
+async function loadProfile(userId: string, courseId?: string | null) {
   const profiles = await db.learnProfile.findMany({
-    where: { userId },
+    where: courseId ? { userId, courseId } : { userId },
     include: { course: { select: { name: true, domain: true, level: true } } },
     orderBy: { updatedAt: "desc" },
     take: 1,
@@ -66,8 +70,8 @@ async function loadProfile(userId: string) {
   return profiles[0] ?? null;
 }
 
-export async function getTutorStudentContext(userId: string): Promise<TutorStudentContext> {
-  const profile = await loadProfile(userId).catch(() => null);
+export async function getTutorStudentContext(userId: string, courseId?: string | null): Promise<TutorStudentContext> {
+  const profile = await loadProfile(userId, courseId).catch(() => null);
 
   if (!profile) {
     return {
