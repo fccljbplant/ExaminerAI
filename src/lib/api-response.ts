@@ -40,6 +40,10 @@ export const ErrorCode = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   MISSING_FIELD: "MISSING_FIELD",
   INVALID_INPUT: "INVALID_INPUT",
+  INVALID_AMOUNT: "INVALID_AMOUNT", // payouts / billing amount validation (2026-08-17)
+
+  // Payment errors (402)
+  PAYMENT_REQUIRED: "PAYMENT_REQUIRED",
 
   // Conflict errors (409)
   ALREADY_EXISTS: "ALREADY_EXISTS",
@@ -53,6 +57,9 @@ export const ErrorCode = {
   DATABASE_ERROR: "DATABASE_ERROR",
   AI_ERROR: "AI_ERROR",
   DEGRADED: "DEGRADED",
+
+  // Service unavailable (503)
+  SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
 } as const;
 
 export type ErrorCode = typeof ErrorCode[keyof typeof ErrorCode];

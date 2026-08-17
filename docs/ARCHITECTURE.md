@@ -557,3 +557,95 @@ The face is 100% real and 100% identical every session/device/year because:
 - All animation is code-driven (SVG overlays, CSS, emoji)
 - Zero AI regeneration at runtime
 - Zero raster assets beyond the one face photo
+
+---
+
+## 10. SaaS platform layer (2026-08-17)
+
+The multi-tenant + creator-economy + B2B-ops + AI-engine expansion. One
+core, two storefronts (B2C marketplace + per-org `/[orgSlug]`), four
+role-bound workspaces, and the platform control plane that owns the
+platform's own P&L.
+
+### 10.1 Data model
+
+Single source of truth: `prisma/schema.prisma`. `schema.prod.prisma`
+(Postgres) and `prisma/.demo.prisma` (SQLite demo db) are GENERATED from
+it by `scripts/generate-derived-schemas.mjs` (wired into `db:generate` /
+postinstall / Vercel build) — the three schemas cannot drift.
+
+New models: `Coupon`, `Payout`, `Department`, `DepartmentCourse`,
+`Subscription`, `OrgInvoice`, `Announcement`, `CourseMaterial`,
+`CourseEmbedding` (RAG chunks with JSON embeddings, pgvector-ready),
+`RoleplayScenario`, `RoleplayRun`. Additive columns: `Organization.
+status/trialEndsAt/suspendedReason`, `OrgMember.departmentId`,
+`CourseEnrollment.expiresAt/retakeAfterDays`, `User.stripeAccountId/
+stripeCustomerId/banReason/banExpiresAt`, `Course.ownerUserId`,
+`Payment.stripeSessionId/stripePaymentIntentId/instructorId/refundedAt`,
+`AIUsageLog.orgId/costUsd`.
+
+All schema changes must be ADDITIVE — `vercel-build.sh` runs
+`prisma db push` WITHOUT `--accept-data-loss` so a destructive change
+fails the deploy loudly.
+
+### 10.2 Tenancy & RBAC
+
+- `PLATFORM_ADMIN_ROLES` (platform_admin only) guards the SaaS control
+  plane; `/api/admin/*` + `/api/settings/*` were re-guarded from the old
+  `ADMIN_ROLES` (org_admin + demo reach removed).
+- Demo sessions keep full isolation (AsyncLocalStorage → local SQLite);
+  demo AI is centrally blocked in the provider; demo password change /
+  reset is blocked (shared credentials); Stripe checkout rejects demo.
+- Support impersonation: platform admin issues a `sup` JWT (parked admin
+  cookie + `examiner_support_token`), every step audited, exit restores
+  the admin session. A banner shows in every portal while active.
+- Seat enforcement: org invites with `seat: true` are capacity-checked
+  against `Organization.seats`.
+- Per-org feature rollout: `feature_portal_<name>_v2_org:<orgId>`
+  overrides now have a writer + UI (Tenants drawer).
+
+### 10.3 Payments
+
+- B2C: Stripe Checkout with coupon validation/discount, destination
+  charges when the creator onboarded Connect; webhook records
+  session/payment-intent ids, attributes the instructor share to the
+  course owner, increments coupon usage, and reverses aggregates on
+  `charge.refunded`. Free-enroll bypass closed (paid courses require a
+  completed Payment).
+- B2B: seat subscriptions (plan × seats × $29/mo, `Subscription` +
+  `OrgInvoice`), webhook handles `invoice.paid` / `invoice.payment_failed`
+  / `customer.subscription.deleted`, dunning cron notifies org admins.
+- Creator payouts: pending/paid `Payout` ledger, Connect transfers on
+  request, deferred to the monthly sweep when Stripe is unconfigured.
+- Coupons: pure domain lib (`src/modules/payments/lib/coupons.ts`,
+  unit-tested) + platform CRUD.
+
+### 10.4 B2B ops
+
+- Departments + per-department course auto-assign rules; CSV roster
+  import (RFC-4180 parser in `src/modules/org-portal/lib/csv-parse.ts`).
+- Compliance: enrollment expiry windows (`expiresInDays` on assignment),
+  status matrix (`/org/compliance`), manual + cron nudges.
+- Announcements fan out to all org members as Notification rows.
+
+### 10.5 AI engine
+
+- RAG: `src/modules/ai/lib/rag.ts` (chunking, cosine, token-overlap
+  fallback) + `rag-db.ts` (index CourseDay/LearnSlide/LearnNarration/
+  CourseMaterial → CourseEmbedding; Z.ai embeddings via the OpenAI
+  client, keyword fallback when unavailable). The classroom tutor ask
+  route retrieves top-k chunks with citations and falls back to the
+  legacy full-course block.
+- Creator AI: material uploads (docx/pdf text extraction) + one-click
+  re-index; module quiz generation persists LearnDailyTest rows.
+- Roleplay simulator: platform scenario library, per-user runs, persona
+  replies via callAI, per-turn rubric grading, completion score.
+- Per-org AI budgets: `ai_budget_org:<orgId>` Setting, monthly usage
+  from AIUsageLog, enforcement on the streaming tutor, platform budget
+  UI, threshold alert cron.
+
+### 10.6 Cron registry
+
+`/api/cron/*`: srs-due, study-plan-refresh, absence-scan,
+compliance-expiry, trials-expiry, billing-dunning, payouts-sweep,
+ai-budget-alerts, audit-retention (listed in the platform System panel).

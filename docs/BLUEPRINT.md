@@ -154,7 +154,18 @@ Ordered by ROI. Each item is sized to ship in 1–2 weeks.
 23. ✅ Hover-to-reveal chrome (`.chrome-reveal` utility).
 24. ✅ Modern SaaS surface utilities (`.surface-card`, `.surface-muted`, `.surface-hover`, `.kbd`).
 
+### Shipped — SaaS expansion (2026-08-17)
+
+1. ✅ Multi-tenant control plane: tenant lifecycle (status/trial/suspend), seat enforcement, per-org feature-flag overrides with rollout UI, guard asymmetry fixed (platform vs org admin).
+2. ✅ Support tooling: audited login-as (sup JWT + parked admin session + exit), bans with reason, server-side audit CSV export.
+3. ✅ Creator economy: course ownership, instructor course studio with drafts, Stripe Connect onboarding + payout ledger, per-instructor earnings attribution, coupon engine with checkout validation, refund webhook handling.
+4. ✅ B2B ops: departments + auto-assign course rules, CSV roster import, compliance expiry matrix + nudges, seat subscriptions with dunning, org billing upgrade UI, announcements.
+5. ✅ AI engine: RAG tutor (embeddings + keyword fallback, cited sources), course-material ingestion, quiz-from-module, roleplay simulator with rubric scoring, per-org AI budgets + alerts.
+6. ✅ Schema single source of truth (derived prod/demo schemas), additive-only db push (no --accept-data-loss).
+
 ### Next (1–2 quarters)
+
+
 
 1. OnboardingFlow (goal → track → baseline quiz → week-1 plan, 3 min).
 2. Auto-remediation: low score → drill cards + 3-day AI study plan.

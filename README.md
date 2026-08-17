@@ -43,7 +43,33 @@ Every workstream gates behind a portal flag (org override > global) and fails
 closed to the legacy `/app` experience until flipped — see
 `docs/REDESIGN-P5-CUTOVER-PLAN-2026-08-14.md` for the rollback strategy.
 Production flags can be flipped by a platform admin via `POST /api/admin/portal-flags`
-(or by inserting `feature_portal_*_v2` Setting rows directly).
+(or by inserting `feature_portal_*_v2` Setting rows directly — per-org overrides
+are managed in Platform → Tenants).
+
+## SaaS platform expansion (2026-08-17) — one core, two storefronts
+
+- **Multi-tenant core**: `Organization` lifecycle (trial/active/suspended) in
+  Platform → Tenants; seat enforcement on invites; per-org feature-flag
+  overrides (pilot rollouts); platform/admin guard separation.
+- **Creator economy**: course ownership + instructor course studio with
+  drafts; Stripe Connect onboarding and a payout ledger; per-instructor
+  earnings attribution; coupon engine (validate at checkout, usage tracked);
+  refund handling.
+- **B2B ops**: departments with auto-assign course rules; CSV roster import;
+  compliance expiry matrix with nudges; seat subscriptions ($29/seat/mo) with
+  invoices + dunning; org announcements.
+- **AI engine**: RAG tutor (course material indexed as cited chunks — Z.ai
+  embeddings with keyword fallback), instructor material uploads,
+  quiz-from-module generation, roleplay simulator with rubric scoring,
+  per-org AI budgets with alerting.
+- **SaaS admin (control plane)**: tenants, support login-as (audited, with
+  exit), revenue/coupon/payout oversight, AI governance, server-side audit
+  export, feature rollout matrix.
+- **Schema**: `prisma/schema.prisma` is the single source of truth;
+  `schema.prod.prisma` (Postgres) and `prisma/.demo.prisma` (SQLite demo)
+  are generated from it (`scripts/generate-derived-schemas.mjs`). All
+  changes are additive — `prisma db push` never runs with
+  `--accept-data-loss`.
 
 ## Key features
 
