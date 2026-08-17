@@ -18,9 +18,13 @@ try {
 }
 
 // Refuse to run against a remote database — this script writes rows.
-if (!(process.env.DATABASE_URL || "").startsWith("file:")) {
+// The --prod flag is the ONLY exception: vercel-build.sh runs it after
+// generating the Postgres client against the production DATABASE_URL,
+// so real users get the scenario library too.
+const isProdBuild = process.argv.includes("--prod");
+if (!isProdBuild && !(process.env.DATABASE_URL || "").startsWith("file:")) {
   console.error(
-    "seed-roleplay-scenarios refuses to run: DATABASE_URL is not a local SQLite file.",
+    "seed-roleplay-scenarios refuses to run: DATABASE_URL is not a local SQLite file. Pass --prod only from vercel-build.sh.",
   );
   process.exit(1);
 }
