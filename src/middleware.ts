@@ -67,6 +67,11 @@ const PUBLIC_API_ROUTES = [
   "/api/marketplace",  // public course catalog
   "/api/certificates/verify",
   "/api/org/signup",
+  // Cron jobs authenticate via CRON_SECRET (Authorization: Bearer) — they
+  // carry no user JWT, so the middleware must let them through to the
+  // handler's isCronAuthorized check (2026-08-17: the legacy cron routes
+  // were silently dead behind this guard).
+  "/api/cron",
 ];
 
 // ── Rate limiting (in-memory, per-Vercel-instance) ──────────────
