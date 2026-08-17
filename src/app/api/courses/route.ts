@@ -101,6 +101,9 @@ export async function GET() {
     id: c.id,
     name: c.name,
     description: c.description,
+    // Creator ownership (2026-08-17) — the instructor studio badges
+    // "Yours" on courses this account created.
+    ownerUserId: c.ownerUserId,
     isActive: c.isActive,
     domain: c.domain,
     level: c.level,

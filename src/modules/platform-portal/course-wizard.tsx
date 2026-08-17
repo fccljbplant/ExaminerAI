@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -11,6 +12,7 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardPaste,
+  FileText,
   Loader2,
   Save,
   Sparkles,
@@ -61,10 +63,16 @@ function parseList(s: string): string[] {
 export function CourseCreationWizard({
   onBack,
   onCreated,
+  draftRedirect = "/platform/courses/planner",
 }: {
   onBack: () => void;
   onCreated?: (courseId: string) => void;
+  /** Where "Save as draft" sends the creator after a successful draft
+   *  save (creator economy, 2026-08-17). The instructor studio passes
+   *  "/instructor/studio/courses". */
+  draftRedirect?: string;
 }) {
+  const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Step 1 — details
@@ -201,8 +209,8 @@ export function CourseCreationWizard({
     }
   }
 
-  /* Create the course (published, marketplace-ready) */
-  async function createCourse() {
+  /* Create the course (published, marketplace-ready — or draft) */
+  async function createCourse(published: boolean) {
     setError("");
     setCreating(true);
     try {
@@ -217,7 +225,7 @@ export function CourseCreationWizard({
         currency: "USD",
         durationWeeks: Number(durationWeeks) || 6,
         language: "en",
-        published: true,
+        published,
         featured: false,
         instructorName: instructorName.trim() || null,
         whatYouWillLearn: parseList(whatYouWillLearn),
@@ -231,8 +239,13 @@ export function CourseCreationWizard({
         if (generated.deliverableTypes) payload.deliverableTypes = generated.deliverableTypes;
       }
       const created = await api.post<{ id: string }>("/api/courses", payload);
-      toast.success("Course created", { description: "Published to the marketplace." });
-      onCreated?.(created.id);
+      if (published) {
+        toast.success("Course created", { description: "Published to the marketplace." });
+        onCreated?.(created.id);
+      } else {
+        toast.success("Draft saved — publish anytime from the Studio");
+        router.push(draftRedirect);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Create failed");
     } finally {
@@ -503,15 +516,26 @@ export function CourseCreationWizard({
                 >
                   <ArrowLeft className="h-4 w-4" aria-hidden /> Back
                 </button>
-                <button
-                  type="button"
-                  onClick={() => void createCourse()}
-                  disabled={creating || !step1Valid}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-success px-5 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
-                  {creating ? "Creating…" : "Create & publish course"}
-                </button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => void createCourse(false)}
+                    disabled={creating || !step1Valid}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50"
+                  >
+                    {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <FileText className="h-4 w-4" aria-hidden />}
+                    Save as draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void createCourse(true)}
+                    disabled={creating || !step1Valid}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-success px-5 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
+                    {creating ? "Creating…" : "Create & publish course"}
+                  </button>
+                </div>
               </div>
             </section>
           )}

@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   Users,
   Wallet,
+  Wand2,
 } from "lucide-react";
 import type { NavItem } from "@/modules/shell";
 
@@ -30,7 +31,14 @@ export const INSTRUCTOR_NAV: NavItem[] = [
     label: "More",
     href: "/instructor/more",
     icon: MoreHorizontal,
-    match: ["/instructor/more", "/instructor/analytics", "/instructor/earnings"],
+    match: [
+      "/instructor/more",
+      "/instructor/analytics",
+      "/instructor/earnings",
+      // Creator economy (2026-08-17): studio + payouts hang off the More hub.
+      "/instructor/studio",
+      "/instructor/payouts",
+    ],
   },
 ];
 
@@ -40,4 +48,6 @@ export const INSTRUCTOR_MORE: NavItem[] = [
   { id: "analytics", label: "Analytics", href: "/instructor/analytics", icon: BarChart3 },
   { id: "earnings", label: "Earnings", href: "/instructor/earnings", icon: Wallet },
   { id: "certificates", label: "Certificates", href: "/instructor/certificates", icon: Award },
+  { id: "studio", label: "Studio", href: "/instructor/studio", icon: Wand2 },
+  { id: "payouts", label: "Payouts", href: "/instructor/payouts", icon: Wallet },
 ];

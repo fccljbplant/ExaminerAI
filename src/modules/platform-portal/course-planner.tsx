@@ -60,6 +60,8 @@ interface CourseView {
   projectDefaultDurationWeeks?: number;
   instructorName?: string | null;
   thumbnailUrl?: string | null;
+  /** Creator ownership (2026-08-17): set for courses this account built. */
+  ownerUserId?: string | null;
   weeks: WeekView[];
 }
 
@@ -80,7 +82,15 @@ type View = "list" | "generate" | "edit";
 
 const LEVELS = ["beginner", "intermediate", "advanced"] as const;
 
-export function CoursePlanner() {
+export function CoursePlanner({
+  showOwnership = false,
+}: {
+  /**
+   * Creator-economy studio mode (2026-08-17): the instructor studio
+   * passes true to badge "Yours" on courses where ownerUserId is set.
+   */
+  showOwnership?: boolean;
+}) {
   const [view, setView] = useState<View>("list");
   const [courses, setCourses] = useState<CourseView[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -481,6 +491,11 @@ export function CoursePlanner() {
                   {!c.published && (
                     <span className="rounded-full bg-bg-subtle px-2 py-0.5 text-[10px] font-semibold text-fg-muted">
                       draft
+                    </span>
+                  )}
+                  {showOwnership && c.ownerUserId && (
+                    <span className="rounded-full bg-brand-subtle px-2 py-0.5 text-[10px] font-semibold text-fg">
+                      Yours
                     </span>
                   )}
                 </p>

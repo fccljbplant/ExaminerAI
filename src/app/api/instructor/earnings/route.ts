@@ -18,8 +18,9 @@ import { logger } from "@/lib/logger";
  *   - recentSales:    latest 10 payments with student + course names.
  *
  * Scoping:
- *   - Instructors: only payments on courses they teach (via CourseEnrollment
- *     where role = "instructor").
+ *   - Instructors: payments explicitly attributed to them (instructorId)
+ *     plus unattributed payments on courses they teach (via
+ *     CourseEnrollment where role = "instructor").
  *   - Admins: all payments platform-wide.
  */
 export async function GET() {
@@ -38,27 +39,38 @@ export async function GET() {
   }
 
   try {
-    // Determine which courseIds to scope the query to.
-    // For admins → all courses (no filter).
-    // For instructors → courses they're enrolled in as role="instructor".
-    let courseFilter: { courseId?: { in: string[] } } = {};
+    // Determine which payments to scope the query to.
+    // For admins → all payments (no filter).
+    // For instructors → creator-economy attribution (2026-08-17): payments
+    //   explicitly attributed to this instructor (instructorId) PLUS legacy
+    //   unattributed payments on courses they're enrolled in as
+    //   role="instructor". The empty `in: []` branch simply matches nothing.
+    let paymentFilter: {
+      status: string;
+      OR?: Array<
+        | { instructorId: string }
+        | { instructorId: null; courseId: { in: string[] } }
+      >;
+    } = { status: "completed" };
     if (!isAdmin) {
       const instructorEnrollments = await db.courseEnrollment.findMany({
         where: { userId: payload.sub, role: "instructor" },
         select: { courseId: true },
       });
       const instructorCourseIds = instructorEnrollments.map(e => e.courseId);
-      if (instructorCourseIds.length === 0) {
-        // Instructor with no courses — return empty result set.
-        return NextResponse.json(emptyEarnings());
-      }
-      courseFilter = { courseId: { in: instructorCourseIds } };
+      paymentFilter = {
+        status: "completed",
+        OR: [
+          { instructorId: payload.sub },
+          { instructorId: null, courseId: { in: instructorCourseIds } },
+        ],
+      };
     }
 
     // Fetch all completed payments in scope.
     // Status filter: "completed" only — excludes refunded / pending.
     const payments = await db.payment.findMany({
-      where: { ...courseFilter, status: "completed" },
+      where: paymentFilter,
       select: {
         id: true,
         amount: true,
