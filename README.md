@@ -62,7 +62,7 @@ are managed in Platform → Tenants).
   embeddings with keyword fallback), instructor material uploads,
   quiz-from-module generation, roleplay simulator with rubric scoring,
   per-org AI budgets with alerting.
-- **SaaS admin (control plane)**: tenants, support login-as (audited, with
+- **SaaS admin (control plane)**: tenants (lifecycle + approval gate at login), revenue & payouts ledger (MRR, fees, sweep, refunds), support login-as (audited, with
   exit), revenue/coupon/payout oversight, AI governance, server-side audit
   export, feature rollout matrix.
 - **Schema**: `prisma/schema.prisma` is the single source of truth;

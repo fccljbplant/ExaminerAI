@@ -162,6 +162,8 @@ Ordered by ROI. Each item is sized to ship in 1–2 weeks.
 4. ✅ B2B ops: departments + auto-assign course rules, CSV roster import, compliance expiry matrix + nudges, seat subscriptions with dunning, org billing upgrade UI, announcements.
 5. ✅ AI engine: RAG tutor (embeddings + keyword fallback, cited sources), course-material ingestion, quiz-from-module, roleplay simulator with rubric scoring, per-org AI budgets + alerts.
 6. ✅ Schema single source of truth (derived prod/demo schemas), additive-only db push (no --accept-data-loss).
+7. ✅ Control-plane enforcement + P&L: tenant lifecycle gate at login, approval-gated signup, revenue & payouts ledger (MRR/fees/payouts/refunds), platform tenant announcements, per-org audit server export + SIEM webhook sink, embeddings reindex cron.
+ (derived prod/demo schemas), additive-only db push (no --accept-data-loss).
 
 ### Next (1–2 quarters)
 

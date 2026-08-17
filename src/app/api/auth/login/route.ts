@@ -107,14 +107,18 @@ export async function POST(req: NextRequest) {
   }
 
   // Tenant lifecycle gate (2026-08-17): members of suspended / pending
-  // organizations cannot sign in until the platform admin acts.
-  const tenantBlock = await getTenantBlock(user.id);
-  if (tenantBlock) {
-    const reason =
-      tenantBlock.status === "suspended"
-        ? `${tenantBlock.orgName} has been suspended. Contact support for details.`
-        : `${tenantBlock.orgName} is pending approval. You'll be able to sign in once it's approved.`;
-    return NextResponse.json({ error: reason, code: "TENANT_BLOCKED" }, { status: 403 });
+  // organizations cannot sign in until the platform admin acts. Platform
+  // admins are exempt — they must always be able to log in to manage
+  // (including un-suspending) the very tenant they belong to.
+  if (canonicalRole !== "platform_admin") {
+    const tenantBlock = await getTenantBlock(user.id);
+    if (tenantBlock) {
+      const reason =
+        tenantBlock.status === "suspended"
+          ? `${tenantBlock.orgName} has been suspended. Contact support for details.`
+          : `${tenantBlock.orgName} is pending approval. You'll be able to sign in once it's approved.`;
+      return NextResponse.json({ error: reason, code: "TENANT_BLOCKED" }, { status: 403 });
+    }
   }
 
   const token = signToken({
