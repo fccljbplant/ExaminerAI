@@ -29,6 +29,30 @@
     {
       "path": "/api/cron/absence-scan",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/compliance-expiry",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/trials-expiry",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/billing-dunning",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/payouts-sweep",
+      "schedule": "0 5 1 * *"
+    },
+    {
+      "path": "/api/cron/ai-budget-alerts",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/audit-retention",
+      "schedule": "0 10 * * 0"
     }
   ],
   "github": {
