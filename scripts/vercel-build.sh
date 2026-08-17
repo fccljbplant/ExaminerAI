@@ -21,7 +21,9 @@ npx prisma generate --schema=prisma/.demo.prisma
 # must be additive (2026-08-17); a destructive change must fail loudly.
 echo "Syncing schema (data preserved, non-blocking)..."
 set +e
-npx prisma db push --schema=prisma/schema.prod.prisma --skip-generate 2>&1
+# timeout(1) guards against a hung connection — a stall must never block
+# the build for the full Vercel timeout (2026-08-17).
+timeout 90 npx prisma db push --schema=prisma/schema.prod.prisma --skip-generate 2>&1
 PUSH_EXIT=$?
 set -e
 if [ $PUSH_EXIT -ne 0 ]; then
@@ -32,12 +34,12 @@ fi
 
 # Step 3: Ensure admin + demo accounts exist (safe to run every build)
 echo "Ensuring admin + demo accounts..."
-node scripts/ensure-accounts.js || echo "⚠️  Account seeding failed (non-blocking)"
+timeout 60 node scripts/ensure-accounts.js || echo "⚠️  Account seeding failed (non-blocking)"
 
 # Step 3b: Seed the roleplay scenario library for real (non-demo) users —
 # idempotent upserts keyed on RoleplayScenario.key (2026-08-17).
 echo "Seeding roleplay scenarios..."
-node scripts/seed-roleplay-scenarios.mjs --prod || echo "⚠️  Roleplay seed skipped (non-blocking)"
+timeout 60 node scripts/seed-roleplay-scenarios.mjs --prod || echo "⚠️  Roleplay seed skipped (non-blocking)"
 
 # Step 4: Seed marketplace metadata on existing courses (non-blocking)
 echo "Seeding marketplace metadata..."
