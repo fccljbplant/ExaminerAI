@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { homeForRole } from "@/lib/portal-home";
 import {
-  Sparkles, Star, Flame, Trophy, ArrowRight, BookOpen, GraduationCap, Map as MapIcon,
+  Sparkles, ArrowRight, BookOpen, GraduationCap, Map as MapIcon,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -18,19 +19,23 @@ export const metadata: Metadata = {
  * /learn — learner home.
  *
  * Authenticated users see:
- *   - "Continue Learning" hero (their last active course + next lesson)
- *   - Stats chips (XP, level, streak)
+ *   - "Continue Learning" hero (their last active course + resume button)
+ *   - A simple "courses enrolled" note — no XP/level/streak gamification
  *   - Catalog of other available courses
  *
  * Unauthenticated users see:
- *   - The catalog with "Start" buttons (which redirect to /app for login)
+ *   - The catalog with a clear sign-in CTA
+ *
+ * 2026-08-18 (fix/ui-simplification-safe): removed the XP / Rookie /
+ * streak chips (hardcoded values) from the hero; the Dashboard header
+ * link now points at the user's role home instead of /login.
  */
 
 export default async function LearnHomePage() {
   const user = await getAuthUser();
 
   // Parallel data fetch
-  const [courses, learnerCourses, profile] = await Promise.all([
+  const [courses, learnerCourses] = await Promise.all([
     db.course.findMany({
       where: { isActive: true },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
@@ -46,15 +51,8 @@ export default async function LearnHomePage() {
           include: { course: { select: { id: true, name: true } } },
         })
       : [],
-    user
-      ? db.learnProfile.aggregate({
-          where: { userId: user.sub },
-          _sum: { totalXP: true },
-        })
-      : null,
   ]);
 
-  const totalXP = profile?._sum.totalXP ?? 0;
   const lastCourse = learnerCourses[0]?.course ?? null;
 
   return (
@@ -70,7 +68,7 @@ export default async function LearnHomePage() {
             {user ? (
               <>
                 <span className="hidden sm:inline text-fg-muted">Hi, {user.name.split(" ")[0]}</span>
-                <Link href="/login" className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle">Dashboard</Link>
+                <Link href={homeForRole(user.role)} className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle">Dashboard</Link>
               </>
             ) : (
               <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90">
@@ -125,11 +123,8 @@ export default async function LearnHomePage() {
                   </>
                 )}
 
-                {/* Stats chips */}
+                {/* Simple progress note — no XP/level/streak gamification on the main home (2026-08-18) */}
                 <div className="mt-6 flex flex-wrap items-center gap-2">
-                  <Chip icon={<Star className="h-3 w-3 text-amber-500" />} label={`${totalXP} XP`} />
-                  <Chip icon={<Trophy className="h-3 w-3 text-brand" />} label="Rookie" />
-                  <Chip icon={<Flame className="h-3 w-3 text-orange-500" />} label="0-day streak" />
                   <Chip icon={<GraduationCap className="h-3 w-3 text-brand" />} label={`${learnerCourses.length} course${learnerCourses.length === 1 ? "" : "s"} enrolled`} />
                 </div>
               </div>

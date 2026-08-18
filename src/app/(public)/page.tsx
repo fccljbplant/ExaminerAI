@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getAuthUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { homeForRole } from "@/lib/portal-home";
+import { resolveHomeForUser } from "@/lib/portal-home-server";
 import { COPY } from "@/content/copy";
 import { Button } from "@/modules/ui/button";
 import { Card, CardContent, CardHeader } from "@/modules/ui/card";
@@ -67,7 +67,7 @@ function BookIcon() {
 export default async function LandingPage() {
   // Authenticated users skip the marketing page → go straight to dashboard.
   const user = await getAuthUser();
-  if (user) redirect(homeForRole(user.role));
+  if (user) redirect(await resolveHomeForUser(user));
 
   // Marketplace data — courses first (page 1!), then paths.
   const featuredCourses = await fetchMarketplaceCourses({ featured: true });
