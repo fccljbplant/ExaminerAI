@@ -1,7 +1,8 @@
 "use client";
 
 // src/modules/ui-v3/ui-toggle.tsx — Toggle switch between v2 and v3 UI.
-// Shows on both v2 and v3 home screens. Calls /api/admin/ui-v3 to flip the flag.
+// Shows directly ON the home page content (not in the shell topbar).
+// Any authenticated user can toggle — it's a UI preference.
 
 import { useEffect, useState, useCallback } from "react";
 
@@ -30,11 +31,14 @@ export function UIToggle() {
       });
       if (res.ok) {
         setV3(next);
-        // Reload after a short delay so the layout picks up the flag change
+        // Reload so the layout picks up the flag change
         setTimeout(() => window.location.reload(), 500);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert("Failed to toggle UI: " + (err.error || "Unknown error"));
       }
-    } catch {
-      // Silently fail — only platform_admin can toggle
+    } catch (e) {
+      alert("Network error: " + (e instanceof Error ? e.message : "Unknown"));
     } finally {
       setSwitching(false);
     }
@@ -43,34 +47,37 @@ export function UIToggle() {
   if (loading) return null;
 
   return (
-    <button
-      onClick={toggle}
-      disabled={switching}
+    <div
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 8,
-        padding: "8px 14px",
-        borderRadius: 999,
-        border: "1px solid rgba(255,255,255,0.15)",
-        background: v3 ? "rgba(91,92,226,0.15)" : "rgba(255,255,255,0.06)",
-        color: "inherit",
-        fontSize: 12,
-        fontWeight: 600,
+        gap: 10,
+        padding: "10px 16px",
+        borderRadius: 12,
+        border: "1px solid #e7eaf0",
+        background: v3 ? "#eeeeff" : "#f8fafc",
         cursor: switching ? "wait" : "pointer",
         opacity: switching ? 0.6 : 1,
         transition: "all 0.2s",
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#182230",
+        userSelect: "none",
       }}
-      title="Switch between v2 and v3 interface"
+      onClick={toggle}
+      role="button"
+      aria-label="Toggle v3 UI"
     >
+      <span style={{ fontSize: 13 }}>Interface:</span>
+
       {/* Toggle switch visual */}
       <span
         style={{
           position: "relative",
-          width: 36,
-          height: 20,
-          borderRadius: 10,
-          background: v3 ? "#5b5ce2" : "#3a3a4a",
+          width: 40,
+          height: 22,
+          borderRadius: 11,
+          background: v3 ? "#5b5ce2" : "#ccc",
           transition: "background 0.2s",
           flexShrink: 0,
         }}
@@ -79,9 +86,9 @@ export function UIToggle() {
           style={{
             position: "absolute",
             top: 2,
-            left: v3 ? 18 : 2,
-            width: 16,
-            height: 16,
+            left: v3 ? 20 : 2,
+            width: 18,
+            height: 18,
             borderRadius: "50%",
             background: "white",
             transition: "left 0.2s",
@@ -89,7 +96,10 @@ export function UIToggle() {
           }}
         />
       </span>
-      <span>v3 UI</span>
-    </button>
+
+      <span style={{ color: v3 ? "#5b5ce2" : "#718096" }}>
+        {v3 ? "v3" : "v2"}
+      </span>
+    </div>
   );
 }

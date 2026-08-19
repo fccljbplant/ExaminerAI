@@ -2,6 +2,7 @@
 
 // src/modules/ui-v3/learner-home.tsx — V3 learner dashboard.
 import { V3Shell, V3Card, V3StatCard, V3Badge, V3Progress, V3PageHeader, V3SectionTitle } from "./v3-shell";
+import { UIToggle } from "./ui-toggle";
 import type { V3NavGroup } from "./v3-shell";
 import { useApi } from "./use-api";
 
@@ -29,7 +30,12 @@ export function V3LearnerHome() {
       <V3PageHeader
         title={`Good afternoon, ${d?.userName ?? "Learner"} 👋`}
         subtitle="You're making great progress. Let's continue learning."
-        action={<a href="/learner/learn" className="v3-btn v3-btn-primary">Continue learning →</a>}
+        action={
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <UIToggle />
+            <a href="/learner/learn" className="v3-btn v3-btn-primary">Continue learning →</a>
+          </div>
+        }
       />
 
       <div className="v3-grid v3-grid-2">
