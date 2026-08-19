@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AppShellV2, UnifiedThemeToggle, UserMenu } from "@/modules/shell";
 import type { NavItem } from "@/modules/shell";
 import { LEARNER_NAV } from "./nav";
+import { UIToggle } from "@/modules/ui-v3";
 
 /**
  * modules/learner-portal — PortalShell (REDESIGN-P3 §1)
@@ -30,6 +31,7 @@ export function PortalShell({ userName, children }: { userName: string; children
         brand={{ name: "TraineesAI" }}
         trailing={
           <>
+            <UIToggle />
             <UnifiedThemeToggle />
             <UserMenu userName={userName} profileHref="/learner/profile" profileLabel="Profile" settingsHref="/learner/profile" helpHref="/learner/help" />
           </>

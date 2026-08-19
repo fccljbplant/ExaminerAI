@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { UIToggle } from "./ui-toggle"; // same module — deep import OK
 
 export interface V3NavItem {
   id: string;
@@ -100,6 +101,7 @@ export function V3Shell({ children, navGroups, userName, userInitials, roleSwitc
           <button className="v3-menu-btn" onClick={() => setMobileNavOpen(!mobileNavOpen)}>☰</button>
           <div className="v3-search">🔍 Search courses, lessons, assessments...</div>
           <div className="v3-top-actions">
+            <UIToggle />
             <button className="v3-icon-button">🔔</button>
             <button className="v3-icon-button">☀</button>
             <div className="v3-avatar">{userInitials}</div>

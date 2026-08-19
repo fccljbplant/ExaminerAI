@@ -5,3 +5,4 @@ export { V3InstructorHome } from "./instructor-home";
 export { V3OrgHome } from "./org-home";
 export { V3PlatformHome } from "./platform-home";
 export { V3Classroom } from "./classroom";
+export { UIToggle } from "./ui-toggle";
