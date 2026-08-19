@@ -46,3 +46,30 @@ export async function isPortalEnabled(
     return false; // rollout flags fail closed to the legacy portal
   }
 }
+
+/**
+ * v3 UI flag — the new pro interface (dark sidebar + purple primary).
+ * When ON, the portal layouts render the v3 shell instead of v2.
+ * Default: OFF (v2 portals serve). Fail-closed to v2.
+ *
+ * Resolution order:
+ *   1. org override   feature_ui_v3_org:<orgId>
+ *   2. global         feature_ui_v3
+ *   3. fallback       false
+ */
+export async function isV3UIEnabled(
+  orgId?: string | null
+): Promise<boolean> {
+  try {
+    if (orgId) {
+      const orgSetting = await db.setting.findUnique({
+        where: { key: `feature_ui_v3_org:${orgId}` },
+      });
+      if (orgSetting) return orgSetting.value === "true";
+    }
+    const global = await db.setting.findUnique({ where: { key: "feature_ui_v3" } });
+    return global ? global.value === "true" : false;
+  } catch {
+    return false;
+  }
+}
