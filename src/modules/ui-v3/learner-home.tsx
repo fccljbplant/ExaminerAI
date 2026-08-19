@@ -1,40 +1,23 @@
 "use client";
 
-// src/modules/ui-v3/learner-home.tsx — V3 learner dashboard.
-import { V3Shell, V3Card, V3StatCard, V3Badge, V3Progress, V3PageHeader, V3SectionTitle } from "./v3-shell";
-import { UIToggle } from "./ui-toggle";
-import type { V3NavGroup } from "./v3-shell";
+// src/modules/ui-v3/learner-home.tsx — V3 learner dashboard CONTENT (no shell).
+// The shell (sidebar + topbar) is provided by the layout's V3Shell.
+// Render this from /learner/page.tsx when v3 flag is on.
+
+import { V3Card, V3Badge, V3Progress, V3PageHeader, V3SectionTitle } from "./v3-shell";
 import { useApi } from "./use-api";
 
-const NAV: V3NavGroup[] = [
-  { label: "LEARN", items: [
-    { id: "overview", label: "Overview", icon: "⌂", href: "/learner" },
-    { id: "learn", label: "Classroom", icon: "◉", href: "/learner/learn" },
-    { id: "my-learning", label: "My Learning", icon: "▣", href: "/learner/courses" },
-    { id: "practice", label: "Practice", icon: "✦", href: "/learner/practice" },
-    { id: "exams", label: "Assessments", icon: "✓", href: "/learner/exams" },
-  ]},
-  { label: "PERSONAL", items: [
-    { id: "ai-tutor", label: "AI Tutor", icon: "✦", href: "/learner/help" },
-    { id: "progress", label: "Progress", icon: "↗", href: "/learner/progress" },
-    { id: "profile", label: "Profile", icon: "↗", href: "/learner/profile" },
-  ]},
-];
-
-export function V3LearnerHome() {
+export function V3LearnerHomeContent() {
   const { data, loading } = useApi("/api/v2/learner/home");
-  const d = data?.data ?? data;
+  const d = (data as any)?.data ?? data;
 
   return (
-    <V3Shell navGroups={NAV} userName={d?.userName ?? "Learner"} userInitials={(d?.userName ?? "L").charAt(0)}>
+    <>
       <V3PageHeader
         title={`Good afternoon, ${d?.userName ?? "Learner"} 👋`}
         subtitle="You're making great progress. Let's continue learning."
         action={
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <UIToggle />
-            <a href="/learner/learn" className="v3-btn v3-btn-primary">Continue learning →</a>
-          </div>
+          <a href="/learner/learn" className="v3-btn v3-btn-primary">Continue learning →</a>
         }
       />
 
@@ -56,7 +39,7 @@ export function V3LearnerHome() {
             { title: "Finish current lesson", meta: "Continue learning", badge: "Next" },
             { title: "AI practice session", meta: "Adaptive questions" },
             { title: "Daily quiz", meta: "3 questions" },
-          ]).map((item, i) => (
+          ]).map((item: any, i: number) => (
             <div key={i} className="v3-course-row">
               <div className="v3-course-icon">{item.badge ? "▶" : "✦"}</div>
               <div className="v3-course-info">
@@ -94,7 +77,7 @@ export function V3LearnerHome() {
       <V3Card>
         {(d?.courses ?? [
           { name: "Course 1", lessons: "0 of 0", progress: 0 },
-        ]).map((course, i) => (
+        ]).map((course: any, i: number) => (
           <div key={i} className="v3-course-row">
             <div className="v3-course-icon">∑</div>
             <div className="v3-course-info">
@@ -108,6 +91,6 @@ export function V3LearnerHome() {
           </div>
         ))}
       </V3Card>
-    </V3Shell>
+    </>
   );
 }

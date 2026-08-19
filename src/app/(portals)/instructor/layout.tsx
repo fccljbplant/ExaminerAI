@@ -3,8 +3,10 @@ import { homeForRole } from "@/lib/portal-home";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { isPortalEnabled } from "@/lib/feature-flags";
+import { isPortalEnabled, isV3UIEnabled } from "@/lib/feature-flags";
 import { InstructorShell } from "@/modules/instructor-portal";
+import { V3Shell, UIToggle } from "@/modules/ui-v3";
+import type { V3NavGroup } from "@/modules/ui-v3";
 
 /**
  * /instructor/* — instructor portal v2 (REDESIGN-P5 W6, flag portal_instructor_v2).
@@ -14,8 +16,25 @@ import { InstructorShell } from "@/modules/instructor-portal";
  *   2. instructor role (org admins who review are admitted too) — other
  *      staff get sent back to their own shell
  *   3. flag ON (org override → global → default off) — otherwise the
- *      legacy /app shell keeps serving the instructor experience
+ *      legacy /learn shell keeps serving the instructor experience
+ *
+ * When the v3 UI flag is ON, render the dark sidebar V3Shell instead of v2.
  */
+const V3_NAV: V3NavGroup[] = [
+  { label: "TEACHING", items: [
+    { id: "overview", label: "Overview", icon: "⌂", href: "/instructor" },
+    { id: "students", label: "Learners", icon: "◉", href: "/instructor/students" },
+    { id: "courses", label: "Courses", icon: "▣", href: "/instructor/courses" },
+    { id: "studio", label: "Content Studio", icon: "✎", href: "/instructor/studio" },
+    { id: "review", label: "Assessments", icon: "✓", href: "/instructor/review" },
+  ]},
+  { label: "INSIGHTS", items: [
+    { id: "analytics", label: "Analytics", icon: "↗", href: "/instructor/analytics" },
+    { id: "earnings", label: "Earnings", icon: "$", href: "/instructor/earnings" },
+    { id: "settings", label: "Settings", icon: "⚙", href: "/instructor/settings" },
+  ]},
+];
+
 export default async function InstructorPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect("/");
@@ -29,6 +48,21 @@ export default async function InstructorPortalLayout({ children }: { children: R
   // homeForRole("instructor") is /instructor itself — redirecting there
   // would loop. The legacy /learn catalog is the safe flag-off fallback.
   if (!enabled) redirect("/learn");
+
+  const v3 = await isV3UIEnabled(membership?.orgId);
+  if (v3) {
+    const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+    return (
+      <V3Shell
+        navGroups={V3_NAV}
+        userName={user.name}
+        userInitials={initials}
+        topbarExtra={<UIToggle />}
+      >
+        {children}
+      </V3Shell>
+    );
+  }
 
   return <InstructorShell userName={user.name}>{children}</InstructorShell>;
 }

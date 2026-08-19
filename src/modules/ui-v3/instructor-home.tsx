@@ -1,30 +1,14 @@
 "use client";
-// src/modules/ui-v3/instructor-home.tsx — V3 instructor dashboard.
-import { V3Shell, V3Card, V3StatCard, V3Badge, V3PageHeader, V3SectionTitle } from "./v3-shell";
-import type { V3NavGroup } from "./v3-shell";
+// src/modules/ui-v3/instructor-home.tsx — V3 instructor dashboard CONTENT (no shell).
+import { V3Card, V3StatCard, V3Badge, V3PageHeader, V3SectionTitle } from "./v3-shell";
 import { useApi } from "./use-api";
 
-const NAV: V3NavGroup[] = [
-  { label: "TEACHING", items: [
-    { id: "overview", label: "Overview", icon: "⌂", href: "/instructor" },
-    { id: "classrooms", label: "Classrooms", icon: "◉", href: "/instructor/students" },
-    { id: "courses", label: "Courses", icon: "▣", href: "/instructor/courses" },
-    { id: "studio", label: "Content Studio", icon: "✎", href: "/instructor/studio" },
-    { id: "review", label: "Assessments", icon: "✓", href: "/instructor/review" },
-  ]},
-  { label: "INSIGHTS", items: [
-    { id: "students", label: "Learners", icon: "♙", href: "/instructor/students" },
-    { id: "analytics", label: "Analytics", icon: "↗", href: "/instructor/analytics" },
-    { id: "earnings", label: "Earnings", icon: "$", href: "/instructor/earnings" },
-  ]},
-];
-
-export function V3InstructorHome() {
+export function V3InstructorHomeContent() {
   const { data } = useApi("/api/v2/instructor/home");
-  const d = data?.data ?? data;
+  const d = (data as any)?.data ?? data;
 
   return (
-    <V3Shell navGroups={NAV} userName={d?.userName ?? "Instructor"} userInitials="IN">
+    <>
       <V3PageHeader
         title="Teaching Studio"
         subtitle="Manage your classes and identify learners who need support."
@@ -89,6 +73,6 @@ export function V3InstructorHome() {
           <a href="/instructor/review" className="v3-btn v3-btn-primary">Review now</a>
         </div>
       </V3Card>
-    </V3Shell>
+    </>
   );
 }

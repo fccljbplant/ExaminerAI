@@ -1,29 +1,14 @@
 "use client";
-// src/modules/ui-v3/org-home.tsx — V3 org admin dashboard.
-import { V3Shell, V3Card, V3StatCard, V3Badge, V3Progress, V3PageHeader, V3SectionTitle } from "./v3-shell";
-import type { V3NavGroup } from "./v3-shell";
+// src/modules/ui-v3/org-home.tsx — V3 org admin dashboard CONTENT (no shell).
+import { V3Card, V3StatCard, V3Badge, V3Progress, V3PageHeader, V3SectionTitle } from "./v3-shell";
 import { useApi } from "./use-api";
 
-const NAV: V3NavGroup[] = [
-  { label: "ORGANIZATION", items: [
-    { id: "overview", label: "Overview", icon: "⌂", href: "/org" },
-    { id: "people", label: "Users", icon: "♙", href: "/org/people" },
-    { id: "courses", label: "Courses", icon: "▣", href: "/org/catalog" },
-    { id: "analytics", label: "Analytics", icon: "↗", href: "/org/analytics" },
-  ]},
-  { label: "MANAGEMENT", items: [
-    { id: "billing", label: "Billing", icon: "$", href: "/org/billing" },
-    { id: "settings", label: "Settings", icon: "⚙", href: "/org/settings" },
-    { id: "audit", label: "Audit Log", icon: "📋", href: "/org/audit" },
-  ]},
-];
-
-export function V3OrgHome() {
+export function V3OrgHomeContent() {
   const { data } = useApi("/api/v2/org/home");
-  const d = data?.data ?? data;
+  const d = (data as any)?.data ?? data;
 
   return (
-    <V3Shell navGroups={NAV} userName={d?.orgName ?? "Admin"} userInitials="OA">
+    <>
       <V3PageHeader
         title="Organization overview"
         subtitle="Monitor learning performance, users and programs."
@@ -88,7 +73,7 @@ export function V3OrgHome() {
           <tbody>
             {(d?.recentUsers ?? [
               { name: "No users yet", role: "—", program: "—", activity: "—", status: "—" },
-            ]).map((u, i) => (
+            ]).map((u: any, i: number) => (
               <tr key={i}>
                 <td><strong>{u.name}</strong></td>
                 <td>{u.role}</td>
@@ -100,6 +85,6 @@ export function V3OrgHome() {
           </tbody>
         </table>
       </V3Card>
-    </V3Shell>
+    </>
   );
 }

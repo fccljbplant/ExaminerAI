@@ -5,8 +5,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isPortalEnabled, isV3UIEnabled } from "@/lib/feature-flags";
 import { PortalShell } from "@/modules/learner-portal";
-import { V3Shell } from "@/modules/ui-v3/v3-shell";
-import type { V3NavGroup } from "@/modules/ui-v3/v3-shell";
+import { V3Shell, UIToggle } from "@/modules/ui-v3";
+import type { V3NavGroup } from "@/modules/ui-v3";
 
 const V3_NAV: V3NavGroup[] = [
   { label: "LEARN", items: [
@@ -35,11 +35,21 @@ export default async function LearnerPortalLayout({ children }: { children: Reac
   const enabled = await isPortalEnabled("learner", membership?.orgId);
   if (!enabled) redirect("/learn");
 
-  // v3 UI flag — when ON, render the dark sidebar shell instead of v2
+  // v3 UI flag — when ON, render the dark sidebar shell instead of v2.
+  // UIToggle is rendered in the topbar so the user can switch on any page.
   const v3 = await isV3UIEnabled(membership?.orgId);
   if (v3) {
     const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-    return <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>{children}</V3Shell>;
+    return (
+      <V3Shell
+        navGroups={V3_NAV}
+        userName={user.name}
+        userInitials={initials}
+        topbarExtra={<UIToggle />}
+      >
+        {children}
+      </V3Shell>
+    );
   }
 
   return <PortalShell userName={user.name}>{children}</PortalShell>;
