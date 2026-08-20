@@ -3,6 +3,7 @@ import { homeForRole } from "@/lib/portal-home";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { normalizeRole } from "@/lib/rbac";
 import { V3Shell } from "@/modules/ui-v3";
 import type { V3NavGroup } from "@/modules/ui-v3";
 import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
@@ -10,8 +11,9 @@ import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
 /**
  * /org/* — org admin portal.
  *
- * The v3 interface (dark sidebar + indigo primary, matching the
- * uploaded test.html reference design) is the default and only shell.
+ * Role check via normalizeRole() so legacy aliases ("coordinator",
+ * "course_coordinator", "principal", "institution_admin") map to
+ * "org_admin". Platform admins are also admitted.
  */
 
 const V3_NAV: V3NavGroup[] = [
@@ -32,10 +34,11 @@ const V3_NAV: V3NavGroup[] = [
 export default async function OrgPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect("/");
-  if (user.role !== "org_admin" && user.role !== "platform_admin") redirect(homeForRole(user.role));
+  const role = normalizeRole(user.role);
+  if (role !== "org_admin" && role !== "platform_admin") redirect(homeForRole(user.role));
 
   if (!(await isOrgPortalEnabled())) {
-    redirect(user.role === "platform_admin" ? "/platform" : "/learn");
+    redirect(role === "platform_admin" ? "/platform" : "/learn");
   }
 
   const membership = await db.orgMember.findFirst({
@@ -46,9 +49,17 @@ export default async function OrgPortalLayout({ children }: { children: ReactNod
   const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
 
   if (!membership) {
-    if (user.role === "platform_admin") redirect("/platform");
+    if (role === "platform_admin") redirect("/platform");
     return (
-      <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+      <V3Shell
+        navGroups={V3_NAV}
+        userName={user.name}
+        userInitials={initials}
+        profileHref="/org"
+        profileLabel="Dashboard"
+        helpHref="/org/help"
+        settingsHref="/org/settings"
+      >
         <div className="v3-empty" style={{ marginTop: 32 }}>
           <h3>No organization yet</h3>
           <p>
@@ -62,7 +73,15 @@ export default async function OrgPortalLayout({ children }: { children: ReactNod
   }
 
   return (
-    <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+    <V3Shell
+      navGroups={V3_NAV}
+      userName={user.name}
+      userInitials={initials}
+      profileHref="/org"
+      profileLabel="Dashboard"
+      helpHref="/org/help"
+      settingsHref="/org/settings"
+    >
       {children}
     </V3Shell>
   );

@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useApi } from "./use-api";
-import { V3PageHeader, V3Progress, V3Badge } from "./v3-shell";
+import { V3PageHeader, V3Progress } from "./v3-shell";
 
 interface CourseItem {
   id: string;
@@ -65,10 +65,9 @@ export function V3CoursesCatalog() {
     return `/api/v2/courses${qs ? `?${qs}` : ""}`;
   }, [q, category, level]);
 
-  const { data: raw, error, loading: isLoading, retry } = useApi<any>(path);
-  // API wraps the payload as { ok: true, data: { items, categories } }
-  // — unwrap so we can read .items / .categories directly.
-  const data: CatalogData | null = raw?.data ?? raw;
+  const { data, error, loading: isLoading, retry } = useApi<CatalogData>(path);
+  // useApi now auto-unwraps the { ok, data } envelope — `data` here is
+  // already the { items, categories } payload (or null on error/loading).
   const hasFilters = Boolean(q || category || level);
 
   return (
@@ -174,7 +173,7 @@ export function V3CoursesCatalog() {
                 )}
                 {c.enrolled && <span className="v3-enrolled-pill">Enrolled</span>}
                 {c.featured && !c.enrolled && (
-                  <span className="v3-enrolled-pill" style={{ background: "rgba(255,255,255,.92)", color: "#e89b28" }}>★ Featured</span>
+                  <span className="v3-enrolled-pill v3-featured-pill">★ Featured</span>
                 )}
               </div>
               <div className="v3-course-body">
@@ -188,11 +187,25 @@ export function V3CoursesCatalog() {
                 </div>
                 {c.enrolled && c.progress && (
                   <div style={{ marginTop: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--v3-muted)", marginBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>
                       <span>Week {c.progress.week} · Day {c.progress.day}</span>
                       <span>Continue →</span>
                     </div>
-                    <V3Progress value={Math.min(100, ((c.progress.week - 1) * 7 + c.progress.day) * 4)} />
+                    {/*
+                      Progress estimate — uses durationWeeks so a 2-week
+                      course at week 1 day 3 reads 33%, not 100%. Falls
+                      back to 4-week denominator if durationWeeks is 0/null
+                      (audit fix — was hardcoded to a 4-week shape).
+                    */}
+                    <V3Progress
+                      value={Math.min(
+                        100,
+                        Math.round(
+                          (((c.progress.week - 1) * 7 + c.progress.day) /
+                            Math.max(1, (c.durationWeeks || 4) * 7)) * 100,
+                        ),
+                      )}
+                    />
                   </div>
                 )}
               </div>

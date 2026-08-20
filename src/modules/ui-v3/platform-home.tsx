@@ -1,11 +1,35 @@
 "use client";
+
 // src/modules/ui-v3/platform-home.tsx — V3 platform admin dashboard CONTENT (no shell).
+// Uses useApi() (auto-unwraps { ok, data } envelope). Loading/empty/error
+// states use the shared State* components.
+
 import { V3Card, V3StatCard, V3Badge, V3PageHeader, V3SectionTitle } from "./v3-shell";
 import { useApi } from "./use-api";
+import { StateError, StateSkeleton, StateSkeletonHero } from "./states";
+
+/** Shape mirrored from GET /api/v2/platform/home */
+interface PlatformHomeData {
+  orgCount?: number;
+  userCount?: number;
+  aiUsage?: number;
+  healthy?: boolean;
+}
 
 export function V3PlatformHomeContent() {
-  const { data } = useApi("/api/v2/platform/home");
-  const d = (data as any)?.data ?? data;
+  const { data, loading, error, retry } = useApi<PlatformHomeData>("/api/v2/platform/home");
+
+  if (loading) {
+    return (
+      <>
+        <StateSkeletonHero />
+        <StateSkeleton cards={4} />
+      </>
+    );
+  }
+  if (error) return <StateError message={error} onRetry={retry} />;
+
+  const d = data ?? {};
 
   return (
     <>
@@ -16,10 +40,10 @@ export function V3PlatformHomeContent() {
       />
 
       <div className="v3-grid v3-grid-4">
-        <V3StatCard title="Organizations" value={String(d?.orgCount ?? 0)} label="All tenants" />
-        <V3StatCard title="Active users" value={String(d?.userCount ?? 0)} label="Across all tenants" />
-        <V3StatCard title="AI requests" value={`${d?.aiUsage ?? 0}%`} label="Of monthly capacity" />
-        <V3StatCard title="System health" value={d?.healthy ? "Healthy" : "Checking"} label="All services" />
+        <V3StatCard title="Organizations" value={String(d.orgCount ?? 0)} label="All tenants" />
+        <V3StatCard title="Active users" value={String(d.userCount ?? 0)} label="Across all tenants" />
+        <V3StatCard title="AI requests" value={`${d.aiUsage ?? 0}%`} label="Of monthly capacity" />
+        <V3StatCard title="System health" value={d.healthy ? "Healthy" : "Checking"} label="All services" />
       </div>
 
       <V3SectionTitle title="Platform services" />

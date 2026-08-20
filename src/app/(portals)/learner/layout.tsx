@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isPortalEnabled } from "@/lib/feature-flags";
+import { normalizeRole } from "@/lib/rbac";
 import { V3Shell } from "@/modules/ui-v3";
 import type { V3NavGroup } from "@/modules/ui-v3";
 
@@ -13,6 +14,10 @@ import type { V3NavGroup } from "@/modules/ui-v3";
  * The v3 interface (dark sidebar + indigo primary, matching the
  * uploaded test.html reference design) is the default and only shell.
  * Auth / role / portal-flag guards live here.
+ *
+ * Role check goes through normalizeRole() so legacy aliases
+ * ("student", "pending", "counselor", "guardian") all map to "learner"
+ * instead of bouncing the user (audit finding §1.5.2).
  */
 
 const V3_NAV: V3NavGroup[] = [
@@ -33,7 +38,7 @@ const V3_NAV: V3NavGroup[] = [
 export default async function LearnerPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect("/");
-  if (user.role !== "learner" && user.role !== "student") redirect(homeForRole(user.role));
+  if (normalizeRole(user.role) !== "learner") redirect(homeForRole(user.role));
 
   const membership = await db.orgMember.findFirst({
     where: { userId: user.id, status: "active" },
@@ -44,7 +49,15 @@ export default async function LearnerPortalLayout({ children }: { children: Reac
 
   const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+    <V3Shell
+      navGroups={V3_NAV}
+      userName={user.name}
+      userInitials={initials}
+      profileHref="/learner/profile"
+      profileLabel="Profile"
+      helpHref="/learner/help"
+      settingsHref="/learner/profile"
+    >
       {children}
     </V3Shell>
   );

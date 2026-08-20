@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { homeForRole } from "@/lib/portal-home";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
+import { normalizeRole } from "@/lib/rbac";
 import { V3Shell } from "@/modules/ui-v3";
 import type { V3NavGroup } from "@/modules/ui-v3";
 import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
@@ -9,8 +10,8 @@ import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
 /**
  * /platform/* — platform admin portal.
  *
- * The v3 interface (dark sidebar + indigo primary, matching the
- * uploaded test.html reference design) is the default and only shell.
+ * Role check via normalizeRole() so legacy aliases ("administrator",
+ * "admin") map to "platform_admin".
  */
 
 const V3_NAV: V3NavGroup[] = [
@@ -31,13 +32,21 @@ const V3_NAV: V3NavGroup[] = [
 export default async function PlatformPortalLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect("/");
-  if (user.role !== "platform_admin" && user.role !== "admin") redirect(homeForRole(user.role));
+  if (normalizeRole(user.role) !== "platform_admin") redirect(homeForRole(user.role));
 
   if (!(await isPlatformPortalEnabled())) redirect("/learn");
 
   const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+    <V3Shell
+      navGroups={V3_NAV}
+      userName={user.name}
+      userInitials={initials}
+      profileHref="/platform"
+      profileLabel="Dashboard"
+      helpHref="/platform/help"
+      settingsHref="/platform/settings"
+    >
       {children}
     </V3Shell>
   );

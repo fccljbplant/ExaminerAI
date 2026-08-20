@@ -119,6 +119,10 @@ export default async function LearnHomePage() {
       navGroups={V3_NAV}
       userName={user.name}
       userInitials={initials}
+      profileHref="/learner/profile"
+      profileLabel="Profile"
+      helpHref="/learner/help"
+      settingsHref="/learner/profile"
       fullBleed
     >
       <V3Classroom />
