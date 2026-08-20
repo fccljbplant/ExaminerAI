@@ -17,3 +17,5 @@ export { V3LearnerProgress } from "./progress";
 export { V3LearnerExams } from "./exams";
 export { V3ReviewQueue } from "./review-queue";
 export { V3Wrapper } from "./v3-wrapper";
+export { V3PlatformUsers } from "./platform-users";
+export { V3PlatformTenants } from "./platform-tenants";
