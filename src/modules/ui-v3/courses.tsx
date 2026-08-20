@@ -65,7 +65,10 @@ export function V3CoursesCatalog() {
     return `/api/v2/courses${qs ? `?${qs}` : ""}`;
   }, [q, category, level]);
 
-  const { data, error, loading: isLoading, retry } = useApi<CatalogData>(path);
+  const { data: raw, error, loading: isLoading, retry } = useApi<any>(path);
+  // API wraps the payload as { ok: true, data: { items, categories } }
+  // — unwrap so we can read .items / .categories directly.
+  const data: CatalogData | null = raw?.data ?? raw;
   const hasFilters = Boolean(q || category || level);
 
   return (
@@ -108,7 +111,7 @@ export function V3CoursesCatalog() {
       </div>
 
       {/* Category chips */}
-      {data && data.categories.length > 0 && (
+      {data && Array.isArray(data.categories) && data.categories.length > 0 && (
         <div className="v3-filter-row" style={{ marginBottom: 18 }}>
           <button
             className={`v3-chip-btn ${category === "" ? "active" : ""}`}
@@ -141,7 +144,7 @@ export function V3CoursesCatalog() {
           <p>{error}</p>
           <button className="v3-btn v3-btn-primary" style={{ marginTop: 16 }} onClick={retry}>Retry</button>
         </div>
-      ) : data && data.items.length === 0 ? (
+      ) : data && Array.isArray(data.items) && data.items.length === 0 ? (
         <div className="v3-empty">
           <h3>No matching courses</h3>
           <p>
@@ -159,7 +162,7 @@ export function V3CoursesCatalog() {
             </button>
           )}
         </div>
-      ) : data ? (
+      ) : data && Array.isArray(data.items) && data.items.length > 0 ? (
         <div className="v3-catalog-grid">
           {data.items.map((c, i) => (
             <Link key={c.id} href={`/learner/courses/${c.id}`} className="v3-course-card">
