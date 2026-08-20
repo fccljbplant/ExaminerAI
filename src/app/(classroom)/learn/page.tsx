@@ -3,8 +3,11 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import {
-  Sparkles, Star, Flame, Trophy, ArrowRight, BookOpen, GraduationCap, Map as MapIcon,
+  Sparkles, Star, Flame, Trophy, ArrowRight, BookOpen, GraduationCap,
 } from "lucide-react";
+import { V3Shell } from "@/modules/ui-v3";
+import { V3Classroom } from "@/modules/ui-v3";
+import type { V3NavGroup } from "@/modules/ui-v3";
 
 export const dynamic = "force-dynamic";
 
@@ -14,185 +17,112 @@ export const metadata: Metadata = {
     "Your AI-guided learning home. Continue where you left off, or browse available courses and start a new one.",
 };
 
-/**
- * /learn — learner home.
- *
- * Authenticated users see:
- *   - "Continue Learning" hero (their last active course + next lesson)
- *   - Stats chips (XP, level, streak)
- *   - Catalog of other available courses
- *
- * Unauthenticated users see:
- *   - The catalog with "Start" buttons (which redirect to /app for login)
- */
+const V3_NAV: V3NavGroup[] = [
+  { label: "LEARN", items: [
+    { id: "overview", label: "Overview", icon: "⌂", href: "/learner" },
+    { id: "classroom", label: "Classroom", icon: "◉", href: "/learn" },
+    { id: "my-learning", label: "My Learning", icon: "▣", href: "/learner/courses" },
+    { id: "practice", label: "Practice", icon: "✦", href: "/learner/practice" },
+    { id: "exams", label: "Assessments", icon: "✓", href: "/learner/exams" },
+  ]},
+  { label: "PERSONAL", items: [
+    { id: "ai-tutor", label: "AI Tutor", icon: "✦", href: "/learner/help" },
+    { id: "progress", label: "Progress", icon: "↗", href: "/learner/progress" },
+    { id: "profile", label: "Profile", icon: "↗", href: "/learner/profile" },
+  ]},
+];
 
+/**
+ * /learn — the v3 classroom.
+ *
+ * Authenticated users see the v3 Classroom view (3-column layout
+ * matching test.html: left = course lessons nav, center = video stage
+ * + lesson content + interactive quiz, right = AI tutor panel). The
+ * dark navy sidebar + topbar chrome is provided by V3Shell.
+ *
+ * Unauthenticated users see the legacy marketplace catalog with a
+ * "Sign in to start" prompt — they need to log in before the
+ * classroom view becomes useful.
+ */
 export default async function LearnHomePage() {
   const user = await getAuthUser();
 
-  // Parallel data fetch
-  const [courses, learnerCourses, profile] = await Promise.all([
-    db.course.findMany({
+  // Unauthenticated: marketplace catalog (sign-in prompt + course grid)
+  if (!user) {
+    const courses = await db.course.findMany({
       where: { isActive: true },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       select: {
         id: true, name: true, description: true, domain: true, level: true,
         durationWeeks: true, isDefault: true, thumbnailUrl: true,
       },
-    }),
-    user
-      ? db.learnProfile.findMany({
-          where: { userId: user.sub },
-          orderBy: { updatedAt: "desc" },
-          include: { course: { select: { id: true, name: true } } },
-        })
-      : [],
-    user
-      ? db.learnProfile.aggregate({
-          where: { userId: user.sub },
-          _sum: { totalXP: true },
-        })
-      : null,
-  ]);
-
-  const totalXP = profile?._sum.totalXP ?? 0;
-  const lastCourse = learnerCourses[0]?.course ?? null;
-
-  return (
-    <div className="min-h-screen flex flex-col bg-bg text-fg">
-      {/* Top bar */}
-      <header className="border-b">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="h-5 w-5 text-brand" />
-            TraineesAI <span className="text-fg-muted">/ Learn</span>
-          </Link>
-          <div className="ml-auto flex items-center gap-2 text-sm">
-            {user ? (
-              <>
-                <span className="hidden sm:inline text-fg-muted">Hi, {user.name.split(" ")[0]}</span>
-                <Link href="/login" className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle">Dashboard</Link>
-              </>
-            ) : (
+    });
+    return (
+      <div className="min-h-screen flex flex-col bg-bg text-fg">
+        <header className="border-b">
+          <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold">
+              <Sparkles className="h-5 w-5 text-brand" />
+              TraineesAI <span className="text-fg-muted">/ Learn</span>
+            </Link>
+            <div className="ml-auto flex items-center gap-2 text-sm">
               <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90">
                 Sign in
               </Link>
-            )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+        <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
+          <section className="rounded-2xl border bg-surface p-6 sm:p-8 mb-8">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand mb-2">
+              <Sparkles className="h-3 w-3" /> AI-guided learning
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
+              Learn with an AI tutor by your side
+            </h2>
+            <p className="text-fg-muted mt-2 max-w-xl">
+              Every course is taught by an AI avatar that explains each topic, asks check questions, and adapts to your level. Sign in to start.
+            </p>
+            <div className="mt-4">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90"
+              >
+                Sign in to start <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </section>
+          <section>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-lg font-semibold">Browse courses</h2>
+              <p className="text-xs text-fg-muted">{courses.length} total</p>
+            </div>
+            <CourseGrid courses={courses} enrolledIds={new Set()} />
+          </section>
+        </main>
+        <footer className="border-t mt-auto">
+          <div className="max-w-6xl mx-auto px-4 py-4 text-xs text-fg-muted flex items-center justify-between">
+            <span>© TraineesAI — AI-guided learning.</span>
+            <Link href="/" className="hover:text-fg">Back to home</Link>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
-        {user ? (
-          <>
-            {/* Continue Learning hero */}
-            <section className="rounded-2xl border bg-surface p-6 sm:p-8 mb-8 relative overflow-hidden">
-              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-subtle blur-3xl" />
-              <div className="relative">
-                <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand mb-2">
-                  <Sparkles className="h-3 w-3" /> Continue Learning
-                </div>
-                {lastCourse ? (
-                  <>
-                    <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-                      {lastCourse.name}
-                    </h2>
-                    <p className="text-fg-muted mt-2 max-w-xl">
-                      Pick up where you left off. Your AI tutor is ready to walk you through the next topic.
-                    </p>
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <Link
-                        href={`/learn/${lastCourse.id}`}
-                        className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90"
-                      >
-                        Resume session <ArrowRight className="h-4 w-4" />
-                      </Link>
-                      <Link
-                        href={`/learn/${lastCourse.id}`}
-                        className="text-sm text-fg-muted hover:text-fg inline-flex items-center gap-1.5"
-                      >
-                        <MapIcon className="h-3.5 w-3.5" /> View journey map
-                      </Link>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-                      Ready to start learning
-                    </h2>
-                    <p className="text-fg-muted mt-2 max-w-xl">
-                      Pick a course below to begin. Your AI tutor will guide you through every topic with slides, daily tests, and a capstone project.
-                    </p>
-                  </>
-                )}
-
-                {/* Stats chips */}
-                <div className="mt-6 flex flex-wrap items-center gap-2">
-                  <Chip icon={<Star className="h-3 w-3 text-amber-500" />} label={`${totalXP} XP`} />
-                  <Chip icon={<Trophy className="h-3 w-3 text-brand" />} label="Rookie" />
-                  <Chip icon={<Flame className="h-3 w-3 text-orange-500" />} label="0-day streak" />
-                  <Chip icon={<GraduationCap className="h-3 w-3 text-brand" />} label={`${learnerCourses.length} course${learnerCourses.length === 1 ? "" : "s"} enrolled`} />
-                </div>
-              </div>
-            </section>
-
-            {/* Catalog */}
-            <section>
-              <div className="flex items-baseline justify-between mb-4">
-                <h2 className="text-lg font-semibold">Available courses</h2>
-                <p className="text-xs text-fg-muted">{courses.length} total</p>
-              </div>
-              <CourseGrid courses={courses} enrolledIds={new Set(learnerCourses.map(p => p.courseId))} />
-            </section>
-          </>
-        ) : (
-          <>
-            {/* Unauthenticated catalog */}
-            <section className="rounded-2xl border bg-surface p-6 sm:p-8 mb-8">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand mb-2">
-                <Sparkles className="h-3 w-3" /> AI-guided learning
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-                Learn with an AI tutor by your side
-              </h2>
-              <p className="text-fg-muted mt-2 max-w-xl">
-                Every course is taught by an AI avatar that explains each topic, asks check questions, and adapts to your level. Sign in to start.
-              </p>
-              <div className="mt-4">
-                <Link
-                  href="/login"
-                  className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90"
-                >
-                  Sign in to start <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </section>
-
-            <section>
-              <div className="flex items-baseline justify-between mb-4">
-                <h2 className="text-lg font-semibold">Browse courses</h2>
-                <p className="text-xs text-fg-muted">{courses.length} total</p>
-              </div>
-              <CourseGrid courses={courses} enrolledIds={new Set()} />
-            </section>
-          </>
-        )}
-      </main>
-
-      <footer className="border-t mt-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 text-xs text-fg-muted flex items-center justify-between">
-          <span>© TraineesAI — AI-guided learning.</span>
-          <Link href="/" className="hover:text-fg">Back to home</Link>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function Chip({ icon, label }: { icon: React.ReactNode; label: string }) {
+  // Authenticated: render the v3 classroom (full-bleed, 3-column layout
+  // matching test.html — left: course lessons, center: video stage +
+  // lesson content + quiz, right: AI tutor panel).
+  const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-bg-subtle px-2.5 py-1 text-xs font-medium">
-      {icon} {label}
-    </span>
+    <V3Shell
+      navGroups={V3_NAV}
+      userName={user.name}
+      userInitials={initials}
+      fullBleed
+    >
+      <V3Classroom />
+    </V3Shell>
   );
 }
 

@@ -33,10 +33,13 @@ interface V3ShellProps {
   userInitials: string;
   /** Optional content rendered in the topbar (right side, before avatar). Used for UIToggle. */
   topbarExtra?: ReactNode;
+  /** When true, the content area renders full-bleed (no padding, no max-width).
+   *  Used by the classroom view which is a 3-column full-viewport layout. */
+  fullBleed?: boolean;
   roleSwitcher?: { current: string; options: { value: string; label: string }[]; onChange: (v: string) => void };
 }
 
-export function V3Shell({ children, navGroups, userName, userInitials, topbarExtra, roleSwitcher }: V3ShellProps) {
+export function V3Shell({ children, navGroups, userName, userInitials, topbarExtra, fullBleed, roleSwitcher }: V3ShellProps) {
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -114,7 +117,7 @@ export function V3Shell({ children, navGroups, userName, userInitials, topbarExt
           </div>
         </header>
 
-        <div className="v3-content">
+        <div className={fullBleed ? "v3-content-fullbleed" : "v3-content"}>
           {children}
         </div>
       </main>
@@ -243,6 +246,7 @@ export const V3_CSS_TEXT = `
 .v3-icon-button { width: 40px; height: 40px; border-radius: 10px; background: var(--v3-surface-soft); border: 1px solid var(--v3-border); cursor: pointer; font-size: 16px; }
 .v3-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ffbd91, #9d6bff); color: white; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
 .v3-content { padding: 32px; max-width: 1550px; margin: auto; }
+.v3-content-fullbleed { padding: 0; max-width: none; margin: 0; }
 .v3-menu-btn { display: none; background: transparent; border: 0; font-size: 22px; cursor: pointer; }
 .v3-overlay { display: none; }
 

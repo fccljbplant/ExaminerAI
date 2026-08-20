@@ -18,8 +18,8 @@ import type { V3NavGroup } from "@/modules/ui-v3";
 const V3_NAV: V3NavGroup[] = [
   { label: "LEARN", items: [
     { id: "overview", label: "Overview", icon: "⌂", href: "/learner" },
-    { id: "learn", label: "Classroom", icon: "◉", href: "/learner/learn" },
-    { id: "my-learning", label: "My Learning", icon: "▣", href: "/learner/courses" },
+    { id: "classroom", label: "Classroom", icon: "◉", href: "/learn" },
+    { id: "courses", label: "Courses", icon: "▣", href: "/learner/learn" },
     { id: "practice", label: "Practice", icon: "✦", href: "/learner/practice" },
     { id: "exams", label: "Assessments", icon: "✓", href: "/learner/exams" },
   ]},
