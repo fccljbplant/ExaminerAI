@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { LearnerProfile } from "@/modules/learner-portal";
+import { V3LearnerProfile } from "@/modules/ui-v3";
 
 /**
  * /learner/profile — L13 Profile & settings (REDESIGN-P3 §L13).
- * User identity is server-fetched; interactions live in the module.
+ * User identity is server-fetched; interactions live in the v3 module.
  */
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export default async function LearnerProfilePage() {
   if (!user) redirect("/");
 
   return (
-    <LearnerProfile
+    <V3LearnerProfile
       user={{
         name: user.name,
         email: user.email,

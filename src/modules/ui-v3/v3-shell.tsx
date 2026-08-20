@@ -11,7 +11,7 @@
 //     {children}
 //   </V3Shell>
 
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -154,8 +154,8 @@ export function V3Shell({
 }
 
 // Reusable v3 components — exported for use inside page content
-export function V3Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`v3-card ${className}`}>{children}</div>;
+export function V3Card({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
+  return <div className={`v3-card ${className}`} style={style}>{children}</div>;
 }
 
 export function V3StatCard({ title, value, label }: { title: string; value: string; label: string }) {

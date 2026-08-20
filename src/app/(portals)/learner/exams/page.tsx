@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { LearnerExams } from "@/modules/learner-portal";
+import { V3LearnerExams } from "@/modules/ui-v3";
 
 /**
- * /learner/exams — L8 Exams schedule (REDESIGN-P3 §L8).
+ * /learner/exams — L8 Exams hub (REDESIGN-P3 §L8).
+ * P1b.13: v3-styled. Same flow — links to practice / daily / weekly tests.
  */
 
 export const metadata: Metadata = {
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function LearnerExamsPage() {
-  return <LearnerExams />;
+  return <V3LearnerExams />;
 }

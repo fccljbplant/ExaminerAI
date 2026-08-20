@@ -11,3 +11,7 @@ export { V3CoursesCatalog } from "./courses";
 export { V3Classroom } from "./classroom";
 export { UIToggle } from "./ui-toggle";
 export { StateSkeleton, StateSkeletonHero, StateEmpty, StateError, StateFor } from "./states";
+export { V3LearnerProfile } from "./profile";
+export type { V3ProfileInfo } from "./profile";
+export { V3LearnerProgress } from "./progress";
+export { V3LearnerExams } from "./exams";

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { SocraticDaily } from "@/modules/assessment";
+import { StateEmpty } from "@/modules/ui-v3";
+import Link from "next/link";
 
 /**
  * /learner/exams/daily — Socratic daily test.
@@ -28,12 +30,15 @@ export default async function LearnerDailyTestPage() {
   });
   if (!enrollment) {
     return (
-      <main className="mx-auto flex min-h-[50vh] w-full max-w-md flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-lg font-semibold text-fg">Daily test</h1>
-        <p className="mt-2 text-sm text-fg-muted">
-          Enroll in a course first — the daily test follows the course you&apos;re learning.
-        </p>
-      </main>
+      <StateEmpty
+        headline="Daily test"
+        description="Enroll in a course first — the daily test follows the course you're learning."
+        cta={
+          <Link href="/learner/learn" className="v3-btn v3-btn-primary">
+            Browse courses →
+          </Link>
+        }
+      />
     );
   }
 

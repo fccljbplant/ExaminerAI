@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { LearnerProgress } from "@/modules/learner-portal";
+import { V3LearnerProgress } from "@/modules/ui-v3";
 
 /**
  * /learner/progress — L11 Progress (REDESIGN-P3 §L11).
+ * P1b.12: v3-styled. Same /api/v2/learner/progress endpoint.
  */
 
 export const metadata: Metadata = {
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function LearnerProgressPage() {
-  return <LearnerProgress />;
+  return <V3LearnerProgress />;
 }
