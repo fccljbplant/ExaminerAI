@@ -4,7 +4,7 @@
  *   import { PlatformShell, PlatformHome } from "@/modules/platform-portal";
  */
 
-export { PlatformShell, PLATFORM_MORE } from "./portal-shell";
+export { PLATFORM_MORE } from "./portal-shell";
 export { PlatformHome } from "./home";
 export { PlatformAudit } from "./audit";
 export { PlatformAI } from "./ai";

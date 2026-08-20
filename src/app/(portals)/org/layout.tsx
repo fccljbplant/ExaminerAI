@@ -20,7 +20,8 @@ const V3_NAV: V3NavGroup[] = [
   { label: "ORGANIZATION", items: [
     { id: "overview", label: "Overview", icon: "⌂", href: "/org" },
     { id: "people", label: "Users", icon: "♙", href: "/org/people" },
-    { id: "courses", label: "Courses", icon: "▣", href: "/org/registries" },
+    { id: "control", label: "Control Center", icon: "⚠", href: "/org/control" },
+    { id: "registries", label: "Registries", icon: "▣", href: "/org/registries" },
     { id: "analytics", label: "Analytics", icon: "↗", href: "/org/analytics" },
   ]},
   { label: "MANAGEMENT", items: [

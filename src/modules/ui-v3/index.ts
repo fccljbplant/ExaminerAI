@@ -8,8 +8,6 @@ export { V3InstructorHomeContent } from "./instructor-home";
 export { V3OrgHomeContent } from "./org-home";
 export { V3PlatformHomeContent } from "./platform-home";
 export { V3CoursesCatalog } from "./courses";
-export { V3Classroom } from "./classroom";
-export { UIToggle } from "./ui-toggle";
 export { StateSkeleton, StateSkeletonHero, StateEmpty, StateError, StateFor } from "./states";
 export { V3LearnerProfile } from "./profile";
 export type { V3ProfileInfo } from "./profile";

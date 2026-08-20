@@ -7,7 +7,7 @@
  *   from "@/modules/instructor-portal";
  */
 
-export { InstructorShell, INSTRUCTOR_MORE } from "./portal-shell";
+export { INSTRUCTOR_MORE } from "./portal-shell";
 export { InstructorHome } from "./home";
 export { ReviewQueue } from "./review-queue";
 export { ReviewDetail } from "./review-detail";

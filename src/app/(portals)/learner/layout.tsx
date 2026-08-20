@@ -25,10 +25,13 @@ const V3_NAV: V3NavGroup[] = [
     { id: "overview", label: "Overview", icon: "⌂", href: "/learner" },
     { id: "classroom", label: "Classroom", icon: "◉", href: "/learn" },
     { id: "courses", label: "Courses", icon: "▣", href: "/learner/learn" },
+    { id: "assignments", label: "Assignments", icon: "📋", href: "/learner/assignments" },
     { id: "practice", label: "Practice", icon: "✦", href: "/learner/practice" },
     { id: "exams", label: "Assessments", icon: "✓", href: "/learner/exams" },
   ]},
   { label: "PERSONAL", items: [
+    { id: "messages", label: "Messages", icon: "✉", href: "/learner/messages" },
+    { id: "projects", label: "Projects", icon: "📁", href: "/learner/projects" },
     { id: "ai-tutor", label: "AI Tutor", icon: "✦", href: "/learner/help" },
     { id: "progress", label: "Progress", icon: "↗", href: "/learner/progress" },
     { id: "profile", label: "Profile", icon: "↗", href: "/learner/profile" },

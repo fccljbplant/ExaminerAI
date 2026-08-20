@@ -5,7 +5,6 @@
  *   import { PortalShell, useApi, LearnerHome, LearnerCatalog, CourseDetail, LearnerExams, LearnerProgress } from "@/modules/learner-portal";
  */
 
-export { PortalShell } from "./portal-shell";
 export { LearnerHome } from "./home";
 export { LearnerCatalog } from "./catalog";
 export { CourseDetail } from "./course-detail";
