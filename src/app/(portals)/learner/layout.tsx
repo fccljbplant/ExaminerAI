@@ -3,10 +3,17 @@ import { homeForRole } from "@/lib/portal-home";
 import type { ReactNode } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { isPortalEnabled, isV3UIEnabled } from "@/lib/feature-flags";
-import { PortalShell } from "@/modules/learner-portal";
-import { V3Shell, UIToggle } from "@/modules/ui-v3";
+import { isPortalEnabled } from "@/lib/feature-flags";
+import { V3Shell } from "@/modules/ui-v3";
 import type { V3NavGroup } from "@/modules/ui-v3";
+
+/**
+ * /learner/* — learner portal.
+ *
+ * The v3 interface (dark sidebar + indigo primary, matching the
+ * uploaded test.html reference design) is the default and only shell.
+ * Auth / role / portal-flag guards live here.
+ */
 
 const V3_NAV: V3NavGroup[] = [
   { label: "LEARN", items: [
@@ -35,28 +42,10 @@ export default async function LearnerPortalLayout({ children }: { children: Reac
   const enabled = await isPortalEnabled("learner", membership?.orgId);
   if (!enabled) redirect("/learn");
 
-  // v3 UI flag — when ON, render the dark sidebar shell instead of v2.
-  // The UIToggle floats (fixed bottom-right) in both modes — render it
-  // as a sibling of the shell so it's always visible.
-  const v3 = await isV3UIEnabled(membership?.orgId);
   const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-  const toggle = <UIToggle />;
-
-  if (v3) {
-    return (
-      <>
-        <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
-          {children}
-        </V3Shell>
-        {toggle}
-      </>
-    );
-  }
-
   return (
-    <>
-      <PortalShell userName={user.name}>{children}</PortalShell>
-      {toggle}
-    </>
+    <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+      {children}
+    </V3Shell>
   );
 }
