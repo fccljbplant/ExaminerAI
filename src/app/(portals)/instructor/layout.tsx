@@ -27,6 +27,7 @@ const V3_NAV: V3NavGroup[] = [
   { label: "INSIGHTS", items: [
     { id: "analytics", label: "Analytics", icon: "↗", href: "/instructor/analytics" },
     { id: "earnings", label: "Earnings", icon: "$", href: "/instructor/earnings" },
+    { id: "more", label: "More", icon: "⋯", href: "/instructor/more" },
     { id: "settings", label: "Settings", icon: "⚙", href: "/instructor/settings" },
   ]},
 ];

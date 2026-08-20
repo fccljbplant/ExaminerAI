@@ -27,6 +27,7 @@ const V3_NAV: V3NavGroup[] = [
     { id: "billing", label: "Billing", icon: "$", href: "/org/billing" },
     { id: "compliance", label: "Compliance", icon: "⚠", href: "/org/compliance" },
     { id: "audit", label: "Audit Log", icon: "📋", href: "/org/audit" },
+    { id: "more", label: "More", icon: "⋯", href: "/org/more" },
     { id: "settings", label: "Settings", icon: "⚙", href: "/org/settings" },
   ]},
 ];

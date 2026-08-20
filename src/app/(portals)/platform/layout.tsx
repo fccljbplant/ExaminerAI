@@ -25,6 +25,7 @@ const V3_NAV: V3NavGroup[] = [
     { id: "ai", label: "AI Configuration", icon: "✦", href: "/platform/ai" },
     { id: "features", label: "Feature Flags", icon: "⚡", href: "/platform/features" },
     { id: "revenue", label: "Usage & Limits", icon: "↗", href: "/platform/revenue" },
+    { id: "more", label: "More", icon: "⋯", href: "/platform/more" },
     { id: "system", label: "System Settings", icon: "⚙", href: "/platform/system" },
   ]},
 ];
