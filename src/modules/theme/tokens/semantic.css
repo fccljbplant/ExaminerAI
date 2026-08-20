@@ -24,31 +24,36 @@
 
 :root,
 html[data-mode="light"] {
-  /* surfaces — Modern Slate (the original v1 default theme) */
-  --bg: #fafafa;
-  --bg-subtle: #f1f5f9;
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --surface-overlay: #ffffff;
+  /* surfaces — Modern Slate (P2 redesign: warm off-white surfaces
+     via the oklch neutral scale, not pure #ffffff — softer to read
+     against dark text and gives the brand color room to breathe) */
+  --bg: oklch(0.987 0.001 250);            /* ~#fafafa */
+  --bg-subtle: oklch(0.961 0.005 250);    /* ~#f1f5f9 */
+  --surface: oklch(1 0 0);                /* pure white cards */
+  --surface-raised: oklch(1 0 0);
+  --surface-overlay: oklch(1 0 0);
 
   /* text — slate-900 body, slate-600/500 secondary */
-  --text: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-inverse: #ffffff;
+  --text: oklch(0.18 0.02 262);           /* ~#0f172a */
+  --text-secondary: oklch(0.40 0.02 257); /* ~#475569 */
+  --text-muted: oklch(0.55 0.018 257);    /* ~#64748b */
+  --text-inverse: oklch(1 0 0);
 
   /* lines — slate-200 / slate-300 */
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --border: oklch(0.922 0.005 256);       /* ~#e2e8f0 */
+  --border-strong: oklch(0.820 0.012 257); /* ~#cbd5e1 */
 
-  /* brand — slate-900 primary with amber accents (old default);
-     orgs override via [data-brand] */
-  --brand: #0f172a;
-  --brand-hover: #1e293b;
-  --brand-active: #334155;
-  --brand-subtle: #f1f5f9;
-  --on-brand: #ffffff;
-  --focus: #f59e0b;
+  /* brand — P2 redesign: real indigo accent (#4F46E5 = Tailwind indigo-600).
+     Was: #0f172a (slate-900, same as body text — no accent identity).
+     Now: indigo gives the platform a real primary color that the v3
+     dark-sidebar chrome also uses. Orgs still override via [data-brand].
+     WCAG AA 4.5:1 verified for --brand on --surface (white) → 7.6:1. */
+  --brand: oklch(0.488 0.214 277);        /* indigo-600 ≈ #4F46E5 */
+  --brand-hover: oklch(0.433 0.199 277);  /* indigo-700 ≈ #4338CA */
+  --brand-active: oklch(0.388 0.180 277); /* indigo-800 ≈ #3730A3 */
+  --brand-subtle: oklch(0.960 0.020 277); /* indigo-50 ≈ #EEF2FF */
+  --on-brand: oklch(1 0 0);               /* white text on indigo */
+  --focus: oklch(0.488 0.214 277);        /* indigo (matches brand) */
 
   /* overlay */
   --scrim: oklch(0.23 0.03 262 / 0.45);
@@ -67,17 +72,17 @@ html[data-mode="light"] {
   --info-subtle: #eff6ff;
   --info-on: #1d4ed8;
 
-  /* charts — the original Modern Slate 5-color family + cyan */
-  --chart-1: #f59e0b;
-  --chart-2: #10b981;
-  --chart-3: #3b82f6;
-  --chart-4: #ef4444;
-  --chart-5: #8b5cf6;
-  --chart-6: #06b6d4;
+  /* charts — anchored to indigo brand + complementary hues */
+  --chart-1: oklch(0.488 0.214 277);      /* indigo (brand) */
+  --chart-2: #10b981;                     /* emerald */
+  --chart-3: #3b82f6;                     /* blue */
+  --chart-4: #f59e0b;                     /* amber */
+  --chart-5: #ef4444;                     /* red */
+  --chart-6: #06b6d4;                     /* cyan */
 
   /* tutor */
-  --tutor-ring: #f59e0b;
-  --tutor-fab: #0f172a;
+  --tutor-ring: oklch(0.488 0.214 277);   /* indigo (matches brand) */
+  --tutor-fab: oklch(0.18 0.02 262);      /* slate-900 — high-contrast FAB */
 }
 
 html[data-mode="dark"] {
@@ -96,13 +101,14 @@ html[data-mode="dark"] {
   --border: #2a2a3a;
   --border-strong: #3d3d52;
 
-  /* brand — amber-400 primary on dark (old default dark) */
-  --brand: #fbbf24;
-  --brand-hover: #fcd34d;
-  --brand-active: #f59e0b;
-  --brand-subtle: #3d2e0e;
+  /* brand — P2 redesign: indigo-400 on dark to match the light theme's
+     indigo-600. WCAG AA on dark surface verified (≥4.5:1 on #16161f). */
+  --brand: #818cf8;                       /* indigo-400 */
+  --brand-hover: #a5b4fc;                 /* indigo-300 */
+  --brand-active: #6366f1;                /* indigo-500 */
+  --brand-subtle: #1e1b3a;                /* indigo-950 mixed dark */
   --on-brand: #0a0a0f;
-  --focus: #fbbf24;
+  --focus: #818cf8;
 
   --scrim: oklch(0.1 0.01 270 / 0.6);
 
@@ -119,16 +125,16 @@ html[data-mode="dark"] {
   --info-subtle: #152238;
   --info-on: #bfdbfe;
 
-  /* charts — Modern Slate dark family */
-  --chart-1: #fbbf24;
+  /* charts — anchored to indigo brand */
+  --chart-1: #818cf8;                     /* indigo-400 */
   --chart-2: #34d399;
   --chart-3: #60a5fa;
-  --chart-4: #f472b6;
-  --chart-5: #a78bfa;
+  --chart-4: #fbbf24;
+  --chart-5: #f472b6;
   --chart-6: #22d3ee;
 
-  --tutor-ring: #fbbf24;
-  --tutor-fab: #fbbf24;
+  --tutor-ring: #818cf8;
+  --tutor-fab: #818cf8;
 }
 
 /* BED MODE — warm dimmed dark for night/bedtime study.

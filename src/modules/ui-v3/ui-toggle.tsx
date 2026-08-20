@@ -9,6 +9,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { toast } from "sonner";
 
 type Mode = "v2" | "v3";
 
@@ -43,14 +44,23 @@ export function UIToggle() {
       });
       if (res.ok) {
         setMode(next);
+        toast.success(`Switched to ${next.toUpperCase()} interface`, {
+          duration: 3000,
+        });
         // Reload so the layout picks up the flag change
         setTimeout(() => window.location.reload(), 350);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert("Failed to toggle UI: " + (err.error || "Unknown error"));
+        toast.error("Failed to toggle UI", {
+          description: err.error || "Unknown error",
+          duration: 5000,
+        });
       }
     } catch (e) {
-      alert("Network error: " + (e instanceof Error ? e.message : "Unknown"));
+      toast.error("Network error", {
+        description: e instanceof Error ? e.message : "Unknown",
+        duration: 5000,
+      });
     } finally {
       setSwitching(false);
     }

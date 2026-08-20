@@ -95,4 +95,42 @@
   --p-z-modal: 300;
   --p-z-toast: 400;
   --p-z-tutor: 500;
+
+  /* ---- P2 architectural additions (audit §B.4) ----
+     These compose from the scales above so they're mode-aware
+     via the semantic layer (no per-mode blocks needed here). */
+
+  /* Drawer — mobile sidebar / slide-over panel. */
+  --p-drawer-width: 320px;
+  --p-drawer-shadow: var(--shadow-elev-3);
+  --p-drawer-scrim: var(--scrim);
+  --p-drawer-enter: 250ms;
+  --p-drawer-exit: 200ms;
+
+  /* Toast — bottom-right notifications (replaces alert()). */
+  --p-toast-bg: var(--text);
+  --p-toast-fg: var(--bg);
+  --p-toast-shadow: var(--shadow-elev-2);
+  --p-toast-duration: 4000ms;
+  --p-toast-enter: 200ms;
+
+  /* Skeleton — shimmer placeholders for loading states. */
+  --p-skeleton-bg: var(--bg-subtle);
+  --p-skeleton-shimmer: var(--border);
+  --p-skeleton-duration: 1.4s;
+
+  /* Motion presets — semantic aliases on top of the primitives. */
+  --motion-page-enter: var(--p-dur-med) var(--ease-emphasized);
+  --motion-dropdown-open: var(--p-dur-fast) var(--ease-standard);
+  --motion-drawer-open: var(--p-drawer-enter) var(--ease-emphasized);
+  --motion-hover: 100ms var(--ease-standard);
+  --motion-press: 50ms var(--ease-standard);
+
+  /* Mobile-density variant — applied via html[data-density="compact"].
+     When set, the semantic layer's spacing scale tightens (smaller
+     card padding, tighter gaps, smaller button heights). Layouts opt
+     in by reading this and rendering the compact variant of their
+     components. */
+  --p-density-cozy: 1;     /* default */
+  --p-density-compact: 0.85; /* tighter padding on small screens */
 }

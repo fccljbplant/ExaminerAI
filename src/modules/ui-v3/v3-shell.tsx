@@ -148,8 +148,49 @@ export function V3Shell({
         <div className={fullBleed ? "v3-content-fullbleed" : "v3-content"}>
           {children}
         </div>
+
+        {/* Mobile bottom nav — shows top 5 items at <850px (where the
+            sidebar is hidden). Drawer (☰) is still available for the
+            full nav; this gives one-tap access to the most-used items
+            without opening the drawer. Audit §C.1. */}
+        {!fullBleed && (
+          <MobileBottomNav navGroups={navGroups} pathname={pathname} />
+        )}
       </main>
     </div>
+  );
+}
+
+/* ---------- Mobile bottom nav (visible only at <850px) ---------- */
+
+function MobileBottomNav({
+  navGroups,
+  pathname,
+}: {
+  navGroups: V3NavGroup[];
+  pathname: string;
+}) {
+  // Take top 5 items across all groups (priority by group order).
+  const allItems = navGroups.flatMap((g) => g.items);
+  const items = allItems.slice(0, 5);
+
+  return (
+    <nav className="v3-bottom-nav" aria-label="Mobile primary">
+      {items.map((item) => {
+        const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+        return (
+          <Link
+            key={item.id}
+            href={item.href}
+            className={`v3-bottom-nav-item ${active ? "active" : ""}`}
+            aria-current={active ? "page" : undefined}
+          >
+            <span className="v3-bottom-nav-icon" aria-hidden>{item.icon}</span>
+            <span className="v3-bottom-nav-label">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -833,7 +874,9 @@ export const V3_CSS_TEXT = `
   .v3-sidebar.open { display: flex; position: fixed; z-index: var(--p-z-drawer); }
   .v3-overlay { display: block; position: fixed; inset: 0; background: var(--scrim); z-index: var(--p-z-raised); }
   .v3-main { grid-column: 1; }
-  .v3-content { padding: var(--p-space-5); }
+  /* Bottom padding reserves clearance for the fixed bottom nav
+     (≥56px tall + safe-area-inset-bottom). */
+  .v3-content { padding: var(--p-space-5); padding-bottom: calc(var(--p-space-5) + 56px + env(safe-area-inset-bottom, 0px)); }
   .v3-topbar { padding: 0 var(--p-space-5); gap: var(--p-space-3); }
   .v3-search { display: none; }
   .v3-menu-btn { display: block; }
@@ -847,5 +890,54 @@ export const V3_CSS_TEXT = `
   }
   .v3-classroom-grid > aside,
   .v3-classroom-grid > .v3-ai-panel { display: none; }
+  /* Mobile bottom nav — visible only below 850px. */
+  .v3-bottom-nav { display: flex; }
+}
+
+/* Mobile bottom nav — hidden on desktop, shown on mobile (above). */
+.v3-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-elev-2);
+  z-index: var(--p-z-sticky);
+  /* Equal-width slots, max 5 */
+  justify-content: stretch;
+  align-items: stretch;
+}
+.v3-bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  transition: color var(--p-dur-fast) var(--ease-standard);
+  -webkit-tap-highlight-color: transparent;
+  min-height: 56px;
+}
+.v3-bottom-nav-item:hover { color: var(--text-secondary); }
+.v3-bottom-nav-item.active { color: var(--brand); }
+.v3-bottom-nav-item:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.v3-bottom-nav-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.v3-bottom-nav-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 `;
