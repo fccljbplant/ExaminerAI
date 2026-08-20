@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { ReviewQueue } from "@/modules/instructor-portal";
+import { V3ReviewQueue } from "@/modules/ui-v3";
 
 /**
  * /instructor/review — I3 Review queue (REDESIGN-P3 §I3, W4 review side).
- * Auth / role / flag guards live in the route-group layout.
+ * P1c.19: full v3 restyle. Same /api/v2/review/queue endpoint.
  */
 
 export const metadata: Metadata = {
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function InstructorReviewPage() {
-  return <ReviewQueue />;
+  return <V3ReviewQueue />;
 }

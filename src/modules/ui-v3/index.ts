@@ -15,3 +15,5 @@ export { V3LearnerProfile } from "./profile";
 export type { V3ProfileInfo } from "./profile";
 export { V3LearnerProgress } from "./progress";
 export { V3LearnerExams } from "./exams";
+export { V3ReviewQueue } from "./review-queue";
+export { V3Wrapper } from "./v3-wrapper";
