@@ -1,38 +1,50 @@
 "use client";
 
-// src/modules/ui-v3/ui-toggle.tsx — Toggle switch between v2 and v3 UI.
-// Shows directly ON the home page content (not in the shell topbar).
-// Any authenticated user can toggle — it's a UI preference.
+// src/modules/ui-v3/ui-toggle.tsx — Floating v2/v3 interface toggle.
+//
+// Always visible (fixed bottom-right corner) so the user can switch
+// between v2 and v3 interfaces on any page, in any mode, on desktop
+// or mobile. Self-contained: mounts itself via a portal so it floats
+// above both the v2 PortalShell and v3 V3Shell.
 
 import { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
+
+type Mode = "v2" | "v3";
 
 export function UIToggle() {
-  const [v3, setV3] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState<Mode | null>(null); // null = loading
   const [switching, setSwitching] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Check current state on mount
+  // SSR-safe: only render the portal after mount
+  useEffect(() => setMounted(true), []);
+
+  // Read current state on mount
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/admin/ui-v3", { credentials: "include" })
       .then((r) => r.json())
-      .then((d) => { setV3(d.enabled === true); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((d) => { if (!cancelled) setMode(d.enabled === true ? "v3" : "v2"); })
+      .catch(() => { if (!cancelled) setMode("v2"); }); // fail-closed to v2
+    return () => { cancelled = true; };
   }, []);
 
   const toggle = useCallback(async () => {
+    if (!mode || switching) return;
+    const next: Mode = mode === "v3" ? "v2" : "v3";
     setSwitching(true);
-    const next = !v3;
     try {
       const res = await fetch("/api/admin/ui-v3", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enable: next }),
+        body: JSON.stringify({ enable: next === "v3" }),
         credentials: "include",
       });
       if (res.ok) {
-        setV3(next);
+        setMode(next);
         // Reload so the layout picks up the flag change
-        setTimeout(() => window.location.reload(), 500);
+        setTimeout(() => window.location.reload(), 350);
       } else {
         const err = await res.json().catch(() => ({}));
         alert("Failed to toggle UI: " + (err.error || "Unknown error"));
@@ -42,64 +54,85 @@ export function UIToggle() {
     } finally {
       setSwitching(false);
     }
-  }, [v3]);
+  }, [mode, switching]);
 
-  if (loading) return null;
+  // Don't render anything until we know the current mode
+  if (!mounted || !mode) return null;
 
-  return (
-    <div
+  const isV3 = mode === "v3";
+
+  // Floating chip — fixed bottom-right, works on desktop + mobile
+  return createPortal(
+    <button
+      type="button"
+      onClick={toggle}
+      disabled={switching}
+      aria-label={`Switch to ${isV3 ? "v2" : "v3"} interface. Currently on ${mode}.`}
+      title={`Interface: ${mode} (click to switch to ${isV3 ? "v2" : "v3"})`}
       style={{
+        position: "fixed",
+        right: 18,
+        bottom: 18,
+        zIndex: 9999,
         display: "inline-flex",
         alignItems: "center",
-        gap: 10,
-        padding: "10px 16px",
-        borderRadius: 12,
-        border: "1px solid #e7eaf0",
-        background: v3 ? "#eeeeff" : "#f8fafc",
+        gap: 8,
+        padding: "9px 14px 9px 12px",
+        borderRadius: 99,
+        border: "1px solid rgba(255,255,255,.18)",
+        background: isV3
+          ? "linear-gradient(135deg, #5b5ce2, #7778ff)"
+          : "linear-gradient(135deg, #1f2937, #374151)",
+        color: "white",
         cursor: switching ? "wait" : "pointer",
-        opacity: switching ? 0.6 : 1,
-        transition: "all 0.2s",
-        fontSize: 14,
-        fontWeight: 600,
-        color: "#182230",
+        opacity: switching ? 0.65 : 1,
+        transition: "all 0.18s ease",
+        fontSize: 12.5,
+        fontWeight: 700,
+        letterSpacing: 0.2,
+        boxShadow: isV3
+          ? "0 10px 28px rgba(91,92,226,.42)"
+          : "0 8px 24px rgba(0,0,0,.30)",
+        fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
         userSelect: "none",
+        WebkitTapHighlightColor: "transparent",
       }}
-      onClick={toggle}
-      role="button"
-      aria-label="Toggle v3 UI"
     >
-      <span style={{ fontSize: 13 }}>Interface:</span>
-
-      {/* Toggle switch visual */}
+      {/* Small icon */}
       <span
         style={{
-          position: "relative",
-          width: 40,
-          height: 22,
-          borderRadius: 11,
-          background: v3 ? "#5b5ce2" : "#ccc",
-          transition: "background 0.2s",
-          flexShrink: 0,
+          width: 18,
+          height: 18,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,.22)",
+          display: "grid",
+          placeItems: "center",
+          fontSize: 11,
+          lineHeight: 1,
         }}
       >
-        <span
-          style={{
-            position: "absolute",
-            top: 2,
-            left: v3 ? 20 : 2,
-            width: 18,
-            height: 18,
-            borderRadius: "50%",
-            background: "white",
-            transition: "left 0.2s",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-          }}
-        />
+        ⇄
       </span>
 
-      <span style={{ color: v3 ? "#5b5ce2" : "#718096" }}>
-        {v3 ? "v3" : "v2"}
-      </span>
-    </div>
+      <span>UI: {mode.toUpperCase()}</span>
+
+      {/* Switching spinner */}
+      {switching && (
+        <span
+          style={{
+            width: 11,
+            height: 11,
+            borderRadius: "50%",
+            border: "2px solid rgba(255,255,255,.35)",
+            borderTopColor: "white",
+            animation: "uit-spin 0.7s linear infinite",
+          }}
+        />
+      )}
+
+      {/* Keyframes — injected once */}
+      <style>{`@keyframes uit-spin { to { transform: rotate(360deg); } }`}</style>
+    </button>,
+    document.body,
   );
 }

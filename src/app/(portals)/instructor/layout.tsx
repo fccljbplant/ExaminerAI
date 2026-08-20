@@ -19,6 +19,7 @@ import type { V3NavGroup } from "@/modules/ui-v3";
  *      legacy /learn shell keeps serving the instructor experience
  *
  * When the v3 UI flag is ON, render the dark sidebar V3Shell instead of v2.
+ * The UIToggle floats (fixed bottom-right) in both modes.
  */
 const V3_NAV: V3NavGroup[] = [
   { label: "TEACHING", items: [
@@ -45,24 +46,27 @@ export default async function InstructorPortalLayout({ children }: { children: R
     select: { orgId: true },
   });
   const enabled = await isPortalEnabled("instructor", membership?.orgId);
-  // homeForRole("instructor") is /instructor itself — redirecting there
-  // would loop. The legacy /learn catalog is the safe flag-off fallback.
   if (!enabled) redirect("/learn");
 
   const v3 = await isV3UIEnabled(membership?.orgId);
+  const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const toggle = <UIToggle />;
+
   if (v3) {
-    const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
     return (
-      <V3Shell
-        navGroups={V3_NAV}
-        userName={user.name}
-        userInitials={initials}
-        topbarExtra={<UIToggle />}
-      >
-        {children}
-      </V3Shell>
+      <>
+        <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+          {children}
+        </V3Shell>
+        {toggle}
+      </>
     );
   }
 
-  return <InstructorShell userName={user.name}>{children}</InstructorShell>;
+  return (
+    <>
+      <InstructorShell userName={user.name}>{children}</InstructorShell>
+      {toggle}
+    </>
+  );
 }

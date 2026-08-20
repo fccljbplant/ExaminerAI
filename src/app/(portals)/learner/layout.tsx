@@ -36,21 +36,27 @@ export default async function LearnerPortalLayout({ children }: { children: Reac
   if (!enabled) redirect("/learn");
 
   // v3 UI flag — when ON, render the dark sidebar shell instead of v2.
-  // UIToggle is rendered in the topbar so the user can switch on any page.
+  // The UIToggle floats (fixed bottom-right) in both modes — render it
+  // as a sibling of the shell so it's always visible.
   const v3 = await isV3UIEnabled(membership?.orgId);
+  const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const toggle = <UIToggle />;
+
   if (v3) {
-    const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
     return (
-      <V3Shell
-        navGroups={V3_NAV}
-        userName={user.name}
-        userInitials={initials}
-        topbarExtra={<UIToggle />}
-      >
-        {children}
-      </V3Shell>
+      <>
+        <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+          {children}
+        </V3Shell>
+        {toggle}
+      </>
     );
   }
 
-  return <PortalShell userName={user.name}>{children}</PortalShell>;
+  return (
+    <>
+      <PortalShell userName={user.name}>{children}</PortalShell>
+      {toggle}
+    </>
+  );
 }

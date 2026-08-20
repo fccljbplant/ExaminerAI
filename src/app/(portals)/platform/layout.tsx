@@ -16,6 +16,7 @@ import type { V3NavGroup } from "@/modules/ui-v3";
  * flag ON.
  *
  * When the v3 UI flag is ON, render the dark sidebar V3Shell instead of v2.
+ * The UIToggle floats (fixed bottom-right) in both modes.
  */
 const V3_NAV: V3NavGroup[] = [
   { label: "PLATFORM", items: [
@@ -37,8 +38,6 @@ export default async function PlatformPortalLayout({ children }: { children: Rea
   if (!user) redirect("/");
   if (user.role !== "platform_admin" && user.role !== "admin") redirect(homeForRole(user.role));
 
-  // /app no longer exists (legacy deleted) — the /learn catalog is the
-  // safe flag-off fallback instead of a 404.
   if (!(await isPlatformPortalEnabled())) redirect("/learn");
 
   const membership = await db.orgMember.findFirst({
@@ -46,19 +45,24 @@ export default async function PlatformPortalLayout({ children }: { children: Rea
     select: { orgId: true },
   });
   const v3 = await isV3UIEnabled(membership?.orgId);
+  const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const toggle = <UIToggle />;
+
   if (v3) {
-    const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
     return (
-      <V3Shell
-        navGroups={V3_NAV}
-        userName={user.name}
-        userInitials={initials}
-        topbarExtra={<UIToggle />}
-      >
-        {children}
-      </V3Shell>
+      <>
+        <V3Shell navGroups={V3_NAV} userName={user.name} userInitials={initials}>
+          {children}
+        </V3Shell>
+        {toggle}
+      </>
     );
   }
 
-  return <PlatformShell userName={user.name}>{children}</PlatformShell>;
+  return (
+    <>
+      <PlatformShell userName={user.name}>{children}</PlatformShell>
+      {toggle}
+    </>
+  );
 }
