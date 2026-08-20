@@ -1,23 +1,44 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { ClassroomShell } from "@/modules/learn/components/classroom/ClassroomShell";
-import { ClassroomChrome } from "./classroom-chrome";
+import { V3Shell } from "@/modules/ui-v3";
+import type { V3NavGroup } from "@/modules/ui-v3";
 
 export const dynamic = "force-dynamic";
 
 /**
  * /learn/[courseId] — full-screen learning session ("Modern Class").
  *
- * Renders the ClassroomShell: on-stage AI avatar teacher, lesson stage
- * (slides/video), tutor chat with voice + text Q&A, and slide-over panels.
+ * P5 merge: hosts ClassroomShell inside V3Shell (fullBleed) instead of
+ * the legacy ClassroomChrome. This unifies the shell — same sidebar,
+ * same topbar, same UserMenu/UnifiedThemeToggle as /learner/*.
  *
- * If the user is not authenticated, the middleware will redirect them
- * to /app (login). The page itself also checks auth defensively and
- * renders the shell only for logged-in users.
+ * ClassroomShell owns its own PageHeader (course crumbs + XP/streak
+ * chips + Topics/Focus/Exit actions) — this renders inside V3Shell's
+ * full-bleed content area (no padding/max-width).
  *
- * The course must exist and be active.
+ * ClassroomShell's state machine (postStage, stageMode, PostFlowStepper,
+ * CheckinStage, ProjectStage) is UNTOUCHED. Only the top-level wrapper
+ * div's className was adjusted (removed h-dvh + padding offsets that
+ * V3Shell now provides). See Study Phase §4 for the full transition table.
  */
+
+const V3_NAV: V3NavGroup[] = [
+  { label: "LEARN", items: [
+    { id: "overview", label: "Overview", icon: "⌂", href: "/learner" },
+    { id: "classroom", label: "Classroom", icon: "◉", href: "/learn" },
+    { id: "courses", label: "Courses", icon: "▣", href: "/learner/learn" },
+    { id: "practice", label: "Practice", icon: "✦", href: "/learner/practice" },
+    { id: "exams", label: "Assessments", icon: "✓", href: "/learner/exams" },
+  ]},
+  { label: "PERSONAL", items: [
+    { id: "ai-tutor", label: "AI Tutor", icon: "✦", href: "/learner/help" },
+    { id: "progress", label: "Progress", icon: "↗", href: "/learner/progress" },
+    { id: "profile", label: "Profile", icon: "↗", href: "/learner/profile" },
+  ]},
+];
+
 export default async function LearnSessionPage({
   params,
 }: {
@@ -26,18 +47,7 @@ export default async function LearnSessionPage({
   const { courseId } = await params;
   const user = await getAuthUser();
 
-  // Defensive: middleware already redirects unauthenticated users, but
-  // if they hit this page directly we re-check.
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-bg text-fg">
-        <div className="text-center">
-          <p className="text-sm text-fg-muted">Please sign in to start learning.</p>
-          <a href="/login" className="mt-2 inline-block text-brand underline">Go to sign in</a>
-        </div>
-      </div>
-    );
-  }
+  if (!user) redirect("/login");
 
   const course = await db.course.findUnique({
     where: { id: courseId },
@@ -45,9 +55,20 @@ export default async function LearnSessionPage({
   });
   if (!course || !course.isActive) notFound();
 
+  const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+
   return (
-    <ClassroomChrome courseName={course.name}>
+    <V3Shell
+      navGroups={V3_NAV}
+      userName={user.name}
+      userInitials={initials}
+      profileHref="/learner/profile"
+      profileLabel="Profile"
+      helpHref="/learner/help"
+      settingsHref="/learner/profile"
+      fullBleed
+    >
       <ClassroomShell courseId={course.id} courseName={course.name} />
-    </ClassroomChrome>
+    </V3Shell>
   );
 }

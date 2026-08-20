@@ -504,7 +504,7 @@ export function ClassroomShell({ courseId, courseName }: Props) {
     : 0;
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg pt-[env(safe-area-inset-top)] md:pt-14 pb-[calc(3.5rem_+_env(safe-area-inset-bottom))] md:pb-0">
+    <div className="flex h-full flex-col overflow-hidden bg-bg text-fg">
       {/* ── Classroom header (96px PageHeader rule) ─────────────── */}
       <PageHeader
         crumbs={[

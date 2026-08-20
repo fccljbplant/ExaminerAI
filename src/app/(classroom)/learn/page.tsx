@@ -1,13 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import {
   Sparkles, Star, Flame, Trophy, ArrowRight, BookOpen, GraduationCap,
 } from "lucide-react";
-import { V3Shell } from "@/modules/ui-v3";
-import { V3Classroom } from "@/modules/ui-v3";
-import type { V3NavGroup } from "@/modules/ui-v3";
 
 export const dynamic = "force-dynamic";
 
@@ -17,33 +15,15 @@ export const metadata: Metadata = {
     "Your AI-guided learning home. Continue where you left off, or browse available courses and start a new one.",
 };
 
-const V3_NAV: V3NavGroup[] = [
-  { label: "LEARN", items: [
-    { id: "overview", label: "Overview", icon: "⌂", href: "/learner" },
-    { id: "classroom", label: "Classroom", icon: "◉", href: "/learn" },
-    { id: "my-learning", label: "My Learning", icon: "▣", href: "/learner/courses" },
-    { id: "practice", label: "Practice", icon: "✦", href: "/learner/practice" },
-    { id: "exams", label: "Assessments", icon: "✓", href: "/learner/exams" },
-  ]},
-  { label: "PERSONAL", items: [
-    { id: "ai-tutor", label: "AI Tutor", icon: "✦", href: "/learner/help" },
-    { id: "progress", label: "Progress", icon: "↗", href: "/learner/progress" },
-    { id: "profile", label: "Profile", icon: "↗", href: "/learner/profile" },
-  ]},
-];
-
 /**
- * /learn — the v3 classroom.
+ * /learn — learner entry point.
  *
- * Authenticated users see the v3 Classroom view (3-column layout
- * matching test.html: left = course lessons nav, center = video stage
- * + lesson content + interactive quiz, right = AI tutor panel). The
- * dark navy sidebar + topbar chrome is provided by V3Shell.
- *
- * Unauthenticated users see the legacy marketplace catalog with a
- * "Sign in to start" prompt — they need to log in before the
- * classroom view becomes useful.
+ * P5 merge: retires the V3Classroom mock. Authenticated users are
+ * redirected to /learn/[courseId] via their continue-card resolution
+ * (the learner's most recently active course, from /api/v2/learner/home).
+ * Unauthenticated users see the marketplace catalog (unchanged).
  */
+
 export default async function LearnHomePage() {
   const user = await getAuthUser();
 
@@ -66,7 +46,7 @@ export default async function LearnHomePage() {
               TraineesAI <span className="text-fg-muted">/ Learn</span>
             </Link>
             <div className="ml-auto flex items-center gap-2 text-sm">
-              <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90">
+              <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand-hover">
                 Sign in
               </Link>
             </div>
@@ -86,7 +66,7 @@ export default async function LearnHomePage() {
             <div className="mt-4">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90"
+                className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-hover"
               >
                 Sign in to start <ArrowRight className="h-4 w-4" />
               </Link>
@@ -110,24 +90,23 @@ export default async function LearnHomePage() {
     );
   }
 
-  // Authenticated: render the v3 classroom (full-bleed, 3-column layout
-  // matching test.html — left: course lessons, center: video stage +
-  // lesson content + quiz, right: AI tutor panel).
-  const initials = user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-  return (
-    <V3Shell
-      navGroups={V3_NAV}
-      userName={user.name}
-      userInitials={initials}
-      profileHref="/learner/profile"
-      profileLabel="Profile"
-      helpHref="/learner/help"
-      settingsHref="/learner/profile"
-      fullBleed
-    >
-      <V3Classroom />
-    </V3Shell>
-  );
+  // Authenticated: redirect to the real classroom via continue-card.
+  // Query the learner's most recently active course (same logic as
+  // /api/v2/learner/home's continueCard — LearnProfile orderBy updatedAt
+  // desc, take 1). If they have one, send them straight to /learn/[courseId]
+  // (the real ClassroomShell). If not, send to the catalog.
+  const profile = await db.learnProfile.findFirst({
+    where: { userId: user.sub },
+    orderBy: { updatedAt: "desc" },
+    select: { courseId: true },
+  });
+
+  if (profile?.courseId) {
+    redirect(`/learn/${profile.courseId}`);
+  }
+
+  // No enrollments → catalog
+  redirect("/learner/learn");
 }
 
 function CourseGrid({

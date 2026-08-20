@@ -117,7 +117,7 @@
 .v3-search-text { color: var(--text-muted); }
 .v3-top-actions { display: flex; align-items: center; gap: var(--p-space-3); }
 .v3-content { padding: var(--p-space-7); max-width: 1550px; margin: auto; }
-.v3-content-fullbleed { padding: 0; max-width: none; margin: 0; }
+.v3-content-fullbleed { padding: 0; max-width: none; margin: 0; height: calc(100vh - var(--v3-topbar-h)); overflow: hidden; }
 .v3-menu-btn { display: none; background: transparent; border: 0; font-size: 22px; cursor: pointer; color: var(--text); min-width: 44px; min-height: 44px; }
 .v3-menu-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .v3-overlay { display: none; }
