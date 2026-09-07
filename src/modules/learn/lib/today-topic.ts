@@ -83,6 +83,9 @@ function toTopicContext(week: number, day: number, t: DailyTopic): TopicContext 
  objective: t.objective,
  resources: t.resources ?? [],
  phase: getWeekPhase(week),
+ whyItMatters: t.whyItMatters,
+ activity: t.activity,
+ deliverable: t.deliverable,
  };
 }
 
@@ -306,6 +309,8 @@ function getOutlineTopicResult(
      objective: day.objective,
      resources: [],
      phase: week?.phase ?? `Week ${current.week}`,
+     activity: day.activity ?? undefined,
+     deliverable: day.deliverable ?? undefined,
    },
    slidesViewed,
    totalSlides: SLIDES_PER_TOPIC,

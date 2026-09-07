@@ -94,26 +94,31 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
   }
 
   const systemPrompt = [
-    "You are an AI tutor on the TraineesAI Learn platform. Generate a short daily test.",
-    "Respond with ONLY a JSON array. No prose, no markdown fences.",
-    "Each item: { question: string, format: 'open'|'short'|'probe', conceptId: string, isSpacedRepetition: boolean }.",
+    "You are an expert AI tutor on the TraineesAI Learn platform. Generate a short daily test that CHECKS UNDERSTANDING and TEACHES through the questions themselves.",
+    "The JSON must conform to this schema.",
     "Rules:",
     " - Exactly 3 questions.",
     " - Questions 1 and 2 cover TODAY's topic. Question 3 is a spaced-repetition question on a PAST topic.",
     " - 'open' = one-sentence answer, 'short' = a few words, 'probe' = a Socratic follow-up.",
+    " - Ask WHY / HOW / WHAT-IF questions that probe real understanding and application — never bare definitions or yes/no recall.",
+    " - Anchor each question in a concrete engineering situation when possible (the learner is an internee on the job).",
     " - conceptId = 'today' for Q1+Q2, 'sr' for Q3.",
     " - isSpacedRepetition = false for Q1+Q2, true for Q3.",
+    " - No prose outside the JSON.",
   ].join("\n");
 
   const userPrompt = [
     `Today's topic (Q1+Q2):`,
     `Week ${today.topic.week} Day ${today.topic.day}: ${today.topic.title}`,
     `Objective: ${today.topic.objective}`,
+    today.topic.whyItMatters ? `Why it matters: ${today.topic.whyItMatters}` : "",
+    today.topic.activity ? `Planned activity: ${today.topic.activity}` : "",
+    today.topic.deliverable ? `Deliverable: ${today.topic.deliverable}` : "",
     ``,
     srTopic
       ? `Spaced-repetition topic (Q3): ${srTopic.title} — ${srTopic.objective}`
       : `Spaced-repetition topic: none available yet — make all 3 questions on today's topic, but mark Q3's isSpacedRepetition=false and conceptId='today'.`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 
   const result = await callAIJson<z.infer<typeof QUESTION_SCHEMA>>(
     [
@@ -125,7 +130,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
       feature: "learn-daily-test-start",
       userId: user.sub,
       temperature: 0.5,
-      maxTokens: 500,
+      // Three teaching-quality questions with real phrasing need more
+      // than the old 500 — a truncated JSON fails validation and would
+      // silently drop the learner onto canned fallback questions.
+      maxTokens: 700,
+      // Question generation recurs for every learner hitting the same
+      // (course, day) — cache per token-cache.ts policy. Grading is
+      // per-student and stays uncached.
+      cacheable: true,
+      cacheTtlMs: 6 * 60 * 60 * 1000,
     },
   );
 
@@ -142,6 +155,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
         : { question: `Why does ${today.topic.title} matter in a real project?`, format: "open" as const, conceptId: "today", isSpacedRepetition: false },
     ];
   }
+
+  // Attach per-question topic context so the answer route can TEACH the
+  // right content without re-deriving the learner's position later
+  // (midnight rollover would otherwise point the grader at the wrong
+  // topic). Spaced-repetition questions carry their own past topic.
+  questions = questions.map((q) => {
+    const topic = q.conceptId === "sr" && srTopic ? srTopic : today.topic;
+    return { ...q, topicTitle: topic.title, topicObjective: topic.objective };
+  });
 
   // Persist the test.
   const test = await db.learnDailyTest.create({

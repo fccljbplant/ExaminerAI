@@ -57,20 +57,34 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   const questionObj = questions[questionIdx];
 
   const systemPrompt = [
-    "You are an AI tutor on the TraineesAI Learn platform. Evaluate the learner's answer to a weekly-test question.",
-    "Respond with ONLY a JSON object: { evaluation: 'correct'|'partial'|'incorrect', feedback: string, score: number(0..1) }.",
+    "You are an expert AI tutor on the TraineesAI Learn platform. Evaluate the learner's answer to a weekly-test question — and use your reply to TEACH.",
+    "The JSON must conform to this schema.",
     "Rules:",
     " - 'correct' (score 1.0) = the answer is substantively right.",
     " - 'partial' (score 0.5) = right direction but missing key pieces.",
     " - 'incorrect' (score 0.0) = wrong or off-topic.",
-    " - feedback = 1-2 sentences. Be encouraging and concrete.",
+    " - feedback is ALWAYS a teaching reply, never a bare verdict:",
+    "   1. One short sentence acknowledging what the learner got right (or their effort if wrong).",
+    "   2. Name the exact gap or misconception, kindly and specifically.",
+    "   3. Teach the missing idea in plain words — with one concrete example or analogy from real work.",
+    "   4. Close with ONE thing to review or try next (tie it to the topic objective).",
+    " - 3-5 sentences total. Warm, direct, zero fluff. No grading jargon, no 'score' mention.",
+    " - Never reveal or restate the expected full answer when the format is 'probe' — guide thinking instead.",
   ].join("\n");
 
+  // Topic context stored on the question at start time (legacy tests
+  // predate the field — the topic line is simply omitted for them).
+  const stored = questionObj as { topicTitle?: string; topicObjective?: string };
+  const topicLine = stored.topicTitle
+    ? `Topic being tested: ${stored.topicTitle} — ${stored.topicObjective ?? ""}`
+    : "";
+
   const userPrompt = [
+    topicLine,
     `Question: ${questionObj.question}`,
-    `Format: ${questionObj.format}`,
+    `Question format: ${questionObj.format} ('open' expects a one-sentence answer, 'short' a few words, 'probe' is a Socratic follow-up — judge the answer against its own format, not against an essay)`,
     `Learner's answer: ${answer}`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 
   const result = await callAIJson<z.infer<typeof EVAL_SCHEMA>>(
     [
@@ -82,7 +96,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
       feature: "learn-weekly-test-answer",
       userId: user.sub,
       temperature: 0.3,
-      maxTokens: 200,
+      // Teaching replies need real room — the old 200-token cap
+      // truncated mid-JSON and pushed every evaluation to fallback.
+      maxTokens: 450,
     },
   );
 

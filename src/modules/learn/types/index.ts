@@ -81,6 +81,13 @@ export interface TopicContext {
  objective: string;
  resources: { label: string; url: string }[];
  phase: string;
+ // Teaching context for AI prompts (tests, tutor) — optional because
+ // not every topic source carries them (legacy ladder vs outline).
+ // whyItMatters: motivation line; activity/deliverable: what the
+ // learner is asked to DO with the topic that day.
+ whyItMatters?: string;
+ activity?: string;
+ deliverable?: string;
 }
 
 // ── Today's topic payload (returned by getTodayTopic) ──────────────

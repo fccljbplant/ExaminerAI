@@ -81,20 +81,26 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   const weekDays = outlineWeek?.days ?? WEEKLY_TOPICS[week - 1]?.topics ?? [];
 
   const systemPrompt = [
-    "You are an AI tutor on the TraineesAI Learn platform. Generate a weekly test covering one week of a course.",
-    "Respond with ONLY a JSON array. No prose, no markdown fences.",
-    "Each item: { question: string, format: 'open'|'short'|'probe', conceptId: string }.",
+    "You are an expert AI tutor on the TraineesAI Learn platform. Generate a weekly test covering one week of a course. The questions CHECK UNDERSTANDING and TEACH through the asking.",
+    "The JSON must conform to this schema.",
     "Rules:",
     ` - Exactly ${TARGET_QUESTION_COUNT} questions, spread across the week's days.`,
     " - Mix 'open' (one-sentence answer), 'short' (a few words) and 'probe' (Socratic follow-up).",
+    " - Ask WHY / HOW / WHAT-IF questions that probe understanding and application — never bare definitions or yes/no recall.",
+    " - Anchor questions in concrete work situations (the learner is an internee on the job).",
     " - conceptId = the day number the question covers (e.g. 'day-1').",
+    " - No prose outside the JSON.",
   ].join("\n");
 
   const userPrompt = [
     `Week ${week} material:`,
     ...weekDays.map(
-      (d: { title?: string; objective?: string }, i: number) =>
-        `Day ${i + 1}: ${d.title ?? ""} — ${d.objective ?? ""}`,
+      (d: { title?: string; objective?: string; activity?: string | null; deliverable?: string | null }, i: number) =>
+        [
+          `Day ${i + 1}: ${d.title ?? ""} — ${d.objective ?? ""}`,
+          d.activity ? `  activity: ${d.activity}` : "",
+          d.deliverable ? `  deliverable: ${d.deliverable}` : "",
+        ].filter(Boolean).join("\n"),
     ),
   ].join("\n");
 
@@ -108,7 +114,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
       feature: "learn-weekly-test-start",
       userId: user.sub,
       temperature: 0.5,
-      maxTokens: 800,
+      // Ten teaching-quality questions — the old 800-token cap
+      // truncated the JSON and silently degraded every weekly test to
+      // canned fallback questions.
+      maxTokens: 1600,
+      // Weekly questions recur for every learner in the same
+      // (course, week) — cache per token-cache.ts policy.
+      cacheable: true,
+      cacheTtlMs: 6 * 60 * 60 * 1000,
     },
   );
 
@@ -133,6 +146,18 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   } else {
     questions = result.data.slice(0, TARGET_QUESTION_COUNT);
   }
+
+  // Attach per-question topic context so the answer route can TEACH the
+  // right day's material when grading (no re-derivation, no drift).
+  questions = questions.map((q) => {
+    const dayIdx = Math.max(0, Number(String(q.conceptId).replace("day-", "")) - 1);
+    const day = weekDays[dayIdx] ?? weekDays[0];
+    return {
+      ...q,
+      topicTitle: day?.title ?? `Week ${week} material`,
+      topicObjective: day?.objective ?? "",
+    };
+  });
 
   // Persist the test.
   const test = await db.learnWeeklyTest.create({
