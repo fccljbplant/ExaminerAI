@@ -156,5 +156,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
     score: evaluation.score,
     isComplete,
     finalScore: isComplete ? finalScore : null,
+    // Generic degradation reason when the AI path failed (no secrets —
+    // e.g. "Schema validation failed: ..."). Lets the client explain
+    // degraded mode instead of showing an unexplained canned reply.
+    aiError: result.ok ? null : result.error,
   });
 }

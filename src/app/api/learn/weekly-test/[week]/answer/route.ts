@@ -154,5 +154,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
     score: evaluation.score,
     isComplete,
     finalScore: isComplete ? finalScore : null,
+    // Generic degradation reason when the AI path failed (no secrets).
+    aiError: result.ok ? null : result.error,
   });
 }
