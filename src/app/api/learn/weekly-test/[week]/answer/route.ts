@@ -96,9 +96,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
       feature: "learn-weekly-test-answer",
       userId: user.sub,
       temperature: 0.3,
-      // Teaching replies need real room — the old 200-token cap
-      // truncated mid-JSON and pushed every evaluation to fallback.
-      maxTokens: 450,
+      // DeepSeek V4 is a hybrid reasoning model: with a tight
+      // max_tokens the budget is spent on reasoning and `content`
+      // comes back EMPTY (provider falls back to reasoning text, which
+      // is not JSON) → every evaluation silently degraded. 1200 leaves
+      // room for reasoning + a teaching reply + valid JSON.
+      maxTokens: 1200,
     },
   );
 

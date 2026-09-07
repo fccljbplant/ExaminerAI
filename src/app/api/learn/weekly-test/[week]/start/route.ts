@@ -114,10 +114,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
       feature: "learn-weekly-test-start",
       userId: user.sub,
       temperature: 0.5,
-      // Ten teaching-quality questions — the old 800-token cap
-      // truncated the JSON and silently degraded every weekly test to
-      // canned fallback questions.
-      maxTokens: 1600,
+      // DeepSeek V4 reasons before answering — a tight cap empties
+      // `content` and silently degrades to canned questions. 2000
+      // covers reasoning + 10 teaching-quality questions + valid JSON.
+      maxTokens: 2000,
       // Weekly questions recur for every learner in the same
       // (course, week) — cache per token-cache.ts policy.
       cacheable: true,

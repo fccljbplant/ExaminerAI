@@ -130,10 +130,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
       feature: "learn-daily-test-start",
       userId: user.sub,
       temperature: 0.5,
-      // Three teaching-quality questions with real phrasing need more
-      // than the old 500 — a truncated JSON fails validation and would
-      // silently drop the learner onto canned fallback questions.
-      maxTokens: 700,
+      // DeepSeek V4 reasons before answering — a tight cap empties
+      // `content` and silently degrades to canned questions. 900 leaves
+      // room for reasoning + 3 teaching-quality questions + valid JSON.
+      maxTokens: 900,
       // Question generation recurs for every learner hitting the same
       // (course, day) — cache per token-cache.ts policy. Grading is
       // per-student and stays uncached.
