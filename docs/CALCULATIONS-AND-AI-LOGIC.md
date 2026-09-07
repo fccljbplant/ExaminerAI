@@ -45,6 +45,7 @@ this audit.
 3. [AI-drafts-humans-decide rule audit](#3-ai-drafts-humans-decide-rule-audit)
 4. [Findings & required fixes](#4-findings--required-fixes)
 5. [What's working well](#5-whats-working-well)
+6. [Learn test difficulty adaptation (learner-paced model)](#6-learn-test-difficulty-adaptation-2026-09-learner-paced-model)
 
 ---
 
@@ -1803,6 +1804,53 @@ No changes needed in these areas — they're exemplary:
 - **Final-result career readiness badge gating** (§1.10): The badge only shows once the student has completed ≥ 5% of the course — protects Week-1 students from a brutal "Not Ready" verdict.
 - **Final-result plagiarism stat hidden from student** (§1.10): Teacher-only in the portfolio — students don't feel surveilled.
 - **Escalation engine** (§1.5): Pure `shouldEscalate` function is testable; on-write + scheduled job cover both immediate and duration-based triggers.
+
+---
+
+## 6. Learn test difficulty adaptation (2026-09, learner-paced model)
+
+Covers the **Learn** platform tests (`/api/learn/daily-test/*`,
+`/api/learn/weekly-test/*`) — a separate pipeline from the legacy
+teacher-dashboard tests documented above. Implementation:
+`src/modules/learn/lib/learner-difficulty.ts`.
+
+### 6.1 Course model assumptions
+
+- Weeks/days are a **management structure** (content organization), not a
+  calendar. The learner may complete several days' topics in one day;
+  progression lives in `LearnProfile.masteryMap` per topic.
+- Test sequence is fixed: **daily test** after each study session →
+  **weekly test** for week W once the learner has REACHED week W's last day
+  (server-enforced `OUT_OF_SEQUENCE` guard). "After 5–6 days" means 5–6 days
+  of CONTENT, learner-paced.
+
+### 6.2 Difficulty level calculation
+
+| Step | Rule |
+|:---|:---|
+| Sources | Last 8 completed tests per (user, course): `LearnDailyTest` + `LearnWeeklyTest` |
+| Normalization | `score / questionCount` → 0..1 per test (daily score is a 0..3 sum, weekly a 0..10 sum; both are sums of per-question 0..1 scores) |
+| Kind weight | Weekly tests ×2 (10 questions is a bigger signal than 3) |
+| Recency weight | Linear, oldest = 1 … newest = N (multiplied by the kind weight) |
+| Level bands (avg) | ≥0.85 → 5 Expert · ≥0.70 → 4 Advanced · ≥0.55 → 3 Stretch · ≥0.40 → 2 Core · else 1 Warm-up |
+| Cold start | No completed tests → level 2 (Core): kind, but not trivia |
+| Failure mode | Any DB error → level 2; question generation NEVER blocked |
+
+The level maps to a **directive** injected into the question-generation system
+prompt (`LEARN_DIFFICULTY_DIRECTIVES`). Every directive is application-first
+(WHY / HOW / WHAT-IF, real situations) at ALL levels — a low level means
+gentler scenarios and more scaffolding, never bare-definition recall. Daily
+tests additionally ramp within the band (Q1 easiest → Q3 hardest).
+
+### 6.3 Token-cache interaction
+
+The directive is part of the prompt, and the token cache
+(`token-cache.ts`) keys on the exact messages — so the cache naturally
+shards per (course, day/week, **difficulty level**). Learners in the same
+level still share one cached generation (6h TTL); grading remains
+per-student and uncached. Difficulty data also rides additively on each
+stored question (`difficultyLevel`, `difficultyLabel`) so resumed tests
+display their band without a schema migration.
 
 ---
 

@@ -74,18 +74,20 @@ are managed in Platform → Tenants).
 ## Key features
 
 ### Learn Platform (`/learn`) — AI-guided learning experience
-- **Today's Topic flow** — 30 topics (6 weeks × 5 days), AI generates 4 slides per topic on-the-go
+- **Learner-paced progression** — weeks and days organize content for MANAGEMENT (Course Planner); the LEARNER sets the pace. One topic or three in a day — progress is tracked per topic in `LearnProfile.masteryMap`, never by the calendar
+- **Test rhythm, in sequence** — every study session ends with a daily test (3 Qs on today's topic + 1 spaced-repetition); the weekly test (10 Qs) for week W unlocks once the learner has REACHED week W's last day (server-enforced). Daily → weekly, always in course order
 - **AI Tutor avatar** — sprite player + lip-sync + floating dock, driven by `tutor.say/play/caption` event bus
 - **h-screen shell** — no vertical page scroll; status strip + activity bar + slide canvas + chat pane
-- **4 panels** — Journey (30-topic map), Project (create + milestones + hint ladder), Grow (daily test UI + XP + badges), Library (resources + notes)
+- **4 panels** — Journey (topic map), Project (create + milestones + hint ladder), Grow (daily test UI + XP + badges), Library (resources + notes)
 - **Gamification** — XP ledger (slide +5, probe +10, quiz +15, daily +30, weekly +100, course +500), 7 levels (Rookie → Legend), timezone-safe streaks
-- **Daily tests** — 3 conversational questions with AI evaluation + feedback
+- **Daily tests** — 3 conversational questions with AI evaluation + teaching feedback
+- **Adaptive difficulty** — question difficulty (1–5: Warm-up → Core → Stretch → Advanced → Expert) adapts to the learner's recent daily/weekly test scores per course (`learner-difficulty.ts`); directives ride in the generation prompt so the token cache shards per level
 - **Project guidance** — hint ladder (nudge → clue → scaffold), never gives the full answer first
 
 ### For students (trainees)
 - **TodayView** — one screen answering "what do I do next?"
 - **SlideViewer** — on-the-fly slide generation from course content (video, code, visual, activity, reflection)
-- **Adaptive difficulty** — questions scale 1-5 based on performance + explicit confidence
+- **Adaptive difficulty** — questions scale 1-5 to the learner's demonstrated level (recent test performance + explicit confidence in the legacy path)
 - **DrillCard spaced repetition** — wrong answers come back until mastered
 - **AI Tutor panel** — persistent right-side chat with proactive bubbles, knows which slide you're on
 - **Socratic testing** — daily tests (3 Qs) + weekly tests (10 Qs), not MCQs

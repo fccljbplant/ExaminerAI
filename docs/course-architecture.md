@@ -48,6 +48,35 @@ src/lib/
 | `reportCardTemplateJson` | String? | JSON: grading scale + weights + sections |
 | `weeks` | CourseWeek[] | Curriculum weeks (each with 5 days) |
 
+## Weeks/Days = Management Structure, NOT a Calendar (2026-09)
+
+Weeks and days exist so **management** can organize and plan content (Course
+Planner, seeds, AI course generation). They are NOT a schedule imposed on the
+learner:
+
+- **The learner sets the pace.** Studying three days' topics in a single day is
+  normal and fully supported. Progression is per topic, tracked in
+  `LearnProfile.masteryMap.topicProgress` (`current`, `history`, `furthest`).
+- **Tests follow the learner in a fixed ORDER:**
+  1. **Daily test** (3 questions: 2 on today's topic + 1 spaced-repetition
+     from completed topics) after every study session —
+     `/api/learn/daily-test/[date]/start|answer`. The `date` in the route is
+     only an idempotency key for "this session's test"; it does not gate
+     content.
+  2. **Weekly test** (10 questions covering a week's days) for week W unlocks
+     when the learner has REACHED the last day of week W. The classroom shows
+     it at the week's final day (`weeklyDue` in `ClassroomShell.tsx`), and
+     `/api/learn/weekly-test/[week]/start` enforces it server-side via
+     `learnerReachedTopic()` (error `OUT_OF_SEQUENCE`, HTTP 409). A course
+     week has 5–6 days, so the weekly test lands "after 5–6 days of content"
+     — learner-paced days, not calendar days.
+- **Question difficulty adapts to the learner**, not the schedule: level 1–5
+  (Warm-up → Core → Stretch → Advanced → Expert) derived from the learner's
+  recent daily+weekly test scores for the course
+  (`src/modules/learn/lib/learner-difficulty.ts`), injected into the
+  question-generation prompt. Token-cache keys include the directive, so
+  caching still dedupes generation for same-level learners.
+
 ## What Each Course Controls
 
 | Feature | Config Field | Fallback |

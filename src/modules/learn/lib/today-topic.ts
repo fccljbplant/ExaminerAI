@@ -442,6 +442,38 @@ export async function completeTopicAndAdvance(
 }
 
 /**
+ * SEQUENCE GUARD for weekly tests (user model 2026-09).
+ *
+ * Weeks/days are a MANAGEMENT structure — the learner sets the pace and
+ * may finish several days' topics in a single day. What is fixed is the
+ * ORDER of tests: the weekly test for week W exists only AFTER the
+ * learner has REACHED the last day of week W (their current topic is on
+ * it, they completed it, or they moved past it). Calendar dates play no
+ * role.
+ *
+ * Returns true when the learner has reached (week, day) — i.e. the topic
+ * is at or before their furthest-reached topic. A completed course
+ * (current === null) counts as having reached everything.
+ */
+export async function learnerReachedTopic(
+  userId: string,
+  courseId: string,
+  week: number,
+  day: number,
+): Promise<boolean> {
+  const profile = await db.learnProfile.findUnique({
+    where: { userId_courseId: { userId, courseId } },
+  });
+  if (!profile) return false;
+
+  const mastery = coerceMastery(profile.masteryMap);
+  if (mastery.topicProgress.current === null) return true; // course complete
+
+  const furthest = await furthestReached(userId, courseId, mastery);
+  return isAtOrBefore({ week, day }, furthest);
+}
+
+/**
  * Jump to a specific (week, day) topic. Used by the JourneyPanel to
  * let the learner revisit a completed topic or jump ahead. Allows
  * jumping to any topic the learner has already REACHED (completed,

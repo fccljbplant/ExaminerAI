@@ -61,6 +61,33 @@ This way, if the environment resets, only the current line is lost — not hours
 - **Demo login:** demo@examiner.ai / demo123 (developer role, read-only)
 - **Teacher login:** s.khan@fccl.com.pk / demo123
 
+## Learn Course Model (do not misdocument — user-confirmed 2026-09)
+
+- **Weeks/days are a MANAGEMENT structure**, not a calendar. CourseWeek/CourseDay
+  (e.g. 6 weeks × 5 days) exist so management can organize content in the Course
+  Planner. The LEARNER sets the pace: finishing three days' topics in one day is
+  normal. Progression is tracked per topic in `LearnProfile.masteryMap`
+  (`current` / `history` / `furthest`) — never by calendar dates.
+- **Test rhythm is IN SEQUENCE (already implemented):**
+  1. Every study session ends with a **daily test** (3 Socratic questions:
+     2 on today's topic + 1 spaced-repetition) → `/api/learn/daily-test/[date]/*`.
+  2. The **weekly test** (10 questions covering the week's days) for week W
+     unlocks when the learner has REACHED the last day of week W — the classroom
+     offers it at the week's final day (`weeklyDue` in ClassroomShell) and the
+     API enforces it server-side (`learnerReachedTopic` guard in
+     `/api/learn/weekly-test/[week]/start`, error code `OUT_OF_SEQUENCE`).
+  - "Test after 5 or 6 days" = after the week's 5–6 days of CONTENT are done
+    (learner-paced), NOT after 5–6 calendar days.
+- **Question difficulty adapts to the learner** (1–5: Warm-up / Core / Stretch /
+  Advanced / Expert) from their recent daily+weekly test scores per course —
+  `src/modules/learn/lib/learner-difficulty.ts`. The level directive is injected
+  into question-generation prompts; because the directive is part of the prompt,
+  the token cache shards per (course, day/week, level) — same-level learners
+  still share cached generations.
+- **AI does the processing** (`ai-json.ts` zod-validated JSON + repair loop),
+  token caching per `token-cache.ts` policy (question generation cacheable 6h,
+  grading never cached).
+
 ## Key Architecture
 
 - `src/components/examiner/AppShell.tsx` — main app shell with sidebar nav + role switcher

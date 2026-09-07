@@ -29,6 +29,9 @@ interface Question {
   question: string;
   format: string;
   conceptId: string;
+  /** Additive (2026-09): difficulty band this test was generated for. */
+  difficultyLevel?: number;
+  difficultyLabel?: string;
 }
 
 interface StoredAnswer {
@@ -226,6 +229,8 @@ export function WeeklyTestPanel({
           {weekLabel
             ? `${weekLabel} — 10 questions covering this week's material.`
             : `Week ${week} — 10 questions covering this week's material.`}
+          {questions[0]?.difficultyLabel &&
+            ` Difficulty: ${questions[0].difficultyLabel} (${questions[0].difficultyLevel}/5) — adapts to your results.`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
