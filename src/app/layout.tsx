@@ -8,6 +8,7 @@ import { CommandRegistryProvider } from "@/modules/ui/command-registry";
 import { CommandPalette } from "@/modules/ui/command-palette";
 import { KeyboardShortcutsHelp } from "@/modules/ui/keyboard-shortcuts-help";
 import { CelebrationOverlay } from "@/modules/gamification";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,6 +74,7 @@ export default function RootLayout({
               </CommandRegistryProvider>
           </ThemeV2Provider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
