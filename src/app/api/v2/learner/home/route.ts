@@ -8,7 +8,7 @@
 
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
-import { apiSuccess, apiUnauthorized } from "@/lib/api-response";
+import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { getTodayTopic } from "@/modules/learn/lib/today-topic";
 import { getLearnerLevel } from "@/modules/learn/lib/xp-ledger";
 
@@ -18,9 +18,9 @@ export async function GET() {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
 
-  // Enrolled courses = one LearnProfile per (user, course), most recent first.
-  // Fallback to empty array if table doesn't exist yet.
-  let profiles: any[] = [];
+  // A failed profile lookup must not be presented as a genuine empty
+  // enrollment state. Fail the aggregate so the client can offer a retry.
+  let profiles: any[];
   try {
     profiles = await db.learnProfile.findMany({
       where: { userId: user.sub },
@@ -28,8 +28,12 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
     });
   } catch (e) {
-    // LearnProfile table might not exist yet — continue with empty profiles
-    console.warn("Could not fetch learn profiles:", e instanceof Error ? e.message : String(e));
+    console.error("Learner home profile lookup failed:", e);
+    return apiError(
+      "Your dashboard is temporarily unavailable. Please try again.",
+      "LEARNER_HOME_UNAVAILABLE",
+      503,
+    );
   }
 
   /* ---- continue card: most recently active course ---- */
