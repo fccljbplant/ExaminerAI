@@ -40,6 +40,14 @@ try {
     const key = `feature_portal_${flag}_v2`;
     await prisma.setting.upsert({ where: { key }, update: { value: "true" }, create: { key, value: "true" } });
   }
+  // The instructor home API also requires the submissions rollout flag.
+  // Enable it only in this isolated SQLite fixture so the dashboard's
+  // intended empty-queue state can be captured instead of its rollout gate.
+  await prisma.setting.upsert({
+    where: { key: "feature_portal_submissions_v2" },
+    update: { value: "true" },
+    create: { key: "feature_portal_submissions_v2", value: "true" },
+  });
   const orgAdmin = await prisma.user.findUnique({ where: { email: "ux-ci-org_admin@example.invalid" } });
   await prisma.orgMember.create({ data: { orgId: org.id, userId: orgAdmin.id, role: "admin", status: "active" } });
 } finally {
