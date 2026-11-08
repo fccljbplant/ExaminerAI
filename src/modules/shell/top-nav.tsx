@@ -30,7 +30,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
       href={item.href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex h-9 min-w-11 items-center gap-1.5 rounded-lg px-3 text-sm transition-colors",
+        "flex h-11 min-w-11 items-center gap-1.5 rounded-lg px-3 text-sm transition-colors",
         active
           ? "bg-brand-subtle font-medium text-fg"
           : "text-fg-secondary hover:bg-bg-subtle hover:text-fg"
@@ -54,7 +54,7 @@ function MoreMenu({ items, activeId }: { items: NavItem[]; activeId?: string }) 
         <button
           type="button"
           aria-label="More navigation"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden />
         </button>
