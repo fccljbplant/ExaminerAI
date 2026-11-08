@@ -163,10 +163,10 @@ These are layout-level guards; page-specific authorization and API checks still 
 
 ## Design-system validation finding
 
-- `ThemeV2Provider` supports eight modes: light, dark, bed, classic, zinc, ocean, forest and sunset.
-- The current contrast validator and manifest model only three modes: light, dark and bed.
-- Semantic CSS contains additional preset selectors, including classic, zinc, ocean, forest and sunset (with light/dark preset layering). The validator does not currently validate all provider-supported modes.
-- Next design-system task: model the effective rendered palettes for every supported mode and validate text/UI contrast and token completeness against actual CSS; do not merely add mode names to the test without parsing their real selector cascade.
+- `ThemeV2Provider` supports eight user-facing modes: light, dark, bed, classic, zinc, ocean, forest and sunset. Zinc, ocean, forest and sunset have separate light/dark CSS states, so there are 12 effective states to validate.
+- **Fixed in the current UX branch, awaiting CI:** the contrast validator now parses all 12 effective states, checks the shipped default palette as well as generated organisation-brand palettes, and recognizes `rgba()` scrim tokens for completeness.
+- The expanded gate found and prompted fixes for low-contrast default text, focus rings and chart series in Classic, Modern Slate, Zinc, Ocean, Forest and Sunset presets. The thresholds remain WCAG AA (4.5:1 text, 3:1 UI/large graphics); they were not lowered.
+- Keep the real CSS cascade in the validator. Adding theme names without parsing light/dark selector overrides would not provide valid coverage.
 
 ## Next validation required
 
