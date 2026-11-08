@@ -106,8 +106,15 @@ class CDP {
   }
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+let authProbeSummary = "not run";
 try {
   await waitForServer();
+  const authProbe = await fetch(origin + users[0].path, {
+    headers: { cookie: `examiner_token=${users[0].token}` },
+    redirect: "manual",
+  });
+  authProbeSummary = `${authProbe.status} ${authProbe.headers.get("location") ?? ""}`.trim();
+  console.log(`Synthetic auth probe: ${authProbeSummary}`);
   let version;
   for (let i = 0; i < 60; i++) {
     try { version = await (await fetch(`${debug}/json/version`)).json(); break; } catch { await sleep(500); }
@@ -125,7 +132,12 @@ try {
   const records = [];
   for (const user of users) for (const [width, height] of viewports) {
     await cdp.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: width <= 768 });
-    await cdp.send("Network.setCookie", { name: "examiner_token", value: user.token, url: origin, httpOnly: true, sameSite: "Lax" });
+    const cookieResult = await cdp.send("Network.setCookie", { name: "examiner_token", value: user.token, url: origin, httpOnly: true, sameSite: "Lax" });
+    const cookieState = await cdp.send("Network.getCookies", { urls: [origin] });
+    const cookiePresent = cookieState.cookies?.some(cookie => cookie.name === "examiner_token" && cookie.value === user.token);
+    if (!cookieResult.success || !cookiePresent) {
+      throw new Error(`Could not install synthetic auth cookie for ${user.role}; setCookie=${JSON.stringify(cookieResult)}; present=${cookiePresent}`);
+    }
     await cdp.send("Page.navigate", { url: origin + user.path });
     let state;
     for (let i = 0; i < 50; i++) {
@@ -142,7 +154,7 @@ try {
       await sleep(200);
     }
     await sleep(700);
-    if (state.path !== user.path || state.text.length < 10) throw new Error(`${user.role} did not render at ${user.path}; current route ${state.path}`);
+    if (state.path !== user.path || state.text.length < 10) throw new Error(`${user.role} did not render at ${user.path}; current route ${state.path}; synthetic auth probe=${authProbeSummary}; server log=${serverLog}`);
     const shot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
     const name = `${user.role}-${width}x${height}.png`;
     await writeFile(join(out, name), Buffer.from(shot.data, "base64"));
