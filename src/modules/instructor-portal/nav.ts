@@ -38,6 +38,8 @@ export const INSTRUCTOR_NAV: NavItem[] = [
       // Creator economy (2026-08-17): studio + payouts hang off the More hub.
       "/instructor/studio",
       "/instructor/payouts",
+      "/instructor/projects",
+      "/instructor/certificates",
     ],
   },
 ];
