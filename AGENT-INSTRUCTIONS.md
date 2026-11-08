@@ -16,41 +16,33 @@ This has caused code destruction, old+new code mixing, and lost work.
 
 ## The Workflow (FOLLOW STRICTLY)
 
-### 1. At the start of EVERY session, run this check first:
+### 1. Establish repository state before editing
 
-```bash
-cd /home/z/my-project
-echo "=== Git state ===" && git log --oneline -3
-echo "=== Source files exist? ===" && ls src/components/examiner/TeacherDashboard.tsx
-echo "=== Working directory clean? ===" && git status --short
-echo "=== Dev server running? ===" && curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/app
-```
+- Confirm the repository, branch, current commit, and working-tree state.
+- Never assume a local workspace or dev server survived between sessions.
+- Inspect the current source before applying a patch; do not restore or reset blindly.
 
-### 2. If the environment has reset (files missing, git rolled back):
+### 2. Protect data and credentials
 
-- **STOP. Tell the user what happened BEFORE doing anything.**
-- Say: "The sandbox environment has reset. I need to restore from GitHub."
-- Then: `git fetch origin main && git reset --hard origin/main`
-- Then: `bun install && bun run db:push -- --force-reset && bun run scripts/seed-demo.ts`
-- Then: verify everything works before continuing.
+- Never run destructive database commands (including force resets, schema drops, or production syncs) without explicit owner approval for the exact target and operation.
+- Never put access tokens, passwords, or credentials in source files, documentation, Git remotes, shell history, logs, or chat messages.
+- Use the platform's approved secret manager or environment-variable mechanism.
+- Treat demo credentials as sensitive unless they are confirmed to be synthetic and intentionally public.
 
-### 3. After EVERY meaningful change:
+### 3. Make changes on a dedicated branch
 
-```bash
-git add -A
-git commit -m "description of change"
-git remote set-url origin https://fccljbplant:GITHUB_TOKEN@github.com/fccljbplant/ExaminerAI.git
-git push origin main
-git remote set-url origin https://github.com/fccljbplant/ExaminerAI.git
-```
+- Do not push directly to `main`.
+- Use a descriptive feature/fix branch and keep changes scoped.
+- After each coherent change, review the diff and run the relevant checks.
+- Open a pull request with a summary, test evidence, risks, and any manual verification still required.
+- Do not merge or deploy without the repository owner's approval.
 
-**Commit + push after EVERY change, not at the end of a batch.**
-This way, if the environment resets, only the current line is lost — not hours of work.
+### 4. Verify before reporting completion
 
-### 4. Never do these silently:
-- `git reset --hard` — always explain why first
-- `rm -rf` on source directories — never do this
-- Bulk file replacements — always show the user what changed
+- Run the available typecheck, lint, unit tests, and production build.
+- Run browser and accessibility checks when the environment supports them.
+- Clearly distinguish checks that passed from checks that could not be run.
+- Do not claim a page was visually inspected unless it was actually opened and tested in a browser.
 
 ## Project: ExaminerAI
 
@@ -58,8 +50,6 @@ This way, if the environment resets, only the current line is lost — not hours
 - **Vercel:** examiner-ai-tau.vercel.app (stable URL)
 - **Operator:** Inzet Enterprises · inzet.enterprises@gmail.com
 - **Tech stack:** Next.js 16, Prisma, PostgreSQL (Neon on Vercel), shadcn/ui
-- **Demo login:** demo@examiner.ai / demo123 (developer role, read-only)
-- **Teacher login:** s.khan@fccl.com.pk / demo123
 
 ## Learn Course Model (do not misdocument — user-confirmed 2026-09)
 
@@ -116,21 +106,3 @@ This way, if the environment resets, only the current line is lost — not hours
 - PsychEvidence values match what PsychologicalTab.tsx expects
 - Cache-busting headers added to next.config.ts (no-cache on HTML pages)
 
-## Vercel Deployment
-
-```bash
-# Set VERCEL_TOKEN env var before running (ask user for token)
-cd /home/z/my-project
-vercel --prod --yes --token "$VERCEL_TOKEN"
-```
-
-Build command: `bash scripts/vercel-build.sh` (uses prisma/schema.prod.prisma for Postgres)
-
-## Token Storage
-
-Tokens are NOT stored in this file (GitHub rejected it when they were).
-Ask the user for tokens if needed, or check environment variables.
-
-- GitHub repo: `fccljbplant/ExaminerAI`
-- Vercel Project ID: `prj_YfSKQdv5AXTBJ08Czh9EDxtN8DBU`
-- Vercel Stable URL: `examiner-ai-tau.vercel.app`
