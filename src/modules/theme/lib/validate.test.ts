@@ -15,6 +15,6 @@ describe("theme validation gate", () => {
   it("all static and brand-derived contrast pairs meet WCAG minimums", () => {
     const result = runThemeValidation();
     expect(result.failures).toEqual([]);
-    expect(result.checks).toBeGreaterThan(500);
+    expect(result.checks).toBeGreaterThan(2500);
   });
 });
