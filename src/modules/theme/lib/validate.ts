@@ -28,7 +28,38 @@ import {
   type ThemeMode,
 } from "./contrast-manifest";
 
-const MODES: ThemeMode[] = ["light", "dark", "bed"];
+const MODES = [
+  "light",
+  "dark",
+  "bed",
+  "classic",
+  "zinc-light",
+  "zinc-dark",
+  "ocean-light",
+  "ocean-dark",
+  "forest-light",
+  "forest-dark",
+  "sunset-light",
+  "sunset-dark",
+] as const;
+
+type ValidationMode = (typeof MODES)[number];
+type BrandMode = keyof BrandPalette;
+
+const BRAND_MODE_FOR_VALIDATION: Record<ValidationMode, BrandMode> = {
+  light: "light",
+  dark: "dark",
+  bed: "bed",
+  classic: "light",
+  "zinc-light": "light",
+  "zinc-dark": "dark",
+  "ocean-light": "light",
+  "ocean-dark": "dark",
+  "forest-light": "light",
+  "forest-dark": "dark",
+  "sunset-light": "light",
+  "sunset-dark": "dark",
+};
 
 export interface ValidationResult {
   checks: number;
@@ -55,8 +86,11 @@ function parseOklch(value: string): Oklch | null {
   return { l: Number(m[1]), c: Number(m[2]), h: Number(m[3]) };
 }
 
-function parseSemanticCss(css: string): Record<ThemeMode, TokenMap> {
-  const out: Record<ThemeMode, TokenMap> = { light: {}, dark: {}, bed: {} };
+function parseSemanticCss(css: string): Record<ValidationMode, TokenMap> {
+  const out = Object.fromEntries(MODES.map((mode) => [mode, {}])) as Record<
+    ValidationMode,
+    TokenMap
+  >;
   const stripped = css.replace(/\/\*[\s\S]*?\*\//g, "");
   const blockRe = /([^{}]+)\{([^{}]*)\}/g;
   let block: RegExpExecArray | null;
@@ -64,9 +98,21 @@ function parseSemanticCss(css: string): Record<ThemeMode, TokenMap> {
     const selectors = block[1].split(",").map((s) => s.trim());
     const modes = new Set<ThemeMode>();
     for (const sel of selectors) {
-      if (sel.includes('data-mode="dark"')) modes.add("dark");
-      else if (sel.includes('data-mode="bed"')) modes.add("bed");
-      else if (sel === ":root" || sel.includes('data-mode="light"')) modes.add("light");
+      if (sel.includes('data-mode="dark"')) {
+        modes.add("dark");
+      } else if (sel.includes('data-mode="bed"')) {
+        modes.add("bed");
+      } else if (sel === ":root" || sel.includes('data-mode="light"')) {
+        modes.add("light");
+      } else if (sel.includes('data-mode="classic"')) {
+        modes.add("classic");
+      } else {
+        for (const preset of ["zinc", "ocean", "forest", "sunset"] as const) {
+          if (sel.includes(`data-mode="${preset}"`)) {
+            modes.add(`${preset}-${sel.includes(".dark") ? "dark" : "light"}` as ValidationMode);
+          }
+        }
+      }
     }
     const declRe = /--([\w-]+)\s*:\s*([^;]+);/g;
     let decl: RegExpExecArray | null;
@@ -157,7 +203,7 @@ export function runThemeValidation(opts: ValidationOptions = {}): ValidationResu
 
   const assertPair = (
     label: string,
-    mode: ThemeMode,
+    mode: ValidationMode,
     pairId: string,
     fg: string | undefined,
     bg: string | undefined,
@@ -197,7 +243,7 @@ export function runThemeValidation(opts: ValidationOptions = {}): ValidationResu
   for (const sample of brands) {
     const palette = deriveBrandPalette(sample.hex);
     for (const mode of MODES) {
-      const derived = derivedTokenMap(palette[mode]);
+      const derived = derivedTokenMap(palette[BRAND_MODE_FOR_VALIDATION[mode]]);
       const resolve = (name: string) => derived[name] ?? tokens[mode][name];
       for (const pair of CONTRAST_MANIFEST.filter((p) => p.brandDependent)) {
         assertPair(`brand:${sample.name}`, mode, pair.id, resolve(pair.fg), resolve(pair.bg), pair.min);
