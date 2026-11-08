@@ -40,7 +40,7 @@ interface AtRiskItem {
 }
 
 interface HomeData {
-  queue: { count: number; preview: QueuePreviewItem[] };
+  queue: { count: number; inReviewCount: number; preview: QueuePreviewItem[] };
   atRisk: { count: number; items: AtRiskItem[] };
   studentsTotal: number;
 }
@@ -76,7 +76,6 @@ export function InstructorHome() {
 
   const queueItems = data.queue.preview;
   const atRisk = data.atRisk.items;
-  const inReview = queueItems.filter((i) => i.status !== "changes_requested").length;
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -86,7 +85,7 @@ export function InstructorHome() {
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
         <Kpi
           label="In queue"
-          value={queueItems.length}
+          value={data.queue.count}
           hint="awaiting review"
           tone="info"
           icon={ClipboardCheck}
@@ -99,7 +98,7 @@ export function InstructorHome() {
           icon={AlertTriangle}
         />
         <Kpi label="Students" value={data.studentsTotal} hint="enrolled" tone="brand" icon={UserRound} />
-        <Kpi label="In review" value={inReview} hint="being graded" tone="muted" icon={BarChart3} />
+        <Kpi label="In review" value={data.queue.inReviewCount} hint="being graded" tone="muted" icon={BarChart3} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
