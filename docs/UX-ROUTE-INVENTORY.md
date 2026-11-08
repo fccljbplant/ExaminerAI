@@ -164,9 +164,17 @@ These are layout-level guards; page-specific authorization and API checks still 
 ## Design-system validation finding
 
 - `ThemeV2Provider` supports eight user-facing modes: light, dark, bed, classic, zinc, ocean, forest and sunset. Zinc, ocean, forest and sunset have separate light/dark CSS states, so there are 12 effective states to validate.
-- **Fixed in the current UX branch, awaiting CI:** the contrast validator now parses all 12 effective states, checks the shipped default palette as well as generated organisation-brand palettes, and recognizes `rgba()` scrim tokens for completeness.
+- **Fixed in the current UX branch; CI passed in run `42528457633`:** the contrast validator parses all 12 effective states, checks the shipped default palette as well as generated organisation-brand palettes, and recognizes `rgba()` scrim tokens for completeness. The run passed 31 test files / 374 tests, lint, TypeScript, and production build.
 - The expanded gate found and prompted fixes for low-contrast default text, focus rings and chart series in Classic, Modern Slate, Zinc, Ocean, Forest and Sunset presets. The thresholds remain WCAG AA (4.5:1 text, 3:1 UI/large graphics); they were not lowered.
 - Keep the real CSS cascade in the validator. Adding theme names without parsing light/dark selector overrides would not provide valid coverage.
+
+## Current CI evidence (2026-11-09)
+
+- Workflow: [run 42528457633](https://github.com/fccljbplant/ExaminerAI/actions/runs/42528457633) — all quality-job steps completed successfully.
+- Unit tests: **374 passed across 31 test files**; lint, `tsc --noEmit`, and production build passed.
+- Production-server smoke test requested **83/83 discovered page routes**. Statuses: 14×200, 64×307 redirects, 5×404 dynamic-route placeholders. No 5xx responses or missing static routes were reported.
+- Important limitation: this smoke job had no authenticated synthetic users, so 307 responses are not proof that role routes render correctly. It produces no screenshots and does not run Playwright, axe, or real interactions. Do not call this visual or authenticated UX QA.
+- [UXPeak source research](./UPGRADE-2026-10/design/UX-REFERENCE-RESEARCH.md) now records official-site review and precisely labels video-description access versus full playback/transcript access.
 
 ## Next validation required
 
