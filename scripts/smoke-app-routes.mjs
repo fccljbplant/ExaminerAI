@@ -1,6 +1,6 @@
 import { readdir } from "node:fs/promises";
 import { spawn } from "node:child_process";
-import { join, relative, sep } from "node:path";
+import { join, relative } from "node:path";
 
 const root = process.cwd();
 const appRoot = join(root, "src", "app");
@@ -9,9 +9,9 @@ const origin = `http://127.0.0.1:${port}`;
 const pageFiles = new Set(["page.tsx", "page.ts", "page.jsx", "page.js"]);
 
 function toRouteSegment(segment) {
-  if (/^\\[\\[\\.\\.\\..+\\]\\]$/.test(segment)) return "smoke-test";
-  if (/^\\[\\.\\.\\..+\\]$/.test(segment)) return "smoke-test";
-  if (/^\\[[^/]+\\]$/.test(segment)) return "smoke-test";
+  if (segment.startsWith("[[...") && segment.endsWith("]]")) return "smoke-test";
+  if (segment.startsWith("[...") && segment.endsWith("]")) return "smoke-test";
+  if (segment.startsWith("[") && segment.endsWith("]")) return "smoke-test";
   return segment;
 }
 
@@ -22,20 +22,25 @@ async function collectPages(directory, segments = []) {
     const fullPath = join(directory, entry.name);
     if (entry.isFile() && pageFiles.has(entry.name)) {
       const pathname = "/" + segments.map(toRouteSegment).filter(Boolean).join("/");
-      found.push({ pathname: pathname === "/" ? "/" : pathname.replace(/\\/$/, ""), source: relative(root, fullPath), dynamic: segments.some((s) => s.startsWith("[")) });
+      found.push({
+        pathname: pathname === "/" ? "/" : pathname.replace(/\/$/, ""),
+        source: relative(root, fullPath),
+        dynamic: segments.some((segment) => segment.startsWith("[")),
+      });
       continue;
     }
     if (!entry.isDirectory()) continue;
-    // Route groups do not appear in public URLs. Private folders, parallel
-    // slots and intercepting-route folders are not independently crawlable.
-    if (entry.name.startsWith("_") || entry.name.startsWith("@") || /^\\(.*\\)$/.test(entry.name)) continue;
+    // Route groups, private folders, parallel slots, and intercepting routes
+    // do not represent independently crawlable public URL segments.
+    if (entry.name.startsWith("_") || entry.name.startsWith("@") || entry.name.startsWith("(")) continue;
     found.push(...await collectPages(fullPath, [...segments, entry.name]));
   }
   return found;
 }
 
 const pages = await collectPages(appRoot);
-const uniquePages = [...new Map(pages.map((page) => [page.pathname, page])).values()].sort((a, b) => a.pathname.localeCompare(b.pathname));
+const uniquePages = [...new Map(pages.map((page) => [page.pathname, page])).values()]
+  .sort((a, b) => a.pathname.localeCompare(b.pathname));
 if (uniquePages.length === 0) throw new Error("No app page routes were discovered under src/app.");
 
 const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(port)], {
@@ -50,10 +55,10 @@ for (const stream of [server.stdout, server.stderr]) {
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-let ready = false;
 try {
+  let ready = false;
   for (let attempt = 0; attempt < 90; attempt += 1) {
-    if (server.exitCode !== null) throw new Error(`Next.js server exited early (code ${server.exitCode}).\\n${serverLog}`);
+    if (server.exitCode !== null) throw new Error(`Next.js server exited early (code ${server.exitCode}).\n${serverLog}`);
     try {
       const response = await fetch(origin, { redirect: "manual", signal: AbortSignal.timeout(3000) });
       if (response.status < 500) { ready = true; break; }
@@ -62,7 +67,7 @@ try {
     }
     await sleep(500);
   }
-  if (!ready) throw new Error(`Next.js server did not become ready.\\n${serverLog}`);
+  if (!ready) throw new Error(`Next.js server did not become ready.\n${serverLog}`);
 
   const results = [];
   const concurrency = 8;
@@ -83,7 +88,9 @@ try {
     results.push(...batchResults);
   }
 
-  const failures = results.filter((result) => result.status === 0 || result.status >= 500 || (result.status === 404 && !result.dynamic));
+  const failures = results.filter((result) =>
+    result.status === 0 || result.status >= 500 || (result.status === 404 && !result.dynamic)
+  );
   const counts = results.reduce((acc, result) => {
     const key = String(result.status);
     acc[key] = (acc[key] || 0) + 1;
@@ -93,7 +100,9 @@ try {
   console.log(`HTTP status counts: ${Object.entries(counts).map(([status, count]) => `${status}: ${count}`).join(", ")}`);
   if (failures.length) {
     console.error("Routes needing investigation:");
-    for (const failure of failures) console.error(`- ${failure.pathname} [${failure.source}] -> ${failure.status} ${failure.error || ""}`);
+    for (const failure of failures) {
+      console.error(`- ${failure.pathname} [${failure.source}] -> ${failure.status} ${failure.error || ""}`);
+    }
     console.error(serverLog);
     process.exitCode = 1;
   } else {
