@@ -59,6 +59,13 @@ This is a first rendered baseline, not a release sign-off. It does not yet inclu
 
 
 
+
+### Additional mobile composition observations
+
+- **Instructor:** the 390px layout places four KPIs first, then the queue, attention list and AI assistant. The page remains readable and the navigation is reachable. Verify the assistant's suggested prompts and answers against evidence/provenance rules, and test a populated queue before changing its density.
+- **Organisation admin:** the announcement composer occupies a substantial part of the lower mobile viewport. Its form has accessible labels and visible posting feedback in source. Confirm whether composing announcements is a frequent home-screen task; if not, consider a compact entry point to a dedicated announcement workflow, but do not hide a high-frequency action without task evidence.
+- **Platform admin:** the mobile dashboard presents eight top-level KPIs and four additional overview cards before the action-items section. The metrics are currently given similar visual weight, so action items begin low in the 390×844 viewport. Investigate which indicators are decision-critical and group business health, platform operations and action items with a clear hierarchy. Keep all decision-critical status visible; do not simply delete metrics or add decorative charts.
+
 ## Source cross-checks from the first visual review
 
 ### Learner no-enrollment state
