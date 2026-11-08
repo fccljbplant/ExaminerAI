@@ -176,3 +176,10 @@ For the current UX-audit stream, continue in this order:
 - Current CI workflow run `42528457633` passed: 31 test files / 374 tests; lint; TypeScript; production build; 83/83 page-route requests. The requests returned 14×200, 64×307 redirects, and 5×404 dynamic-route placeholders, with no server errors or missing static routes. This validates server-route reachability only; it does not validate authenticated role screens or rendered visual design.
 - No screenshot artifact was attached to that run. Until authenticated screenshot capture is implemented and inspected, the visual state of the app remains **not verified**.
 
+
+### Prompt fact check — DeepSeek schedule and model wording (2026-11-09)
+
+The official [DeepSeek Models & Pricing page](https://api-docs.deepseek.com/quick_start/pricing/) was rechecked during this reconciliation. It currently identifies `deepseek-flash` as the API model name for the DeepSeek-V4.1-Flash-1017 version, lists thinking as supported and enabled by default, and documents an explicit non-thinking mode. Therefore the owner prompt's floating model name and requirement to turn thinking off explicitly remain relevant; implementation must follow the current official Thinking Mode guide rather than relying on SDK defaults.
+
+The same pricing page defines weekday peak windows as 01:00–04:00 and 06:00–10:00 UTC, **excluding Chinese public holidays**; weekends and Chinese public holidays are listed as off-peak. The Agent Pack prompt deliberately treats those holidays as peak. That is a conservative cost guard, not an outdated fact about the current API price schedule. Preserve the conservative behavior unless the owner explicitly asks to optimize those holiday windows. No model/provider/runtime code was changed in this UX audit.
+
