@@ -24,7 +24,7 @@ import type { NavItem } from "@/modules/shell";
 export const INSTRUCTOR_NAV: NavItem[] = [
   { id: "home", label: "Home", href: "/instructor", icon: Home },
   { id: "courses", label: "Courses", href: "/instructor/courses", icon: LayoutTemplate },
-  { id: "students", label: "Students", href: "/instructor/students", icon: Users },
+  { id: "students", label: "Students", href: "/instructor/students", icon: Users, match: ["/instructor/students"] },
   { id: "grading", label: "Grading", href: "/instructor/review", icon: ClipboardCheck, match: ["/instructor/review"] },
   {
     id: "more",
