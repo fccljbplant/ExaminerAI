@@ -1,6 +1,6 @@
 # UX Peak-informed, role-based product experience redesign
 
-**Status:** Planned follow-on workstream  
+**Status:** Active follow-on workstream — structural route inventory completed; authenticated UX discovery and design-system foundation next  
 **Backlog:** [Issue #4](https://github.com/fccljbplant/ExaminerAI/issues/4)  
 **Baseline dependency:** [PR #3](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -74,7 +74,7 @@ For role dashboards and forms, translate the fourth video's examples carefully: 
 
 ## Delivery sequence
 
-1. **Discovery and inventory:** map all 83 app page routes by role, task, navigation, permission boundary, state, responsive layout and usage frequency. Document the key role journeys and duplicated patterns.
+1. **Discovery and inventory — structural pass complete:** [docs/UX-ROUTE-INVENTORY.md](./UX-ROUTE-INVENTORY.md) maps all 83 page routes by area, records layout-level role/feature-flag boundaries, and documents navigation and theme-validation findings. The instructor More active-state defect is fixed with regression tests. Authenticated visual journeys, page-purpose confirmation and usage-frequency research remain open.
 2. **System foundation:** rationalize theme validation, tokens, component patterns, interaction contracts, responsive breakpoints and accessibility tests.
 3. **Learner + instructor journeys:** update learner home/classroom/progress/practice/exams and instructor home/roster/review/grading. Validate mobile and keyboard workflows.
 4. **Organisation admin:** update members, access, departments/cohorts, course operations, reporting and billing.
