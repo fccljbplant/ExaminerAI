@@ -29,7 +29,5 @@
 
 ## Release decision
 
-<badge-placeholder>
-
 **Not ready for UX sign-off.** This is an initial baseline only. Complete interaction, accessibility, populated-data, theme and task-based evidence before awarding final scores or claiming a screen meets the 4/5 acceptance bar.
 
