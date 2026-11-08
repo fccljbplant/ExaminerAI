@@ -20,12 +20,12 @@ import { contrastRatio, oklchToHex, type Oklch } from "./color";
 import {
   DEFAULT_BRAND_OKLCH,
   deriveBrandPalette,
+  type BrandPalette,
   type BrandPaletteMode,
 } from "./brand";
 import {
   CONTRAST_MANIFEST,
   EXPECTED_SEMANTIC_TOKENS,
-  type ThemeMode,
 } from "./contrast-manifest";
 
 const MODES = [
@@ -96,7 +96,7 @@ function parseSemanticCss(css: string): Record<ValidationMode, TokenMap> {
   let block: RegExpExecArray | null;
   while ((block = blockRe.exec(stripped))) {
     const selectors = block[1].split(",").map((s) => s.trim());
-    const modes = new Set<ThemeMode>();
+    const modes = new Set<ValidationMode>();
     for (const sel of selectors) {
       if (sel.includes('data-mode="dark"')) {
         modes.add("dark");
