@@ -2,23 +2,15 @@
 
 import type { ReactNode } from "react";
 import { AppShellV2, UnifiedThemeToggle, UserMenu } from "@/modules/shell";
-import type { NavItem } from "@/modules/shell";
-import { PLATFORM_NAV, PLATFORM_MORE } from "./nav";
-import { PlatformTabs } from "./tabs";
+import { PLATFORM_NAV } from "./nav";
 
 /**
- * modules/platform-portal — PlatformShell (REDESIGN-P3 §4, W7)
+ * Platform admin shell.
  *
- * Platform admin chrome (desktop-dense per spec; the adaptive shell
- * keeps it usable on small screens). P3/P4 surfaces (system, ai,
- * marketplace, maintenance) land as their workstreams ship — the nav
- * grows then; the shell + home + orgs ship here.
+ * Every destination is declared once in PLATFORM_NAV and rendered by the
+ * responsive shell; duplicated secondary tabs previously competed with the
+ * primary nav and could show two active states for the same destination.
  */
-
-const NAV: NavItem[] = PLATFORM_NAV;
-
-export { PLATFORM_MORE };
-
 
 export function PlatformShell({
   userName,
@@ -28,22 +20,23 @@ export function PlatformShell({
   children: ReactNode;
 }) {
   return (
-    <>
-      <AppShellV2
-        nav={NAV}
-        brand={{ name: "TraineesAI" }}
-        trailing={
-          <>
-            <UnifiedThemeToggle />
-            <UserMenu userName={userName} profileHref="/platform" profileLabel="Dashboard" settingsHref="/platform/settings" helpHref="/platform/help" />
-          </>
-        }
-      >
-        <div className="mb-4 md:mb-6">
-          <PlatformTabs />
-        </div>
-        {children}
-      </AppShellV2>
-    </>
+    <AppShellV2
+      nav={PLATFORM_NAV}
+      brand={{ name: "TraineesAI" }}
+      trailing={
+        <>
+          <UnifiedThemeToggle />
+          <UserMenu
+            userName={userName}
+            profileHref="/platform"
+            profileLabel="Dashboard"
+            settingsHref="/platform/settings"
+            helpHref="/platform/help"
+          />
+        </>
+      }
+    >
+      {children}
+    </AppShellV2>
   );
 }
