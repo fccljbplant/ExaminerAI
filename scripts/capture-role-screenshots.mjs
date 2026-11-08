@@ -47,6 +47,29 @@ try {
 }
 
 const profile = await mkdtemp(join(tmpdir(), "ux-ci-chrome-"));
+const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", "3102"], {
+  cwd: process.cwd(),
+  env: { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" },
+  stdio: ["ignore", "pipe", "pipe"],
+});
+let serverLog = "";
+for (const stream of [server.stdout, server.stderr]) {
+  stream.setEncoding("utf8");
+  stream.on("data", chunk => { serverLog = (serverLog + chunk).slice(-8000); });
+}
+async function waitForServer() {
+  for (let attempt = 0; attempt < 90; attempt++) {
+    if (server.exitCode !== null) throw new Error(`Next.js server exited early: ${serverLog}`);
+    try {
+      const response = await fetch(origin, { signal: AbortSignal.timeout(2000) });
+      if (response.status < 500) return;
+    } catch {
+      // Next.js is still starting.
+    }
+    await sleep(500);
+  }
+  throw new Error(`Next.js server did not become ready: ${serverLog}`);
+}
 const chrome = spawn(chromePath, [
   "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
   "--remote-debugging-port=9222", "--remote-allow-origins=*",
@@ -76,6 +99,7 @@ class CDP {
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 try {
+  await waitForServer();
   let version;
   for (let i = 0; i < 60; i++) {
     try { version = await (await fetch(`${debug}/json/version`)).json(); break; } catch { await sleep(500); }
@@ -123,6 +147,7 @@ try {
   if (overflowing.length) console.warn(`Horizontal overflow detected in ${overflowing.length} role/viewport screenshots; see manifest.`);
 } finally {
   chrome.kill("SIGTERM");
+  server.kill("SIGTERM");
   await sleep(500);
   await rm(profile, { recursive: true, force: true });
 }
