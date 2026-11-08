@@ -31,7 +31,7 @@ export async function GET() {
     console.error("Learner home profile lookup failed:", e);
     return apiError(
       "Your dashboard is temporarily unavailable. Please try again.",
-      "LEARNER_HOME_UNAVAILABLE",
+      "SERVICE_UNAVAILABLE",
       503,
     );
   }
