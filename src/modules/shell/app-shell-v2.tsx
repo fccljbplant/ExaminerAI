@@ -19,7 +19,7 @@ import type { NavItem, ShellBrand } from "./types";
  * modules/shell — AppShellV2 (REDESIGN-P2 §5, brief §adaptive-shell)
  *
  * One shell, four structures keyed by useBreakpoint():
- *   xl ≥1280   horizontal TopNav, all items inline
+ *   xl ≥1280   horizontal TopNav, dense sets overflow into More
  *   lg 1024–1279  condensed TopNav, overflow into More
  *   md 768–1023   app bar + underline TabRow
  *   xs <768    app bar + fixed BottomNav (5 slots)
