@@ -32,7 +32,12 @@ async function collectPages(directory, segments = []) {
     if (!entry.isDirectory()) continue;
     // Route groups, private folders, parallel slots, and intercepting routes
     // do not represent independently crawlable public URL segments.
-    if (entry.name.startsWith("_") || entry.name.startsWith("@") || entry.name.startsWith("(")) continue;
+    if (entry.name.startsWith("_") || entry.name.startsWith("@")) continue;
+    if (entry.name.startsWith("(") && entry.name.endsWith(")")) {
+      found.push(...await collectPages(fullPath, segments));
+      continue;
+    }
+    if (entry.name.startsWith("(")) continue;
     found.push(...await collectPages(fullPath, [...segments, entry.name]));
   }
   return found;
