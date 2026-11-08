@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { AppShellV2, UnifiedThemeToggle, UserMenu } from "@/modules/shell";
 import { PLATFORM_NAV } from "./nav";
+export { PLATFORM_MORE } from "./nav";
 
 /**
  * Platform admin shell.
