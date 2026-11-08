@@ -12,7 +12,7 @@ The repository currently contains 83 app page routes. The work must be role-awar
 
 ## Reference study
 
-The initial source study covers public UX Peak material and available video transcripts/descriptions:
+The initial source list is retained, but source access is recorded precisely in [the UXPeak research log](./UPGRADE-2026-10/design/UX-REFERENCE-RESEARCH.md). Official website pages and some YouTube descriptions have been inspected; full playback/transcripts are not assumed:
 
 | UX Peak video | Design lesson to apply |
 |---|---|
@@ -96,3 +96,83 @@ For role dashboards and forms, translate the fourth video's examples carefully: 
 ## Sequencing with the current UX audit
 
 PR #3 is intentionally the foundation: dashboard correctness, safe failure states, credential-safe agent guidance, navigation target sizing, and baseline automation. Keep the larger role redesign in [Issue #4](https://github.com/fccljbplant/ExaminerAI/issues/4) so it can be delivered in focused, reviewable phases after the baseline is accepted. Do not merge or deploy without owner approval.
+
+
+---
+
+## 2026-11-09 master-prompt reconciliation: Workstream M and A–L
+
+The updated owner prompt makes **Workstream M — UXPeak-inspired product design excellence — mandatory across all UI work**. M strengthens Workstream F and does not replace the role charters, the classroom blueprint, existing theme tokens, or owner decisions. The complete source and access-provenance log is [UX-REFERENCE-RESEARCH.md](./UPGRADE-2026-10/design/UX-REFERENCE-RESEARCH.md).
+
+### Workstream M — operating requirements for every UI phase
+
+**M0 — Research and attribution.** Before each design phase, review the relevant official UXPeak site resources and channel videos. Log URLs, access date, whether the full video or reliable transcript was actually inspected, and timestamped observations. Separate source facts from interpretation. Extract decision logic; never copy UXPeak screens, assets, brand, or wording. Supplement with current, relevant education-SaaS and data-product patterns.
+
+**M1 — Start from the user's decision.** For each important screen, record role, context, frequency, device, task, primary decision, information required before acting, what can be deferred, error/delay cost, metric provenance, next step, and recovery route. Test each element against: does it help the person understand, decide, act, or recover?
+
+**M2 — Senior-level hierarchy and composition.** One clear page purpose, one primary action, deliberate secondary actions, consistent grid/alignment/spacing/type/contrast/grouping, distinct values and metadata, and charts that answer a named question with labels, units, period, legend, accessible summary, empty state, and drill-down. Avoid decorative gradients, glass effects, oversized empty hero areas/cards, gratuitous shadows, random iconography, and charts that add no decision value.
+
+**M3 — Task-appropriate information density.** Do not equate minimalism with usability. Learners get a calm next step; instructors get scannable evidence-rich review/roster queues; organisation admins get scoped operational and cohort controls; platform admins get precise diagnostics and control-plane workflows. Use progressive disclosure for infrequent/advanced controls only; keep decision-critical evidence, status, permissions, and recovery visible. Tables need practical mobile alternatives, not simply compressed columns.
+
+**M4 — Interaction quality.** Every control must be labelled, predictable, keyboard-operable, and provide visible feedback. Cover applicable default/hover/focus/pressed/selected/disabled/loading/pending/success/warning/error/empty states. Preserve user input after recoverable validation errors and keep filters/search context. Use optimistic updates only when rollback is safe. Confirm consequential/destructive actions and offer undo where safe. Protect unsaved editor work. Skeletons must match final geometry; no fake progress. Use notifications/activity history for persistent tasks and toasts only for transient feedback. Respect reduced motion.
+
+**M5 — Responsive design as distinct layouts.** Verify 360×800, 390×844, 768×1024, 1024×768 landscape, 1366×768, 1920×1080, and 2560×1440. Design navigation, content order, charts, tables, drawers/dialogs, and sticky actions intentionally at each size. Prevent overflow, clipped menus, unreachable dialogs, keyboard obstruction, and sticky controls covering content. Test touch, keyboard-only, screen reader, zoom/reflow, and reduced motion. Keep targets at least 44×44 CSS px unless a documented exception applies. Critical status and the primary action should remain visible above the fold on the specified mobile and compact desktop views where appropriate.
+
+**M6 — Content and data trust.** Use concise adult-appropriate language and task-specific action labels. Explain metrics/status/AI confidence with units, date window, scope, source, freshness, and definition. Distinguish facts, estimates, AI suggestions, and human decisions. Never imply that AI detected, reviewed, or verified something unless the backend really did. Avoid manipulative urgency, shame, alarmism, or gamified pressure. Enforce the learner-support visibility matrix.
+
+**M7 — One design system.** Extend current primitive → semantic → component tokens and existing theme packs. Audit token usage before changing it; prefer semantic tokens over literal color values. Standardize purposeful component APIs/states for buttons, forms, cards, badges, tables, dialogs, menus, tabs, navigation, charts, skeletons, empty/error states, and feedback. Maintain a design-system gallery with live states, breakpoints, themes, and accessibility notes. No parallel palette/library and no new commercial kit or dependency without owner approval.
+
+**M8 — Screen-by-screen critique loop.** For each priority route: capture current rendered screen; score it; rank the top five problems by severity and frequency; sketch a before/after alternative; implement the smallest coherent reversible/flagged change; capture the same viewport/theme again; inspect the screenshots; test interactions, keyboard/focus, axe, responsiveness, and recovery; record remaining issues with evidence. A code diff alone is not proof of visual improvement.
+
+**M9 — Visual QA.** Build stable seeded fixtures for every role. Cover role dashboards, learner classroom, instructor review queue/student profile, Course Workspace/Presentation Studio, organisation crisis oversight, and platform diagnostics. Cover light/dark/Bed where supported and mobile/tablet/desktop/wide desktop. Add screenshot regression, axe, and manual keyboard/focus review. Check horizontal overflow, console errors, failed requests, broken images, loading stalls, and layout shift. Review visual diffs; never blindly update baselines. Preserve the performance budgets already defined by the master prompt.
+
+**M10 — Evidence-based acceptance scorecard.** Score every priority screen 0–5 for: task clarity; hierarchy/scanability; information density; design-system consistency; feedback/recovery; responsive behavior; accessibility/keyboard; data accuracy/provenance/trust; performance/stability; role-specific usefulness. Require at least 4/5 on every criterion before calling a priority screen release-ready. Any 0–2 in accessibility, data trust, task completion, or responsive usability blocks release regardless of average. Scores require screenshot/test/usability evidence.
+
+**M11 — Deliverables.** Maintain:
+- `docs/UPGRADE-2026-10/design/UX-REFERENCE-RESEARCH.md`
+- `docs/UPGRADE-2026-10/design/UX-AUDIT.md`
+- `docs/UPGRADE-2026-10/design/UX-SCORECARD.md`
+- `docs/UPGRADE-2026-10/design/ROLE-DESIGN-DECISIONS.md`
+- role journey maps and responsive wireframes
+- visual regression coverage and a living design-system gallery.
+
+Phase 0 remains read-only. UX tasks must be evidence-backed, small, and staged in the approved task-card workflow. Every UI change requires before/after rendered evidence, interaction tests, responsive checks, and accessibility review before sign-off.
+
+### A–L scope crosswalk and status
+
+These workstreams remain in the long-term upgrade scope. They are **not** claimed as implemented by the current UX audit PR.
+
+| Workstream | Relevant outcome retained in the combined plan | Status in current UX audit branch |
+|---|---|---|
+| A — AI model | One model configuration; explicitly disable thinking by default; usage/cost visibility; hardened prompts; batch work scheduled separately from interactive AI. | Not implemented by PR #3; verify runtime call sites and current provider docs in its own workstream. |
+| B — Voice | Roman-script text, native-language speech for tutor and instructor assistant; preserve sound-off default and caption-only slide policy unless owner changes it. | Deferred; not implemented by PR #3. |
+| C — Presentation Studio | Per-class editable decks, AI-assisted authoring, supported imports/exports, human review and save/recovery states. | Deferred; not implemented by PR #3. |
+| D — Classroom v2/parity | Course map, lesson canvas, tutor dock, learner dashboard and legacy-feature parity before cutover. | Deferred; not implemented by PR #3. |
+| E — Instructor Copilot | Scope-bounded evidence-based guidance; pseudonyms to the model; server-side identity restoration. | Deferred; not implemented by PR #3. |
+| F — Power UI | Role-specific dashboards and responsive experience for all four roles, building on the existing token/UI architecture. | Plan + structural route inventory; theme/navigation/correctness foundations partly changed in PR #3. Full role redesign is not done. |
+| G — Audit backlog | Security, RBAC, CI, tests, data correctness, route/access safety, and UX debt. | Partly addressed in PR #3 (selected safe-state, KPI, navigation, theme-validation, and CI fixes); broader audit remains open. |
+| H — Learner support/crisis | Learner indicators to their own instructor; org Learner Support Leads see crisis cases/handling only; instructors are never behaviorally/psychologically monitored; platform admins see none. Consent/legal gating and owner-authored safety copy remain mandatory. | Deferred; not implemented by PR #3. Do not enable signals from this UX plan. |
+| I — Adaptive teacher | Per-learner/per-topic teaching policy for depth, register, scaffolding, and difficulty, with minimal AI reasoning. | Deferred; not implemented by PR #3. |
+| J — Course/enrollment | Course Workspace; unified enrollment lifecycle; invitations, approvals, cohorts, assignment/rubric authoring; org programs. | Deferred; not implemented by PR #3. |
+| K — Data/entitlement | One enforceable entitlement decision and learning read model/snapshots shared by role dashboards. | Deferred; not implemented by PR #3. Existing UX metric fixes do not solve this broader data-model problem. |
+| L — Identity/communications | Email, invitations, onboarding, verification, staff MFA, inbox, announcements, reminders; SSO later. | Deferred; not implemented by PR #3. Provider choices still require owner decisions. |
+| M — UXPeak design excellence | Reference research, role/task decisions, hierarchy/density, interactions, responsive/accessibility, visual QA, scorecard and iterative before/after work. | Added to this plan and the dedicated source log; full screen-by-screen work remains ahead. |
+
+### Reconciled delivery order
+
+Keep the owner's phase order for product architecture (security/access + AI configuration → read model/UI kit → enrollment/identity → Course Workspace/Presentation Studio → classroom/adaptive teacher/voice → learner support/crisis/Copilot/inbox → org/platform dashboards/MFA/SSO → legacy retirement). Run Workstream M as a **quality gate and parallel design method**, not as a reason to reorder or skip product dependencies.
+
+For the current UX-audit stream, continue in this order:
+1. Close the theme/navigation foundation and document the CI result.
+2. Establish authenticated role fixtures and screenshot/browser QA prerequisites.
+3. Capture baseline screenshots and complete role-specific task/route critique before broad visual implementation.
+4. Deliver learner + instructor flows first, then organisation admin, then platform admin.
+5. Roll the shared patterns through remaining routes; add visual regression and measure task outcomes.
+
+### Verified repository/tooling gaps
+
+- The current branch has `AGENT-INSTRUCTIONS.md`, but the updated prompt's `AGENTS.md`, `docs/UPGRADE-2026-10/START-HERE.md`, `QUEUE.md`, `DECISIONS.md`, `PROGRESS.md`, and `scripts/agent/*` runner/evidence scripts were not found on the current branch during this reconciliation. The described Agent Pack is therefore **not installed/verified here**. Treat installing it as a prerequisite before claiming the task-card/off-peak guard is active. Do not silently fabricate those files or bypass their safety intent.
+- The current package manifest does not include Playwright or axe packages. The current CI has no browser screenshot artifact step. The owner's updated prompt says no new dependency without approval; obtain that approval before adding Playwright/axe. A route HTTP smoke test is not authenticated browser QA.
+- Current CI workflow run `42528457633` passed: 31 test files / 374 tests; lint; TypeScript; production build; 83/83 page-route requests. The requests returned 14×200, 64×307 redirects, and 5×404 dynamic-route placeholders, with no server errors or missing static routes. This validates server-route reachability only; it does not validate authenticated role screens or rendered visual design.
+- No screenshot artifact was attached to that run. Until authenticated screenshot capture is implemented and inspected, the visual state of the app remains **not verified**.
+
