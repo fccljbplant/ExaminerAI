@@ -57,6 +57,20 @@ This is a first rendered baseline, not a release sign-off. It does not yet inclu
 - Add approved browser interaction and accessibility automation only after the dependency/Agent Pack constraints are resolved.
 - Maintain screenshot artifacts and a manifest for each reviewable phase.
 
+
+## Reconciliation of older audit statements (verified 2026-11-09)
+
+| Older statement / proposed exclusion | Verification | Current treatment |
+|---|---|---|
+| "There is no CI" / "no type or route checks" | Superseded. The current branch has a passing workflow with lint, 31 test files / 374 tests, TypeScript, production build and 83/83 route requests. | Mark as resolved for this baseline; do not repeat as a current defect. Keep broader quality and security audit open. |
+| "There are no authenticated screenshots" | Superseded. Run 42537096856 produced 28 authenticated dashboard captures and a manifest. | Keep screenshot capture as an ongoing requirement; this first baseline is not full route coverage. |
+| "There are no E2E or accessibility checks" | Still substantially current. The screenshot runner is a Chrome DevTools Protocol capture, not a full Playwright interaction suite; no axe package or manual keyboard/screen-reader report was produced. | Retain as open work; do not call screenshots E2E or accessibility sign-off. |
+| "The Agent Pack task-card/off-peak workflow is installed" | Not verified; the repository review found `AGENT-INSTRUCTIONS.md` but did not find the referenced `AGENTS.md`, queue/decision/progress files or `scripts/agent/*` runner. | Do not claim those controls are active. Treat installation as a prerequisite under the owner's approval rules. |
+| UXPeak video references can be treated as fully reviewed | Not supported. The research log distinguishes inspected official pages/descriptions from full playback or reliable transcripts that were not verified. | Keep the references in the research queue; do not invent timestamped lessons. |
+| Commerce conversion patterns should be copied into learning screens | Not appropriate as a blanket rule. UXPeak examples include e-commerce, pricing and booking contexts. | Transfer only general principles—clarity, trust, hierarchy, decision confidence and user control—when a real learning task benefits. Do not import urgency, persuasion or irrelevant purchase widgets. |
+
+Older findings are not silently deleted: superseded claims are labelled as historical, still-valid gaps remain open, and uncertain claims stay unverified until evidence is available.
+
 ## Evidence links
 
 - [Successful screenshot/quality run](https://github.com/fccljbplant/ExaminerAI/actions/runs/42537096856)
