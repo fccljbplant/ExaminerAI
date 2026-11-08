@@ -27,8 +27,9 @@ export async function GET() {
     const [data, overview] = await Promise.all([getPlatformHome(), getUserOverview()]);
     return apiSuccess({ ...data, overview });
   } catch (err) {
+    console.error("Platform home aggregation failed:", err);
     return apiError(
-      err instanceof Error ? err.message : "Failed to load platform data",
+      "Platform data is temporarily unavailable. Please try again.",
       "INTERNAL_ERROR",
       500,
     );
