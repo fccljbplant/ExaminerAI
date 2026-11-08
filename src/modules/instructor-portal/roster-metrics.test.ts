@@ -26,3 +26,11 @@ describe("getLatestScoredTest", () => {
     expect(getLatestScoredTest([{ week: 1, score: null }])).toBeNull();
   });
 });
+
+
+describe("getAtRiskKpiCount", () => {
+  it("uses the full aggregate count rather than the five-row preview", async () => {
+    const { getAtRiskKpiCount } = await import("./roster-metrics");
+    expect(getAtRiskKpiCount({ count: 17, items: [{}, {}, {}, {}, {}] })).toBe(17);
+  });
+});
