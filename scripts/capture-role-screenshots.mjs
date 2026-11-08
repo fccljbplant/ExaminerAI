@@ -20,7 +20,7 @@ const viewports = [
   [360, 800], [390, 844], [768, 1024], [1024, 768],
   [1366, 768], [1920, 1080], [2560, 1440],
 ];
-const chromePath = ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium"]
+const chromePath = ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"]
   .find(existsSync);
 if (!chromePath) throw new Error("Google Chrome/Chromium missing on CI runner.");
 if (!process.env.JWT_SECRET || !process.env.DATABASE_URL) throw new Error("CI DB/JWT secrets missing.");
@@ -97,12 +97,16 @@ try {
     await cdp.send("Page.navigate", { url: origin + user.path });
     let state;
     for (let i = 0; i < 50; i++) {
-      const result = await cdp.send("Runtime.evaluate", {
-        expression: "({ready:document.readyState,path:location.pathname,title:document.title,text:(document.body?.innerText||'').trim().slice(0,2000),width:document.documentElement.scrollWidth})",
-        returnByValue: true,
-      });
-      state = result.result.value;
-      if (state.ready === "complete") break;
+      try {
+        const result = await cdp.send("Runtime.evaluate", {
+          expression: "({ready:document.readyState,path:location.pathname,title:document.title,text:(document.body?.innerText||'').trim().slice(0,2000),width:document.documentElement.scrollWidth})",
+          returnByValue: true,
+        });
+        state = result.result.value;
+        if (state?.ready === "complete") break;
+      } catch {
+        // Navigation may replace the execution context; retry after the document loads.
+      }
       await sleep(200);
     }
     await sleep(700);
