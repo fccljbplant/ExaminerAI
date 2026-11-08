@@ -203,7 +203,7 @@ html[data-mode="classic"] {
   /* text — #1F1F1F body, bootstrap grays for secondary */
   --text: oklch(0.245 0.003 255);
   --text-secondary: #626b75;
-  --text-muted: oklch(0.63 0.012 250);
+  --text-muted: #626b75;
   --text-inverse: oklch(1 0 0);
 
   /* lines */
