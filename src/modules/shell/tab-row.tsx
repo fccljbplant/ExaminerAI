@@ -16,9 +16,9 @@ export function TabRow({ items, className }: { items: NavItem[]; className?: str
   // Single active tab: longest matching prefix wins.
   const activeId = resolveActiveItem(pathname, items)?.id;
   return (
-    <div
+    <nav
       data-slot="tab-row"
-      role="tablist"
+      aria-label="Section navigation"
       className={cn(
         "flex gap-1 overflow-x-auto border-b border-nav-border bg-nav-bg px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className
@@ -31,8 +31,7 @@ export function TabRow({ items, className }: { items: NavItem[]; className?: str
           <Link
             key={item.id}
             href={item.href}
-            role="tab"
-            aria-selected={active}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "flex h-11 min-w-11 shrink-0 items-center gap-1.5 border-b-2 px-3 text-sm transition-colors",
               active
@@ -50,6 +49,6 @@ export function TabRow({ items, className }: { items: NavItem[]; className?: str
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }
