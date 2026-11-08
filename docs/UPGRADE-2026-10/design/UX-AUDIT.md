@@ -58,6 +58,28 @@ This is a first rendered baseline, not a release sign-off. It does not yet inclu
 - Maintain screenshot artifacts and a manifest for each reviewable phase.
 
 
+
+## Source cross-checks from the first visual review
+
+### Learner no-enrollment state
+
+The screenshot is rendered by `src/modules/learner-portal/home.tsx`. The no-enrollment branch deliberately shows a primary course-catalog action plus a hard-coded five-step `OnboardingGuide`.
+
+- The guide still points to `/learner/exams/weekly` and describes weekly tests/certificate completion. These routes are present in the current route inventory, and the broader upgrade plan explicitly defers legacy exam-route retirement until the data/entitlement migration and parity work are complete. **Do not remove these steps as "outdated" yet.** Verify the canonical course-outline assessment and certificate flow during Workstreams J/K before changing the guide.
+- The phrase "your streak starts on day one" is present in source and the home API provides a real `streakCurrent` value. The owner prompt rejects manipulative streaks and gamified pressure, not every truthful progress signal. Keep the actual metric only if it remains accurate and non-coercive; review the copy for a supportive, learner-controlled tone before the learner redesign.
+- The onboarding list is a guide, not a completion tracker. Future work should avoid implying that a step is completed unless the product has evidence of completion.
+
+### Instructor at-risk KPI — code defect found and fixed
+
+The screenshot fixture has zero at-risk learners, so the visual baseline alone could not reveal a count bug. Source review found that the instructor home API returns a complete `atRisk.count` plus a five-row `atRisk.items` preview, while the UI used `atRisk.items.length` for the KPI. That could cap the displayed count at five.
+
+**Fixed on this branch:** the KPI now uses the aggregate count via `getAtRiskKpiCount`, with a regression test proving a count of 17 is not reduced to a five-item preview. The current screenshot is still an empty-state fixture; a populated browser fixture should verify the rendered value in a later pass.
+
+### Organisation and platform admin
+
+- Organisation home code has explicit labels for the announcement title/body fields, submit validation, and success/error feedback. The first fixture shows only one member; bulk member operations, invitation lifecycle, large tables and permissions still need populated-state review.
+- Platform home displays eight operational KPIs. The next critique should make definitions, scope and time windows discoverable for values such as active members, MRR, pending payouts and AI spend; avoid adding charts unless they answer a named operational question.
+
 ## Reconciliation of older audit statements (verified 2026-11-09)
 
 | Older statement / proposed exclusion | Verification | Current treatment |
