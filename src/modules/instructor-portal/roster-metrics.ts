@@ -22,3 +22,8 @@ export function getLatestScoredTest<T extends ScoredWeeklyTest>(
 
   return latest;
 }
+
+/** Use the aggregate count, never the capped dashboard preview length. */
+export function getAtRiskKpiCount(atRisk: { count: number; items: readonly unknown[] }): number {
+  return atRisk.count;
+}
