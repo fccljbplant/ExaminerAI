@@ -7,6 +7,7 @@
  */
 
 import { NextRequest } from "next/server";
+import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
@@ -31,8 +32,28 @@ export async function GET(req: NextRequest) {
     return apiError("Submissions are not enabled yet", "FORBIDDEN", 403);
   }
 
-  // Queue preview (same service the I3 queue uses — one source of truth).
-  const { items } = await reviewQueue(user.sub, { limit: 5 });
+  // Keep KPI totals independent of the five-row preview.
+  const enrollments = await db.courseEnrollment.findMany({
+    where: { userId: user.sub, role: "instructor" },
+    select: { courseId: true },
+  });
+  const courseIds = enrollments.map((e) => e.courseId);
+  const queueWhere = {
+    assignment: { courseId: { in: courseIds } },
+  };
+  const [queueCount, inReviewCount, queue] = await Promise.all([
+    db.submission.count({
+      where: {
+        ...queueWhere,
+        status: { in: ["submitted", "in_review", "resubmitted", "changes_requested"] },
+      },
+    }),
+    db.submission.count({
+      where: { ...queueWhere, status: "in_review" },
+    }),
+    reviewQueue(user.sub, { limit: 5 }),
+  ]);
+  const { items } = queue;
 
   // At-risk roster: compose the students route in-process (no HTTP hop).
   const rosterUrl = new URL(req.url);
@@ -43,7 +64,7 @@ export async function GET(req: NextRequest) {
   const atRisk = body?.ok && Array.isArray(body?.data?.items) ? body.data.items : [];
 
   return apiSuccess({
-    queue: { count: items.length, preview: items.slice(0, 5) },
+    queue: { count: queueCount, inReviewCount, preview: items.slice(0, 5) },
     atRisk: { count: atRisk.length, items: atRisk.slice(0, 5) },
     studentsTotal: body?.data?.total ?? 0,
   });
