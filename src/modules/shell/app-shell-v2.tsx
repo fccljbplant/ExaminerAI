@@ -93,7 +93,12 @@ export function AppShellV2({ nav, brand, trailing, children, className }: AppShe
           {(bp === "md" || bp === "xs") && <AppBar brand={brand} trailing={trailing} />}
           {bp === "md" && <TabRow items={nav} />}
           {desktop && (
-            <TopNav nav={nav} brand={brand} trailing={trailing} visibleCount={bp === "lg" ? 4 : undefined} />
+            <TopNav
+            nav={nav}
+            brand={brand}
+            trailing={trailing}
+            visibleCount={bp === "lg" ? 4 : nav.length > 7 ? 6 : undefined}
+          />
           )}
         </>
       )}
