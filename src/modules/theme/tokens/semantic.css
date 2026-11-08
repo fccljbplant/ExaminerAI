@@ -202,7 +202,7 @@ html[data-mode="classic"] {
 
   /* text — #1F1F1F body, bootstrap grays for secondary */
   --text: oklch(0.245 0.003 255);
-  --text-secondary: oklch(0.54 0.012 250);
+  --text-secondary: #626b75;
   --text-muted: oklch(0.63 0.012 250);
   --text-inverse: oklch(1 0 0);
 
@@ -236,9 +236,9 @@ html[data-mode="classic"] {
 
   /* charts — the Star Admin 6-color family */
   --chart-1: oklch(0.44 0.185 266);
-  --chart-2: oklch(0.73 0.14 232);
-  --chart-3: oklch(0.69 0.16 152);
-  --chart-4: oklch(0.77 0.16 80);
+  --chart-2: #0369a1;
+  --chart-3: #15803d;
+  --chart-4: #a16207;
   --chart-5: oklch(0.63 0.19 25);
   --chart-6: oklch(0.5 0.2 300);
 
@@ -271,7 +271,7 @@ html[data-mode="zinc"] {
   --brand-active: #3f3f46;
   --brand-subtle: #f4f4f5;
   --on-brand: #fafafa;
-  --focus: #d4d4d8;
+  --focus: #52525b;
 
   --scrim: oklch(0.2 0 0 / 0.5);
 
@@ -288,12 +288,12 @@ html[data-mode="zinc"] {
   --info-subtle: #eff6ff;
   --info-on: #1d4ed8;
 
-  --chart-1: #f97316;
-  --chart-2: #14b8a6;
+  --chart-1: #c2410c;
+  --chart-2: #0f766e;
   --chart-3: #2563eb;
-  --chart-4: #facc15;
-  --chart-5: #f59e0b;
-  --chart-6: #e879f9;
+  --chart-4: #a16207;
+  --chart-5: #b45309;
+  --chart-6: #a21caf;
 
   --tutor-ring: #d4d4d8;
   --tutor-fab: #18181b;
@@ -485,7 +485,7 @@ html[data-mode="forest"] {
   --info-on: #1d4ed8;
 
   --chart-1: #5b8a72;
-  --chart-2: #c98a2b;
+  --chart-2: #9a6700;
   --chart-3: #3b82f6;
   --chart-4: #d97766;
   --chart-5: #8b5cf6;
@@ -582,11 +582,11 @@ html[data-mode="sunset"] {
   --info-on: #6d28d9;
 
   --chart-1: #e11d48;
-  --chart-2: #f59e0b;
+  --chart-2: #b45309;
   --chart-3: #8b5cf6;
-  --chart-4: #10b981;
+  --chart-4: #047857;
   --chart-5: #3b82f6;
-  --chart-6: #f97316;
+  --chart-6: #c2410c;
 
   --tutor-ring: #e11d48;
   --tutor-fab: #9f1239;
