@@ -19,8 +19,11 @@ The initial source study covers public UX Peak material and available video tran
 | [The UX Psychology Behind Apps People Can't Stop Using](https://www.youtube.com/watch?v=2TlIg3VokY8) | Use editable smart defaults to reduce repetitive decisions; show real progress; give value before demanding commitment when the flow allows it; motivate without manipulation. |
 | [Top 3 UX/UI Redesigns That Make You Design Like a Pro](https://www.youtube.com/watch?v=zr37ibqXl1U) | Make the next decision easy to understand; explain timelines, costs and consequences; create trust through transparency; use visual hierarchy and concrete language. |
 | [Bad vs Great App Design](https://www.youtube.com/watch?v=U7jTCgIWS4w) | Do not equate minimalism with usability. Show enough information, personalization and control to support the user's decision without overwhelming them. |
+| [This Video Will Take You From Junior to Senior UX/UI Designer](https://www.youtube.com/watch?v=YlN28RNChl0) | Make the primary task visually dominant; use conversational, contextual copy; prefer recognition and recent choices over memory and redundant steps; provide immediate, meaningful feedback; use interactive controls when they fit the task. |
 
 These are source-derived principles from the material reviewed, not a claim that every UX Peak video on the channel has been watched. Further videos should be added to the reference log as each design phase begins. Apply the thinking to TraineesAI's actual workflows; do not copy unrelated booking or ecommerce screens literally.
+
+For role dashboards and forms, translate the fourth video's examples carefully: prioritize the data the person is acting on; make the selected state unmistakable; give immediate feedback after interactions; use recent items/search and recognized people or courses where they reduce recall and error; show the consequences of important actions before confirmation. A slider or swipe interaction is appropriate only when it improves a real task—not simply to make an enterprise screen feel animated.
 
 **Ethical guardrail:** no fake urgency, scarcity, progress, outcomes, reviews, or hidden material terms. Psychology should clarify choices, support motivation and increase trust—not manipulate users.
 
