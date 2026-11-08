@@ -231,14 +231,24 @@ export function runThemeValidation(opts: ValidationOptions = {}): ValidationResu
     }
   }
 
-  // 2. static pairs
+  // 2. Static pairs use the actual CSS values for each rendered mode.
   for (const pair of CONTRAST_MANIFEST.filter((p) => !p.brandDependent)) {
     for (const mode of MODES) {
       assertPair("static", mode, pair.id, tokens[mode][pair.fg], tokens[mode][pair.bg], pair.min);
     }
   }
 
-  // 3. derived pairs — default + 12 hues + edge hues, every mode
+  // 3. Validate the theme's shipped default brand values as users see them
+  // when no organisation brand override is active.
+  for (const pair of CONTRAST_MANIFEST.filter((p) => p.brandDependent)) {
+    for (const mode of MODES) {
+      assertPair("default-brand", mode, pair.id, tokens[mode][pair.fg], tokens[mode][pair.bg], pair.min);
+    }
+  }
+
+  // 4. Derived brand pairs — default + 12 hues + edge hues, every mode.
+  // Preset light/dark modes use the matching generated light/dark brand
+  // palette while keeping their own CSS surface/background tokens.
   const brands = sampleBrands();
   for (const sample of brands) {
     const palette = deriveBrandPalette(sample.hex);
@@ -251,7 +261,7 @@ export function runThemeValidation(opts: ValidationOptions = {}): ValidationResu
     }
   }
 
-  // 4. built-CSS integrity (opt-in; needs a build)
+  // 5. built-CSS integrity (opt-in; needs a build)
   if (opts.includeBuiltCss) {
     const built = checkBuiltCssVars(root);
     checks += built.checks;
