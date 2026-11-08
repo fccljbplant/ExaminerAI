@@ -42,3 +42,6 @@ export const PLATFORM_NAV: NavItem[] = [
   { id: "b2c", label: "Independent learners", href: "/platform/b2c", icon: UserRound, match: ["/platform/b2c"] },
   { id: "nav-config", label: "Nav config", href: "/platform/nav-config", icon: Activity, match: ["/platform/nav-config"] },
 ];
+
+/** Secondary destinations retained for callers of the legacy public API. */
+export const PLATFORM_MORE: NavItem[] = PLATFORM_NAV.slice(5);
