@@ -1,0 +1,49 @@
+name: UX audit checks
+
+on:
+  push:
+    branches:
+      - main
+      - "ux-audit/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ux-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: file:./db/ci.db
+      JWT_SECRET: ci-only-not-for-production
+      ADMIN_EMAIL: ci-admin@example.invalid
+      ADMIN_PASSWORD: ci-only-not-for-production
+      NODE_ENV: test
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Production build
+        env:
+          NODE_ENV: production
+        run: npm run build
