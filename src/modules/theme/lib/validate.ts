@@ -125,7 +125,27 @@ function parseSemanticCss(css: string): Record<ValidationMode, TokenMap> {
         hex = value.toLowerCase();
       } else {
         const oklch = parseOklch(value);
-        if (oklch) hex = oklchToHex(oklch);
+        if (oklch) {
+          hex = oklchToHex(oklch);
+        } else {
+          // Translucent scrim tokens use rgba(); alpha is intentionally
+          // ignored for completeness because scrim is not a contrast pair.
+          const rgb = value.match(
+            /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*[\d.]+%?)?\s*\)$/i
+          );
+          if (rgb) {
+            hex =
+              "#" +
+              rgb
+                .slice(1, 4)
+                .map((channel) =>
+                  Math.round(Math.max(0, Math.min(255, Number(channel))))
+                    .toString(16)
+                    .padStart(2, "0")
+                )
+                .join("");
+          }
+        }
       }
       if (!hex) continue;
       for (const mode of modes) out[mode][decl[1]] = hex;
