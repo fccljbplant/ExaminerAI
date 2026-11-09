@@ -7,7 +7,7 @@
 
 ## Current state
 - PR #3 is open, draft, unmerged, based on `main`.
-- Latest application fix: `fe2a700c363cea57a99b96807d11a9008cb69c32`; documentation follow-up commits are being added on the same PR branch.
+- Latest code head: `0cdbb5acf8434c75eabbe63bef591b1224de202a` (220 commits, 106 changed files).
 - No merge, deployment, production-data change, or main-branch write was made.
 
 ## Latest fixes
@@ -16,6 +16,9 @@
 - Staff final-result views do not generate or return individual behavioural analysis. Learners retain their own view.
 - Staff portfolio views are clamped to academic content. Daily logs are queried as dates only; reflections/confidence are not loaded. Private instructor comments remain instructor-only.
 - Staff-facing report-card generation now fetches only daily-log dates because it uses check-in count only; private reflection text, confidence and error notes are not fetched.
+- Learner dashboard session chips now meet 44px touch target and include visible keyboard focus.
+- Instructor dashboard header links meet 44px minimum height; at-risk rows have 48px minimum height and visible keyboard focus.
+- Organisation dashboard announcement title input is 44px high; retry control meets 44px minimum height and has visible keyboard focus.
 - Support indicators require both explicit consent and a feature gate; both default false. The v2 student-detail route omits confidence and psychWeekly while the gate is absent.
 - Unit tests cover default-off support visibility and learner-only behavioural analysis.
 
@@ -25,10 +28,11 @@
 ## Validation
 - CI run `42643565316` passed on earlier head `d850ff0d`, before these latest changes.
 - Run `42645275411` on head `173cbde9` was cancelled during Node setup; quality steps were skipped.
-- Run `42654057660` on application fix `fe2a700c` is in progress. At last check, dependency installation was running; lint/tests/typecheck/build/smoke/screenshots had not started.
+- Run `42654213454` completed successfully on `ee6dc635` with lint, unit tests, typecheck, production build, route smoke tests and authenticated role screenshots all passing. This run predates the latest UI commits.
+- Run `42655501293` on latest head `0cdbb5ac` is in progress. At last check, dependency installation was running; lint/tests/typecheck/build/smoke/screenshots had not started.
 - Run `42644831199` on intermediate head `84dfef67` was cancelled during dependency installation.
 - No completed Actions run is verified on latest head `fea1683e`; lint, tests, typecheck, build and route smoke remain unverified for this latest code.
-- Vercel status for the latest application fix commit was pending at last check; no Ready preview is confirmed.
+- Vercel combined status is failure due to the project build-rate limit; no Ready preview is confirmed.
 - No local checkout or local tests were run.
 
 ## Remaining work
@@ -44,3 +48,9 @@
 - Updated `src/app/api/students/[id]/generate-report-card/route.ts` so staff report-card generation fetches only daily-log dates; the route uses check-in count and does not need reflection text, confidence or error notes.
 - CI run `42654057660` was in progress at the last check; no tests or build results claimed yet.
 - UI sequence: complete and validate the access/privacy corrections first; then begin the role-based UI phase with Learner and Instructor dashboards, followed by Organisation Admin and Platform Admin. PR #3 already contains baseline UI corrections; full redesign remains on Issue #4.
+
+
+## UI and overall progress — 2026-11-09
+- UI fixes are proceeding in parallel with access/privacy fixes on PR #3. No waiting for the entire security workstream to finish.
+- Recorded an unresolved field-classification question for the comprehensive learner report in `docs/UPGRADE-2026-10/QUESTIONS.md`; do not change staff visibility until the owner clarifies the intended boundary.
+- Latest UI code is awaiting CI run `42655501293`.
