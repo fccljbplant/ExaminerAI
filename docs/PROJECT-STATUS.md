@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (application fix `fe2a700c`; docs follow-up in progress)  
+**Snapshot date:** 2026-11-09 (live PR #3 head `0cdbb5ac`; CI run `42655501293` in progress)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -9,7 +9,7 @@
 | Ref | Commit | State |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA; no changes made to main. |
-| PR #3 branch | `fea1683ef68245fdbedd8a9b397b529fa183bcff` | Live PR head at this refresh. |
+| PR #3 branch | `0cdbb5acf8434c75eabbe63bef591b1224de202a` | Live PR head at this refresh. |
 
 PR #3 live metadata:
 - State: **open**
@@ -18,18 +18,25 @@ PR #3 live metadata:
 - Mergeable: **yes**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `fea1683ef68245fdbedd8a9b397b529fa183bcff`
-- Commits: **207**
-- Changed files: **105**
+- Head SHA: `0cdbb5acf8434c75eabbe63bef591b1224de202a`
+- Commits: **220**
+- Changed files: **106**
 - No submitted PR reviews or inline review threads were returned.
 
 ## Current CI and preview status
 
-- GitHub Actions run [42643565316](https://github.com/fccljbplant/ExaminerAI/actions/runs/42643565316) completed **successfully** on earlier head `d850ff0dc13fd910976136e894360c687aa9c1d2`; lint, unit tests, typecheck, production build, route smoke tests and authenticated role screenshots passed there.
-- Workflow run [42644831199](https://github.com/fccljbplant/ExaminerAI/actions/runs/42644831199) on intermediate head `84dfef671abdbd8650b12f1b06067e776715b884` was cancelled during dependency installation after later commits superseded it.
-- No completed GitHub Actions run has been verified for latest head `fea1683ef68245fdbedd8a9b397b529fa183bcff`; lint/tests/typecheck/build remain unverified for the latest access-control changes.
-- Combined Vercel status for latest head: **failure** with the Vercel build-rate-limit target. No successful preview deployment is confirmed for this head.
-- No live browser walkthrough, production data change, merge or production deployment was performed.
+- Workflow run [42654213454](https://github.com/fccljbplant/ExaminerAI/actions/runs/42654213454) completed successfully on commit `ee6dc635`. All quality-job steps passed: dependency installation, isolated DB initialization, lint, unit tests, typecheck, production build, route smoke tests, authenticated role screenshots and artifact upload.
+- That successful run predates the latest three UI commits (`11f928f5`, `e79977d3`, `0cdbb5ac`). Do not treat it as validation of the latest head.
+- Workflow run [42655501293](https://github.com/fccljbplant/ExaminerAI/actions/runs/42655501293) is running on the latest UI-fix head. At last refresh, checkout and Node setup passed; dependency installation was in progress; lint, tests, typecheck, build, smoke and screenshots were pending.
+- Vercel combined status remains **failure** due to the project build-rate limit. No Ready preview is confirmed.
+- No local checkout, local test/build or manual browser/axe run was available.
+
+## Latest work in this session
+
+- Learner dashboard: session-duration chips now meet a 44px touch target and have visible keyboard focus styling.
+- Instructor dashboard: primary header links have 44px minimum height; at-risk learner rows have 48px minimum height and visible keyboard focus.
+- Organisation dashboard: announcement title input is 44px high; announcement retry control has a 44px minimum target and visible keyboard focus.
+- Added `docs/UPGRADE-2026-10/QUESTIONS.md` to record the unresolved comprehensive-report field-classification mismatch. No report fields were changed pending owner decision.
 
 ## PR #3 scope
 
