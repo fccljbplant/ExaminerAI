@@ -68,11 +68,18 @@ export default async function CoursesPage({
 
   // Category counts fetch in parallel with the page shell — we want the
   // category nav visible immediately, so we await it at the page level.
-  const categoryCounts = await db.course.groupBy({
-    by: ["category"],
-    where: { published: true },
-    _count: { _all: true },
-  });
+  let categoryCounts: Awaited<ReturnType<typeof db.course.groupBy>> = [];
+  let categoryCountsUnavailable = false;
+  try {
+    categoryCounts = await db.course.groupBy({
+      by: ["category"],
+      where: { published: true },
+      _count: { _all: true },
+    });
+  } catch (error) {
+    categoryCountsUnavailable = true;
+    console.error("[courses-page] Category counts unavailable; rendering catalogue shell.", error);
+  }
   const countByCategory = new Map<string, number>(
     categoryCounts.map((c) => [c.category, c._count._all])
   );
@@ -113,6 +120,14 @@ export default async function CoursesPage({
           />
         </div>
       </section>
+
+      {categoryCountsUnavailable && (
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 pt-5" role="status">
+          <div className="rounded-xl border border-line bg-bg-subtle/40 px-4 py-3 text-sm text-fg-muted">
+            Course categories are temporarily unavailable. The catalogue is still accessible; please try again shortly.
+          </div>
+        </section>
+      )}
 
       {/* Category navigation */}
       <section className="border-b border-line bg-surface/20">
@@ -189,7 +204,7 @@ async function MarketplaceContent({
   featured?: boolean;
   free?: boolean;
 }) {
-  const [courses, paths] = await Promise.all([
+  const [coursesResult, pathsResult] = await Promise.allSettled([
     fetchMarketplaceCourses({ category, level, search, featured, free }),
     // Learning paths render only on the unfiltered homepage view — they are
     // curated bundles, not individual courses, so the course-level filters
@@ -198,6 +213,16 @@ async function MarketplaceContent({
       ? Promise.resolve([])
       : fetchMarketplacePaths(),
   ]);
+  const marketplaceUnavailable =
+    coursesResult.status === "rejected" || pathsResult.status === "rejected";
+  if (marketplaceUnavailable) {
+    console.error("[courses-page] Marketplace content unavailable.", {
+      courses: coursesResult.status,
+      paths: pathsResult.status,
+    });
+  }
+  const courses = coursesResult.status === "fulfilled" ? coursesResult.value : [];
+  const paths = pathsResult.status === "fulfilled" ? pathsResult.value : [];
 
   const featuredCourses = courses.filter(c => c.featured);
   const freeCourses = courses.filter(c => c.price === 0);
@@ -206,6 +231,11 @@ async function MarketplaceContent({
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-12">
+      {marketplaceUnavailable && (
+        <div className="rounded-xl border border-line bg-bg-subtle/40 px-4 py-3 text-sm text-fg-muted" role="status">
+          The course catalogue could not be loaded right now. This is a temporary service issue, not an empty result. Please retry shortly.
+        </div>
+      )}
       {/* Learning Paths — only shown on the unfiltered homepage view, and
           only if at least one path is published. */}
       {paths.length > 0 && (
@@ -223,7 +253,7 @@ async function MarketplaceContent({
         </section>
       )}
 
-      {courses.length === 0 && paths.length === 0 && (
+      {!marketplaceUnavailable && courses.length === 0 && paths.length === 0 && (
         <div className="text-center py-20">
           <BookOpen className="h-10 w-10 mx-auto text-fg-muted mb-3" />
           <h2 className="text-lg font-semibold">No courses match your filters</h2>
