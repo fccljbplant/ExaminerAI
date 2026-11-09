@@ -144,9 +144,52 @@ export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
-  const existing = await db.accessGrant.findUnique({ where: { id }, select: { id: true, revokedAt: true, granteeUserId: true } });
+  const existing = await db.accessGrant.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      revokedAt: true,
+      granteeUserId: true,
+      grantedByUserId: true,
+      scopeType: true,
+      scopeId: true,
+    },
+  });
   if (!existing) return NextResponse.json({ error: "Grant not found" }, { status: 404 });
   if (existing.revokedAt) return NextResponse.json({ error: "Grant already revoked" }, { status: 409 });
+
+  // Match the read boundary: org admins may revoke only grants they issued,
+  // and only while the grant's scope remains inside an organization they
+  // actively administer. A guessed grant ID must not cross tenant boundaries.
+  if (normalizeRole(auth.ctx.payload.role) === UserRole.ORG_ADMIN) {
+    if (existing.grantedByUserId !== auth.ctx.payload.sub) {
+      return NextResponse.json({ error: "You may only revoke grants you issued" }, { status: 403 });
+    }
+    const memberships = await db.orgMember.findMany({
+      where: { userId: auth.ctx.payload.sub, status: "active", role: "admin" },
+      select: { orgId: true },
+    });
+    const orgIds = memberships.map((membership) => membership.orgId);
+    let scopeIsInOrganization = false;
+    if (existing.scopeType === "institution") {
+      scopeIsInOrganization = orgIds.includes(existing.scopeId);
+    } else if (existing.scopeType === "course") {
+      const courseLink = await db.orgCourse.findFirst({
+        where: { orgId: { in: orgIds }, courseId: existing.scopeId },
+        select: { orgId: true },
+      });
+      scopeIsInOrganization = Boolean(courseLink);
+    } else if (existing.scopeType === "student") {
+      const studentMembership = await db.orgMember.findFirst({
+        where: { userId: existing.scopeId, orgId: { in: orgIds }, status: "active" },
+        select: { orgId: true },
+      });
+      scopeIsInOrganization = Boolean(studentMembership);
+    }
+    if (!scopeIsInOrganization) {
+      return NextResponse.json({ error: "Grant scope is outside your organization" }, { status: 403 });
+    }
+  }
 
   const grant = await db.accessGrant.update({ where: { id }, data: { revokedAt: new Date() } });
   await logAudit({
