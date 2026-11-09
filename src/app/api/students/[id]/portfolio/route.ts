@@ -209,9 +209,16 @@ export async function GET(
         })
       : [];
 
+  // Apply the grant boundary again at the response layer as defence in depth.
+  const visibleTasks = canSeeContent ? tasks : [];
+  const visibleInteractions = canSeeContent ? interactions : [];
+  const visibleWeeklyTests = canSeeContent ? weeklyTests : [];
+  const visibleReportCards = canSeeContent ? reportCards : [];
+  const visibleCompetencies = canSeeContent ? competencies : [];
+
   // Compute project progress only from tasks in the authorised course scope.
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((task) => task.status === "completed").length;
+  const totalTasks = visibleTasks.length;
+  const completedTasks = visibleTasks.filter((task) => task.status === "completed").length;
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const hasProject = totalTasks > 0;
 
@@ -222,11 +229,11 @@ export async function GET(
     taskSummary: {
       total: totalTasks,
       completed: completedTasks,
-      inProgress: tasks.filter((task) => task.status === "in-progress").length,
-      planned: tasks.filter((task) => task.status === "planned").length,
-      blocked: tasks.filter((task) => task.status === "blocked").length,
+      inProgress: visibleTasks.filter((task) => task.status === "in-progress").length,
+      planned: visibleTasks.filter((task) => task.status === "planned").length,
+      blocked: visibleTasks.filter((task) => task.status === "blocked").length,
     },
-    tasks,
+    tasks: visibleTasks,
     // Daily-log dates are used only to scope instructor comments. Do not return
     // learner support reflections, confidence or check-in content to staff.
     dailyLogs: [],
