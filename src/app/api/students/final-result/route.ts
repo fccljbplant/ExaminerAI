@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   // IDOR protection: verify the caller can access this student's data
   if (targetUserId !== payload.sub) {
     try {
-      await assertCanAccessStudent(payload, targetUserId);
+      await assertCanAccessStudent(payload, targetUserId, "content_only");
     } catch (err) {
       return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
