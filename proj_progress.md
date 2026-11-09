@@ -1,6 +1,6 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-10 (live refresh)  
+**Updated:** 2026-11-10 (PR #3 portfolio course-scope implementation)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
@@ -103,12 +103,21 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 - Next: restore/adapt the Agent Pack safely on this branch, obtain an approved task card, then implement the portfolio authorised-course intersection and route-level access tests. Clarify expired-enrolment visibility; do not change course-less competency semantics without owner direction.
 
 
-## 2026-11-10 — Live PR #3 refresh and portfolio-scope continuation
 
-- Rechecked PR #3: open, draft, unmerged, mergeable; branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; head `43aa35909b85275432619303baddf845f852e5df`; 266 commits and 109 changed files at inspection.
-- Exact-head GitHub Actions run [42663209736](https://github.com/fccljbplant/ExaminerAI/actions/runs/42663209736) passed install, isolated test database setup, lint, unit tests, TypeScript, production build, app-route smoke tests, authenticated role screenshots and artifact upload.
-- Exact-head Vercel status remains failed due to the build-rate limit; no Ready preview is confirmed.
-- Re-read `AGENT-INSTRUCTIONS.md`, continuity/status/session records, the portfolio route, visibility helper/tests, Prisma schema and upgrade questions. The portfolio route still authorises access and then queries course-bearing task, interaction, weekly-test and report-card records by learner ID only. The existing shared-course helper is available, but route-level authorisation derivation and route tests are not implemented.
-- The required Agent Pack queue/task card and logged runner are still absent from this branch. The uploaded runner cannot be used unchanged because it changes branches; no safe, approved task card/run path has been established. Per the project guardrails, application-code edits remain blocked rather than bypassing the workflow.
-- No application code, schema, dependency, production data, branch, merge or deployment was changed in this refresh. The organisation assignment and instructor revocation-approval workflow remains separate Issue #4 scope.
-- Next: obtain/restore a branch-preserving, no-`.env*` task-card workflow or owner-approved equivalent; then implement the portfolio course intersection and route-level tenant/course/grant tests as one focused task. Preserve the unresolved expiry semantics and course-less competency semantics.
+## 2026-11-10 — PR #3 portfolio course-scope implementation
+
+- Continued exclusively on the existing PR #3 branch ux-audit/fix-dashboard-truthfulness-and-agent-safety; latest head at this update is 9a02b6567282da5a4604b7237a2d48e5e4354a8c (278 commits, 110 changed files). PR remains open, draft, unmerged and mergeable.
+- Implemented authorised-course filtering in src/app/api/students/[id]/portfolio/route.ts: instructors are limited to courses they teach and the learner is enrolled in; org admins are limited to courses linked to a shared active organisation; platform admins are bounded to the learner's enrolled courses; explicit student-grant fallback remains student-wide but is bounded to those enrolments.
+- Preserved grant data scopes: full and content_only may return academic portfolio data; wellbeing_only and crisis_only do not receive academic course records. Learner-support/reflection data remains disabled for staff.
+- Filtered ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard by the authorised course intersection. Instructor comments are filtered through IDs of those scoped records; unlinked comments are omitted because Comment has no courseId. Course-less Competency remains unchanged pending a data-model decision.
+- Added src/app/api/students/[id]/portfolio/route.test.ts covering instructor multi-course isolation, org-admin linked-course scope, explicit-grant fallback, restricted wellbeing grant, and denial before portfolio queries. Existing shared-course helper tests remain in place.
+- CourseEnrollment.expiresAt remains intentionally unchanged: its schema comment says retake required after expiry, and the existing v2 detail route does not filter it. Confirm access semantics before changing it.
+- No local checkout/test runner was available; no local tests, lint, typecheck, build, browser or axe checks were run. No workflow run had yet been returned for the exact latest head at the time of this update; Vercel status was pending. Do not treat the earlier green run as validation of this patch.
+- The Agent Pack queue/runner is still absent from this branch and was not invoked. Work stayed on the existing branch; no branch creation/switch, merge, deployment, production data operation or dependency change.
+- Separate Issue #4 work (org-admin trainee assignment/reassignment and instructor access-removal approval workflow) remains outside PR #3.
+
+### Next
+1. Recheck exact-head GitHub Actions and address any test/lint/type/build failures on this branch.
+2. Review route test coverage and the generated diff; add any missing edge-case assertions without changing product semantics.
+3. Keep course-less Competency semantics and expired-enrolment treatment as explicit follow-up decisions; keep support/crisis features default-off.
+4. Continue the remaining PR #3 plan items only after this focused slice is green. Keep PR #3 draft; no merge/deploy without approval.
