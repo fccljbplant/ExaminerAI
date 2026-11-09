@@ -1,6 +1,6 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-10 (PR #3 portfolio course-scope implementation)  
+**Updated:** 2026-11-10 (PR #3 portfolio scope and roadmap additions)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
@@ -104,20 +104,21 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 
 
 
-## 2026-11-10 — PR #3 portfolio course-scope implementation
 
-- Continued exclusively on the existing PR #3 branch ux-audit/fix-dashboard-truthfulness-and-agent-safety; latest head at this update is 9a02b6567282da5a4604b7237a2d48e5e4354a8c (278 commits, 110 changed files). PR remains open, draft, unmerged and mergeable.
-- Implemented authorised-course filtering in src/app/api/students/[id]/portfolio/route.ts: instructors are limited to courses they teach and the learner is enrolled in; org admins are limited to courses linked to a shared active organisation; platform admins are bounded to the learner's enrolled courses; explicit student-grant fallback remains student-wide but is bounded to those enrolments.
-- Preserved grant data scopes: full and content_only may return academic portfolio data; wellbeing_only and crisis_only do not receive academic course records. Learner-support/reflection data remains disabled for staff.
-- Filtered ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard by the authorised course intersection. Instructor comments are filtered through IDs of those scoped records; unlinked comments are omitted because Comment has no courseId. Course-less Competency remains unchanged pending a data-model decision.
-- Added src/app/api/students/[id]/portfolio/route.test.ts covering instructor multi-course isolation, org-admin linked-course scope, explicit-grant fallback, restricted wellbeing grant, and denial before portfolio queries. Existing shared-course helper tests remain in place.
-- CourseEnrollment.expiresAt remains intentionally unchanged: its schema comment says retake required after expiry, and the existing v2 detail route does not filter it. Confirm access semantics before changing it.
-- No local checkout/test runner was available; no local tests, lint, typecheck, build, browser or axe checks were run. No workflow run had yet been returned for the exact latest head at the time of this update; Vercel status was pending. Do not treat the earlier green run as validation of this patch.
-- The Agent Pack queue/runner is still absent from this branch and was not invoked. Work stayed on the existing branch; no branch creation/switch, merge, deployment, production data operation or dependency change.
-- Separate Issue #4 work (org-admin trainee assignment/reassignment and instructor access-removal approval workflow) remains outside PR #3.
+## 2026-11-10 — PR #3 portfolio scope and roadmap additions
+
+- Continued on the existing PR #3 branch only. Current live head at this update: 6fe426c2cbd571fd1f77569b6421f6cc4f81ef83. PR remains open, draft, unmerged and mergeable.
+- Portfolio endpoint now derives staff-authorised course IDs and intersects them with learner enrolments before querying ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard. Instructor access uses teaching enrolments; org-admin access uses active same-org memberships and OrgCourse links; platform admin is bounded to learner enrolments.
+- Explicit student grants remain student-scoped but bounded to learner enrolments. The route now respects grant dataScope: full/content_only return academic content; wellbeing_only/crisis_only return no academic portfolio records. It fails closed if a grant disappears between the initial access check and scope derivation.
+- Instructor comments are scoped through course-bearing records they annotate. All non-null comment relation IDs must also belong to the authorised record sets; unlinked or mixed-scope comments are excluded.
+- Added route tests for instructor multi-course isolation, org-admin linked-course scope, explicit-grant fallback, restricted wellbeing grant, grant disappearance and denied access. Existing helper tests cover intersection/deduplication.
+- Competency remains course-less in the schema and is unchanged for authorised academic viewers. Expired CourseEnrollment semantics remain unchanged; no expiresAt filter was added.
+- Appended the owner-requested org-admin trainee assignment/reassignment and instructor course-access removal approval requirements to the end of docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md and Issue #4. These are future Workstream J scope, not PR #3 implementation.
+- Exact-head Actions status is pending/not yet returned for the latest commits; run 42721835502 on an earlier code head was cancelled by a subsequent push before tests began. Vercel status remains pending. No local test/lint/typecheck/build/browser/axe checks were available.
+- No schema/dependency/production-data changes, branch creation/switch, merge or deployment. Agent Pack queue/runner remains absent and was not invoked.
 
 ### Next
-1. Recheck exact-head GitHub Actions and address any test/lint/type/build failures on this branch.
-2. Review route test coverage and the generated diff; add any missing edge-case assertions without changing product semantics.
-3. Keep course-less Competency semantics and expired-enrolment treatment as explicit follow-up decisions; keep support/crisis features default-off.
-4. Continue the remaining PR #3 plan items only after this focused slice is green. Keep PR #3 draft; no merge/deploy without approval.
+1. Verify GitHub Actions on the latest PR head; fix lint, test, typecheck, build or smoke failures before starting another implementation slice.
+2. Review the final route diff and test coverage, especially comment-link scoping and grant-scope denial.
+3. Keep course-less Competency and expiresAt semantics as explicit follow-up decisions; keep learner-support/crisis features default-off.
+4. Continue the remaining PR #3 plan in sequence. Keep PR #3 draft and do not merge/deploy without approval.
