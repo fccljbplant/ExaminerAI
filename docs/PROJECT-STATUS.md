@@ -15,7 +15,7 @@ PR #3 at the live metadata refresh before this documentation update:
 - State: **open**
 - Draft: **yes**
 - Merged: **no**
-- Mergeable: GitHub reported **true**
+- Mergeable: GitHub currently reports **false** on head `7271cb850aa4b5e94c23474896c1d887a58d4794`; reason not yet established, so inspect merge-base/conflict status before any approval.
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
 - Head SHA: `7fb3a3d820f2233012b31f9aedeb42d8f758a661`
@@ -30,6 +30,7 @@ PR #3 at the live metadata refresh before this documentation update:
 - The preceding workflow run [42612463259](https://github.com/fccljbplant/ExaminerAI/actions/runs/42612463259) on `89a45fce` had passed dependency installation, isolated DB setup, lint, unit tests, typecheck, production build and route smoke tests; authenticated screenshot capture was still in progress at the last job refresh. It does not validate later documentation commits.
 - Earlier workflow run [42609924471](https://github.com/fccljbplant/ExaminerAI/actions/runs/42609924471) completed successfully on earlier head `4f4c4cd56fc3c0448acc0983e13a0ce74cea8773`; historical evidence only.
 - This status refresh itself advances the branch. Re-fetch checks on the resulting head before approval; do not claim the latest head is green.
+- PR metadata after the latest documentation commit reported 179 commits, 99 changed files, open/draft/not merged, and `mergeable: false`. No PR-triggered workflow run was returned for that exact head; Vercel remained pending.
 - No live browser walkthrough, production deployment, or end-user accessibility sign-off was performed in this session.
 ## PR #3 scope
 
