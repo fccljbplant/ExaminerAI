@@ -74,11 +74,11 @@ export async function GET(req: NextRequest) {
     // at 200 check-ins across all students.
     db.dailyLog.groupBy({
       by: ["userId"],
-      where: { userId: { in: studentIds } },
+      where: { userId: { in: studentIds }, courseId: { in: courseIds } },
       _max: { date: true },
     }),
     db.projectTask.findMany({
-      where: { userId: { in: studentIds } },
+      where: { userId: { in: studentIds }, courseId: { in: courseIds } },
       select: { userId: true, status: true },
     }),
   ]);
