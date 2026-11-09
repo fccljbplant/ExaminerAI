@@ -1,58 +1,48 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-09  
+**Updated:** 2026-11-09 16:45 UTC  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
 
-## Current state
-- PR #3 is open, draft, unmerged, based on `main`.
-- Latest code head: `5eafaa9e363f248ea8f36257462b1b82effe875a` (227 commits, 107 changed files).
-- No merge, deployment, production-data change, or main-branch write was made.
+## Current verified state
+- PR #3 is open, draft, unmerged, and based on `main`.
+- Latest branch head: `6d90c757a2273c3d6a49677d8766d50d2176f094` (235 commits, 107 changed files).
+- No branch creation/switch, merge, deployment, production-data change, or main-branch write.
+- Latest completed GitHub Actions quality run: `42655880066`, success on prior head `94869a6ec91dbfc737fe09bc3c28f203dbd79f54`. Dependency installation, isolated DB setup, lint, unit tests, typecheck, production build, route smoke tests, authenticated role screenshots and artifact upload all passed.
+- No workflow run had yet been returned for current head `6d90c757` at this refresh. The passing run is not validation of the new dashboard commits.
+- Vercel status remains a deployment-quota failure (`api-deployments-free-per-day`); no current Ready preview is confirmed.
+- No local checkout or local build/test runner was available.
 
-## Latest fixes
-- Org admins require active admin and learner memberships in the same organisation and learner enrolment in an organisation-linked course. Explicit grants cannot bypass this boundary.
+## Access, privacy and data-minimisation work already in PR #3
+- Org-admin access requires active admin and learner memberships in the same organisation and active learner enrolment in an organisation-linked course. Explicit grants cannot widen this boundary.
 - Platform/org admins are denied explicit wellbeing/crisis scopes; instructor course membership alone does not grant those support scopes.
-- Staff final-result views do not generate or return individual behavioural analysis. Learners retain their own view.
+- Staff final-result views do not generate or return individual behavioural analysis; learners retain their own view.
 - Staff portfolio views are clamped to academic content. Daily logs are queried as dates only; reflections/confidence are not loaded. Private instructor comments remain instructor-only.
-- Staff-facing report-card generation now fetches only daily-log dates because it uses check-in count only; private reflection text, confidence and error notes are not fetched.
-- Learner dashboard session chips and Projects See all action now meet 44px touch targets and include visible keyboard focus.
-- Instructor dashboard header links meet 44px minimum height; at-risk rows have 48px minimum height and visible keyboard focus.
-- Organisation dashboard announcement title input is 44px high; retry control plus Manage people / Full audit links meet 44px minimum target and have visible keyboard focus.
-- Support indicators require both explicit consent and a feature gate; both default false. The v2 student-detail route omits confidence and psychWeekly while the gate is absent.
-- Unit tests cover default-off support visibility and learner-only behavioural analysis.
+- Staff-facing report-card generation fetches only daily-log dates because the calculation uses check-in count only.
+- Support indicators require both explicit consent and a feature gate; both default false. No consent workflow exists and support/crisis features remain off.
+- The comprehensive-report `managementAttitude` field classification remains an owner decision in `docs/UPGRADE-2026-10/QUESTIONS.md`; do not widen staff visibility or remove fields without clarification.
 
-## Latest commit sequence
-`eb07cde8`, `49910fda`, `71102e60`, `941ea441`, `02253840`, `e7939d72`, `14a0a8df`, `4650190c`, `34a0ff19`, `a8bedbe8`, `29b66ed5`, `98f17db8`, `b7ddf70d`, `84dfef67`, `fea1683e`.
+## UXPeak / Workstream M implementation (parallel with privacy work)
+The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-REDESIGN.md`. Workstream M is mandatory across UI work. Changes on the current PR are deliberately incremental foundations, not a claim that the full role redesign is complete.
 
-## Validation
-- CI run `42643565316` passed on earlier head `d850ff0d`, before these latest changes.
-- Run `42645275411` on head `173cbde9` was cancelled during Node setup; quality steps were skipped.
-- Run `42654213454` completed successfully on `ee6dc635` with lint, unit tests, typecheck, production build, route smoke tests and authenticated role screenshots all passing. This run predates the latest UI commits.
-- Run `42655501293` on latest head `0cdbb5ac` is in progress. At last check, dependency installation was running; lint/tests/typecheck/build/smoke/screenshots had not started.
-- Run `42644831199` on intermediate head `84dfef67` was cancelled during dependency installation.
-- No completed Actions run is verified on latest head `fea1683e`; lint, tests, typecheck, build and route smoke remain unverified for this latest code.
-- Vercel combined status is failure due to the project build-rate limit; no Ready preview is confirmed.
-- No local checkout or local tests were run.
+- Learner dashboard: recoverable load errors now use safe, actionable copy instead of rendering raw error text.
+- Instructor dashboard: safe recovery copy; “View all students” now has a 44px minimum target and visible keyboard focus.
+- Organisation dashboard: safe recovery copy; a true no-members empty state explains the next step and links to member management; announcement body textarea has visible keyboard focus.
+- Platform dashboard: safe recovery copy; organisation and audit empty states explain the absence and provide direct navigation; loading skeleton now matches all eight KPI cards; empty-state actions use Next.js client navigation.
+- Existing token/theme architecture retained; no dependencies or parallel design system added.
+- The latest code has not yet been visually inspected after these changes. Before/after screenshots, populated/error/permission fixtures, axe, manual keyboard/screen-reader, reduced-motion, zoom/reflow and task-based checks remain required for UX sign-off.
 
-## Remaining work
-1. Verify CI on latest head and resolve failures.
-2. Add route-level tests for org membership, OrgCourse scope, cross-tenant denial, grant revocation and instructor regression.
-3. Review every route using `assertCanAccessStudent` for response-field classification and explicit support-scope handling.
-4. Implement only after approval: per-org consent workflow, default-off `learner_support_v1`, support-view audit logs and designated Learner Support Lead crisis handling.
-5. Keep PR #3 draft; no merge/deploy without explicit approval.
+## Earlier dashboard and theme foundations
+- Learner session-duration chips and Projects “See all” action use 44px minimum targets and visible keyboard focus.
+- Instructor header links use 44px targets; at-risk roster rows use 48px targets and visible focus.
+- Organisation announcement title input, retry action, Manage people and Full audit links use 44px targets and visible focus.
+- Theme validation was expanded across the shipped theme modes; navigation target sizing and semantic navigation fixes are included in the branch.
 
-
-## Current session — 2026-11-09
-- Continued the existing PR #3 access/privacy review. Rechecked PR #3 and current CI.
-- Updated `src/app/api/students/[id]/generate-report-card/route.ts` so staff report-card generation fetches only daily-log dates; the route uses check-in count and does not need reflection text, confidence or error notes.
-- CI run `42654057660` was in progress at the last check; no tests or build results claimed yet.
-- UI sequence: complete and validate the access/privacy corrections first; then begin the role-based UI phase with Learner and Instructor dashboards, followed by Organisation Admin and Platform Admin. PR #3 already contains baseline UI corrections; full redesign remains on Issue #4.
-
-
-## UI and overall progress — 2026-11-09
-- UI fixes are proceeding in parallel with access/privacy fixes on PR #3. No waiting for the entire security workstream to finish.
-- Recorded an unresolved field-classification question for the comprehensive learner report in `docs/UPGRADE-2026-10/QUESTIONS.md`; do not change staff visibility until the owner clarifies the intended boundary.
-- Latest UI code is awaiting CI run `42655501293`.
-
-- Latest UI follow-up head `5eafaa9e` has not yet been validated by a completed CI run. Recheck Actions before further sign-off.
+## Open risks and next steps
+1. Recheck Actions for current head `6d90c757`; fix failures only on this branch.
+2. Capture and inspect before/after dashboard screenshots at the seven specified viewports and supported themes. Do not score UX screens release-ready without interaction and accessibility evidence.
+3. Add route-level tests for org membership, OrgCourse scope, cross-tenant denial, grant revocation and instructor regression.
+4. Review all `assertCanAccessStudent` callsites for field-level response classification and explicit support-scope handling.
+5. Keep learner-support consent workflow, `learner_support_v1`, support-view audit logs and Learner Support Lead crisis handling off until owner approval and safeguards exist.
+6. Keep PR #3 draft; no merge or deploy without explicit owner approval.
