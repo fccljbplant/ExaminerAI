@@ -39,3 +39,16 @@ Until clarified, keep learner-support features default-off, do not add new staff
 At PR #3 head `43aa35909b85275432619303baddf845f852e5df`, the route-level finding remains reproducible by source inspection: `src/app/api/students/[id]/portfolio/route.ts` performs `assertCanAccessStudent(payload, id, "portfolio")`, then queries ProjectTask, Interaction, WeeklyTest and ReportCard by learner ID without an authorised-course filter. The Prisma schema confirms these records carry course IDs. The existing `getAuthorizedStudentCourseIds` helper tests set intersection only; the route does not yet derive or apply the set.
 
 Exact-head Actions run [42663209736](https://github.com/fccljbplant/ExaminerAI/actions/runs/42663209736) passed. Vercel remains rate-limited. The branch still lacks the approved task queue and safe logged runner; the uploaded queue runner must not be used because it changes branches. Keep this finding blocked until a branch-preserving, no-`.env*` task workflow or owner-approved equivalent is available.
+
+
+## 2026-11-10 — Portfolio course-scope implementation update
+
+**Status:** Implementation committed on PR #3; exact-head CI validation pending.
+
+The staff portfolio route now derives course IDs according to the existing role/tenant rules and intersects them with the learner's course enrolments before querying ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard. Org admins are restricted to courses linked to a shared active organisation. Instructor and explicit-grant fallback paths remain bounded to the learner's enrolments. Comments are scoped through linked course-bearing records; unlinked comments are omitted. Restricted wellbeing/crisis grants do not receive academic portfolio records, and learner-support data remains default-off.
+
+Route regression tests were added for instructor multi-course isolation, org-admin linked-course scope, explicit-grant fallback, restricted wellbeing grants and access denial. No local test runner was available; wait for exact-head GitHub Actions before marking validation complete.
+
+**Remaining decisions (not blockers for this scoped patch):**
+1. Competency has no courseId in the current Prisma schema. Its learner-level/global semantics remain unresolved; this patch preserves existing behaviour.
+2. CourseEnrollment.expiresAt is documented as a retake/compliance date, not explicitly as revocation. This patch preserves current access semantics (matching the v2 detail route) and adds no expiry filter. Confirm the intended access rule before changing it.
