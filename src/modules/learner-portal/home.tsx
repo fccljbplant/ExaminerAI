@@ -93,7 +93,7 @@ export function LearnerHome() {
   const { data, error, isLoading, retry } = useApi<HomeData>("/api/v2/learner/home");
 
   if (isLoading) return <HomeSkeleton />;
-  if (error) return <HomeError message={error} onRetry={retry} />;
+  if (error) return <HomeError onRetry={retry} />;
   if (!data) return null;
 
   // No enrollments → catalog CTA card (spec empty state).
@@ -313,12 +313,12 @@ function HomeSkeleton() {
   );
 }
 
-function HomeError({ message, onRetry }: { message: string; onRetry: () => void }) {
+function HomeError({ onRetry }: { onRetry: () => void }) {
   return (
     <div role="alert" className="rounded-xl border border-line bg-surface p-8 text-center">
       <AlertTriangle className="mx-auto h-6 w-6 text-danger" aria-hidden />
       <p className="mt-3 text-sm font-semibold text-fg">Couldn&apos;t load your home feed</p>
-      <p className="mt-1 text-xs text-fg-muted">{message}</p>
+      <p className="mt-1 text-xs text-fg-muted">Please try again. If the problem continues, contact your instructor.</p>
       <button
         type="button"
         onClick={onRetry}
