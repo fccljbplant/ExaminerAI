@@ -62,6 +62,10 @@ export async function GET(
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
+  // Instructors retain access to their teaching feedback. Other staff do not
+  // receive private instructor comments through this endpoint.
+  const canSeeComments = normalizeRole(payload.role) === UserRole.INSTRUCTOR;
+
   const [tasks, dailyLogs, interactions, comments, weeklyTests, competencies, reportCards] = await Promise.all([
     db.projectTask.findMany({
       where: { userId: id },
@@ -71,17 +75,21 @@ export async function GET(
       where: { userId: id },
       orderBy: { date: "desc" },
       take: 10,
+      // Staff portfolio support data is default-off; fetch dates only.
+      select: { date: true },
     }),
     db.interaction.findMany({
       where: { userId: id },
       orderBy: { date: "desc" },
       take: 15,
     }),
-    db.comment.findMany({
-      where: { studentId: id },
-      orderBy: { createdAt: "desc" },
-      include: { instructor: { select: { name: true, email: true } } },
-    }),
+    canSeeComments
+      ? db.comment.findMany({
+          where: { studentId: id },
+          orderBy: { createdAt: "desc" },
+          include: { instructor: { select: { name: true, email: true } } },
+        })
+      : Promise.resolve([]),
     db.weeklyTest.findMany({
       where: { userId: id },
       orderBy: { week: "asc" },
@@ -110,12 +118,7 @@ export async function GET(
   // - content_only: tasks, report cards, interactions, weekly tests and competencies; no daily reflections
   const canSeeContent = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "content_only";
   const canSeeWellbeing = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "wellbeing_only";
-  // Preserve instructor feedback access; org/platform admins do not receive
-  // private instructor comments through the learner portfolio endpoint.
-  const canSeeComments =
-    normalizeRole(payload.role) === UserRole.INSTRUCTOR ||
-    !portfolioDataScope ||
-    portfolioDataScope === "full";
+
 
   return NextResponse.json({
     student,
