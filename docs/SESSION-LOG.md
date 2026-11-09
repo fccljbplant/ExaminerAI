@@ -268,3 +268,32 @@ Append new entries at the top. Preserve earlier entries.
 3. Inspect workflow run details and the latest PR diff, prioritizing access grants/RBAC and aggregate KPI correctness.
 4. Do not merge, deploy, or push to `main`; work only on a dedicated branch and obtain owner approval for release actions.
 5. Update status and append a new log entry after meaningful work.
+
+
+## 2026-11-09 — UXPeak-informed dashboard interaction and recovery improvements
+
+**Starting verified head:** `94869a6ec91dbfc737fe09bc3c28f203dbd79f54`  
+**Latest code head:** `6d90c757a2273c3d6a49677d8766d50d2176f094`  
+**PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
+
+### Work completed
+- Read the project progress handoff, repository agent instructions, continuity/status/session docs, and the UXPeak role redesign, research log, scorecard, role decisions and route inventory.
+- Reconfirmed Workstream M: role/task-first hierarchy, appropriate information density, clear feedback/recovery, responsive layouts, truthful data, semantic controls and before/after visual QA. UXPeak reference material is treated as design reasoning, not as permission to copy screens/assets or use manipulative engagement patterns.
+- Learner dashboard: replaced raw request-error rendering with safe recovery guidance.
+- Instructor dashboard: replaced raw request-error rendering; “View all students” now has a 44px minimum target and visible focus styling.
+- Organisation dashboard: replaced raw request-error rendering; added an actionable no-members state; added visible focus styling to the announcement body field.
+- Platform dashboard: replaced raw request-error rendering; added actionable organisation/audit empty states; expanded loading skeleton geometry to match the eight KPI cards; used Next.js Link for internal empty-state actions.
+- Changes use existing theme tokens and navigation. No dependencies, provider changes, schema changes or feature flags added.
+
+### Validation and limitations
+- CI run `42655880066` passed all configured quality steps on prior head `94869a6e`; it does not validate these later UI commits.
+- No Actions run had yet been returned for current head `6d90c757`.
+- No local build/test, browser, screenshot comparison, axe, manual keyboard/screen-reader or performance check was available. No claim of visual UX sign-off is made.
+- Vercel deployment status remains blocked by the daily deployment API quota; no deployment was attempted.
+
+### Next
+1. Recheck Actions for `6d90c757` and resolve any failures.
+2. Obtain same-viewport before/after screenshots and inspect all four dashboards; update the UX scorecard only when evidence supports scores.
+3. Continue RBAC/field-level privacy regression tests in parallel with route-level UI fixes.
+4. Keep the comprehensive-report field classification and support/crisis enablement blocked pending owner approval.
