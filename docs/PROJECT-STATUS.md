@@ -1,10 +1,26 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-10 (live PR #3 head `43aa35909b85275432619303baddf845f852e5df`)  
+**Snapshot date:** 2026-11-10 (live PR #3 head 9a02b6567282da5a4604b7237a2d48e5e4354a8c)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
-## Latest live update — 2026-11-09
+## Latest live update — 2026-11-10
+
+- PR #3 remains open, draft, unmerged and mergeable on ux-audit/fix-dashboard-truthfulness-and-agent-safety; live head 9a02b6567282da5a4604b7237a2d48e5e4354a8c (278 commits, 110 changed files).
+- Portfolio course-scope correction is committed in src/app/api/students/[id]/portfolio/route.ts; route tests are in src/app/api/students/[id]/portfolio/route.test.ts.
+- Course-bearing portfolio queries (tasks, daily logs, interactions, weekly tests, report cards) now use the intersection of staff-authorised courses and learner enrolments. Org-admin scope uses active same-org membership plus OrgCourse links. Instructor explicit-grant fallback remains bounded to the learner's course enrolments and respects grant dataScope.
+- Comments are scoped through the authorised academic records they annotate. Unlinked comments are omitted. Learner support fields remain off; restricted wellbeing/crisis grants do not receive academic records.
+- Competency remains learner-level/course-less in the schema and is unchanged. Expired CourseEnrollment semantics remain unchanged pending clarification; no expiry filter was added.
+- Exact-head Actions run has not yet been returned; Vercel status is pending. Previous green CI on 43aa359 predates this implementation and is not validation of this head. No local tests/lint/typecheck/build/browser/axe checks were run.
+- Agent Pack queue/runner is still absent and was not used. All work remained on the existing PR #3 branch. No schema/dependency/production-data/merge/deploy change.
+
+### Next actions
+1. Recheck exact-head Actions and fix any failures on this branch.
+2. Review the full diff and test output for route-level tenant/course/grant boundaries.
+3. Preserve the open decisions on course-less Competency and expired-enrolment treatment; keep support/crisis features default-off.
+4. Continue the remaining PR #3 work plan in sequence; keep PR draft and do not merge/deploy without approval.
+
+## Historical live update — 2026-11-09
 
 - PR #3 remains **open, draft, unmerged**, on the existing branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; current head `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6` (250 commits, 109 changed files).
 - Actions run `42658325358` completed successfully on the immediately preceding head `875e80c6bca63654dd88ab245612ab49f614b382`. All configured steps passed: install, isolated DB, lint, unit tests, typecheck, production build, route smoke, authenticated screenshots and artifact upload.
