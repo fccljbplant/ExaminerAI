@@ -48,15 +48,10 @@ export async function GET(
       },
       select: { dataScope: true },
     });
-    // Organisation and platform admins receive academic/course content for
-    // oversight, never individual learner-support/wellbeing data, even if a
-    // broad legacy grant exists. Platform admins have no individual support
-    // signal access under the product privacy boundary.
-    const viewerRole = normalizeRole(payload.role);
-    portfolioDataScope =
-      viewerRole === UserRole.ORG_ADMIN || viewerRole === UserRole.PLATFORM_ADMIN
-        ? "content_only"
-        : grant?.dataScope ?? null;
+    // Support reflections, confidence and wellbeing are default-off for
+    // every staff audience until the per-org consent and feature gate exist.
+    // Legacy broad grants cannot bypass that product privacy boundary.
+    portfolioDataScope = "content_only";
   }
 
   const student = await db.user.findUnique({
@@ -124,10 +119,15 @@ export async function GET(
   // - full: everything (default for admins + teachers in own batch)
   // - wellbeing_only: dailyLogs only (no project content)
   // - crisis_only: minimal (no project, no daily logs)
-  // - content_only: tasks + reportCards + interactions only
+  // - content_only: tasks, report cards, interactions, weekly tests and competencies; no daily reflections
   const canSeeContent = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "content_only";
   const canSeeWellbeing = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "wellbeing_only";
-  const canSeeComments = !portfolioDataScope || portfolioDataScope === "full";
+  // Preserve instructor feedback access; org/platform admins do not receive
+  // private instructor comments through the learner portfolio endpoint.
+  const canSeeComments =
+    normalizeRole(payload.role) === UserRole.INSTRUCTOR ||
+    !portfolioDataScope ||
+    portfolioDataScope === "full";
 
   return NextResponse.json({
     student,
