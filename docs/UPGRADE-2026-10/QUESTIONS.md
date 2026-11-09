@@ -13,3 +13,20 @@ This is a mismatch between the module's stated scope and the actual generated fi
 2. Should organisation admins and platform admins receive only the educational score/mastery/project sections from this endpoint?
 
 Until clarified, keep learner-support features default-off, do not add new staff exposure, and do not use these fields for formal decisions. Treat this as an unresolved access/privacy risk, not as a completed implementation.
+
+
+## 2026-11-09 — Staff portfolio cross-course response scope
+
+**Status:** Blocked pending the approved PR #3 task card and a safe, branch-preserving Agent Pack runner. Do not patch the endpoint until those prerequisites are resolved.
+
+**Verified finding at PR #3 head `9ac14c13069bbe91b8a1fca54d305514f66590e3`:**
+
+- `src/app/api/students/[id]/portfolio/route.ts` calls `assertCanAccessStudent(payload, id, "portfolio")`. That check establishes that an instructor shares at least one course with the learner, or that an org admin has the required active same-organisation membership and linked-course enrolment.
+- After that one-course authorisation succeeds, the route queries `ProjectTask`, `Interaction`, `WeeklyTest` and `ReportCard` using only `userId: id`; it does not constrain their `courseId` values to the caller's authorised courses and the learner's shared course enrolments.
+- The current Prisma schema confirms that each of those four models has a `courseId` field. A learner enrolled in multiple courses can therefore have records from courses outside the caller's course/tenant scope included in this staff portfolio response.
+- `Competency` has no `courseId`; its learner-level/global semantics remain unclassified and must not be silently partitioned or removed.
+- The staff route sets `portfolioDataScope = "content_only"`, so daily-log reflections/confidence are not returned. This does not correct the course-scoping issue in the academic records above.
+
+**Required correction (not yet implemented):** derive the caller's authorised course IDs using the same instructor-vs-org-admin tenant rules as the v2 student-detail route; intersect them with the learner's course enrolments; filter every course-bearing portfolio query by that intersection; preserve learner self-view; and add route-level tests for multi-course isolation, no shared course, cross-tenant denial, org-admin linked-course scope, and grant revocation. Decide and test the intended treatment of expired `CourseEnrollment.expiresAt` records before calling an enrolment active.
+
+**Separate prerequisite blocker:** `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` and `scripts/agent/run-logged.mjs` return 404 on the current PR branch. The uploaded Agent Pack was not activated because its queue runner switches/creates branches and its guard reads prohibited `.env*` files. No task card or safe runner is available to authorise and verify this application change. Restore/adapt those prerequisites without branch switching or reading `.env*`, or provide an owner-approved task card and safe execution method. Until then, keep this finding blocked and make no application-code change.
