@@ -451,3 +451,33 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 1. Restore/adapt a safe task-card workflow that cannot switch branches and never reads `.env*`, or obtain an owner-approved equivalent.
 2. Then implement portfolio course scoping and route-level tests for multi-course isolation, no shared course, cross-tenant denial, org-admin linked-course scope and grant revocation.
 3. Preserve unresolved expiry semantics and course-less competency semantics pending explicit evidence/decision. Keep PR #3 draft.
+
+
+## 2026-11-10 — PR #3 portfolio course-scope implementation
+
+**PR:** https://github.com/fccljbplant/ExaminerAI/pull/3  
+**Branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety  
+**Latest code head:** 9a02b6567282da5a4604b7237a2d48e5e4354a8c
+
+### Implementation
+- Corrected src/app/api/students/[id]/portfolio/route.ts so every course-bearing portfolio query is restricted to the caller's authorised course IDs intersected with the learner's CourseEnrollment rows where role is student.
+- Instructor course IDs come from their instructor CourseEnrollment rows. Org-admin course IDs come from active admin memberships, the learner's active membership in a shared organisation, and that organisation's OrgCourse links. Platform admins retain global operational access but the portfolio's course-bearing records are bounded to the learner's actual enrolments.
+- Preserved explicit student-grant fallback for instructors without a shared teaching course and other explicit-grant staff. The grant remains student-scoped but is bounded to learner enrolments. Grant dataScope is now respected: full/content_only may return academic content; wellbeing_only/crisis_only do not return academic records. Support/reflection data remains default-off.
+- ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard are course-filtered. Instructor comments are limited to IDs of those scoped records; unlinked comments are omitted because Comment has no courseId. Daily-log IDs are selected only to scope comments and are not returned; the staff dailyLogs response remains empty.
+- Competency has no courseId and remains unchanged as learner-level data pending a schema/product decision. No CourseEnrollment.expiresAt rule was introduced; its compliance comment says retake required after expiry, and v2 currently does not filter it.
+- Added src/app/api/students/[id]/portfolio/route.test.ts for instructor course intersection, org-admin linked-course scope, explicit-grant fallback, restricted wellbeing grant and denied-access short-circuit.
+- Existing helper tests continue to cover intersection deduplication and non-overlap.
+
+### Review, validation and status
+- Re-fetched the final route and test files after commits; verified there are no literal escaped-newline artifacts and the grant query selects dataScope.
+- Exact PR head at the last live refresh: 9a02b6567282da5a4604b7237a2d48e5e4354a8c; PR #3 open, draft, unmerged and mergeable; 278 commits / 110 changed files. No review submissions or inline review threads were returned.
+- No exact-head GitHub Actions run had been returned yet. Vercel status was pending. Earlier successful run 42663209736 predates this patch and is not validation of the new code.
+- No local checkout/test runner was available; no local test, lint, typecheck, build, browser or axe command was run. Report these as pending until CI evidence arrives.
+- Agent Pack queue/runner remains absent on the branch and was not invoked. Work remained on the existing PR #3 branch; no branch switch, schema/dependency change, production data operation, merge or deployment.
+- The org-admin trainee assignment/reassignment and instructor course-access revocation approval workflow remains separate Issue #4 scope.
+
+### Next
+1. Recheck Actions for exact head 9a02b6567282da5a4604b7237a2d48e5e4354a8c; fix any failures on this branch.
+2. Review the route-level test output and add any missing edge cases for empty intersections and restricted grants if needed.
+3. Keep Competency course-less semantics and expired-enrolment treatment open; keep learner-support/crisis data off.
+4. Continue the remaining PR #3 plan items in order; keep PR #3 draft.
