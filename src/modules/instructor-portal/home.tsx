@@ -111,7 +111,7 @@ export function InstructorHome() {
             </h2>
             <Link
               href="/instructor/review"
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Open queue
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -160,7 +160,7 @@ export function InstructorHome() {
                 <Link
                   key={s.id}
                   href={`/instructor/students/${s.id}`}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle"
+                  className="flex min-h-12 items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-fg">{s.name}</p>
