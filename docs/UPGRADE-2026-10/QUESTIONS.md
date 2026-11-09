@@ -30,3 +30,12 @@ Until clarified, keep learner-support features default-off, do not add new staff
 **Required correction (not yet implemented):** derive the caller's authorised course IDs using the same instructor-vs-org-admin tenant rules as the v2 student-detail route; intersect them with the learner's course enrolments; filter every course-bearing portfolio query by that intersection; preserve learner self-view; and add route-level tests for multi-course isolation, no shared course, cross-tenant denial, org-admin linked-course scope, and grant revocation. Decide and test the intended treatment of expired `CourseEnrollment.expiresAt` records before calling an enrolment active.
 
 **Separate prerequisite blocker:** `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` and `scripts/agent/run-logged.mjs` return 404 on the current PR branch. The uploaded Agent Pack was not activated because its queue runner switches/creates branches and its guard reads prohibited `.env*` files. No task card or safe runner is available to authorise and verify this application change. Restore/adapt those prerequisites without branch switching or reading `.env*`, or provide an owner-approved task card and safe execution method. Until then, keep this finding blocked and make no application-code change.
+
+
+## 2026-11-10 — Portfolio scope blocker rechecked
+
+**Status:** Still blocked; no application patch authorised under the current task workflow.
+
+At PR #3 head `43aa35909b85275432619303baddf845f852e5df`, the route-level finding remains reproducible by source inspection: `src/app/api/students/[id]/portfolio/route.ts` performs `assertCanAccessStudent(payload, id, "portfolio")`, then queries ProjectTask, Interaction, WeeklyTest and ReportCard by learner ID without an authorised-course filter. The Prisma schema confirms these records carry course IDs. The existing `getAuthorizedStudentCourseIds` helper tests set intersection only; the route does not yet derive or apply the set.
+
+Exact-head Actions run [42663209736](https://github.com/fccljbplant/ExaminerAI/actions/runs/42663209736) passed. Vercel remains rate-limited. The branch still lacks the approved task queue and safe logged runner; the uploaded queue runner must not be used because it changes branches. Keep this finding blocked until a branch-preserving, no-`.env*` task workflow or owner-approved equivalent is available.
