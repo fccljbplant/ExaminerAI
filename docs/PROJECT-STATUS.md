@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (live PR #3 head `5eafaa9e`; CI recheck pending)  
+**Snapshot date:** 2026-11-09 (live PR #3 head `6d90c757`; latest-head CI recheck pending)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -9,7 +9,7 @@
 | Ref | Commit | State |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA; no changes made to main. |
-| PR #3 branch | `0cdbb5acf8434c75eabbe63bef591b1224de202a` | Live PR head at this refresh. |
+| PR #3 branch | `6d90c757a2273c3d6a49677d8766d50d2176f094` | Live PR head at this refresh. |
 
 PR #3 live metadata:
 - State: **open**
@@ -18,9 +18,9 @@ PR #3 live metadata:
 - Mergeable: **yes**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `5eafaa9e363f248ea8f36257462b1b82effe875a`
-- Commits: **227**
-- Changed files: **106**
+- Head SHA: `6d90c757a2273c3d6a49677d8766d50d2176f094`
+- Commits: **235**
+- Changed files: **107**
 - No submitted PR reviews or inline review threads were returned.
 
 ## Current CI and preview status
@@ -151,3 +151,15 @@ This owner direction clarifies the org-admin academic/operational oversight audi
 
 
 Latest UI follow-up: organisation dashboard Manage people / Full audit links and learner dashboard Projects See all link also have 44px minimum target size and visible keyboard focus. Latest head `5eafaa9e`; recheck Actions because the previous run `42655501293` was on an earlier UI head and does not validate these final changes.
+
+
+## 2026-11-09 — UXPeak Workstream M dashboard follow-up
+
+- Latest branch head: `6d90c757a2273c3d6a49677d8766d50d2176f094`; PR #3 remains open, draft and unmerged on the existing branch.
+- Learner and staff dashboard errors now use safe recovery guidance instead of raw request error text.
+- Instructor “View all students” now has a 44px target and visible focus. Organisation members receive an actionable empty state; announcement body has visible focus. Platform organisation/audit empty states include relevant navigation, and the skeleton now matches eight KPI cards.
+- The UI work follows the UXPeak role redesign / Workstream M principles while retaining existing tokens and components. No new dependencies or parallel design system.
+- CI run `42655880066` passed on prior head `94869a6e`; it does not validate the new changes. No workflow run had yet been returned for `6d90c757`.
+- No local build/test or post-change browser/screenshot/axe review was available. The UX scorecard remains provisional; do not claim visual sign-off.
+- Vercel remains blocked by the daily deployment API quota. No deployment or merge was performed.
+- Next: verify current-head CI, inspect before/after screenshots at the required viewports, and continue route-level RBAC/privacy tests in parallel.
