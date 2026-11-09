@@ -60,6 +60,7 @@ export async function GET(
   const learnerCourseIds = learnerEnrollments.map((enrollment) => enrollment.courseId);
   let staffCourseIds: string[] = [];
   let grantDataScope: string | null = null;
+  let hasDirectCourseAccess = false;
 
   if (callerRole === UserRole.INSTRUCTOR) {
     const teachingEnrollments = await db.courseEnrollment.findMany({
@@ -67,6 +68,8 @@ export async function GET(
       select: { courseId: true },
     });
     staffCourseIds = teachingEnrollments.map((enrollment) => enrollment.courseId);
+    hasDirectCourseAccess =
+      getAuthorizedStudentCourseIds(staffCourseIds, learnerCourseIds).length > 0;
 
     // A student-level explicit grant remains the fallback when no shared
     // teaching course exists. It cannot widen an existing course assignment.
@@ -104,12 +107,15 @@ export async function GET(
           select: { courseId: true },
         });
         staffCourseIds = orgCourses.map((course) => course.courseId);
+        hasDirectCourseAccess =
+          getAuthorizedStudentCourseIds(staffCourseIds, learnerCourseIds).length > 0;
       }
     }
   } else if (callerRole === UserRole.PLATFORM_ADMIN) {
     // Platform admins retain global operational access, bounded to this
     // learner's actual course enrolments.
     staffCourseIds = learnerCourseIds;
+    hasDirectCourseAccess = true;
   } else {
     // Demo/legacy staff roles require the explicit student grant checked by
     // assertCanAccessStudent. Grants are student-scoped, not course-scoped.
@@ -130,7 +136,7 @@ export async function GET(
   }
 
   const canSeeContent =
-    grantDataScope === null || grantDataScope === "full" || grantDataScope === "content_only";
+    hasDirectCourseAccess || grantDataScope === "full" || grantDataScope === "content_only";
   const authorizedCourseIds = canSeeContent
     ? getAuthorizedStudentCourseIds(staffCourseIds, learnerCourseIds)
     : [];
