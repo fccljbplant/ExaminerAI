@@ -21,6 +21,7 @@ import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
 import { computePsychWeekly } from "@/modules/learn/lib/psych-weekly";
+import { canViewLearnerSupportSignals, toDailyLogPayload } from "@/modules/instructor-portal/student-detail-visibility";
 
 export const runtime = "nodejs";
 
@@ -48,20 +49,54 @@ export async function GET(
   });
   if (!student) return apiError("Student not found", "NOT_FOUND", 404);
 
-  // IDOR: caller must teach a course the student is enrolled in.
-  const teaching = await db.courseEnrollment.findMany({
-    where: { userId: user.sub, role: "instructor" },
-    select: { courseId: true },
-  });
-  const courseIds = teaching.map((t) => t.courseId);
-  const sharedCourse = courseIds.length
+  // IDOR: instructors are limited to courses they teach. Org admins are
+  // limited to courses explicitly linked to an organisation where they and
+  // the learner both hold active memberships.
+  const isOrgAdmin = user.role === "org_admin";
+  const includeSupportSignals = canViewLearnerSupportSignals(user.role);
+  let sharedCourse: { courseId: string } | null = null;
+  let courseIds: string[] = [];
+
+  if (isOrgAdmin) {
+    const adminMemberships = await db.orgMember.findMany({
+      where: { userId: user.sub, role: "admin", status: "active" },
+      select: { orgId: true },
+    });
+    const adminOrgIds = adminMemberships.map((membership) => membership.orgId);
+    if (adminOrgIds.length > 0) {
+      const learnerMemberships = await db.orgMember.findMany({
+        where: { userId: id, orgId: { in: adminOrgIds }, status: "active" },
+        select: { orgId: true },
+      });
+      const sharedOrgIds = learnerMemberships.map((membership) => membership.orgId);
+      if (sharedOrgIds.length > 0) {
+        const orgCourses = await db.orgCourse.findMany({
+          where: { orgId: { in: sharedOrgIds } },
+          select: { courseId: true },
+        });
+        courseIds = [...new Set(orgCourses.map((course) => course.courseId))];
+      }
+    }
+  } else {
+    const teaching = await db.courseEnrollment.findMany({
+      where: { userId: user.sub, role: "instructor" },
+      select: { courseId: true },
+    });
+    courseIds = teaching.map((teachingCourse) => teachingCourse.courseId);
+  }
+
+  sharedCourse = courseIds.length
     ? await db.courseEnrollment.findFirst({
         where: { userId: id, role: "student", courseId: { in: courseIds } },
         select: { courseId: true },
       })
     : null;
   if (!sharedCourse) {
-    return apiError("You do not teach this student", "FORBIDDEN", 403);
+    return apiError(
+      isOrgAdmin ? "You cannot access this learner in your organisation" : "You do not teach this student",
+      "FORBIDDEN",
+      403,
+    );
   }
 
   const [weeklyTests, reportCards, competencies, dailyLogs, tasks, certificates, events, projects, psychWeekly] =
@@ -96,7 +131,7 @@ export async function GET(
         where: { userId: id },
         orderBy: { date: "desc" },
         take: 14,
-        select: { date: true, confidence: true },
+        select: includeSupportSignals ? { date: true, confidence: true } : { date: true },
       }),
       db.projectTask.findMany({
         where: { userId: id },
@@ -119,7 +154,9 @@ export async function GET(
         orderBy: { updatedAt: "desc" },
         include: { tasks: { select: { id: true, status: true } } },
       }),
-      computePsychWeekly(id, sharedCourse.courseId).catch(() => null),
+      includeSupportSignals
+        ? computePsychWeekly(id, sharedCourse.courseId).catch(() => null)
+        : Promise.resolve(null),
     ]);
 
   // Academic attention signals (Phase-1 compliant — no psych layer).
@@ -201,10 +238,7 @@ export async function GET(
       createdAt: r.date.toISOString(),
     })),
     competencies: competencies.map((c) => ({ topic: c.topic, level: c.masteryLevel })),
-    dailyLogs: dailyLogs.map((l) => ({
-      date: l.date.toISOString().slice(0, 10),
-      confidence: l.confidence,
-    })),
+    dailyLogs: dailyLogs.map((log) => toDailyLogPayload(log, includeSupportSignals)),
     tasks: tasks.map((t) => ({ id: t.id, title: t.description, status: t.status, week: t.week })),
     projects: projects.map((p) => {
       const total = p.tasks.length;
