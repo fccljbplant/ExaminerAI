@@ -68,22 +68,29 @@ export default async function CoursesPage({
 
   // Category counts fetch in parallel with the page shell — we want the
   // category nav visible immediately, so we await it at the page level.
-  let categoryCounts: Awaited<ReturnType<typeof db.course.groupBy>> = [];
+  let categoryCounts: Array<{ category: string; count: number }> = [];
   let categoryCountsUnavailable = false;
   try {
-    categoryCounts = await db.course.groupBy({
+    const groupedCategories = await db.course.groupBy({
       by: ["category"],
       where: { published: true },
       _count: { _all: true },
     });
+    categoryCounts = groupedCategories.map((item) => ({
+      category: item.category,
+      count:
+        typeof item._count === "object" && item._count !== null && "_all" in item._count
+          ? Number(item._count._all ?? 0)
+          : 0,
+    }));
   } catch (error) {
     categoryCountsUnavailable = true;
     console.error("[courses-page] Category counts unavailable; rendering catalogue shell.", error);
   }
   const countByCategory = new Map<string, number>(
-    categoryCounts.map((c) => [c.category, c._count._all])
+    categoryCounts.map((c) => [c.category, c.count])
   );
-  const totalPublished = categoryCounts.reduce((sum, c) => sum + c._count._all, 0);
+  const totalPublished = categoryCounts.reduce((sum, c) => sum + c.count, 0);
 
   return (
     <div>
