@@ -31,3 +31,8 @@
 
 **Not ready for UX sign-off.** This is an initial baseline only. Complete interaction, accessibility, populated-data, theme and task-based evidence before awarding final scores or claiming a screen meets the 4/5 acceptance bar.
 
+
+
+## Latest code delta — pending visual re-score
+
+The 2026-11-09 dashboard changes are recorded in `docs/UPGRADE-2026-10/design/UX-AUDIT.md`. They improve empty/error/loading and keyboard interaction states, but no post-change screenshots or interaction/accessibility evidence have been inspected yet. Existing baseline scores remain provisional and are **not** upgraded by code inspection alone.
