@@ -7,6 +7,7 @@
  */
 
 import { db } from "@/lib/db";
+import { normalizeRole } from "@/lib/rbac";
 
 export async function getPlatformHome() {
   const [orgs, memberCount, userCount, auditCount, recentAudit] = await Promise.all([
@@ -94,10 +95,17 @@ export async function getUserOverview() {
       db.passwordResetRequest.count({ where: { status: "pending" } }),
     ]);
 
-  const roleCount = Object.fromEntries(roleCounts.map((r) => [r.role, r._count._all]));
+  // Normalize legacy role aliases before presenting role totals. The RBAC layer
+  // deliberately continues to accept these aliases, so raw groupBy buckets
+  // would otherwise undercount canonical roles in the admin overview.
+  const roleCount: Record<string, number> = {};
+  for (const row of roleCounts) {
+    const normalized = normalizeRole(row.role);
+    if (normalized) roleCount[normalized] = (roleCount[normalized] ?? 0) + row._count._all;
+  }
   const learnersWithoutProjects = await db.user.count({
     where: {
-      role: "learner",
+      role: { in: ["learner", "student", "pending", "counselor", "guardian"] },
       learnProjects: { none: {} },
     },
   });
@@ -118,7 +126,7 @@ export async function getUserOverview() {
       id: u.id,
       name: u.name,
       email: u.email,
-      role: u.role,
+      role: normalizeRole(u.role) ?? u.role,
       blocked: u.blocked,
       createdAt: u.createdAt.toISOString(),
     })),
