@@ -23,8 +23,8 @@
 - Mergeable: GitHub reported **true** at the time checked.
 - Base: `main`
 - Head: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Application-code head inspected: `1ac3d87de73cdb0d0441a9e546e7aeab560acde2`. This session added continuity documentation on top of it. At the latest metadata refresh before this status-file update, the live PR head was `73793e274bd1532f1e5730422b1a854abefe593e` (168 commits, 99 changed files, +2,342 / −521). Updating this file adds another documentation commit; re-check the live head before the next session.
-- Counts at the metadata refresh before this status-file update: 168 commits, 99 changed files, +2,342 / −521. The current documentation update adds another commit/file; fetch live metadata before continuing.
+- Application-code head inspected: `1ac3d87de73cdb0d0441a9e546e7aeab560acde2`. This session added continuity documentation on top of it. At the latest metadata refresh before this status-file update, PR #3 was still open/draft/not merged and mergeable; its live head was `afbba420d099b870e885ed9be182fd2cbd5a6cab` (170 commits, 99 changed files). This update itself adds another documentation commit; re-check the live head before the next session.
+- Counts at the latest metadata refresh before this status-file update: 170 commits and 99 changed files. This update itself adds a documentation commit; fetch live metadata before continuing.
 - Submitted PR reviews: none found at the time checked.
 - Inline review threads: none found at the time checked.
 
