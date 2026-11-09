@@ -27,13 +27,13 @@ export async function GET() {
   const [totalLearners, activeToday, completedCertificates, avgScoreAgg, recentLearners] = await Promise.all([
     db.user.count({
       where: {
-        role: "learner",
+        role: { in: ["learner", "student", "pending", "counselor", "guardian"] },
         organizationMembers: { none: {} },
       },
     }),
     db.user.count({
       where: {
-        role: "learner",
+        role: { in: ["learner", "student", "pending", "counselor", "guardian"] },
         organizationMembers: { none: {} },
         lastLogin: { gte: twentyFourHoursAgo },
       },
@@ -41,7 +41,7 @@ export async function GET() {
     db.certificate.count({
       where: {
         user: {
-          role: "learner",
+          role: { in: ["learner", "student", "pending", "counselor", "guardian"] },
           organizationMembers: { none: {} },
         },
       },
@@ -49,7 +49,7 @@ export async function GET() {
     db.weeklyTest.aggregate({
       where: {
         user: {
-          role: "learner",
+          role: { in: ["learner", "student", "pending", "counselor", "guardian"] },
           organizationMembers: { none: {} },
         },
         status: "completed",
@@ -59,7 +59,7 @@ export async function GET() {
     }),
     db.user.findMany({
       where: {
-        role: "learner",
+        role: { in: ["learner", "student", "pending", "counselor", "guardian"] },
         organizationMembers: { none: {} },
       },
       select: {
