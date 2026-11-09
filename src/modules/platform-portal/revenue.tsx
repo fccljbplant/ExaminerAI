@@ -159,7 +159,7 @@ export function PlatformRevenue() {
             <Card label="Platform fees (30d, USD)" value={"$" + revenue.platformFees30d.toLocaleString()} sub={`${revenue.payments30d} completed USD payments`} icon={Banknote} />
             <Card label="Pending payout value (USD)" value={"$" + revenue.payoutsPending.sum.toLocaleString()} sub={`${revenue.payoutsPending.count} payouts`} icon={Clock} />
             <Card label="AI spend (30d, USD)" value={"$" + revenue.aiSpend30d.toLocaleString()} sub="estimated cost" icon={Zap} />
-            <Card label="Refunds (30d, USD)" value={String(revenue.refunded30d)} sub={"B2C gross (USD) $" + revenue.b2cGross30d.toLocaleString()} icon={Banknote} />
+            <Card label="Refunded payments (30d)" value={String(revenue.refunded30d)} sub={"B2C gross (USD) $" + revenue.b2cGross30d.toLocaleString()} icon={Banknote} />
           </div>
 
           <div className="grid gap-3 lg:grid-cols-2">
