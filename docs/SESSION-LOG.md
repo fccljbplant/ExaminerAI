@@ -1,3 +1,31 @@
+## 2026-11-09 — Staff report-card data minimisation and CI refresh
+
+**Starting application head:** `173cbde9a94af4475ef1f44268fc0f62a07870bb`  
+**Application fix commit:** `fe2a700c363cea57a99b96807d11a9008cb69c32`  
+**PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
+
+### Verified sources and changes
+- Rechecked live PR #3 metadata, changed-file inventory, latest commit status, workflow run and job steps.
+- Reviewed the current `assertCanAccessStudent` call sites in the changed student API routes, including portfolio, final result, report-card generation, comprehensive report, check-in drafting, narrative, explain and rehearsal.
+- In `src/app/api/students/[id]/generate-report-card/route.ts`, changed the daily-log selection from `date/whatDidYouDo/confidence/anyErrors` to `date` only. The report-card computation uses only `dailyLogs.length`; private reflection, confidence and error-note values were not used.
+- Updated the continuity and progress notes to retain the existing PR #3-only branch rule and describe the approved learner-support visibility boundary accurately.
+
+### CI and deployment evidence
+- Workflow run `42645275411` on `173cbde9` was cancelled during Node setup; dependency installation and all quality checks were skipped.
+- Workflow run `42654057660` was triggered by application fix `fe2a700c`. At last job refresh: checkout and Node setup passed; dependency installation was in progress; DB setup, lint, tests, typecheck, build, route smoke and screenshots were pending.
+- Vercel status for `fe2a700c` was pending. No Ready preview is confirmed.
+- No local test/build/browser/axe runner was available. Do not claim these checks passed.
+
+### Remaining risks and next actions
+1. Add route-level access/response tests for org-admin same-org + linked-course scope, cross-tenant denial, active learner enrolment, grant revocation, instructor access preservation, and support-data default-off.
+2. Review the remaining routes for field-level privacy, particularly comprehensive-report's AI-generated `managementAttitude` fields; do not classify ambiguous fields without evidence or silently remove required academic functionality.
+3. Recheck workflow run `42654057660` and fix any failures only on this PR #3 branch.
+4. After the access/privacy fixes pass CI, begin the role-based UI phase: Learner and Instructor dashboards first, then Organisation Admin, then Platform Admin, following Workstream M and the existing token/theme architecture.
+5. Keep PR #3 draft. No merge, production data change, or deployment.
+
+---
+
 ## 2026-11-09 — Continued PR #3 access/privacy fixes
 
 **Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety` (existing PR #3 branch only)  
