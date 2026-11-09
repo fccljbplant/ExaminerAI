@@ -57,6 +57,13 @@ PR #3 is a foundation, not completion of all product workstreams. Workstreams Aâ
 - Do not claim a screenshot, browser test, deployment, or code verification that was not actually performed.
 - If a required safety/tooling prerequisite is missing, record the blocker and stop rather than inventing a workflow.
 
+## Parallel UI and security delivery
+
+- Continue UI quality fixes in parallel with access/privacy work on the existing PR #3 branch; do not defer all UI work until security is complete.
+- Prioritise role-specific dashboard usability, 44px minimum interactive targets, visible keyboard focus, responsive layouts, truthful loading/empty/error states, and accessible semantics. Keep changes within the existing design tokens and components.
+- Keep the broader role-based redesign aligned to `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-REDESIGN.md`; Workstream M is a cross-cutting quality gate, not a separate blocker.
+- Current session added touch-target/focus improvements to Learner, Instructor and Organisation dashboards. Latest head and CI are recorded in `docs/PROJECT-STATUS.md`.
+
 ## Progress recording contract
 
 - `docs/PROJECT-STATUS.md` is the latest concise snapshot. Update its date, branch/commit, PR state, CI/deployment state, completed work, blockers, and next steps after meaningful work.
