@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
-import { ADMIN_ROLES, hasRole, isStaffRole } from "@/lib/rbac";
+import { hasRole, isStaffRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { generateComprehensiveReport } from "@/modules/comprehensive-report";
 import { checkUserAILimit, isDemoAIBlocked, categoryForFeature } from "@/lib/ai-rate-limits";
 import { logAudit } from "@/lib/audit-log";
@@ -32,7 +32,7 @@ export async function GET(
   const { id } = await params;
 
   // Access control
-  const isPrivileged = hasRole(payload.role, ADMIN_ROLES);
+  const isPrivileged = hasRole(payload.role, PLATFORM_ADMIN_ROLES);
   if (!isPrivileged && payload.sub !== id) {
     try {
       await assertCanAccessStudent(payload, id);
