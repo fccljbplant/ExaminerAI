@@ -11,6 +11,7 @@
  */
 
 import { getAuthUser } from "@/lib/auth";
+import { hasRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { apiError, apiSuccess, apiUnauthorized } from "@/lib/api-response";
 import { db } from "@/lib/db";
 import { logAudit } from "@/lib/audit-log";
@@ -24,7 +25,7 @@ const BUDGET_KEY_PREFIX = "ai_budget_org:";
 async function requireAdmin() {
   const user = await getAuthUser();
   if (!user) return { denied: apiUnauthorized(), user: null };
-  if (user.role !== "platform_admin" && user.role !== "admin") {
+  if (!hasRole(user.role, PLATFORM_ADMIN_ROLES)) {
     return { denied: apiError("Platform access only", "FORBIDDEN", 403), user: null };
   }
   if (!(await isPlatformPortalEnabled())) {
