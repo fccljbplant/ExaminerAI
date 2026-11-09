@@ -511,3 +511,12 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 1. Verify the exact latest-head Actions workflow and fix failures.
 2. Review test results and final diff before proceeding to the next PR #3 slice.
 3. Keep support/crisis data default-off and keep PR #3 draft.
+
+
+## 2026-11-10 — Next PR #3 response-scope slice identified
+
+- Read src/app/api/students/final-result/route.ts. It calls assertCanAccessStudent(payload, targetUserId, "content_only") but nested weeklyTests, interactions, reportCards, projectReports and tasks queries at lines 47–51 do not filter by courseId. Prisma confirms these models carry courseId.
+- This is the next planned PR #3 scope correction after the portfolio change is validated. Apply the same staff course intersection to every course-bearing relation; preserve learner self-view across the learner's own courses.
+- Preserve required academic outcomes for authorised staff (performance/participation, areasToImprove, overallAssessment, careerReadiness, project reports and task stats). behavioralPattern remains learner-self only pending the approved consent/feature gate. The comprehensive-report managementAttitude mismatch remains owner-blocked.
+- No final-result source change was made in this review. Portfolio route exact-head Actions remain unverified; previous run 42721835502 was cancelled before lint/tests. No local tests/build were run.
+- Current PR #3 head at this review: 4d394819e074f528b12b821d6d69d54a45c5739f; open, draft, unmerged, mergeable. No merge/deploy/production data changes.
