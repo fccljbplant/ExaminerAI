@@ -235,7 +235,7 @@ export async function ensureAdminUser(): Promise<void> {
 export async function assertCanAccessStudent(
   payload: JwtPayload,
   studentId: string,
-  requiredDataScope: "full" | "wellbeing_only" | "crisis_only" | "content_only" = "full",
+  requiredDataScope: "full" | "wellbeing_only" | "crisis_only" | "content_only" | "portfolio" = "full",
 ): Promise<boolean> {
   // Import lazily: rbac imports auth helpers, so a static import would create
   // a runtime cycle.
@@ -302,7 +302,11 @@ export async function assertCanAccessStudent(
   // Explicit grants must cover the data scope requested by the endpoint.
   // A restricted grant cannot silently authorize a full student report.
   const allowedDataScopes =
-    requiredDataScope === "full" ? ["full"] : ["full", requiredDataScope];
+    requiredDataScope === "full"
+      ? ["full"]
+      : requiredDataScope === "portfolio"
+        ? ["full", "wellbeing_only", "crisis_only", "content_only"]
+        : ["full", requiredDataScope];
   const grant = await db.accessGrant.findFirst({
     where: {
       granteeUserId: payload.sub,
