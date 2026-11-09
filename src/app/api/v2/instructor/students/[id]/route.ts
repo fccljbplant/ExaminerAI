@@ -23,7 +23,7 @@ import { normalizeRole, UserRole } from "@/lib/rbac";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
 import { computePsychWeekly } from "@/modules/learn/lib/psych-weekly";
-import { canViewLearnerSupportSignals, toDailyLogPayload } from "@/modules/instructor-portal/student-detail-visibility";
+import { canViewLearnerSupportSignals, getAuthorizedStudentCourseIds, toDailyLogPayload } from "@/modules/instructor-portal/student-detail-visibility";
 
 export const runtime = "nodejs";
 
@@ -89,12 +89,20 @@ export async function GET(
     courseIds = teaching.map((teachingCourse) => teachingCourse.courseId);
   }
 
-  sharedCourse = courseIds.length
-    ? await db.courseEnrollment.findFirst({
+  // Intersect staff-authorised courses with the learner's active course
+  // enrolments. All course-bearing records below are then filtered to this
+  // exact intersection, not merely to the first shared course.
+  const learnerEnrollments = courseIds.length
+    ? await db.courseEnrollment.findMany({
         where: { userId: id, role: "student", courseId: { in: courseIds } },
         select: { courseId: true },
       })
-    : null;
+    : [];
+  courseIds = getAuthorizedStudentCourseIds(
+    courseIds,
+    learnerEnrollments.map((enrollment) => enrollment.courseId),
+  );
+  sharedCourse = courseIds.length ? { courseId: courseIds[0] } : null;
   if (!sharedCourse) {
     return apiError(
       isOrgAdmin ? "You cannot access this learner in your organisation" : "You do not teach this student",
@@ -106,7 +114,7 @@ export async function GET(
   const [weeklyTests, reportCards, competencies, dailyLogs, tasks, certificates, events, projects, psychWeekly] =
     await Promise.all([
       db.weeklyTest.findMany({
-        where: { userId: id },
+        where: { userId: id, courseId: { in: courseIds } },
         orderBy: { week: "asc" },
         select: {
           week: true,
@@ -122,7 +130,7 @@ export async function GET(
         },
       }),
       db.reportCard.findMany({
-        where: { userId: id },
+        where: { userId: id, courseId: { in: courseIds } },
         orderBy: { date: "desc" },
         take: 10,
       }),
@@ -132,23 +140,23 @@ export async function GET(
         orderBy: { topic: "asc" },
       }),
       db.dailyLog.findMany({
-        where: { userId: id },
+        where: { userId: id, courseId: { in: courseIds } },
         orderBy: { date: "desc" },
         take: 14,
         select: includeSupportSignals ? { date: true, confidence: true } : { date: true },
       }),
       db.projectTask.findMany({
-        where: { userId: id },
+        where: { userId: id, courseId: { in: courseIds } },
         orderBy: [{ week: "asc" }, { createdAt: "asc" }],
         select: { id: true, description: true, status: true, week: true },
       }),
       db.certificate.findMany({
-        where: { userId: id },
+        where: { userId: id, courseId: { in: courseIds } },
         orderBy: { issuedAt: "desc" },
         select: { id: true, courseName: true, grade: true, score: true, issuedAt: true, verifyToken: true },
       }),
       db.engagementEvent.findMany({
-        where: { userId: id },
+        where: { userId: id, courseId: { in: courseIds } },
         orderBy: { createdAt: "desc" },
         take: 12,
         select: { eventType: true, createdAt: true },
