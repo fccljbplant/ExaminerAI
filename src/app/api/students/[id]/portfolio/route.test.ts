@@ -166,7 +166,7 @@ describe("GET /api/students/[id]/portfolio course scope", () => {
         ? [{ courseId: "course-unrelated" }]
         : [{ courseId: "course-a" }, { courseId: "course-b" }]
     ));
-    mocks.accessGrantFindFirst.mockResolvedValue({ id: "grant-1" });
+    mocks.accessGrantFindFirst.mockResolvedValue({ id: "grant-1", dataScope: "content_only" });
 
     const response = await requestPortfolio();
     expect(response.status).toBe(200);
@@ -186,6 +186,30 @@ describe("GET /api/students/[id]/portfolio course scope", () => {
     expectCourseFilter(mocks.interactionFindMany, courseIds);
     expectCourseFilter(mocks.weeklyTestFindMany, courseIds);
     expectCourseFilter(mocks.reportCardFindMany, courseIds);
+  });
+
+  it("does not expose academic records through a wellbeing-only grant", async () => {
+    mocks.courseEnrollmentFindMany.mockImplementation(async ({ where }) => (
+      where.userId === "instructor-1"
+        ? [{ courseId: "course-unrelated" }]
+        : [{ courseId: "course-a" }]
+    ));
+    mocks.accessGrantFindFirst.mockResolvedValue({ id: "grant-1", dataScope: "wellbeing_only" });
+
+    const response = await requestPortfolio();
+    expect(response.status).toBe(200);
+    expectCourseFilter(mocks.projectTaskFindMany, []);
+    expectCourseFilter(mocks.dailyLogFindMany, []);
+    expectCourseFilter(mocks.interactionFindMany, []);
+    expectCourseFilter(mocks.weeklyTestFindMany, []);
+    expectCourseFilter(mocks.reportCardFindMany, []);
+    expect(mocks.commentFindMany).not.toHaveBeenCalled();
+
+    const body = await response.json();
+    expect(body.dataScope).toBe("wellbeing_only");
+    expect(body.tasks).toEqual([]);
+    expect(body.competencies).toEqual([]);
+    expect(body.reportCards).toEqual([]);
   });
 
   it("does not query portfolio records when the access check denies the learner", async () => {
