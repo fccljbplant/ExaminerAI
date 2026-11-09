@@ -12,7 +12,8 @@
  *   - academic attention signals (Phase-1 compliant: no psych layer)
  *   - recent engagement events
  *
- * IDOR guard: the caller must teach a course the student is enrolled in.
+ * IDOR guard: instructors must teach the learner; org admins must share an
+ * active organisation membership with the learner and an organisation-linked course.
  */
 
 import { NextRequest } from "next/server";
