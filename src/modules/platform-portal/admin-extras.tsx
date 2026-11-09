@@ -69,21 +69,7 @@ export function HomeOverview({ data }: { data: OverviewData }) {
 
   return (
     <div className="space-y-4">
-      {/* user stat tiles */}
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-        <MiniKpi label="Total users" value={s.total} icon={Users} tone="brand" />
-        <MiniKpi label="Learners" value={s.learners} icon={Users} tone="info" />
-        <MiniKpi label="Instructors" value={s.instructors} icon={Users} tone="muted" />
-        <MiniKpi
-          label="Pending approval"
-          value={s.pending}
-          icon={AlertTriangle}
-          tone={s.pending > 0 ? "warning" : "success"}
-        />
-      </div>
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-        {/* PM action items */}
         <section className="space-y-2">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
             Action items
@@ -111,7 +97,6 @@ export function HomeOverview({ data }: { data: OverviewData }) {
           )}
         </section>
 
-        {/* recent signups */}
         <section className="space-y-2">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
             Recent signups
@@ -141,10 +126,21 @@ export function HomeOverview({ data }: { data: OverviewData }) {
           )}
         </section>
       </div>
+
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
+        <MiniKpi label="Learners" value={s.learners} icon={Users} tone="info" />
+        <MiniKpi label="Instructors" value={s.instructors} icon={Users} tone="muted" />
+        <MiniKpi label="Organisation admins" value={s.orgAdmins} icon={Users} tone="brand" />
+        <MiniKpi
+          label="Pending approval"
+          value={s.pending}
+          icon={AlertTriangle}
+          tone={s.pending > 0 ? "warning" : "success"}
+        />
+      </div>
     </div>
   );
 }
-
 function MiniKpi({
   label,
   value,
