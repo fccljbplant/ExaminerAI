@@ -1,3 +1,31 @@
+## 2026-11-09 — PR #3 org-admin academic oversight access fix
+
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety` (existing PR #3 branch only)  
+**Latest head before this log update:** `02ecbc28a1400610c333aa6f8099679a7c0fa4dc`
+
+### Implementation
+- Updated `src/app/api/v2/instructor/students/[id]/route.ts` to apply separate server-side scope paths:
+  - Instructors: only learners enrolled in courses assigned to that instructor.
+  - Org admins: only learners who have an active membership in the same organisation as the admin, and who are enrolled in a course linked to that organisation through `OrgCourse`.
+- For org admins, the endpoint now selects attendance dates without selecting confidence values, does not calculate `psychWeekly`, and returns daily-log entries without confidence fields.
+- Instructors retain their existing confidence and `psychWeekly` data path.
+- Added `src/modules/instructor-portal/student-detail-visibility.ts` and `student-detail-visibility.test.ts` to make and test the role-based support-signal projection explicit.
+- Commits: `7b3ee1ad` (route scope and filtering), `2e1eea9e` (policy helper), `f5dcef6e` (tests), `02ecbc28` (route comment clarification).
+
+### Validation and limitations
+- GitHub Actions run `42643245325` on intermediate head `f5dcef6e` was cancelled during lint when a later branch update superseded it. It is not a passing test result.
+- Latest head `02ecbc28` has no PR-triggered workflow run returned by the current GitHub workflow lookup. Lint, unit tests, typecheck, build, route smoke and screenshot checks remain unverified for the latest code.
+- No local checkout was available; no local tests were run.
+- PR #3 remains open and draft. No merge, deployment, main-branch change, or production-data operation was performed.
+
+### Follow-up
+1. Ensure CI runs against the latest PR head and review all jobs.
+2. Add route-level tests for org membership, OrgCourse scoping, cross-tenant denial, course enrollment, and instructor regression access.
+3. Continue the final-result and portfolio field-level access review without broadening `content_only` or removing learner/instructor functionality.
+4. Verify the per-org learner-support consent/default-off gate and audit logging before enabling any support-signal feature.
+
+---
+
 ## 2026-11-09 — Owner org-admin oversight clarification and Agent Pack review
 
 - **Branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety (PR #3 only); no other branch created or switched.
