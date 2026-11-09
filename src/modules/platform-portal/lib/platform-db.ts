@@ -403,6 +403,7 @@ export async function getPlatformRevenue() {
     .reduce((sum, s) => sum + s.seats * SEAT_PRICE_USD, 0);
 
   return {
+    generatedAt: new Date().toISOString(),
     mrr,
     pipelineMrr,
     b2cGross30d: Math.round((fees30d._sum.amount ?? 0) * 100) / 100,
