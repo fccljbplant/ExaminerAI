@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (grant-scope review refresh)  
+**Snapshot date:** 2026-11-09 (owner clarification and CI refresh)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -9,7 +9,7 @@
 | Ref | Commit | State |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA reported by GitHub; re-fetch default branch HEAD before release decisions. |
-| PR #3 branch | `0d6b2ff7113a2978e0a6008fd59c02ab13460d8a` | Session-log update commit; this status update will advance the branch again. |
+| PR #3 branch | `7fb3a3d820f2233012b31f9aedeb42d8f758a661` | Latest verified PR head before this status refresh; this update will advance the branch again. |
 
 PR #3 at the live metadata refresh before this documentation update:
 - State: **open**
@@ -18,18 +18,18 @@ PR #3 at the live metadata refresh before this documentation update:
 - Mergeable: GitHub reported **true**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `89a45fce2e414d742a6587443eab1250f3528d82`
-- Commits: **174**
+- Head SHA: `7fb3a3d820f2233012b31f9aedeb42d8f758a661`
+- Commits: **178**
 - Changed files: **99**
 - No submitted PR reviews or inline review threads were returned.
 
 ## Current CI and preview status
 
-- On PR head `89a45fce2e414d742a6587443eab1250f3528d82`, GitHub Actions run [42612463259](https://github.com/fccljbplant/ExaminerAI/actions/runs/42612463259) was **in progress** at the last check. Dependency install, isolated test DB initialization, lint, unit tests, typecheck, production build and app-page route smoke tests had passed; authenticated role screenshot capture was still running and artifact upload was pending.
-- Combined Vercel status for `89a45fce`: **success**.
-- This session then committed the review entry to `docs/SESSION-LOG.md` (`0d6b2ff`) and this status update advances the PR head again. Re-fetch checks for the resulting latest head; do not treat run 42612463259 as validation of later documentation commits.
-- Earlier workflow run [42609924471](https://github.com/fccljbplant/ExaminerAI/actions/runs/42609924471) completed successfully on earlier head `4f4c4cd56fc3c0448acc0983e13a0ce74cea8773`; it is historical evidence, not latest-head validation.
-- An older Vercel comment records a daily-deployment-cap failure. It is historical, not the current combined status for `89a45fce`.
+- On PR head `7fb3a3d820f2233012b31f9aedeb42d8f758a661`, GitHub Actions run [42613785850](https://github.com/fccljbplant/ExaminerAI/actions/runs/42613785850) was **pending** at the last refresh; no jobs were returned yet.
+- Combined Vercel status for `7fb3a3d`: **pending**.
+- The preceding workflow run [42612463259](https://github.com/fccljbplant/ExaminerAI/actions/runs/42612463259) on `89a45fce` had passed dependency installation, isolated DB setup, lint, unit tests, typecheck, production build and route smoke tests; authenticated screenshot capture was still in progress at the last job refresh. It does not validate later documentation commits.
+- Earlier workflow run [42609924471](https://github.com/fccljbplant/ExaminerAI/actions/runs/42609924471) completed successfully on earlier head `4f4c4cd56fc3c0448acc0983e13a0ce74cea8773`; historical evidence only.
+- This status refresh itself advances the branch. Re-fetch checks on the resulting head before approval; do not claim the latest head is green.
 - No live browser walkthrough, production deployment, or end-user accessibility sign-off was performed in this session.
 ## PR #3 scope
 
