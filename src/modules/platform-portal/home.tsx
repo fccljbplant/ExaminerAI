@@ -33,6 +33,7 @@ interface AuditRow {
 }
 
 interface PlatformHomeData {
+  generatedAt: string;
   kpis: {
     orgs: number;
     activeMembers: number;
@@ -74,7 +75,7 @@ export function PlatformHome() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <h1 className="text-lg font-semibold text-fg md:text-xl">Platform</h1>
+      <header className="flex flex-wrap items-baseline justify-between gap-2"><h1 className="text-lg font-semibold text-fg md:text-xl">Platform</h1><p className="text-xs text-fg-muted">Updated <time dateTime={data.generatedAt}>{new Date(data.generatedAt).toLocaleString()}</time></p></header>
 
       {/* KPI row — revenue-first (2026-08-17) */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
