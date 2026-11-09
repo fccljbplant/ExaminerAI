@@ -56,7 +56,7 @@ export function OrgHome() {
       <div role="alert" className="rounded-xl border border-line bg-surface p-8 text-center">
         <AlertTriangle className="mx-auto h-6 w-6 text-danger" aria-hidden />
         <p className="mt-3 text-sm font-semibold text-fg">Couldn&apos;t load your org</p>
-        <p className="mt-1 text-xs text-fg-muted">{error}</p>
+        <p className="mt-1 text-xs text-fg-muted">Please try again. If the problem continues, contact support.</p>
         <button
           type="button"
           onClick={retry}
@@ -111,6 +111,18 @@ export function OrgHome() {
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </div>
+          {data.members.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-line bg-surface p-6 text-center">
+              <p className="text-sm font-medium text-fg">No members yet</p>
+              <p className="mt-1 text-xs text-fg-muted">Add people to your organisation to begin managing courses and access.</p>
+              <Link
+                href="/org/people"
+                className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Add members
+              </Link>
+            </div>
+          ) : (
           <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
             {data.members.slice(0, 5).map((m) => (
               <div key={m.id} className="flex items-center gap-3 px-4 py-3">
@@ -127,6 +139,7 @@ export function OrgHome() {
               </div>
             ))}
           </div>
+          )}
         </section>
 
         {/* recent audit feed */}
@@ -293,7 +306,7 @@ function OrgAnnouncements() {
           maxLength={2000}
           rows={2}
           aria-label="Announcement body"
-          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs leading-relaxed text-fg-muted sm:max-w-[24rem]">
