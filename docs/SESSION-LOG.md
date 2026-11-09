@@ -297,3 +297,14 @@ Append new entries at the top. Preserve earlier entries.
 2. Obtain same-viewport before/after screenshots and inspect all four dashboards; update the UX scorecard only when evidence supports scores.
 3. Continue RBAC/field-level privacy regression tests in parallel with route-level UI fixes.
 4. Keep the comprehensive-report field classification and support/crisis enablement blocked pending owner approval.
+
+
+## 2026-11-09 — UXPeak Pro product-wide direction confirmed
+
+Owner clarified that “all UXPeak concepts” means a product-wide programme: gamification, UI/design system, all role dashboards, course marketplace/catalogue, discovery and enrolment journey, tutorials/onboarding, AI assistance/Copilot, helpdesk, classroom and communications. Created `docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md` with role-by-role capabilities, journey scope, delivery sequence and acceptance gates.
+
+Important scope distinctions:
+- Marketplace and read-only first-lesson preview are specified. Paid cart/checkout/payments/pricing/commissions are not approved.
+- Gamification is specified as a later phase (Phase 8) and must use evidence-based learning outcomes, not engagement manipulation.
+- Product helpdesk and instructor escalation are distinct from sensitive wellbeing/crisis support; support stays off until consent, governance and owner approvals.
+- Continue PR #3 incremental UI implementation in parallel with privacy/security; preserve existing branch and do not merge/deploy.
