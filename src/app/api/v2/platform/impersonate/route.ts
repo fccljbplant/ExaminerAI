@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthUser, signToken, getCookieOptions, TOKEN_COOKIE } from "@/lib/auth";
+import { hasRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { apiSuccess, apiUnauthorized, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
@@ -29,7 +30,7 @@ const StartBody = z.object({
 export async function POST(req: NextRequest) {
   const admin = await getAuthUser();
   if (!admin) return apiUnauthorized();
-  if (admin.role !== "platform_admin" && admin.role !== "admin") {
+  if (!hasRole(admin.role, PLATFORM_ADMIN_ROLES)) {
     return apiError("Platform access only", "FORBIDDEN", 403);
   }
   if (!(await isPlatformPortalEnabled())) {
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
     select: { id: true, email: true, name: true, role: true, blocked: true },
   });
   if (!target) return apiNotFound("User not found");
-  if (target.role === "platform_admin" || target.role === "admin") {
+  if (hasRole(target.role, PLATFORM_ADMIN_ROLES)) {
     return apiForbidden("Cannot impersonate another platform admin");
   }
   if (target.blocked) {
