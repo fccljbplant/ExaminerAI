@@ -77,17 +77,33 @@ export function PlatformHome() {
     <div className="space-y-4 md:space-y-6">
       <header className="flex flex-wrap items-baseline justify-between gap-2"><h1 className="text-lg font-semibold text-fg md:text-xl">Platform</h1><p className="text-xs text-fg-muted">Updated <time dateTime={data.generatedAt}>{new Date(data.generatedAt).toLocaleString()}</time></p></header>
 
-      {/* KPI row — revenue-first (2026-08-17) */}
+      {/* KPI row — primary operating and financial signals */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-        <Kpi label="Organizations" detail="All organizations" value={data.kpis.orgs} icon={Building2} tone="brand" />
-        <Kpi label="Active memberships" detail="Active org-to-member links; one person may have more than one." value={data.kpis.activeMembers} icon={Users} tone="info" />
-        <Kpi label="Estimated MRR" detail="Based on $29 per active subscription seat per month." value={"$" + data.kpis.mrr.toLocaleString()} icon={TrendingUp} tone="success" />
-        <Kpi label="Fees (30d, USD)" detail="USD fees from completed payments in the last 30 days." value={"$" + data.kpis.fees30d.toLocaleString()} icon={Banknote} tone="muted" />
-        <Kpi label="Pending payout value (USD)" detail={`${data.kpis.payoutsPendingCount.toLocaleString()} pending payouts`} value={"$" + data.kpis.payoutsPending.toLocaleString()} icon={Clock} tone="warning" />
-        <Kpi label="AI spend (30d, USD)" detail="Estimated cost logged for AI usage in the last 30 days." value={"$" + data.kpis.aiSpend30d.toLocaleString()} icon={Zap} tone="info" />
-        <Kpi label="Users" detail="All platform accounts" value={data.kpis.users} icon={Users} tone="muted" />
-        <Kpi label="Audit actions" detail="All-time audit log records" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
+        <Kpi label="Organizations" value={data.kpis.orgs} icon={Building2} tone="brand" />
+        <Kpi label="Active memberships" value={data.kpis.activeMembers} icon={Users} tone="info" />
+        <Kpi label="Estimated MRR (USD)" value={"$" + data.kpis.mrr.toLocaleString()} icon={TrendingUp} tone="success" />
+        <Kpi label="Fees (30d, USD)" value={"$" + data.kpis.fees30d.toLocaleString()} icon={Banknote} tone="muted" />
+        <Kpi label="Pending payouts (USD)" value={"$" + data.kpis.payoutsPending.toLocaleString()} icon={Clock} tone="warning" />
+        <Kpi label="AI spend (30d, USD)" value={"$" + data.kpis.aiSpend30d.toLocaleString()} icon={Zap} tone="info" />
+        <Kpi label="Users" value={data.kpis.users} icon={Users} tone="muted" />
+        <Kpi label="Audit actions" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
       </div>
+
+      <details className="rounded-xl border border-line bg-surface px-4 py-2">
+        <summary className="flex min-h-11 cursor-pointer items-center text-xs font-semibold text-fg">
+          Metric definitions and scope
+        </summary>
+        <dl className="grid grid-cols-1 gap-3 border-t border-line py-3 sm:grid-cols-2">
+          <div><dt className="text-xs font-semibold text-fg">Organizations</dt><dd className="mt-0.5 text-xs text-fg-muted">All organizations in the platform database.</dd></div>
+          <div><dt className="text-xs font-semibold text-fg">Active memberships</dt><dd className="mt-0.5 text-xs text-fg-muted">Active organisation-to-member relationships; a person in multiple organisations is counted once per relationship.</dd></div>
+          <div><dt className="text-xs font-semibold text-fg">Estimated MRR (USD)</dt><dd className="mt-0.5 text-xs text-fg-muted">Active subscription seats multiplied by the current $29 per-seat monthly estimate. Trialing seats are separate pipeline, not included in MRR.</dd></div>
+          <div><dt className="text-xs font-semibold text-fg">Fees (30d, USD)</dt><dd className="mt-0.5 text-xs text-fg-muted">Platform fees from completed USD payments during the trailing 30 days. Non-USD payments are excluded rather than combined.</dd></div>
+          <div><dt className="text-xs font-semibold text-fg">Pending payouts (USD)</dt><dd className="mt-0.5 text-xs text-fg-muted">Total value and queue count for payouts currently marked pending. Creator transfers are denominated in USD.</dd></div>
+          <div><dt className="text-xs font-semibold text-fg">AI spend (30d, USD)</dt><dd className="mt-0.5 text-xs text-fg-muted">Estimated cost recorded in AI usage logs during the trailing 30 days; calls without a recorded cost are not included.</dd></div>
+          <div><dt className="text-xs font-semibold text-fg">Users</dt><dd className="mt-0.5 text-xs text-fg-muted">All user accounts across the platform.</dd></div>
+          <div><dt className="text-xs font-semibold text-fg">Audit actions</dt><dd className="mt-0.5 text-xs text-fg-muted">All-time audit log records.</dd></div>
+        </dl>
+      </details>
 
       {/* user overview + action items (V1 AdminOverview/AdminPMTab) */}
       {data.overview && <HomeOverview data={data.overview} />}
@@ -152,13 +168,11 @@ export function PlatformHome() {
 
 function Kpi({
   label,
-  detail,
   value,
   icon: Icon,
   tone,
 }: {
   label: string;
-  detail: string;
   value: number | string;
   icon: typeof Users;
   tone: "brand" | "info" | "warning" | "muted" | "success";
@@ -173,12 +187,12 @@ function Kpi({
   return (
     <div className="rounded-xl border border-line bg-surface p-3 md:p-4">
       <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0"><p className="text-xs font-medium text-fg-muted">{label}</p><p className="mt-0.5 text-[10px] leading-snug text-fg-muted">{detail}</p></div>
+        <p className="text-xs font-medium text-fg-muted">{label}</p>
         <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${tones[tone]}`}>
           <Icon className="h-3.5 w-3.5" aria-hidden />
         </span>
       </div>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-fg">{value}</p>
+      <p className="mt-2 text-2xl font-semibold tabular-nums text-fg">{value}</p>
     </div>
   );
 }
