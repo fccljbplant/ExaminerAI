@@ -421,3 +421,33 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Keep learner support/crisis features default-off. Keep comprehensive-report `managementAttitude` classification blocked pending owner decision in `docs/UPGRADE-2026-10/QUESTIONS.md`.
 - Add route-level tests for instructor course membership, org-admin active membership and OrgCourse linkage, cross-tenant denial and grant revocation.
 - Continue UXPeak implementation in small role-based slices; no paid checkout/payment work. Do not claim manual visual/accessibility sign-off from CI screenshots alone.
+
+
+## 2026-11-10 — PR #3 live refresh and portfolio-scope continuation
+
+**Repository:** `fccljbplant/ExaminerAI`  
+**PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`  
+**Inspected application head:** `43aa35909b85275432619303baddf845f852e5df`
+
+### Live state and validation
+- PR metadata rechecked: open, draft, unmerged, mergeable; 266 commits and 109 changed files.
+- Exact-head Actions run [42663209736](https://github.com/fccljbplant/ExaminerAI/actions/runs/42663209736) completed successfully. Its quality job passed dependency installation, isolated test DB initialization, lint, unit tests, typecheck, production build, app-page route smoke tests, authenticated role screenshots and screenshot artifact upload.
+- Exact-head combined Vercel status remains failure due to the build-rate limit. No Ready preview is confirmed.
+- No local checkout or local test/build/browser/axe environment was available in this session.
+
+### Source review and blocker
+- Re-read `AGENT-INSTRUCTIONS.md`, `docs/PROJECT-CONTINUITY.md`, project status/progress/session records, `docs/UPGRADE-2026-10/QUESTIONS.md`, `src/app/api/students/[id]/portfolio/route.ts`, the shared-course visibility helper and its tests, and `prisma/schema.prisma`.
+- Confirmed the portfolio route still filters ProjectTask, Interaction, WeeklyTest and ReportCard only by `userId` after a general access check; it does not constrain those course-bearing records to authorised staff courses intersected with learner enrolments. Existing helper tests do not test the route boundary.
+- Daily logs remain date-only for staff; support reflections/confidence are not loaded. Comments are instructor-only in this route. Competency remains course-less in the schema; no semantics changed.
+- The approved task card and branch-preserving logged runner remain unavailable on this branch. The uploaded Agent Pack queue runner switches/creates branches, which conflicts with the repository rule to remain on the existing PR #3 branch. No task-card approval or safe equivalent execution path was established. Therefore no application-code patch was made; this blocker was not bypassed.
+
+### Changes in this session
+- Refreshed `proj_progress.md`, `docs/PROJECT-STATUS.md` and this append-only session log with the live PR head, exact-head CI evidence, Vercel limitation, source finding and next action.
+- No application code, schema, dependencies, production data, branch, merge or deployment changed.
+- Organisation-scoped trainee assignment and instructor removal approval remain separate Issue #4 scope, not PR #3.
+
+### Next
+1. Restore/adapt a safe task-card workflow that cannot switch branches and never reads `.env*`, or obtain an owner-approved equivalent.
+2. Then implement portfolio course scoping and route-level tests for multi-course isolation, no shared course, cross-tenant denial, org-admin linked-course scope and grant revocation.
+3. Preserve unresolved expiry semantics and course-less competency semantics pending explicit evidence/decision. Keep PR #3 draft.
