@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AlertTriangle, Banknote, Building2, Clock, RefreshCw, ScrollText, TrendingUp, Users, Zap } from "lucide-react";
 import { useApi } from "@/modules/learner-portal/use-api";
 import { HomeOverview, type OverviewData } from "./admin-extras";
@@ -118,12 +119,12 @@ export function PlatformHome() {
             <div className="rounded-xl border border-dashed border-line bg-surface p-6 text-center">
               <p className="text-sm font-medium text-fg">No organisations yet</p>
               <p className="mt-1 text-xs text-fg-muted">New tenant records will appear here when an organisation is created.</p>
-              <a
+              <Link
                 href="/platform/orgs"
                 className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 Open organisations
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
@@ -153,12 +154,12 @@ export function PlatformHome() {
             <div className="rounded-xl border border-dashed border-line bg-surface p-6 text-center">
               <p className="text-sm font-medium text-fg">No recent audit activity</p>
               <p className="mt-1 text-xs text-fg-muted">The audit log has no records to show in this preview.</p>
-              <a
+              <Link
                 href="/platform/audit"
                 className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 Open audit log
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
