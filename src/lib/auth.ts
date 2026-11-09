@@ -271,12 +271,33 @@ export async function assertCanAccessStudent(
     });
     const orgIds = memberships.map((membership) => membership.orgId);
     if (orgIds.length > 0) {
-      const studentMembership = await db.orgMember.findFirst({
+      const studentMemberships = await db.orgMember.findMany({
         where: { userId: studentId, orgId: { in: orgIds }, status: "active" },
-        select: { id: true },
+        select: { orgId: true },
       });
-      if (studentMembership) return true;
+      const sharedOrgIds = studentMemberships.map((membership) => membership.orgId);
+      if (sharedOrgIds.length > 0) {
+        const orgCourses = await db.orgCourse.findMany({
+          where: { orgId: { in: sharedOrgIds } },
+          select: { courseId: true },
+        });
+        const orgCourseIds = [...new Set(orgCourses.map((course) => course.courseId))];
+        if (orgCourseIds.length > 0) {
+          const studentEnrollment = await db.courseEnrollment.findFirst({
+            where: {
+              userId: studentId,
+              role: "student",
+              courseId: { in: orgCourseIds },
+            },
+            select: { id: true },
+          });
+          if (studentEnrollment) return true;
+        }
+      }
     }
+    // An explicit grant must never widen an org admin beyond their own
+    // active organisation and its linked courses.
+    throw { status: 403, message: "You do not have access to this learner in your organisation" };
   }
 
   // Instructors can access learners enrolled in courses they teach.
