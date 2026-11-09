@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (PR #3 head `fea1683e` live verification)  
+**Snapshot date:** 2026-11-09 (application fix `fe2a700c`; docs follow-up in progress)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -129,3 +129,15 @@ This owner direction clarifies the org-admin academic/operational oversight audi
 - Added/updated unit tests for default-off support visibility and learner-only behavioural analysis.
 - CI run `42643565316` passed on earlier head `d850ff0dc13fd910976136e894360c687aa9c1d2`. Run `42644831199` on intermediate head `84dfef671abdbd8650b12f1b06067e776715b884` was cancelled during dependency installation. No completed Actions run is verified on latest head. Latest Vercel status is a build-rate-limit failure.
 - No local checkout/tests, production data changes, merge, or deployment. PR remains draft.
+
+
+## 2026-11-09 follow-up — minimise check-in data in staff report cards
+
+- Live PR #3 remains open, draft, unmerged, based on `main`, on the existing branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Application fix commit: `fe2a700c363cea57a99b96807d11a9008cb69c32`.
+- In `src/app/api/students/[id]/generate-report-card/route.ts`, the staff-facing academic report-card route now selects only `dailyLog.date`. It uses the count of check-ins; it does not need or load private reflection text, confidence ratings, or error notes.
+- Existing report-card behaviour and check-in counts are unchanged.
+- Workflow run `42654057660` was triggered for this commit and is in progress. At the last job refresh, checkout and Node setup passed; dependency installation was in progress; database setup, lint, tests, typecheck, build, route smoke and screenshot capture had not yet run.
+- The prior run `42645275411` was cancelled during Node setup; all quality steps were skipped. It provides no validation evidence.
+- Vercel status for the application fix commit was pending at the last check. No Ready preview is confirmed.
+- No local test/build, browser or accessibility run was available. No production data, merge, or deployment action was performed.
