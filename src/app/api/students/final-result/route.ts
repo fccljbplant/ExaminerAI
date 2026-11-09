@@ -8,6 +8,7 @@ import { logAudit, AuditAction } from "@/lib/audit-log";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseWeekPhase, getCourseDurationWeeks } from "@/lib/course-db";
 import { logger } from "@/lib/logger";
+import { canExposeLearnerBehavioralAnalysis } from "@/modules/instructor-portal/final-result-visibility";
 
 /** GET /api/students/final-result — generates (or returns cached) final result
  *  for a student based on ALL their data across the full course duration.
@@ -161,7 +162,7 @@ export async function GET(req: Request) {
   // Behavioural analysis is private learner-support information. Until an
   // explicit, consented support-data grant is implemented, never generate or
   // return it when staff view another learner (including platform admins).
-  if (targetUserId === payload.sub) {
+  if (canExposeLearnerBehavioralAnalysis(payload.sub, targetUserId)) {
     try {
       // H1 fix: enforce per-user daily AI rate limit + demo block
       const isDemo = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
@@ -264,7 +265,7 @@ export async function GET(req: Request) {
     totalPracticeQuestions,
     avgPlagiarism,
     weekBreakdown,
-    ...(targetUserId === payload.sub
+    ...(canExposeLearnerBehavioralAnalysis(payload.sub, targetUserId)
       ? { behavioralPattern: aiAnalysis.behavioralPattern }
       : {}),
     areasToImprove: aiAnalysis.areasToImprove,
