@@ -83,3 +83,24 @@ PR #3 live metadata:
 ---
 
 **Update discipline:** This is a dated snapshot, not live status. Re-check GitHub before every session and update this file when branch head, PR state, checks, deployment, reviews, or next actions change.
+
+## 2026-11-09 owner clarification — organisation-admin oversight
+
+The owner has clarified that organisation admins **must be able to view organisation-scoped student academic data and instructor–student teaching activity for legitimate oversight of instructors**. This includes the student/course context needed to review enrolment, learning progress, attendance or participation, assessments, assigned work, feedback, and recorded teaching/mentoring interactions.
+
+This is not unrestricted access to every learner field. Enforce the following boundaries server-side:
+- Scope every view to the organisation and courses the admin is authorised to oversee; no cross-tenant access.
+- Preserve learner self-service and the instructor's legitimate own-course learner views.
+- Do not expose individual learner-support/psychological indicators, private counselling content, or crisis signals to ordinary org admins. Designated Learner Support Leads retain only the separately specified crisis-case and handling-record access.
+- Do not create psychological or behavioural profiles/scores of instructors. Org oversight is about auditable teaching work and recorded course interactions, not inferred instructor psychology.
+- Keep academic outcomes and teaching-activity records distinct from learner-support data; field-level classification and explicit response schemas are required.
+
+This owner direction clarifies the org-admin academic/operational oversight audience; it does not approve broad access to support-signal data or cross-tenant records.
+
+## Agent Pack received — installation safety review
+
+- agent-pack.zip was uploaded in this ChatGPT conversation and inspected.
+- The pack's queue runner scripts/agent/run-queue.mjs automatically switches to or creates upgrade/phase-<N> branches. That conflicts with the owner's explicit instruction to work only on existing PR #3 branch ux-audit/fix-dashboard-truthfulness-and-agent-safety.
+- The bundled OpenCode plugin .opencode/plugins/offpeak-guard.js reads repository .env, .env.local, and .env.production files to detect remote database configuration. Project rules prohibit reading any .env* files.
+- Therefore the pack has **not** been installed or activated on the repository branch. Preserve the original upload; adapt/review its branch and secret-safety behaviour before activation. No source-code changes or agent-runner checks were performed in this step.
+- ChatGPT's Project Files library cannot be written directly from this chat. The uploaded archive remains attached to this conversation; add it through the Project's Files UI if it must be available to every Project chat.
