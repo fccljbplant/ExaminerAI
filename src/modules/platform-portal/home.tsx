@@ -42,6 +42,7 @@ interface PlatformHomeData {
     pipelineMrr: number;
     fees30d: number;
     payoutsPending: number;
+    payoutsPendingCount: number;
     aiSpend30d: number;
   };
   orgs: OrgRow[];
@@ -77,14 +78,14 @@ export function PlatformHome() {
 
       {/* KPI row — revenue-first (2026-08-17) */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-        <Kpi label="Organizations" value={data.kpis.orgs} icon={Building2} tone="brand" />
-        <Kpi label="Active members" value={data.kpis.activeMembers} icon={Users} tone="info" />
-        <Kpi label="MRR" value={`$${data.kpis.mrr.toLocaleString()}`} icon={TrendingUp} tone="success" />
-        <Kpi label="Fees (30d)" value={`$${data.kpis.fees30d.toLocaleString()}`} icon={Banknote} tone="muted" />
-        <Kpi label="Payouts pending" value={`$${data.kpis.payoutsPending.toLocaleString()}`} icon={Clock} tone="warning" />
-        <Kpi label="AI spend (30d)" value={`$${data.kpis.aiSpend30d.toLocaleString()}`} icon={Zap} tone="info" />
-        <Kpi label="Users" value={data.kpis.users} icon={Users} tone="muted" />
-        <Kpi label="Audit actions" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
+        <Kpi label="Organizations" detail="All organizations" value={data.kpis.orgs} icon={Building2} tone="brand" />
+        <Kpi label="Active memberships" detail="Active org-to-member links; one person may have more than one." value={data.kpis.activeMembers} icon={Users} tone="info" />
+        <Kpi label="Estimated MRR" detail="Based on $29 per active subscription seat per month." value={`${data.kpis.mrr.toLocaleString()}`} icon={TrendingUp} tone="success" />
+        <Kpi label="Fees (30d)" detail="Platform fees from completed payments in the last 30 days." value={`${data.kpis.fees30d.toLocaleString()}`} icon={Banknote} tone="muted" />
+        <Kpi label="Pending payout value" detail={`${data.kpis.payoutsPendingCount.toLocaleString()} pending payouts`} value={`${data.kpis.payoutsPending.toLocaleString()}`} icon={Clock} tone="warning" />
+        <Kpi label="AI spend (30d)" detail="Estimated cost logged for AI usage in the last 30 days." value={`${data.kpis.aiSpend30d.toLocaleString()}`} icon={Zap} tone="info" />
+        <Kpi label="Users" detail="All platform accounts" value={data.kpis.users} icon={Users} tone="muted" />
+        <Kpi label="Audit actions" detail="All-time audit log records" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
       </div>
 
       {/* user overview + action items (V1 AdminOverview/AdminPMTab) */}
@@ -150,11 +151,13 @@ export function PlatformHome() {
 
 function Kpi({
   label,
+  detail,
   value,
   icon: Icon,
   tone,
 }: {
   label: string;
+  detail: string;
   value: number | string;
   icon: typeof Users;
   tone: "brand" | "info" | "warning" | "muted" | "success";
@@ -164,11 +167,12 @@ function Kpi({
     info: "bg-info-subtle text-info-on",
     warning: "bg-warning-subtle text-warning-on",
     muted: "bg-bg-subtle text-fg-muted",
+    success: "bg-success-subtle text-success-on",
   } as const;
   return (
     <div className="rounded-xl border border-line bg-surface p-3 md:p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium text-fg-muted">{label}</p>
+        <div className="min-w-0"><p className="text-xs font-medium text-fg-muted">{label}</p><p className="mt-0.5 text-[10px] leading-snug text-fg-muted">{detail}</p></div>
         <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${tones[tone]}`}>
           <Icon className="h-3.5 w-3.5" aria-hidden />
         </span>
