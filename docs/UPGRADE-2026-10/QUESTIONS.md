@@ -78,3 +78,22 @@ The Prisma schema confirms each relation model has a courseId field. A multi-cou
 **Owner-approved field handling:** do not remove required academic functionality. Keep performance, participation, areasToImprove, overallAssessment, careerReadiness, project reports and task statistics where the caller is authorised. The behavioralPattern field remains learner-self only until an approved consented support pathway exists. Do not broaden support data.
 
 The separate comprehensive-report managementAttitude classification remains blocked by the earlier owner-decision entry; do not silently alter that report in this slice.
+
+
+## 2026-11-10 — Final-result course-scope correction implemented
+
+**Status:** Source and route-level regression tests committed on PR #3; exact-head CI validation pending.
+
+`src/app/api/students/final-result/route.ts` now derives the authorised course boundary for staff after the existing `assertCanAccessStudent(..., "content_only")` check:
+- Instructor: teaching course enrolments intersected with learner student enrolments; explicit active `full`/`content_only` student grant fallback only when no shared teaching course exists.
+- Org admin: active admin membership, active learner membership in the same organisation, linked `OrgCourse` rows, intersected with learner enrolments.
+- Platform admin: bounded to the learner's actual enrolments.
+- Demo/other staff: active explicit `full`/`content_only` grant re-read; grant disappearance fails closed.
+
+The nested Prisma relations `weeklyTests`, `interactions`, `reportCards`, `projectReports` and `tasks` are all filtered by the authorised course IDs. Staff requests with no authorised course return 403 before loading the report; staff target accounts must be learners. Learner self-view remains cross-course.
+
+Added `src/app/api/students/final-result/route.test.ts` for instructor course isolation, org-admin linked-course scope, explicit grant fallback, no-course/revoked-grant denial, access-denied short-circuit, platform-admin bounding and learner self-view.
+
+**Field handling:** academic performance/participation, areasToImprove, overallAssessment, careerReadiness, project reports and task statistics remain available within the authorised scope. `behavioralPattern` remains learner-self only. No support/crisis data was added.
+
+**Validation:** the code/test head was `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8`. No Actions run had been returned for that exact head at update time. Previous-head run `42722331613` passed, but is not evidence for this change. Vercel is blocked by the build-rate limit. No local tests or build were run. Keep validation pending until a run for the updated head completes.
