@@ -1,3 +1,36 @@
+## 2026-11-09 — PR #3 staff portfolio cross-course review
+
+**PR head inspected:** `9ac14c13069bbe91b8a1fca54d305514f66590e3`  
+**PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
+
+### Live GitHub state
+- PR remains open, draft, unmerged and mergeable; 262 commits and 109 changed files.
+- Exact-head Actions run [42661692753](https://github.com/fccljbplant/ExaminerAI/actions/runs/42661692753) passed install, isolated DB setup, lint, unit tests, typecheck, production build, route smoke tests, authenticated role screenshot capture and artifact upload.
+- Exact-head Vercel status is failure due to build-rate limit; no current Ready preview is confirmed.
+- No submitted PR reviews or inline review threads were returned.
+
+### Files and evidence inspected
+- `src/app/api/v2/instructor/students/[id]/route.ts`: staff-authorised course IDs are intersected with learner enrolments before querying course-bearing drill-down records.
+- `src/modules/instructor-portal/student-detail-visibility.ts` and its tests: support-signal visibility requires instructor role plus explicit consent and feature-enabled booleans; both default false. Current route call supplies only role, so confidence and `psychWeekly` remain omitted.
+- `src/app/api/students/[id]/portfolio/route.ts`: staff authorisation checks that some access exists, then `ProjectTask`, `Interaction`, `WeeklyTest` and `ReportCard` are queried by `userId` only. The Prisma schema confirms all four models have `courseId`. This is a remaining cross-course response-scope risk for instructors and org admins.
+- `prisma/schema.prisma`: `Competency` and `SkillMastery` have no `courseId`; no semantics or access model changes made.
+- `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md`, `scripts/agent/run-logged.mjs`: each returned 404 on the current branch.
+
+### Blocker and work performed
+- The uploaded Agent Pack is not safe to activate unchanged: its queue runner switches/creates branches, and its off-peak guard reads prohibited `.env*` files. No approved task card or safe runner is currently present.
+- Per the project task discipline, the portfolio application fix is blocked. The concrete finding and required correction are recorded in `docs/UPGRADE-2026-10/QUESTIONS.md`; no application code or tests were changed.
+- Updated project status and progress records with the live head, exact-head CI evidence, Vercel limitation, finding and blocker.
+- No production data, merge, deployment, branch switch or main-branch write.
+
+### Next
+1. Restore/adapt the Agent Pack so it remains on the existing PR #3 branch and never reads `.env*`; obtain an approved task card.
+2. Implement an authorised-course intersection for staff portfolio queries and add route-level tenant/course/grant-revocation tests.
+3. Clarify whether expired `CourseEnrollment.expiresAt` records retain staff visibility; leave course-less competency semantics unchanged pending owner decision.
+4. Re-run exact-head CI after application changes; keep PR #3 draft and do not merge/deploy without explicit approval.
+
+---
+
 ## 2026-11-09 — Additional dashboard action target fixes
 
 - Learner dashboard Projects “See all” action now has a 44px minimum target and visible keyboard focus.
