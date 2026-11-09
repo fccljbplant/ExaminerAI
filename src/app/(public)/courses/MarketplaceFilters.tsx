@@ -69,6 +69,8 @@ export function MarketplaceFilters({ categories, levels, current }: FilterProps)
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-muted" />
         <Input
+          aria-label="Search courses"
+          type="search"
           placeholder="Search courses, skills, technologies…"
           defaultValue={current.search ?? ""}
           onChange={(e) => {
@@ -80,7 +82,7 @@ export function MarketplaceFilters({ categories, levels, current }: FilterProps)
               updateParam("search", value || null);
             }, 350);
           }}
-          className="pl-8"
+          className="min-h-11 pl-8"
         />
       </div>
 
@@ -89,7 +91,7 @@ export function MarketplaceFilters({ categories, levels, current }: FilterProps)
         value={current.category ?? "all"}
         onValueChange={(v) => updateParam("category", v === "all" ? null : v)}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger aria-label="Filter by category" className="min-h-11 w-[180px]">
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
@@ -107,7 +109,7 @@ export function MarketplaceFilters({ categories, levels, current }: FilterProps)
         value={current.level ?? "all"}
         onValueChange={(v) => updateParam("level", v === "all" ? null : v)}
       >
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger aria-label="Filter by course level" className="min-h-11 w-[160px]">
           <SelectValue placeholder="Level" />
         </SelectTrigger>
         <SelectContent>
@@ -120,20 +122,30 @@ export function MarketplaceFilters({ categories, levels, current }: FilterProps)
         </SelectContent>
       </Select>
 
-      {/* Free only */}
-      <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-        <Checkbox
-          checked={current.free ?? false}
-          onCheckedChange={(v) => toggleFlag("free", v === true)}
-        />
-        Free only
-      </label>
+      {/* Quick filters */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <label className="flex min-h-11 items-center gap-2 text-sm cursor-pointer select-none">
+          <Checkbox
+            checked={current.free ?? false}
+            onCheckedChange={(v) => toggleFlag("free", v === true)}
+          />
+          Free only
+        </label>
+        <label className="flex min-h-11 items-center gap-2 text-sm cursor-pointer select-none">
+          <Checkbox
+            checked={current.featured ?? false}
+            onCheckedChange={(v) => toggleFlag("featured", v === true)}
+          />
+          Featured only
+        </label>
+      </div>
 
       {/* Clear */}
       {hasActiveFilters && (
         <Button
           variant="ghost"
           size="sm"
+          className="min-h-11"
           onClick={() => router.push("/courses", { scroll: false })}
           disabled={isPending}
         >
