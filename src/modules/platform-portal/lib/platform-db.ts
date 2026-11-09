@@ -373,7 +373,8 @@ export async function getPlatformRevenue() {
       select: { plan: true, seats: true, status: true },
     }),
     db.payment.aggregate({
-      where: { status: "completed", createdAt: { gte: since30d } },
+      // Financial rollups are displayed in USD; never sum currencies together.
+      where: { status: "completed", currency: { in: ["USD", "usd"] }, createdAt: { gte: since30d } },
       _sum: { platformFee: true, amount: true },
     }),
     db.payout.findMany({
@@ -389,8 +390,8 @@ export async function getPlatformRevenue() {
       where: { createdAt: { gte: since30d }, costUsd: { not: null } },
       _sum: { costUsd: true },
     }),
-    db.payment.count({ where: { createdAt: { gte: since30d } } }),
-    db.payment.count({ where: { status: "refunded", refundedAt: { gte: since30d } } }),
+    db.payment.count({ where: { status: "completed", currency: { in: ["USD", "usd"] }, createdAt: { gte: since30d } } }),
+    db.payment.count({ where: { status: "refunded", currency: { in: ["USD", "usd"] }, refundedAt: { gte: since30d } } }),
   ]);
 
   // MRR: active subscriptions at $29/seat/month (trialing counts as
