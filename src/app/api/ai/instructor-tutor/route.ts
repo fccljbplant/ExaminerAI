@@ -16,9 +16,9 @@ import { demoWriteBlock } from "@/lib/demo-guard";
  *   - Only staff roles (instructor, TA, coordinator, counselor, admin) can access.
  *   - The system prompt is tuned for INSTRUCTOR needs: lesson prep, student
  *     case review, rubric design, parent communication drafts, etc.
- *   - Behavioral logging writes to ChatSession with chatbotType="teacher_tutor"
- *     so admins/principals can see instructor usage patterns + psych signals
- *     (engagement, language, topic drift) in the admin dashboard.
+ *   - Usage logging writes to ChatSession with chatbotType="teacher_tutor"
+ *     for operational visibility. Usage patterns must not be treated as
+ *     psychological or wellbeing assessments.
  *   - NO grading — same as student AI Tutor. Purely assists the instructor.
  *
  *  Body: { messages: [{role: "user" | "assistant", content: string}] }
@@ -139,11 +139,11 @@ ${cohortBlock}
      - For TECHNICAL teaching tools: official docs (e.g., code.visualstudio.com/docs, github.com/education).
    Format links clearly: 'Further reading: [Link text](URL) — short description of what they'll find there.'
 
-5. **Language Simplicity (Roman English Rule)**:
+6. **Language Simplicity (Roman English Rule)**:
      - If the instructor asks in English, reply in clear, professional English.
      - If the instructor asks in ANY other language (Hindi, Urdu, Spanish, French, Arabic, etc.), reply in ROMAN ENGLISH (Latin script only). Never use non-Latin scripts like Devanagari, Arabic, or Chinese characters. Keep everything readable in A-Z letters.
 
-6. **Formatting — Write Like a Chat Message, Not a Document**:
+7. **Formatting — Write Like a Chat Message, Not a Document**:
    Your response is shown in a chat bubble, NOT a document. Write like a
    professional message from an instructor — warm, natural, flowing text.
      - NO emojis. No smileys, no checkmarks, no fire, no rocket. None.
@@ -155,7 +155,7 @@ ${cohortBlock}
      - You CAN use line breaks (Enter) to separate paragraphs. That's fine.
      - Write in short paragraphs (2-4 sentences each), separated by blank lines.
 
-7. **Coherence Progress Check**:
+8. **Coherence Progress Check**:
    At the end of EVERY single response, add a small section called:
    '[Coherence Check]'
    In this section (written as plain text, no bullets, no emojis):
