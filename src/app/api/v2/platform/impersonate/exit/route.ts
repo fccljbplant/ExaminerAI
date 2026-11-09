@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getCookieOptions, TOKEN_COOKIE, verifyToken } from "@/lib/auth";
+import { hasRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { apiUnauthorized, apiError } from "@/lib/api-response";
 import { SUPPORT_COOKIE } from "../route";
 
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const parked = req.cookies.get(SUPPORT_COOKIE)?.value ?? "";
   const restored = parked ? verifyToken(parked) : null;
-  if (!restored || (restored.role !== "platform_admin" && restored.role !== "admin")) {
+  if (!restored || !hasRole(restored.role, PLATFORM_ADMIN_ROLES)) {
     // Parked session missing/invalid — clear both cookies and force login.
     const clear = NextResponse.json(
       { ok: false, error: "Support session expired — please sign in again" },
