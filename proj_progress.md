@@ -122,3 +122,12 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 2. Review the final route diff and test coverage, especially comment-link scoping and grant-scope denial.
 3. Keep course-less Competency and expiresAt semantics as explicit follow-up decisions; keep learner-support/crisis features default-off.
 4. Continue the remaining PR #3 plan in sequence. Keep PR #3 draft and do not merge/deploy without approval.
+
+
+## 2026-11-10 — Next PR #3 response-scope slice identified
+
+- Read src/app/api/students/final-result/route.ts. It authorises staff with assertCanAccessStudent(payload, targetUserId, "content_only") but its nested weeklyTests, interactions, reportCards, projectReports and tasks queries at lines 47–51 are not filtered by courseId. Each model has a courseId field in Prisma. This is the next PR #3 access-scope slice after the portfolio route passes validation.
+- Preserve learner self-view across their own courses. For staff, apply the same instructor/org-admin/platform-admin/explicit-grant course boundary to every course-bearing relation.
+- Owner clarification remains controlling: do not remove required academic outcomes. Staff responses retain academic performance, participation, areasToImprove, overallAssessment, careerReadiness and project/course data where authorised. behavioralPattern remains learner-self only until the approved support consent/feature-gate pathway exists.
+- Comprehensive-report managementAttitude classification remains blocked in QUESTIONS.md; do not change it as part of this next slice.
+- Exact current PR head at this note: 4d394819e074f528b12b821d6d69d54a45c5739f. Portfolio implementation still awaits an exact-head successful Actions run; no local checks were available. Do not claim this review is implementation or validation.
