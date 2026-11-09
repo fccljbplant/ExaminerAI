@@ -1,3 +1,36 @@
+## 2026-11-09 — Parallel role-dashboard accessibility fixes
+
+**Starting verified head:** `ee6dc63538432d5a4298eb824d489da712dbea2d`  
+**Latest application head:** `0cdbb5acf8434c75eabbe63bef591b1224de202a`  
+**PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
+
+### UI changes committed
+- `src/modules/learner-portal/home.tsx`: session-duration chips increased from 36px to 44px minimum height and now have explicit visible keyboard focus styling.
+- `src/modules/instructor-portal/home.tsx`: header action links now have 44px minimum height, and at-risk roster rows have 48px minimum height plus explicit keyboard focus styling.
+- `src/modules/org-portal/home.tsx`: announcement title input increased from 40px to 44px; announcement retry action now has 44px minimum height and explicit keyboard focus styling.
+- These are focused accessibility/usability fixes using the existing theme tokens and components; no new dependencies or design system were introduced.
+
+### Privacy review finding
+- Inspected `src/modules/comprehensive-report/index.ts` and `src/app/api/students/[id]/comprehensive-report/route.ts`.
+- The module says behavioural/psychological/mentorship monitoring has been removed and describes the report as academic-only, but the current report type and AI prompt still generate `managementAttitude` fields (productivity/professionalism signals, leadership potential and manager readiness). Staff with `content_only` scope can currently retrieve the report, while platform admins have global operational access.
+- This is a material field-classification mismatch. Recorded it in `docs/UPGRADE-2026-10/QUESTIONS.md` for owner decision; did not silently change the report schema or staff view.
+
+### CI and PR state
+- PR #3 remains open, draft and unmerged on the existing branch.
+- Workflow run `42654213454` completed successfully on `ee6dc635`: dependency installation, isolated DB setup, lint, unit tests, typecheck, production build, route smoke, authenticated role screenshots and artifact upload all passed.
+- That successful run predates the three UI commits. New run `42655501293` is running on `0cdbb5ac`; at last refresh dependency installation was in progress and quality checks were pending.
+- Vercel status remains failure due to the project build-rate limit; no Ready preview confirmed.
+- No local test/build or manual browser/axe review was available.
+
+### Next
+1. Recheck run `42655501293` and address any failures on this branch.
+2. Continue role-dashboard UI fixes in parallel with RBAC/privacy regression tests.
+3. Obtain owner classification for comprehensive-report management-attitude fields before changing visibility.
+4. Keep PR #3 draft; no merge/deploy without explicit approval.
+
+---
+
 ## 2026-11-09 — Staff report-card data minimisation and CI refresh
 
 **Starting application head:** `173cbde9a94af4475ef1f44268fc0f62a07870bb`  
