@@ -53,7 +53,7 @@ PR #3 is a foundation, not completion of all product workstreams. Workstreams Aâ
 - Never expose or commit credentials, tokens, passwords, private learner data, or production records.
 - Never run destructive database operations, force resets, schema drops, or production syncs without explicit owner approval for the exact target and operation.
 - Do not touch production data, deploy, merge, or push to `main` without owner approval.
-- Use a dedicated branch and review the diff. Verify typecheck, lint, tests, build, and browser/accessibility checks where available. Report unavailable checks honestly.
+- Work only on the existing PR #3 branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; never create or switch to another branch. Review the diff. Verify typecheck, lint, tests, build, and browser/accessibility checks where available. Report unavailable checks honestly.
 - Do not claim a screenshot, browser test, deployment, or code verification that was not actually performed.
 - If a required safety/tooling prerequisite is missing, record the blocker and stop rather than inventing a workflow.
 
