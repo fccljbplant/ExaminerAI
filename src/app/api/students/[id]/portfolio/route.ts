@@ -200,10 +200,16 @@ export async function GET(
       : []),
     ...(dailyLogs.length ? [{ dailyLogId: { in: dailyLogs.map((log) => log.id) } }] : []),
   ];
+  const commentLinkConstraints = [
+    { OR: [{ taskId: null }, ...(tasks.length ? [{ taskId: { in: tasks.map((task) => task.id) } }] : [])] },
+    { OR: [{ interactionId: null }, ...(interactions.length ? [{ interactionId: { in: interactions.map((interaction) => interaction.id) } }] : [])] },
+    { OR: [{ weeklyTestId: null }, ...(weeklyTests.length ? [{ weeklyTestId: { in: weeklyTests.map((test) => test.id) } }] : [])] },
+    { OR: [{ dailyLogId: null }, ...(dailyLogs.length ? [{ dailyLogId: { in: dailyLogs.map((log) => log.id) } }] : [])] },
+  ];
   const comments =
     canSeeComments && commentRelations.length > 0
       ? await db.comment.findMany({
-          where: { studentId: id, OR: commentRelations },
+          where: { studentId: id, AND: commentLinkConstraints, OR: commentRelations },
           orderBy: { createdAt: "desc" },
           include: { instructor: { select: { name: true, email: true } } },
         })
