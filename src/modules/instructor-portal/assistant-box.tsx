@@ -57,8 +57,9 @@ export function AIAssistantBox() {
         <div className="max-h-72 space-y-2 overflow-y-auto p-3">
           {turns.length === 0 && (
             <p className="text-xs text-fg-muted">
-              Ask about your class — “who is struggling this week?”, “which topics need a
-              re-teach?”, “draft a check-in prompt”.
+              Ask evidence-based questions about your class — “which learners have overdue
+              submissions?”, “which rubric criteria need clarification?”, or “draft a supportive
+              check-in prompt”.
             </p>
           )}
           {turns.map((t, i) => (
