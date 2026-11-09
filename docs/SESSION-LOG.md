@@ -347,3 +347,44 @@ Important scope distinctions:
 - Keep support consent, feature gate, audit and designated Learner Support Lead crisis handling disabled pending approvals and implementation.
 - Continue product-wide UX work in small slices; no paid cart/checkout/payment work.
 - No merge, deployment, main-branch write, production-data change or dependency addition occurred.
+
+
+## 2026-11-09 — Instructor learner-data course-scope correction
+
+**Starting head:** `7831019ebfa174e0dfaa256df6312d97235c8e4d`  
+**Application head:** `d78ec3e7589edd9c3e907de9a6707f3848bb6384`  
+**PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety` (existing branch only)
+
+### Finding
+
+Review of `src/app/api/v2/instructor/students/[id]/route.ts` and the Prisma schema found that course-bearing records were queried by learner ID alone after authorising the caller for a shared course. A learner enrolled in multiple courses could therefore expose activity from courses outside the caller's teaching/organisation scope. The roster route also aggregated daily logs and project tasks across all courses for a learner.
+
+### Changes
+
+- Intersected staff-authorised course IDs with the learner's course enrolments before loading drill-down data.
+- Applied the resulting course filter to weekly tests, report cards, daily logs, project tasks, certificates and engagement events. LearnProjects were already filtered by course.
+- Applied taught-course filters to the instructor roster's daily-log aggregate and project-task query.
+- Added `getAuthorizedStudentCourseIds` and unit tests covering overlap, non-overlap and duplicate IDs.
+- No schema migration or dependency was added.
+
+### Commits
+
+- `5bb879bbf58d757f0291c7785d28406846b660f2` — scope student drill-down records.
+- `7d2873b15a11d7623d93c3e40a85b4d89601de74` — shared course intersection helper.
+- `f220698463de78f0c1704ed6b53ea9aaf648855c` — helper tests.
+- `d78ec3e7589edd9c3e907de9a6707f3848bb6384` — scope roster activity.
+
+### Verification
+
+GitHub Actions run [42661008830](https://github.com/fccljbplant/ExaminerAI/actions/runs/42661008830) completed successfully on application head `d78ec3e`. Dependency install, isolated test DB initialisation, lint, unit tests, TypeScript, production build, all app-page route smoke tests, authenticated role screenshot capture and artifact upload passed. Artifact `role-dashboard-screenshots` expires 2026-11-16.
+
+Vercel status remains failed due to the project build-rate limit. The Vercel sandbox creation endpoint returned 403, so no interactive VM shell was available; the GitHub-hosted Actions runner was used for code verification. No deployment, merge, production-data change or main-branch write occurred.
+
+### Remaining risks / next actions
+
+- `SkillMastery` and legacy `Competency` have no `courseId` in the current schema. Their learner-level/global semantics need an owner/data-model decision before changing access or adding partitioning.
+- Review other `assertCanAccessStudent` callsites and staff endpoints for equivalent user-only queries against course-bearing records.
+- Keep learner support/crisis features default-off. Keep comprehensive-report `managementAttitude` classification blocked pending owner decision in `docs/UPGRADE-2026-10/QUESTIONS.md`.
+- Add route-level tests for instructor course membership, org-admin active membership and OrgCourse linkage, cross-tenant denial and grant revocation.
+- Continue UXPeak implementation in small role-based slices; no paid checkout/payment work. Do not claim manual visual/accessibility sign-off from CI screenshots alone.
