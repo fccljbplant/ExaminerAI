@@ -23,7 +23,14 @@ export const metadata: Metadata = {
 };
 
 export default async function PathsPage() {
-  const paths = await fetchMarketplacePaths();
+  let paths: Awaited<ReturnType<typeof fetchMarketplacePaths>> = [];
+  let marketplaceUnavailable = false;
+  try {
+    paths = await fetchMarketplacePaths();
+  } catch (error) {
+    marketplaceUnavailable = true;
+    console.error("[paths-page] Learning paths unavailable; rendering recovery state.", error);
+  }
 
   return (
     <div>
@@ -40,7 +47,14 @@ export default async function PathsPage() {
       </section>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-10">
-        {paths.length === 0 ? (
+        {marketplaceUnavailable ? (
+          <div className="rounded-xl border border-line bg-bg-subtle/40 px-4 py-3 text-sm text-fg-muted" role="status">
+            Learning paths are temporarily unavailable. This is a service issue, not an empty catalogue. Please try again shortly or browse individual courses.
+            <div className="mt-3">
+              <Button asChild variant="outline" size="sm"><Link href="/courses">Browse Individual Courses</Link></Button>
+            </div>
+          </div>
+        ) : paths.length === 0 ? (
           <div className="text-center py-20">
             <RouteIcon className="h-10 w-10 mx-auto text-fg-muted mb-3" />
             <h2 className="text-lg font-semibold">No learning paths yet</h2>
