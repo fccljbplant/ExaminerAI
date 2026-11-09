@@ -1,10 +1,27 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-10 (live PR #3 head 9a02b6567282da5a4604b7237a2d48e5e4354a8c)  
+**Snapshot date:** 2026-11-10 (live PR #3 head 6fe426c2cbd571fd1f77569b6421f6cc4f81ef83)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
 ## Latest live update — 2026-11-10
+
+- PR #3 is open, draft, unmerged and mergeable on ux-audit/fix-dashboard-truthfulness-and-agent-safety; latest head 6fe426c2cbd571fd1f77569b6421f6cc4f81ef83.
+- The staff portfolio route now applies authorised-course intersection to ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard. Instructor, org-admin, platform-admin and explicit student-grant paths retain their respective access rules; grant dataScope is enforced and the route fails closed if a grant disappears during scope resolution.
+- Instructor comments are scoped through linked academic records and exclude unlinked/mixed-course references. Learner support/reflection fields remain off.
+- Route tests cover instructor course isolation, org-admin linked-course scope, grant fallback, restricted wellbeing grants, grant disappearance and denied access.
+- Competency remains course-less and unchanged; CourseEnrollment.expiresAt treatment remains unresolved and unchanged.
+- Exact latest-head Actions are pending/not returned. Earlier run 42721835502 on a preceding head was cancelled before tests started after subsequent branch updates. Vercel is pending. No local checks or browser/axe validation were available.
+- The owner-requested organisation assignment/reassignment and instructor course-access removal approval requirements have been appended to the end of the product-wide blueprint and Issue #4, mapped to future Workstream J. They are not part of PR #3.
+- No schema/dependency/production-data/merge/deploy change; no branch switch.
+
+### Next actions
+1. Verify the latest-head Actions run and address failures.
+2. Review the final diff and all portfolio route regression tests.
+3. Continue the remaining PR #3 plan in sequence after this slice is green.
+4. Keep support/crisis off, and preserve the open Competency/expiry decisions.
+
+## Previous live update — 2026-11-10
 
 - PR #3 remains open, draft, unmerged and mergeable on ux-audit/fix-dashboard-truthfulness-and-agent-safety; live head 9a02b6567282da5a4604b7237a2d48e5e4354a8c (278 commits, 110 changed files).
 - Portfolio course-scope correction is committed in src/app/api/students/[id]/portfolio/route.ts; route tests are in src/app/api/students/[id]/portfolio/route.test.ts.
