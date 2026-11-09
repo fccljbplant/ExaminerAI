@@ -7,6 +7,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
+import { hasRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
@@ -29,7 +30,7 @@ const CreateBody = z.object({
 async function requirePlatformAdmin() {
   const user = await getAuthUser();
   if (!user) return { denied: apiUnauthorized() };
-  if (user.role !== "platform_admin" && user.role !== "admin") {
+  if (!hasRole(user.role, PLATFORM_ADMIN_ROLES)) {
     return { denied: apiError("Platform access only", "FORBIDDEN", 403) };
   }
   if (!(await isPlatformPortalEnabled())) {
