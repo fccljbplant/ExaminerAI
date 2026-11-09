@@ -79,7 +79,7 @@ export async function GET(
           dataScope: { in: ["full", "wellbeing_only", "crisis_only", "content_only"] },
           revokedAt: null,
         },
-        select: { id: true },
+        select: { id: true, dataScope: true },
       });
       if (grant) {
         staffCourseIds = learnerCourseIds;
@@ -121,7 +121,7 @@ export async function GET(
         dataScope: { in: ["full", "wellbeing_only", "crisis_only", "content_only"] },
         revokedAt: null,
       },
-      select: { id: true },
+      select: { id: true, dataScope: true },
     });
     if (grant) {
       staffCourseIds = learnerCourseIds;
