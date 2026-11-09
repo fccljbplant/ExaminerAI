@@ -33,7 +33,7 @@ export async function POST(
   // R3-fix: IDOR protection — verify the caller can access this student's data.
   // The import was already here but the call was missing.
   try {
-    await assertCanAccessStudent(payload, studentId);
+    await assertCanAccessStudent(payload, studentId, "content_only");
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
