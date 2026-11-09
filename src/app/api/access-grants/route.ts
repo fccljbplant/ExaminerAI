@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
   const isPlatformAdmin = hasRole(ctx.payload.role, [UserRole.PLATFORM_ADMIN]);
   const isOrgAdmin = normalizeRole(ctx.payload.role) === UserRole.ORG_ADMIN;
-  const effectiveGrantee = isPlatformAdmin ? requestedGrantee : ctx.payload.sub;
+  const effectiveGrantee = isPlatformAdmin ? requestedGrantee : isOrgAdmin ? undefined : ctx.payload.sub;
 
   const where: { granteeUserId?: string; grantedByUserId?: string; scopeType?: string; scopeId?: string; revokedAt?: null } = { revokedAt: null };
   if (effectiveGrantee) where.granteeUserId = effectiveGrantee;
