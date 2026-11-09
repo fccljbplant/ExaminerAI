@@ -48,10 +48,13 @@ export async function GET(
       },
       select: { dataScope: true },
     });
-    // Organisation admins receive academic/course content for oversight,
-    // never the learner-support or wellbeing slice, even if a broad legacy
-    // grant exists. Platform admins are handled separately by the policy.
-    portfolioDataScope = normalizeRole(payload.role) === UserRole.ORG_ADMIN
+    // Organisation and platform admins receive academic/course content for
+    // oversight, never individual learner-support/wellbeing data, even if a
+    // broad legacy grant exists. Platform admins have no individual support
+    // signal access under the product privacy boundary.
+    portfolioDataScope = [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN].includes(
+      normalizeRole(payload.role) as typeof UserRole.ORG_ADMIN,
+    )
       ? "content_only"
       : grant?.dataScope ?? null;
   }
