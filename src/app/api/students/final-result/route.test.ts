@@ -65,7 +65,7 @@ function requestFinalResult(userId = learnerId) {
 }
 
 function expectAllRelationsScoped(courseIds: string[]) {
-  const call = mocks.userFindUnique.mock.calls.at(-1)?.[0];
+  const call = mocks.userFindUnique.mock.calls[mocks.userFindUnique.mock.calls.length - 1]?.[0];
   expect(call.include.weeklyTests.where).toEqual({ courseId: { in: courseIds } });
   expect(call.include.interactions.where).toEqual({ courseId: { in: courseIds } });
   expect(call.include.reportCards.where).toEqual({ courseId: { in: courseIds } });
@@ -231,7 +231,7 @@ describe("GET /api/students/final-result course scope", () => {
 
     const response = await requestFinalResult();
     expect(response.status).toBe(200);
-    const call = mocks.userFindUnique.mock.calls.at(-1)?.[0];
+    const call = mocks.userFindUnique.mock.calls[mocks.userFindUnique.mock.calls.length - 1]?.[0];
     expect(call.include.weeklyTests).not.toHaveProperty("where");
     expect(call.include.interactions).not.toHaveProperty("where");
     expect(call.include.reportCards).not.toHaveProperty("where");
