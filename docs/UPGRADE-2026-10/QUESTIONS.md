@@ -52,3 +52,9 @@ Route regression tests were added for instructor multi-course isolation, org-adm
 **Remaining decisions (not blockers for this scoped patch):**
 1. Competency has no courseId in the current Prisma schema. Its learner-level/global semantics remain unresolved; this patch preserves existing behaviour.
 2. CourseEnrollment.expiresAt is documented as a retake/compliance date, not explicitly as revocation. This patch preserves current access semantics (matching the v2 detail route) and adds no expiry filter. Confirm the intended access rule before changing it.
+
+
+## 2026-11-10 — Additional portfolio scope hardening
+
+The portfolio route now also respects the AccessGrant dataScope value, and fails closed if a grant disappears between the initial access check and the subsequent course-scope derivation. Comment filtering requires every non-null task/interaction/weekly-test/daily-log relation to be within the authorised record sets, preventing mixed-scope comments from crossing course boundaries. Route tests were added for restricted wellbeing grants and the disappearing-grant case. Exact-head CI remains pending.
+
