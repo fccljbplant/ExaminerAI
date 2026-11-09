@@ -1,3 +1,13 @@
+## 2026-11-09 — Additional dashboard action target fixes
+
+- Learner dashboard Projects “See all” action now has a 44px minimum target and visible keyboard focus.
+- Organisation dashboard “Manage people” and “Full audit” actions now have 44px minimum targets and visible keyboard focus.
+- Latest application head after these changes: `5eafaa9e363f248ea8f36257462b1b82effe875a`.
+- Earlier CI run `42655501293` was triggered before these final changes; it does not validate this head. No completed run for `5eafaa9e` was returned at the last check.
+- Changes remain limited to existing role dashboards, use existing theme tokens, and add no dependencies.
+
+---
+
 ## 2026-11-09 — Parallel role-dashboard accessibility fixes
 
 **Starting verified head:** `ee6dc63538432d5a4298eb824d489da712dbea2d`  
