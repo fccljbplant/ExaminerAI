@@ -52,11 +52,11 @@ export async function GET(
     // oversight, never individual learner-support/wellbeing data, even if a
     // broad legacy grant exists. Platform admins have no individual support
     // signal access under the product privacy boundary.
-    portfolioDataScope = [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN].includes(
-      normalizeRole(payload.role) as typeof UserRole.ORG_ADMIN,
-    )
-      ? "content_only"
-      : grant?.dataScope ?? null;
+    const viewerRole = normalizeRole(payload.role);
+    portfolioDataScope =
+      viewerRole === UserRole.ORG_ADMIN || viewerRole === UserRole.PLATFORM_ADMIN
+        ? "content_only"
+        : grant?.dataScope ?? null;
   }
 
   const student = await db.user.findUnique({
