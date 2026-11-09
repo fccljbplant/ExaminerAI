@@ -24,3 +24,16 @@ export function toDailyLogPayload(
   if (!includeSupportSignals) return { date };
   return { date, confidence: log.confidence ?? null };
 }
+
+/**
+ * Keep learner drill-down data inside courses both assigned to the staff
+ * member and actively enrolled by the learner. Unattributed course records
+ * are intentionally excluded by the route's exact courseId filter.
+ */
+export function getAuthorizedStudentCourseIds(
+  staffCourseIds: readonly string[],
+  learnerCourseIds: readonly string[],
+): string[] {
+  const learnerCourses = new Set(learnerCourseIds);
+  return [...new Set(staffCourseIds)].filter((courseId) => learnerCourses.has(courseId));
+}
