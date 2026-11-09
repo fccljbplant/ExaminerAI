@@ -35,7 +35,7 @@ export async function GET(
   const isPrivileged = hasRole(payload.role, PLATFORM_ADMIN_ROLES);
   if (!isPrivileged && payload.sub !== id) {
     try {
-      await assertCanAccessStudent(payload, id);
+      await assertCanAccessStudent(payload, id, "content_only");
     } catch (err) {
       return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
@@ -105,7 +105,7 @@ export async function PATCH(
   }
 
   // IDOR check
-  try { await assertCanAccessStudent(payload, id); } catch (err) {
+  try { await assertCanAccessStudent(payload, id, "content_only"); } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
 
