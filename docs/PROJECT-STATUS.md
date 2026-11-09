@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (live PR #3 head `0cdbb5ac`; CI run `42655501293` in progress)  
+**Snapshot date:** 2026-11-09 (live PR #3 head `5eafaa9e`; CI recheck pending)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -18,8 +18,8 @@ PR #3 live metadata:
 - Mergeable: **yes**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `0cdbb5acf8434c75eabbe63bef591b1224de202a`
-- Commits: **220**
+- Head SHA: `5eafaa9e363f248ea8f36257462b1b82effe875a`
+- Commits: **227**
 - Changed files: **106**
 - No submitted PR reviews or inline review threads were returned.
 
@@ -33,9 +33,9 @@ PR #3 live metadata:
 
 ## Latest work in this session
 
-- Learner dashboard: session-duration chips now meet a 44px touch target and have visible keyboard focus styling.
+- Learner dashboard: session-duration chips and the Projects 'See all' action now meet a 44px touch target and have visible keyboard focus styling.
 - Instructor dashboard: primary header links have 44px minimum height; at-risk learner rows have 48px minimum height and visible keyboard focus.
-- Organisation dashboard: announcement title input is 44px high; announcement retry control has a 44px minimum target and visible keyboard focus.
+- Organisation dashboard: announcement title input is 44px high; announcement retry control and both top-level action links have 44px minimum targets and visible keyboard focus.
 - Added `docs/UPGRADE-2026-10/QUESTIONS.md` to record the unresolved comprehensive-report field-classification mismatch. No report fields were changed pending owner decision.
 
 ## PR #3 scope
@@ -148,3 +148,6 @@ This owner direction clarifies the org-admin academic/operational oversight audi
 - The prior run `42645275411` was cancelled during Node setup; all quality steps were skipped. It provides no validation evidence.
 - Vercel status for the application fix commit was pending at the last check. No Ready preview is confirmed.
 - No local test/build, browser or accessibility run was available. No production data, merge, or deployment action was performed.
+
+
+Latest UI follow-up: organisation dashboard Manage people / Full audit links and learner dashboard Projects See all link also have 44px minimum target size and visible keyboard focus. Latest head `5eafaa9e`; recheck Actions because the previous run `42655501293` was on an earlier UI head and does not validate these final changes.
