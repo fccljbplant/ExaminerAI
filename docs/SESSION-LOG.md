@@ -520,3 +520,31 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Preserve required academic outcomes for authorised staff (performance/participation, areasToImprove, overallAssessment, careerReadiness, project reports and task stats). behavioralPattern remains learner-self only pending the approved consent/feature gate. The comprehensive-report managementAttitude mismatch remains owner-blocked.
 - No final-result source change was made in this review. Portfolio route exact-head Actions remain unverified; previous run 42721835502 was cancelled before lint/tests. No local tests/build were run.
 - Current PR #3 head at this review: 4d394819e074f528b12b821d6d69d54a45c5739f; open, draft, unmerged, mergeable. No merge/deploy/production data changes.
+
+
+## 2026-11-10 — Final-result course-scope correction
+
+**PR #3 branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`  
+**Implementation commits:** `0f235db668f6e5f9f4c08d32ba2d3c8dc5348610` (route) and `d01a540911581f6772dfeec318399c5c73385378` / `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8` (route regression tests).
+
+### Implementation
+- Updated `src/app/api/students/final-result/route.ts` to derive staff course scope after `assertCanAccessStudent(..., "content_only")`.
+- Instructor access uses the intersection of instructor teaching enrolments and learner student enrolments. If there is no shared teaching course, an active explicit student grant with `full` or `content_only` scope is re-read and remains bounded to the learner's enrolled courses.
+- Org-admin access uses active admin membership, the learner's active membership in the same organisation, that organisation's `OrgCourse` links, and the intersection with learner enrolments.
+- Platform-admin access is bounded to the learner's actual course enrolments. Demo/other staff rely on a re-read explicit `full`/`content_only` student grant.
+- All five course-bearing relations are filtered in the nested Prisma include: `weeklyTests`, `interactions`, `reportCards`, `projectReports`, and `tasks`. Course-less/unattributed rows are excluded from staff results. If no authorised course remains (including a grant revoked during scope resolution), the route returns 403 before loading the learner report.
+- Staff target accounts are confirmed to be learners. Learner self-view remains cross-course and unfiltered.
+- Preserved academic performance/participation, improvement guidance, overall assessment, career readiness, project reports and task statistics. `behavioralPattern` remains learner-self only; no support/crisis fields were added.
+- Added `src/app/api/students/final-result/route.test.ts` covering instructor isolation, org-admin linked-course scope, explicit grant fallback, empty/revoked scope denial, denied access short-circuit, platform-admin course bounding and learner self-view.
+
+### Validation and limitations
+- The PR head immediately after the code/test changes was `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8` (300 commits, 111 changed files); PR #3 remained open, draft, unmerged and mergeable.
+- No PR-triggered Actions run was returned for that code head at the time of this update. The prior head's run `42722331613` passed install, isolated DB setup, lint, unit tests, TypeScript, production build, route smoke, authenticated screenshots and artifact upload, but it does **not** validate this change.
+- Vercel reports failure due to the build-rate limit. No Ready preview is verified.
+- No local test/lint/typecheck/build/browser/axe runner was available; the new route tests are committed but are not yet claimed as passing.
+- No schema/dependency/production-data changes, branch switch, merge, deployment or main-branch write. PR #3 remains draft.
+
+### Remaining semantics
+- `getCourseDurationWeeks(targetUserId)` and week-phase lookup remain learner-level and were not redesigned for multi-course aggregation.
+- Existing query limits (`take: 50/500/50/50/200`) remain unchanged.
+- The separate comprehensive-report `managementAttitude` classification remains blocked in `docs/UPGRADE-2026-10/QUESTIONS.md`. The support/crisis pathway remains off.
