@@ -163,3 +163,8 @@ Latest UI follow-up: organisation dashboard Manage people / Full audit links and
 - No local build/test or post-change browser/screenshot/axe review was available. The UX scorecard remains provisional; do not claim visual sign-off.
 - Vercel remains blocked by the daily deployment API quota. No deployment or merge was performed.
 - Next: verify current-head CI, inspect before/after screenshots at the required viewports, and continue route-level RBAC/privacy tests in parallel.
+
+
+## 2026-11-09 — UXPeak Pro product-wide scope clarification
+
+Owner clarified that UXPeak must cover gamification, product UI, role dashboards, catalogue/marketplace, course discovery/enrolment, tutorials, AI assistance and helpdesk—not just dashboard polish. Added `docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md` as the product-wide experience inventory and acceptance plan. It distinguishes marketplace course preview from paid commerce (not approved), and ordinary product help from consent-gated learner support/crisis handling. Gamification remains phase-gated per the Master Upgrade Prompt. Continue incremental PR #3 dashboard work in parallel with privacy/security; do not expand into unapproved provider, payment, support-data or production changes.
