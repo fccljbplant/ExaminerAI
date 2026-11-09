@@ -108,3 +108,14 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Latest code head at verification: `d78ec3e7589edd9c3e907de9a6707f3848bb6384`. GitHub Actions run `42661008830` passed lint, unit tests, typecheck, production build, route smoke, authenticated screenshot capture and artifact upload.
 - Vercel preview remains blocked by the project build-rate limit. No deploy or merge. The interactive Vercel sandbox endpoint was not authorised (403); GitHub-hosted Actions runner supplied CI verification.
 - Schema limitation to remember: `SkillMastery` and `Competency` do not have `courseId`; they remain learner-level profile data until their intended global/course semantics are decided. Do not silently alter their visibility or schema.
+
+
+## Latest delivery update — 2026-11-10 final-result course scope
+
+- Continued only on PR #3 branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Staff final-result relation queries are now bounded to authorised course IDs intersected with learner enrolments. Instructor, org-admin, platform-admin and explicit-grant paths retain their role/tenant boundaries; empty or revoked scope fails closed.
+- All course-bearing relations in the endpoint are filtered: weekly tests, interactions, report cards, project reports and tasks. Staff targets are verified as learners. Learner self-view remains cross-course.
+- Academic performance, participation, areasToImprove, overallAssessment, careerReadiness, project reports and task stats are preserved within scope. behavioralPattern remains learner-self only; no support/crisis data was added.
+- Added route tests for instructor isolation, org-admin linked-course scope, explicit grants, empty/revoked scope, denied access, platform-admin bounds and learner self-view.
+- Code implementation head: `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8`. Exact-head Actions had not yet been returned; previous-head run `42722331613` passed but is not validation of this implementation. Vercel is build-rate limited. No local checks were run.
+- Existing multi-course duration/phase semantics and query limits are unchanged. Comprehensive-report `managementAttitude` classification remains owner-blocked. PR #3 remains draft; no merge/deploy.
