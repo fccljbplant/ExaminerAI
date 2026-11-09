@@ -158,49 +158,54 @@ export async function GET(req: Request) {
     overallAssessment: string;
     careerReadiness: string;
   } | null = null;
-  try {
-    // H1 fix: enforce per-user daily AI rate limit + demo block
-    const isDemo = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
-    const blocked = await enforceAIRateLimit(targetUserId, "final-result", isDemo);
-    if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
-
-    const result = await callAI([
-      {
-        role: "user",
-        content: `You are analyzing a student's complete ${courseDurationWeeks}-week course performance. Write a comprehensive final assessment in SIMPLE, beginner-friendly English.
-
-STUDENT: ${user.name}
-TOTAL WEEKLY TESTS COMPLETED: ${completedTests.length} out of ${courseDurationWeeks}
-TOTAL QUESTIONS ANSWERED: ${questionsAnswered} out of ${TOTAL_POSSIBLE_QUESTIONS} possible
-PERFORMANCE SCORE: ${performanceScore}% (Grade ${performanceGrade})
-PARTICIPATION RATE: ${participationRate}% (Grade ${participationGrade})
-
-WEEKLY TEST RESULTS:
-${testSummaries || "No weekly tests completed yet."}
-
-PRACTICE QUESTIONS:
-${practiceSummary}
-
-Write a final assessment with these sections:
-1. BEHAVIORAL PATTERN ANALYSIS (3-4 sentences in SIMPLE English: How does this student think and learn? Are they consistent? Do they engage deeply or surface-level? What patterns do you see across weeks?)
-2. AREAS TO IMPROVE (3-4 specific, actionable things they should work on to become a professional web developer)
-3. OVERALL ASSESSMENT (2-3 sentences: Are they ready for a junior developer role? What's their biggest strength? What's the #1 thing holding them back?)
-
-Return ONLY a JSON object:
-{
-  "behavioralPattern": "<3-4 sentences in simple English>",
-  "areasToImprove": ["<specific area 1>", "<specific area 2>", "<specific area 3>"],
-  "overallAssessment": "<2-3 sentences>",
-  "careerReadiness": "<Ready / Almost Ready / Needs More Practice>"
-}`,
-      },
-    ], { temperature: 0.3, maxTokens: 600, feature: "final-result", userId: targetUserId });
-
-    const raw = result.text || "{}";
-    const match = raw.match(/\{[\s\S]*\}/);
-    aiAnalysis = match ? JSON.parse(match[0]) : null;
-  } catch {
-    // Fallback if AI is unavailable
+  // Behavioural analysis is private learner-support information. Until an
+  // explicit, consented support-data grant is implemented, never generate or
+  // return it when staff view another learner (including platform admins).
+  if (targetUserId === payload.sub) {
+    try {
+      // H1 fix: enforce per-user daily AI rate limit + demo block
+      const isDemo = payload.email.includes("@demo.ai") || payload.email === "demo@examiner.ai";
+      const blocked = await enforceAIRateLimit(targetUserId, "final-result", isDemo);
+      if (blocked) return NextResponse.json(blocked.body, { status: blocked.status });
+  
+      const result = await callAI([
+        {
+          role: "user",
+          content: `You are analyzing a student's complete ${courseDurationWeeks}-week course performance. Write a comprehensive final assessment in SIMPLE, beginner-friendly English.
+  
+  STUDENT: ${user.name}
+  TOTAL WEEKLY TESTS COMPLETED: ${completedTests.length} out of ${courseDurationWeeks}
+  TOTAL QUESTIONS ANSWERED: ${questionsAnswered} out of ${TOTAL_POSSIBLE_QUESTIONS} possible
+  PERFORMANCE SCORE: ${performanceScore}% (Grade ${performanceGrade})
+  PARTICIPATION RATE: ${participationRate}% (Grade ${participationGrade})
+  
+  WEEKLY TEST RESULTS:
+  ${testSummaries || "No weekly tests completed yet."}
+  
+  PRACTICE QUESTIONS:
+  ${practiceSummary}
+  
+  Write a final assessment with these sections:
+  1. BEHAVIORAL PATTERN ANALYSIS (3-4 sentences in SIMPLE English: How does this student think and learn? Are they consistent? Do they engage deeply or surface-level? What patterns do you see across weeks?)
+  2. AREAS TO IMPROVE (3-4 specific, actionable things they should work on to become a professional web developer)
+  3. OVERALL ASSESSMENT (2-3 sentences: Are they ready for a junior developer role? What's their biggest strength? What's the #1 thing holding them back?)
+  
+  Return ONLY a JSON object:
+  {
+    "behavioralPattern": "<3-4 sentences in simple English>",
+    "areasToImprove": ["<specific area 1>", "<specific area 2>", "<specific area 3>"],
+    "overallAssessment": "<2-3 sentences>",
+    "careerReadiness": "<Ready / Almost Ready / Needs More Practice>"
+  }`,
+        },
+      ], { temperature: 0.3, maxTokens: 600, feature: "final-result", userId: targetUserId });
+  
+      const raw = result.text || "{}";
+      const match = raw.match(/\{[\s\S]*\}/);
+      aiAnalysis = match ? JSON.parse(match[0]) : null;
+    } catch {
+      // Fallback if AI is unavailable
+    }
   }
 
   // Fallback analysis
@@ -259,7 +264,9 @@ Return ONLY a JSON object:
     totalPracticeQuestions,
     avgPlagiarism,
     weekBreakdown,
-    behavioralPattern: aiAnalysis.behavioralPattern,
+    ...(targetUserId === payload.sub
+      ? { behavioralPattern: aiAnalysis.behavioralPattern }
+      : {}),
     areasToImprove: aiAnalysis.areasToImprove,
     overallAssessment: aiAnalysis.overallAssessment,
     careerReadiness: aiAnalysis.careerReadiness,
