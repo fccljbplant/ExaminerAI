@@ -1,4 +1,4 @@
-import { hasRole, isStaffRole, normalizeRole, UserRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
+import { isStaffRole, normalizeRole, UserRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
@@ -37,22 +37,10 @@ export async function GET(
     );
   }
 
-  if (!hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
-    const grant = await db.accessGrant.findFirst({
-      where: {
-        granteeUserId: payload.sub,
-        scopeType: "student",
-        scopeId: id,
-        dataScope: { in: ["full", "wellbeing_only", "crisis_only", "content_only"] },
-        revokedAt: null,
-      },
-      select: { dataScope: true },
-    });
-    // Support reflections, confidence and wellbeing are default-off for
-    // every staff audience until the per-org consent and feature gate exist.
-    // Legacy broad grants cannot bypass that product privacy boundary.
-    portfolioDataScope = "content_only";
-  }
+  // Support reflections, confidence and wellbeing are default-off for
+  // every staff audience until the per-org consent and feature gate exist.
+  // Access grants do not activate the feature by themselves.
+  portfolioDataScope = "content_only";
 
   const student = await db.user.findUnique({
     where: { id },
