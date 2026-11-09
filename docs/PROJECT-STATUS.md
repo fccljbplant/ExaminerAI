@@ -9,27 +9,27 @@
 | Ref | Commit | State |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | Last verified default-branch HEAD in the prior continuity snapshot; re-fetch before relying on it as current. |
-| PR #3 branch | `4f4c4cd56fc3c0448acc0983e13a0ce74cea8773` | Live PR head returned by GitHub during this refresh. |
+| PR #3 branch | `847440ef0fe3630a7364e49038ca5c74791a7faf` | Live PR head returned after the first continuity refresh commits; this status-file commit itself advances the branch again. |
 
-PR #3:
+PR #3 at the last metadata refresh:
 - State: **open**
 - Draft: **yes**
 - Merged: **no**
-- Mergeable: GitHub reports **true**
+- Mergeable: GitHub reported **true**
 - Base: `main`
-- Head: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Commits: **171**
+- Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
+- Commits: **173**
 - Changed files: **99**
-- No submitted PR reviews or inline review threads were returned by the latest inspection.
+- No submitted PR reviews or inline review threads were returned.
 
 ## Current CI and preview status
 
-- GitHub Actions workflow **UX audit checks**, run [42609924471](https://github.com/fccljbplant/ExaminerAI/actions/runs/42609924471): **completed successfully**.
-- Inspected job: `quality`; all steps passed, including dependency installation, isolated test database setup, lint, unit tests, type check, production build, app-page route smoke tests, authenticated role screenshot capture, and screenshot artifact upload.
-- Combined commit status for PR head `4f4c4cd`: **Vercel success**. Status target: [Vercel deployment/check](https://vercel.com/fccljbplants-projects/examiner-ai/J4nWxzvYq4AEjUiEuoUPGghWjmVJ).
-- Latest Vercel bot comment inspected reports a **Ready** preview: [deployment](https://vercel.com/fccljbplants-projects/examiner-ai/24kkT77gFrtdtHBi1BweUytYPpzd) · [preview URL](https://examiner-ai-git-ux-audit-fix-dashb-bd75fe-fccljbplants-projects.vercel.app).
-- An older Vercel comment records a deployment failure from the free-plan daily cap. That is historical; it is not the current combined status.
-- No live browser walkthrough, production deployment, or end-user accessibility sign-off was performed in this session. A Ready preview/check is not equivalent to visual acceptance.
+- GitHub Actions workflow **UX audit checks**, run [42609924471](https://github.com/fccljbplant/ExaminerAI/actions/runs/42609924471): **completed successfully** for the inspected code/docs head `4f4c4cd56fc3c0448acc0983e13a0ce74cea8773`.
+- Its `quality` job passed dependency installation, isolated test database setup, lint, unit tests, type check, production build, app-page route smoke tests, authenticated role screenshot capture, and screenshot artifact upload.
+- Combined Vercel status for `4f4c4cd`: **success**. The latest inspected Vercel bot comment reported a Ready preview: [deployment](https://vercel.com/fccljbplants-projects/examiner-ai/24kkT77gFrtdtHBi1BweUytYPpzd) · [preview URL](https://examiner-ai-git-ux-audit-fix-dashb-bd75fe-fccljbplants-projects.vercel.app).
+- Two subsequent commits updated only `docs/PROJECT-STATUS.md` and `docs/SESSION-LOG.md`. For the intermediate documentation-only head `847440e`, GitHub returned no PR-triggered workflow run and Vercel was **pending**. This status-file update advances the head again; re-fetch checks before claiming the resulting latest head is green or has a Ready preview.
+- An older Vercel comment records a daily-deployment-cap failure. It is historical, not the current result for `4f4c4cd`.
+- No live browser walkthrough, production deployment, or end-user accessibility sign-off was performed in this session.
 
 ## PR #3 scope
 
@@ -45,9 +45,9 @@ PR #3:
 
 ## Review observations and risks
 
-1. **Final-result data scope requires a focused privacy review before approval.** `src/app/api/students/final-result/route.ts` calls `assertCanAccessStudent(payload, targetUserId, "content_only")`, but the response includes behavioural assessment fields (`behavioralPattern`, `overallAssessment`, `careerReadiness`) and project-report/task information. Confirm each returned field is permitted by the content-only grant semantics; otherwise split/redact the response or require a broader grant. Do not treat passing CI as proof of this access boundary.
-2. Instructor queue counts now use full database counts rather than the five-row preview. Roster risk count is derived from the full risk-filtered roster response; latest scored test selection is deterministic by week.
-3. Platform dashboard failure returns a generic service message while logging the underlying failure server-side. Learner profile lookup failure returns a retryable service-unavailable response instead of a false empty dashboard.
+1. **Final-result data scope requires a focused privacy review before approval.** `src/app/api/students/final-result/route.ts` calls `assertCanAccessStudent(payload, targetUserId, "content_only")`, but the response includes behavioural assessment fields (`behavioralPattern`, `overallAssessment`, `careerReadiness`) and project-report/task data. Confirm each returned field is permitted by the content-only grant semantics; otherwise split/redact the response or require a broader grant. Do not treat passing CI as proof of this access boundary.
+2. Instructor queue counts use full database counts rather than the five-row preview. Roster risk count is derived from the full risk-filtered roster response; latest scored test selection is deterministic by week.
+3. Platform dashboard aggregation errors are logged server-side and returned as a generic service error. Learner profile lookup failure returns service-unavailable rather than a false empty dashboard.
 4. No PR reviews or inline review threads were found. Owner review remains outstanding.
 
 ## UX evidence and remaining validation
@@ -69,10 +69,10 @@ PR #3:
 
 ## Next actions
 
-1. Resolve the final-result `content_only` response-scope question with tests covering allowed and denied fields.
-2. Inspect the complete RBAC/access-grant regression tests and remaining high-risk PR changes; record any findings in review.
+1. Resolve whether every field returned by the final-result endpoint is allowed under a `content_only` grant; add focused authorization/response tests or adjust the response/scope before approval.
+2. Inspect remaining high-risk RBAC/access-grant changes and record concrete findings in review.
 3. Perform populated, error, permission and stale-state UX walkthroughs, then keyboard/screen-reader, reduced-motion, zoom/reflow and axe checks.
-4. Re-check live PR head and CI after any changes; do not rely on this dated snapshot.
+4. Re-fetch live PR head and CI after any changes; do not rely on this dated snapshot.
 5. Keep PR #3 in draft pending owner review. Do not mark ready, merge, or deploy without explicit owner approval.
 
 ---
