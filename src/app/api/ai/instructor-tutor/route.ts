@@ -37,23 +37,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Only staff can use the Instructor AI Assistant" }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const { messages } = body as {
-    messages?: { role: "user" | "assistant"; content: string }[];
-  };
-  if (messages && messages.length > 50) {
-    return NextResponse.json({ error: "Too many messages (max 50)" }, { status: 400 });
+  const body = await req.json().catch(() => null);
+  const requestSchema = z.object({
+    messages: z.array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().max(8000, "Message too long (max 8000 characters per message)"),
+      }).strict(),
+    ).min(1, "messages array required").max(50, "Too many messages (max 50)"),
+  }).strict();
+  const parsed = requestSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid request body" },
+      { status: 400 },
+    );
   }
-  if (messages) {
-    for (const m of messages) {
-      if (m.content.length > 8000) {
-        return NextResponse.json({ error: "Message too long (max 8000 characters per message)" }, { status: 400 });
-      }
-    }
-  }
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return NextResponse.json({ error: "messages array required" }, { status: 400 });
-  }
+  const { messages } = parsed.data;
 
   // Build context from the instructor's profile — ANONYMIZED (2026-08-15):
   // the AI never learns the instructor's real name; a stable pseudonym is
