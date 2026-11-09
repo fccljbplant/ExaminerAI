@@ -83,8 +83,8 @@ export function PlatformHome() {
         <Kpi label="Active memberships" detail="Active org-to-member links; one person may have more than one." value={data.kpis.activeMembers} icon={Users} tone="info" />
         <Kpi label="Estimated MRR" detail="Based on $29 per active subscription seat per month." value={"$" + data.kpis.mrr.toLocaleString()} icon={TrendingUp} tone="success" />
         <Kpi label="Fees (30d, USD)" detail="USD fees from completed payments in the last 30 days." value={"$" + data.kpis.fees30d.toLocaleString()} icon={Banknote} tone="muted" />
-        <Kpi label="Pending payout value" detail={`${data.kpis.payoutsPendingCount.toLocaleString()} pending payouts`} value={"$" + data.kpis.payoutsPending.toLocaleString()} icon={Clock} tone="warning" />
-        <Kpi label="AI spend (30d)" detail="Estimated cost logged for AI usage in the last 30 days." value={"$" + data.kpis.aiSpend30d.toLocaleString()} icon={Zap} tone="info" />
+        <Kpi label="Pending payout value (USD)" detail={`${data.kpis.payoutsPendingCount.toLocaleString()} pending payouts`} value={"$" + data.kpis.payoutsPending.toLocaleString()} icon={Clock} tone="warning" />
+        <Kpi label="AI spend (30d, USD)" detail="Estimated cost logged for AI usage in the last 30 days." value={"$" + data.kpis.aiSpend30d.toLocaleString()} icon={Zap} tone="info" />
         <Kpi label="Users" detail="All platform accounts" value={data.kpis.users} icon={Users} tone="muted" />
         <Kpi label="Audit actions" detail="All-time audit log records" value={data.kpis.auditActions} icon={ScrollText} tone="warning" />
       </div>
