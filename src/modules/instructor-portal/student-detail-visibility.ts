@@ -27,7 +27,7 @@ export function toDailyLogPayload(
 
 /**
  * Keep learner drill-down data inside courses both assigned to the staff
- * member and actively enrolled by the learner. Unattributed course records
+ * member and enrolled by the learner. Unattributed course records
  * are intentionally excluded by the route's exact courseId filter.
  */
 export function getAuthorizedStudentCourseIds(
