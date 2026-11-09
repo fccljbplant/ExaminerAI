@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   if (!granteeUserId || !scopeType || !scopeId) {
     return NextResponse.json({ error: "granteeUserId, scopeType, and scopeId required" }, { status: 400 });
   }
-  const VALID_SCOPE_TYPES = ["batch", "student", "course", "institution"];
+  const VALID_SCOPE_TYPES = ["student", "course", "institution"];
   if (!VALID_SCOPE_TYPES.includes(scopeType)) {
     return NextResponse.json({ error: "Invalid scopeType" }, { status: 400 });
   }
