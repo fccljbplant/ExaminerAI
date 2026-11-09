@@ -338,7 +338,7 @@ function NoEnrollment() {
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-subtle text-fg">
           <GraduationCap className="h-7 w-7" aria-hidden />
         </span>
-        <p className="mt-4 text-sm font-semibold text-fg">Start your first course</p>
+        <h1 className="mt-4 text-sm font-semibold text-fg">Start your first course</h1>
         <p className="mx-auto mt-1 max-w-xs text-xs text-fg-muted">
           Browse the catalog and pick a course — your streak starts on day one.
         </p>
