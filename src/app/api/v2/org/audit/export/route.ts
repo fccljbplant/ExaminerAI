@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
+import { hasRole, UserRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { apiUnauthorized, apiError } from "@/lib/api-response";
 import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
@@ -26,7 +27,7 @@ function escapeCSV(value: unknown): string {
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (user.role !== "org_admin" && user.role !== "platform_admin") {
+  if (!hasRole(user.role, [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN])) {
     return apiError("Org access only", "FORBIDDEN", 403);
   }
   if (!(await isOrgPortalEnabled())) {
