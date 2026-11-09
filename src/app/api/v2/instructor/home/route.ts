@@ -56,16 +56,35 @@ export async function GET(req: NextRequest) {
   const { items } = queue;
 
   // At-risk roster: compose the students route in-process (no HTTP hop).
+  // Do not turn a roster failure into a convincing but false zero-state.
   const rosterUrl = new URL(req.url);
   rosterUrl.pathname = "/api/v2/instructor/students";
   rosterUrl.search = "risk=1";
   const studentsRes = await GET_Students(new NextRequest(rosterUrl, { method: "GET" }));
-  const body = await studentsRes.json();
-  const atRisk = body?.ok && Array.isArray(body?.data?.items) ? body.data.items : [];
+  if (!studentsRes.ok) {
+    console.error("Instructor home roster aggregation failed", { status: studentsRes.status });
+    return apiError(
+      "Instructor dashboard data is temporarily unavailable. Please try again.",
+      "SERVICE_UNAVAILABLE",
+      503,
+    );
+  }
+
+  const body = await studentsRes.json().catch(() => null);
+  const rosterItems = body?.ok && Array.isArray(body?.data?.items) ? body.data.items : null;
+  const studentsTotal = body?.ok && Number.isInteger(body?.data?.total) ? body.data.total : null;
+  if (!rosterItems || studentsTotal === null) {
+    console.error("Instructor home roster aggregation returned an invalid response");
+    return apiError(
+      "Instructor dashboard data is temporarily unavailable. Please try again.",
+      "SERVICE_UNAVAILABLE",
+      503,
+    );
+  }
 
   return apiSuccess({
     queue: { count: queueCount, inReviewCount, preview: items.slice(0, 5) },
-    atRisk: { count: atRisk.length, items: atRisk.slice(0, 5) },
-    studentsTotal: body?.data?.total ?? 0,
+    atRisk: { count: rosterItems.length, items: rosterItems.slice(0, 5) },
+    studentsTotal,
   });
 }
