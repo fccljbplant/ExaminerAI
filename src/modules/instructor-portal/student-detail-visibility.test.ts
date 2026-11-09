@@ -1,10 +1,34 @@
 import { describe, expect, it } from "vitest";
 import {
   canViewLearnerSupportSignals,
+  getAuthorizedStudentCourseIds,
   toDailyLogPayload,
 } from "./student-detail-visibility";
 
 describe("instructor student-detail visibility", () => {
+
+  it("intersects staff course access with the learner's enrolments", () => {
+    expect(
+      getAuthorizedStudentCourseIds(
+        ["course-a", "course-b", "course-a"],
+        ["course-b", "course-c"],
+      ),
+    ).toEqual(["course-b"]);
+  });
+
+  it("does not authorise a learner course the staff member does not teach or administer", () => {
+    expect(getAuthorizedStudentCourseIds(["course-a"], ["course-b"])).toEqual([]);
+  });
+
+  it("returns each shared course once when both sides have duplicates", () => {
+    expect(
+      getAuthorizedStudentCourseIds(
+        ["course-a", "course-b", "course-b"],
+        ["course-a", "course-a", "course-b"],
+      ),
+    ).toEqual(["course-a", "course-b"]);
+  });
+
   it("limits learner support indicators to instructors", () => {
     expect(canViewLearnerSupportSignals("instructor")).toBe(false);
     expect(canViewLearnerSupportSignals("instructor", true, false)).toBe(false);
