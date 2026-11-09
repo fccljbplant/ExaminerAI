@@ -98,3 +98,13 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Student drill-down hardening: `/api/v2/instructor/students/[id]` now confirms the requested account normalizes to the learner role before proceeding with org/course scope and returning learner records.
 - Latest-head validation remains pending. Run `42658325358` passed on the prior head, not the subsequent marketplace/route commits. Vercel is blocked by the build-rate limit. No local/browser/axe checks were run.
 - Keep the comprehensive-report field classification blocked pending owner decision. Keep learner-support consent, feature gate and crisis workflow disabled until approvals and controls are implemented.
+
+
+## Latest delivery update — 2026-11-09 course-scope hardening
+
+- On the existing PR #3 branch, instructor student drill-down and roster queries now scope course-bearing learner activity to courses shared by the staff member and learner.
+- Drill-down scope is computed as the intersection of staff-authorised course IDs and learner enrolments. Weekly tests, report cards, daily logs, project tasks, certificates and engagement events use that intersection. Roster daily-log aggregation and project-task progress use the instructor's taught course IDs.
+- Added unit tests for course intersection and denial of non-overlapping courses.
+- Latest code head at verification: `d78ec3e7589edd9c3e907de9a6707f3848bb6384`. GitHub Actions run `42661008830` passed lint, unit tests, typecheck, production build, route smoke, authenticated screenshot capture and artifact upload.
+- Vercel preview remains blocked by the project build-rate limit. No deploy or merge. The interactive Vercel sandbox endpoint was not authorised (403); GitHub-hosted Actions runner supplied CI verification.
+- Schema limitation to remember: `SkillMastery` and `Competency` do not have `courseId`; they remain learner-level profile data until their intended global/course semantics are decided. Do not silently alter their visibility or schema.
