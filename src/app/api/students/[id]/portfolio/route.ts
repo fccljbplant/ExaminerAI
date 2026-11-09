@@ -59,6 +59,7 @@ export async function GET(
   });
   const learnerCourseIds = learnerEnrollments.map((enrollment) => enrollment.courseId);
   let staffCourseIds: string[] = [];
+  let grantDataScope: string | null = null;
 
   if (callerRole === UserRole.INSTRUCTOR) {
     const teachingEnrollments = await db.courseEnrollment.findMany({
@@ -80,7 +81,10 @@ export async function GET(
         },
         select: { id: true },
       });
-      if (grant) staffCourseIds = learnerCourseIds;
+      if (grant) {
+        staffCourseIds = learnerCourseIds;
+        grantDataScope = grant.dataScope;
+      }
     }
   } else if (callerRole === UserRole.ORG_ADMIN) {
     const adminMemberships = await db.orgMember.findMany({
@@ -119,11 +123,18 @@ export async function GET(
       },
       select: { id: true },
     });
-    if (grant) staffCourseIds = learnerCourseIds;
+    if (grant) {
+      staffCourseIds = learnerCourseIds;
+      grantDataScope = grant.dataScope;
+    }
   }
 
-  const authorizedCourseIds = getAuthorizedStudentCourseIds(staffCourseIds, learnerCourseIds);
-  const canSeeComments = callerRole === UserRole.INSTRUCTOR;
+  const canSeeContent =
+    grantDataScope === null || grantDataScope === "full" || grantDataScope === "content_only";
+  const authorizedCourseIds = canSeeContent
+    ? getAuthorizedStudentCourseIds(staffCourseIds, learnerCourseIds)
+    : [];
+  const canSeeComments = callerRole === UserRole.INSTRUCTOR && canSeeContent;
 
   // All course-bearing records are filtered to the exact staff/learner
   // intersection. Empty intersections intentionally return no course records.
@@ -216,8 +227,8 @@ export async function GET(
     interactions,
     comments: canSeeComments ? comments : [],
     weeklyTests,
-    competencies,
-    reportCards,
-    dataScope: "content_only",
+    competencies: canSeeContent ? competencies : [],
+    reportCards: canSeeContent ? reportCards : [],
+    dataScope: canSeeContent ? "content_only" : grantDataScope,
   });
 }
