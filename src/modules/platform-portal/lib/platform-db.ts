@@ -44,6 +44,7 @@ export async function getPlatformHome() {
       pipelineMrr: revenue.pipelineMrr,
       fees30d: revenue.platformFees30d,
       payoutsPending: revenue.payoutsPending.sum,
+      payoutsPendingCount: revenue.payoutsPending.count,
       aiSpend30d: revenue.aiSpend30d,
     },
     orgs: orgs.map((o) => ({
