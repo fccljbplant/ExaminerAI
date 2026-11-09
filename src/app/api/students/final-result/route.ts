@@ -1,14 +1,15 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { isStaffRole, normalizeRole, UserRole } from "@/lib/rbac";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth";
-import { callAI, TOKEN_BUDGET } from "@/lib/ai-provider";
+import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
+import { callAI } from "@/lib/ai-provider";
 import { enforceAIRateLimit } from "@/lib/ai-rate-limits";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { scoreToGrade } from "@/lib/constants";
 import { getCourseWeekPhase, getCourseDurationWeeks } from "@/lib/course-db";
 import { logger } from "@/lib/logger";
 import { canExposeLearnerBehavioralAnalysis } from "@/modules/instructor-portal/final-result-visibility";
+import { getAuthorizedStudentCourseIds } from "@/modules/instructor-portal/student-detail-visibility";
 
 /** GET /api/students/final-result — generates (or returns cached) final result
  *  for a student based on ALL their data across the full course duration.
@@ -41,18 +42,131 @@ export async function GET(req: Request) {
     }
   }
 
+  // A staff final-result view is course-scoped, not learner-global. Resolve
+  // the same authorised-course boundary used by the portfolio endpoint and
+  // fail closed if access was revoked after the initial authorisation check.
+  let authorisedCourseIds: string[] | null = null;
+  if (targetUserId !== payload.sub) {
+    const learnerEnrollments = await db.courseEnrollment.findMany({
+      where: { userId: targetUserId, role: "student" },
+      select: { courseId: true },
+    });
+    const learnerCourseIds = learnerEnrollments.map((enrollment) => enrollment.courseId);
+    const callerRole = normalizeRole(payload.role);
+    let staffCourseIds: string[] = [];
+
+    if (callerRole === UserRole.INSTRUCTOR) {
+      const teachingEnrollments = await db.courseEnrollment.findMany({
+        where: { userId: payload.sub, role: "instructor" },
+        select: { courseId: true },
+      });
+      staffCourseIds = teachingEnrollments.map((enrollment) => enrollment.courseId);
+      authorisedCourseIds = getAuthorizedStudentCourseIds(staffCourseIds, learnerCourseIds);
+
+      // An explicit student grant is the instructor fallback only when there
+      // is no shared teaching course. It cannot widen an existing assignment.
+      if (authorisedCourseIds.length === 0) {
+        const grant = await db.accessGrant.findFirst({
+          where: {
+            granteeUserId: payload.sub,
+            scopeType: "student",
+            scopeId: targetUserId,
+            dataScope: { in: ["full", "content_only"] },
+            revokedAt: null,
+          },
+          select: { id: true, dataScope: true },
+        });
+        if (grant) authorisedCourseIds = learnerCourseIds;
+      }
+    } else if (callerRole === UserRole.ORG_ADMIN) {
+      const adminMemberships = await db.orgMember.findMany({
+        where: { userId: payload.sub, role: "admin", status: "active" },
+        select: { orgId: true },
+      });
+      const adminOrgIds = adminMemberships.map((membership) => membership.orgId);
+      if (adminOrgIds.length > 0) {
+        const learnerMemberships = await db.orgMember.findMany({
+          where: { userId: targetUserId, orgId: { in: adminOrgIds }, status: "active" },
+          select: { orgId: true },
+        });
+        const sharedOrgIds = learnerMemberships.map((membership) => membership.orgId);
+        if (sharedOrgIds.length > 0) {
+          const orgCourses = await db.orgCourse.findMany({
+            where: { orgId: { in: sharedOrgIds } },
+            select: { courseId: true },
+          });
+          staffCourseIds = orgCourses.map((course) => course.courseId);
+        }
+      }
+      authorisedCourseIds = getAuthorizedStudentCourseIds(staffCourseIds, learnerCourseIds);
+    } else if (callerRole === UserRole.PLATFORM_ADMIN) {
+      // Platform admins retain global operational access, bounded to the
+      // learner's actual course enrolments.
+      authorisedCourseIds = learnerCourseIds;
+    } else {
+      // Demo/other staff roles rely on an explicit student grant. Re-read it
+      // here so a grant revoked after assertCanAccessStudent fails closed.
+      const grant = await db.accessGrant.findFirst({
+        where: {
+          granteeUserId: payload.sub,
+          scopeType: "student",
+          scopeId: targetUserId,
+          dataScope: { in: ["full", "content_only"] },
+          revokedAt: null,
+        },
+        select: { id: true, dataScope: true },
+      });
+      if (grant) authorisedCourseIds = learnerCourseIds;
+    }
+
+    if (!authorisedCourseIds || authorisedCourseIds.length === 0) {
+      return NextResponse.json(
+        { error: "No authorised course records are available for this learner" },
+        { status: 403 },
+      );
+    }
+  }
+
+  // Learners retain their own cross-course view. Staff relations are all
+  // filtered by the exact authorised course set; null/unattributed records
+  // are intentionally excluded from staff responses.
+  const courseScopeWhere = authorisedCourseIds
+    ? { courseId: { in: authorisedCourseIds } }
+    : undefined;
   const user = await db.user.findUnique({
     where: { id: targetUserId },
     include: {
-      weeklyTests: { orderBy: { week: "asc" }, take: 50 },
-      interactions: { select: { week: true, correctness: true, date: true, plagiarismScore: true }, take: 500 },
-      reportCards: { orderBy: { week: "asc" }, take: 50 },
-      projectReports: { orderBy: { week: "asc" }, take: 50 },
-      tasks: { select: { status: true, isMilestone: true, week: true }, take: 200 },
+      weeklyTests: {
+        ...(courseScopeWhere ? { where: courseScopeWhere } : {}),
+        orderBy: { week: "asc" },
+        take: 50,
+      },
+      interactions: {
+        ...(courseScopeWhere ? { where: courseScopeWhere } : {}),
+        select: { week: true, correctness: true, date: true, plagiarismScore: true },
+        take: 500,
+      },
+      reportCards: {
+        ...(courseScopeWhere ? { where: courseScopeWhere } : {}),
+        orderBy: { week: "asc" },
+        take: 50,
+      },
+      projectReports: {
+        ...(courseScopeWhere ? { where: courseScopeWhere } : {}),
+        orderBy: { week: "asc" },
+        take: 50,
+      },
+      tasks: {
+        ...(courseScopeWhere ? { where: courseScopeWhere } : {}),
+        select: { status: true, isMilestone: true, week: true },
+        take: 200,
+      },
     },
   });
 
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (!user || (targetUserId !== payload.sub && normalizeRole(user.role) !== UserRole.LEARNER)) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
 
   // ---- Compute metrics ----
   // Course duration is per-student (depends on batch's assigned course).
