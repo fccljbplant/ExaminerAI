@@ -308,3 +308,42 @@ Important scope distinctions:
 - Gamification is specified as a later phase (Phase 8) and must use evidence-based learning outcomes, not engagement manipulation.
 - Product helpdesk and instructor escalation are distinct from sensitive wellbeing/crisis support; support stays off until consent, governance and owner approvals.
 - Continue PR #3 incremental UI implementation in parallel with privacy/security; preserve existing branch and do not merge/deploy.
+
+
+## 2026-11-09 — Marketplace discovery and student drill-down hardening
+
+**Starting PR head:** `875e80c6bca63654dd88ab245612ab49f614b382`  
+**Ending application head:** `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6`  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety` (existing PR #3 branch only)
+
+### Live state and validation
+- PR #3 remains open, draft, unmerged and based on `main`; latest application head after code changes is `b4f937c0` (250 commits, 109 changed files).
+- Actions run `42658325358` passed all configured quality steps on the starting head `875e80c6`: dependency installation, isolated DB initialization, lint, unit tests, TypeScript, production build, route smoke tests, authenticated role screenshots and artifact upload.
+- The marketplace and student-detail commits followed that run. No workflow run was returned yet for `b4f937c0`; these new changes are not yet CI-validated.
+- Vercel combined status remains failure due to the project build-rate limit. No current Ready preview is confirmed.
+- No local test/build or manual browser/axe/a11y check was available.
+
+### Changes made
+1. `src/app/(public)/courses/MarketplaceFilters.tsx`
+   - Exposed the existing `featured` query filter as a Featured only checkbox.
+   - Added accessible names to the course search and category/level select controls.
+   - Raised search, select, quick-filter and clear-action target heights to at least 44px.
+   - Reused existing controls and theme tokens; no dependencies or payment/checkout scope added.
+2. `src/app/api/v2/instructor/students/[id]/route.ts`
+   - Added a server-side target-role check using `normalizeRole` and `UserRole.LEARNER`.
+   - Non-learner accounts now receive the same not-found response as missing accounts before organisation/course data is returned.
+   - Existing instructor-course and org-admin same-tenant/linked-course checks remain in place.
+3. Updated `proj_progress.md`, `docs/PROJECT-STATUS.md` and this continuity/session record.
+
+### Commits
+- `98c4b328e495c426f106349c262cafd7fc19214c` — marketplace filters.
+- `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6` — learner target guard.
+- Documentation updates followed; fetch the live PR head again before relying on any commit SHA.
+
+### Risks and next steps
+- Add focused tests for the marketplace featured filter state and the v2 student-detail non-learner denial; add route-level tests for instructor course membership, org admin active membership + OrgCourse linkage, cross-tenant denial and revoked grants.
+- Continue reviewing all `assertCanAccessStudent` callsites and response fields. Do not broaden `content_only` or expose support data to ordinary org/platform admins.
+- Comprehensive report `managementAttitude` classification remains unresolved in `docs/UPGRADE-2026-10/QUESTIONS.md`; no schema or visibility change was made.
+- Keep support consent, feature gate, audit and designated Learner Support Lead crisis handling disabled pending approvals and implementation.
+- Continue product-wide UX work in small slices; no paid cart/checkout/payment work.
+- No merge, deployment, main-branch write, production-data change or dependency addition occurred.
