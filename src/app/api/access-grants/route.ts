@@ -51,8 +51,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid scopeType" }, { status: 400 });
   }
   const VALID_DATA_SCOPES = ["full", "wellbeing_only", "crisis_only", "content_only"];
-  const effectiveDataScope: DataScope = (dataScope && VALID_DATA_SCOPES.includes(dataScope))
-    ? dataScope as DataScope : "full";
+  if (dataScope !== undefined && !VALID_DATA_SCOPES.includes(dataScope)) {
+    return NextResponse.json({ error: "Invalid dataScope" }, { status: 400 });
+  }
+  const effectiveDataScope: DataScope = dataScope ? dataScope as DataScope : "full";
 
   const grantee = await db.user.findUnique({
     where: { id: granteeUserId },
