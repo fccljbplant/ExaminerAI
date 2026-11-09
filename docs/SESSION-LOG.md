@@ -1,3 +1,45 @@
+## 2026-11-09 — PR #3 branch audit: support-data scope and branch verification
+
+**PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Working branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`  
+**Starting head:** `0fd41710a8bd460a430ec540b8ed158314498c27`
+
+### Branch verification
+- Confirmed PR #3 is open, draft, not merged, and attached to `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Found older branch `fix/ui-simplification-safe`, whose unique commit `f075dc632c891ecdf819592e84afd8eaaae2a126` is an earlier role-aware home-routing/UI simplification. Compare against `main`: one commit ahead, seven behind, diverged. It is not PR #3's head; PR #3 remains the correct destination for PR #3 fixes.
+- The older branch also lacks the Agent Pack files checked below.
+
+### Source findings
+- `src/app/api/students/final-result/route.ts` requests `content_only` for staff viewing another learner but returns a mixed academic/project/behavior-related payload without field filtering.
+- `src/lib/auth.ts` returns early for platform admins, same-tenant org admins and course instructors before enforcing the requested data scope. This means the `content_only` request is not a response filter and does not constrain these implicit access paths.
+- `src/app/api/v2/instructor/students/[id]/route.ts` allows both `instructor` and `org_admin`; after course enrolment check it returns `psychWeekly`, daily confidence and per-test plagiarism indicators. There is no designated Learner Support Lead capability check or `learner_support_v1` consent gate in this route.
+- Master Upgrade Prompt Workstream H (H1–H8) says learner support indicators are visible to the learner and their own-course instructor; org Learner Support Leads see crisis case summaries/handling records only; other org admins and platform admins do not see individual support indicators. H5 requires per-org `learner_support_v1` default-off until consent text is approved and audit logging for support-signal/case views.
+- `src/app/api/students/[id]/portfolio/route.ts` comments define `content_only` as tasks, report cards and interactions, but the implementation also returns weekly tests and competencies under `canSeeContent`. This contract mismatch needs correction without silently expanding the scope.
+- Owner's prior instruction remains: preserve required functionality; do not remove fields that belong in learner/instructor views. Academic outcome/career-readiness field mapping remains unresolved and must be classified before filtering.
+
+### CI and PR state at starting head
+- Workflow run [42613884082](https://github.com/fccljbplant/ExaminerAI/actions/runs/42613884082) passed on exact starting head `0fd41710a8bd460a430ec540b8ed158314498c27`: install, isolated DB, lint, unit tests, typecheck, production build, page-route smoke tests, authenticated screenshots and artifact upload.
+- Vercel combined status on that same head: success; deployment completed.
+- PR metadata: open, draft, not merged, mergeable; 180 commits, 99 changed files; no submitted reviews or inline review threads.
+
+### Agent Pack prerequisite
+Checked on PR #3 branch: `AGENTS.md`, `docs/UPGRADE-2026-10/START-HERE.md`, `docs/UPGRADE-2026-10/QUEUE.md`, `scripts/agent/run-logged.mjs`, `scripts/agent/section.mjs`, `scripts/agent/check-evidence.mjs`, `docs/UPGRADE-2026-10/QUESTIONS.md` and `docs/UPGRADE-2026-10/FINDINGS.md` returned 404. The earlier fix branch also lacks them. Per project instructions, no application-code change was made without the approved task card/evidence workflow.
+
+### Work performed and limitations
+- Updated `docs/PROJECT-STATUS.md` with the current PR head/CI/preview state, branch comparison and the additional response-scope findings.
+- No application source code changed; no local tests/build/browser/axe checks run.
+- No production data, merge, or deployment action performed.
+- The documentation update advances the PR branch; re-fetch CI and Vercel status on the resulting head before relying on the prior green checks.
+
+### Next
+1. Restore/install the approved Agent Pack and provide the Phase 1 task card for the access-scope correction.
+2. Map fields to learner self-view, instructor academic view, instructor support view and crisis-only support-lead view.
+3. Correct `content_only` filtering and org-admin/platform-admin support visibility without removing required learner/instructor functionality.
+4. Add route-level tests for role, course, tenant, consent, grant and revocation cases.
+5. Keep PR #3 draft; no merge/deploy without explicit approval.
+
+---
+
 # TraineesAI session log
 
 Append new entries at the top. Preserve earlier entries.
