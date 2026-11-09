@@ -9,7 +9,7 @@ import { AlertTriangle, KeyRound, Loader2, Plus, RefreshCw, ShieldCheck } from "
  * modules/platform-portal — Access grants (W16: V1 AccessGrantsPanel
  * restored on the v2 stack)
  *
- * Scoped least-privilege grants (batch / student / course /
+ * Scoped least-privilege grants (student / course /
  * institution × full / wellbeing / crisis / content). Consumes the
  * surviving admin-guarded /api/access-grants.
  */
@@ -23,7 +23,7 @@ interface Grant {
   grantee: { id: string; name: string; email: string; role: string } | null;
 }
 
-const SCOPE_TYPES = ["batch", "student", "course", "institution"] as const;
+const SCOPE_TYPES = ["student", "course", "institution"] as const;
 const DATA_SCOPES = ["full", "wellbeing_only", "crisis_only", "content_only"] as const;
 
 export function PlatformAccess() {
