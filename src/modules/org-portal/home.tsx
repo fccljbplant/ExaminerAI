@@ -295,14 +295,14 @@ function OrgAnnouncements() {
           aria-label="Announcement body"
           className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
         />
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] text-fg-muted">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs leading-relaxed text-fg-muted sm:max-w-[24rem]">
             Everyone in the org gets an in-app notification.
           </p>
           <button
             type="submit"
             disabled={posting || !title.trim() || !body.trim()}
-            className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+            className="flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {posting ? "Posting…" : "Post announcement"}
           </button>
