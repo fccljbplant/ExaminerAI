@@ -178,3 +178,16 @@ Latest UI follow-up: organisation dashboard Manage people / Full audit links and
 ## 2026-11-09 — UXPeak Pro product-wide scope clarification
 
 Owner clarified that UXPeak must cover gamification, product UI, role dashboards, catalogue/marketplace, course discovery/enrolment, tutorials, AI assistance and helpdesk—not just dashboard polish. Added `docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md` as the product-wide experience inventory and acceptance plan. It distinguishes marketplace course preview from paid commerce (not approved), and ordinary product help from consent-gated learner support/crisis handling. Gamification remains phase-gated per the Master Upgrade Prompt. Continue incremental PR #3 dashboard work in parallel with privacy/security; do not expand into unapproved provider, payment, support-data or production changes.
+
+
+## 2026-11-09 — Instructor course-scope privacy hardening
+
+- Latest PR #3 application head: `d78ec3e7589edd9c3e907de9a6707f3848bb6384`; PR remains open, draft and unmerged.
+- Fixed cross-course learner-data exposure in the v2 instructor drill-down. The route now intersects staff-authorised course IDs with the learner's enrolments and scopes weekly tests, report cards, daily logs, project tasks, certificates and engagement events to that intersection.
+- Fixed the instructor roster's daily-log aggregate and project-task progress queries to use taught course IDs rather than learner IDs alone.
+- Added unit coverage for the course-ID intersection helper (overlap, no overlap and duplicate IDs).
+- GitHub Actions run [42661008830](https://github.com/fccljbplant/ExaminerAI/actions/runs/42661008830) passed all configured steps on this exact head: install, isolated DB init, lint, unit tests, TypeScript, production build, app route smoke tests, authenticated role screenshots and artifact upload.
+- The screenshot artifact is available as `role-dashboard-screenshots` until 2026-11-16. This validates screenshot capture, not a manual visual/accessibility review.
+- Vercel check remains failed due to the daily build-rate limit; no current preview is confirmed. No production deployment, merge, main-branch write or production-data operation occurred.
+- Residual: `SkillMastery` and legacy `Competency` lack `courseId` in the current Prisma schema and remain learner-level profile data. Their cross-course semantics need an explicit data-model decision before partitioning. Comprehensive-report `managementAttitude` visibility remains blocked in `docs/UPGRADE-2026-10/QUESTIONS.md`.
+- An interactive Vercel sandbox was unavailable (403); verification used the GitHub-hosted Actions runner. Continue only on the existing PR #3 branch.
