@@ -49,10 +49,12 @@ export async function POST(
     return NextResponse.json({ error: `Valid week (1-${totalWeeks}) required` }, { status: 400 });
   }
 
+  // The report card uses check-in count only. Do not load private reflections,
+  // confidence ratings, or error notes for this staff-facing academic report.
   // Fetch all data needed for the report card
   const [tasks, dailyLogs, interactions, weeklyTests, comments] = await Promise.all([
     db.projectTask.findMany({ where: { userId: id, week }, select: { status: true, description: true } }),
-    db.dailyLog.findMany({ where: { userId: id, week }, select: { date: true, whatDidYouDo: true, confidence: true, anyErrors: true } }),
+    db.dailyLog.findMany({ where: { userId: id, week }, select: { date: true } }),
     db.interaction.findMany({ where: { userId: id, week }, select: { correctness: true, topic: true, pillar: true, feedback: true } }),
     db.weeklyTest.findUnique({ where: { userId_week: { userId: id, week } }, select: { score: true, status: true } }),
     db.comment.findMany({ where: { studentId: id }, select: { body: true, marksOverride: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 5 }),
