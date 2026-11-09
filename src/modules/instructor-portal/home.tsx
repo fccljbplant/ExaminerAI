@@ -62,7 +62,7 @@ export function InstructorHome() {
       <div role="alert" className="rounded-xl border border-line bg-surface p-8 text-center">
         <AlertTriangle className="mx-auto h-6 w-6 text-danger" aria-hidden />
         <p className="mt-3 text-sm font-semibold text-fg">Couldn&apos;t load your dashboard</p>
-        <p className="mt-1 text-xs text-fg-muted">{error}</p>
+        <p className="mt-1 text-xs text-fg-muted">Please try again. If the problem continues, contact support.</p>
         <button
           type="button"
           onClick={retry}
@@ -175,7 +175,7 @@ export function InstructorHome() {
           )}
           <Link
             href="/instructor/students"
-            className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+            className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             View all students
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
