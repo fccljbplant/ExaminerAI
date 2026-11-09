@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-10 (live PR #3 head 6fe426c2cbd571fd1f77569b6421f6cc4f81ef83)  
+**Snapshot date:** 2026-11-10 (live PR #3 head 4d394819e074f528b12b821d6d69d54a45c5739f)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -254,3 +254,11 @@ Owner clarified that UXPeak must cover gamification, product UI, role dashboards
 2. Implement the portfolio authorised-course intersection and route-level regression tests only after that prerequisite is satisfied.
 3. Preserve the current support-data default-off policy; do not alter course-less competency semantics or expired-enrolment treatment without verified rules.
 4. Keep PR #3 draft; no merge, deployment or production-data changes without explicit approval.
+
+
+## Latest PR #3 continuation note — 2026-11-10
+
+- Latest branch head at this note: 4d394819e074f528b12b821d6d69d54a45c5739f; PR #3 remains open, draft, unmerged and mergeable.
+- Portfolio course-scope correction and route regression tests are committed. Exact-head Actions remain unverified; the previous run was cancelled before quality checks. Vercel is rate-limited. No local checks were available.
+- Next planned PR #3 slice identified by source review: scope the course-bearing relations in src/app/api/students/final-result/route.ts (weekly tests, interactions, report cards, project reports and tasks) to the same authorised course boundary. Preserve learner self-view and required academic/career fields; behavioralPattern remains learner-self only. See QUESTIONS.md for field classification and the comprehensive-report blocker.
+- Org-admin assignment/reassignment and instructor course-access approval requirements have been appended to the end of the product-wide blueprint and Issue #4 as future Workstream J scope.
