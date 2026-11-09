@@ -184,3 +184,8 @@ The official [DeepSeek Models & Pricing page](https://api-docs.deepseek.com/quic
 
 The same pricing page defines weekday peak windows as 01:00–04:00 and 06:00–10:00 UTC, **excluding Chinese public holidays**; weekends and Chinese public holidays are listed as off-peak. The Agent Pack prompt deliberately treats those holidays as peak. That is a conservative cost guard, not an outdated fact about the current API price schedule. Preserve the conservative behavior unless the owner explicitly asks to optimize those holiday windows. No model/provider/runtime code was changed in this UX audit.
 
+
+
+## Product-wide UXPeak Pro scope
+
+See `docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md` for the full cross-product concept inventory and approval gates: gamification, dashboards, catalogue/marketplace, discovery/enrolment, classroom, AI assistance, tutorials, helpdesk, communications and design-system quality. This supplements the role-specific redesign; it does not authorise paid commerce or sensitive support-data activation.
