@@ -1,18 +1,27 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-10 (PR #3 portfolio scope and roadmap additions)  
+**Updated:** 2026-11-10 (PR #3 final-result course-scope correction)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
 
 ## Current verified state
-- PR #3 is open, draft, unmerged, and based on `main`.
-- Latest branch head: `6d90c757a2273c3d6a49677d8766d50d2176f094` (235 commits, 107 changed files).
-- No branch creation/switch, merge, deployment, production-data change, or main-branch write.
-- Latest completed GitHub Actions quality run: `42655880066`, success on prior head `94869a6ec91dbfc737fe09bc3c28f203dbd79f54`. Dependency installation, isolated DB setup, lint, unit tests, typecheck, production build, route smoke tests, authenticated role screenshots and artifact upload all passed.
-- No workflow run had yet been returned for current head `6d90c757` at this refresh. The passing run is not validation of the new dashboard commits.
-- Vercel status remains a deployment-quota failure (`api-deployments-free-per-day`); no current Ready preview is confirmed.
-- No local checkout or local build/test runner was available.
+- PR #3 is open, draft, unmerged and mergeable; the final-result source/test implementation commit is `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8` (300 commits, 111 changed files at that code head).
+- The subsequent commits in this session update continuity documents only; no branch switch, merge, deployment, production-data operation or main-branch write occurred.
+- The previous code head `c9f49cab288b79f162c107a5de2b44b8e6567ba5` had GitHub Actions run `42722331613` complete successfully across install, isolated DB setup, lint, unit tests, TypeScript, production build, route smoke tests, authenticated screenshots and artifact upload.
+- No PR-triggered Actions run had been returned for the final-result code head at the time of the update. Do not treat the previous green run as validation of the new route/tests.
+- Vercel status is a failure due to the build-rate limit; no Ready preview is verified.
+- No local checkout/test runner was available; no local test, lint, typecheck, build, browser or axe checks were run.
+
+## Latest PR #3 implementation — final-result course scope
+- `src/app/api/students/final-result/route.ts` now derives staff-authorised course IDs after the existing `assertCanAccessStudent(..., "content_only")` check.
+- Instructor scope is teaching enrolments intersected with learner student enrolments; an active explicit `full`/`content_only` student grant is a fallback only when no shared teaching course exists.
+- Org-admin scope uses active admin membership, active learner membership in the same organisation, linked `OrgCourse` rows, then intersects with learner enrolments.
+- Platform-admin scope is bounded to learner enrolments. Demo/other staff require a re-read active explicit `full`/`content_only` grant.
+- All five course-bearing relations (`weeklyTests`, `interactions`, `reportCards`, `projectReports`, `tasks`) are filtered by the authorised course IDs. No authorised course (including a disappearing grant) returns 403 before loading the report. Staff target accounts are verified as learners.
+- Learner self-view remains cross-course and unfiltered. Academic performance, participation, areas to improve, overall assessment, career readiness, project reports and task statistics are preserved within scope. `behavioralPattern` remains learner-self only.
+- Added `src/app/api/students/final-result/route.test.ts` for instructor isolation, org-admin linked-course scope, explicit grant fallback, empty/revoked scope denial, denied-access short-circuit, platform-admin bounding and learner self-view.
+- Multi-course duration/phase semantics and existing relation take limits remain unchanged pending separate review.
 
 ## Access, privacy and data-minimisation work already in PR #3
 - Org-admin access requires active admin and learner memberships in the same organisation and active learner enrolment in an organisation-linked course. Explicit grants cannot widen this boundary.
