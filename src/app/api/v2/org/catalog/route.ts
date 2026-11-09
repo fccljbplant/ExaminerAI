@@ -10,6 +10,7 @@
 
 import { NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/auth";
+import { hasRole, UserRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { demoWriteBlock } from "@/lib/demo-guard";
@@ -19,12 +20,12 @@ import { isOrgPortalEnabled } from "@/modules/org-portal/lib/flag";
 
 export const runtime = "nodejs";
 
-const ORG_ROLES = new Set(["org_admin", "platform_admin"]);
+
 
 export async function GET() {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (!ORG_ROLES.has(user.role)) return apiError("Org access only", "FORBIDDEN", 403);
+  if (!hasRole(user.role, [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN])) return apiError("Org access only", "FORBIDDEN", 403);
   if (!(await isOrgPortalEnabled())) {
     return apiError("Org portal is not enabled yet", "FORBIDDEN", 403);
   }
@@ -66,7 +67,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (!ORG_ROLES.has(user.role)) return apiError("Org access only", "FORBIDDEN", 403);
+  if (!hasRole(user.role, [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN])) return apiError("Org access only", "FORBIDDEN", 403);
   if (!(await isOrgPortalEnabled())) {
     return apiError("Org portal is not enabled yet", "FORBIDDEN", 403);
   }
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (!ORG_ROLES.has(user.role)) return apiError("Org access only", "FORBIDDEN", 403);
+  if (!hasRole(user.role, [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN])) return apiError("Org access only", "FORBIDDEN", 403);
   if (!(await isOrgPortalEnabled())) {
     return apiError("Org portal is not enabled yet", "FORBIDDEN", 403);
   }
