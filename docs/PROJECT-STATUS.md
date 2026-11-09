@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (owner clarification and CI refresh)  
+**Snapshot date:** 2026-11-09 (PR #3 head `0fd41710` live verification)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -8,30 +8,29 @@
 
 | Ref | Commit | State |
 |---|---|---|
-| `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA reported by GitHub; re-fetch default branch HEAD before release decisions. |
-| PR #3 branch | `7fb3a3d820f2233012b31f9aedeb42d8f758a661` | Latest verified PR head before this status refresh; this update will advance the branch again. |
+| `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA; no changes made to main. |
+| PR #3 branch | `0fd41710a8bd460a430ec540b8ed158314498c27` | Live PR head at this refresh. |
 
-PR #3 at the live metadata refresh before this documentation update:
+PR #3 live metadata:
 - State: **open**
 - Draft: **yes**
 - Merged: **no**
-- Mergeable: GitHub currently reports **false** on head `7271cb850aa4b5e94c23474896c1d887a58d4794`; reason not yet established, so inspect merge-base/conflict status before any approval.
+- Mergeable: **yes**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `7fb3a3d820f2233012b31f9aedeb42d8f758a661`
-- Commits: **178**
+- Head SHA: `0fd41710a8bd460a430ec540b8ed158314498c27`
+- Commits: **180**
 - Changed files: **99**
 - No submitted PR reviews or inline review threads were returned.
 
 ## Current CI and preview status
 
-- On PR head `7fb3a3d820f2233012b31f9aedeb42d8f758a661`, GitHub Actions run [42613785850](https://github.com/fccljbplant/ExaminerAI/actions/runs/42613785850) was **pending** at the last refresh; no jobs were returned yet.
-- Combined Vercel status for `7fb3a3d`: **pending**.
-- The preceding workflow run [42612463259](https://github.com/fccljbplant/ExaminerAI/actions/runs/42612463259) on `89a45fce` had passed dependency installation, isolated DB setup, lint, unit tests, typecheck, production build and route smoke tests; authenticated screenshot capture was still in progress at the last job refresh. It does not validate later documentation commits.
-- Earlier workflow run [42609924471](https://github.com/fccljbplant/ExaminerAI/actions/runs/42609924471) completed successfully on earlier head `4f4c4cd56fc3c0448acc0983e13a0ce74cea8773`; historical evidence only.
-- This status refresh itself advances the branch. Re-fetch checks on the resulting head before approval; do not claim the latest head is green.
-- PR metadata after the latest documentation commit reported 179 commits, 99 changed files, open/draft/not merged, and `mergeable: false`. No PR-triggered workflow run was returned for that exact head; Vercel remained pending.
-- No live browser walkthrough, production deployment, or end-user accessibility sign-off was performed in this session.
+- GitHub Actions run [42613884082](https://github.com/fccljbplant/ExaminerAI/actions/runs/42613884082) completed **successfully** on exact head `0fd41710a8bd460a430ec540b8ed158314498c27`.
+- The `quality` job passed dependency installation, isolated test DB initialization, lint, unit tests, TypeScript type-check, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload.
+- Combined Vercel status for the same head: **success**; deployment completed.
+- This validates the current PR head before this documentation update. Re-fetch checks after the resulting documentation commit; do not claim the new head is green until verified.
+- No live browser walkthrough, production data change, merge or production deployment was performed.
+
 ## PR #3 scope
 
 - Accurate instructor queue and in-review KPIs from complete database aggregates.
@@ -46,10 +45,15 @@ PR #3 at the live metadata refresh before this documentation update:
 
 ## Review observations and risks
 
-1. **Confirmed response-scope inconsistency for explicit `content_only` grants.** `src/app/api/students/final-result/route.ts:37` checks `content_only`, but returns `behavioralPattern`, `areasToImprove`, `overallAssessment`, `careerReadiness`, `projectReports` and `projectTaskStats` at lines 262–269 without applying field filtering. The portfolio endpoint documents `content_only` as tasks, report cards and interactions only (`src/app/api/students/[id]/portfolio/route.ts:119–144`) and filters its response. The final-result route therefore does not match the established `content_only` response contract. The owner clarified: **do not remove this functionality; include it where required.** Treat this as a product-preserving access-boundary correction, not a feature-removal request. Keep `content_only` limited to its established content contract unless explicitly redefined. Preserve learner self-view and instructor-scoped learner-support functionality under the appropriate role/course/scope path. Classify academic outcome/career-readiness fields separately before changing visibility; the current specs do not conclusively map every final-result field to a grant scope. Do not silently broaden `content_only` or suppress required fields. No focused final-result route test was found in the inspected evidence.
-2. Instructor queue counts use full database counts rather than the five-row preview. Roster risk count is derived from the full risk-filtered roster response; latest scored test selection is deterministic by week.
-3. Platform dashboard aggregation errors are logged server-side and returned as a generic service error. Learner profile lookup failure returns service-unavailable rather than a false empty dashboard.
-4. No PR reviews or inline review threads were found. Owner review remains outstanding.
+1. **Final-results response is not filtered to the requested data scope.** `src/app/api/students/final-result/route.ts` calls `assertCanAccessStudent(payload, targetUserId, "content_only")`, then returns academic, project and behavior-related fields without response filtering. In `src/lib/auth.ts`, the platform-admin, same-tenant org-admin and course-instructor paths return before checking the requested grant scope. For staff granted `content_only`, the endpoint still returns fields such as `behavioralPattern`, `avgPlagiarism`, per-week plagiarism values, `careerReadiness`, `projectReports` and `projectTaskStats`. Preserve the functionality for intended audiences; classify fields before filtering. Keep `content_only` narrow unless its contract is explicitly redefined.
+2. **Instructor v2 profile exposes support-like indicators to org admins.** `src/app/api/v2/instructor/students/[id]/route.ts` accepts both `instructor` and `org_admin`, then returns `psychWeekly` (confidence calibration), daily confidence values and per-test plagiarism indicators. It checks course enrolment but does not check a designated Learner Support Lead capability or a support-consent flag. Master Upgrade Prompt Workstream H says individual learner support indicators are for the learner and their own-course instructor; org Learner Support Leads see crisis-case handling records only, not individual support signals. The role exception must be enforced server-side.
+3. **Portfolio `content_only` implementation does not match its own comment.** `src/app/api/students/[id]/portfolio/route.ts` documents the scope as tasks, report cards and interactions, but also returns weekly tests and competencies when `canSeeContent` is true. Make the contract and response agree; do not silently broaden the grant.
+4. **Support consent/feature gating remains unverified.** Workstream H requires per-org `learner_support_v1` to default off until owner-approved consent text is reviewed with counsel, and requires audit logging for every support-signal/case view. The inspected routes do not demonstrate those controls. Do not enable or expand the support layer until those prerequisites are confirmed.
+5. **Field-level policy still needs an explicit mapping.** Keep learner self-view and instructor-scoped support functionality where required. Separate academic outcomes from support indicators; the current sources do not conclusively map every final-result field to the `content_only` grant. Do not remove required functionality or broaden the grant implicitly.
+6. No focused final-result route test or role-specific support-response test was found in the inspected evidence. Add route-level tests for learner self-view, instructor course scope, org admin, designated support lead crisis-only access, platform admin, explicit grant scopes, revoked/absent grants and cross-tenant/course access.
+7. Instructor queue counts use full database counts rather than the five-row preview. Roster risk count is derived from the full risk-filtered roster response; latest scored test selection is deterministic by week.
+8. Platform dashboard aggregation errors are logged server-side and returned as a generic service error. Learner profile lookup failure returns service-unavailable rather than a false empty dashboard.
+9. No PR reviews or inline review threads were found. Owner review remains outstanding.
 
 ## UX evidence and remaining validation
 
@@ -70,12 +74,11 @@ PR #3 at the live metadata refresh before this documentation update:
 
 ## Next actions
 
-1. Apply the owner clarification: preserve required final-result and learner-support functionality; map each field to learner self-view, instructor academic view, instructor support-signal view or another approved audience. Keep `content_only` narrow unless its contract is explicitly redefined. Add route-level tests for intended audiences, field preservation, cross-course/tenant denial and absent/revoked/insufficient grants.
-2. Inspect remaining high-risk RBAC/access-grant changes and record concrete findings in review.
-3. Perform populated, error, permission and stale-state UX walkthroughs, then keyboard/screen-reader, reduced-motion, zoom/reflow and axe checks.
-4. The Agent Pack prerequisites remain absent on this branch: `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md`, `scripts/agent/run-logged.mjs` and `docs/UPGRADE-2026-10/QUESTIONS.md` returned 404. Do not begin a code-change task requiring that workflow until the owner supplies/installs the approved task card and tooling.
-5. Re-fetch live PR head and CI after any changes; do not rely on this dated snapshot.
-6. Keep PR #3 in draft pending owner review. Do not mark ready, merge, or deploy without explicit owner approval.
+1. Continue fixes on the existing PR #3 branch, not `main`. Keep the PR draft.
+2. Resolve the Agent Pack prerequisite: `AGENTS.md`, `docs/UPGRADE-2026-10/START-HERE.md`, `docs/UPGRADE-2026-10/QUEUE.md`, `scripts/agent/run-logged.mjs`, `scripts/agent/section.mjs`, `scripts/agent/check-evidence.mjs` and `docs/UPGRADE-2026-10/QUESTIONS.md` were not found on the PR #3 branch. The earlier `fix/ui-simplification-safe` branch also lacks these files and is not the PR #3 head.
+3. Once the approved task card and runner are present, map final-result fields by audience, align `content_only` filtering, restrict support indicators to learner/in-scope instructor, and add route-level regression tests. Preserve required functionality.
+4. Confirm owner-approved consent text, the per-org `learner_support_v1` default-off gate, audit logging and the designated Learner Support Lead capability before enabling/expanding support data.
+5. Re-fetch live PR head and CI after any changes. Keep PR #3 in draft; do not mark ready, merge, or deploy without explicit owner approval.
 
 ---
 
