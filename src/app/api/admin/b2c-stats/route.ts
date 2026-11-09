@@ -78,14 +78,10 @@ export async function GET() {
   const avgScore = avgScoreAgg._avg?.score != null ? Math.round(avgScoreAgg._avg.score) : null;
 
   return NextResponse.json({
-    stats: {
-      totalLearners,
-      activeToday,
-      enrolledInCourses: 0,
-      completedCertificates,
-      avgScore,
-      completionRate: 0,
-    },
+    totalLearners,
+    activeToday,
+    completedCertificates,
+    avgScore,
     recentLearners: recentLearners.map(u => ({
       id: u.id,
       name: u.name,
