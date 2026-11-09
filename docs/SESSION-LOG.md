@@ -1,3 +1,16 @@
+## 2026-11-09 — Owner org-admin oversight clarification and Agent Pack review
+
+- **Branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety (PR #3 only); no other branch created or switched.
+- **Owner decision recorded:** org admins may review organisation-scoped student academic/course data and recorded instructor–student teaching activity (enrolment, progress, attendance/participation, assessments, assigned work, feedback and mentoring/teaching interactions) for oversight. This does not grant ordinary org admins access to learner-support/psychological indicators, private counselling content or crisis signals. Designated Learner Support Leads retain only their separately authorised crisis-case/handling access. No instructor psychological/behavioural profiling.
+- **Agent Pack:** received at /mnt/data/agent-pack.zip and inspected. The queue runner automatically creates/switches to upgrade/phase-N, conflicting with the PR #3-only owner instruction. The bundled off-peak plugin reads .env, .env.local and .env.production, conflicting with the no-.env-read rule. The pack was therefore not installed or activated as-is. No files from the archive were committed to the repo.
+- **ChatGPT Project Files:** this chat cannot write into the Project Files library. The archive remains attached to this conversation; user must add it through the Project Files UI for cross-chat availability.
+- **Repository documentation updated:** docs/PROJECT-STATUS.md and docs/PROJECT-CONTINUITY.md.
+- **Checks:** no application tests/build/agent runner run; this was a documentation and package-safety review only.
+- **Not done:** no application source changes, no agent task execution, no push to main, no merge, no deployment.
+- **Next:** create a PR #3-compatible, no-.env-reading adaptation of the agent tooling (or obtain owner approval for a manual card workflow); then begin the approved task queue on the existing PR #3 branch. For the org-admin feature, implement an explicit academic/teaching-activity read model and route tests for tenant/course isolation and support-field exclusion.
+
+---
+
 ## 2026-11-09 — PR #3 branch audit: support-data scope and branch verification
 
 **PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
