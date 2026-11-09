@@ -9,13 +9,13 @@
 | Ref | Commit | Meaning |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | Default-branch HEAD returned by GitHub. Commit: adaptive Learn question difficulty and server-enforced weekly test sequence (2026-09-07). |
-| `ux-audit/fix-dashboard-truthfulness-and-agent-safety` | `1ac3d87de73cdb0d0441a9e546e7aeab560acde2` | PR #3 head at time of this snapshot. Commit: scope final-result access to academic content grants. |
+| `ux-audit/fix-dashboard-truthfulness-and-agent-safety` | `1ac3d87de73cdb0d0441a9e546e7aeab560acde2` | Last application-code commit inspected before this session added the continuity documents. Commit: scope final-result access to academic content grants. |
 
 **Important:** GitHub's recent-commit search returned the September main-branch commit above. PR #3 is on a separate branch and is ahead of main. Do not confuse the PR branch's newer commits with changes already merged into `main`.
 
 ## PR #3 status
 
-<badge>Snapshot: open · draft · not merged</badge>
+**Snapshot: open · draft · not merged**
 
 - State: **open**
 - Draft: **yes**
@@ -23,7 +23,7 @@
 - Mergeable: GitHub reported **true** at the time checked.
 - Base: `main`
 - Head: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `1ac3d87de73cdb0d0441a9e546e7aeab560acde2`
+- Head SHA at code audit: `1ac3d87de73cdb0d0441a9e546e7aeab560acde2`. This session then added three documentation commits to this same PR branch; re-check the live head before the next session.
 - Commits: 164
 - Changed files: 96
 - Diff totals reported by GitHub: +2,143 / −521
@@ -58,6 +58,14 @@
 - Fixtures are synthetic CI-only users and isolated SQLite, with empty/light states; they are not production/customer data.
 - This is not final UX or accessibility sign-off. Still required: populated/high-volume, error, permission and stale fixtures; core interaction walkthroughs; axe; manual keyboard/focus and screen-reader checks; reduced motion; zoom/reflow; console/network review; performance budgets; and user task testing.
 - The screenshot artifact referenced by the PR is retained through 2026-11-15 (per the audit document).
+
+## Continuity files added in this session
+
+- `docs/PROJECT-CONTINUITY.md` — start-of-session instructions, source-of-truth map, product invariants and safety rules.
+- `docs/PROJECT-STATUS.md` — this verified snapshot.
+- `docs/SESSION-LOG.md` — append-only handoff history.
+
+These documentation files were added on the PR #3 branch after the application-code head listed above. They do not alter application source code.
 
 ## Wider programme
 
