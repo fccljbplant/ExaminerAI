@@ -90,3 +90,14 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 - Vercel status remains failed due to the project build-rate limit; no current preview is verified. No merge, deploy, production data change or main-branch write occurred.
 - Residual scope note: `SkillMastery` and legacy `Competency` have no `courseId` in the current schema, so the drill-down still returns these learner-level records as global learner profile data. Confirm intended semantics before introducing course partitioning or changing their visibility. The unresolved comprehensive-report `managementAttitude` classification remains blocked in `docs/UPGRADE-2026-10/QUESTIONS.md`.
 - The interactive Vercel sandbox endpoint returned 403 for this connection; verification was performed on the GitHub-hosted Actions runner instead. No interactive VM shell was available.
+
+
+## 2026-11-09 — Latest PR #3 staff portfolio review
+
+- Verified live PR #3 at `9ac14c13069bbe91b8a1fca54d305514f66590e3`: open, draft, unmerged, mergeable; 262 commits / 109 changed files.
+- Exact-head Actions run `42661692753` passed install, isolated DB setup, lint, unit tests, typecheck, production build, route smoke tests, authenticated role screenshots and artifact upload. Exact-head Vercel status remains failed due to build-rate limit; no Ready preview confirmed.
+- Read-only review found that the staff portfolio endpoint checks access to at least one shared course but queries ProjectTask, Interaction, WeeklyTest and ReportCard by learner ID only. All four models carry courseId, so multi-course learners can expose records outside the caller's authorised courses. Finding and required correction are recorded in `docs/UPGRADE-2026-10/QUESTIONS.md`.
+- The v2 student-detail support visibility helper defaults to false and only permits instructors when both consent and feature gate are true; the current route call passes neither, so support fields remain off.
+- Agent Pack prerequisites are missing: AGENTS.md, QUEUE.md and run-logged.mjs return 404. The uploaded pack is unsafe to activate unchanged because its runner switches/creates branches and its guard reads prohibited .env* files. No approved task card or safe runner is available.
+- No application code changed. No merge, deployment, production-data change, branch switch or main-branch write.
+- Next: restore/adapt the Agent Pack safely on this branch, obtain an approved task card, then implement the portfolio authorised-course intersection and route-level access tests. Clarify expired-enrolment visibility; do not change course-less competency semantics without owner direction.
