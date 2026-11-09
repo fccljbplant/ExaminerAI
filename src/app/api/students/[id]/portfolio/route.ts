@@ -1,4 +1,4 @@
-import { hasRole, isStaffRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
+import { hasRole, isStaffRole, normalizeRole, UserRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
