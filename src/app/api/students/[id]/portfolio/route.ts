@@ -198,10 +198,6 @@ export async function GET(
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const hasProject = totalTasks > 0;
 
-  // Staff portfolio is academic content only until consent and the org feature
-  // gate for learner support are implemented and approved.
-  const canSeeContent = true;
-
   return NextResponse.json({
     student,
     hasProject,
@@ -213,15 +209,15 @@ export async function GET(
       planned: tasks.filter((task) => task.status === "planned").length,
       blocked: tasks.filter((task) => task.status === "blocked").length,
     },
-    tasks: canSeeContent ? tasks : [],
+    tasks,
     // Daily-log dates are used only to scope instructor comments. Do not return
     // learner support reflections, confidence or check-in content to staff.
     dailyLogs: [],
-    interactions: canSeeContent ? interactions : [],
+    interactions,
     comments: canSeeComments ? comments : [],
-    weeklyTests: canSeeContent ? weeklyTests : [],
-    competencies: canSeeContent ? competencies : [],
-    reportCards: canSeeContent ? reportCards : [],
+    weeklyTests,
+    competencies,
+    reportCards,
     dataScope: "content_only",
   });
 }
