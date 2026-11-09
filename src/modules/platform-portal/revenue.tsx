@@ -106,7 +106,11 @@ export function PlatformRevenue() {
       const res = await api.post<{ data: { refunded: boolean; amount: number } }>(
         `/api/v2/platform/refunds/${paymentId}`,
       );
-      toast.success("Payment refunded", { description: `$${res.data.amount.toFixed(2)} reversed.` });
+      const payment = revenue?.recentPayments?.find((item) => item.id === paymentId);
+      const amountLabel = payment
+        ? `${payment.currency} ${res.data.amount.toFixed(2)}`
+        : res.data.amount.toFixed(2);
+      toast.success("Payment refunded", { description: `${amountLabel} reversed.` });
       void retry();
     } catch (e) {
       toast.error("Refund failed", { description: e instanceof Error ? e.message : undefined });
