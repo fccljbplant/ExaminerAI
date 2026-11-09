@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (PR #3 head `0fd41710` live verification)  
+**Snapshot date:** 2026-11-09 (PR #3 head `02ecbc28` live verification)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -9,7 +9,7 @@
 | Ref | Commit | State |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA; no changes made to main. |
-| PR #3 branch | `0fd41710a8bd460a430ec540b8ed158314498c27` | Live PR head at this refresh. |
+| PR #3 branch | `02ecbc28a1400610c333aa6f8099679a7c0fa4dc` | Live PR head at this refresh. |
 
 PR #3 live metadata:
 - State: **open**
@@ -18,7 +18,7 @@ PR #3 live metadata:
 - Mergeable: **yes**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `0fd41710a8bd460a430ec540b8ed158314498c27`
+- Head SHA: `02ecbc28a1400610c333aa6f8099679a7c0fa4dc`
 - Commits: **180**
 - Changed files: **99**
 - No submitted PR reviews or inline review threads were returned.
@@ -104,3 +104,15 @@ This owner direction clarifies the org-admin academic/operational oversight audi
 - The bundled OpenCode plugin .opencode/plugins/offpeak-guard.js reads repository .env, .env.local, and .env.production files to detect remote database configuration. Project rules prohibit reading any .env* files.
 - Therefore the pack has **not** been installed or activated on the repository branch. Preserve the original upload; adapt/review its branch and secret-safety behaviour before activation. No source-code changes or agent-runner checks were performed in this step.
 - ChatGPT's Project Files library cannot be written directly from this chat. The uploaded archive remains attached to this conversation; add it through the Project's Files UI if it must be available to every Project chat.
+
+
+## 2026-11-09 — PR #3 access-control implementation update
+
+- Live PR #3 remains open, draft, unmerged, based on `main`, and on the existing branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Latest branch head at this update: `02ecbc28a1400610c333aa6f8099679a7c0fa4dc`.
+- Updated `src/app/api/v2/instructor/students/[id]/route.ts` so instructors remain limited to learners in courses they teach, while org admins are limited to learners with active membership in the same organisation and courses explicitly linked through `OrgCourse`.
+- The same endpoint now omits daily confidence values and skips `computePsychWeekly` for org admins. Instructors retain those fields through the existing instructor path. The response still includes academic/course and operational activity data for authorised org admins.
+- Added `src/modules/instructor-portal/student-detail-visibility.ts` and unit tests covering role eligibility and the daily-log response projection.
+- CI run `42643245325` on intermediate commit `f5dcef6ead89a267624002ba72444f5e18fb20cb` was cancelled during lint after a later branch update superseded it. No completed lint/test/typecheck/build result exists yet for the latest head. Re-trigger/verify CI before treating this change as validated.
+- No local checkout or local test runner was available in this session. No production data, merge, or deployment action was performed.
+- Remaining security work: review and correct final-result/portfolio field-level access, verify consent/default-off and audit requirements before enabling learner-support signals, and add route-level tenant/course access tests. Do not broaden `content_only` or expose learner-support data to ordinary org admins.
