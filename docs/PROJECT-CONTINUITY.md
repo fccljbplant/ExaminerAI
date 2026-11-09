@@ -84,3 +84,8 @@ Organisation admins may inspect student academic and course-operational records 
 - Parallel UXPeak / Workstream M dashboard improvements now include safe recovery copy, actionable organisation/platform empty states, corrected platform skeleton geometry, 44px instructor navigation target and visible focus on the organisation announcement textarea.
 - These changes are code-reviewed only at this point; visual before/after screenshots and interaction/accessibility QA remain open.
 - Vercel is blocked by the daily deployment quota. No deployment, merge, production-data change or main-branch write occurred.
+
+
+## UXPeak Pro scope — 2026-11-09
+
+Owner requested the full UXPeak product concept set: gamification, role dashboards, course discovery/marketplace, enrolment “shopping” journey, tutorials/onboarding, AI assistance, helpdesk, classroom and shared UI system. The implementation inventory and approval gates are in `docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md`. Paid commerce is not authorised; marketplace first-lesson preview is the current specified scope. Gamification is phase-gated (Phase 8 in the Master Prompt). Helpdesk is separated from sensitive learner support/crisis workflows. Continue small UX fixes in parallel with access/privacy work.
