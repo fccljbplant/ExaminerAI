@@ -35,6 +35,7 @@ export async function getPlatformHome() {
   const revenue = await getPlatformRevenue();
 
   return {
+    generatedAt: new Date().toISOString(),
     kpis: {
       orgs: orgs.length,
       activeMembers: memberCount,
