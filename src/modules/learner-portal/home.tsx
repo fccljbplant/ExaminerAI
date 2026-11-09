@@ -238,7 +238,7 @@ function Projects({ items }: { items: ProjectRow[] }) {
       header={
         <span className="flex items-center justify-between">
           Projects
-          <Link href="/learner/projects" className="text-xs font-medium text-brand hover:underline">
+          <Link href="/learner/projects" className="inline-flex min-h-11 items-center rounded-lg px-2 text-xs font-medium text-brand hover:bg-bg-subtle hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
             See all
           </Link>
         </span>
