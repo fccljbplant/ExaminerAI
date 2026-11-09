@@ -61,3 +61,17 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 4. Review all `assertCanAccessStudent` callsites for field-level response classification and explicit support-scope handling.
 5. Keep learner-support consent workflow, `learner_support_v1`, support-view audit logs and Learner Support Lead crisis handling off until owner approval and safeguards exist.
 6. Keep PR #3 draft; no merge or deploy without explicit owner approval.
+
+
+## 2026-11-09 — PR #3 marketplace accessibility and learner-target guard
+
+- Continued only on the existing PR #3 branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Live starting head: `875e80c6bca63654dd88ab245612ab49f614b382`; PR #3 was open, draft and unmerged.
+- Verified GitHub Actions run `42658325358` passed every configured step on that starting head: dependency install, isolated DB init, lint, unit tests, TypeScript, production build, route smoke, authenticated screenshots and artifact upload.
+- Marketplace discovery: `src/app/(public)/courses/MarketplaceFilters.tsx` now exposes the already-supported Featured-only filter, gives search and select controls accessible names, and raises search/category/level/quick-filter/clear targets to 44px minimum height.
+- Learner target validation: `src/app/api/v2/instructor/students/[id]/route.ts` now returns 404 unless the target account normalizes to the learner role, before querying or returning the learner drill-down aggregate.
+- Commits: `98c4b328e495c426f106349c262cafd7fc19214c` (marketplace filters) and `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6` (learner-target guard).
+- Latest verified PR head: `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6`; 250 commits, 109 changed files; still open, draft, unmerged. No workflow run was returned yet for this new head. The previous green run is not evidence for these two commits.
+- Vercel status remains failed due to the build-rate limit. No preview, deployment, merge, production data operation or main-branch change was performed.
+- No local tests/build or manual browser/axe checks were available. Latest-head CI is pending; marketplace filter interaction and route denial need automated coverage in a subsequent focused pass.
+- Comprehensive-report `managementAttitude` field classification remains blocked in `docs/UPGRADE-2026-10/QUESTIONS.md`; no schema or visibility changes were made. Learner-support features remain off.
