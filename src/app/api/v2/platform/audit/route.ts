@@ -9,6 +9,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { hasRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPlatformPortalEnabled } from "@/modules/platform-portal/lib/flag";
 
@@ -24,7 +25,7 @@ const Query = z.object({
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (user.role !== "platform_admin" && user.role !== "admin") {
+  if (!hasRole(user.role, PLATFORM_ADMIN_ROLES)) {
     return apiError("Platform access only", "FORBIDDEN", 403);
   }
   if (!(await isPlatformPortalEnabled())) {
