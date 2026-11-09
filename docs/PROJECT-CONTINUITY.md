@@ -89,3 +89,12 @@ Organisation admins may inspect student academic and course-operational records 
 ## UXPeak Pro scope — 2026-11-09
 
 Owner requested the full UXPeak product concept set: gamification, role dashboards, course discovery/marketplace, enrolment “shopping” journey, tutorials/onboarding, AI assistance, helpdesk, classroom and shared UI system. The implementation inventory and approval gates are in `docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md`. Paid commerce is not authorised; marketplace first-lesson preview is the current specified scope. Gamification is phase-gated (Phase 8 in the Master Prompt). Helpdesk is separated from sensitive learner support/crisis workflows. Continue small UX fixes in parallel with access/privacy work.
+
+
+## Latest delivery update — 2026-11-09
+
+- Continue exclusively on PR #3 branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; latest head at this update is tracked in `docs/PROJECT-STATUS.md`.
+- Marketplace filter work: Featured-only is now exposed as a user-facing filter; search and select controls have accessible names; filter controls and clear action meet the 44px minimum target guidance.
+- Student drill-down hardening: `/api/v2/instructor/students/[id]` now confirms the requested account normalizes to the learner role before proceeding with org/course scope and returning learner records.
+- Latest-head validation remains pending. Run `42658325358` passed on the prior head, not the subsequent marketplace/route commits. Vercel is blocked by the build-rate limit. No local/browser/axe checks were run.
+- Keep the comprehensive-report field classification blocked pending owner decision. Keep learner-support consent, feature gate and crisis workflow disabled until approvals and controls are implemented.
