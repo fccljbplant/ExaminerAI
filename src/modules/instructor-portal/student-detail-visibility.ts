@@ -1,5 +1,10 @@
-export function canViewLearnerSupportSignals(role: string): boolean {
-  return role === "instructor";
+export function canViewLearnerSupportSignals(
+  role: string,
+  consentGranted = false,
+  featureEnabled = false,
+): boolean {
+  // Support data is default-off. Role alone never constitutes consent.
+  return role === "instructor" && consentGranted && featureEnabled;
 }
 
 type DailyLogForDetail = {
