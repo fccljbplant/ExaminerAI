@@ -36,7 +36,7 @@ export async function POST(
 
   // IDOR protection
   try {
-    await assertCanAccessStudent(payload, id);
+    await assertCanAccessStudent(payload, id, "wellbeing_only");
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
   }
