@@ -74,3 +74,13 @@ PR #3 is a foundation, not completion of all product workstreams. Workstreams A�
 ## Owner clarification — organisation-admin academic oversight (2026-11-09)
 
 Organisation admins may inspect student academic and course-operational records within their own organisation to oversee teaching delivery and instructor–student activity: enrolment, progress, attendance/participation, assessments, assigned work, feedback, and recorded teaching/mentoring interactions. This is not permission to view individual learner-support/psychological indicators, private counselling content, or crisis signals (except the separately authorised crisis-case/handling view for designated org Learner Support Leads). Do not profile instructors psychologically or behaviourally. Enforce tenant, course, role and field-level scope on every server operation.
+
+
+## Current delivery snapshot — 2026-11-09
+
+- PR #3 remains open, draft and unmerged on the only permitted working branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Latest verified head: `6d90c757a2273c3d6a49677d8766d50d2176f094` (235 commits, 107 changed files).
+- Workflow run `42655880066` passed on prior head `94869a6e`; no run had yet been returned for the latest dashboard changes. Do not treat the older pass as latest-head validation.
+- Parallel UXPeak / Workstream M dashboard improvements now include safe recovery copy, actionable organisation/platform empty states, corrected platform skeleton geometry, 44px instructor navigation target and visible focus on the organisation announcement textarea.
+- These changes are code-reviewed only at this point; visual before/after screenshots and interaction/accessibility QA remain open.
+- Vercel is blocked by the daily deployment quota. No deployment, merge, production-data change or main-branch write occurred.
