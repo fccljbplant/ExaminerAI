@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (PR #3 head `02ecbc28` live verification)  
+**Snapshot date:** 2026-11-09 (PR #3 head `fea1683e` live verification)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -9,7 +9,7 @@
 | Ref | Commit | State |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA; no changes made to main. |
-| PR #3 branch | `02ecbc28a1400610c333aa6f8099679a7c0fa4dc` | Live PR head at this refresh. |
+| PR #3 branch | `fea1683ef68245fdbedd8a9b397b529fa183bcff` | Live PR head at this refresh. |
 
 PR #3 live metadata:
 - State: **open**
@@ -18,17 +18,17 @@ PR #3 live metadata:
 - Mergeable: **yes**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `02ecbc28a1400610c333aa6f8099679a7c0fa4dc`
-- Commits: **180**
-- Changed files: **99**
+- Head SHA: `fea1683ef68245fdbedd8a9b397b529fa183bcff`
+- Commits: **207**
+- Changed files: **105**
 - No submitted PR reviews or inline review threads were returned.
 
 ## Current CI and preview status
 
-- GitHub Actions run [42613884082](https://github.com/fccljbplant/ExaminerAI/actions/runs/42613884082) completed **successfully** on exact head `0fd41710a8bd460a430ec540b8ed158314498c27`.
-- The `quality` job passed dependency installation, isolated test DB initialization, lint, unit tests, TypeScript type-check, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload.
-- Combined Vercel status for the same head: **success**; deployment completed.
-- This validates the current PR head before this documentation update. Re-fetch checks after the resulting documentation commit; do not claim the new head is green until verified.
+- GitHub Actions run [42643565316](https://github.com/fccljbplant/ExaminerAI/actions/runs/42643565316) completed **successfully** on earlier head `d850ff0dc13fd910976136e894360c687aa9c1d2`; lint, unit tests, typecheck, production build, route smoke tests and authenticated role screenshots passed there.
+- Workflow run [42644831199](https://github.com/fccljbplant/ExaminerAI/actions/runs/42644831199) on intermediate head `84dfef671abdbd8650b12f1b06067e776715b884` was cancelled during dependency installation after later commits superseded it.
+- No completed GitHub Actions run has been verified for latest head `fea1683ef68245fdbedd8a9b397b529fa183bcff`; lint/tests/typecheck/build remain unverified for the latest access-control changes.
+- Combined Vercel status for latest head: **failure** with the Vercel build-rate-limit target. No successful preview deployment is confirmed for this head.
 - No live browser walkthrough, production data change, merge or production deployment was performed.
 
 ## PR #3 scope
@@ -45,12 +45,12 @@ PR #3 live metadata:
 
 ## Review observations and risks
 
-1. **Final-results response is not filtered to the requested data scope.** `src/app/api/students/final-result/route.ts` calls `assertCanAccessStudent(payload, targetUserId, "content_only")`, then returns academic, project and behavior-related fields without response filtering. In `src/lib/auth.ts`, the platform-admin, same-tenant org-admin and course-instructor paths return before checking the requested grant scope. For staff granted `content_only`, the endpoint still returns fields such as `behavioralPattern`, `avgPlagiarism`, per-week plagiarism values, `careerReadiness`, `projectReports` and `projectTaskStats`. Preserve the functionality for intended audiences; classify fields before filtering. Keep `content_only` narrow unless its contract is explicitly redefined.
-2. **Instructor v2 profile exposes support-like indicators to org admins.** `src/app/api/v2/instructor/students/[id]/route.ts` accepts both `instructor` and `org_admin`, then returns `psychWeekly` (confidence calibration), daily confidence values and per-test plagiarism indicators. It checks course enrolment but does not check a designated Learner Support Lead capability or a support-consent flag. Master Upgrade Prompt Workstream H says individual learner support indicators are for the learner and their own-course instructor; org Learner Support Leads see crisis-case handling records only, not individual support signals. The role exception must be enforced server-side.
-3. **Portfolio `content_only` implementation does not match its own comment.** `src/app/api/students/[id]/portfolio/route.ts` documents the scope as tasks, report cards and interactions, but also returns weekly tests and competencies when `canSeeContent` is true. Make the contract and response agree; do not silently broaden the grant.
-4. **Support consent/feature gating remains unverified.** Workstream H requires per-org `learner_support_v1` to default off until owner-approved consent text is reviewed with counsel, and requires audit logging for every support-signal/case view. The inspected routes do not demonstrate those controls. Do not enable or expand the support layer until those prerequisites are confirmed.
-5. **Field-level policy still needs an explicit mapping.** Keep learner self-view and instructor-scoped support functionality where required. Separate academic outcomes from support indicators; the current sources do not conclusively map every final-result field to the `content_only` grant. Do not remove required functionality or broaden the grant implicitly.
-6. No focused final-result route test or role-specific support-response test was found in the inspected evidence. Add route-level tests for learner self-view, instructor course scope, org admin, designated support lead crisis-only access, platform admin, explicit grant scopes, revoked/absent grants and cross-tenant/course access.
+1. **Final-result response:** staff access remains scoped through `assertCanAccessStudent(..., "content_only")`. Individual behavioural analysis is now generated and returned only for the learner viewing their own result; staff views retain academic metrics, areas to improve, readiness and project/course data without the behavioural-pattern field.
+2. **Organisation-admin scope:** `src/lib/auth.ts` now requires an active org-admin membership, active learner membership in the same organisation, and learner enrolment in a course linked to that organisation via `OrgCourse`. Explicit grants cannot widen an org admin beyond that organisation/course boundary. The v2 instructor student-detail route applies the same organisation/course checks.
+3. **Support-data privacy:** org admins and platform admins are denied explicit `wellbeing_only` and `crisis_only` scopes. The v2 student-detail route does not return confidence or `psychWeekly` by default; the visibility helper requires both consent and a feature gate, and its defaults are false. The portfolio route forces staff views to `content_only` and queries daily logs as dates only; support reflections/confidence are not loaded into the response. Staff access grants alone do not activate support data.
+4. **Portfolio field contract:** staff portfolio `content_only` includes academic/course content (tasks, report cards, interactions, weekly tests and competencies) but excludes daily reflections. Instructor feedback comments remain visible to the instructor; they are not exposed to org/platform admins through this route.
+5. **Remaining gap:** the per-organisation consent workflow, owner-approved consent wording, `learner_support_v1` setting and audit logging for support/case views are not implemented/verified. No support-signal feature is enabled. A designated Learner Support Lead crisis-case capability and handling-record access remain future work.
+6. **Testing gap:** pure unit tests were added for support-signal consent/feature gating and final-result behavioural-analysis visibility. Route-level integration tests for tenant/course access, grant revocation, and response filtering are still required.
 7. Instructor queue counts use full database counts rather than the five-row preview. Roster risk count is derived from the full risk-filtered roster response; latest scored test selection is deterministic by week.
 8. Platform dashboard aggregation errors are logged server-side and returned as a generic service error. Learner profile lookup failure returns service-unavailable rather than a false empty dashboard.
 9. No PR reviews or inline review threads were found. Owner review remains outstanding.
@@ -116,3 +116,16 @@ This owner direction clarifies the org-admin academic/operational oversight audi
 - CI run `42643245325` on intermediate commit `f5dcef6ead89a267624002ba72444f5e18fb20cb` was cancelled during lint after a later branch update superseded it. No completed lint/test/typecheck/build result exists yet for the latest head. Re-trigger/verify CI before treating this change as validated.
 - No local checkout or local test runner was available in this session. No production data, merge, or deployment action was performed.
 - Remaining security work: review and correct final-result/portfolio field-level access, verify consent/default-off and audit requirements before enabling learner-support signals, and add route-level tenant/course access tests. Do not broaden `content_only` or expose learner-support data to ordinary org admins.
+
+
+## 2026-11-09 — Continued PR #3 access/privacy fixes
+
+- Live PR #3 remains open, draft, unmerged, based on `main`, and on the existing branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Latest head: `fea1683ef68245fdbedd8a9b397b529fa183bcff` (207 commits, 105 changed files).
+- `src/lib/auth.ts`: org-admin access now requires active same-org admin/learner memberships and learner enrolment in an `OrgCourse`-linked course. Org-admin access grants cannot bypass that boundary. Platform/org admins are denied explicit wellbeing/crisis scopes; instructor course membership does not implicitly grant those scopes.
+- `src/app/api/students/final-result/route.ts`: staff views no longer trigger AI behavioural-pattern generation or receive `behavioralPattern`; learners retain their own result field.
+- `src/app/api/students/[id]/portfolio/route.ts`: all staff portfolio responses are clamped to academic `content_only`; daily reflections are not loaded (date-only query), and private instructor comments are returned only to instructors.
+- `src/app/api/v2/instructor/students/[id]/route.ts`: confidence/`psychWeekly` data remains off by default because the helper requires both explicit consent and a feature gate, both defaulting false. Org admins remain limited to org-linked course enrolments.
+- Added/updated unit tests for default-off support visibility and learner-only behavioural analysis.
+- CI run `42643565316` passed on earlier head `d850ff0dc13fd910976136e894360c687aa9c1d2`. Run `42644831199` on intermediate head `84dfef671abdbd8650b12f1b06067e776715b884` was cancelled during dependency installation. No completed Actions run is verified on latest head. Latest Vercel status is a build-rate-limit failure.
+- No local checkout/tests, production data changes, merge, or deployment. PR remains draft.
