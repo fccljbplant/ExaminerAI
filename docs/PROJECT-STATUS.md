@@ -1,15 +1,25 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (live PR #3 head `6d90c757`; latest-head CI recheck pending)  
+**Snapshot date:** 2026-11-09 (latest PR #3 head `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6`; latest-head CI pending)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
+
+## Latest live update — 2026-11-09
+
+- PR #3 remains **open, draft, unmerged**, on the existing branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; current head `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6` (250 commits, 109 changed files).
+- Actions run `42658325358` completed successfully on the immediately preceding head `875e80c6bca63654dd88ab245612ab49f614b382`. All configured steps passed: install, isolated DB, lint, unit tests, typecheck, production build, route smoke, authenticated screenshots and artifact upload.
+- Two commits were added after that green run: `98c4b328` (marketplace filter accessibility + Featured-only control) and `b4f937c0` (reject non-learner targets in the v2 instructor student-detail endpoint). No workflow run has yet been returned for the current head; do not claim those changes passed CI.
+- Vercel combined status is still failure due to the project build-rate limit. No current Ready preview is confirmed.
+- No local tests/build, browser, axe or manual accessibility checks were available.
+- Learner-support consent/gating/audit workflow remains off and incomplete. Comprehensive-report `managementAttitude` classification remains blocked pending owner decision in `docs/UPGRADE-2026-10/QUESTIONS.md`.
+- Next: verify CI on current head; add route-level regression coverage for learner-target rejection and org/instructor scope; continue remaining `assertCanAccessStudent` response-field review; continue marketplace/catalogue and role journey slices without paid checkout or support-data expansion.
 
 ## Live Git and PR state
 
 | Ref | Commit | State |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | PR base SHA; no changes made to main. |
-| PR #3 branch | `6d90c757a2273c3d6a49677d8766d50d2176f094` | Live PR head at this refresh. |
+| PR #3 branch | `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6` | Latest live PR head after marketplace and learner-target fixes. |
 
 PR #3 live metadata:
 - State: **open**
@@ -18,9 +28,9 @@ PR #3 live metadata:
 - Mergeable: **yes**
 - Base: `main` (`fc70a296b28334ff45e8b081a0f8fe9a070be3a4`)
 - Head branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA: `6d90c757a2273c3d6a49677d8766d50d2176f094`
-- Commits: **235**
-- Changed files: **107**
+- Head SHA: `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6`
+- Commits: **250**
+- Changed files: **109**
 - No submitted PR reviews or inline review threads were returned.
 
 ## Current CI and preview status
