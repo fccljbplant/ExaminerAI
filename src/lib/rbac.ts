@@ -216,7 +216,9 @@ export async function hasAccessGrant(
   scopeId: string,
   requiredDataScope?: DataScope
 ): Promise<boolean> {
-  if (hasRole(userRole, ADMIN_ROLES)) return true;
+  // Only platform admins have implicit cross-tenant access. Org admins and
+  // demo accounts must satisfy the same explicit scope grant as other staff.
+  if (hasRole(userRole, PLATFORM_ADMIN_ROLES)) return true;
   const grant = await db.accessGrant.findFirst({
     where: { granteeUserId: userId, scopeType, scopeId, revokedAt: null },
   });
@@ -258,15 +260,32 @@ export async function requireAccessGrant(
 }
 
 export async function getVisibleStudentIds(userId: string, userRole: string): Promise<string[]> {
-  if (hasRole(userRole, ADMIN_ROLES)) {
-    // Learners (students) are visible to admins.
-    // Legacy "student" role value is kept in CourseEnrollment/DB rows —
-    // normalizeRole maps it to "learner" but the DB still stores "student".
+  if (hasRole(userRole, PLATFORM_ADMIN_ROLES)) {
+    // Only platform admins receive cross-tenant learner visibility.
     const allStudents = await db.user.findMany({
       where: { OR: [{ role: "learner" }, { role: "student" }] },
       select: { id: true },
     });
     return allStudents.map(u => u.id);
+  }
+
+  // Org admins see active learners belonging to organizations they administer.
+  if (normalizeRole(userRole) === UserRole.ORG_ADMIN) {
+    const memberships = await db.orgMember.findMany({
+      where: { userId, status: "active", role: "admin" },
+      select: { orgId: true },
+    });
+    const orgIds = memberships.map((membership) => membership.orgId);
+    if (orgIds.length === 0) return [];
+    const learnerMemberships = await db.orgMember.findMany({
+      where: {
+        orgId: { in: orgIds },
+        status: "active",
+        user: { role: { in: ["learner", "student"] } },
+      },
+      select: { userId: true },
+    });
+    return [...new Set(learnerMemberships.map((membership) => membership.userId))];
   }
 
   // Instructors see students enrolled in their courses
