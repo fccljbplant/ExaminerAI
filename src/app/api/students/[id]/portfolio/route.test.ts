@@ -212,6 +212,26 @@ describe("GET /api/students/[id]/portfolio course scope", () => {
     expect(body.reportCards).toEqual([]);
   });
 
+  it("fails closed if an explicit grant disappears during scope resolution", async () => {
+    mocks.courseEnrollmentFindMany.mockImplementation(async ({ where }) => (
+      where.userId === "instructor-1"
+        ? [{ courseId: "course-unrelated" }]
+        : [{ courseId: "course-a" }]
+    ));
+    mocks.accessGrantFindFirst.mockResolvedValue(null);
+
+    const response = await requestPortfolio();
+    expect(response.status).toBe(200);
+    expectCourseFilter(mocks.projectTaskFindMany, []);
+    expectCourseFilter(mocks.interactionFindMany, []);
+    expectCourseFilter(mocks.weeklyTestFindMany, []);
+    expectCourseFilter(mocks.reportCardFindMany, []);
+
+    const body = await response.json();
+    expect(body.competencies).toEqual([]);
+    expect(body.tasks).toEqual([]);
+  });
+
   it("does not query portfolio records when the access check denies the learner", async () => {
     mocks.assertCanAccessStudent.mockRejectedValue({ status: 403, message: "Access denied" });
 
