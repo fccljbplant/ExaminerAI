@@ -1,7 +1,7 @@
-import { hasRole, ADMIN_ROLES, isStaffRole, UserRole, normalizeRole } from "@/lib/rbac";
+import { hasRole, isStaffRole, PLATFORM_ADMIN_ROLES } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 
 /** GET /api/students/[id]/portfolio — full student portfolio for teachers/admins.
  *
@@ -23,54 +23,21 @@ export async function GET(
 
   const { id } = await params;
 
-  // N2-fix: track the dataScope for response filtering.
-  // null = full access (admin or teacher in own batch). Otherwise it's
-  // the grant's scope (full, wellbeing_only, crisis_only, content_only).
+  // Full access is implicit only for platform admins. Instructors and org
+  // admins must pass the shared course/tenant checks; other staff (including
+  // demo accounts) must hold an explicit grant. Restricted grants are applied
+  // to the response below rather than being treated as unrestricted access.
   let portfolioDataScope: string | null = null;
-
-  // Phase 0.4 fix: IDOR protection. Instructors can only access learners in
-  // their own courses. Admins can access any learner. This prevents an
-  // instructor from reading another instructor's learners' data.
-  // Post-purge 2026-08: counselor/coordinator/guardian roles were removed.
-  // Demo + non-staff-with-grant now need an AccessGrant — previously they
-  // fell through with no check at all.
-  // N5-fix: legacy teachers (null batch) now also need an AccessGrant —
-  // previously they could see all students institution-wide.
-  let needsGrantCheck = false;
-
-  if (hasRole(payload.role, ADMIN_ROLES)) {
-    // Admins — full access, no check needed
-  } else if (normalizeRole(payload.role) === UserRole.INSTRUCTOR) {
-    const studentCheck = await db.user.findUnique({
-      where: { id },
-      select: { role: true },
-    });
-    if (!studentCheck || normalizeRole(studentCheck.role) !== UserRole.LEARNER) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
-    }
-    // Verify the instructor teaches a course the student is enrolled in
-    const [instructorCourses, studentCourses] = await Promise.all([
-      db.courseEnrollment.findMany({
-        where: { userId: payload.sub, role: "instructor" },
-        select: { courseId: true },
-      }),
-      db.courseEnrollment.findMany({
-        where: { userId: id, role: "student" },
-        select: { courseId: true },
-      }),
-    ]);
-    const instructorCourseIds = instructorCourses.map(e => e.courseId);
-    const studentCourseIds = studentCourses.map(e => e.courseId);
-    const sharedCourseIds = instructorCourseIds.filter(cid => studentCourseIds.includes(cid));
-    if (sharedCourseIds.length === 0) {
-      needsGrantCheck = true;
-    }
-  } else {
-    // Demo or any non-admin/non-instructor staff — need an AccessGrant
-    needsGrantCheck = true;
+  try {
+    await assertCanAccessStudent(payload, id, "portfolio");
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : String(err) || "Access denied" },
+      { status: 403 },
+    );
   }
 
-  if (needsGrantCheck) {
+  if (!hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
     const grant = await db.accessGrant.findFirst({
       where: {
         granteeUserId: payload.sub,
@@ -79,14 +46,9 @@ export async function GET(
         dataScope: { in: ["full", "wellbeing_only", "crisis_only", "content_only"] },
         revokedAt: null,
       },
+      select: { dataScope: true },
     });
-    if (!grant) {
-      return NextResponse.json({ error: "You need an access grant to view this student" }, { status: 403 });
-    }
-    // N2-fix: capture the grant's dataScope for response filtering below.
-    // A demo with "content_only" should NOT see psychObs or crisis data.
-    // A demo with "crisis_only" should NOT see project content.
-    portfolioDataScope = grant.dataScope;
+    portfolioDataScope = grant?.dataScope ?? null;
   }
 
   const student = await db.user.findUnique({
@@ -157,6 +119,7 @@ export async function GET(
   // - content_only: tasks + reportCards + interactions only
   const canSeeContent = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "content_only";
   const canSeeWellbeing = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "wellbeing_only";
+  const canSeeComments = !portfolioDataScope || portfolioDataScope === "full";
 
   return NextResponse.json({
     student,
@@ -175,7 +138,7 @@ export async function GET(
     dailyLogs: canSeeWellbeing ? dailyLogs : [],
     interactions: canSeeContent ? interactions : [],
     // bugs: removed (Bug model deleted — feature never built out)
-    comments,
+    comments: canSeeComments ? comments : [],
     weeklyTests: canSeeContent ? weeklyTests : [],
     competencies: canSeeContent ? competencies : [],
     reportCards: canSeeContent ? reportCards : [],
