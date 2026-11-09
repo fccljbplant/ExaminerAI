@@ -106,3 +106,14 @@ Older findings are not silently deleted: superseded claims are labelled as histo
 - [PR #3](https://github.com/fccljbplant/ExaminerAI/pull/3)
 - [Role redesign plan](../UX-PEAK-INSPIRED-ROLE-EXPERIENCE-REDESIGN.md)
 - [UXPeak reference research](./UX-REFERENCE-RESEARCH.md)
+
+
+## 2026-11-09 follow-up — UXPeak Workstream M implementation delta
+
+The latest PR #3 dashboard code adds incremental interaction and recovery improvements:
+- Learner and staff dashboard load failures now show safe, actionable guidance rather than raw request error text.
+- Instructor “View all students” is a 44px minimum target with visible keyboard focus.
+- Organisation members now receive an explanatory empty state with a direct “Add members” route when the organisation has no members; the announcement body field has visible focus.
+- Platform organisation and audit empty states explain what is absent and link to the relevant control-plane route. The loading skeleton now represents all eight KPI cards rather than only four.
+
+This is **implementation evidence, not visual acceptance evidence**. The same viewport/theme before-and-after captures, populated/error/permission fixtures, interaction review, axe/manual keyboard review, zoom/reflow and reduced-motion checks remain outstanding. Do not update the scorecard to a passing score until those checks are performed.
