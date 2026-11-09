@@ -75,3 +75,18 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 - Vercel status remains failed due to the build-rate limit. No preview, deployment, merge, production data operation or main-branch change was performed.
 - No local tests/build or manual browser/axe checks were available. Latest-head CI is pending; marketplace filter interaction and route denial need automated coverage in a subsequent focused pass.
 - Comprehensive-report `managementAttitude` field classification remains blocked in `docs/UPGRADE-2026-10/QUESTIONS.md`; no schema or visibility changes were made. Learner-support features remain off.
+
+
+## 2026-11-09 — Instructor course-scope privacy hardening
+
+- Starting PR head: `7831019ebfa174e0dfaa256df6312d97235c8e4d`.
+- Latest PR head: `d78ec3e7589edd9c3e907de9a6707f3848bb6384` on the existing branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Reviewed the v2 instructor student drill-down and roster queries against `prisma/schema.prisma`. Found that several learner records with a `courseId` were selected by `userId` alone, allowing a staff member scoped to one course to see activity from another course for the same learner.
+- Added an intersection of staff-authorised course IDs and the learner's course enrolments in `src/app/api/v2/instructor/students/[id]/route.ts`. Weekly tests, report cards, daily logs, project tasks, certificates and engagement events are now filtered to that shared-course set; LearnProjects were already scoped.
+- Added `getAuthorizedStudentCourseIds` and unit tests for intersection, non-overlap denial and duplicate IDs in `src/modules/instructor-portal/student-detail-visibility.ts` and `student-detail-visibility.test.ts`.
+- Also scoped instructor roster daily-log aggregation and project-task progress to the instructor's taught course IDs in `src/app/api/v2/instructor/students/route.ts`.
+- Commits: `5bb879bbf58d757f0291c7785d28406846b660f2`, `7d2873b15a11d7623d93c3e40a85b4d89601de74`, `f220698463de78f0c1704ed6b53ea9aaf648855c`, `d78ec3e7589edd9c3e907de9a6707f3848bb6384`.
+- GitHub Actions run `42661008830` passed on the latest head: dependency install, isolated DB initialization, lint, unit tests, TypeScript, production build, route smoke tests, authenticated dashboard screenshots and artifact upload. Screenshot artifact `role-dashboard-screenshots` is retained until 2026-11-16.
+- Vercel status remains failed due to the project build-rate limit; no current preview is verified. No merge, deploy, production data change or main-branch write occurred.
+- Residual scope note: `SkillMastery` and legacy `Competency` have no `courseId` in the current schema, so the drill-down still returns these learner-level records as global learner profile data. Confirm intended semantics before introducing course partitioning or changing their visibility. The unresolved comprehensive-report `managementAttitude` classification remains blocked in `docs/UPGRADE-2026-10/QUESTIONS.md`.
+- The interactive Vercel sandbox endpoint returned 403 for this connection; verification was performed on the GitHub-hosted Actions runner instead. No interactive VM shell was available.
