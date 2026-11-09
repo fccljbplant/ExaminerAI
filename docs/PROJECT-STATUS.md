@@ -262,3 +262,15 @@ Owner clarified that UXPeak must cover gamification, product UI, role dashboards
 - Portfolio course-scope correction and route regression tests are committed. Exact-head Actions remain unverified; the previous run was cancelled before quality checks. Vercel is rate-limited. No local checks were available.
 - Next planned PR #3 slice identified by source review: scope the course-bearing relations in src/app/api/students/final-result/route.ts (weekly tests, interactions, report cards, project reports and tasks) to the same authorised course boundary. Preserve learner self-view and required academic/career fields; behavioralPattern remains learner-self only. See QUESTIONS.md for field classification and the comprehensive-report blocker.
 - Org-admin assignment/reassignment and instructor course-access approval requirements have been appended to the end of the product-wide blueprint and Issue #4 as future Workstream J scope.
+
+
+## 2026-11-10 — Final-result course-scope correction
+
+- On the existing PR #3 branch, `src/app/api/students/final-result/route.ts` now scopes staff result data to authorised course IDs intersected with the learner's enrolments.
+- Instructor scope: teaching enrolments, with explicit active `full`/`content_only` student-grant fallback only when no shared course exists. Org-admin scope: active admin and learner memberships in the same org, linked OrgCourse rows, then learner-enrolment intersection. Platform admins are bounded to learner enrolments; demo/other staff require an active explicit grant.
+- `weeklyTests`, `interactions`, `reportCards`, `projectReports` and `tasks` are all course-filtered. Empty/revoked scope fails closed before loading report records; staff targets must be learners.
+- Learner self-view remains cross-course. Required academic/career fields and project/task outputs remain; `behavioralPattern` remains learner-self only.
+- Added route-level tests for instructor, org-admin, explicit-grant, empty/revoked scope, denied access, platform-admin and learner-self paths.
+- Code head: `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8`. No Actions run was returned for that head at the time of this update; previous-head run `42722331613` passed but does not validate this change. Vercel remains failed by build-rate limit. No local tests/build/browser/axe checks were run.
+- Multi-course duration/phase semantics and existing relation query limits remain unchanged. Comprehensive-report `managementAttitude` classification remains owner-blocked; learner-support/crisis features remain off.
+- PR #3 remains open and draft. No schema/dependency/production-data change, merge, deployment or branch switch.
