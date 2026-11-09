@@ -1,6 +1,6 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-09 16:45 UTC  
+**Updated:** 2026-11-10 (live refresh)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
@@ -101,3 +101,14 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 - Agent Pack prerequisites are missing: AGENTS.md, QUEUE.md and run-logged.mjs return 404. The uploaded pack is unsafe to activate unchanged because its runner switches/creates branches and its guard reads prohibited .env* files. No approved task card or safe runner is available.
 - No application code changed. No merge, deployment, production-data change, branch switch or main-branch write.
 - Next: restore/adapt the Agent Pack safely on this branch, obtain an approved task card, then implement the portfolio authorised-course intersection and route-level access tests. Clarify expired-enrolment visibility; do not change course-less competency semantics without owner direction.
+
+
+## 2026-11-10 — Live PR #3 refresh and portfolio-scope continuation
+
+- Rechecked PR #3: open, draft, unmerged, mergeable; branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; head `43aa35909b85275432619303baddf845f852e5df`; 266 commits and 109 changed files at inspection.
+- Exact-head GitHub Actions run [42663209736](https://github.com/fccljbplant/ExaminerAI/actions/runs/42663209736) passed install, isolated test database setup, lint, unit tests, TypeScript, production build, app-route smoke tests, authenticated role screenshots and artifact upload.
+- Exact-head Vercel status remains failed due to the build-rate limit; no Ready preview is confirmed.
+- Re-read `AGENT-INSTRUCTIONS.md`, continuity/status/session records, the portfolio route, visibility helper/tests, Prisma schema and upgrade questions. The portfolio route still authorises access and then queries course-bearing task, interaction, weekly-test and report-card records by learner ID only. The existing shared-course helper is available, but route-level authorisation derivation and route tests are not implemented.
+- The required Agent Pack queue/task card and logged runner are still absent from this branch. The uploaded runner cannot be used unchanged because it changes branches; no safe, approved task card/run path has been established. Per the project guardrails, application-code edits remain blocked rather than bypassing the workflow.
+- No application code, schema, dependency, production data, branch, merge or deployment was changed in this refresh. The organisation assignment and instructor revocation-approval workflow remains separate Issue #4 scope.
+- Next: obtain/restore a branch-preserving, no-`.env*` task-card workflow or owner-approved equivalent; then implement the portfolio course intersection and route-level tenant/course/grant tests as one focused task. Preserve the unresolved expiry semantics and course-less competency semantics.
