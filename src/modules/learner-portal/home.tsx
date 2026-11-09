@@ -178,7 +178,7 @@ function ContinueCard({ info }: { info: ContinueInfo }) {
                 key={b.label}
                 href={b.minutes ? `${info.href}?budget=${b.minutes}` : info.href}
                 aria-label={`Start ${b.minutes ? `${b.minutes} minute` : "open-ended"} session`}
-                className="inline-flex h-9 min-w-11 items-center justify-center rounded-full border border-line px-3 text-xs font-semibold text-fg-secondary transition-colors hover:border-brand hover:bg-brand-subtle hover:text-fg"
+                className="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-line px-3 text-xs font-semibold text-fg-secondary transition-colors hover:border-brand hover:bg-brand-subtle hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 {b.label}
               </Link>
