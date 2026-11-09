@@ -10,6 +10,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
+import { hasRole, UserRole } from "@/lib/rbac";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logAudit } from "@/lib/audit-log";
@@ -21,7 +22,7 @@ import { orgErrorResponse } from "@/modules/org-portal/lib/http";
 
 export const runtime = "nodejs";
 
-const ORG_ROLES = new Set(["org_admin", "platform_admin"]);
+
 
 const AnnounceBody = z.object({
   title: z.string().min(1).max(140),
@@ -31,7 +32,7 @@ const AnnounceBody = z.object({
 export async function GET() {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (!ORG_ROLES.has(user.role)) {
+  if (!hasRole(user.role, [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN])) {
     return apiError("Org access only", "FORBIDDEN", 403);
   }
   if (!(await isOrgPortalEnabled())) {
@@ -73,7 +74,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  if (!ORG_ROLES.has(user.role)) {
+  if (!hasRole(user.role, [UserRole.ORG_ADMIN, UserRole.PLATFORM_ADMIN])) {
     return apiError("Org access only", "FORBIDDEN", 403);
   }
   if (!(await isOrgPortalEnabled())) {
