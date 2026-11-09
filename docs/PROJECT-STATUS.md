@@ -1,6 +1,6 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09 (latest PR #3 head `b4f937c098fda0b6f7aa78f2d1ad31944b9c71f6`; latest-head CI pending)  
+**Snapshot date:** 2026-11-10 (live PR #3 head `43aa35909b85275432619303baddf845f852e5df`)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
@@ -204,3 +204,20 @@ Owner clarified that UXPeak must cover gamification, product UI, role dashboards
 - Agent Pack prerequisite remains blocked: `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` and `scripts/agent/run-logged.mjs` are absent (404). The uploaded pack was not installed because its runner switches/creates branches and its guard reads `.env*` files, both conflicting with project safety rules.
 - **No application code changed.** The portfolio fix is blocked until an approved task card and safe runner/execution path are available. No branch switch, merge, deployment, production-data change, or main-branch write.
 - Next: restore/adapt the Agent Pack safely on this existing branch; then implement authorised-course intersection in the staff portfolio endpoint and route-level tests, including instructor multi-course isolation, org-admin tenant/OrgCourse boundaries, no shared course and grant revocation. Clarify expired enrollment handling and leave course-less competency semantics untouched pending owner decision.
+
+
+## Live refresh — 2026-11-10
+
+- PR #3 remains **open, draft, unmerged and mergeable** on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; live head `43aa35909b85275432619303baddf845f852e5df` (266 commits, 109 changed files).
+- Exact-head Actions run [42663209736](https://github.com/fccljbplant/ExaminerAI/actions/runs/42663209736) passed all configured quality steps: dependency install, isolated DB setup, lint, unit tests, typecheck, production build, route smoke tests, authenticated role screenshots and artifact upload.
+- Exact-head Vercel status is **failure** due to the build-rate limit; no current Ready preview is verified.
+- The staff portfolio cross-course finding remains open. The current endpoint calls `assertCanAccessStudent`, but then fetches ProjectTask, Interaction, WeeklyTest and ReportCard by `userId` without restricting `courseId` to the caller's authorised courses intersected with learner enrolments. Existing helper tests cover set intersection, but not the endpoint's authorisation derivation or response boundary.
+- Agent Pack `AGENTS.md`, task queue and logged runner are not present on the branch. The uploaded runner's branch-switching behaviour conflicts with the repository's existing-branch-only rule. Do not run it unchanged; do not edit application code until an approved task card and safe runner/equivalent are available.
+- No application code or schema changed in this refresh. No local tests, browser, axe or manual accessibility checks were run. CI success is GitHub-hosted evidence for the current head only.
+- Separate Issue #4 work: org-admin assignment/reassignment of trainees within their organisation, plus instructor course-access removal with org-admin approval for organisation instructors, self-approval for independent instructors, and explicit confirmation. Not included in PR #3.
+
+### Next actions
+1. Resolve the branch-preserving task-card/logged-runner prerequisite without reading `.env*` or switching branches.
+2. Implement the portfolio authorised-course intersection and route-level regression tests only after that prerequisite is satisfied.
+3. Preserve the current support-data default-off policy; do not alter course-less competency semantics or expired-enrolment treatment without verified rules.
+4. Keep PR #3 draft; no merge, deployment or production-data changes without explicit approval.
