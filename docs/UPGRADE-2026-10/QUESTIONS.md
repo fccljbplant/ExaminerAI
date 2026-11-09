@@ -58,3 +58,23 @@ Route regression tests were added for instructor multi-course isolation, org-adm
 
 The portfolio route now also respects the AccessGrant dataScope value, and fails closed if a grant disappears between the initial access check and the subsequent course-scope derivation. Comment filtering requires every non-null task/interaction/weekly-test/daily-log relation to be within the authorised record sets, preventing mixed-scope comments from crossing course boundaries. Route tests were added for restricted wellbeing grants and the disappearing-grant case. Exact-head CI remains pending.
 
+
+
+## 2026-11-10 — Final-result course-scope follow-up
+
+**Status:** Next PR #3 implementation slice; source review only, not yet changed.
+
+In src/app/api/students/final-result/route.ts, staff authorisation is checked with assertCanAccessStudent(payload, targetUserId, "content_only") at line 38, but the nested relation queries at lines 47–51 do not filter by courseId:
+- weeklyTests
+- interactions
+- reportCards
+- projectReports
+- tasks
+
+The Prisma schema confirms each relation model has a courseId field. A multi-course learner can therefore contribute records outside the staff member's authorised course scope to the final-result calculation.
+
+**Required next correction:** preserve learner self-view across the learner's own courses; for staff, derive the same instructor/org-admin/platform-admin/explicit-grant course boundary used by the portfolio route and apply it to every course-bearing relation. Add route-level tests for instructor multi-course isolation, org-admin linked-course scope, explicit grants, cross-tenant denial and empty scope.
+
+**Owner-approved field handling:** do not remove required academic functionality. Keep performance, participation, areasToImprove, overallAssessment, careerReadiness, project reports and task statistics where the caller is authorised. The behavioralPattern field remains learner-self only until an approved consented support pathway exists. Do not broaden support data.
+
+The separate comprehensive-report managementAttitude classification remains blocked by the earlier owner-decision entry; do not silently alter that report in this slice.
