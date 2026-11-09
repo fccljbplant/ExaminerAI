@@ -118,6 +118,12 @@ describe("GET /api/students/[id]/portfolio course scope", () => {
       expect.objectContaining({
         where: {
           studentId: learnerId,
+          AND: [
+            { OR: [{ taskId: null }, { taskId: { in: ["task-a"] } }] },
+            { OR: [{ interactionId: null }, { interactionId: { in: ["interaction-a"] } }] },
+            { OR: [{ weeklyTestId: null }, { weeklyTestId: { in: ["test-a"] } }] },
+            { OR: [{ dailyLogId: null }, { dailyLogId: { in: ["log-a"] } }] },
+          ],
           OR: [
             { taskId: { in: ["task-a"] } },
             { interactionId: { in: ["interaction-a"] } },
