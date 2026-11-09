@@ -105,7 +105,7 @@ export function OrgHome() {
             </h2>
             <Link
               href="/org/people"
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Manage people
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -137,7 +137,7 @@ export function OrgHome() {
             </h2>
             <Link
               href="/org/audit"
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Full audit
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
