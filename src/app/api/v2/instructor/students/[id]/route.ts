@@ -19,6 +19,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
+import { normalizeRole, UserRole } from "@/lib/rbac";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
 import { computePsychWeekly } from "@/modules/learn/lib/psych-weekly";
@@ -48,7 +49,9 @@ export async function GET(
     where: { id },
     select: { id: true, name: true, email: true, role: true, lastLogin: true, createdAt: true },
   });
-  if (!student) return apiError("Student not found", "NOT_FOUND", 404);
+  if (!student || normalizeRole(student.role) !== UserRole.LEARNER) {
+    return apiError("Student not found", "NOT_FOUND", 404);
+  }
 
   // IDOR: instructors are limited to courses they teach. Org admins are
   // limited to courses explicitly linked to an organisation where they and
