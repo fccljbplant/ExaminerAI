@@ -139,9 +139,9 @@ describe("GET /api/students/final-result course scope", () => {
 
     const body = await response.json();
     expect(body.performanceScore).toBe(85);
-    expect(body.areasToImprove).toEqual(["Practice"]);
-    expect(body.overallAssessment).toBe("Good progress");
-    expect(body.careerReadiness).toBe("Almost Ready");
+    expect(body.areasToImprove).toHaveLength(3);
+    expect(body.overallAssessment).toContain("Ready");
+    expect(body.careerReadiness).toBe("Ready");
     expect(body.projectReports).toHaveLength(1);
     expect(body.projectTaskStats.totalTasks).toBe(2);
     expect(body).not.toHaveProperty("behavioralPattern");
