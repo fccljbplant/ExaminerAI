@@ -23,6 +23,21 @@
 - Support indicators require both explicit consent and a feature gate; both default false. No consent workflow exists and support/crisis features remain off.
 - The comprehensive-report `managementAttitude` field classification remains an owner decision in `docs/UPGRADE-2026-10/QUESTIONS.md`; do not widen staff visibility or remove fields without clarification.
 
+## UXPeak Pro — product-wide scope (owner clarification, 2026-11-09)
+
+The owner explicitly wants UXPeak concepts applied across the whole product, not dashboards alone. Added `docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md` covering:
+- Role dashboards/command centres for learner, instructor, org admin and platform admin.
+- Gamification and evidence-based motivation (phase-gated; Master Prompt places this in Phase 8).
+- Course discovery, catalogue, marketplace governance and read-only first-lesson preview.
+- Course “shopping” as discovery → compare → preview → request/join/enrol → approval → onboarding. Paid checkout/cart/payments are not approved and remain out of scope.
+- Modern classroom, course workspace, assignments/tests/projects and legacy feature parity.
+- Learner tutor, instructor Copilot, contextual AI assistance and human handoff.
+- Role-based tutorials/onboarding, searchable help centre, product helpdesk and learner “I need help”.
+- Inbox, announcements, notifications and the shared design system/state/accessibility matrix.
+- Privacy, consent, role boundaries, feature flags and evidence gates.
+
+Use this blueprint together with the Master Upgrade Prompt and existing UXPeak role redesign. It does not override the approved phase order or grant permission for payments, new providers/dependencies, support-data enablement, or new data processing.
+
 ## UXPeak / Workstream M implementation (parallel with privacy work)
 The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-REDESIGN.md`. Workstream M is mandatory across UI work. Changes on the current PR are deliberately incremental foundations, not a claim that the full role redesign is complete.
 
