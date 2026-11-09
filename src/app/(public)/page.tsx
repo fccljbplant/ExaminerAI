@@ -69,18 +69,36 @@ export default async function LandingPage() {
   const user = await getAuthUser();
   if (user) redirect(homeForRole(user.role));
 
-  // Marketplace data — courses first (page 1!), then paths.
-  const featuredCourses = await fetchMarketplaceCourses({ featured: true });
-  const marketplaceCourses = (featuredCourses.length ? featuredCourses : await fetchMarketplaceCourses({})).slice(0, 9);
-  const paths = (await fetchMarketplacePaths().catch(() => [])).slice(0, 4);
+  // Marketplace data is optional for rendering the public landing page.
+  // A missing preview DATABASE_URL must not take down the entire homepage:
+  // show the marketing/sign-in experience and a truthful catalogue status.
+  const [coursesResult, pathsResult, categoryCountsResult] = await Promise.allSettled([
+    fetchMarketplaceCourses({ featured: true }).then((featured) =>
+      featured.length ? featured : fetchMarketplaceCourses({})
+    ),
+    fetchMarketplacePaths(),
+    db.course.groupBy({
+      by: ["category"],
+      where: { published: true },
+      _count: { _all: true },
+    }),
+  ]);
 
-  // Category counts for the storefront strip (same as /courses).
-  const categoryCounts = await db.course.groupBy({
-    by: ["category"],
-    where: { published: true },
-    _count: { _all: true },
-  });
-  const countByCategory = new Map(categoryCounts.map((c) => [c.category, c._count._all]));
+  const marketplaceCourses =
+    coursesResult.status === "fulfilled" ? coursesResult.value.slice(0, 9) : [];
+  const paths =
+    pathsResult.status === "fulfilled" ? pathsResult.value.slice(0, 4) : [];
+  const categoryCounts =
+    categoryCountsResult.status === "fulfilled" ? categoryCountsResult.value : [];
+  const marketplaceUnavailable =
+    coursesResult.status === "rejected" || categoryCountsResult.status === "rejected";
+  if (marketplaceUnavailable) {
+    console.error("[landing-page] Marketplace data unavailable; rendering public fallback.", {
+      courses: coursesResult.status,
+      categories: categoryCountsResult.status,
+    });
+  }
+
   const totalPublished = categoryCounts.reduce((sum, c) => sum + c._count._all, 0);
 
   const freeCourses = marketplaceCourses.filter((c) => c.price === 0);
@@ -152,6 +170,14 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      {marketplaceUnavailable && (
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 pt-6" role="status">
+          <div className="rounded-xl border border-line bg-bg-subtle/40 px-4 py-3 text-sm text-fg-muted">
+            The course catalogue is temporarily unavailable. You can still sign in or explore the platform; please try the catalogue again shortly.
+          </div>
+        </section>
+      )}
 
       {/* ── COURSES — the storefront, PAGE 1 ────────────────────── */}
       {marketplaceCourses.length > 0 && (
