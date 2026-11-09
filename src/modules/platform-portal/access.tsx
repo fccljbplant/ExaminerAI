@@ -24,7 +24,7 @@ interface Grant {
 }
 
 const SCOPE_TYPES = ["batch", "student", "course", "institution"] as const;
-const DATA_SCOPES = ["full", "wellbeing", "crisis", "content"] as const;
+const DATA_SCOPES = ["full", "wellbeing_only", "crisis_only", "content_only"] as const;
 
 export function PlatformAccess() {
   const [grants, setGrants] = useState<Grant[] | null>(null);
@@ -106,7 +106,7 @@ export function PlatformAccess() {
           />
           <select value={scopeType} onChange={(e) => setScopeType(e.target.value)} aria-label="Scope type" className="h-11 rounded-lg border border-line bg-bg px-3 text-sm text-fg">
             {SCOPE_TYPES.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>{s.replace("_only", "")}</option>
             ))}
           </select>
           <input
