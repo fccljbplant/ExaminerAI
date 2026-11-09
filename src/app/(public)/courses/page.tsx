@@ -71,18 +71,14 @@ export default async function CoursesPage({
   let categoryCounts: Array<{ category: string; count: number }> = [];
   let categoryCountsUnavailable = false;
   try {
-    const groupedCategories = await db.course.groupBy({
-      by: ["category"],
-      where: { published: true },
-      _count: { _all: true },
-    });
-    categoryCounts = groupedCategories.map((item) => ({
-      category: item.category,
-      count:
-        typeof item._count === "object" && item._count !== null && "_all" in item._count
-          ? Number(item._count._all ?? 0)
-          : 0,
-    }));
+    categoryCounts = await Promise.all(
+      MARKETPLACE_CATEGORIES.map(async ({ value }) => ({
+        category: value,
+        count: await db.course.count({
+          where: { published: true, category: value },
+        }),
+      }))
+    );
   } catch (error) {
     categoryCountsUnavailable = true;
     console.error("[courses-page] Category counts unavailable; rendering catalogue shell.", error);
