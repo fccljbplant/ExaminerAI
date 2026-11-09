@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole, UserRole, ADMIN_ROLES, hasRole, type DataScope } from "@/lib/rbac";
+import { requireRole, UserRole, ADMIN_ROLES, hasRole, normalizeRole, type DataScope } from "@/lib/rbac";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { logger } from "@/lib/logger";
 import { demoWriteBlock } from "@/lib/demo-guard";
@@ -17,11 +17,14 @@ export async function GET(req: NextRequest) {
   const scopeType = url.searchParams.get("scopeType") || undefined;
   const scopeId = url.searchParams.get("scopeId") || undefined;
 
-  const isAdmin = hasRole(ctx.payload.role, ADMIN_ROLES);
-  const effectiveGrantee = isAdmin ? requestedGrantee : ctx.payload.sub;
+  const isPlatformAdmin = hasRole(ctx.payload.role, [UserRole.PLATFORM_ADMIN]);
+  const isOrgAdmin = normalizeRole(ctx.payload.role) === UserRole.ORG_ADMIN;
+  const effectiveGrantee = isPlatformAdmin ? requestedGrantee : ctx.payload.sub;
 
-  const where: { granteeUserId?: string; scopeType?: string; scopeId?: string; revokedAt?: null } = { revokedAt: null };
+  const where: { granteeUserId?: string; grantedByUserId?: string; scopeType?: string; scopeId?: string; revokedAt?: null } = { revokedAt: null };
   if (effectiveGrantee) where.granteeUserId = effectiveGrantee;
+  // Org admins may inspect grants they issued, not every tenant's grants.
+  if (isOrgAdmin) where.grantedByUserId = ctx.payload.sub;
   if (scopeType) where.scopeType = scopeType;
   if (scopeId) where.scopeId = scopeId;
 
@@ -61,6 +64,47 @@ export async function POST(req: NextRequest) {
     select: { id: true, name: true, email: true, role: true },
   });
   if (!grantee) return NextResponse.json({ error: "Grantee user not found" }, { status: 404 });
+
+  // Org admins may only grant access within an organization they actively administer.
+  // Platform admins retain cross-tenant control-plane access.
+  if (normalizeRole(auth.ctx.payload.role) === UserRole.ORG_ADMIN) {
+    const actorMemberships = await db.orgMember.findMany({
+      where: { userId: auth.ctx.payload.sub, status: "active", role: "admin" },
+      select: { orgId: true },
+    });
+    const orgIds = actorMemberships.map((membership) => membership.orgId);
+    if (orgIds.length === 0) {
+      return NextResponse.json({ error: "No active organization-admin scope" }, { status: 403 });
+    }
+
+    const granteeMembership = await db.orgMember.findFirst({
+      where: { userId: granteeUserId, orgId: { in: orgIds }, status: "active" },
+      select: { orgId: true },
+    });
+    if (!granteeMembership) {
+      return NextResponse.json({ error: "Grantee is not an active member of an organization you administer" }, { status: 403 });
+    }
+
+    let scopeIsInOrganization = false;
+    if (scopeType === "institution") {
+      scopeIsInOrganization = orgIds.includes(scopeId);
+    } else if (scopeType === "course") {
+      const courseLink = await db.orgCourse.findFirst({
+        where: { orgId: { in: orgIds }, courseId: scopeId },
+        select: { orgId: true },
+      });
+      scopeIsInOrganization = Boolean(courseLink);
+    } else if (scopeType === "student") {
+      const studentMembership = await db.orgMember.findFirst({
+        where: { userId: scopeId, orgId: { in: orgIds }, status: "active" },
+        select: { orgId: true },
+      });
+      scopeIsInOrganization = Boolean(studentMembership);
+    }
+    if (!scopeIsInOrganization) {
+      return NextResponse.json({ error: "Grant scope is outside your organization" }, { status: 403 });
+    }
+  }
 
   const GRANTABLE_ROLES: string[] = [
     UserRole.INSTRUCTOR, "instructor",
