@@ -8,7 +8,7 @@
 2. Read this file, then `docs/PROJECT-STATUS.md` and the latest entry in `docs/SESSION-LOG.md`.
 3. Confirm the live GitHub state: default branch HEAD, active working branch, open PR head, latest commit, CI checks, deployment checks, reviews, and unresolved review threads.
 4. Inspect the actual files and current diffs before editing. Never assume a prior sandbox, local checkout, dev server, or uncommitted change survived.
-5. Make scoped changes on a dedicated branch. Do not push directly to `main`; do not merge or deploy without owner approval.
+5. Make scoped changes only on the existing PR #3 branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; never create or switch branches. Do not push to `main`; do not merge or deploy without owner approval.
 6. After a coherent change, record what changed, exact commit/PR, checks run and not run, and the next safe action in `docs/SESSION-LOG.md` and update `docs/PROJECT-STATUS.md`.
 
 ## Repository identity
@@ -46,7 +46,7 @@ PR #3 is a foundation, not completion of all product workstreams. Workstreams Aâ
 - Distinguish AI suggestions from verified facts.
 - Preserve explicit loading, empty, stale, permission, validation, success, error and retry states.
 - Keep interactive targets at least 44px where required, support keyboard/focus, and validate WCAG AA contrast.
-- Do not introduce surveillance or psychological monitoring of learners. Follow the repository's privacy, consent, access-grant and RBAC rules.
+- Learner support signals may be handled only for the learner's in-scope instructor through an approved, consented, organisation-enabled pathway; keep support/crisis features off until owner approval and required safeguards exist. Ordinary org admins and platform admins must not receive individual learner-support/psychological signals. Follow field-level privacy, retention, access-grant and RBAC rules.
 
 ## Safety and change discipline
 
