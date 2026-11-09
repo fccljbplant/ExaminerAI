@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { callAI } from "@/lib/ai-provider";
 import { sanitizeExaminerText } from "@/lib/examiner-sanitizer";
@@ -85,12 +86,12 @@ export async function POST(req: NextRequest) {
           .slice(0, 12)
           .map((s) => `${s.label} w${s.week} ${s.latestScore != null ? `${s.latestScore}%` : "n/a"} streak${s.streak} ${s.risk}`)
           .join("; ")}\n`;
-      }
-      if (outline) {
+        }
+        if (outline) {
           block += `OUTLINE: ${outline.weeks
           .map((w) => `W${w.week} ${w.phase} (${w.days.length} days)`)
           .join(" | ")}\n`;
-      }
+        }
         return block;
       }),
     );
