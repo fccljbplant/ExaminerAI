@@ -32,8 +32,12 @@ export class OrgError extends Error {
 // ── Context ─────────────────────────────────────────────────────────────
 
 export async function getOrgContext(userId: string) {
+  // Org-portal context is administrative: a global org_admin account must
+  // also hold an active admin membership in the tenant it is acting within.
+  // Platform admins use the platform control plane unless explicitly granted
+  // an org-admin membership here.
   const member = await db.orgMember.findFirst({
-    where: { userId, status: "active" },
+    where: { userId, status: "active", role: "admin" },
     include: { org: true },
   });
   return member ?? null;
