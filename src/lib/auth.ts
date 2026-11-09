@@ -250,8 +250,14 @@ export async function assertCanAccessStudent(
     return true;
   }
 
-  // Only platform admins receive implicit global student access.
-  if (hasRole(payload.role, PLATFORM_ADMIN_ROLES)) return true;
+  // Platform admins have global operational access, never individual learner
+  // support/wellbeing access.
+  if (hasRole(payload.role, PLATFORM_ADMIN_ROLES)) {
+    if (requiredDataScope === "wellbeing_only" || requiredDataScope === "crisis_only") {
+      throw { status: 403, message: "Platform admins cannot access individual learner-support data" };
+    }
+    return true;
+  }
 
   const student = await db.user.findUnique({
     where: { id: studentId },
@@ -291,7 +297,12 @@ export async function assertCanAccessStudent(
             },
             select: { id: true },
           });
-          if (studentEnrollment) return true;
+          if (studentEnrollment) {
+            if (requiredDataScope === "wellbeing_only" || requiredDataScope === "crisis_only") {
+              throw { status: 403, message: "Organisation admins cannot access individual learner-support data" };
+            }
+            return true;
+          }
         }
       }
     }
@@ -316,7 +327,11 @@ export async function assertCanAccessStudent(
         },
         select: { id: true },
       });
-      if (studentEnrollment) return true;
+      if (
+        studentEnrollment &&
+        requiredDataScope !== "wellbeing_only" &&
+        requiredDataScope !== "crisis_only"
+      ) return true;
     }
   }
 
