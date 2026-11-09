@@ -1,3 +1,28 @@
+## 2026-11-09 — Continued PR #3 access/privacy fixes
+
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety` (existing PR #3 branch only)  
+**Latest code head:** `fea1683ef68245fdbedd8a9b397b529fa183bcff`
+
+### Changes committed
+- Tightened `assertCanAccessStudent` so org admins require active admin membership, an active learner membership in the same organisation, and learner enrolment in an organisation-linked course. Explicit grants cannot widen org-admin access beyond this tenant/course boundary.
+- Denied platform/org admins implicit or explicit access to `wellbeing_only` and `crisis_only` scopes; instructor course membership alone no longer grants those support scopes.
+- Final-result staff views no longer invoke AI behavioural-pattern generation and omit the `behavioralPattern` response field. Learner self-view retains its own behavioural analysis.
+- Staff portfolio responses are clamped to academic `content_only`. Daily logs are queried as dates only (private reflections/confidence are not loaded for staff); instructor comments remain visible only to instructors.
+- Support visibility helper now requires both learner consent and an enabled feature flag, defaulting both false. The v2 detail route therefore omits confidence and `psychWeekly` until a real consent/gate pathway is implemented.
+- Added tests for default-off support visibility and learner-only behavioural analysis.
+
+### Commit sequence (new work)
+`eb07cde8`, `49910fda`, `71102e60`, `941ea441`, `02253840`, `e7939d72`, `14a0a8df`, `4650190c`, `34a0ff19`, `a8bedbe8`, `29b66ed5`, `98f17db8`, `b7ddf70d`, `84dfef67`, `fea1683e`.
+
+### Validation and remaining work
+- Earlier CI run `42643565316` passed on `d850ff0d` before this set of changes.
+- Run `42644831199` on intermediate commit `84dfef67` was cancelled during dependency installation; latest head `fea1683e` has no completed Actions result. Do not treat latest code as validated.
+- Vercel combined status on latest head is a build-rate-limit failure.
+- No local checkout or local test execution was available. No production data, merge, or deployment action was performed.
+- Still required: latest-head CI, route-level tenant/course and grant regression tests, review of remaining routes that call `assertCanAccessStudent`, and the approved consent/default-off/audit workflow plus Learner Support Lead crisis capability.
+
+---
+
 ## 2026-11-09 — PR #3 org-admin academic oversight access fix
 
 **Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety` (existing PR #3 branch only)  
