@@ -9,7 +9,7 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
  *  interactions, bugs, and existing instructor comments. This is what the
  *  teacher sees when they click into a student from the batch dashboard.
  *
- *  Admins impersonating teachers (via ?as=teacher) can also access this.
+ *  Admins do not receive learner support reflections through this endpoint.
  */
 export async function GET(
   _req: NextRequest,
@@ -23,10 +23,10 @@ export async function GET(
 
   const { id } = await params;
 
-  // Full access is implicit only for platform admins. Instructors and org
-  // admins must pass the shared course/tenant checks; other staff (including
-  // demo accounts) must hold an explicit grant. Restricted grants are applied
-  // to the response below rather than being treated as unrestricted access.
+  // Instructors and org admins must pass course/tenant checks; platform
+  // admins have global operational access; other staff need an explicit grant.
+  // Regardless of access role, the staff response is clamped to academic data
+  // until per-organisation support consent and feature gates are implemented.
   let portfolioDataScope: string | null = null;
   try {
     await assertCanAccessStudent(payload, id, "portfolio");
