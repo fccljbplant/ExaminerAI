@@ -9,7 +9,7 @@
 | Ref | Commit | Meaning |
 |---|---|---|
 | `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | Default-branch HEAD returned by GitHub. Commit: adaptive Learn question difficulty and server-enforced weekly test sequence (2026-09-07). |
-| `ux-audit/fix-dashboard-truthfulness-and-agent-safety` | `1ac3d87de73cdb0d0441a9e546e7aeab560acde2` | Last application-code commit inspected before this session added the continuity documents. Commit: scope final-result access to academic content grants. |
+| `ux-audit/fix-dashboard-truthfulness-and-agent-safety` | `1ac3d87de73cdb0d0441a9e546e7aeab560acde2` | Application-code baseline inspected before the continuity-document commits. Commit: scope final-result access to academic content grants. |
 
 **Important:** GitHub's recent-commit search returned the September main-branch commit above. PR #3 is on a separate branch and is ahead of main. Do not confuse the PR branch's newer commits with changes already merged into `main`.
 
@@ -23,21 +23,19 @@
 - Mergeable: GitHub reported **true** at the time checked.
 - Base: `main`
 - Head: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Head SHA at code audit: `1ac3d87de73cdb0d0441a9e546e7aeab560acde2`. This session then added three documentation commits to this same PR branch; re-check the live head before the next session.
-- Commits: 164
-- Changed files: 96
-- Diff totals reported by GitHub: +2,143 / −521
+- Application-code head inspected: `1ac3d87de73cdb0d0441a9e546e7aeab560acde2`. This session added continuity documentation on top of it. At the latest metadata refresh before this status-file update, the live PR head was `73793e274bd1532f1e5730422b1a854abefe593e` (168 commits, 99 changed files, +2,342 / −521). Updating this file adds another documentation commit; re-check the live head before the next session.
+- Counts at the metadata refresh before this status-file update: 168 commits, 99 changed files, +2,342 / −521. The current documentation update adds another commit/file; fetch live metadata before continuing.
 - Submitted PR reviews: none found at the time checked.
 - Inline review threads: none found at the time checked.
 
-### Latest checks observed for the PR head
+### Checks observed for the application-code head (`1ac3d87`) before continuity docs were added
 
 - GitHub Actions workflow **UX audit checks**, run **42571814643**: completed, conclusion **success**.
 - Vercel combined status: **failure**. The status target points to the free-plan daily deployment cap (`api-deployments-free-per-day`, more than 100 deployments; retry after 24 hours).
 - A Vercel bot comment also recorded a **Ready** preview deployment at 2026-11-09 06:39 UTC for an earlier preview build. This does not override the failing Vercel status on the current PR head.
-- Therefore: CI workflow is green, but the current Vercel status is not green. Do not describe the PR as fully validated or its current preview as deployed/ready.
+- Therefore: the recorded workflow is green and the recorded Vercel status is red for the inspected application-code head. No fresh check run was retrieved for the documentation-only head created in this session. Do not describe the PR as fully validated or its current preview as deployed/ready.
 - The PR description records an earlier baseline run **42537096856** as passing 31 test files / 374 tests, lint, TypeScript, production build, 83/83 route smoke requests, screenshot capture and artifact upload. That run was on an earlier head; it is not evidence that every later commit was tested by that same run.
-- The PR's latest head includes an auth change titled `fix(auth): scope final result access to academic content grants`. Re-check its diff and access-control tests before approval.
+- The inspected application-code head includes an auth change titled `fix(auth): scope final result access to academic content grants`. Re-check its diff and access-control tests before approval.
 
 ## What PR #3 is intended to deliver
 
