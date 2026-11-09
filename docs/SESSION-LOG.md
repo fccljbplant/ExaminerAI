@@ -481,3 +481,33 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 2. Review the route-level test output and add any missing edge cases for empty intersections and restricted grants if needed.
 3. Keep Competency course-less semantics and expired-enrolment treatment open; keep learner-support/crisis data off.
 4. Continue the remaining PR #3 plan items in order; keep PR #3 draft.
+
+
+## 2026-11-10 — Portfolio scope hardening and plan additions
+
+**PR #3 branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety  
+**Head when this entry was prepared:** 6fe426c2cbd571fd1f77569b6421f6cc4f81ef83
+
+### Final portfolio hardening
+- Added server-side course ID derivation for instructor, org-admin, platform-admin and explicit-grant paths; course-bearing portfolio queries are filtered by the authorised intersection with learner enrolments.
+- Explicit grant dataScope is respected. Only full/content_only can return academic content; wellbeing_only/crisis_only do not. The route fails closed if a student-level grant is no longer present when the course scope is derived after the general access check.
+- Scoped instructor comments through the academic records they annotate. The query requires all non-null relation references to be in the authorised sets, preventing a comment linked to both an authorised and an unauthorised record from crossing course boundaries. Unlinked comments are omitted.
+- Added route regression tests for multi-course instructor isolation, org-admin linked-course scope, explicit-grant fallback, restricted wellbeing grant, disappearing grant and denied access.
+- Re-read final route/test files and reviewed the PR patch. No local test environment was available.
+
+### Roadmap additions requested by owner
+- Appended org-admin trainee-to-instructor assignment/reassignment and instructor course-access removal approval workflow to the end of docs/UXPEAK-PRO-PRODUCT-WIDE-BLUEPRINT.md and Issue #4.
+- Assignment is organisation-scoped, membership/course validated server-side, audited and history-preserving.
+- Removal is pending org-admin approval for organisation-affiliated instructors; independent instructors can confirm their own removal. Both paths require confirmation; access remains active while approval is pending; all decisions are audited.
+- Mapped these additions to future Workstream J. They do not alter PR #3 scope or phase ordering.
+
+### Validation and limitations
+- PR #3 remains open, draft, unmerged and mergeable. Exact latest-head Actions have not yet completed; run 42721835502 on a previous head was cancelled by a later push before quality checks began. Vercel remains pending.
+- No local tests, lint, typecheck, build, browser or axe checks were run. Do not claim validation until exact-head Actions passes.
+- Competency remains course-less in Prisma and is unchanged; expiresAt remains governed by existing semantics pending clarification.
+- No production data, schema, dependency, merge, deployment, branch creation or branch switch. Agent Pack task queue/runner remains absent and unused.
+
+### Next
+1. Verify the exact latest-head Actions workflow and fix failures.
+2. Review test results and final diff before proceeding to the next PR #3 slice.
+3. Keep support/crisis data default-off and keep PR #3 draft.
