@@ -235,67 +235,85 @@ export async function ensureAdminUser(): Promise<void> {
 export async function assertCanAccessStudent(
   payload: JwtPayload,
   studentId: string,
+  requiredDataScope: "full" | "wellbeing_only" | "crisis_only" | "content_only" = "full",
 ): Promise<boolean> {
-  // Students access only their own data
-  if (payload.role === "student") {
+  // Import lazily: rbac imports auth helpers, so a static import would create
+  // a runtime cycle.
+  const { normalizeRole, UserRole, hasRole, PLATFORM_ADMIN_ROLES } = await import("@/lib/rbac");
+  const callerRole = normalizeRole(payload.role);
+
+  // Learners (including legacy student aliases) can access only themselves.
+  if (callerRole === UserRole.LEARNER) {
     if (payload.sub !== studentId) {
       throw { status: 403, message: "You can only access your own data" };
     }
     return true;
   }
 
-  // Admins can access any student
-  const { ADMIN_ROLES } = await import("@/lib/rbac");
-  if ((ADMIN_ROLES as string[]).includes(payload.role)) {
-    return true;
+  // Only platform admins receive implicit global student access.
+  if (hasRole(payload.role, PLATFORM_ADMIN_ROLES)) return true;
+
+  const student = await db.user.findUnique({
+    where: { id: studentId },
+    select: { role: true },
+  });
+  if (!student || normalizeRole(student.role) !== UserRole.LEARNER) {
+    throw { status: 404, message: "Student not found" };
   }
 
-  // Instructor — check course enrollment via CourseEnrollment
-  // Instructors can access students enrolled in the same courses they teach.
-  if (payload.role === "instructor") {
-    const student = await db.user.findUnique({
-      where: { id: studentId },
-      select: { role: true },
+  // Org admins are confined to active learners in organizations where they
+  // themselves hold an active admin membership. A global org_admin role is
+  // not a cross-tenant bypass.
+  if (callerRole === UserRole.ORG_ADMIN) {
+    const memberships = await db.orgMember.findMany({
+      where: { userId: payload.sub, status: "active", role: "admin" },
+      select: { orgId: true },
     });
-    if (!student || student.role !== "student") {
-      throw { status: 404, message: "Student not found" };
+    const orgIds = memberships.map((membership) => membership.orgId);
+    if (orgIds.length > 0) {
+      const studentMembership = await db.orgMember.findFirst({
+        where: { userId: studentId, orgId: { in: orgIds }, status: "active" },
+        select: { id: true },
+      });
+      if (studentMembership) return true;
     }
+  }
 
-    // Get courses the instructor teaches
+  // Instructors can access learners enrolled in courses they teach.
+  if (callerRole === UserRole.INSTRUCTOR) {
     const instructorEnrollments = await db.courseEnrollment.findMany({
       where: { userId: payload.sub, role: "instructor" },
       select: { courseId: true },
     });
-    const instructorCourseIds = instructorEnrollments.map(e => e.courseId);
-    if (instructorCourseIds.length === 0) {
-      throw { status: 403, message: "You are not assigned to any courses" };
+    const instructorCourseIds = instructorEnrollments.map((enrollment) => enrollment.courseId);
+    if (instructorCourseIds.length > 0) {
+      const studentEnrollment = await db.courseEnrollment.findFirst({
+        where: {
+          userId: studentId,
+          courseId: { in: instructorCourseIds },
+          role: "student",
+        },
+        select: { id: true },
+      });
+      if (studentEnrollment) return true;
     }
-
-    // Check if student is enrolled in any of those courses
-    const studentEnrollment = await db.courseEnrollment.findFirst({
-      where: {
-        userId: studentId,
-        courseId: { in: instructorCourseIds },
-        role: "student",
-      },
-    });
-    if (studentEnrollment) return true;
-
-    // Fall through to AccessGrant check
   }
 
-  // Other staff (org_admin, platform_admin, demo)
-  // — check AccessGrant
+  // Explicit grants must cover the data scope requested by the endpoint.
+  // A restricted grant cannot silently authorize a full student report.
+  const allowedDataScopes =
+    requiredDataScope === "full" ? ["full"] : ["full", requiredDataScope];
   const grant = await db.accessGrant.findFirst({
     where: {
       granteeUserId: payload.sub,
       scopeType: "student",
       scopeId: studentId,
-      dataScope: { in: ["full", "wellbeing_only", "crisis_only", "content_only"] },
+      dataScope: { in: allowedDataScopes },
       revokedAt: null,
     },
+    select: { id: true },
   });
   if (grant) return true;
 
-  throw { status: 403, message: "You need an access grant to view this student" };
+  throw { status: 403, message: "You do not have access to this student's requested data scope" };
 }
