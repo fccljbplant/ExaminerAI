@@ -15,6 +15,7 @@ import { useApi } from "@/modules/learner-portal/use-api";
  */
 
 interface RevenueData {
+  generatedAt: string;
   mrr: number;
   pipelineMrr: number;
   b2cGross30d: number;
@@ -118,10 +119,11 @@ export function PlatformRevenue() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold text-fg md:text-xl">Revenue &amp; payouts</h1>
           <p className="text-sm text-fg-muted">MRR, platform fees, creator payouts and trial health.</p>
+          {revenue && <p className="mt-1 text-xs text-fg-muted">Updated <time dateTime={revenue.generatedAt}>{new Date(revenue.generatedAt).toLocaleString()}</time></p>}
         </div>
         <div className="flex gap-2">
           <button
