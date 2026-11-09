@@ -115,3 +115,34 @@
 - Keyboard-only, focus order, screen reader, reduced motion, 200% zoom/reflow and axe checks.
 - Lint, typecheck, unit/integration/permission tests, production build, route smoke and token audit.
 - No release-ready UX score without actual visual and interaction evidence.
+
+
+## Owner-added requirements — organisation assignment and course-access approval
+
+These requirements are appended to the end of the delivery plan, after the current UXPeak workstreams. They do not change PR #3 scope or reorder the approved Master Upgrade Prompt phases. Plan them with Workstream J (enrolment, assignment and approval lifecycle) and the organisation-admin role experience.
+
+### Organisation-scoped trainee-to-instructor assignment
+
+- Provide an Organisation Admin workflow to assign and reassign a trainee to an instructor within the admin's own organisation.
+- Candidate instructors must have active membership in that same organisation and valid teaching/course scope for the trainee's course.
+- Enforce tenant, role, course, membership status and assignment rules on the server for every read and write; never trust client-supplied organisation IDs.
+- Show current instructor, eligible instructors, course context, and the consequence of reassignment before confirmation.
+- Record actor, learner, instructor before/after, organisation, course, timestamp and reason in the audit trail. Preserve assignment history rather than silently overwriting it.
+- Tests: cross-tenant denial, inactive membership, instructor not assigned/eligible for course, duplicate assignment, reassignment history, concurrent updates and org-admin permission boundaries.
+
+### Instructor course-access removal and approval
+
+- Instructors may initiate removal of a trainee's access to a course.
+- If the instructor is an active member of an organisation for that course, the removal is a pending request and requires approval by an authorised Organisation Admin in that same organisation. The requesting instructor cannot self-approve.
+- An independent instructor who is not organisation-affiliated for the course may confirm and approve their own removal request.
+- Both paths must show an explicit confirmation dialog with the trainee, course, consequence and approval path before submission. Cancelling must make no change.
+- Enforce the state machine server-side: active access → pending removal (organisation instructor) → approved/rejected; independent instructor confirmation → approved removal. Pending requests must not revoke access prematurely.
+- Approval/rejection and final revocation must be audited with actor, role, organisation/course/learner scope, reason, timestamps and before/after state. Notify the affected parties through the approved communications system.
+- Tests: organisation instructor cannot self-approve, cross-org admin cannot approve, independent instructor confirmation, cancellation/no-op, pending access remains active, rejection preserves access, approval revokes access, duplicate/concurrent decisions, grant/enrolment consistency and audit completeness.
+
+### Delivery gates
+
+- Implement through the canonical enrolment/access service, not UI-only checks or direct client writes.
+- Additive/reversible data changes only, with migration and rollback notes if a request/approval record is required.
+- Preserve learner progress and historical assessment records when course access is revoked; revocation controls access, not destructive deletion.
+- Keep this work behind the appropriate rollout flag and deliver after the PR #3 correctness/safety baseline. No production enablement until tenant-boundary, state-machine, audit, notification and accessibility tests pass.
