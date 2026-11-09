@@ -6,9 +6,12 @@ import {
 
 describe("instructor student-detail visibility", () => {
   it("limits learner support indicators to instructors", () => {
-    expect(canViewLearnerSupportSignals("instructor")).toBe(true);
-    expect(canViewLearnerSupportSignals("org_admin")).toBe(false);
-    expect(canViewLearnerSupportSignals("platform_admin")).toBe(false);
+    expect(canViewLearnerSupportSignals("instructor")).toBe(false);
+    expect(canViewLearnerSupportSignals("instructor", true, false)).toBe(false);
+    expect(canViewLearnerSupportSignals("instructor", false, true)).toBe(false);
+    expect(canViewLearnerSupportSignals("instructor", true, true)).toBe(true);
+    expect(canViewLearnerSupportSignals("org_admin", true, true)).toBe(false);
+    expect(canViewLearnerSupportSignals("platform_admin", true, true)).toBe(false);
   });
 
   it("returns attendance dates without confidence for organisation admins", () => {
