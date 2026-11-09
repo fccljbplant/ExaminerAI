@@ -13,9 +13,8 @@ type DailyLogForDetail = {
 };
 
 /**
- * Keep confidence calibration private to the learner's instructor.
- * Organisation admins receive attendance dates for operational oversight,
- * not learner-support/confidence indicators.
+ * Confidence is included only when the caller has independently verified
+ * both learner consent and the organisation's support feature gate.
  */
 export function toDailyLogPayload(
   log: DailyLogForDetail,
