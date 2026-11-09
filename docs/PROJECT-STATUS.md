@@ -1,86 +1,80 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-09  
+**Snapshot date:** 2026-11-09 (live refresh)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
-## Git state verified on 2026-11-09
+## Live Git and PR state
 
-| Ref | Commit | Meaning |
+| Ref | Commit | State |
 |---|---|---|
-| `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | Default-branch HEAD returned by GitHub. Commit: adaptive Learn question difficulty and server-enforced weekly test sequence (2026-09-07). |
-| `ux-audit/fix-dashboard-truthfulness-and-agent-safety` | `1ac3d87de73cdb0d0441a9e546e7aeab560acde2` | Application-code baseline inspected before the continuity-document commits. Commit: scope final-result access to academic content grants. |
+| `main` | `fc70a296b28334ff45e8b081a0f8fe9a070be3a4` | Last verified default-branch HEAD in the prior continuity snapshot; re-fetch before relying on it as current. |
+| PR #3 branch | `4f4c4cd56fc3c0448acc0983e13a0ce74cea8773` | Live PR head returned by GitHub during this refresh. |
 
-**Important:** GitHub's recent-commit search returned the September main-branch commit above. PR #3 is on a separate branch and is ahead of main. Do not confuse the PR branch's newer commits with changes already merged into `main`.
-
-## PR #3 status
-
-**Snapshot: open · draft · not merged**
-
+PR #3:
 - State: **open**
 - Draft: **yes**
 - Merged: **no**
-- Mergeable: GitHub reported **true** at the time checked.
+- Mergeable: GitHub reports **true**
 - Base: `main`
 - Head: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
-- Application-code head inspected: `1ac3d87de73cdb0d0441a9e546e7aeab560acde2`. This session added continuity documentation on top of it. At the latest metadata refresh before this status-file update, PR #3 was still open/draft/not merged and mergeable; its live head was `afbba420d099b870e885ed9be182fd2cbd5a6cab` (170 commits, 99 changed files). This update itself adds another documentation commit; re-check the live head before the next session.
-- Counts at the latest metadata refresh before this status-file update: 170 commits and 99 changed files. This update itself adds a documentation commit; fetch live metadata before continuing.
-- Submitted PR reviews: none found at the time checked.
-- Inline review threads: none found at the time checked.
+- Commits: **171**
+- Changed files: **99**
+- No submitted PR reviews or inline review threads were returned by the latest inspection.
 
-### Checks observed for the application-code head (`1ac3d87`) before continuity docs were added
+## Current CI and preview status
 
-- GitHub Actions workflow **UX audit checks**, run **42571814643**: completed, conclusion **success**.
-- Vercel combined status: **failure**. The status target points to the free-plan daily deployment cap (`api-deployments-free-per-day`, more than 100 deployments; retry after 24 hours).
-- A Vercel bot comment also recorded a **Ready** preview deployment at 2026-11-09 06:39 UTC for an earlier preview build. This does not override the failing Vercel status on the current PR head.
-- Therefore: the recorded workflow is green and the recorded Vercel status is red for the inspected application-code head. No fresh check run was retrieved for the documentation-only head created in this session. Do not describe the PR as fully validated or its current preview as deployed/ready.
-- The PR description records an earlier baseline run **42537096856** as passing 31 test files / 374 tests, lint, TypeScript, production build, 83/83 route smoke requests, screenshot capture and artifact upload. That run was on an earlier head; it is not evidence that every later commit was tested by that same run.
-- The inspected application-code head includes an auth change titled `fix(auth): scope final result access to academic content grants`. Re-check its diff and access-control tests before approval.
+- GitHub Actions workflow **UX audit checks**, run [42609924471](https://github.com/fccljbplant/ExaminerAI/actions/runs/42609924471): **completed successfully**.
+- Inspected job: `quality`; all steps passed, including dependency installation, isolated test database setup, lint, unit tests, type check, production build, app-page route smoke tests, authenticated role screenshot capture, and screenshot artifact upload.
+- Combined commit status for PR head `4f4c4cd`: **Vercel success**. Status target: [Vercel deployment/check](https://vercel.com/fccljbplants-projects/examiner-ai/J4nWxzvYq4AEjUiEuoUPGghWjmVJ).
+- Latest Vercel bot comment inspected reports a **Ready** preview: [deployment](https://vercel.com/fccljbplants-projects/examiner-ai/24kkT77gFrtdtHBi1BweUytYPpzd) · [preview URL](https://examiner-ai-git-ux-audit-fix-dashb-bd75fe-fccljbplants-projects.vercel.app).
+- An older Vercel comment records a deployment failure from the free-plan daily cap. That is historical; it is not the current combined status.
+- No live browser walkthrough, production deployment, or end-user accessibility sign-off was performed in this session. A Ready preview/check is not equivalent to visual acceptance.
 
-## What PR #3 is intended to deliver
+## PR #3 scope
 
-- Accurate instructor queue/in-review KPIs from full database aggregates.
-- Correct roster activity/at-risk calculations and regression tests.
-- Retryable learner dashboard failure state; generic user-facing platform dashboard error with server-side exception logging.
+- Accurate instructor queue and in-review KPIs from complete database aggregates.
+- Correct roster activity/latest scored test/at-risk calculations with regression tests.
+- Retryable learner dashboard failure state; generic platform dashboard failure response with server-side logging.
 - Safer agent instructions and credential/database handling.
-- 44px desktop navigation targets; responsive platform-admin navigation; correct instructor active states.
-- Expanded theme contrast validation across 12 effective theme states.
-- 83-route structural inventory and CI workflow for lint, unit tests, TypeScript, production build, route smoke tests and authenticated role screenshots.
-- Baseline screenshots: 4 roles × 7 viewport sizes = 28 PNGs plus manifest.
-- UXPeak research, first screenshot audit, scorecard, role design decisions and expanded UX plan.
+- 44px navigation targets, responsive platform-admin navigation, and instructor active-route corrections.
+- Theme contrast validation across 12 effective theme states, including generated brand palettes.
+- 83-route structural inventory and CI for lint, tests, typecheck, build, route smoke tests and authenticated role screenshots.
+- Baseline screenshots for four roles across seven viewport sizes (28 screenshots plus manifest).
+- UXPeak research, screenshot audit, scorecard, role design decisions and expanded UX plan.
 
-## UX evidence and limitations
+## Review observations and risks
 
-- The screenshot baseline covers four role dashboards at 360×800, 390×844, 768×1024, 1024×768, 1366×768, 1920×1080 and 2560×1440.
-- The manifest recorded no horizontal document overflow in those 28 captures.
-- Fixtures are synthetic CI-only users and isolated SQLite, with empty/light states; they are not production/customer data.
-- This is not final UX or accessibility sign-off. Still required: populated/high-volume, error, permission and stale fixtures; core interaction walkthroughs; axe; manual keyboard/focus and screen-reader checks; reduced motion; zoom/reflow; console/network review; performance budgets; and user task testing.
-- The screenshot artifact referenced by the PR is retained through 2026-11-15 (per the audit document).
+1. **Final-result data scope requires a focused privacy review before approval.** `src/app/api/students/final-result/route.ts` calls `assertCanAccessStudent(payload, targetUserId, "content_only")`, but the response includes behavioural assessment fields (`behavioralPattern`, `overallAssessment`, `careerReadiness`) and project-report/task information. Confirm each returned field is permitted by the content-only grant semantics; otherwise split/redact the response or require a broader grant. Do not treat passing CI as proof of this access boundary.
+2. Instructor queue counts now use full database counts rather than the five-row preview. Roster risk count is derived from the full risk-filtered roster response; latest scored test selection is deterministic by week.
+3. Platform dashboard failure returns a generic service message while logging the underlying failure server-side. Learner profile lookup failure returns a retryable service-unavailable response instead of a false empty dashboard.
+4. No PR reviews or inline review threads were found. Owner review remains outstanding.
 
-## Continuity files added in this session
+## UX evidence and remaining validation
 
-- `docs/PROJECT-CONTINUITY.md` — start-of-session instructions, source-of-truth map, product invariants and safety rules.
-- `docs/PROJECT-STATUS.md` — this verified snapshot.
-- `docs/SESSION-LOG.md` — append-only handoff history.
+- The baseline screenshot matrix covers 4 roles × 7 viewports: 360×800, 390×844, 768×1024, 1024×768, 1366×768, 1920×1080 and 2560×1440.
+- The recorded manifest reported no horizontal document overflow in those 28 captures.
+- Screenshots use synthetic CI-only accounts and an isolated SQLite database; they represent empty/light baseline states, not production/customer data.
+- This is **not final UX/accessibility sign-off**. Still required: populated/high-volume, error, permission-denied and stale-data fixtures; core interaction walkthroughs; axe checks; manual keyboard/focus and screen-reader checks; reduced-motion validation; zoom/reflow; console/network review; performance budgets; and user task testing.
+- The screenshot artifact was documented as retained through 2026-11-15.
 
-These documentation files were added on the PR #3 branch after the application-code head listed above. They do not alter application source code.
+## Continuity and wider programme
 
-## Wider programme
-
-- The UX role redesign is active follow-on work, tracked in [Issue #4](https://github.com/fccljbplant/ExaminerAI/issues/4).
-- The UX plan is [docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-REDESIGN.md](./UX-PEAK-INSPIRED-ROLE-EXPERIENCE-REDESIGN.md).
-- Workstreams A–L are roadmap scope, not complete because PR #3 exists. Workstream M is mandatory for future UI work.
-- The repository has `AGENT-INSTRUCTIONS.md`; the Agent Pack's `AGENTS.md`, queue, decision/progress files, and `scripts/agent/*` runner/evidence tooling were explicitly reported missing in the PR description. Do not claim task-card/off-peak enforcement is active until those tools exist and are verified.
+- `docs/PROJECT-CONTINUITY.md` is the session-start guide.
+- `docs/PROJECT-STATUS.md` is this current snapshot.
+- `docs/SESSION-LOG.md` is append-only.
+- Wider role redesign remains tracked under [Issue #4](https://github.com/fccljbplant/ExaminerAI/issues/4) and [the UX role-experience redesign plan](./UX-PEAK-INSPIRED-ROLE-EXPERIENCE-REDESIGN.md).
+- Workstreams A–L remain roadmap scope; Workstream M is mandatory for future UI work.
+- The Agent Pack's `AGENTS.md`, task queue, decision/progress files and `scripts/agent/*` runner/evidence tooling were reported missing in the PR description. Do not claim task-card/off-peak enforcement is active until verified.
 
 ## Next actions
 
-1. Review PR #3's current diff, especially instructor aggregate metrics, failure states, RBAC/access-grant changes, theme validation, navigation and screenshot scripts.
-2. Inspect run 42571814643's job/step details; do not rely only on its green summary.
-3. Resolve or wait out the Vercel daily deployment cap, then verify a preview for the current head if a preview is still needed.
-4. Complete populated/error/permission/stale-state UX and accessibility checks before calling the baseline signed off.
-5. Continue the broader role redesign in focused, reviewable slices under Issue #4 after PR #3 is accepted.
-6. Owner review is required before marking the PR ready, merging, or deploying.
+1. Resolve the final-result `content_only` response-scope question with tests covering allowed and denied fields.
+2. Inspect the complete RBAC/access-grant regression tests and remaining high-risk PR changes; record any findings in review.
+3. Perform populated, error, permission and stale-state UX walkthroughs, then keyboard/screen-reader, reduced-motion, zoom/reflow and axe checks.
+4. Re-check live PR head and CI after any changes; do not rely on this dated snapshot.
+5. Keep PR #3 in draft pending owner review. Do not mark ready, merge, or deploy without explicit owner approval.
 
 ---
 
-**Update discipline:** This is a dated snapshot, not live status. Re-check GitHub before every new session and update this file when the branch head, PR state, checks, deployment, review, or roadmap changes.
+**Update discipline:** This is a dated snapshot, not live status. Re-check GitHub before every session and update this file when branch head, PR state, checks, deployment, reviews, or next actions change.
