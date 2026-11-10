@@ -84,9 +84,9 @@ export function calculateAttentionScore(
     reasons.push(`Last test ${latest}%`);
   }
 
-  if (testScores.length >= 2) {
+  if (latest !== undefined && testScores.length >= 2) {
     const previous = testScores[testScores.length - 2];
-    if (latest < previous - 15) {
+    if (previous !== undefined && latest < previous - 15) {
       score += 15;
       reasons.push("Test scores declining");
     }
