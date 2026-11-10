@@ -195,3 +195,10 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Latest code head: 48bc189c48012d62da5dd7582145398fd19293ec. Actions run for latest head not yet confirmed; prior run 42730939202 was pending on previous code head 2fc96787c36cce2d6a2cd3c785b63b590b0248ec. Vercel status remains build-rate limited. No local checks/browser/axe available.
 - Standing decision-maker delegation and the plan to consolidate the running decision ledger into formal documentation later are recorded in QUESTIONS.md, PROJECT-STATUS.md and SESSION-LOG.md.
 - No schema, migration, dependency, production data, merge or deployment changed. PR #3 remains open/draft/unmerged.
+
+
+### Validation update — 2026-11-10
+
+- Latest code commit 48bc189c48012d62da5dd7582145398fd19293ec has Actions run 42730976622 cancelled during dependency installation; all substantive checks were skipped. Do not claim the metric fix passed CI.
+- PR head after documentation updates:  f332108143ff6f48e99b6f195452e42bd4e8b41a (337 commits / 112 files); no Actions run returned for this docs-only head. Vercel remains failed due to project build-rate limit.
+- The metric change is implemented but awaits successful exact-head CI and local validation is unavailable. PR remains open/draft/unmerged.
