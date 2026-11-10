@@ -1,3 +1,15 @@
+## Latest live update — 2026-11-10 (comment write scope and audit trail)
+
+- Live repository: `fccljbplant/ExaminerAI`; `main` HEAD remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft, unmerged and mergeable on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. Validated application-code head: `b12017d0a5dd4d26da0fcad3726b2b9c9cacffa7` (399 commits / 123 changed files at refresh). No reviews or inline review threads returned.
+- Staff comment POST requires an authorised selected course and at least one activity link. Every supplied activity must belong to the same learner and course. PATCH/DELETE require `courseId` and revalidate all existing linked records. Unassigned/general and mixed-course legacy comments remain read-only through staff writes; learner self-history remains cross-course.
+- Comment create/edit/delete now emit `AuditLog` events (`comment_created`, `comment_updated`, `comment_deleted`). Audit metadata is minimised to course ID, activity types and changed field names; it excludes comment text, learner ID and activity IDs. The existing audit helper's webhook sink may receive these minimised events when configured.
+- Instructor Comments composer remains unavailable; no UI write surface was restored. A future composer must attach feedback to a selected activity in the selected course.
+- Exact-head GitHub Actions run `42741613904` passed all configured steps: install, isolated DB setup, lint (0 errors / 7 warnings), unit tests (438 passed across 41 files), TypeScript, production build, 83/83 app-page route smoke checks, authenticated screenshots for four roles across seven viewport sizes, and artifact upload `13729682267`.
+- Vercel status remains failed due to the project build-rate limit; no Ready preview is verified. No local checkout/tests or manual browser/axe/keyboard/screen-reader/zoom/reflow review were available.
+- No schema/migration/dependency/production-data change, merge, deployment or main-branch write. PR #3 remains draft.
+- Next: coordinated course-specific WeeklyTest/ReportCard identity and APIs, preserving legacy null-course rows and report-card version history. The Agent Pack `AGENTS.md`, queue and logged runner remain absent from this branch; do not invent a task card or bypass that prerequisite.
+
 ## Latest live update — 2026-11-10 (course-scoped comment write safeguards)
 
 - Live repository: `fccljbplant/ExaminerAI`; `main` HEAD remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
