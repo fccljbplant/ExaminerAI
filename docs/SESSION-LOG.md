@@ -548,3 +548,37 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - `getCourseDurationWeeks(targetUserId)` and week-phase lookup remain learner-level and were not redesigned for multi-course aggregation.
 - Existing query limits (`take: 50/500/50/50/200`) remain unchanged.
 - The separate comprehensive-report `managementAttitude` classification remains blocked in `docs/UPGRADE-2026-10/QUESTIONS.md`. The support/crisis pathway remains off.
+
+
+## 2026-11-10 — Final-result scope validation and next endpoint review
+
+**PR #3 branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety  
+**Live PR head before continuity updates:** bbb431a585a547bf15fa92d499cbb5f5dec2f0c3  
+**PR state:** open, draft, unmerged, mergeable; 305 commits / 111 changed files.
+
+### Validation
+- Exact-head GitHub Actions run [42724107308](https://github.com/fccljbplant/ExaminerAI/actions/runs/42724107308) completed successfully.
+- All configured quality-job steps passed: checkout/setup, dependency install, isolated DB initialization, lint, unit tests, TypeScript, production build, app-page route smoke, authenticated role screenshots and screenshot artifact upload.
+- This exact-head run validates the final-result route and test commits.
+- Vercel combined status remains failed due to the project build-rate limit; no Ready preview is confirmed.
+- No local test/lint/typecheck/build/browser/axe commands were run; there is no local repository checkout.
+- No PR reviews or inline review threads were returned at this refresh.
+
+### Read-only review of the next response-scope slice
+- src/app/api/students/[id]/generate-report-card/route.ts calls assertCanAccessStudent(..., "content_only"), then reads ProjectTask, DailyLog, Interaction, WeeklyTest and Comment by learner/week or learner ID without authorised-course filters.
+- Prisma confirms ProjectTask, DailyLog, Interaction and WeeklyTest carry courseId. Comment has no courseId but has relation keys to those records and can only be safely scoped through authorised relation IDs.
+- ReportCard has a nullable courseId but the schema declares @@unique([userId, week]). The handler upserts by that learner/week key. A partial course filter could overwrite a learner-wide card with an instructor's subset of course data. Recorded an owner decision in QUESTIONS.md: learner-global per-week report card or course-specific report card (which requires approved additive schema/index and API changes).
+- src/app/api/students/[id]/generate-project-analysis/route.ts reads ProjectReport, ProjectTask and ProjectWeek by userId alone; those models have nullable courseId. It also builds the AI prompt from legacy User.project* fields without course attribution. The newer LearnProject model is course-linked. Recorded an owner/product decision in QUESTIONS.md: learner-global legacy project analysis or course-linked LearnProject analysis. No partial filter was applied.
+- The comprehensive-report managementAttitude classification remains owner-blocked; no change was made to its report generation or visibility.
+- No application code or tests changed for these read-only findings.
+
+### Documentation and handoff
+- Updated proj_progress.md, docs/PROJECT-STATUS.md, docs/SESSION-LOG.md and docs/UPGRADE-2026-10/QUESTIONS.md with exact-head CI evidence and the next two scope blockers.
+- The Agent Pack task queue/AGENTS.md/logged runner remains absent from the current branch; it was not invoked. No task card was invented.
+- No schema/dependency/production-data change, branch switch, merge, deployment or main-branch write.
+
+### Next
+1. Obtain the owner decision on whether ReportCard is learner-global per week or course-specific.
+2. Confirm whether project analysis uses a learner-global legacy project or a course-linked LearnProject.
+3. Keep comprehensive-report managementAttitude blocked until its owner decision is resolved.
+4. Continue the remaining assertCanAccessStudent callsite review on this PR branch; keep PR #3 draft.
