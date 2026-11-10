@@ -336,3 +336,30 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 4. Decide whether/when to restore the course-specific mentor briefing UI; its API is now scoped but no UI consumer is enabled.
 5. Keep PR #3 draft/unmerged; no production migration or deployment without explicit approval.
 
+
+
+## 2026-11-10 — Course-scoped comment write contract
+
+**Decision**
+- Staff comment creation must include an explicit `courseId` and at least one activity relation (`interactionId`, `taskId`, `weeklyTestId` or `dailyLogId`).
+- Every supplied activity relation must belong to the target learner and the same selected course. A partially valid or mixed-course set is rejected in full.
+- Staff PATCH and DELETE require `courseId`; the server revalidates the caller's current course authorisation and every existing non-null relation before changing the comment.
+- Unassigned/general and mixed-course legacy comments remain historical/read-only through staff write APIs. They are not deleted or guessed into a course.
+- Learners retain their own cross-course comment history. The instructor Comments composer remains unavailable until it can attach comments to a selected activity in the selected course.
+
+**Rationale**
+- The Comment model has no `courseId`; trustworthy course provenance is derived from the linked course-bearing activity records. Requiring every supplied relation to match prevents a comment from crossing course boundaries without adding a redundant course field or migration.
+- A request's `courseId` is context, not authority; the server recomputes the staff/learner authorised course intersection on every write.
+
+**Implementation**
+- `src/app/api/comments/route.ts`: POST/PATCH/DELETE enforce selected-course authorisation and same-learner/same-course relation validation; unassigned writes are rejected.
+- `src/app/api/comments/route.test.ts`: route tests cover missing course/activity, unauthorised course/activity, mixed-course references, valid linked creation, and cross-course edit/delete denial.
+- `docs/api.md` now documents the required course and activity-link contract.
+
+**Validation**
+- Exact code head `c4a63e5c0779aa48150c8405e019e7546549983d`; GitHub Actions run `42740191410` passed all configured steps: 436 tests across 41 files, lint with 0 errors and 7 warnings, TypeScript, production build, 83/83 page-route smoke checks, authenticated role screenshots and artifact upload `13729306143`.
+- Vercel combined status remains failed due to build-rate limit; no Ready preview verified.
+- No local checkout/tests or manual browser/axe/a11y checks were available. No schema, migration, dependency, production data, merge, deployment or main-branch write.
+
+**Next boundary**
+- Course-specific WeeklyTest/ReportCard identity and CRUD/generation remain the next academic-data priority. Preserve null-course legacy rows and versioned report-card history. The Agent Pack task queue/runner is not present on this branch; do not invent a task card or bypass the missing tooling prerequisite.
