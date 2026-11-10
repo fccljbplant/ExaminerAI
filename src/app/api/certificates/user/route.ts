@@ -27,7 +27,7 @@ export async function GET() {
 
   const [certificate, totalWeeks, completedTests] = await Promise.all([
     db.certificate.findFirst({
-      where: { userId: user.id },
+      where: { userId: user.id, grade: { not: "PENDING" } },
       orderBy: { issuedAt: "desc" },
     }),
     getCourseDurationWeeks(user.id),
