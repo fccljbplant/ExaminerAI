@@ -125,7 +125,7 @@ async function computeGrowthReport(userId: string, courseId: string | null) {
   return {
     userId,
     courseId,
-    strengths: JSON.stringify(strengths.length > 0 ? strengths : ["Insufficient evidence for a strengths assessment."]),
+    strengths: JSON.stringify(strengths),
     growthAreas: JSON.stringify(growthAreas),
     dimensionSnapshot: JSON.stringify({
       performanceScore,
