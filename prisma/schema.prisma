@@ -768,6 +768,9 @@ model Certificate {
   issuedAt      DateTime @default(now())
   signedBy      String
   verifyToken   String   @unique
+  rejectionReason String?
+  rejectedById   String?
+  rejectedAt     DateTime?
   pdfUrl        String?
   institutionId String? // legacy Institution reference (pre-org model)
   orgId         String? // issuing Organization (B2B certificates)
