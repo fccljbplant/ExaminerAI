@@ -1,77 +1,171 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser, getAuthUser, assertCanAccessStudent } from "@/lib/auth";
+import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logger } from "@/lib/logger";
+import { logAudit, AuditAction } from "@/lib/audit-log";
+import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
+import { ReportCardWriteError, saveCourseReportCard } from "@/modules/course/lib/report-card-records";
 
-/** GET /api/report-cards?userId=... */
+function serialiseList(value: unknown, field: string): string | null {
+  if (value === undefined || value === null) return JSON.stringify([]);
+  if (!Array.isArray(value) && typeof value !== "string") return null;
+  const serialised = JSON.stringify(value);
+  return serialised.length <= 10_000 ? serialised : null;
+}
+
+/** GET /api/report-cards?userId=...&courseId=... */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const userIdParam = req.nextUrl.searchParams.get("userId");
-  let targetUserId = payload.sub;
-  if (userIdParam && (isStaffRole(payload.role))) {
-    targetUserId = userIdParam;
-    // IDOR protection
-    try { await assertCanAccessStudent(payload, targetUserId); } catch (err) {
-      return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
+  const targetUserId = userIdParam && isStaffRole(payload.role) ? userIdParam : payload.sub;
+  const courseId = req.nextUrl.searchParams.get("courseId");
+  const isSelf = targetUserId === payload.sub;
+
+  if (!isSelf) {
+    if (!isStaffRole(payload.role) || !courseId) {
+      return NextResponse.json({ error: "A selected course is required for staff report-card views" }, { status: 400 });
+    }
+    try {
+      await assertCanAccessStudent(payload, targetUserId, "content_only");
+    } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : "Access denied" }, { status: 403 });
+    }
+    const authorisedCourseIds = await getStaffAuthorizedStudentCourseIds(payload, targetUserId);
+    if (!authorisedCourseIds.includes(courseId)) {
+      return NextResponse.json({ error: "You cannot access report cards for this course" }, { status: 403 });
+    }
+  } else if (courseId) {
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId: targetUserId, courseId, role: "student" },
+      select: { id: true },
+    });
+    if (!enrollment) {
+      return NextResponse.json({ error: "You are not enrolled in this course" }, { status: 403 });
     }
   }
-  const cards = await db.reportCard.findMany({
-    where: { userId: targetUserId },
-    orderBy: { week: "asc" },
+
+  const reportCards = await db.reportCard.findMany({
+    where: { userId: targetUserId, ...(courseId ? { courseId } : {}) },
+    include: { versions: { orderBy: { version: "asc" } } },
+    orderBy: [{ courseId: "asc" }, { week: "asc" }],
   });
-  return NextResponse.json({ reportCards: cards });
+  return NextResponse.json({ reportCards });
 }
 
-/** POST /api/report-cards — instructor/admin writes a report card. */
+/** POST /api/report-cards — create or correct a report card within one authorised course. */
 export async function POST(req: NextRequest) {
-  const _demoBlock = await demoWriteBlock("generating report cards"); if (_demoBlock) return _demoBlock;
+  const demoBlock = await demoWriteBlock("generating report cards");
+  if (demoBlock) return demoBlock;
+
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
+  if (!payload || !isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
   const body = await req.json().catch(() => ({}));
-  const {
-    userId, week, grade, score, strengths, weaknesses,
-    progress, nextSteps,
-  } = body as Record<string, unknown>;
-  if (!userId || !week) {
-    return NextResponse.json({ error: "userId and week required" }, { status: 400 });
+  const userId = typeof body.userId === "string" ? body.userId.trim() : "";
+  const courseId = typeof body.courseId === "string" ? body.courseId.trim() : "";
+  const week = Number(body.week);
+  if (!userId || !courseId || !Number.isInteger(week) || week < 1 || week > 52) {
+    return NextResponse.json({ error: "userId, courseId and a valid week are required" }, { status: 400 });
   }
-  // IDOR protection
-  try { await assertCanAccessStudent(payload, String(userId)); } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
+
+  try {
+    await assertCanAccessStudent(payload, userId, "content_only");
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Access denied" }, { status: 403 });
   }
-  // Input validation — prevent resource exhaustion
-  const MAX_TEXT = 10_000;
-  if (strengths && String(strengths).length > MAX_TEXT) return NextResponse.json({ error: "strengths too long" }, { status: 400 });
-  if (weaknesses && String(weaknesses).length > MAX_TEXT) return NextResponse.json({ error: "weaknesses too long" }, { status: 400 });
-  if (progress && String(progress).length > MAX_TEXT) return NextResponse.json({ error: "progress too long" }, { status: 400 });
-  if (nextSteps && String(nextSteps).length > MAX_TEXT) return NextResponse.json({ error: "nextSteps too long" }, { status: 400 });
-  const numScore = Number(score ?? 0);
-  if (isNaN(numScore) || numScore < 0 || numScore > 100) return NextResponse.json({ error: "score must be 0-100" }, { status: 400 });
-  const card = await db.reportCard.upsert({
-    where: { userId_week: { userId: String(userId), week: Number(week) } },
-    create: {
-      userId: String(userId),
-      week: Number(week),
-      grade: String(grade ?? "B"),
-      score: Number(score ?? 0),
-      strengths: JSON.stringify(strengths ?? []),
-      weaknesses: JSON.stringify(weaknesses ?? []),
-      progress: String(progress ?? ""),
-      nextSteps: JSON.stringify(nextSteps ?? []),
+
+  const authorisedCourseIds = await getStaffAuthorizedStudentCourseIds(payload, userId);
+  if (!authorisedCourseIds.includes(courseId)) {
+    return NextResponse.json({ error: "You cannot write report cards for this course" }, { status: 403 });
+  }
+
+  const [learner, course] = await Promise.all([
+    db.user.findUnique({ where: { id: userId }, select: { id: true, role: true } }),
+    db.course.findUnique({
+      where: { id: courseId },
+      select: { id: true, weeks: { select: { weekNumber: true } } },
+    }),
+  ]);
+  if (!learner || !["learner", "student"].includes(learner.role)) {
+    return NextResponse.json({ error: "Learner not found" }, { status: 404 });
+  }
+  if (!course) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  if (!course.weeks.some((courseWeek) => courseWeek.weekNumber === week)) {
+    return NextResponse.json({ error: "Week is not part of the selected course outline" }, { status: 400 });
+  }
+
+  const score = body.score === null || body.score === undefined ? null : Number(body.score);
+  if (score !== null && (!Number.isFinite(score) || score < 0 || score > 100)) {
+    return NextResponse.json({ error: "score must be null or a number from 0 to 100" }, { status: 400 });
+  }
+  const grade = typeof body.grade === "string" && body.grade.trim() ? body.grade.trim().slice(0, 20) : null;
+  if (score === null && grade !== null) {
+    return NextResponse.json({ error: "A grade cannot be assigned when the score is unavailable" }, { status: 400 });
+  }
+
+  const strengths = serialiseList(body.strengths, "strengths");
+  const weaknesses = serialiseList(body.weaknesses, "weaknesses");
+  const nextSteps = serialiseList(body.nextSteps, "nextSteps");
+  const progress = typeof body.progress === "string" ? body.progress : "";
+  if (strengths === null || weaknesses === null || nextSteps === null ||
+      progress.length > 10_000) {
+    return NextResponse.json({ error: "Report-card text fields must be valid and no longer than 10,000 characters" }, { status: 400 });
+  }
+
+  let reportCard;
+  try {
+    reportCard = await saveCourseReportCard({
+      fields: {
+        userId,
+        courseId,
+        week,
+        grade,
+        score,
+        strengths,
+        weaknesses,
+        progress,
+        nextSteps,
+      },
+      actorId: payload.sub,
+      actorRole: payload.role,
+      reason: typeof body.reason === "string" ? body.reason.slice(0, 500) : undefined,
+      expectedVersion: Number.isInteger(body.expectedVersion) ? body.expectedVersion : undefined,
+      requireExpectedVersion: true,
+    });
+  } catch (err) {
+    if (err instanceof ReportCardWriteError) {
+      const status = err.code === "REPORT_CARD_REASON_REQUIRED" ? 400 : 409;
+      return NextResponse.json({ error: err.code }, { status });
+    }
+    logger.error("Manual course report-card write failed", {
+      learnerId: userId,
+      courseId,
+      week,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return NextResponse.json({ error: "Could not save the report card. Please retry." }, { status: 500 });
+  }
+
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
+    action: AuditAction.REPORT_CARD_UPDATED,
+    target: { type: "report_card", id: reportCard?.id ?? userId },
+    after: {
+      courseId,
+      week,
+      version: reportCard?.version ?? null,
+      score: reportCard?.score ?? null,
+      grade: reportCard?.grade ?? null,
     },
-    update: {
-      grade: String(grade ?? "B"),
-      score: Number(score ?? 0),
-      strengths: JSON.stringify(strengths ?? []),
-      weaknesses: JSON.stringify(weaknesses ?? []),
-      progress: String(progress ?? ""),
-      nextSteps: JSON.stringify(nextSteps ?? []),
-    },
+    metadata: { reasonProvided: Boolean(typeof body.reason === "string" && body.reason.trim()) },
+    req,
   });
-  return NextResponse.json({ reportCard: card });
+
+  return NextResponse.json({ reportCard });
 }
