@@ -554,6 +554,11 @@ model WeeklyTest {
   completedAt     DateTime?
   interactionIds  String    @default("[]")
   score           Int?
+  originalScore   Int?
+  scoreEditedById String?
+  scoreEditedByRole String?
+  scoreEditedAt   DateTime?
+  scoreEditReason String?
   strengths       String    @default("[]")
   weaknesses      String    @default("[]")
   nextAction      String?
