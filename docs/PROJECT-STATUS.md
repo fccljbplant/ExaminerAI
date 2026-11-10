@@ -484,3 +484,12 @@ These are approved planning decisions, not implementation claims. No application
 - No local checkout was available, so no local tests, lint, typecheck, build, browser, axe, keyboard, screen-reader, reduced-motion, zoom/reflow or manual UX validation was run. Await exact-head Actions evidence.
 - No production database operation, migration deployment, merge, deployment, branch switch, dependency change or main-branch write occurred. Production schema rollout and rollback review remain release gates; keep PR #3 draft.
 - UXPeak remains the standing UI reference. Recent instructor portfolio changes are role- and course-contextual; manual visual/a11y review is still outstanding.
+
+
+## 2026-11-10 — PR #3 follow-up: nullable certificate eligibility
+
+- Live PR head before fix: `a10b93029dc192b3aef08b564840946f3e43d7f3`. Run [42763366450](https://github.com/fccljbplant/ExaminerAI/actions/runs/42763366450) passed lint and tests but failed TypeScript because `checkEligibility(user.id, courseId)` can return null while the certificate-user route dereferenced `eligibility.eligible` and `eligibility.avgScore`.
+- Fixed `src/app/api/certificates/user/route.ts` to preserve unavailable evidence as nullable response fields: `eligible: null`, `averageScore: null`. This avoids both the type error and a misleading false eligibility value.
+- Fix commit: `6e7ea3a8000ae7a59e838c43c3e76d00df8cf138`.
+- Exact-head Actions run [42865683017](https://github.com/fccljbplant/ExaminerAI/actions/runs/42865683017) was in progress at the time of this update; only Node setup had completed and dependency installation was running. Recheck before claiming validation.
+- Vercel status pending; no Ready preview confirmed. PR #3 remains draft/unmerged. No schema, migration, production data, merge or deployment operation.
