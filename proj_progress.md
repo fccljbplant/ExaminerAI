@@ -161,3 +161,15 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Preserve learner-support privacy and designated crisis oversight boundaries.
 - Historical null-course rows remain legacy/unassigned without reliable provenance; no guessed backfill.
 - This session records policy only. No implementation or migration was performed. Next implementation should be a coordinated, additive, tested course-specific assessment/report-card/certificate slice; keep PR #3 draft and unmerged.
+
+
+## 11. 2026-11-10 — Comprehensive-report assessment policy clarification
+
+- Owner clarified that AI-generated personality/management-style sections must be **retained**, not removed. Keep productivity signals, professionalism signals, leadership-potential observations, manager-readiness observations and focus areas.
+- Add a prominent, professionally worded limitation notice: the assessment is AI-generated and based solely on the learner's interactions with the AI; it is not a validated psychometric assessment or comprehensive professional appraisal; reliability and completeness are limited; management should conduct a structured, comprehensive interview and consider work samples, observed performance, references and other appropriate evidence before consequential decisions.
+- The notice must be adjacent to the assessment and part of the report/API contract. A human-reviewed flag does not validate the assessment or remove the warning. The report must not be the sole basis for consequential employment, placement, promotion, discipline or certification decisions. Do not make clinical or validated psychological claims.
+- This supersedes the prior policy note recommending removal of subjective personality-style labels.
+- Live PR #3 at session start: open/draft/unmerged/mergeable, head `08073be20037f21f5e52ffa9bead0dcd1f8bd6d6`, 319 commits / 111 files. Exact-head Actions run `42728018598` passed; Vercel status failed due to build-rate limit; no reviews/threads returned.
+- Source review confirmed the comprehensive-report generator still gathers learner-global data. No verified display consumer for the endpoint was found in the repository tree. Do not make a disclaimer-only API change and claim the user-facing report is fixed; align course/tenant evidence scope, cached/new response shape, rendering and tests as one coherent change.
+- Updated repository `QUESTIONS.md`, `PROJECT-STATUS.md` and `SESSION-LOG.md` with the owner decision. Documentation-only commits followed; re-fetch the latest head and checks before further work.
+- No application code, tests, schema, migration, dependencies, production data, merge or deployment changed in this session. PR #3 remains draft/unmerged.
