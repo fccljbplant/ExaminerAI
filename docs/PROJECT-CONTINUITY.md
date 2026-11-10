@@ -119,3 +119,12 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Added route tests for instructor isolation, org-admin linked-course scope, explicit grants, empty/revoked scope, denied access, platform-admin bounds and learner self-view.
 - Code implementation head: `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8`. Exact-head Actions had not yet been returned; previous-head run `42722331613` passed but is not validation of this implementation. Vercel is build-rate limited. No local checks were run.
 - Existing multi-course duration/phase semantics and query limits are unchanged. Comprehensive-report `managementAttitude` classification remains owner-blocked. PR #3 remains draft; no merge/deploy.
+
+
+## Latest delivery update — 2026-11-10 course-scoped comment writes
+
+- PR #3 current validated code head: `c4a63e5c0779aa48150c8405e019e7546549983d`; branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; open/draft/unmerged/mergeable. `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Comment staff POST/PATCH/DELETE now require an authorised selected course and validate every linked activity against the same learner/course. Unassigned and mixed-course legacy comments are not writable. Learners retain own cross-course history; instructor Comments composer remains unavailable.
+- Exact-head Actions run `42740191410` passed 436 tests, lint (0 errors / 7 warnings), typecheck, build, 83/83 page-route smoke checks, role screenshots and artifact upload.
+- Vercel remains blocked by build-rate limit. No local/manual browser/axe/a11y checks, merge, deployment, production data/schema change or main write.
+- Next academic scope is course-specific WeeklyTest/ReportCard identity and APIs. Agent Pack task card/queue/runner prerequisites are absent on this branch; do not bypass them.
