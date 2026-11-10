@@ -160,3 +160,55 @@ The final-result course-scope code and tests are now validated by exact-head Act
 - Prisma model source is `prisma/schema.prisma`; production and demo schemas are derived by `scripts/generate-derived-schemas.mjs`. Do not hand-edit derived schemas.
 
 **Still not approved by inference:** automatic backfill of historical null-course ReportCard/Certificate/WeeklyTest rows; production migration execution; changing unrelated project-analysis semantics. No schema or application code was changed in this review.
+
+
+## 2026-11-10 — Institutional academic policy decisions (owner delegated)
+
+The owner delegated resolution of the remaining academic/product policy questions to the assistant acting as course coordinator, student counsellor, examination head and university leadership. The following decisions are the adopted product direction for planning; they do not authorise an unreviewed production migration.
+
+### A. Academic record and assessment identity
+1. A course is the independent unit of academic record. Each learner has separate assessments, report cards, projects, completion and certificates per course.
+2. ReportCard identity is `(userId, courseId, week)`. WeeklyTest identity is also `(userId, courseId, week)`. A learner can have same-week assessments in multiple courses.
+3. Every course publishes its grading scale, pass threshold, assessment weights, retake rules and certificate criteria before enrolment. Do not hard-code one universal threshold across disciplines.
+4. A report card uses only evidence from its course. Missing evidence is represented as unavailable/not attempted/not submitted, never as zero, a default score, an inferred pass or a fabricated completion.
+5. Report cards are reviewable and versioned. Published results are not silently overwritten; corrections retain prior versions, actor, reason and timestamp.
+6. Preserve learner-paced progression. Week/day are curriculum organisation, not calendar deadlines. Daily tests follow study sessions; weekly tests unlock after the final content day, enforced server-side.
+7. Retakes are distinct attempts. The published course policy determines which attempt counts. A course transfer or instructor reassignment never transfers grades or certificates.
+
+### B. Certificates and historical records
+8. Certificates are course-specific and tied to a successful course-completion instance. Eligibility uses that course's published requirements, including required curriculum, assessments, pass standard and mandatory practical work.
+9. Certificate requests, pending approvals, rejections, issued credentials and verification are scoped by learner + course. Independent requests/issuance in another course remain unaffected.
+10. Issued credentials are immutable academic records. Corrections/revocations use an auditable process; no destructive delete-and-reissue.
+11. Existing rows with null/unreliable course attribution remain legacy/unassigned. No first-enrolment guessing, fabricated backfill or use of unassigned scores in course grades. Preserve history and verification.
+12. Schema changes are additive and reversible. Update Prisma source schema and regenerate derived schemas with the repository script; do not hand-edit derived schemas. No production migration without separate explicit approval.
+
+### C. Course project analysis
+13. Project analysis is course-specific. The authoritative context is the project brief, objectives, tasks, milestones, submissions and rubric belonging to the selected course.
+14. Do not mix legacy learner-global `User.project*` fields with course-linked project records in a single AI analysis. Legacy fields remain historical until an approved migration; if no course project exists, return unavailable rather than analysing another course.
+15. AI output is advisory. An authorised instructor reviews academic conclusions; the analysis identifies its course/project and cites the evidence used.
+
+### D. Comprehensive report and integrity
+16. Retire subjective personality-style classifications such as “management attitude” and “manager readiness” from automated reports. Replace them with observable, course-relevant competencies assessed against explicit rubrics, with evidence and human review. No psychological/personality inference.
+17. Plagiarism/assessment-integrity indicators are academic review signals, not proof of misconduct. No automatic penalty, failure or certificate cancellation. The learner receives notice and an opportunity to respond; an authorised instructor/examination officer decides under published policy, with an appeal and auditable evidence trail.
+18. Academic integrity details are restricted to authorised academic staff and are not exposed in general organisation dashboards.
+
+### E. Roles, enrolment and access lifecycle
+19. Course instructors control teaching, assessment, feedback, report cards and certificate recommendations only within assigned course scope.
+20. Examination officers oversee assessment policy, integrity cases, grade disputes and credential exceptions.
+21. Organisation admins manage organisation membership, course/instructor allocation and organisational oversight; they do not casually edit grades.
+22. Org-admin instructor assignment is restricted to active instructors in the same organisation and valid course scope. Record before/after assignment, actor, reason and timestamp.
+23. An organisation-course instructor's learner course-access removal is a request requiring approval by an authorised org admin; the requester cannot self-approve. Independent instructors may confirm their own removal. Explicit confirmation identifies learner, course and consequence. Pending requests do not revoke access; rejection changes nothing. Approved revocation removes access only and preserves academic history.
+24. All access decisions are enforced server-side, tenant- and course-scoped, and audited. Organisation membership alone does not grant access to every course.
+
+### F. Learner support and institutional safeguards
+25. Learner support signals go to the learner's authorised instructor. Individual support/psychology data is not available to ordinary organisation admins; designated org Learner Support Leads oversee crisis cases and handling records. Platform admins do not see individual learner support signals.
+26. Support data is consent-based, minimised, access-controlled and retained under an approved policy. Crisis language/protocols must be owner-authored and professionally reviewed, never invented by the product.
+27. No AI-generated result is a final misconduct, clinical or academic judgement. Humans remain accountable for consequential decisions.
+
+### Implementation order
+- First coordinate the course-specific WeeklyTest and ReportCard schema/API identity and report-card CRUD/generation.
+- Then align certificate request, approval, rejection, listing, learner retrieval and verification to course-specific completion.
+- Next align project analysis and comprehensive reporting with course-specific project/competency evidence.
+- Implement assignment approval/removal lifecycle in the planned enrollment workstream, not by expanding PR #3's academic-record slice.
+- For every slice, add same-week/two-course, cross-course, cross-tenant, legacy-null, missing-evidence, concurrency/idempotency and audit tests as applicable.
+- These are policy decisions, not evidence that implementation is complete. No application code or schema changed in this policy-recording session.
