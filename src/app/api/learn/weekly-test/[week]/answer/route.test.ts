@@ -28,7 +28,7 @@ function request() {
     new Request("http://localhost/api/learn/weekly-test/1/answer", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ testId: "test-1", questionIdx: 0, answer: "My answer" }),
+      body: JSON.stringify({ testId: "test-1", courseId: "course-a", questionIdx: 0, answer: "My answer" }),
     }),
     { params: Promise.resolve({ week: "1" }) },
   );
@@ -50,6 +50,20 @@ describe("POST /api/learn/weekly-test/[week]/answer", () => {
     mocks.learnTestUpdate.mockResolvedValue({});
     mocks.awardTypedXP.mockResolvedValue(undefined);
     mocks.loggerWarn.mockImplementation(() => undefined);
+  });
+
+  it("rejects a course identity that does not match the stored test", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/learn/weekly-test/1/answer", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ testId: "test-1", courseId: "course-b", questionIdx: 0, answer: "My answer" }),
+      }),
+      { params: Promise.resolve({ week: "1" }) },
+    );
+    expect(response.status).toBe(403);
+    expect(mocks.enrollmentFindFirst).not.toHaveBeenCalled();
+    expect(mocks.callAIJson).not.toHaveBeenCalled();
   });
 
   it("denies answer submission after course enrolment has been removed", async () => {
