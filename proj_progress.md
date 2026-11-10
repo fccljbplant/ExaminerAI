@@ -329,3 +329,13 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Course outline loading no longer silently chooses the first enrolment or substitutes a global hardcoded topic ladder when course context is missing/ambiguous. Added tests for multi-course ambiguity, absent outlines and explicit course selection. This keeps assessment prompts and unlocks tied to the learner's actual course content.
 - Exact code head at this update: `65adda3fead4875ce45e45a4617beefb7168d402`. GitHub Actions quality checks are queued/in progress (runs `42757359856` and `42757365580`); no pass is claimed. Vercel remains failed by build-rate limit.
 - PR #3 remains open/draft/unmerged. No local test/lint/typecheck/build or manual browser/a11y checks were available. No production schema push, migration deployment, merge or deployment occurred.
+
+
+## 2026-11-10 — PR #3 certificate eligibility typecheck fix
+
+- Refreshed the live PR before editing: PR #3 open/draft/unmerged on the existing branch; prior head `a10b93029dc192b3aef08b564840946f3e43d7f3`.
+- Exact-head Actions run `42763366450` passed lint and unit tests, then failed TypeScript at `src/app/api/certificates/user/route.ts:102-103`: `eligibility` may be null. Build, route smoke and screenshot stages were skipped.
+- Fixed the response projection to return `eligible: null` and `averageScore: null` when eligibility evidence is unavailable, instead of dereferencing null or fabricating a negative eligibility decision.
+- Commit: `6e7ea3a8000ae7a59e838c43c3e76d00df8cf138`.
+- Exact-head Actions run `42865683017` is in progress; Node setup completed, dependency installation was in progress at this update. Do not report validation as passed until the run completes.
+- Vercel preview check is pending at this commit; no Ready preview confirmed. PR remains draft/unmerged. No schema, production data, migration, merge or deployment operation.
