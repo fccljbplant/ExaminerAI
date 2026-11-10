@@ -96,7 +96,7 @@ export async function POST(
   await logAudit({
     actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
     action: AuditAction.WEEKLY_TEST_UNLOCKED,
-    target: { type: "weekly_test", id: existing?.id ?? id },
+    target: { type: "weekly_test", id: auditTestId },
     after: { courseId, week, attempt, action },
     req,
   });
