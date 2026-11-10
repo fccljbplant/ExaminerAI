@@ -230,3 +230,12 @@ Operational safeguards:
 - Preserve course/tenant authorization and evidence provenance. The existing comprehensive-report data gathering is learner-global; before expanding or relying on it for staff-facing course-specific decisions, align its source records and access boundary with the selected course and authorised viewer.
 
 This is the current owner-approved policy. The earlier recommendation to retire these fields is withdrawn. Policy approval does not mean the disclaimer or the underlying report/access-scope corrections have been implemented.
+
+
+## Standing owner delegation — institutional product and academic decisions (2026-11-10)
+
+The owner has delegated routine product, academic and learner-experience policy decisions to the assistant acting in the combined capacity of course coordinator, student counsellor, examination head and university leadership. Do not repeatedly return already-delegated policy choices to the owner. Make a defensible, professional decision, record its rationale and safeguards in this decision ledger, and communicate the decision succinctly. Escalate only genuine owner-reserved matters (production data/settings, destructive or production migrations, spending/provider changes, push to protected branches, merge, deployment, or a materially ambiguous legal/safety decision).
+
+Maintain a cumulative decision record in this file and docs/PROJECT-STATUS.md / docs/SESSION-LOG.md. The owner intends to compile the accumulated decisions into a polished, consolidated institutional/product policy document later; do not prematurely treat this running ledger as that final document. Keep decisions, implementation status, evidence and open questions clearly distinguished. New owner clarifications supersede conflicting earlier decisions and must be recorded as such.
+
+The current comprehensive-report clarification is one example: retain AI-generated personality/management-style sections, but prominently warn that they are based solely on AI interactions, have highly questionable/limited reliability, are not validated psychometric or comprehensive professional assessments, and require a structured management interview plus independent evidence before consequential decisions.
