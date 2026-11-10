@@ -55,17 +55,17 @@ interface ChatMessage {
  *  Phase 2.2: Now course-aware — uses the course's tools/deliverables/domain
  *  metadata + course-specific AI prompts (if the course has them) instead of
  *  hardcoding "WordPress, LocalWP, Make.com" for every course. */
-async function buildSystemPrompt(userId: string, week: number, totalWeeks: number): Promise<string> {
-  const topics = await getCourseWeekTopicTitles(userId, week);
-  const phase = await getCourseWeekPhase(userId, week);
+async function buildSystemPrompt(userId: string, week: number, totalWeeks: number, courseId: string): Promise<string> {
+  const topics = await getCourseWeekTopicTitles(userId, week, courseId);
+  const phase = await getCourseWeekPhase(userId, week, courseId);
   const isFinalWeek = week === totalWeeks;
 
   // Phase 2.2: Fetch course metadata + course-specific AI prompts.
   // If the student has no course assigned, these fall back to defaults
   // (the legacy 6-week web dev bootcamp behavior).
   const [courseMeta, coursePrompts] = await Promise.all([
-    getCourseMetadata(userId),
-    getAIPrompts(userId),
+    getCourseMetadata(userId, courseId),
+    getAIPrompts(userId, courseId),
   ]);
 
   // Use the course-specific weekly test system prompt if it exists,
@@ -156,16 +156,36 @@ export async function POST(req: NextRequest) {
     }, { status: 429 });
   }
 
-  // Load course-specific test config (or fall back to defaults)
-  const courseTestConfig = await getTestConfig(user.id);
+  const body = await req.json().catch(() => ({}));
+  const { week: weekRaw, message, action, projectName, courseId: requestedCourseId } = body as {
+    week?: number; message?: string; action?: "start" | "reply" | "finish";
+    projectName?: string; courseId?: string;
+  };
+
+  // Every legacy weekly-test write is now bound to one enrolled course.
+  const enrollments = await db.courseEnrollment.findMany({
+    where: { userId: user.id, role: "student" },
+    select: { courseId: true },
+  });
+  const enrolledCourseIds = enrollments.map((enrollment) => enrollment.courseId);
+  const courseId = typeof requestedCourseId === "string" && requestedCourseId.trim()
+    ? requestedCourseId.trim()
+    : enrolledCourseIds.length === 1 ? enrolledCourseIds[0] : null;
+  if (!courseId) {
+    return NextResponse.json({ error: "Select a course before starting a weekly test", courseSelectionRequired: true }, { status: 400 });
+  }
+  if (!enrolledCourseIds.includes(courseId)) {
+    return NextResponse.json({ error: "You are not enrolled in the selected course" }, { status: 403 });
+  }
+  const course = await db.course.findFirst({
+    where: { id: courseId, isActive: true },
+    select: { id: true },
+  });
+  if (!course) return NextResponse.json({ error: "Selected course is unavailable" }, { status: 404 });
+
+  const courseTestConfig = await getTestConfig(user.id, courseId);
   const TOTAL_QUESTIONS = courseTestConfig.totalQuestions;
   const MAX_MESSAGES_PER_QUESTION = courseTestConfig.maxRepliesPerQuestion;
-
-  const body = await req.json().catch(() => ({}));
-  const { week: weekRaw, message, action, projectName } = body as {
-    week?: number; message?: string; action?: "start" | "reply" | "finish";
-    projectName?: string;
-  };
   // Input length caps — prevent monetary DoS via huge AI inputs
   if (message && message.length > 8000) {
     return NextResponse.json({ error: "Message too long (max 8000 characters)" }, { status: 400 });
@@ -174,13 +194,13 @@ export async function POST(req: NextRequest) {
   if (projectName && projectName.length > 500) {
     return NextResponse.json({ error: "Project name too long (max 500 characters)" }, { status: 400 });
   }
-  const week = Number(weekRaw ?? user.currentWeek);
+  const week = Number(weekRaw ?? (enrolledCourseIds.length === 1 ? user.currentWeek : NaN));
   if (!week || week < 1) {
     return NextResponse.json({ error: "Invalid week" }, { status: 400 });
   }
 
   // ---- Load the user's course duration (defaults to 6 if no course assigned) ----
-  const totalWeeks = await getCourseDurationWeeks(user.id);
+  const totalWeeks = await getCourseDurationWeeks(user.id, courseId);
   if (week > totalWeeks) {
     return NextResponse.json({ error: `Week ${week} is out of range. This course has ${totalWeeks} week(s).` }, { status: 400 });
   }
@@ -189,7 +209,7 @@ export async function POST(req: NextRequest) {
   const isFinalWeek = week === totalWeeks;
   if (!isFinalWeek) {
     const weekTasks = await db.projectTask.findMany({
-      where: { userId: user.id, week },
+      where: { userId: user.id, courseId, week },
       select: { status: true },
     });
     if (weekTasks.length === 0) {
@@ -210,20 +230,17 @@ export async function POST(req: NextRequest) {
   }
 
   // ---- Get or create the test for this week ----
-  let test = await db.weeklyTest.findUnique({
-    where: { userId_week: { userId: user.id, week } },
+  const testWhere = { userId: user.id, courseId, week };
+  let test = await db.weeklyTest.findFirst({
+    where: testWhere,
+    orderBy: { attempt: "desc" },
   });
 
-  // ---- RETAKE GATE ----
-  // If the test is already completed and the student tries to start it again,
-  // only allow if the instructor has explicitly set `retakeAllowed = true`.
-  // When the retake starts, reset the test + clear the flag so they can't
-  // retake twice without teacher permission.
+  // Retakes are distinct attempts. The completed attempt remains immutable;
+  // the instructor's one-time permission is atomically consumed before a new
+  // course/week attempt is created.
   if (test?.status === "completed" && action === "start") {
     if (!test.retakeAllowed) {
-      // Phase 1.6: Parse weaknesses so we can include a study plan in the
-      // retake-denial message. The student gets actionable guidance instead
-      // of just "ask your instructor".
       let weaknesses: string[] = [];
       try { weaknesses = JSON.parse(test.weaknesses || "[]"); } catch { weaknesses = []; }
       const studyPlan = weaknesses.length > 0
@@ -235,39 +252,50 @@ export async function POST(req: NextRequest) {
         retakeAllowed: false,
         weaknesses,
         test: {
-          id: test.id, week: test.week, status: test.status, score: test.score,
+          id: test.id, week: test.week, attempt: test.attempt, status: test.status, score: test.score,
           plagiarismScore: test.plagiarismScore,
           completedAt: test.completedAt, retakeAllowed: test.retakeAllowed,
         },
       }, { status: 403 });
     }
-    // Teacher allowed retake — reset the test and clear the flag.
-    // M4-rel: atomic conditional update — only clears retakeAllowed if
-    // it's still true. If two concurrent requests both try to start the
-    // retake, only the first succeeds (affects 1 row), the second gets
-    // a row with retakeAllowed=false and falls through to the start
-    // logic with the already-reset test.
-    const retakeResult = await db.weeklyTest.updateMany({
-      where: { id: test.id, retakeAllowed: true },
-      data: {
-        status: "in-progress",
-        startedAt: new Date(),
-        completedAt: null,
-        conversation: "[]",
-        currentQuestion: 0,
-        replyCount: 0,
-        score: null,
-        retakeAllowed: false,
-      },
+
+    const previousAttempt = test;
+    const retakeClaim = await db.weeklyTest.updateMany({
+      where: { id: previousAttempt.id, retakeAllowed: true },
+      data: { retakeAllowed: false },
     });
-    if (retakeResult.count === 0) {
-      // Another request already started the retake — re-fetch the test
-      // (which is now in-progress) and fall through to the start logic.
-      test = await db.weeklyTest.findUnique({
-        where: { userId_week: { userId: user.id, week } },
-      }) || test;
+    if (retakeClaim.count === 0) {
+      const latestAttempt = await db.weeklyTest.findFirst({
+        where: testWhere,
+        orderBy: { attempt: "desc" },
+      });
+      if (!latestAttempt || latestAttempt.id === previousAttempt.id) {
+        return NextResponse.json({ error: "Another request is starting this retake. Please retry." }, { status: 409 });
+      }
+      test = latestAttempt;
+    } else {
+      try {
+        test = await db.weeklyTest.create({
+          data: {
+            userId: user.id,
+            courseId,
+            week,
+            attempt: previousAttempt.attempt + 1,
+            status: "in-progress",
+            startedAt: new Date(),
+          },
+        });
+      } catch {
+        const latestAttempt = await db.weeklyTest.findFirst({
+          where: testWhere,
+          orderBy: { attempt: "desc" },
+        });
+        if (!latestAttempt || latestAttempt.attempt <= previousAttempt.attempt) {
+          return NextResponse.json({ error: "Could not start the next retake attempt. Please retry." }, { status: 409 });
+        }
+        test = latestAttempt;
+      }
     }
-    // Fall through to the start logic below
   }
 
   // ============================================================
@@ -302,31 +330,33 @@ export async function POST(req: NextRequest) {
   }
 
   if (!test) {
-    // Use upsert to handle race conditions — if two requests arrive
-    // simultaneously (double-click), the second one gets the existing
-    // row instead of failing with a unique constraint error.
     try {
-      test = await db.weeklyTest.upsert({
-        where: { userId_week: { userId: user.id, week } },
-        create: { userId: user.id, week, status: "in-progress", startedAt: new Date() },
-        update: {},
+      test = await db.weeklyTest.create({
+        data: { userId: user.id, courseId, week, attempt: 1, status: "in-progress", startedAt: new Date() },
       });
     } catch {
-      return NextResponse.json({ error: "Failed to create test" }, { status: 500 });
+      const latestAttempt = await db.weeklyTest.findFirst({
+        where: testWhere,
+        orderBy: { attempt: "desc" },
+      });
+      if (!latestAttempt) {
+        return NextResponse.json({ error: "Failed to create test" }, { status: 500 });
+      }
+      test = latestAttempt;
     }
   }
 
   let conversation: ChatMessage[] = [];
   try { conversation = JSON.parse(test.conversation); } catch { conversation = []; }
 
-  const SYSTEM_PROMPT = await buildSystemPrompt(user.id, week, totalWeeks);
-  const topics = await getCourseWeekTopicTitles(user.id, week);
-  const phase = await getCourseWeekPhase(user.id, week);
+  const SYSTEM_PROMPT = await buildSystemPrompt(user.id, week, totalWeeks, courseId);
+  const topics = await getCourseWeekTopicTitles(user.id, week, courseId);
+  const phase = await getCourseWeekPhase(user.id, week, courseId);
 
   // ---- ACTION: START ----
   if (action === "start") {
     conversation = [];
-    const context = `Week ${week}: ${phase}. Project: ${projectName || user.projectName || "your capstone project"}. Daily topics: ${topics.join(", ")}.`;
+    const context = `Week ${week}: ${phase}. Project: ${projectName || "your course project"}. Daily topics: ${topics.join(", ")}.`;
     const firstTurn = await callAILocal([
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `${context}\n\nStart the test. You are on Question 1 of 10. Confirm the week's topics briefly (1 sentence), then ask your first beginner-level question about Day 1's topic: "${topics[0]}". Do NOT prefix with "Question 1:" — just ask the question directly.` },
@@ -599,13 +629,7 @@ CRITICAL RULES:
         // Non-blocking — never makes the test response wait on it.
         void (async () => {
           try {
-            const enrollment = await db.courseEnrollment.findFirst({
-              where: { userId: user.id, role: "student" },
-              select: { courseId: true },
-            });
-            if (enrollment?.courseId) {
-              await issueCertificate(user.id, enrollment.courseId);
-            }
+            await issueCertificate(user.id, courseId);
           } catch (err) {
             logger.warn("Auto-issue certificate after weekly test failed", {
               userId: user.id,
@@ -773,13 +797,7 @@ CRITICAL RULES:
     // === Phase 6: Certificate pipeline (fire-and-forget) — early-finish path ===
     void (async () => {
       try {
-        const enrollment = await db.courseEnrollment.findFirst({
-          where: { userId: user.id, role: "student" },
-          select: { courseId: true },
-        });
-        if (enrollment?.courseId) {
-          await issueCertificate(user.id, enrollment.courseId);
-        }
+        await issueCertificate(user.id, courseId);
       } catch (err) {
         logger.warn("Auto-issue certificate after early-finish failed", {
           userId: user.id,
@@ -1106,18 +1124,46 @@ export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Load course-specific test config
-  const courseTestConfig = await getTestConfig(user.id);
+  const enrollments = await db.courseEnrollment.findMany({
+    where: { userId: user.id, role: "student" },
+    select: { courseId: true },
+  });
+  const enrolledCourseIds = enrollments.map((enrollment) => enrollment.courseId);
+  const requestedCourseId = req.nextUrl.searchParams.get("courseId");
+  const courseId = requestedCourseId || (enrolledCourseIds.length === 1 ? enrolledCourseIds[0] : null);
+  if (!courseId) {
+    return NextResponse.json({ error: "Select a course to view its weekly test", courseSelectionRequired: true }, { status: 400 });
+  }
+  if (!enrolledCourseIds.includes(courseId)) {
+    return NextResponse.json({ error: "You are not enrolled in the selected course" }, { status: 403 });
+  }
+  const course = await db.course.findFirst({
+    where: { id: courseId, isActive: true },
+    select: { id: true },
+  });
+  if (!course) return NextResponse.json({ error: "Selected course is unavailable" }, { status: 404 });
+
+  const weekParam = req.nextUrl.searchParams.get("week");
+  const week = Number(weekParam ?? (enrolledCourseIds.length === 1 ? user.currentWeek : NaN));
+  if (!Number.isInteger(week) || week < 1) {
+    return NextResponse.json({ error: "A course week is required" }, { status: 400 });
+  }
+  const totalWeeks = await getCourseDurationWeeks(user.id, courseId);
+  if (week > totalWeeks) {
+    return NextResponse.json({ error: `Week ${week} is out of range. This course has ${totalWeeks} week(s).` }, { status: 400 });
+  }
+
+  const courseTestConfig = await getTestConfig(user.id, courseId);
   const TOTAL_QUESTIONS = courseTestConfig.totalQuestions;
   const MAX_MESSAGES_PER_QUESTION = courseTestConfig.maxRepliesPerQuestion;
 
-  const week = Number(req.nextUrl.searchParams.get("week") ?? user.currentWeek);
-  const test = await db.weeklyTest.findUnique({
-    where: { userId_week: { userId: user.id, week } },
+  const test = await db.weeklyTest.findFirst({
+    where: { userId: user.id, courseId, week },
+    orderBy: { attempt: "desc" },
   });
 
-  const topics = await getCourseWeekTopicTitles(user.id, week);
-  const phase = await getCourseWeekPhase(user.id, week);
+  const topics = await getCourseWeekTopicTitles(user.id, week, courseId);
+  const phase = await getCourseWeekPhase(user.id, week, courseId);
 
   if (!test) {
     return NextResponse.json({
@@ -1126,34 +1172,20 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // For completed tests — return results + saved conversation (BUG-4 FIX:
-  // was returning [] which deleted the student's Q&A history)
   if (test.status === "completed") {
     let savedConversation: ChatMessage[] = [];
     try { savedConversation = JSON.parse(test.conversation || "[]"); } catch { savedConversation = []; }
-    // Phase 1.6: Parse the weaknesses array so the student dashboard can
-    // show a study plan ("review these topics before retaking").
     let weaknesses: string[] = [];
     try { weaknesses = JSON.parse(test.weaknesses || "[]"); } catch { weaknesses = []; }
 
-    // analysisBreakdown (plagiarism per-answer + engagement feedback) was
-    // previously stored on WeeklyTest.examinerObs. That column has been
-    // dropped, so the GET endpoint can no longer surface the full breakdown
-    // — students/instructors only see the aggregate score + weaknesses now.
-
     return NextResponse.json({
       test: {
-        id: test.id, week: test.week, status: test.status, score: test.score,
+        id: test.id, week: test.week, attempt: test.attempt, status: test.status, score: test.score,
         currentQuestion: test.currentQuestion, replyCount: test.replyCount,
         completedAt: test.completedAt, retakeAllowed: test.retakeAllowed,
         plagiarismScore: test.plagiarismScore,
-        // Phase 1.6: weaknesses array for the study plan
         weaknesses,
-        // Phase 1.1: flag for the student-facing UI — if true, the UI shows
-        // a kind "here's what to focus on" message instead of the raw score.
-        // The instructor-facing portfolio view always shows the real score.
         needsStudyPlan: (test.score ?? 100) < 60,
-        // Phase 1.2 v2 + 1.3 v2: full analysis breakdown no longer persisted
         plagiarismNotes: "No signs of plagiarism detected.",
         plagiarismBreakdown: null,
         engagementFeedback: null,
@@ -1169,12 +1201,11 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // For in-progress tests — return current conversation
   let conversation: ChatMessage[] = [];
   try { conversation = JSON.parse(test.conversation); } catch { conversation = []; }
   return NextResponse.json({
     test: {
-      id: test.id, week: test.week, status: test.status, score: test.score,
+      id: test.id, week: test.week, attempt: test.attempt, status: test.status, score: test.score,
       currentQuestion: test.currentQuestion, replyCount: test.replyCount,
       retakeAllowed: test.retakeAllowed,
     },
