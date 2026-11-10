@@ -290,6 +290,17 @@ export async function POST(req: NextRequest) {
           orderBy: { attempt: "desc" },
         });
         if (!latestAttempt || latestAttempt.attempt <= previousAttempt.attempt) {
+          // No competing attempt was created; restore the one-time permission
+          // so a transient database failure does not permanently consume it.
+          await db.weeklyTest.updateMany({
+            where: { id: previousAttempt.id, retakeAllowed: false },
+            data: { retakeAllowed: true },
+          }).catch((restoreError) => {
+            logger.error("Could not restore weekly-test retake permission after failed attempt creation", {
+              testId: previousAttempt.id,
+              error: restoreError instanceof Error ? restoreError.message : String(restoreError),
+            });
+          });
           return NextResponse.json({ error: "Could not start the next retake attempt. Please retry." }, { status: 409 });
         }
         test = latestAttempt;
