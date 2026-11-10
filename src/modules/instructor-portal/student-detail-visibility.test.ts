@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateAttentionScore,
+  calculateTaskProgress,
   canViewLearnerSupportSignals,
   getAuthorizedStudentCourseIds,
   toDailyLogPayload,
@@ -36,6 +38,61 @@ describe("instructor student-detail visibility", () => {
     expect(canViewLearnerSupportSignals("instructor", true, true)).toBe(true);
     expect(canViewLearnerSupportSignals("org_admin", true, true)).toBe(false);
     expect(canViewLearnerSupportSignals("platform_admin", true, true)).toBe(false);
+  });
+
+  it("treats progress as unavailable when there are no assigned tasks", () => {
+    expect(calculateTaskProgress(0, 0)).toBeNull();
+  });
+
+  it("calculates genuine zero and non-zero progress from assigned tasks", () => {
+    expect(calculateTaskProgress(4, 0)).toBe(0);
+    expect(calculateTaskProgress(4, 2)).toBe(50);
+  });
+
+  it("treats attention as unavailable when no activity or scored tests exist", () => {
+    expect(calculateAttentionScore(null, [], new Date("2026-11-10T12:00:00.000Z"))).toEqual({
+      score: null,
+      reasons: [],
+    });
+  });
+
+  it("returns a genuine zero when available evidence has no attention indicators", () => {
+    expect(
+      calculateAttentionScore(
+        new Date("2026-11-10T10:00:00.000Z"),
+        [85, 82],
+        new Date("2026-11-10T12:00:00.000Z"),
+      ),
+    ).toEqual({ score: 0, reasons: [] });
+  });
+
+  it("scores inactivity and low performance only when those evidence sources exist", () => {
+    expect(
+      calculateAttentionScore(
+        new Date("2026-11-07T12:00:00.000Z"),
+        [50],
+        new Date("2026-11-10T12:00:00.000Z"),
+      ),
+    ).toEqual({
+      score: 55,
+      reasons: ["Inactive 3 days", "Last test 50%"],
+    });
+  });
+
+  it("does not invent a test signal when only activity evidence exists", () => {
+    expect(
+      calculateAttentionScore(
+        new Date("2026-11-08T12:00:00.000Z"),
+        [],
+        new Date("2026-11-10T12:00:00.000Z"),
+      ),
+    ).toEqual({ score: 15, reasons: ["Inactive 2 days"] });
+  });
+
+  it("returns a genuine declining-score signal without inventing inactivity", () => {
+    expect(
+      calculateAttentionScore(null, [90, 70], new Date("2026-11-10T12:00:00.000Z")),
+    ).toEqual({ score: 15, reasons: ["Test scores declining"] });
   });
 
   it("returns attendance dates without confidence for organisation admins", () => {
