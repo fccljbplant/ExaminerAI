@@ -657,3 +657,25 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 ### Documentation / safety
 - Updated `docs/UPGRADE-2026-10/QUESTIONS.md`, `docs/PROJECT-STATUS.md` and this log with the superseding owner decision.
 - No application code, tests, schema, dependencies, migrations, production data, merge or deployment changed. PR #3 remains draft and unmerged.
+
+
+## 2026-11-10 — Standing decision-maker mandate and next technical boundary
+
+### Owner instruction
+- Owner reiterated that the assistant should act as delegated decision-maker across course coordination, student counselling, examination policy and university leadership, continue resolving product issues, and document all decisions for later consolidation into formal documentation.
+- Standing workflow decision: make routine academic/product choices without repeatedly asking the owner; record rationale, safeguards and superseded decisions in the running ledger. Reserve owner approval for production settings/data, destructive or production migrations, spending/provider changes, protected-branch pushes, merge and deployment. Escalate materially ambiguous legal/safety matters.
+- This is a cumulative decision record only. The owner intends a polished consolidated policy document later; do not represent the ledger as that final artifact.
+
+### Source and code review
+- Read the uploaded project progress handoff and relevant Final Prompt / Master Upgrade Prompt sections. The Master Prompt defines Phase 0 as read-only and one task card per session for Agent Pack execution; stop at Phase 0 for approval. Existing PR #3 work is being continued under the owner's explicit direction, but the Agent Pack runner is not present on the branch (AGENTS.md, queue and logged runner absent). No Agent Pack task was fabricated or runner bypassed.
+- Re-fetched live PR #3 and handoff docs. PR remains open/draft/unmerged/mergeable on branch ux-audit/fix-dashboard-truthfulness-and-agent-safety. Latest head before this documentation update: d202b14623d34b4e1ea689f277756e1c03d7bddc; 323 commits / 111 changed files.
+- Exact-head GitHub Actions run 42729780661 passed all configured steps: dependency install, isolated DB setup, lint, unit tests, typecheck, production build, route smoke, authenticated role screenshots and artifact upload. Vercel combined status still fails due to build-rate limit. No reviews or inline threads returned.
+- Comprehensive-report generator review: src/modules/comprehensive-report/index.ts reads Interaction, WeeklyTest, ProjectTask, ProjectReport and Certificate by userId without course filters; SkillMastery is inherently learner-level (no courseId); the report uses legacy learner-global projectName/currentWeek fields; missing weekly test scores are coerced to zero and no-test evidence yields overall score 0 / grade F. The API route uses content_only student access but has no courseId context. No verified UI consumer of /api/students/[id]/comprehensive-report was found in the branch tree or student-profile component. Do not patch only the API disclaimer and claim the report UI is safe.
+- Preserve the owner-approved managementAttitude/personality-style fields. Any eventual implementation must add the AI-interaction-only basis and prominent reliability notice; clearly distinguish AI observations from human-verified conclusions; keep notice visible regardless of reviewed flag; and prevent sole reliance for consequential decisions. Course-specific evidence/access and missing-data truthfulness must be corrected with the presentation path as one coherent task.
+
+### Documentation
+- Appended the standing decision-maker delegation to docs/UPGRADE-2026-10/QUESTIONS.md and updated docs/PROJECT-STATUS.md. This session log records the same mandate and findings.
+- No application code, tests, schema, dependencies, migrations, production data, merge or deployment changed. No local test/build/browser/axe checks were run.
+
+### Next exact action
+- Continue the PR #3 review by selecting the next narrow, verifiable issue within its existing baseline correctness/safety scope. For comprehensive reports, first establish a course-context contract and identify/implement the actual display consumer before touching the endpoint; treat course-scoping, AI-interaction-only management assessment, reliability notice, unavailable-data semantics and tests as a single cohesive follow-up. Do not guess course attribution for legacy null-course rows or run production migrations.
