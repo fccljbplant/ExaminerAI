@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   dailyLogFindMany: vi.fn(),
   interactionFindMany: vi.fn(),
   weeklyTestFindMany: vi.fn(),
+  reportCardFindUnique: vi.fn(),
   getTestConfig: vi.fn(),
   saveCourseReportCard: vi.fn(),
   logAudit: vi.fn(),
@@ -37,6 +38,7 @@ vi.mock("@/lib/db", () => ({
     dailyLog: { findMany: mocks.dailyLogFindMany },
     interaction: { findMany: mocks.interactionFindMany },
     weeklyTest: { findMany: mocks.weeklyTestFindMany },
+    reportCard: { findUnique: mocks.reportCardFindUnique },
   },
 }));
 vi.mock("@/modules/course/lib/course-config", () => ({ getTestConfig: mocks.getTestConfig }));
@@ -89,6 +91,7 @@ describe("POST /api/students/[id]/generate-report-card", () => {
     mocks.dailyLogFindMany.mockResolvedValue([{ id: "log-1" }]);
     mocks.interactionFindMany.mockResolvedValue([{ correctness: 80 }]);
     mocks.weeklyTestFindMany.mockResolvedValue([{ attempt: 1, status: "completed", score: 90 }]);
+    mocks.reportCardFindUnique.mockResolvedValue(null);
     mocks.getTestConfig.mockResolvedValue({ retakePolicy: "best" });
     mocks.saveCourseReportCard.mockResolvedValue({
       id: "card-1",
@@ -136,6 +139,18 @@ describe("POST /api/students/[id]/generate-report-card", () => {
     mocks.dailyLogFindMany.mockResolvedValue([]);
     mocks.interactionFindMany.mockResolvedValue([]);
     mocks.weeklyTestFindMany.mockResolvedValue([]);
+    const response = await request({ courseId: "course-a", week: 1 });
+    expect(response.status).toBe(409);
+    expect(mocks.saveCourseReportCard).not.toHaveBeenCalled();
+  });
+
+  it("does not let AI regeneration overwrite a human-corrected report card", async () => {
+    mocks.reportCardFindUnique.mockResolvedValue({
+      id: "card-1",
+      version: 3,
+      updatedById: "instructor-2",
+      versions: [{ source: "manual_correction" }],
+    });
     const response = await request({ courseId: "course-a", week: 1 });
     expect(response.status).toBe(409);
     expect(mocks.saveCourseReportCard).not.toHaveBeenCalled();
