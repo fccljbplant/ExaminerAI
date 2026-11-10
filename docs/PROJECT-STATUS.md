@@ -450,3 +450,12 @@ These are approved planning decisions, not implementation claims. No application
 - **Execution blocker remains:** the branch has no `AGENTS.md`, task queue or logged runner. The uploaded Agent Pack queue has no card for this follow-up; its runner switches to `upgrade/phase-<N>`, and its OpenCode off-peak guard reads `.env`, `.env.local` and `.env.production` to inspect database configuration. Both conflict with the project's existing-branch and no-`.env*` constraints. Do not run it, invent a card, or make a partial high-risk report patch. No local checkout is available.
 - No application code, tests, schema, dependency, migration, production data, merge, deployment, branch switch or `main` write was made in this refresh. No local or manual browser/axe/keyboard/screen-reader/reduced-motion/zoom/reflow validation was performed.
 - Next: establish an owner-approved, branch-preserving task-card/logged-check workflow (or provide a compatible approved task card and tooling), then complete the comprehensive-report course-context, evidence-truthfulness, cache/review, route-test and actual-renderer slice as one coherent task. Keep PR #3 draft/unmerged.
+
+
+## 2026-11-10 — Post-refresh GitHub metadata correction
+
+- Documentation-only handoff commits advanced the PR branch from the application/code head `69a1fbf65a723badc28bb6a4699ad3a50ddb4382` to `28b4da846b8a5ad9629332e8f8a8ca125b9a9835`; no source files changed in those commits.
+- Actions run `42752208726` is a successful exact-head run for `69a1fbf...`; no PR-triggered workflow run was returned for documentation-only head `28b4da8...`. Do not describe the final docs-only head as having a new CI run.
+- The combined Vercel status for `28b4da8...` is failure with the build-rate-limit URL. No Ready preview is verified.
+- Latest PR metadata still says open, draft and unmerged. One live metadata read reported `mergeable: false`; a separate compare reports the branch is 416 commits ahead and 0 behind `main`. Treat mergeability as unconfirmed and refresh it before any release decision.
+- Next task remains blocked on the missing safe task-card/logged-check workflow; no code patch, merge or deployment is authorised by this status refresh.
