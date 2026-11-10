@@ -58,8 +58,8 @@ interface AnswerData {
 }
 
 /** 0..N final score → 0..100 percent. */
-function toPercent(finalScore: number, questionCount: number): number {
-  if (questionCount <= 0) return 0;
+function toPercent(finalScore: number, questionCount: number): number | null {
+  if (questionCount <= 0 || !Number.isFinite(finalScore)) return null;
   return Math.max(0, Math.min(100, Math.round((finalScore / questionCount) * 100)));
 }
 
@@ -118,14 +118,19 @@ export function WeeklyTestPanel({
       setTestId(data.testId);
       setQuestions(data.questions);
       if (data.status === "completed") {
-        const pct = toPercent(
-          (data.answers ?? []).reduce<number>((acc, a) => acc + (a ? a.score : 0), 0),
-          data.questions.length,
-        );
+        const savedAnswers = data.answers ?? [];
+        const hasCompleteScores = savedAnswers.length === data.questions.length &&
+          savedAnswers.every((answer) => answer !== null && Number.isFinite(answer.score));
+        const totalScore = hasCompleteScores
+          ? savedAnswers.reduce<number>((sum, answer) => sum + (answer?.score ?? 0), 0)
+          : null;
+        const pct = totalScore === null ? null : toPercent(totalScore, data.questions.length);
         setIsComplete(true);
         setScore(pct);
-        setConversation(buildTranscript(data.questions, data.answers ?? [], data.questions.length));
-        if (!reportedRef.current && onComplete) {
+        setConversation(buildTranscript(data.questions, savedAnswers, data.questions.length));
+        if (pct === null) {
+          setError("This test is marked complete, but a reliable saved score is unavailable. Ask your instructor to review the result.");
+        } else if (!reportedRef.current && onComplete) {
           reportedRef.current = true;
           onComplete(pct);
         }
@@ -189,12 +194,16 @@ export function WeeklyTestPanel({
       setConversation((prev) => [...prev, ...nextMsgs]);
 
       if (data.isComplete) {
-        const pct = toPercent(data.finalScore ?? 0, questions.length);
+        const pct = typeof data.finalScore === "number"
+          ? toPercent(data.finalScore, questions.length)
+          : null;
         setIsComplete(true);
         setScore(pct);
         setLastFeedback(data.feedback);
         setCurrentQuestion(questions.length);
-        if (!reportedRef.current && onComplete) {
+        if (pct === null) {
+          setError("The test was completed, but its final score is unavailable. Ask your instructor to review the result.");
+        } else if (!reportedRef.current && onComplete) {
           reportedRef.current = true;
           onComplete(pct);
         }
@@ -203,6 +212,7 @@ export function WeeklyTestPanel({
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to send reply");
+      setInput(msg);
       setConversation((prev) => prev.filter((m) => m !== studentMsg));
     } finally {
       setBusy(false);
@@ -243,11 +253,13 @@ export function WeeklyTestPanel({
           </div>
         )}
 
-        {isComplete && score !== null && (
+        {isComplete && (
           <div className="py-4 text-center">
             <CheckCircle2 className="mx-auto mb-2 h-10 w-10 text-success" />
-            <p className="text-sm font-medium text-fg">Weekly test complete!</p>
-            <p className="mt-1 text-3xl font-bold text-fg">{score}%</p>
+            <p className="text-sm font-medium text-fg">Weekly test complete</p>
+            {score === null
+              ? <p className="mt-2 text-sm text-fg-muted">Score unavailable — no result has been inferred.</p>
+              : <p className="mt-1 text-3xl font-bold text-fg">{score}%</p>}
             {lastFeedback && (
               <p className="mx-auto mt-3 max-w-md rounded-lg bg-bg-subtle px-4 py-3 text-left text-xs leading-relaxed text-fg-secondary">
                 <span className="font-semibold text-fg">Examiner&apos;s note: </span>
@@ -268,7 +280,7 @@ export function WeeklyTestPanel({
             >
               Done
             </Button>
-            <PostTestReflection score={score} testType="weekly_test" />
+            {score !== null ? <PostTestReflection score={score} testType="weekly_test" /> : null}
           </div>
         )}
 
