@@ -764,7 +764,7 @@ model Certificate {
   courseName    String
   studentName   String
   grade         String
-  score         Int
+  score         Int?
   issuedAt      DateTime @default(now())
   signedBy      String
   verifyToken   String   @unique
