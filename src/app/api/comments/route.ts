@@ -5,6 +5,52 @@ import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 
+type CommentActivityRefs = {
+  interactionId?: string | null;
+  taskId?: string | null;
+  weeklyTestId?: string | null;
+  dailyLogId?: string | null;
+};
+
+/** A staff comment must be attached only to records belonging to this learner
+ * and the explicitly selected, currently authorised course. General and
+ * mixed-course legacy comments are read-only and cannot be newly written. */
+async function commentLinksMatchCourse(
+  studentId: string,
+  courseId: string,
+  refs: CommentActivityRefs,
+): Promise<boolean> {
+  const ids = [refs.interactionId, refs.taskId, refs.weeklyTestId, refs.dailyLogId]
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+  if (ids.length === 0) return false;
+
+  const checks = await Promise.all([
+    refs.interactionId
+      ? db.interaction.findFirst({ where: { id: refs.interactionId, userId: studentId, courseId }, select: { id: true } })
+      : Promise.resolve(null),
+    refs.taskId
+      ? db.projectTask.findFirst({ where: { id: refs.taskId, userId: studentId, courseId }, select: { id: true } })
+      : Promise.resolve(null),
+    refs.weeklyTestId
+      ? db.weeklyTest.findFirst({ where: { id: refs.weeklyTestId, userId: studentId, courseId }, select: { id: true } })
+      : Promise.resolve(null),
+    refs.dailyLogId
+      ? db.dailyLog.findFirst({ where: { id: refs.dailyLogId, userId: studentId, courseId }, select: { id: true } })
+      : Promise.resolve(null),
+  ]);
+  return checks.every(Boolean);
+}
+
+async function staffCanAccessCourse(
+  payload: NonNullable<Awaited<ReturnType<typeof getAuthUser>>>,
+  studentId: string,
+  courseId: string,
+): Promise<boolean> {
+  await assertCanAccessStudent(payload, studentId);
+  const authorisedCourseIds = await getStaffAuthorizedStudentCourseIds(payload, studentId);
+  return authorisedCourseIds.includes(courseId);
+}
+
 /** GET /api/comments?studentId=...&courseId=... — list comments.
  *  Staff must select an authorised course; only comments whose every linked
  *  activity record belongs to that course are returned. Learners can view
@@ -114,11 +160,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const body = await req.json().catch(() => ({}));
-  const { interactionId, taskId, weeklyTestId, dailyLogId, studentId, body: commentBody, marksOverride } = body as {
-    interactionId?: string; taskId?: string; weeklyTestId?: string; dailyLogId?: string; studentId?: string; body?: string; marksOverride?: number;
+  const { interactionId, taskId, weeklyTestId, dailyLogId, studentId, courseId, body: commentBody, marksOverride } = body as {
+    interactionId?: string; taskId?: string; weeklyTestId?: string; dailyLogId?: string;
+    studentId?: string; courseId?: string; body?: string; marksOverride?: number;
   };
   if (!studentId) {
     return NextResponse.json({ error: "studentId required" }, { status: 400 });
+  }
+  if (!courseId) {
+    return NextResponse.json({ error: "courseId is required for course-linked comments" }, { status: 400 });
+  }
+  if (![interactionId, taskId, weeklyTestId, dailyLogId].some((id) => typeof id === "string" && id.length > 0)) {
+    return NextResponse.json({ error: "A comment must be linked to a course activity" }, { status: 400 });
   }
   if (!commentBody || !String(commentBody).trim()) {
     return NextResponse.json({ error: "Comment body is required" }, { status: 400 });
@@ -134,11 +187,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  // IDOR protection: verify the caller can access this student
+  // IDOR + course scope: client-supplied courseId never grants access.
   try {
-    await assertCanAccessStudent(payload, studentId);
+    if (!(await staffCanAccessCourse(payload, studentId, courseId))) {
+      return NextResponse.json({ error: "You cannot comment on this learner's selected course" }, { status: 403 });
+    }
   } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Access denied" }, { status: 403 });
+  }
+  const refs = { interactionId, taskId, weeklyTestId, dailyLogId };
+  if (!(await commentLinksMatchCourse(studentId, courseId, refs))) {
+    return NextResponse.json({ error: "Every linked activity must belong to the learner and selected course" }, { status: 403 });
   }
 
   const comment = await db.comment.create({
@@ -171,12 +230,24 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const id = req.nextUrl.searchParams.get("id");
+  const courseId = req.nextUrl.searchParams.get("courseId");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  if (!courseId) return NextResponse.json({ error: "courseId is required" }, { status: 400 });
 
   const existing = await db.comment.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (existing.instructorId !== payload.sub && !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Can only edit your own comments" }, { status: 403 });
+  }
+  try {
+    if (!(await staffCanAccessCourse(payload, existing.studentId, courseId))) {
+      return NextResponse.json({ error: "You cannot edit comments for this course" }, { status: 403 });
+    }
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Access denied" }, { status: 403 });
+  }
+  if (!(await commentLinksMatchCourse(existing.studentId, courseId, existing))) {
+    return NextResponse.json({ error: "This comment is not wholly linked to the selected course" }, { status: 403 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -203,13 +274,24 @@ export async function DELETE(req: NextRequest) {
   if (!payload || (!isStaffRole(payload.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const url = new URL(req.url);
-  const id = url.searchParams.get("id");
+  const id = req.nextUrl.searchParams.get("id");
+  const courseId = req.nextUrl.searchParams.get("courseId");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  if (!courseId) return NextResponse.json({ error: "courseId is required" }, { status: 400 });
   const comment = await db.comment.findUnique({ where: { id } });
   if (!comment) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (comment.instructorId !== payload.sub && !hasRole(payload.role, ADMIN_ROLES)) {
     return NextResponse.json({ error: "Can only delete your own comments" }, { status: 403 });
+  }
+  try {
+    if (!(await staffCanAccessCourse(payload, comment.studentId, courseId))) {
+      return NextResponse.json({ error: "You cannot delete comments for this course" }, { status: 403 });
+    }
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Access denied" }, { status: 403 });
+  }
+  if (!(await commentLinksMatchCourse(comment.studentId, courseId, comment))) {
+    return NextResponse.json({ error: "This comment is not wholly linked to the selected course" }, { status: 403 });
   }
   await db.comment.delete({ where: { id } });
   return NextResponse.json({ ok: true });
