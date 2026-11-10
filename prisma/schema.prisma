@@ -635,10 +635,11 @@ model ReportCardVersion {
   nextSteps    String
   actorId      String
   actorRole    String
+  source       String   @default("manual_correction")
   reason       String
   createdAt    DateTime @default(now())
 
-  reportCard ReportCard @relation(fields: [reportCardId], references: [id], onDelete: Restrict)
+  reportCard ReportCard @relation(fields: [reportCardId], references: [id], onDelete: Cascade)
 
   @@unique([reportCardId, version])
   @@index([userId, courseId, week])
