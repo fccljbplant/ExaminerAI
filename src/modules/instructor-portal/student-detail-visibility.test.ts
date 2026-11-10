@@ -4,6 +4,7 @@ import {
   calculateTaskProgress,
   canViewLearnerSupportSignals,
   getAuthorizedStudentCourseIds,
+  resolveAuthorizedCourseSelection,
   toDailyLogPayload,
 } from "./student-detail-visibility";
 
@@ -29,6 +30,33 @@ describe("instructor student-detail visibility", () => {
         ["course-a", "course-a", "course-b"],
       ),
     ).toEqual(["course-a", "course-b"]);
+  });
+
+  it("auto-selects the only shared course", () => {
+    expect(resolveAuthorizedCourseSelection(["course-a"], null)).toEqual({
+      kind: "selected",
+      courseId: "course-a",
+    });
+  });
+
+  it("requires an explicit choice when multiple courses are shared", () => {
+    expect(resolveAuthorizedCourseSelection(["course-a", "course-b"], null)).toEqual({
+      kind: "selection_required",
+    });
+  });
+
+  it("accepts only an explicitly selected shared course", () => {
+    expect(resolveAuthorizedCourseSelection(["course-a", "course-b"], "course-b")).toEqual({
+      kind: "selected",
+      courseId: "course-b",
+    });
+  });
+
+  it("denies an unassigned or non-shared course selection", () => {
+    expect(resolveAuthorizedCourseSelection(["course-a"], "course-b")).toEqual({
+      kind: "forbidden",
+    });
+    expect(resolveAuthorizedCourseSelection([], null)).toEqual({ kind: "none" });
   });
 
   it("limits learner support indicators to instructors", () => {
