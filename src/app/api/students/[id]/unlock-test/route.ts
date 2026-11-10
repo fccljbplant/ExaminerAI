@@ -63,6 +63,7 @@ export async function POST(
   }
 
   let attempt: number;
+  let auditTestId = existing?.id ?? id;
   if (existing && action === "unlock" && existing.status !== "abandoned") {
     await db.weeklyTest.update({
       where: { id: existing.id },
