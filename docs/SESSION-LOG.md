@@ -891,3 +891,11 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - The uploaded Agent Pack has no task card for this report follow-up. Its queue runner switches/creates `upgrade/phase-<N>`; its OpenCode guard reads `.env`, `.env.local` and `.env.production` while checking database configuration. Do not execute the pack unchanged because that violates the branch-preservation and no-`.env*` project rules.
 - No card was invented and no source patch was made. Continue only after a branch-preserving, no-secret-reading task workflow and an approved task card/equivalent are available.
 - No schema, migration, dependency, production-data, merge, deployment, branch switch or `main` write occurred.
+
+
+## 2026-11-10 — Post-refresh metadata correction
+
+- The live PR metadata recheck after the handoff commits reports PR #3 open, draft, unmerged; one read reports `mergeable: false`. The branch compare reports 416 commits ahead and 0 behind `main`; do not infer merge-conflict status from these differing signals. Recheck GitHub mergeability later.
+- Application/code head `69a1fbf65a723badc28bb6a4699ad3a50ddb4382` has successful Actions run [42752208726](https://github.com/fccljbplant/ExaminerAI/actions/runs/42752208726). Subsequent docs-only head `28b4da846b8a5ad9629332e8f8a8ca125b9a9835` has no PR-triggered workflow run returned.
+- Combined Vercel status on `28b4da8...` is failure due to the project build-rate limit; no Ready preview verified.
+- These handoff-only commits do not change application code. The comprehensive-report follow-up remains blocked until a branch-preserving task-card/logged-check workflow is available.
