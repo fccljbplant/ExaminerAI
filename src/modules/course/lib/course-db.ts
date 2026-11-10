@@ -1,28 +1,20 @@
 /**
  * DB-backed course outline functions.
  *
- * These mirror the functions in course-topics.ts but read from the database
- * (Course + CourseWeek + CourseDay models) instead of the hardcoded array.
- *
- * FALLBACK: If the user's batch has no courseId, or the course doesn't exist
- * in the DB, ALL functions fall back to the hardcoded WEEKLY_TOPICS in
- * course-topics.ts. This ensures backward compatibility — existing deployments
- * continue to work until an admin creates + assigns a course.
+ * These read the selected learner course's published CourseWeek/CourseDay
+ * records. Missing or ambiguous course context returns no outline; learner
+ * content is never silently replaced with a global topic ladder.
  */
 
 import { db } from "@/lib/db";
 import {
-  WEEKLY_TOPICS,
-  getWeekTopics as getHardcodedTopics,
-  getWeekTopicTitles as getHardcodedTitles,
-  getWeekPhase as getHardcodedPhase,
   getBootcampDayNumber,
   type DailyTopic,
   type WeekTopic,
 } from "./course-topics";
 
-/** Load the full course outline from the DB for a given user.
- *  Returns null if the user's batch has no course assigned (caller falls back). */
+/** Load the full outline for the selected course. Null means no enrolment;
+ * an empty array means course selection is ambiguous or no weeks are published. */
 async function loadCourseFromDB(userId: string, courseId?: string): Promise<WeekTopic[] | null> {
   const enrollments = await db.courseEnrollment.findMany({
     where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
