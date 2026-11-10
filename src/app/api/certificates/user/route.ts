@@ -99,8 +99,11 @@ export async function GET(req: NextRequest) {
       completedTests,
       allTestsCompleted,
       progressPercent,
-      eligible: eligibility.eligible,
-      averageScore: eligibility.avgScore,
+      // Eligibility may be unavailable when the certificate evidence query
+      // cannot establish a result. Preserve that uncertainty instead of
+      // dereferencing null or fabricating a negative eligibility decision.
+      eligible: eligibility?.eligible ?? null,
+      averageScore: eligibility?.avgScore ?? null,
     },
   });
 }
