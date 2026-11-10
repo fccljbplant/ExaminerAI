@@ -80,7 +80,7 @@ const existingComment = {
 
 describe("/api/comments course scope", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.getAuthUser.mockResolvedValue({ sub: "instructor-1", role: "instructor" });
     mocks.assertCanAccessStudent.mockResolvedValue(true);
     mocks.getStaffAuthorizedStudentCourseIds.mockResolvedValue(["course-a", "course-b"]);
