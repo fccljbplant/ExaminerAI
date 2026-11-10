@@ -128,3 +128,12 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Exact-head Actions run `42740191410` passed 436 tests, lint (0 errors / 7 warnings), typecheck, build, 83/83 page-route smoke checks, role screenshots and artifact upload.
 - Vercel remains blocked by build-rate limit. No local/manual browser/axe/a11y checks, merge, deployment, production data/schema change or main write.
 - Next academic scope is course-specific WeeklyTest/ReportCard identity and APIs. Agent Pack task card/queue/runner prerequisites are absent on this branch; do not bypass them.
+
+
+## Latest delivery update — 2026-11-10 comment audit trail
+
+- Validated application-code head: `b12017d0a5dd4d26da0fcad3726b2b9c9cacffa7`; PR #3 remains open/draft/unmerged/mergeable; `main` unchanged.
+- Staff comment writes are selected-course and activity-link scoped; successful create/edit/delete mutations now create audit events. Audit metadata excludes comment text, learner ID and activity IDs.
+- Exact-head Actions run `42741613904` passed 438 tests / 41 files, lint (0 errors / 7 warnings), typecheck, build, 83/83 route smoke, four-role screenshots and artifact upload.
+- Vercel remains blocked by build-rate limit; no Ready preview or manual accessibility review.
+- Next academic task: course-specific WeeklyTest/ReportCard identity and APIs. Agent Pack task queue/runner remains absent; do not invent a card or bypass the prerequisite.
