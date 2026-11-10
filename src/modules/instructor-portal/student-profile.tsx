@@ -126,7 +126,7 @@ interface StudentProfileData {
     updatedAt: string;
     kpis: { taskProgress: number | null; tasksDone: string };
   }>;
-  certificates: Array<{ id: string; courseName: string; grade: string; score: number; issuedAt: string; verifyUrl: string }>;
+  certificates: Array<{ id: string; courseName: string; grade: string; score: number | null; issuedAt: string; verifyUrl: string }>;
   recentEvents: Array<{ type: string; at: string }>;
   psychWeekly: {
     weeks: Array<{
@@ -1197,7 +1197,7 @@ function CertificatesTab({ data }: { data: StudentProfileData }) {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-fg">{c.courseName}</p>
                 <p className="truncate text-xs text-fg-muted">
-                  {c.grade} · {c.score} · {new Date(c.issuedAt).toLocaleDateString()}
+                  {c.grade} · {c.score === null ? "Score unavailable" : `${c.score}%`} · {new Date(c.issuedAt).toLocaleDateString()}
                 </p>
               </div>
               <Link
