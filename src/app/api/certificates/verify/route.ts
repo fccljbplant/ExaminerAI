@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   }
 
   const certificate = await db.certificate.findUnique({
-    where: { verifyToken: token, grade: { not: "PENDING" } },
+    where: { verifyToken: token, grade: { notIn: ["PENDING", "REJECTED"] } },
     select: {
       id: true,
       courseName: true,
