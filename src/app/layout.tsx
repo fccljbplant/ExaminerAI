@@ -8,6 +8,7 @@ import { CommandRegistryProvider } from "@/modules/ui/command-registry";
 import { CommandPalette } from "@/modules/ui/command-palette";
 import { KeyboardShortcutsHelp } from "@/modules/ui/keyboard-shortcuts-help";
 import { CelebrationOverlay } from "@/modules/gamification";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,44 +37,4 @@ export const metadata: Metadata = {
   applicationName: "TraineesAI",
   formatDetection: {
     telephone: false,
-  },
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
-      >
-        {/* Theme v2 FOUC guard â€” sets html[data-mode] before first paint,
-            mirroring next-themes' storage keys (REDESIGN-P2 Â§2.2). */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var d=document.documentElement;var t=localStorage.getItem("theme");var dark=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var bed=localStorage.getItem("tx-theme-bed")==="1";var classic=localStorage.getItem("tx-theme-classic")==="1";var p=localStorage.getItem("tx-theme-preset");var preset=(p==="zinc"||p==="ocean"||p==="forest"||p==="sunset")?p:null;d.dataset.mode=classic?"classic":bed?"bed":preset?preset:dark?"dark":"light";}catch(e){document.documentElement.dataset.mode="light";}})();`,
-          }}
-        />
-        <ThemeProvider>
-          <ThemeV2Provider>
-              <CommandRegistryProvider>
-                {children}
-                {/* âŒ˜K command palette â€” global. Press âŒ˜K (or Ctrl+K) anywhere.
-                    Pages can register their own commands via useRegisterCommands(). */}
-                <CommandPalette />
-                {/* Press `?` anywhere to see the keyboard shortcut cheat sheet. */}
-                <KeyboardShortcutsHelp />
-                {/* Celebration overlay â€” fires on level-up, badge earned, XP gained.
-                    Listens for `traineesai:celebration` events dispatched from
-                    anywhere in the app. */}
-                <CelebrationOverlay />
-                <SonnerToaster position="bottom-right" richColors closeButton />
-              </CommandRegistryProvider>
-          </ThemeV2Provider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-}
+  }¶»§q«^

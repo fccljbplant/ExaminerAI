@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { getAuthUser } from "@/lib/auth";
-import { homeForRole } from "@/lib/portal-home";
+import { resolveHomeForUser } from "@/lib/portal-home-server";
 import { db } from "@/lib/db";
 import { MARKETPLACE_CATEGORIES } from "@/lib/marketplace";
 import { SiteHeader, SiteFooter } from "@/modules/site";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PublicLayout({ children }: { children: ReactNode }) {
   const user = await getAuthUser();
-  const dashboardHref = user ? homeForRole(user.role) : "/login";
+  const dashboardHref = user ? await resolveHomeForUser(user) : "/login";
 
   const categoryCounts = await db.course
     .groupBy({
@@ -37,13 +37,4 @@ export default async function PublicLayout({ children }: { children: ReactNode }
   );
   const categories = MARKETPLACE_CATEGORIES.filter(
     (c) => (countByCategory.get(c.value) ?? 0) > 0,
-  ).map((c) => ({ value: c.value, label: c.label, count: countByCategory.get(c.value) ?? 0 }));
-
-  return (
-    <div className="flex min-h-screen flex-col overflow-x-clip bg-bg text-fg">
-      <SiteHeader categories={categories} signedIn={Boolean(user)} dashboardHref={dashboardHref} />
-      <div className="flex-1">{children}</div>
-      <SiteFooter />
-    </div>
-  );
-}
+  ).map((c) => ({ value: c.value, label: c.label, count:¶»§q«^
