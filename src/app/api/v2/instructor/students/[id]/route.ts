@@ -23,6 +23,7 @@ import { normalizeRole, UserRole } from "@/lib/rbac";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
 import { computePsychWeekly } from "@/modules/learn/lib/psych-weekly";
+import { getTestConfig } from "@/modules/course/lib/course-config";
 import {
   calculateAttentionScore,
   calculateTaskProgress,
@@ -218,12 +219,28 @@ export async function GET(
         : Promise.resolve(null),
     ]);
 
+  // Use one completed attempt per week for course-level KPIs, according
+  // to the selected course's published retake policy. The full attempt list
+  // remains available below for transparent review.
+  const testConfig = await getTestConfig(id, selectedCourseId);
+  const attemptsByWeek = new Map<number, typeof weeklyTests>();
+  for (const test of weeklyTests) {
+    if (test.status !== "completed" || test.score === null) continue;
+    const attempts = attemptsByWeek.get(test.week) ?? [];
+    attempts.push(test);
+    attemptsByWeek.set(test.week, attempts);
+  }
+  const selectedAttempts = [...attemptsByWeek.values()].map((attempts) => {
+    attempts.sort((a, b) => a.attempt - b.attempt);
+    if (testConfig.retakePolicy === "first") return attempts[0];
+    if (testConfig.retakePolicy === "latest") return attempts[attempts.length - 1];
+    return [...attempts].sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || b.attempt - a.attempt)[0];
+  }).sort((a, b) => a.week - b.week);
+
   // Academic attention signals are unavailable until at least one source
   // (activity date or scored test) exists; an evidence-backed score of zero
   // remains distinct from missing evidence.
-  const scored = weeklyTests
-    .filter((test) => test.score !== null)
-    .map((test) => test.score as number);
+  const scored = selectedAttempts.map((test) => test.score as number);
   const latest = scored.length ? scored[scored.length - 1] : null;
   const attention = calculateAttentionScore(
     dailyLogs[0]?.date ?? null,
