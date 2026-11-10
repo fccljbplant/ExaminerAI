@@ -202,3 +202,16 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Latest code commit 48bc189c48012d62da5dd7582145398fd19293ec has Actions run 42730976622 cancelled during dependency installation; all substantive checks were skipped. Do not claim the metric fix passed CI.
 - PR head after documentation updates:  f332108143ff6f48e99b6f195452e42bd4e8b41a (337 commits / 112 files); no Actions run returned for this docs-only head. Vercel remains failed due to project build-rate limit.
 - The metric change is implemented but awaits successful exact-head CI and local validation is unavailable. PR remains open/draft/unmerged.
+
+
+## 2026-11-10 — Instructor learner-detail course isolation
+
+- Starting code head: `a00590da6e21c1c25ba4502bef8956bc7a1ea32e`; ending code head: `01bb794544bfabb6beca10abd32a1ad97a094ec1`.
+- PR #3 remains open/draft/unmerged/mergeable; main HEAD remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Fixed the multi-course aggregate mislabelling issue. One shared course auto-selects; multiple shared courses require an explicit authorised selection; invalid/no shared course is denied. All course-bearing drill-down queries now use the selected course only.
+- UI adds accessible course selection and selected-course labelling; avoids stale data during switching. SkillMastery is labelled learner-level because it has no courseId. Unscoped Growth/Comments/mentor briefing panels are withheld until their APIs are course-scoped.
+- Added pure-helper tests for course selection policy. No route-level integration tests yet.
+- Previous head Actions run `42731168978` passed on `a00590da...`; no run yet returned for `01bb794...`. Vercel remains blocked by build-rate limit. No local checks/browser/axe available.
+- No schema/migration/dependency/production data, merge, deployment or main change.
+- Next: verify exact-head CI, add route-level query-isolation tests, then scope Growth/Comments APIs before restoring panels.
+
