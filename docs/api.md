@@ -101,6 +101,9 @@ All routes under `src/app/api/*`. Auth via httpOnly + secure cookie. **45+ route
 | `PATCH` | `/api/comments?id=...&courseId=...` | Edit a linked comment only after the server revalidates the selected course and every existing activity relation. |
 | `DELETE` | `/api/comments?id=...&courseId=...` | Delete a linked comment only after the server revalidates the selected course and every existing activity relation. |
 
+Staff comment mutations also create `AuditLog` events for create/update/delete. Audit metadata contains course ID, activity types and changed field names, not comment text, learner IDs or activity IDs.
+
+
 ## AI
 
 | Method | Path | Role | Description |
