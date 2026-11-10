@@ -227,9 +227,8 @@ describe("/api/comments course scope", () => {
       action: "comment_created",
       target: { type: "comment", id: "created-comment" },
       metadata: expect.objectContaining({
-        studentId: "learner-1",
         courseId: "course-a",
-        activityIds: ["interaction-a"],
+        activityTypes: ["interaction"],
       }),
     }));
     expect(JSON.stringify(mocks.logAudit.mock.calls[0][0].metadata)).not.toContain("Strong explanation");
@@ -267,7 +266,6 @@ describe("/api/comments course scope", () => {
       action: "comment_updated",
       target: { type: "comment", id: "comment-1" },
       metadata: expect.objectContaining({
-        studentId: "learner-1",
         courseId: "course-a",
         updatedFields: ["body"],
       }),
@@ -286,9 +284,8 @@ describe("/api/comments course scope", () => {
       action: "comment_deleted",
       target: { type: "comment", id: "comment-1" },
       metadata: expect.objectContaining({
-        studentId: "learner-1",
         courseId: "course-a",
-        activityIds: ["interaction-a"],
+        activityTypes: ["interaction"],
       }),
     }));
   });
