@@ -232,3 +232,13 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Added `src/app/api/v2/instructor/students/[id]/route.test.ts` with four cases covering multi-course selection-required/no-query behaviour, selected-course relation filtering, invalid course denial and one-course auto-selection.
 - Test/code head: `f26de0c15cdecb541792066c3d2b34d72914c0b3`. Exact-head CI not yet returned; prior run `42734322946` cancelled during dependency installation. Do not claim checks passed.
 
+
+
+## 2026-11-10 — Course-scoped comment writes
+
+- PR #3 code head: `c4a63e5c0779aa48150c8405e019e7546549983d`; open/draft/unmerged/mergeable. `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Staff comment POST requires an authorised selected course and at least one activity link. Every supplied link must belong to the same learner and selected course. PATCH/DELETE require courseId and revalidate every existing linked record. General/unassigned/mixed-course comments remain read-only through staff writes; learner self-history remains cross-course.
+- Added route tests for missing course/activity, unauthorised course/activity, mixed references, valid linked creation and cross-course edit/delete denial. Updated `docs/api.md`.
+- Exact-head Actions run `42740191410` passed: lint (0 errors, 7 warnings), 436/436 unit tests across 41 files, typecheck, production build, 83/83 route smoke checks, four-role × seven-viewport screenshot capture and artifact upload `13729306143`.
+- Vercel remains blocked by build-rate limit. No Ready preview, local test run, manual browser/axe/a11y validation. No schema/migration/dependency/production data, merge, deploy or main write.
+- Next: coordinated course-specific WeeklyTest/ReportCard schema and APIs, with null-course legacy preservation, report-card versioning and rollback notes. Agent Pack `AGENTS.md`, queue and logged runner are absent; do not invent a task card.
