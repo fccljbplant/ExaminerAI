@@ -1,27 +1,32 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-10 (PR #3 final-result course-scope correction)  
+**Updated:** 2026-11-10 (final-result scope CI verified; next endpoint scope blockers recorded)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
-**Only working branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
+**Only working branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety
 
 ## Current verified state
-- PR #3 is open, draft, unmerged and mergeable; the final-result source/test implementation commit is `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8` (300 commits, 111 changed files at that code head).
-- The subsequent commits in this session update continuity documents only; no branch switch, merge, deployment, production-data operation or main-branch write occurred.
-- The previous code head `c9f49cab288b79f162c107a5de2b44b8e6567ba5` had GitHub Actions run `42722331613` complete successfully across install, isolated DB setup, lint, unit tests, TypeScript, production build, route smoke tests, authenticated screenshots and artifact upload.
-- No PR-triggered Actions run had been returned for the final-result code head at the time of the update. Do not treat the previous green run as validation of the new route/tests.
-- Vercel status is a failure due to the build-rate limit; no Ready preview is verified.
-- No local checkout/test runner was available; no local test, lint, typecheck, build, browser or axe checks were run.
+- PR #3 is open, draft, unmerged and mergeable. Live head at this refresh: bbb431a585a547bf15fa92d499cbb5f5dec2f0c3; 305 commits and 111 changed files.
+- Exact-head GitHub Actions run 42724107308 completed successfully. Install, isolated DB initialization, lint, unit tests, TypeScript, production build, app-page route smoke, authenticated role screenshots and artifact upload all passed.
+- Vercel combined status remains failure due to the project build-rate limit; no Ready preview is verified.
+- No local checkout/test runner was available. No local test, lint, typecheck, build, browser or axe commands were run.
+- No branch switch, merge, deployment, production-data operation, schema change, dependency change or main-branch write occurred in this continuation.
 
-## Latest PR #3 implementation — final-result course scope
-- `src/app/api/students/final-result/route.ts` now derives staff-authorised course IDs after the existing `assertCanAccessStudent(..., "content_only")` check.
-- Instructor scope is teaching enrolments intersected with learner student enrolments; an active explicit `full`/`content_only` student grant is a fallback only when no shared teaching course exists.
-- Org-admin scope uses active admin membership, active learner membership in the same organisation, linked `OrgCourse` rows, then intersects with learner enrolments.
-- Platform-admin scope is bounded to learner enrolments. Demo/other staff require a re-read active explicit `full`/`content_only` grant.
-- All five course-bearing relations (`weeklyTests`, `interactions`, `reportCards`, `projectReports`, `tasks`) are filtered by the authorised course IDs. No authorised course (including a disappearing grant) returns 403 before loading the report. Staff target accounts are verified as learners.
-- Learner self-view remains cross-course and unfiltered. Academic performance, participation, areas to improve, overall assessment, career readiness, project reports and task statistics are preserved within scope. `behavioralPattern` remains learner-self only.
-- Added `src/app/api/students/final-result/route.test.ts` for instructor isolation, org-admin linked-course scope, explicit grant fallback, empty/revoked scope denial, denied-access short-circuit, platform-admin bounding and learner self-view.
-- Multi-course duration/phase semantics and existing relation take limits remain unchanged pending separate review.
+## Latest validated PR #3 implementation — final-result course scope
+- src/app/api/students/final-result/route.ts derives staff-authorised course IDs after assertCanAccessStudent(..., "content_only").
+- Instructor scope is teaching enrolments intersected with learner student enrolments; an active explicit full/content_only student grant is a fallback only when no shared teaching course exists.
+- Org-admin scope uses active admin membership, active learner membership in the same organisation, linked OrgCourse rows, then the learner-enrolment intersection.
+- Platform-admin scope is bounded to learner enrolments. Demo/other staff require a re-read active explicit full/content_only grant.
+- weeklyTests, interactions, reportCards, projectReports and tasks are all filtered by the authorised course IDs. Empty/revoked scope returns 403 before loading report records; staff targets must be learners.
+- Learner self-view remains cross-course. Academic performance, participation, areasToImprove, overallAssessment, careerReadiness, project reports and task statistics remain. behavioralPattern remains learner-self only.
+- Added src/app/api/students/final-result/route.test.ts covering instructor isolation, org-admin linked-course scope, explicit grant fallback, empty/revoked scope denial, denied-access short-circuit, platform-admin bounding and learner self-view.
+- Exact-head Actions run 42724107308 passed all configured quality steps, including the new route tests.
+
+## Next PR #3 response-scope findings — implementation paused pending semantics
+- src/app/api/students/[id]/generate-report-card/route.ts reads ProjectTask, DailyLog, Interaction, WeeklyTest and Comment by learner/week without course scoping. ReportCard has nullable courseId but Prisma enforces @@unique([userId, week]); a scoped calculation would still overwrite one learner-wide weekly record. Owner decision required: learner-global card or course-specific card (the latter requires approved additive migration/API changes).
+- src/app/api/students/[id]/generate-project-analysis/route.ts reads ProjectReport, ProjectTask and ProjectWeek by userId alone even though those models carry nullable courseId. It also uses legacy User.project* fields with no course relation, while LearnProject is course-linked. Owner/product decision required on whether this analysis is learner-global or course-linked; do not partially filter the AI context.
+- src/app/api/students/[id]/comprehensive-report/route.ts remains owner-blocked because managementAttitude contains productivity/professionalism/leadership/manager-readiness judgments. It also gathers course-bearing data learner-wide. Do not change until the owner decision is resolved.
+- These findings are recorded in docs/UPGRADE-2026-10/QUESTIONS.md. No application code was changed for these findings.
 
 ## Access, privacy and data-minimisation work already in PR #3
 - Org-admin access requires active admin and learner memberships in the same organisation and active learner enrolment in an organisation-linked course. Explicit grants cannot widen this boundary.
