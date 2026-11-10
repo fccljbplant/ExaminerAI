@@ -104,6 +104,7 @@ interface StudentProfileData {
       score: number | null;
       grade: string | null;
       actorRole: string;
+      source: string;
       reason: string;
       createdAt: string;
     }>;
@@ -525,7 +526,7 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
                             {" · "}{version.score === null ? "Ungraded" : `${version.score}%`}
                             {version.grade ? ` (${version.grade})` : ""}
                           </p>
-                          <p>{new Date(version.createdAt).toLocaleDateString()} · {version.actorRole}</p>
+                          <p>{new Date(version.createdAt).toLocaleDateString()} · {version.source === "ai_generated" ? "AI-generated" : "Manual correction"} · {version.actorRole}</p>
                           <p>{version.reason}</p>
                         </li>
                       ))}
