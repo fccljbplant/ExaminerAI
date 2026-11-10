@@ -64,6 +64,7 @@ export const AuditAction = {
   WELLBEING_STATE_CHANGED: "wellbeing_state_changed",
   REPORT_CARD_GENERATED: "report_card_generated",
   REPORT_CARD_UPDATED: "report_card_updated",
+  WEEKLY_TEST_SCORE_UPDATED: "weekly_test_score_updated",
   FINAL_RESULT_GENERATED: "final_result_generated",
   COMMENT_CREATED: "comment_created",
   COMMENT_UPDATED: "comment_updated",
