@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         courseName: courseMeta?.name ?? "Course",
         studentName: user.name,
         grade: "PENDING",
-        score: 0,
+        score: null,
         signedBy: "PENDING",
         verifyToken: crypto.randomBytes(32).toString("hex"),
         // Use a convention: issuedAt is the request date; actual issue happens on approval
@@ -188,7 +188,10 @@ export async function POST(req: NextRequest) {
     });
 
     const scores = completedTests.map(t => t.score).filter((s): s is number => s !== null);
-    const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+    if (scores.length === 0) {
+      return NextResponse.json({ error: "No completed assessment scores are available for this certificate" }, { status: 409 });
+    }
+    const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     const grade = scoreToGrade(avgScore);
 
     // Fetch actual course ID via enrollment
