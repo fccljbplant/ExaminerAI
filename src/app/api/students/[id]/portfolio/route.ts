@@ -193,7 +193,7 @@ export async function GET(
         include: {
           versions: {
             orderBy: { version: "asc" },
-            select: { version: true, grade: true, score: true, actorRole: true, reason: true, createdAt: true },
+            select: { version: true, grade: true, score: true, actorRole: true, source: true, reason: true, createdAt: true },
           },
         },
       }),
