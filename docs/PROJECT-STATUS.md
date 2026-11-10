@@ -367,3 +367,10 @@ These are approved planning decisions, not implementation claims. No application
 - Latest code commit: 48bc189c48012d62da5dd7582145398fd19293ec. Its Actions run 42730976622 was cancelled during dependency installation; database setup, lint, unit tests, typecheck, build, route smoke and screenshot steps were skipped. This is not a pass.
 - Documentation commits advanced the PR head to f332108143ff6f48e99b6f195452e42bd4e8b41a (337 commits / 112 changed files). No Actions run was returned for that docs-only head.
 - Combined Vercel status remains failure due to project build-rate limit. PR remains open, draft, unmerged and mergeable. No local checks were run.
+
+
+### Test coverage update — 2026-11-10
+
+- Added route-level tests in `src/app/api/v2/instructor/students/[id]/route.test.ts` for selection-required/no-query behaviour, selected-course isolation, invalid-course denial and single-course auto-selection.
+- Current implementation head: `f26de0c15cdecb541792066c3d2b34d72914c0b3`. No Actions run was returned for this exact head at refresh; the prior implementation-head run `42734322946` was cancelled during dependency installation, with lint/tests/typecheck/build and later steps skipped. No exact-head CI pass is available yet.
+
