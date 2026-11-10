@@ -398,7 +398,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
       </div>
 
       {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
-      {/* Keep learner-wide panels disabled until their APIs enforce course scope. */}
+      {/* Growth is course-scoped; comment writing remains unavailable until activity-linked. */}
       {tab === "growth" && <GrowthTab data={data} studentId={studentId} />}
       {tab === "psychology" && <PsychologyTab data={data} />}
       {tab === "project" && <ProjectTab data={data} onChanged={retry} />}
