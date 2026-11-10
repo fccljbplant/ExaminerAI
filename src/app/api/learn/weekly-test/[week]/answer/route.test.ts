@@ -42,6 +42,7 @@ describe("POST /api/learn/weekly-test/[week]/answer", () => {
       id: "test-1",
       userId: "learner-1",
       courseId: "course-a",
+      week: 1,
       status: "in_progress",
       questions: [{ question: "Explain the method", format: "open", conceptId: "day-1" }],
       answers: [],
