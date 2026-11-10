@@ -123,3 +123,40 @@ The managementAttitude classification in src/modules/comprehensive-report/index.
 ### Validation context
 
 The final-result course-scope code and tests are now validated by exact-head Actions run 42724107308 on PR head bbb431a585a547bf15fa92d499cbb5f5dec2f0c3. All configured quality steps passed. Vercel remains failed due to build-rate limit. The two endpoint findings above are source-review findings only; no tests or code changes were made for them.
+
+
+## 2026-11-10 — Owner decision: report cards and certificates are course-specific
+
+**Status:** Report-card/certificate ownership semantics resolved. Implementation planning remains open; do not treat the current learner-wide endpoints as compliant.
+
+**Owner decision:** “Each course has its own report card/course certificate.”
+
+### Verified implementation gaps at PR #3 head `ffe5abff4d5c8edecd677743141c769c901be237`
+
+1. **ReportCard schema and generation**
+   - `ReportCard.courseId` already exists but is nullable.
+   - The current unique constraint is `@@unique([userId, week])`, so one learner cannot store separate same-week report cards for multiple courses.
+   - `POST /api/students/[id]/generate-report-card` accepts only `week`, queries ProjectTask, DailyLog, Interaction and Comment by learner/week or learner ID, resolves WeeklyTest with `userId_week`, and upserts the global key. It does not establish a course ID for the report.
+   - `GET/POST /api/report-cards` also reads/writes report cards by learner/week and does not accept or enforce a course ID.
+
+2. **Assessment source model dependency**
+   - `WeeklyTest.courseId` exists but is nullable and its unique key is also `@@unique([userId, week])`. Therefore a learner cannot have separate same-week WeeklyTest rows for two courses. A course-specific report card cannot safely derive a course-specific weekly-test score until the assessment model/flow supports the same course boundary.
+   - ProjectTask, DailyLog and Interaction have course attribution fields; generation must filter them by the requested course. Comment has no courseId and must be limited to comments linked to records in that course.
+   - Course duration/week bounds must be resolved from the selected course, not a learner-wide default.
+
+3. **Certificate workflow**
+   - `Certificate.courseId` already exists but is nullable; the current generation flow creates learner-level requests, finds the latest pending/issued certificate by user only, counts WeeklyTests across all courses, and selects the first student enrollment when issuing.
+   - `GET /api/certificates/user` returns one latest certificate and learner-level completion counts. Request, approval/rejection, retrieval and completion checks need a selected course and same-course enrollment/test scope.
+   - A certificate should be independently requestable/approvable/retrievable per course. Legacy certificate rows with null courseId must not be assigned to an arbitrary course.
+
+### Safe implementation direction
+
+- Make courseId mandatory for all new report-card generation/manual-write and certificate request/approval operations; verify learner enrollment and the caller's authorised course scope server-side.
+- Use a course-specific report-card identity, normally `(userId, courseId, week)`; resolve legacy null-course rows as legacy records, not as a guessed course.
+- Update WeeklyTest identity and the weekly-test APIs in the same coordinated slice if course-specific weekly tests are intended/required by the course report-card calculation. Do not silently use a learner-global weekly test as a course score.
+- Scope every source record and comment relation to the selected course; do not include private DailyLog reflections or wellbeing fields in staff report cards.
+- Return/list report cards and certificates by course, preserving learner self-view while enforcing instructor/org-admin tenant and course boundaries.
+- Add migration/backfill analysis, rollback notes and tests for two courses with the same week, legacy null-course records, cross-course access, duplicate certificate requests, and idempotent approvals.
+- Prisma model source is `prisma/schema.prisma`; production and demo schemas are derived by `scripts/generate-derived-schemas.mjs`. Do not hand-edit derived schemas.
+
+**Still not approved by inference:** automatic backfill of historical null-course ReportCard/Certificate/WeeklyTest rows; production migration execution; changing unrelated project-analysis semantics. No schema or application code was changed in this review.
