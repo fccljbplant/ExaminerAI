@@ -979,3 +979,29 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Exact-head Vercel combined status is success. PR #3 is open, draft, unmerged and mergeable; no unresolved inline review threads.
 - Updated the existing PR discussion response with evidence for review observations 1 and 2 and the schema rollout changes. Observation 3 remains an external release gate: no executable production migration or verified production schema baseline exists in this task, and explicit owner approval is still required.
 - No production database inspection/change, schema migration, merge, deployment, branch switch, dependency change or main-branch write. CI screenshot capture is not manual visual/accessibility sign-off.
+
+
+## 2026-11-10 — PR #3 continuation, current review state and SQLite permission
+
+### Live repository and CI
+- Refreshed PR #3 and repository docs on the existing branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Application/schema head inspected: `f768d9a954071c8ea9cab5aa71b9ee53ac1af2e5`; PR open, draft, unmerged and mergeable; base `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Exact-head Actions run [42868179073](https://github.com/fccljbplant/ExaminerAI/actions/runs/42868179073) passed every step: install, isolated SQLite DB initialization, lint, unit tests, TypeScript, production build, page-route smoke checks, authenticated role screenshot capture and artifact upload.
+- Exact-head Vercel status is success. No unresolved inline review threads. One submitted review remains COMMENTED with the three original observations.
+
+### Revalidation of review observations
+- WeeklyTest staff edit: current `src/app/api/students/[id]/edit-weekly-test/route.ts` requires `courseId`, checks `getStaffAuthorizedStudentCourseIds`, validates selected course/week, and queries by learner + course + week + optional attempt, descending by attempt. Omitted attempt explicitly selects latest. The route test covers this path and cross-course denial.
+- ReportCard concurrency: current `src/modules/course/lib/report-card-records.ts` uses `updateMany` with both record ID and the previously read version. A zero-row compare-and-swap throws `REPORT_CARD_VERSION_CONFLICT` before version snapshot creation. Regression test asserts the concurrent-loser path.
+- Schema rollout: documented in `docs/UPGRADE-2026-10/PR3-SCHEMA-ROLLOUT.md`; Vercel build no longer runs production db push; derived Prisma schemas were regenerated from canonical source. Production migration remains gated by verified target schema/history, executable migration review and explicit owner approval. No production database was inspected or changed.
+
+### Local SQLite permission and environment limitation
+- Owner explicitly authorised local SQLite development DB use for non-production migration prototyping and regression tests.
+- Checked the execution container: working directory is `/`; no git repository or ExaminerAI checkout exists under `/home`, `/mnt/data` or `/openai`; container could not resolve GitHub for a direct clone. Therefore no local SQLite DB is available here and no local command or database operation was run. The CI isolated SQLite DB is ephemeral and not a local project DB.
+- Current repo still lacks `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` and `scripts/agent/run-logged.mjs`. The uploaded Agent Pack runner remains unsafe (branch switching and prohibited `.env*` reads). Per project task discipline, do not invent a task card or bypass this prerequisite.
+- Comprehensive-report issue remains: staff content_only route calls a learner-global generator; generator reads cross-course academic data, coerces missing test scores to zero and emits management-style judgments. The actual rendering consumer must be located and updated with the approved AI-reliability notice in one coherent slice. Block implementation until approved task card/workflow and local checkout are available.
+
+### Continuity updates and gates
+- Added the blocker and evidence to `docs/UPGRADE-2026-10/QUESTIONS.md` (commit `cd149809c49022d57e29717640d6c6bbd2117f29`).
+- Updated `proj_progress.md` (commit `1dd85b7d7bf9ca9e11adce235acc4c7d31d03866`) and `docs/PROJECT-STATUS.md` (commit `2dae77769de2b8e5df83001c451b234950dfa513`).
+- These are docs-only commits after the validated application head; recheck exact-head Actions/Vercel before reporting latest branch green.
+- No application code, schema, migration, dependency or production data changed. No branch switch, main write, merge or deployment. PR #3 remains draft/unmerged.
