@@ -59,6 +59,7 @@ export interface TestConfig {
   pillars: string[];
   minScoreFloor: number;
   advanceOnComplete: boolean;
+  retakePolicy: "best" | "latest" | "first";
 }
 
 export interface ReportCardTemplateConfig {
@@ -73,10 +74,10 @@ export { DEFAULT_TEST_CONFIG, DEFAULT_REPORT_CARD_TEMPLATE, DEFAULT_PROJECT_TEMP
 
 // ---- Loader ----
 
-async function loadCourseConfig<T>(userId: string, field: string, fallback: T): Promise<T> {
+async function loadCourseConfig<T>(userId: string, field: string, fallback: T, courseId?: string): Promise<T> {
   try {
     const enrollment = await db.courseEnrollment.findFirst({
-      where: { userId, role: "student" },
+      where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
       select: { courseId: true },
     });
     if (!enrollment) return fallback;
@@ -105,12 +106,19 @@ export async function getProjectTemplate(userId: string): Promise<ProjectTemplat
   return loadCourseConfig<ProjectTemplateConfig>(userId, "projectTemplateJson", DEFAULT_PROJECT_TEMPLATE);
 }
 
-export async function getAIPrompts(userId: string): Promise<AIPromptsConfig> {
-  return loadCourseConfig<AIPromptsConfig>(userId, "aiPromptsJson", DEFAULT_AI_PROMPTS);
+export async function getAIPrompts(userId: string, courseId?: string): Promise<AIPromptsConfig> {
+  return loadCourseConfig<AIPromptsConfig>(userId, "aiPromptsJson", DEFAULT_AI_PROMPTS, courseId);
 }
 
-export async function getTestConfig(userId: string): Promise<TestConfig> {
-  return loadCourseConfig<TestConfig>(userId, "testConfigJson", DEFAULT_TEST_CONFIG);
+export async function getTestConfig(userId: string, courseId?: string): Promise<TestConfig> {
+  const config = await loadCourseConfig<Partial<TestConfig>>(userId, "testConfigJson", DEFAULT_TEST_CONFIG, courseId);
+  return {
+    ...DEFAULT_TEST_CONFIG,
+    ...config,
+    retakePolicy: config.retakePolicy === "latest" || config.retakePolicy === "first" || config.retakePolicy === "best"
+      ? config.retakePolicy
+      : DEFAULT_TEST_CONFIG.retakePolicy,
+  };
 }
 
 export async function getReportCardTemplate(userId: string): Promise<ReportCardTemplateConfig> {
