@@ -409,19 +409,13 @@ export function StudentProfile({ studentId }: { studentId: string }) {
 
       {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
       {/* Keep learner-wide panels disabled until their APIs enforce course scope. */}
-      {tab === "growth" && (
-        areLearnerWidePanelsCourseScoped()
-          ? <GrowthTab data={data} studentId={studentId} />
-          : <Empty label="Learner-wide growth summaries are temporarily unavailable in this course-specific view until their source records can be scoped safely." />
-      )}
+      {tab === "growth" && <GrowthTab data={data} studentId={studentId} />}
       {tab === "psychology" && <PsychologyTab data={data} />}
       {tab === "project" && <ProjectTab data={data} onChanged={retry} />}
       {tab === "engagement" && <EngagementTab data={data} />}
       {tab === "certificates" && <CertificatesTab data={data} />}
       {tab === "comments" && (
-        areLearnerWidePanelsCourseScoped()
-          ? <CommentsTab studentId={studentId} />
-          : <Empty label="Unassigned learner-wide comments are temporarily unavailable in this course-specific view." />
+        <Empty label="Comment posting is temporarily unavailable here until the composer can attach comments to an activity in this course." />
       )}
 
       <Link
@@ -1407,11 +1401,6 @@ function Kpi({
       <p className="mt-1 text-2xl font-semibold tabular-nums text-fg">{value}</p>
     </div>
   );
-}
-
-// Re-enable only after each backing endpoint enforces the selected course.
-function areLearnerWidePanelsCourseScoped(): boolean {
-  return false;
 }
 
 function Empty({ label }: { label: string }) {
