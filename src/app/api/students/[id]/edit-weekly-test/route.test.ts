@@ -100,6 +100,44 @@ describe("PATCH /api/students/[id]/edit-weekly-test", () => {
     }));
   });
 
+  it("selects the latest attempt when no attempt is specified", async () => {
+    mocks.weeklyFindFirst.mockResolvedValue({
+      id: "attempt-3",
+      courseId: "course-a",
+      week: 1,
+      attempt: 3,
+      status: "completed",
+      score: 74,
+      originalScore: null,
+    });
+    mocks.weeklyUpdate.mockResolvedValue({
+      id: "attempt-3",
+      courseId: "course-a",
+      week: 1,
+      attempt: 3,
+      score: 80,
+      originalScore: 74,
+      scoreEditedAt: new Date(),
+      scoreEditReason: "Reviewed latest attempt",
+      status: "completed",
+    });
+
+    const response = await request({
+      courseId: "course-a",
+      week: 1,
+      score: 80,
+      reason: "Reviewed latest attempt",
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.weeklyFindFirst).toHaveBeenCalledWith({
+      where: { userId: "learner-1", courseId: "course-a", week: 1 },
+      orderBy: { attempt: "desc" },
+    });
+    const body = await response.json();
+    expect(body.test.attempt).toBe(3);
+  });
+
   it("rejects cross-course score corrections", async () => {
     mocks.authorisedCourses.mockResolvedValue(["course-b"]);
     const response = await request({
