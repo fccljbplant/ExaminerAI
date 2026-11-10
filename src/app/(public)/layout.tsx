@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { getAuthUser } from "@/lib/auth";
-import { homeForRole } from "@/lib/portal-home";
+import { resolveHomeForUser } from "@/lib/portal-home-server";
 import { db } from "@/lib/db";
 import { MARKETPLACE_CATEGORIES } from "@/lib/marketplace";
 import { SiteHeader, SiteFooter } from "@/modules/site";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PublicLayout({ children }: { children: ReactNode }) {
   const user = await getAuthUser();
-  const dashboardHref = user ? homeForRole(user.role) : "/login";
+  const dashboardHref = user ? await resolveHomeForUser(user) : "/login";
 
   const categoryCounts = await db.course
     .groupBy({
