@@ -285,6 +285,9 @@ export function StudentProfile({ studentId }: { studentId: string }) {
           </p>
           <h1 className="truncate text-lg font-semibold text-fg md:text-xl">{data.student.name}</h1>
           <p className="mt-0.5 text-xs text-fg-muted">
+            Course: {data.courses.find((course) => course.id === data.courseId)?.name ?? "Selected course"}
+          </p>
+          <p className="mt-0.5 text-xs text-fg-muted">
             Joined {new Date(data.student.joinedAt).toLocaleDateString()}
             {data.student.lastLogin
               ? ` · last login ${new Date(data.student.lastLogin).toLocaleDateString()}`
@@ -405,6 +408,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
       </div>
 
       {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
+      {/* Keep learner-wide panels disabled until their APIs enforce course scope. */}
       {tab === "growth" && (
         false
           ? <GrowthTab data={data} studentId={studentId} />
