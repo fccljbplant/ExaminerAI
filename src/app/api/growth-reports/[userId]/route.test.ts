@@ -102,6 +102,7 @@ describe("GET /api/growth-reports/[userId]", () => {
     expect(JSON.parse(body.report.growthAreas)).toEqual([
       "Insufficient course-specific assessment and practice evidence for a performance assessment.",
     ]);
+    expect(JSON.parse(body.report.strengths)).toEqual([]);
   });
 
   it("lets a learner request only a course in their own enrolments", async () => {
