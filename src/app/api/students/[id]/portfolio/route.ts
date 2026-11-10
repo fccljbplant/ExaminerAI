@@ -164,12 +164,18 @@ export async function GET(
       }),
       db.weeklyTest.findMany({
         where: { userId: id, courseId: { in: authorizedCourseIds } },
-        orderBy: { week: "asc" },
+        orderBy: [{ courseId: "asc" }, { week: "asc" }, { attempt: "asc" }],
         select: {
           id: true,
+          courseId: true,
           week: true,
+          attempt: true,
           status: true,
           score: true,
+          originalScore: true,
+          scoreEditedAt: true,
+          scoreEditedByRole: true,
+          scoreEditReason: true,
           completedAt: true,
           retakeAllowed: true,
           plagiarismScore: true,
@@ -183,7 +189,13 @@ export async function GET(
       }),
       db.reportCard.findMany({
         where: { userId: id, courseId: { in: authorizedCourseIds } },
-        orderBy: { week: "asc" },
+        orderBy: [{ courseId: "asc" }, { week: "asc" }],
+        include: {
+          versions: {
+            orderBy: { version: "asc" },
+            select: { version: true, grade: true, score: true, actorRole: true, reason: true, createdAt: true },
+          },
+        },
       }),
     ]);
 
