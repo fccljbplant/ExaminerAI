@@ -37,3 +37,60 @@ export function getAuthorizedStudentCourseIds(
   const learnerCourses = new Set(learnerCourseIds);
   return [...new Set(staffCourseIds)].filter((courseId) => learnerCourses.has(courseId));
 }
+
+/**
+ * A zero task count means progress cannot be calculated, not that progress
+ * is zero. Return null so the UI can present the metric as unavailable.
+ */
+export function calculateTaskProgress(
+  totalTasks: number,
+  completedTasks: number,
+): number | null {
+  if (totalTasks <= 0) return null;
+  return Math.round((completedTasks / totalTasks) * 100);
+}
+
+/**
+ * Calculate attention only from available activity/test evidence.
+ * No records means "unavailable"; available evidence with no risk indicators
+ * is a genuine score of zero.
+ */
+export function calculateAttentionScore(
+  lastLogDate: Date | null,
+  testScores: readonly number[],
+  now: Date,
+): { score: number | null; reasons: string[] } {
+  if (!lastLogDate && testScores.length === 0) {
+    return { score: null, reasons: [] };
+  }
+
+  let score = 0;
+  const reasons: string[] = [];
+
+  if (lastLogDate) {
+    const days = Math.floor((now.getTime() - lastLogDate.getTime()) / 86_400_000);
+    if (days >= 3) {
+      score += 30;
+      reasons.push(`Inactive ${days} days`);
+    } else if (days >= 2) {
+      score += 15;
+      reasons.push(`Inactive ${days} days`);
+    }
+  }
+
+  const latest = testScores[testScores.length - 1];
+  if (latest !== undefined && latest < 60) {
+    score += 25;
+    reasons.push(`Last test ${latest}%`);
+  }
+
+  if (testScores.length >= 2) {
+    const previous = testScores[testScores.length - 2];
+    if (latest < previous - 15) {
+      score += 15;
+      reasons.push("Test scores declining");
+    }
+  }
+
+  return { score, reasons };
+}
