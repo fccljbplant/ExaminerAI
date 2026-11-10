@@ -24,21 +24,34 @@ async function commentLinksMatchCourse(
     .filter((id): id is string => typeof id === "string" && id.length > 0);
   if (ids.length === 0) return false;
 
-  const checks = await Promise.all([
-    refs.interactionId
-      ? db.interaction.findFirst({ where: { id: refs.interactionId, userId: studentId, courseId }, select: { id: true } })
-      : Promise.resolve(null),
-    refs.taskId
-      ? db.projectTask.findFirst({ where: { id: refs.taskId, userId: studentId, courseId }, select: { id: true } })
-      : Promise.resolve(null),
-    refs.weeklyTestId
-      ? db.weeklyTest.findFirst({ where: { id: refs.weeklyTestId, userId: studentId, courseId }, select: { id: true } })
-      : Promise.resolve(null),
-    refs.dailyLogId
-      ? db.dailyLog.findFirst({ where: { id: refs.dailyLogId, userId: studentId, courseId }, select: { id: true } })
-      : Promise.resolve(null),
-  ]);
-  return checks.every(Boolean);
+  const checks: Array<Promise<{ id: string } | null>> = [];
+  if (refs.interactionId) {
+    checks.push(db.interaction.findFirst({
+      where: { id: refs.interactionId, userId: studentId, courseId },
+      select: { id: true },
+    }));
+  }
+  if (refs.taskId) {
+    checks.push(db.projectTask.findFirst({
+      where: { id: refs.taskId, userId: studentId, courseId },
+      select: { id: true },
+    }));
+  }
+  if (refs.weeklyTestId) {
+    checks.push(db.weeklyTest.findFirst({
+      where: { id: refs.weeklyTestId, userId: studentId, courseId },
+      select: { id: true },
+    }));
+  }
+  if (refs.dailyLogId) {
+    checks.push(db.dailyLog.findFirst({
+      where: { id: refs.dailyLogId, userId: studentId, courseId },
+      select: { id: true },
+    }));
+  }
+
+  const records = await Promise.all(checks);
+  return records.length === ids.length && records.every(Boolean);
 }
 
 async function staffCanAccessCourse(
