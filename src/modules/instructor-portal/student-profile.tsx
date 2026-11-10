@@ -77,6 +77,7 @@ interface StudentProfileData {
   attentionReasons: string[];
   weeklyTests: Array<{
     week: number;
+    attempt: number;
     score: number | null;
     status: string;
     completedAt: string | null;
@@ -87,7 +88,22 @@ interface StudentProfileData {
     retakeAllowed: boolean;
     replies: number;
   }>;
-  reportCards: Array<{ id: string; week: number | null; score: number; grade: string; createdAt: string }>;
+  reportCards: Array<{
+    id: string;
+    week: number | null;
+    score: number | null;
+    grade: string | null;
+    version: number;
+    createdAt: string;
+    versions: Array<{
+      version: number;
+      score: number | null;
+      grade: string | null;
+      actorRole: string;
+      reason: string;
+      createdAt: string;
+    }>;
+  }>;
   competencies: Array<{ topic: string; level: string }>;
   dailyLogs: Array<{ date: string; confidence: number | null }>;
   tasks: Array<{ id: string; title: string; status: string; week: number }>;
@@ -427,15 +443,15 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
           Weekly tests
         </h2>
         <p className="px-1 text-xs text-fg-muted">
-          Retakes and unlocks are temporarily unavailable here. The legacy actions are keyed by learner and week, not course, so they must be upgraded before they can safely change a selected course's test.
+          Attempts are kept separately within this selected course. A permitted retake creates a new attempt and preserves the earlier result.
         </p>
         {data.weeklyTests.length === 0 ? (
           <Empty label="No weekly tests yet." />
         ) : (
           <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
             {data.weeklyTests.map((t) => (
-              <div key={t.week} className="flex items-center gap-3 px-4 py-3">
-                <span className="w-16 shrink-0 text-xs tabular-nums text-fg-muted">Week {t.week}</span>
+              <div key={`${t.week}-${t.attempt}`} className="flex items-center gap-3 px-4 py-3">
+                <span className="w-28 shrink-0 text-xs tabular-nums text-fg-muted">Week {t.week} · Attempt {t.attempt}</span>
                 {t.score !== null ? (
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
                     <div
@@ -463,7 +479,7 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
         <div className="space-y-1 px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Report cards</h2>
           <p className="text-xs text-fg-muted">
-            Generation is temporarily unavailable in this course view. The legacy report-card generator aggregates learner/week records and cannot yet guarantee course-only evidence.
+            Report cards use evidence from this selected course only. Missing evidence remains unavailable, and each correction is retained in version history with its reason.
           </p>
         </div>
         {data.reportCards.length === 0 ? (
@@ -474,15 +490,35 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
               <div key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-fg">
-                    Week {r.week ?? "—"} · {r.grade}
+                    Week {r.week ?? "—"} · {r.grade ?? "Not graded"}
                   </p>
                   <p className="truncate text-xs text-fg-muted">
-                    {new Date(r.createdAt).toLocaleDateString()}
+                    Version {r.version} · {new Date(r.createdAt).toLocaleDateString()}
                   </p>
                 </div>
                 <span className="shrink-0 text-sm font-medium tabular-nums text-fg-secondary">
-                  {r.score}
+                  {r.score === null ? "—" : `${r.score}%`}
                 </span>
+                {r.versions.length > 1 ? (
+                  <details className="max-w-full text-xs text-fg-muted">
+                    <summary className="min-h-11 cursor-pointer rounded-md px-2 py-2 text-fg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+                      History ({r.versions.length})
+                    </summary>
+                    <ol className="mt-2 space-y-2 border-l border-line pl-3">
+                      {r.versions.map((version) => (
+                        <li key={version.version}>
+                          <p className="font-medium text-fg">
+                            Version {version.version}{version.version === r.version ? " · Current" : ""}
+                            {" · "}{version.score === null ? "Ungraded" : `${version.score}%`}
+                            {version.grade ? ` (${version.grade})` : ""}
+                          </p>
+                          <p>{new Date(version.createdAt).toLocaleDateString()} · {version.actorRole}</p>
+                          <p>{version.reason}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </details>
+                ) : null}
               </div>
             ))}
           </div>
