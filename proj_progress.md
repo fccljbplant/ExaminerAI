@@ -339,3 +339,15 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Commit: `6e7ea3a8000ae7a59e838c43c3e76d00df8cf138`.
 - Exact-head Actions run `42865683017` is in progress; Node setup completed, dependency installation was in progress at this update. Do not report validation as passed until the run completes.
 - Vercel preview check is pending at this commit; no Ready preview confirmed. PR remains draft/unmerged. No schema, production data, migration, merge or deployment operation.
+
+
+## 2026-11-10 — PR #3 review follow-up and schema safety
+
+- Refreshed the live PR #3 branch and verified the current source. Review observation 1 (weekly-test staff edit course/attempt boundary) is implemented and covered by route tests. Review observation 2 (report-card concurrent update race) is implemented with compare-and-swap and a race regression test.
+- Added `docs/UPGRADE-2026-10/PR3-SCHEMA-ROLLOUT.md` with preflight, controlled migration, legacy NULL-course preservation, report-card baseline history, rollback/recovery and owner approval gates.
+- Removed the automatic production `prisma db push` from `scripts/vercel-build.sh`; Vercel builds no longer attempt production schema mutation.
+- Regenerated `prisma/schema.prod.prisma` and `prisma/.demo.prisma` from canonical `prisma/schema.prisma`. Verified model bodies are identical after regeneration.
+- Code/doc commits in this slice: `28ec1728afc64c82cd75ea0dd909b8d82d1503c9` (build no longer pushes schema), `509cc4cc1a4a14646b5f74af754ef4d8d706ba7c` (production schema regeneration), `61277c52d2c315c0b0ae2fa088a435a9fee738f4` (demo schema regeneration), `c3ba33dfdcf2e2d5e48c88849a4e16eb88adc4c1` (rollout plan).
+- Exact-head Actions run `42867165869` was pending at the last refresh; Vercel status was pending. Do not claim validation until the final docs head has a completed run.
+- Remaining external release gate: no executable production migration is included or validated; actual production schema/migration history is unknown and no production database was inspected. Explicit owner approval of the exact migration/target/backup/restore window remains required. Keep PR #3 draft/unmerged/undeployed.
+- No production data/schema operation, merge, deployment, branch switch, dependency change, or main-branch write. No local checkout or manual browser/axe/keyboard/screen-reader/reduced-motion/zoom/reflow validation was available.
