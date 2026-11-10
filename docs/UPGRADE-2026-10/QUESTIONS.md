@@ -250,3 +250,32 @@ Owner-delegated institutional decision:
 - Course-specific staff views must never silently aggregate several courses and label the result as one course. If the learner has one shared course, it can be selected automatically; if there are multiple shared courses, the staff member must choose the course explicitly. Course-bearing evidence is filtered to that course. Learner-level SkillMastery/Competency records without course provenance must be labelled as learner-level or excluded from course-specific conclusions until their semantics are approved; do not infer course ownership.
 
 Implementation finding still open: GET /api/v2/instructor/students/[id] currently queries all authorised shared course IDs but returns only the first course ID as courseId. It therefore presents a multi-course aggregate under a single-course label. This is a separate course-switcher/API contract change; do not treat the current fix as resolving it.
+
+
+## 2026-11-10 — Instructor learner-detail course-selection policy and implementation
+
+**Decision**
+- A staff learner-detail view is course-specific. If the learner and staff member share exactly one authorised course, select it automatically. If they share multiple authorised courses, return only the authorised course choices and require an explicit selection before loading academic/activity records.
+- Validate the requested course against the staff-authorised/learner-enrolled intersection on every API request. An unassigned, unrelated or no-longer-shared course selection is denied; never trust the client selector as authorisation.
+- Filter every course-bearing learner-detail record to the selected course: weekly tests, report cards, daily logs, project tasks, certificates, engagement events and learning projects. Course-scoped psych-weekly data also receives the selected course ID.
+- SkillMastery/competency has no courseId in the current schema. It may be shown only as explicitly learner-level information, separate from course-specific results; never attribute it to the selected course.
+- Suppress learner-wide growth summaries, general comments and the global mentor briefing from the course-specific detail screen until their backing APIs enforce the selected course and record provenance. Re-enable only after API-level scope and tests exist.
+
+**Rationale and safeguards**
+- Prevents a multi-course aggregate being labelled as one course and prevents cross-course academic records being mixed into a course-specific staff decision.
+- Server-side scope is authoritative; UI selection is only a request parameter and cannot grant access.
+- A course switch reloads the profile and shows a loading state rather than briefly presenting stale records under the new course label.
+- No schema migration is required for this UI/API contract. Course-less legacy mastery remains learner-level.
+
+**Implementation status**
+- Implemented on PR #3 branch in `src/app/api/v2/instructor/students/[id]/route.ts`, `src/modules/instructor-portal/student-profile.tsx`, `src/modules/instructor-portal/student-detail-visibility.ts` and its unit tests.
+- Added pure helper tests for single-course auto-selection, multi-course selection requirement, authorised selection, invalid selection and no shared course.
+- Learner-wide Growth and Comments panels now explain their temporary unavailability in this course view; the unscoped mentor-briefing request/display was removed.
+- This does not claim that the separate growth/comments APIs themselves have been course-scoped. That remains a follow-up before those panels are restored.
+
+**Validation**
+- Latest code head at implementation review: `01bb794544bfabb6beca10abd32a1ad97a094ec1`; PR #3 remains open/draft/unmerged/mergeable; `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4).
+- Previous exact-head Actions run `42731168978` passed all configured jobs on `a00590da6e21c1c25ba4502bef8956bc7a1ea32e), before this course-selection implementation. No Actions run was returned yet for `01bb794...`; do not treat the earlier green run as validation of these changes.
+- Vercel status remains failure due to the project build-rate limit. No local tests/typecheck/lint/build/browser/axe run was available.
+- No schema, migration, dependency, production data, merge, deployment or main-branch change. PR #3 remains draft.
+
