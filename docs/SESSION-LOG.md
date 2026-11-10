@@ -622,3 +622,11 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Vercel status remains failed due to build-rate limit; no Ready preview verified.
 - No local tests, schema validation, browser or axe checks were run.
 - No application code, tests, schema, dependencies or production data changed. No migration executed, branch switch, merge, deployment or main-branch write.
+
+
+## 2026-11-10 — Owner delegated institutional policy decisions
+
+- Owner asked for the remaining academic/product policy issues to be resolved without further questions, delegating the decision to an institutional leadership perspective (course coordinator, student counsellor, examination head, university leadership).
+- Adopted policy recorded in `docs/UPGRADE-2026-10/QUESTIONS.md` and summarised in `docs/PROJECT-STATUS.md`.
+- Decisions cover course-specific ReportCard and WeeklyTest identity, grading evidence and missing-data treatment, learner-paced sequencing, versioned report cards, per-course certificate eligibility/request/approval/verification, immutable credentials, no guessed historical backfill, course-specific project analysis, removal of subjective management-attitude labels, human-reviewed academic integrity process and appeal, org-scoped instructor assignment, two-path course-access revocation approval, and learner-support privacy boundaries.
+- This is policy resolution and documentation only. No app code, schema, migration, dependency or production data changed. No tests/build/browser checks were run for policy text. PR #3 remains open/draft/unmerged; no push to main, merge or deployment.
