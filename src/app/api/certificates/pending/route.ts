@@ -1,108 +1,96 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
-import { isStaffRole, hasRole, ADMIN_ROLES } from "@/lib/rbac";
-import { getCourseDurationWeeks } from "@/lib/course-db";
+import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
+import { isStaffRole } from "@/lib/rbac";
+import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
+import { checkEligibility } from "@/modules/course/lib/certificate";
 
-/** GET /api/certificates/pending — list pending certificate requests for staff.
+/**
+ * GET /api/certificates/pending
  *
- *  C4 fix (audit 2026-07-26): the certificate request/approve backend existed
- *  but there was no UI for staff to see pending requests. This endpoint powers
- *  the new CertificateApprovals component in the instructor dashboard.
- *
- *  Returns pending requests (grade="PENDING") for batches the staff member
- *  can access, plus computed eligibility info (completed tests, avg score,
- *  whether they've met the completion criteria) so the instructor can decide
- *  whether to approve.
- *
- *  Auth: staff only (instructor, org_admin, platform_admin, demo).
- *  Instructors see only requests from learners in their courses.
- *  Admins see all requests in their institution.
+ * Returns pending requests only when the staff member is authorised for the
+ * learner AND the exact course on the request. Eligibility is recalculated
+ * from that course's published weeks and assessment attempts.
  */
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!isStaffRole(user.role)) {
+  const payload = await getAuthUser();
+  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden — staff only" }, { status: 403 });
   }
 
-  // Get accessible student IDs via CourseEnrollment
-  let accessibleStudentIds: string[] | undefined;
-  if (!hasRole(user.role, ADMIN_ROLES)) {
-    const instructorCourses = await db.courseEnrollment.findMany({
-      where: { userId: user.id, role: "instructor" },
-      select: { courseId: true },
-    });
-    const courseIds = instructorCourses.map(c => c.courseId);
-    if (courseIds.length > 0) {
-      const enrollments = await db.courseEnrollment.findMany({
-        where: { courseId: { in: courseIds }, role: "student" },
-        select: { userId: true },
-      });
-      accessibleStudentIds = enrollments.map(e => e.userId);
-    } else {
-      accessibleStudentIds = []; // no courses = sees nothing
-    }
-  }
-
-  // Fetch pending certificates (grade="PENDING") for the scoped students
   const pendingCerts = await db.certificate.findMany({
     where: {
       grade: "PENDING",
+      courseId: { not: null },
       user: {
-        role: "student",
-        ...(accessibleStudentIds !== undefined ? { id: { in: accessibleStudentIds } } : {}),
+        role: { in: ["student", "learner"] },
         blocked: false,
       },
     },
     include: {
       user: {
-        select: {
-          id: true, name: true, email: true, currentWeek: true,
-        },
+        select: { id: true, name: true, email: true },
       },
     },
-    orderBy: { issuedAt: "desc" }, // issuedAt is the request date for PENDING rows
+    orderBy: { issuedAt: "desc" },
     take: 100,
   });
 
-  // Compute eligibility for each request in parallel
   const requests = await Promise.all(pendingCerts.map(async (cert) => {
-    const [totalWeeks, completedTests, completedTestScores] = await Promise.all([
-      getCourseDurationWeeks(cert.user.id),
-      db.weeklyTest.count({
-        where: { userId: cert.user.id, status: "completed", score: { not: null } },
-      }),
-      db.weeklyTest.findMany({
-        where: { userId: cert.user.id, status: "completed", score: { not: null } },
-        select: { score: true },
-      }),
-    ]);
-    const reachedFinalWeek = cert.user.currentWeek >= totalWeeks;
-    const allTestsCompleted = completedTests >= totalWeeks;
-    const scores = completedTestScores.map(t => t.score).filter((s): s is number => s !== null);
-    const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    const eligible = reachedFinalWeek && allTestsCompleted;
-    const ineligibleReason = !eligible
-      ? (!reachedFinalWeek
-          ? `Student is on week ${cert.user.currentWeek} of ${totalWeeks} — must reach the final week.`
-          : `Student has completed ${completedTests} of ${totalWeeks} weekly tests — all must be completed.`)
-      : undefined;
+    const courseId = cert.courseId;
+    if (!courseId) return null;
 
-    return {
-      id: cert.id,
-      userId: cert.user.id,
-      studentName: cert.user.name,
-      studentEmail: cert.user.email,
-      courseName: cert.courseName,
-      requestedAt: cert.issuedAt,
-      completedTests,
-      totalWeeks,
-      avgScore,
-      eligible,
-      ineligibleReason,
-    };
+    try {
+      await assertCanAccessStudent(payload, cert.user.id, "content_only");
+      const authorisedCourseIds = await getStaffAuthorizedStudentCourseIds(payload, cert.user.id);
+      if (!authorisedCourseIds.includes(courseId)) return null;
+
+      const [eligibility, completedTestRows] = await Promise.all([
+        checkEligibility(cert.user.id, courseId),
+        db.weeklyTest.findMany({
+          where: { userId: cert.user.id, courseId, status: "completed", score: { not: null } },
+          select: { week: true },
+          distinct: ["week"],
+        }),
+      ]);
+
+      const totalWeeks = eligibility?.totalWeeks ?? 0;
+      const completedTests = completedTestRows.length;
+      let ineligibleReason: string | undefined;
+      if (!eligibility) {
+        ineligibleReason = "Course eligibility could not be verified. Retry before approving.";
+      } else if (eligibility.hasCertificate) {
+        ineligibleReason = "A certificate has already been issued for this course.";
+      } else if (eligibility.weeksCompleted < totalWeeks) {
+        ineligibleReason = `Course content progress is ${eligibility.weeksCompleted} of ${totalWeeks} weeks.`;
+      } else if (completedTests < totalWeeks) {
+        ineligibleReason = `Weekly assessments are ${completedTests} of ${totalWeeks} weeks.`;
+      } else if (eligibility.avgScore === null) {
+        ineligibleReason = "Assessment score evidence is unavailable.";
+      } else if (!eligibility.eligible) {
+        ineligibleReason = "The course certificate score threshold has not been met.";
+      }
+
+      return {
+        id: cert.id,
+        userId: cert.user.id,
+        courseId,
+        studentName: cert.user.name,
+        studentEmail: cert.user.email,
+        courseName: cert.courseName,
+        requestedAt: cert.issuedAt,
+        completedTests,
+        totalWeeks,
+        avgScore: eligibility?.avgScore ?? null,
+        eligible: Boolean(eligibility?.eligible),
+        ineligibleReason,
+      };
+    } catch {
+      // Do not expose records when learner access or course scope cannot be verified.
+      return null;
+    }
   }));
 
-  return NextResponse.json({ requests });
+  return NextResponse.json({ requests: requests.filter((request) => request !== null) });
 }
