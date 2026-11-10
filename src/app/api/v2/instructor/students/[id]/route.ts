@@ -178,7 +178,7 @@ export async function GET(
         include: {
           versions: {
             orderBy: { version: "asc" },
-            select: { version: true, grade: true, score: true, actorRole: true, reason: true, createdAt: true },
+            select: { version: true, grade: true, score: true, actorRole: true, source: true, reason: true, createdAt: true },
           },
         },
       }),
@@ -309,6 +309,7 @@ export async function GET(
         grade: version.grade,
         score: version.score,
         actorRole: version.actorRole,
+        source: version.source,
         reason: version.reason,
         createdAt: version.createdAt.toISOString(),
       })),
