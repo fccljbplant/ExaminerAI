@@ -59,7 +59,20 @@ import { useChartColors, tooltipStyle } from "@/lib/chart-theme";
 
 /* ---------------- payload (mirror GET /api/v2/instructor/students/[id]) -- */
 
+interface CourseOption {
+  id: string;
+  name: string;
+}
+
+interface StudentCourseSelectionData {
+  student: { id: string; name: string; email: string; lastLogin: string | null; joinedAt: string };
+  courses: CourseOption[];
+  courseSelectionRequired: true;
+}
+
 interface StudentProfileData {
+  courses: CourseOption[];
+  courseSelectionRequired?: false;
   student: { id: string; name: string; email: string; lastLogin: string | null; joinedAt: string };
   courseId: string;
   kpis: { progress: number | null; tasksDone: string; latestScore: number | null; attentionScore: number | null };
@@ -131,16 +144,17 @@ interface CommentRow {
   interactionId: string | null;
 }
 
+type StudentProfileResponse = StudentProfileData | StudentCourseSelectionData;
 type TabKey = "academic" | "growth" | "psychology" | "project" | "engagement" | "certificates" | "comments";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "academic", label: "Academic" },
-  { key: "growth", label: "Growth" },
+  { key: "growth", label: "Learner-wide growth" },
   { key: "psychology", label: "Psychology" },
   { key: "project", label: "Project" },
   { key: "engagement", label: "Engagement" },
   { key: "certificates", label: "Certificates" },
-  { key: "comments", label: "Comments" },
+  { key: "comments", label: "Learner-wide comments" },
 ];
 
 const TASK_TONE: Record<string, string> = {
@@ -157,9 +171,11 @@ const BRIEFING_TONE: Record<Briefing["status"], string> = {
 };
 
 export function StudentProfile({ studentId }: { studentId: string }) {
-  const { data, error, isLoading, retry } = useApi<StudentProfileData>(
-    `/api/v2/instructor/students/${studentId}`,
-  );
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const requestPath = selectedCourseId
+    ? `/api/v2/instructor/students/${studentId}?courseId=${encodeURIComponent(selectedCourseId)}`
+    : `/api/v2/instructor/students/${studentId}`;
+  const { data, error, isLoading, retry } = useApi<StudentProfileResponse>(requestPath);
   const [tab, setTab] = useState<TabKey>("academic");
   const [nudging, setNudging] = useState(false);
   const [messaging, setMessaging] = useState(false);
@@ -216,6 +232,40 @@ export function StudentProfile({ studentId }: { studentId: string }) {
   }
 
   if (isLoading) return <ProfileSkeleton />;
+  if (selectedCourseId && data && (!("courseId" in data) || data.courseId !== selectedCourseId)) {
+    return <ProfileSkeleton />;
+  }
+
+  if (data && "courseSelectionRequired" in data && data.courseSelectionRequired) {
+    return (
+      <section className="mx-auto w-full max-w-xl space-y-3 rounded-xl border border-line bg-surface p-5">
+        <div>
+          <h1 className="text-lg font-semibold text-fg">Choose a course</h1>
+          <p className="mt-1 text-sm text-fg-muted">
+            This learner is enrolled in more than one course you can access. Choose one to view its records.
+          </p>
+        </div>
+        <label htmlFor="student-course-selection" className="block text-sm font-medium text-fg">
+          Course
+        </label>
+        <select
+          id="student-course-selection"
+          value={selectedCourseId ?? ""}
+          onChange={(event) => setSelectedCourseId(event.target.value || null)}
+          className="min-h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+          <option value="">Select a course</option>
+          {data.courses.map((course) => (
+            <option key={course.id} value={course.id}>{course.name}</option>
+          ))}
+        </select>
+        <Link href="/instructor/students" className="inline-flex min-h-11 items-center text-sm text-brand hover:text-fg">
+          Back to students
+        </Link>
+      </section>
+    );
+  }
+
   if (error || !data) {
     return (
       <div role="alert" className="rounded-xl border border-line bg-surface p-8 text-center">
@@ -238,6 +288,23 @@ export function StudentProfile({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-4">
+      {data.courses.length > 1 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3">
+          <label htmlFor="student-course-view" className="text-sm font-medium text-fg">
+            Course view
+          </label>
+          <select
+            id="student-course-view"
+            value={data.courseId}
+            onChange={(event) => setSelectedCourseId(event.target.value)}
+            className="min-h-11 min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 text-sm text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          >
+            {data.courses.map((course) => (
+              <option key={course.id} value={course.id}>{course.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {/* header */}
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -564,8 +631,11 @@ function AcademicTab({
 
       <section className="space-y-2">
         <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-          Competencies
+          Learner-level competencies
         </h2>
+        <p className="px-1 text-xs text-fg-muted">
+          These records are not attributed to a specific course and are shown separately from course results.
+        </p>
         {data.competencies.length === 0 ? (
           <Empty label="No competency data yet." />
         ) : (
