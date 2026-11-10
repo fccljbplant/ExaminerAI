@@ -351,3 +351,11 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Exact-head Actions run `42867165869` was pending at the last refresh; Vercel status was pending. Do not claim validation until the final docs head has a completed run.
 - Remaining external release gate: no executable production migration is included or validated; actual production schema/migration history is unknown and no production database was inspected. Explicit owner approval of the exact migration/target/backup/restore window remains required. Keep PR #3 draft/unmerged/undeployed.
 - No production data/schema operation, merge, deployment, branch switch, dependency change, or main-branch write. No local checkout or manual browser/axe/keyboard/screen-reader/reduced-motion/zoom/reflow validation was available.
+
+
+## 2026-11-10 — Exact-head validation completed for PR #3 review follow-up
+
+- Exact PR head `dd69eb46906d664a860fdb43f613986783066eb3` passed GitHub Actions run `42867410267`: dependency install, isolated DB initialization, lint, unit tests, TypeScript, production build, app-page route smoke tests, authenticated role screenshot capture and artifact upload.
+- Vercel combined status for this exact head is success. PR #3 remains open, draft, unmerged and mergeable; no inline review threads are open.
+- Updated the PR discussion response with the fixes and exact-head validation evidence. Review observations 1 and 2 are corrected. Schema observation 3 has a documented rollout/rollback plan and the Vercel build no longer pushes schema automatically, but explicit owner approval and a verified executable production migration remain release gates.
+- No production database inspection or schema operation, merge, deployment, branch switch, dependency change or main-branch write. CI screenshots were captured but not manually inspected; no axe/manual keyboard/screen-reader/reduced-motion/zoom/reflow validation was performed.
