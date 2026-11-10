@@ -292,3 +292,21 @@ Owner clarified that UXPeak must cover gamification, product UI, role dashboards
 - Code head: `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8`. No Actions run was returned for that head at the time of this update; previous-head run `42722331613` passed but does not validate this change. Vercel remains failed by build-rate limit. No local tests/build/browser/axe checks were run.
 - Multi-course duration/phase semantics and existing relation query limits remain unchanged. Comprehensive-report `managementAttitude` classification remains owner-blocked; learner-support/crisis features remain off.
 - PR #3 remains open and draft. No schema/dependency/production-data change, merge, deployment or branch switch.
+
+
+## Institutional academic policy decisions — 2026-11-10
+
+Owner delegated resolution of the open academic policy questions. The adopted direction is recorded in full in `docs/UPGRADE-2026-10/QUESTIONS.md`.
+
+- Course is the independent academic record: report cards and weekly tests keyed by learner + course + week; certificates by learner + course-completion instance.
+- Course-specific published grading/pass/retake/certificate rules; no universal threshold. Missing evidence is unavailable, never zero/default/fabricated.
+- Report cards are evidence-based, reviewable and versioned. Weekly test sequencing remains learner-paced and server-enforced.
+- Course-specific project analysis; never combine learner-global legacy project fields with a different course's project data.
+- Remove subjective automated “management attitude/manager readiness” personality labels; use observable rubric-based competencies and human review.
+- Plagiarism indicators trigger fair human academic-integrity review, never automatic penalty. Learner notice, response and appeal are required.
+- Org-admin instructor assignment is restricted to active same-org instructors with valid course scope and is audited.
+- Organisation-course instructor removal requests require independent org-admin approval; independent instructors can confirm their own. Pending requests do not revoke access. All revocation preserves academic history.
+- Learner-support safeguards remain as specified: signals to the learner's instructor; crisis oversight by designated org Learner Support Leads; no individual support signals for platform admins.
+- Historical null-course records remain legacy/unassigned unless reliable provenance exists. No guessed backfill or production migration.
+
+These are approved planning decisions, not implementation claims. No application code, schema or production data changed in this policy session. Implementation must remain coordinated and additive, with tests and rollback notes.
