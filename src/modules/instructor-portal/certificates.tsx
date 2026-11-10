@@ -34,7 +34,7 @@ interface CertData {
     studentName: string;
     courseName: string;
     grade: string;
-    score: number;
+    score: number | null;
     signedBy: string;
     issuedAt: string;
     verifyUrl: string;
@@ -301,7 +301,7 @@ export function CertificatesPanel() {
                   {c.studentName} · {c.courseName}
                 </p>
                 <p className="truncate text-xs text-fg-muted">
-                  {c.grade} · {c.score} · {new Date(c.issuedAt).toLocaleDateString()}
+                  {c.grade} · {c.score === null ? "Score unavailable" : `${c.score}%`} · {new Date(c.issuedAt).toLocaleDateString()}
                 </p>
               </div>
               <a
