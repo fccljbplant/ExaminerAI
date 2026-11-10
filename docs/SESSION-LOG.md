@@ -862,3 +862,32 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - **Execution blocker:** the current branch has no `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` or `scripts/agent/run-logged.mjs` (verified from the recursive Git tree). The uploaded Agent Pack contains a queue and runner, but its `run-queue.mjs` automatically switches/creates `upgrade/phase-<N>`, contrary to the repository continuity rule to remain on the existing PR branch; Agent Pack instructions also prohibit modifying its runner. No local repository checkout is available to run its required gates. Do not invent a task card, run the unsafe queue runner, or make a partial high-risk report patch outside the required task workflow.
 - No application code/tests/schema/dependency/migration/production-data change, branch switch, merge, deployment or main-branch write in this continuation. Documentation only.
 - Next safe action: restore a branch-preserving, no-`.env*` task-card/logged-check workflow (or an owner-approved equivalent) on the existing PR branch, then take one bounded comprehensive-report task covering course context, evidence truthfulness, cache/review semantics, route tests and the actual rendering consumer. Keep PR #3 draft/unmerged.
+
+
+## 2026-11-10 — Continuation: live PR verification and report-scope blocker
+
+### Live repository state
+- Repository: `fccljbplant/ExaminerAI`.
+- Branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- PR #3: open, draft, unmerged, mergeable.
+- Verified PR head: `69a1fbf65a723badc28bb6a4699ad3a50ddb4382`.
+- Base `main`: `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- No submitted reviews or inline review threads.
+
+### Validation
+- Exact-head Actions run [42752208726](https://github.com/fccljbplant/ExaminerAI/actions/runs/42752208726) passed all configured steps: dependency installation, isolated test DB setup, lint (0 errors / 7 warnings), 438 tests / 41 files, TypeScript, production build, 83/83 route smoke checks, authenticated screenshot capture for four roles × seven viewports, and artifact upload [13734421184](https://github.com/fccljbplant/ExaminerAI/actions/runs/42752208726/artifacts/13734421184).
+- Screenshot capture is not manual visual inspection or accessibility sign-off.
+- Combined Vercel status is failure due to the project build-rate limit; no Ready preview is verified.
+- No local checkout or local test/browser/axe/manual accessibility checks were available.
+
+### Privacy review
+- Confirmed the existing course-scoped comment create/edit/delete and audit trail implementation remains present.
+- Re-read the comprehensive-report API and generator. The staff route currently checks `content_only` but invokes a learner-global report generator. Evidence sources are not selected-course scoped; learner-level SkillMastery and legacy global project/current-week fields are mixed into the output; missing weekly-test scores are treated as zero and the no-test path can produce an F grade.
+- Preserve the owner-approved management-style AI assessment fields. Any report must carry the approved AI-reliability limitation adjacent to the assessment, including cached reports; it must not imply validated psychometrics or be the sole basis for consequential decisions.
+- No verified user-facing renderer was identified in the current source handoff; do not treat an API-only warning as a completed UX correction.
+
+### Workflow blocker and next action
+- The branch still lacks `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` and `scripts/agent/run-logged.mjs`.
+- The uploaded Agent Pack has no task card for this report follow-up. Its queue runner switches/creates `upgrade/phase-<N>`; its OpenCode guard reads `.env`, `.env.local` and `.env.production` while checking database configuration. Do not execute the pack unchanged because that violates the branch-preservation and no-`.env*` project rules.
+- No card was invented and no source patch was made. Continue only after a branch-preserving, no-secret-reading task workflow and an approved task card/equivalent are available.
+- No schema, migration, dependency, production-data, merge, deployment, branch switch or `main` write occurred.
