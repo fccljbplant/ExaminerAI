@@ -100,10 +100,12 @@ export async function saveCourseReportCard(input: {
           reason,
         },
       });
-      return tx.reportCard.findUnique({
+      const result = await tx.reportCard.findUnique({
         where: { id: updated.id },
         include: { versions: { orderBy: { version: "asc" } } },
       });
+      if (!result) throw new ReportCardWriteError("REPORT_CARD_VERSION_CONFLICT");
+      return result;
     }
 
     const created = await tx.reportCard.create({
@@ -135,9 +137,11 @@ export async function saveCourseReportCard(input: {
         reason: reason || "Initial course report card creation",
       },
     });
-    return tx.reportCard.findUnique({
+    const result = await tx.reportCard.findUnique({
       where: { id: created.id },
       include: { versions: { orderBy: { version: "asc" } } },
     });
+    if (!result) throw new ReportCardWriteError("REPORT_CARD_VERSION_CONFLICT");
+    return result;
   });
 }
