@@ -159,7 +159,7 @@ export async function checkEligibility(
       }),
       getTestConfig(userId, courseId),
       db.certificate.findFirst({
-        where: { userId, courseId, grade: { not: "PENDING" } },
+        where: { userId, courseId, grade: { notIn: ["PENDING", "REJECTED"] } },
         select: { id: true },
       }),
       db.projectTask.findFirst({
