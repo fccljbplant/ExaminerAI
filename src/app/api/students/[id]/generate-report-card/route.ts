@@ -115,6 +115,29 @@ export async function POST(
     );
   }
 
+  if (body.expectedVersion !== undefined && !Number.isInteger(body.expectedVersion)) {
+    return NextResponse.json({ error: "expectedVersion must be an integer" }, { status: 400 });
+  }
+  const existingCard = await db.reportCard.findUnique({
+    where: { userId_courseId_week: { userId: id, courseId, week } },
+    select: {
+      id: true,
+      version: true,
+      updatedById: true,
+      versions: {
+        orderBy: { version: "desc" },
+        take: 1,
+        select: { source: true },
+      },
+    },
+  });
+  if (existingCard && (existingCard.updatedById || existingCard.versions[0]?.source === "manual_correction")) {
+    return NextResponse.json({
+      error: "This report card has a human correction. Use the versioned manual correction workflow to make further changes.",
+      currentVersion: existingCard.version,
+    }, { status: 409 });
+  }
+
   let reportCard;
   try {
     reportCard = await saveCourseReportCard({
@@ -131,9 +154,12 @@ export async function POST(
       },
       actorId: payload.sub,
       actorRole: payload.role,
+      source: "ai_generated",
+      expectedVersion: Number.isInteger(body.expectedVersion) ? body.expectedVersion : existingCard?.version,
+      requireExpectedVersion: true,
       reason: typeof body.reason === "string" && body.reason.trim()
         ? body.reason.trim().slice(0, 500)
-        : "Regenerated from selected-course evidence",
+        : existingCard ? "Regenerated from selected-course evidence" : "Generated from selected-course evidence",
     });
   } catch (err) {
     logger.error("Course report-card persistence failed", {
