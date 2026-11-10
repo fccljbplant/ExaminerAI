@@ -97,3 +97,29 @@ Added `src/app/api/students/final-result/route.test.ts` for instructor course is
 **Field handling:** academic performance/participation, areasToImprove, overallAssessment, careerReadiness, project reports and task statistics remain available within the authorised scope. `behavioralPattern` remains learner-self only. No support/crisis data was added.
 
 **Validation:** the code/test head was `0edeed1f22b7e7274ed3f05b9ce3982aee7f43b8`. No Actions run had been returned for that exact head at update time. Previous-head run `42722331613` passed, but is not evidence for this change. Vercel is blocked by the build-rate limit. No local tests or build were run. Keep validation pending until a run for the updated head completes.
+
+
+## 2026-11-10 — Remaining staff project/report endpoint scope
+
+**Status:** Read-only source review; implementation blocked pending data-ownership semantics and the approved task workflow. No endpoint code changed.
+
+### POST /api/students/[id]/generate-report-card
+
+- The handler authorises a staff viewer with assertCanAccessStudent(payload, id, "content_only"), then reads ProjectTask, DailyLog, Interaction, WeeklyTest and Comment using learner/week or learner-only predicates, without an authorised-course intersection.
+- The Prisma schema confirms the first four models have courseId. Comment has no courseId, but has optional relation keys to task, interaction, weekly test and daily log records, so comments can be scoped through those authorised record IDs.
+- The handler writes ReportCard using upsert with the unique userId_week key. Prisma defines @@unique([userId, week]) even though ReportCard.courseId is nullable. A course-filtered calculation would still overwrite the one learner/week report-card record and could misrepresent a partial course view as a learner-wide report.
+- **Owner decision required:** Is a report card intentionally one learner-wide record per week, or should it become course-specific? The latter requires an approved additive schema/index migration and a revised API contract. Do not filter partially and continue writing the global record until this is decided.
+
+### POST /api/students/[id]/generate-project-analysis
+
+- The handler authorises any staff viewer with content_only, then loads ProjectReport, ProjectTask and ProjectWeek by userId alone. All three Prisma models have a nullable courseId; this can mix course records outside the caller's scope.
+- The same handler reads project definition fields directly from User (projectName, projectScope, projectObjectives, projectRequirements, projectBusinessCase, projectDurationWeeks, projectGithubUrl, projectDeployUrl). These fields have no course relation. The newer LearnProject model is course-linked and owns project weeks/tasks, but this endpoint currently uses the legacy user-level project fields.
+- **Owner/product decision required:** Is this endpoint intended to analyse one learner-global legacy project, or a course-linked LearnProject? Do not apply a partial course filter while retaining unscoped project-definition data in the same AI context. Preserve current functionality until the authoritative project model and scope are confirmed.
+
+### Existing comprehensive-report blocker remains
+
+The managementAttitude classification in src/modules/comprehensive-report/index.ts remains owner-blocked by the 2026-11-09 decision above. Its generated productivity/professionalism/leadership/manager-readiness fields must not be exposed more widely or silently removed. The report also gathers several course-bearing records by learner ID alone; do not attempt a partial scope patch until the field classification and report audience are decided.
+
+### Validation context
+
+The final-result course-scope code and tests are now validated by exact-head Actions run 42724107308 on PR head bbb431a585a547bf15fa92d499cbb5f5dec2f0c3. All configured quality steps passed. Vercel remains failed due to build-rate limit. The two endpoint findings above are source-review findings only; no tests or code changes were made for them.
