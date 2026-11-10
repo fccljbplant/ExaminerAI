@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
+import { logAudit, AuditAction } from "@/lib/audit-log";
 
 type CommentActivityRefs = {
   interactionId?: string | null;
@@ -230,6 +231,18 @@ export async function POST(req: NextRequest) {
     include: { instructor: { select: { name: true, email: true } } },
   });
 
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
+    action: AuditAction.COMMENT_CREATED,
+    target: { type: "comment", id: comment.id },
+    metadata: {
+      studentId,
+      courseId,
+      activityIds: [interactionId, taskId, weeklyTestId, dailyLogId].filter(Boolean),
+    },
+    req,
+  });
+
   return NextResponse.json({ comment });
 }
 
@@ -280,6 +293,17 @@ export async function PATCH(req: NextRequest) {
     data,
     include: { instructor: { select: { name: true, email: true } } },
   });
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
+    action: AuditAction.COMMENT_UPDATED,
+    target: { type: "comment", id },
+    metadata: {
+      studentId: existing.studentId,
+      courseId,
+      updatedFields: Object.keys(data),
+    },
+    req,
+  });
   return NextResponse.json({ comment: updated });
 }
 
@@ -310,5 +334,16 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "This comment is not wholly linked to the selected course" }, { status: 403 });
   }
   await db.comment.delete({ where: { id } });
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
+    action: AuditAction.COMMENT_DELETED,
+    target: { type: "comment", id },
+    metadata: {
+      studentId: comment.studentId,
+      courseId,
+      activityIds: [comment.interactionId, comment.taskId, comment.weeklyTestId, comment.dailyLogId].filter(Boolean),
+    },
+    req,
+  });
   return NextResponse.json({ ok: true });
 }
