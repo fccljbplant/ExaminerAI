@@ -79,7 +79,7 @@ export async function POST(
       });
     }
     attempt = (existing?.attempt ?? 0) + 1;
-    await db.weeklyTest.create({
+    const created = await db.weeklyTest.create({
       data: {
         userId: id,
         courseId,
@@ -88,7 +88,9 @@ export async function POST(
         status: "in-progress",
         startedAt: new Date(),
       },
+      select: { id: true },
     });
+    auditTestId = created.id;
   }
 
   await logAudit({
