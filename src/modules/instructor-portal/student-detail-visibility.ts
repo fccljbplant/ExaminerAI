@@ -94,3 +94,30 @@ export function calculateAttentionScore(
 
   return { score, reasons };
 }
+
+export type AuthorizedCourseSelection =
+  | { kind: "selected"; courseId: string }
+  | { kind: "selection_required" }
+  | { kind: "forbidden" }
+  | { kind: "none" };
+
+/**
+ * Never silently aggregate a learner's multiple shared courses under one
+ * arbitrary course label. A single shared course may be selected implicitly;
+ * multiple courses require an explicit, authorised choice.
+ */
+export function resolveAuthorizedCourseSelection(
+  authorizedCourseIds: readonly string[],
+  requestedCourseId: string | null,
+): AuthorizedCourseSelection {
+  const uniqueCourseIds = [...new Set(authorizedCourseIds)];
+  if (uniqueCourseIds.length === 0) return { kind: "none" };
+  if (requestedCourseId === null) {
+    return uniqueCourseIds.length === 1
+      ? { kind: "selected", courseId: uniqueCourseIds[0] }
+      : { kind: "selection_required" };
+  }
+  return uniqueCourseIds.includes(requestedCourseId)
+    ? { kind: "selected", courseId: requestedCourseId }
+    : { kind: "forbidden" };
+}
