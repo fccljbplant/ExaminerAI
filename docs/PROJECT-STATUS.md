@@ -459,3 +459,18 @@ These are approved planning decisions, not implementation claims. No application
 - The combined Vercel status for `28b4da8...` is failure with the build-rate-limit URL. No Ready preview is verified.
 - Latest PR metadata still says open, draft and unmerged. One live metadata read reported `mergeable: false`; a separate compare reports the branch is 416 commits ahead and 0 behind `main`. Treat mergeability as unconfirmed and refresh it before any release decision.
 - Next task remains blocked on the missing safe task-card/logged-check workflow; no code patch, merge or deployment is authorised by this status refresh.
+
+
+## 2026-11-10 — Course-specific assessments and concurrency hardening (PR #3)
+
+- Owner decision is implemented in the active PR branch: legacy `WeeklyTest` identity is learner + course + week + attempt; `ReportCard` identity is learner + course + week. Existing nullable `courseId = null` rows remain preserved; no backfill, merge, deletion or reassignment was performed.
+- Course-specific weekly-test start/read/answer flows now require or resolve an explicitly enrolled course, bind answers to the attempt's course/week, validate the week against the selected course outline, preserve completed attempts, and scope retake permission to the selected course attempt. Learner-facing missing scores remain unavailable rather than coerced to zero.
+- Staff report-card generation and manual GET/POST now require a selected course and authorised learner-course intersection, use selected-course evidence, enforce course grading policy, and preserve version history. Staff score correction requires a selected authorised course, completed attempt, bounded score and reason; the original AI score is retained and correction events are audited.
+- Instructor portfolio data preserves course + attempt identity. Added regression coverage for course selection, cross-course denial, course-scoped answer/correction behaviour, missing evidence and report-card versioning.
+- Fixed report-card optimistic concurrency: updates now compare-and-swap on both report-card ID and the previously read version. A lost race returns `REPORT_CARD_VERSION_CONFLICT`; no version snapshot is written for a failed compare-and-swap. Added a concurrency regression test.
+- Regenerated tracked `prisma/schema.prod.prisma` and `prisma/.demo.prisma` from `prisma/schema.prisma` using the exact repository generator transformation. Verified both derived schemas now contain `ReportCardVersion` and course-specific report-card uniqueness.
+- Live PR #3 branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; application/docs head before this log refresh: `f2a6eea5289623cb53e07db50df23757dbc8137c`; base main remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`. PR remains open/draft/unmerged.
+- Exact-head GitHub Actions quality run `42757128556` was queued at the time of this update; no pass is claimed. Combined Vercel status remains failure due to the build-rate limit. No Ready preview verified.
+- No local checkout was available, so no local tests, lint, typecheck, build, browser, axe, keyboard, screen-reader, reduced-motion, zoom/reflow or manual UX validation was run. Await exact-head Actions evidence.
+- No production database operation, migration deployment, merge, deployment, branch switch, dependency change or main-branch write occurred. Production schema rollout and rollback review remain release gates; keep PR #3 draft.
+- UXPeak remains the standing UI reference. Recent instructor portfolio changes are role- and course-contextual; manual visual/a11y review is still outstanding.
