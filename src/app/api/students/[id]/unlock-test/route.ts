@@ -1,97 +1,108 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
-import { getCourseDurationWeeks } from "@/lib/course-db";
+import { getCourseDurationWeeks } from "@/modules/course/lib/course-db";
+import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { logger } from "@/lib/logger";
+import { logAudit, AuditAction } from "@/lib/audit-log";
 
-/** POST /api/students/[id]/unlock-test — instructor/admin unlocks a week's test
- *  for a student, bypassing the task-completion requirement.
- *
- *  Body: { week: number, action?: "unlock" | "reset" }
- *
- *  - "unlock" (default): If no test exists, create one in "in-progress" state
- *    so the student can immediately start it. If a test exists and is in
- *    "locked" state, mark it "in-progress".
- *  - "reset": Clear any in-progress test and create a fresh one. Use this
- *    when a student's test is stuck or corrupted.
- *
- *  This does NOT touch completed tests — for those, use /allow-retake instead.
- */
+/** POST /api/students/[id]/unlock-test — unlock or reset one course/week attempt. */
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const _demoBlock = await demoWriteBlock("unlocking tests"); if (_demoBlock) return _demoBlock;
+  const demoBlock = await demoWriteBlock("unlocking tests");
+  if (demoBlock) return demoBlock;
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
+  if (!payload || !isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
-  // IDOR protection: verify the caller can access this student's data
   try {
     await assertCanAccessStudent(payload, id, "content_only");
   } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Access denied" }, { status: 403 });
   }
 
   const body = await req.json().catch(() => ({}));
-  const { week, action } = body as { week?: number; action?: "unlock" | "reset" };
-  const act = action === "reset" ? "reset" : "unlock";
-
-  // Look up the student's course duration (defaults to 6 if no course assigned)
-  const totalWeeks = await getCourseDurationWeeks(id);
-  if (!week || week < 1 || week > totalWeeks) {
-    return NextResponse.json({ error: `Valid week (1-${totalWeeks}) required` }, { status: 400 });
+  const courseId = typeof body.courseId === "string" ? body.courseId.trim() : "";
+  const week = Number(body.week);
+  const action = body.action === "reset" ? "reset" : "unlock";
+  if (!courseId) return NextResponse.json({ error: "courseId is required" }, { status: 400 });
+  if (!Number.isInteger(week) || week < 1) {
+    return NextResponse.json({ error: "A valid course week is required" }, { status: 400 });
   }
 
-  const student = await db.user.findUnique({ where: { id } });
-  if (!student) {
-    return NextResponse.json({ error: "Student not found" }, { status: 404 });
+  const authorisedCourseIds = await getStaffAuthorizedStudentCourseIds(payload, id);
+  if (!authorisedCourseIds.includes(courseId)) {
+    return NextResponse.json({ error: "You cannot unlock tests for this course" }, { status: 403 });
+  }
+  const totalWeeks = await getCourseDurationWeeks(id, courseId);
+  if (week > totalWeeks) {
+    return NextResponse.json({ error: `Week must be between 1 and ${totalWeeks} for this course` }, { status: 400 });
   }
 
-  const existing = await db.weeklyTest.findUnique({
-    where: { userId_week: { userId: id, week } },
-  });
+  const [student, existing] = await Promise.all([
+    db.user.findUnique({ where: { id }, select: { id: true, name: true, role: true } }),
+    db.weeklyTest.findFirst({
+      where: { userId: id, courseId, week },
+      orderBy: { attempt: "desc" },
+    }),
+  ]);
+  if (!student || !["learner", "student"].includes(student.role)) {
+    return NextResponse.json({ error: "Learner not found" }, { status: 404 });
+  }
 
   if (existing?.status === "completed") {
     return NextResponse.json(
-      { error: `Week ${week} test is already completed. Use "Allow Retake" instead to let the student retake it.` },
-      { status: 400 }
+      { error: "This course-week test is already completed. Use Allow Retake to create a new attempt." },
+      { status: 400 },
     );
   }
 
-  if (act === "reset" && existing) {
-    // Cascade: delete all comments referencing this weekly test first
-    await db.comment.deleteMany({ where: { weeklyTestId: existing.id } });
-    await db.weeklyTest.delete({ where: { id: existing.id } });
-  } else if (existing) {
-    // Test exists but is locked/in-progress — just mark it in-progress so
-    // the student can continue without task-lock blocking.
+  let attempt: number;
+  if (existing && action === "unlock" && existing.status !== "abandoned") {
     await db.weeklyTest.update({
       where: { id: existing.id },
       data: { status: "in-progress", startedAt: existing.startedAt ?? new Date() },
     });
-    return NextResponse.json({
-      ok: true,
-      message: `Week ${week} test unlocked for ${student.name}. They can now take it.`,
+    attempt = existing.attempt;
+  } else {
+    if (existing) {
+      // Preserve the old conversation and any linked comments; never delete an attempt.
+      await db.weeklyTest.update({
+        where: { id: existing.id },
+        data: { status: "abandoned", retakeAllowed: false },
+      });
+    }
+    attempt = (existing?.attempt ?? 0) + 1;
+    await db.weeklyTest.create({
+      data: {
+        userId: id,
+        courseId,
+        week,
+        attempt,
+        status: "in-progress",
+        startedAt: new Date(),
+      },
     });
   }
 
-  // No existing test — create a fresh in-progress one
-  await db.weeklyTest.create({
-    data: {
-      userId: id,
-      week,
-      status: "in-progress",
-      startedAt: new Date(),
-    },
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
+    action: AuditAction.WEEKLY_TEST_UNLOCKED,
+    target: { type: "weekly_test", id: existing?.id ?? id },
+    after: { courseId, week, attempt, action },
+    req,
   });
 
   return NextResponse.json({
     ok: true,
-    message: `Week ${week} test unlocked for ${student.name}. They can now take it.`,
+    message: `Week ${week} unlocked for ${student.name} in the selected course. Attempt ${attempt} is ready.`,
+    courseId,
+    week,
+    attempt,
   });
 }
