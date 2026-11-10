@@ -279,3 +279,10 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 - Vercel status remains failure due to the project build-rate limit. No local tests/typecheck/lint/build/browser/axe run was available.
 - No schema, migration, dependency, production data, merge, deployment or main-branch change. PR #3 remains draft.
 
+
+
+### Follow-up — route-level course-selection tests
+
+- Added `src/app/api/v2/instructor/students/[id]/route.test.ts` with route-level coverage for: multi-course selection response with no academic queries before selection; exact selected-course filtering for course-bearing relations; denial of a course outside the current authorised intersection; and automatic selection when exactly one shared course exists.
+- This closes the earlier test gap for the course-selection contract at the API boundary. The tests are committed but not yet validated by CI; do not describe them as passing until a successful exact-head run is available.
+
