@@ -1,12 +1,12 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-10 (live PR #3 head bbb431a585a547bf15fa92d499cbb5f5dec2f0c3)  
+**Snapshot date:** 2026-11-10 (live PR #3 head ad1638fc9a1862b2876131fef8e1d656c82d757b)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
 ## Latest live update — 2026-11-10 (final-result scope validation and next blockers)
 
-- PR #3 remains open, draft, unmerged and mergeable on ux-audit/fix-dashboard-truthfulness-and-agent-safety. Live head bbb431a585a547bf15fa92d499cbb5f5dec2f0c3; 305 commits, 111 changed files.
+- PR #3 remains open, draft, unmerged and mergeable on ux-audit/fix-dashboard-truthfulness-and-agent-safety. Latest live head at this refresh: ad1638fc9a1862b2876131fef8e1d656c82d757b; 309 commits, 111 changed files. Commits after the validated code head are continuity documentation only.
 - Exact-head Actions run [42724107308](https://github.com/fccljbplant/ExaminerAI/actions/runs/42724107308) completed successfully. All configured steps passed: dependency install, isolated test DB, lint, unit tests, typecheck, production build, app-page route smoke, authenticated role screenshots and artifact upload.
 - Vercel combined status is failure because the project is build-rate limited; no Ready preview is verified.
 - Final-result course-scope correction and route tests are committed. All five course-bearing nested relations are scoped; learner self-view remains cross-course; behavioralPattern remains learner-self only.
