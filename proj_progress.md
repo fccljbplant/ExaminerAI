@@ -277,3 +277,14 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - **Execution blocker:** the current branch has no `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` or `scripts/agent/run-logged.mjs` (verified from the recursive Git tree). The uploaded Agent Pack contains a queue and runner, but its `run-queue.mjs` automatically switches/creates `upgrade/phase-<N>`, contrary to the repository continuity rule to remain on the existing PR branch; Agent Pack instructions also prohibit modifying its runner. No local repository checkout is available to run its required gates. Do not invent a task card, run the unsafe queue runner, or make a partial high-risk report patch outside the required task workflow.
 - No application code/tests/schema/dependency/migration/production-data change, branch switch, merge, deployment or main-branch write in this continuation. Documentation only.
 - Next safe action: restore a branch-preserving, no-`.env*` task-card/logged-check workflow (or an owner-approved equivalent) on the existing PR branch, then take one bounded comprehensive-report task covering course context, evidence truthfulness, cache/review semantics, route tests and the actual rendering consumer. Keep PR #3 draft/unmerged.
+
+
+## 2026-11-10 — Live continuation refresh
+
+- Live PR #3: open/draft/unmerged/mergeable; branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; head `69a1fbf65a723badc28bb6a4699ad3a50ddb4382`; base `main` unchanged at `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Exact-head Actions run `42752208726` passed 438 tests / 41 files, lint (0 errors / 7 warnings), TypeScript, production build, 83/83 route smoke checks, four-role × seven-viewport screenshot capture and artifact upload `13734421184`. Screenshots were not manually inspected.
+- Vercel combined status remains failure due to project build-rate limit; no Ready preview verified. No PR reviews/inline threads.
+- Course-scoped comment writes and privacy-minimised comment audit events remain present.
+- Next privacy/evidence issue: comprehensive-report route checks `content_only` but calls a learner-global generator. Cross-course evidence, course-less mastery, legacy global project/current-week fields, missing-score-to-zero coercion and default F-grade behavior remain. Keep management-style fields with the owner-approved adjacent AI-reliability notice; no report renderer is yet verified.
+- Blocked: branch-preserving task-card/logged-check workflow is missing. Uploaded Agent Pack has no card for this follow-up; its runner switches branches and its OpenCode guard reads `.env*`. Do not run it, invent a task card, or patch this high-risk slice without the required workflow.
+- No application code/tests/schema/dependency/migration/production data, merge, deployment, branch switch or main write in this refresh. Local/manual accessibility checks remain unavailable.
