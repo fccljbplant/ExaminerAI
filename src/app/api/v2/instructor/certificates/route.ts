@@ -54,7 +54,7 @@ export async function GET() {
     }),
     db.course.findMany({ where: { id: { in: courseIds } }, select: { id: true, name: true } }),
     db.certificate.findMany({
-      where: { courseId: { in: courseIds }, grade: { not: "PENDING" } },
+      where: { courseId: { in: courseIds }, grade: { notIn: ["PENDING", "REJECTED"] } },
       orderBy: { issuedAt: "desc" },
       take: 50,
       include: { user: { select: { name: true } } },
