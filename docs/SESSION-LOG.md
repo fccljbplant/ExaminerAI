@@ -679,3 +679,34 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 
 ### Next exact action
 - Continue the PR #3 review by selecting the next narrow, verifiable issue within its existing baseline correctness/safety scope. For comprehensive reports, first establish a course-context contract and identify/implement the actual display consumer before touching the endpoint; treat course-scoping, AI-interaction-only management assessment, reliability notice, unavailable-data semantics and tests as a single cohesive follow-up. Do not guess course attribution for legacy null-course rows or run production migrations.
+
+
+## 2026-11-10 — Instructor learner-detail metrics: unavailable is not zero
+
+### Starting code head
+2fc96787c36cce2d6a2cd3c785b63b590b0248ec (PR #3 branch)
+
+### Finding and decision
+- GET /api/v2/instructor/students/[id] returned 0% progress when no tasks existed and attentionScore 0 when no daily activity or scored tests existed. The student profile UI rendered both as measured zeros, which violates the no-fabricated-metrics invariant.
+- Adopted: no evidence means unavailable; evidence-backed zero remains a valid measured result. No tasks => progress null. No activity dates and no scored tests => attention score null. Only evidence-backed attention score >=30 can trigger the attention banner. The UI renders unavailable metrics as an em dash with muted styling.
+- Same unavailable semantics applied to project task progress when no tasks exist.
+
+### Changes
+- src/modules/instructor-portal/student-detail-visibility.ts: added pure helpers calculateTaskProgress and calculateAttentionScore.
+- src/modules/instructor-portal/student-detail-visibility.test.ts: added six unit tests covering missing evidence, genuine zero, positive progress, inactivity-only, low score and declining score.
+- src/app/api/v2/instructor/students/[id]/route.ts: uses helpers and returns nullable progress/attention values.
+- src/modules/instructor-portal/student-profile.tsx: payload types now permit null; unavailable values display as em dash; missing attention evidence cannot trigger risk banner.
+- Code commits: 0005c9250caf5f75daeedb9d23bf8352031b86f7, 86753deb234692bbd4227803cbcabd83c85fe0cd, 5df31f36ec703711e0647975666cab621558b503, 0a87bcc054c30a1e564178445586b1db112dc246, 2fc96787c36cce2d6a2cd3c785b63b590b0248ec, 48bc189c48012d62da5dd7582145398fd19293ec.
+- Documentation records the standing institutional delegation, the new missing-evidence rule and a separate multi-course issue.
+
+### Separate issue discovered
+- The same detail API queries records across every shared course, then returns only the first shared course ID. This can label a multi-course aggregate as one course. Decision: auto-select only if exactly one shared course; otherwise require explicit course selection and filter every course-bearing record to it. Learner-level mastery records without courseId must not be silently treated as course-specific. This issue is not fixed by the current metric change.
+
+### Validation / risks
+- Exact-head Actions had not yet been returned for latest code head 48bc189c48012d62da5dd7582145398fd19293ec at time of this log. A run for preceding code head 2fc96787c36cce2d6a2cd3c785b63b590b0248ec was pending; do not count it as validation of the final code head.
+- Vercel status remains failure due to project build-rate limit. No local tests, lint, typecheck, build, browser or axe checks were available.
+- No schema, migration, dependency, production data, merge or deployment changed. PR #3 remains open/draft/unmerged.
+
+### Next
+- Verify exact-head Actions for the new nullable KPI contract.
+- Then implement the separate course selector/API contract so a multi-course aggregate cannot be shown under a single-course label. Keep PR #3 draft and do not deploy/merge.
