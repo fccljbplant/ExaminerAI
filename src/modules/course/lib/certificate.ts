@@ -24,6 +24,7 @@ import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { scoreToGrade } from "@/lib/constants";
 import { sendCredentialEarned, sendMilestoneEarned } from "@/lib/email";
+import { getTestConfig } from "./course-config";
 
 /** Public credential-ID prefix — TraineesAI. */
 const CREDENTIAL_PREFIX = "TRN-AI";
@@ -93,10 +94,31 @@ function computeInitials(studentName: string, courseName: string): string {
 export interface CertificateEligibility {
   eligible: boolean;
   hasCertificate: boolean;
-  avgScore: number;
+  avgScore: number | null;
   weeksCompleted: number;
   totalWeeks: number;
   capstonePassed: boolean;
+}
+
+type CertificateTestAttempt = { week: number; attempt: number; score: number | null };
+
+function selectCertificateAttempts(
+  tests: CertificateTestAttempt[],
+  policy: "best" | "latest" | "first",
+): CertificateTestAttempt[] {
+  const byWeek = new Map<number, CertificateTestAttempt[]>();
+  for (const test of tests) {
+    if (test.score === null) continue;
+    const attempts = byWeek.get(test.week) ?? [];
+    attempts.push(test);
+    byWeek.set(test.week, attempts);
+  }
+  return [...byWeek.values()].flatMap((attempts) => {
+    attempts.sort((a, b) => a.attempt - b.attempt);
+    if (policy === "first") return [attempts[0]];
+    if (policy === "latest") return [attempts[attempts.length - 1]];
+    return [[...attempts].sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || b.attempt - a.attempt)[0]];
+  });
 }
 
 /** Inspect a student's progress + scores without issuing anything. */
@@ -119,7 +141,7 @@ export async function checkEligibility(
       return {
         eligible: false,
         hasCertificate: false,
-        avgScore: 0,
+        avgScore: null,
         weeksCompleted: 0,
         totalWeeks: 0,
         capstonePassed: false,
@@ -133,8 +155,9 @@ export async function checkEligibility(
       }),
       db.weeklyTest.findMany({
         where: { userId, courseId, status: "completed", score: { not: null } },
-        select: { score: true },
+        select: { week: true, attempt: true, score: true },
       }),
+      getTestConfig(userId, courseId),
       db.certificate.findFirst({
         where: { userId, courseId, grade: { not: "PENDING" } },
         select: { id: true },
@@ -147,15 +170,20 @@ export async function checkEligibility(
 
     const completedWeeksSet = new Set(progressRows.map(p => p.week));
     const weeksCompleted = course.weeks.filter(w => completedWeeksSet.has(w.weekNumber)).length;
-    const avgScore = tests.length > 0
-      ? Math.round(tests.reduce((s, t) => s + (t.score ?? 0), 0) / tests.length)
-      : 0;
+    const selectedTests = selectCertificateAttempts(tests, testConfig.retakePolicy);
+    const avgScore = selectedTests.length > 0
+      ? Math.round(selectedTests.reduce((sum, test) => sum + (test.score ?? 0), 0) / selectedTests.length)
+      : null;
     const allWeeksCompleted = weeksCompleted >= totalWeeks;
+    const allWeeklyAssessmentsCompleted = course.weeks.every((week) =>
+      selectedTests.some((test) => test.week === week.weekNumber),
+    );
 
     const eligible =
       !existingCert &&
       allWeeksCompleted &&
-      tests.length > 0 &&
+      allWeeklyAssessmentsCompleted &&
+      avgScore !== null &&
       avgScore >= CERTIFICATE_MIN_SCORE;
 
     return {
@@ -249,12 +277,19 @@ export async function issueCertificate(
     if (!allWeeksCompleted) return null;
 
     // 3) Calculate avg score from completed weekly tests.
-    const tests = await db.weeklyTest.findMany({
-      where: { userId, courseId, status: "completed", score: { not: null } },
-      select: { score: true },
-    });
-    if (tests.length === 0) return null;
-    const avgScore = Math.round(tests.reduce((s, t) => s + (t.score ?? 0), 0) / tests.length);
+    const [tests, testConfig] = await Promise.all([
+      db.weeklyTest.findMany({
+        where: { userId, courseId, status: "completed", score: { not: null } },
+        select: { week: true, attempt: true, score: true },
+      }),
+      getTestConfig(userId, courseId),
+    ]);
+    const selectedTests = selectCertificateAttempts(tests, testConfig.retakePolicy);
+    const allWeeklyAssessmentsCompleted = course.weeks.every((week) =>
+      selectedTests.some((test) => test.week === week.weekNumber),
+    );
+    if (!allWeeklyAssessmentsCompleted) return null;
+    const avgScore = Math.round(selectedTests.reduce((sum, test) => sum + (test.score ?? 0), 0) / selectedTests.length);
     if (avgScore < CERTIFICATE_MIN_SCORE) return null;
 
     // 4) Capstone check — any completed project task for this course.
