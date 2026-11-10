@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { logger } from "@/lib/logger";
+import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 
 /** GET /api/comments?studentId=... — list instructor comments for a student.
  *  Staff can view comments for students they have access to.
@@ -14,21 +14,81 @@ export async function GET(req: NextRequest) {
   const studentId = req.nextUrl.searchParams.get("studentId");
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
 
-  // RBAC + IDOR: students can only read their OWN comments; staff must have
-  // batch access (assertCanAccessStudent handles this).
-  if (payload.sub !== studentId) {
+  const isSelf = payload.sub === studentId;
+  const courseId = req.nextUrl.searchParams.get("courseId");
+
+  if (!isSelf) {
     try {
       await assertCanAccessStudent(payload, studentId);
     } catch (err) {
       return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
     }
+    if (!courseId) {
+      return NextResponse.json({ error: "courseId is required for staff comment views" }, { status: 400 });
+    }
+    const authorizedCourseIds = await getStaffAuthorizedStudentCourseIds(payload, studentId);
+    if (!authorizedCourseIds.includes(courseId)) {
+      return NextResponse.json({ error: "You cannot access comments for this course" }, { status: 403 });
+    }
+  } else if (courseId) {
+    const enrollment = await db.courseEnrollment.findFirst({
+      where: { userId: studentId, role: "student", courseId },
+      select: { id: true },
+    });
+    if (!enrollment) {
+      return NextResponse.json({ error: "You are not enrolled in this course" }, { status: 403 });
+    }
   }
 
-  const comments = await db.comment.findMany({
-    where: { studentId },
+  if (isSelf && !courseId) {
+    const comments = await db.comment.findMany({
+      where: { studentId },
+      orderBy: { createdAt: "desc" },
+      include: { instructor: { select: { name: true, email: true } } },
+    });
+    return NextResponse.json({ comments });
+  }
+
+  // Comments have no courseId column. Resolve the selected course's linked
+  // record IDs, then reject mixed-course and unassigned legacy comments.
+  const [interactions, tasks, weeklyTests, dailyLogs] = await Promise.all([
+    db.interaction.findMany({ where: { userId: studentId, courseId }, select: { id: true } }),
+    db.projectTask.findMany({ where: { userId: studentId, courseId }, select: { id: true } }),
+    db.weeklyTest.findMany({ where: { userId: studentId, courseId }, select: { id: true } }),
+    db.dailyLog.findMany({ where: { userId: studentId, courseId }, select: { id: true } }),
+  ]);
+
+  const allowed = {
+    interactionId: new Set(interactions.map((record) => record.id)),
+    taskId: new Set(tasks.map((record) => record.id)),
+    weeklyTestId: new Set(weeklyTests.map((record) => record.id)),
+    dailyLogId: new Set(dailyLogs.map((record) => record.id)),
+  };
+  const relationFilters = [
+    ...(allowed.interactionId.size ? [{ interactionId: { in: [...allowed.interactionId] } }] : []),
+    ...(allowed.taskId.size ? [{ taskId: { in: [...allowed.taskId] } }] : []),
+    ...(allowed.weeklyTestId.size ? [{ weeklyTestId: { in: [...allowed.weeklyTestId] } }] : []),
+    ...(allowed.dailyLogId.size ? [{ dailyLogId: { in: [...allowed.dailyLogId] } }] : []),
+  ];
+
+  if (relationFilters.length === 0) return NextResponse.json({ comments: [] });
+
+  const candidates = await db.comment.findMany({
+    where: { studentId, OR: relationFilters },
     orderBy: { createdAt: "desc" },
     include: { instructor: { select: { name: true, email: true } } },
   });
+  const comments = candidates.filter((comment) => {
+    const references = [
+      ["interactionId", comment.interactionId],
+      ["taskId", comment.taskId],
+      ["weeklyTestId", comment.weeklyTestId],
+      ["dailyLogId", comment.dailyLogId],
+    ] as const;
+    const linked = references.filter(([, id]) => id !== null);
+    return linked.length > 0 && linked.every(([field, id]) => allowed[field].has(id));
+  });
+
   return NextResponse.json({ comments });
 }
 
