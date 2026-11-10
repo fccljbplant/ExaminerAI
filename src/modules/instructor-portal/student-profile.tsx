@@ -123,16 +123,6 @@ interface StudentProfileData {
   } | null;
 }
 
-interface Briefing {
-  briefing: string;
-  suggestedTalkingPoint: string;
-  week: number;
-  day: number;
-  avgScore: number;
-  status: "on_track" | "needs_attention" | "at_risk";
-  weakTopics: string[];
-}
-
 interface CommentRow {
   id: string;
   body: string;
@@ -162,12 +152,6 @@ const TASK_TONE: Record<string, string> = {
   "in-progress": "bg-info-subtle text-info-on",
   planned: "bg-bg-subtle text-fg-muted",
   blocked: "bg-warning-subtle text-warning-on",
-};
-
-const BRIEFING_TONE: Record<Briefing["status"], string> = {
-  on_track: "border-success-subtle bg-success-subtle/40 text-fg",
-  needs_attention: "border-warning-subtle bg-warning-subtle/40 text-fg",
-  at_risk: "border-danger-subtle bg-danger-subtle/40 text-fg",
 };
 
 export function StudentProfile({ studentId }: { studentId: string }) {
@@ -422,14 +406,18 @@ export function StudentProfile({ studentId }: { studentId: string }) {
 
       {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
       {tab === "growth" && (
-        <Empty label="Learner-wide growth summaries are temporarily unavailable in this course-specific view until their source records can be scoped safely." />
+        false
+          ? <GrowthTab data={data} studentId={studentId} />
+          : <Empty label="Learner-wide growth summaries are temporarily unavailable in this course-specific view until their source records can be scoped safely." />
       )}
       {tab === "psychology" && <PsychologyTab data={data} />}
       {tab === "project" && <ProjectTab data={data} onChanged={retry} />}
       {tab === "engagement" && <EngagementTab data={data} />}
       {tab === "certificates" && <CertificatesTab data={data} />}
       {tab === "comments" && (
-        <Empty label="Unassigned learner-wide comments are temporarily unavailable in this course-specific view." />
+        false
+          ? <CommentsTab studentId={studentId} />
+          : <Empty label="Unassigned learner-wide comments are temporarily unavailable in this course-specific view." />
       )}
 
       <Link
