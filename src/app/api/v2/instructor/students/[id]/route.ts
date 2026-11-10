@@ -204,7 +204,7 @@ export async function GET(
     kpis: {
       progress: calculateTaskProgress(totalTasks, completedTasks),
       tasksDone: `${completedTasks}/${totalTasks}`,
-      latestScore: latest?.score ?? null,
+      latestScore: latest,
       attentionScore: attention.score,
     },
     attentionReasons: attention.reasons,
