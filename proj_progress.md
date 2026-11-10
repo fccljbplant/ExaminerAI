@@ -1,9 +1,19 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-10 (course-specific learner-detail APIs and assessment write safeguards; code head a5e1ad903d8da5f39d455f297cbf3e94df7e2589)  
+**Updated:** 2026-11-10 (WeeklyTest fixture correction and latest-attempt regression test; code head 788cad5987ccd869556ea6553c252b61dbfcce4e)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety
+
+
+## 2026-11-10 — WeeklyTest fixture and latest-attempt regression coverage
+
+- Updated the weekly-answer route test fixture with `week: 1`, matching the stored test to the `/weekly-test/1/answer` route. This fixes the failing test's early 403 so it exercises the intended AI-unavailable 503/no-persistence behaviour.
+- Added staff edit-route coverage for omitted `attempt`: the query remains constrained to learner + selected course + week and orders attempts descending; the test asserts the latest returned attempt is the one updated.
+- Test-only application changes committed on PR #3 at code head `788cad5987ccd869556ea6553c252b61dbfcce4e`. No runtime application code, schema, migration or dependency changed.
+- Exact-code-head Actions run `42763242665` was in progress at this update. No pass is claimed until completion; documentation commits will require checking the resulting final PR head too.
+- No local checkout was available; no local test/lint/typecheck/build or browser/a11y checks were run. No production operation, branch switch, merge or deployment.
+- Next: verify the full exact-head CI run, then retain the production schema/additive rollback and explicit owner approval gates before any release.
 
 
 ## 2026-11-10 — Latest continuation: course-specific secondary APIs and assessment safeguards
