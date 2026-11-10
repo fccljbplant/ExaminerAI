@@ -15,7 +15,6 @@ import { gradeOneQuestion } from "@/modules/assessment/lib/unified-test-engine";
 import { buildTestLedger, ledgerToPrompt, buildNextQuestionPrompt } from "@/modules/assessment/lib/test-ledger";
 import { pseudonym } from "@/modules/ai";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { issueCertificate } from "@/lib/certificate";
 import { TEST_QUESTION_COUNT } from "@/lib/constants";
 import { awardXP, awardBadge } from "@/modules/gamification";
 
@@ -622,22 +621,9 @@ CRITICAL RULES:
           }
         })();
 
-        // === Phase 6: Certificate pipeline (fire-and-forget) ===
-        // After a weekly test is marked completed, kick off the auto-issuance
-        // check. If this was the final week and the student meets the score
-        // threshold, a verified credential is issued + a notification fired.
-        // Non-blocking — never makes the test response wait on it.
-        void (async () => {
-          try {
-            await issueCertificate(user.id, courseId);
-          } catch (err) {
-            logger.warn("Auto-issue certificate after weekly test failed", {
-              userId: user.id,
-              week,
-              error: err instanceof Error ? err.message : String(err),
-            });
-          }
-        })();
+        // Certificate issuance is intentionally not automatic. A separate,
+        // course-scoped workflow must verify published criteria and obtain
+        // human approval before creating a credential.
 
         return NextResponse.json({
           conversation, currentQuestion: test.currentQuestion, replyCount: newReplyCount,
@@ -794,18 +780,8 @@ CRITICAL RULES:
       }
     })();
 
-    // === Phase 6: Certificate pipeline (fire-and-forget) — early-finish path ===
-    void (async () => {
-      try {
-        await issueCertificate(user.id, courseId);
-      } catch (err) {
-        logger.warn("Auto-issue certificate after early-finish failed", {
-          userId: user.id,
-          week,
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-    })();
+    // Certificate issuance is intentionally not automatic; it requires
+    // the separate course-scoped human approval workflow.
 
     return NextResponse.json({
       conversation, isComplete: true, ...analysis,
