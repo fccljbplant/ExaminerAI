@@ -108,8 +108,8 @@ export async function POST(req: NextRequest) {
   const score = body.score === null || body.score === undefined
     ? null
     : typeof body.score === "number" ? body.score : Number.NaN;
-  if (score !== null && (!Number.isFinite(score) || score < 0 || score > 100)) {
-    return NextResponse.json({ error: "score must be null or a number from 0 to 100" }, { status: 400 });
+  if (score !== null && (!Number.isInteger(score) || score < 0 || score > 100)) {
+    return NextResponse.json({ error: "score must be null or an integer from 0 to 100" }, { status: 400 });
   }
   const requestedGrade = typeof body.grade === "string" && body.grade.trim() ? body.grade.trim().slice(0, 20) : null;
   const gradingPolicy = parseCourseReportCardPolicy(course.reportCardTemplateJson);
