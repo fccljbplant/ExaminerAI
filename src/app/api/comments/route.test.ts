@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   commentCreate: vi.fn(),
   commentUpdate: vi.fn(),
   commentDelete: vi.fn(),
+  logAudit: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -41,6 +42,14 @@ vi.mock("@/lib/db", () => ({
       update: mocks.commentUpdate,
       delete: mocks.commentDelete,
     },
+  },
+}));
+vi.mock("@/lib/audit-log", () => ({
+  logAudit: mocks.logAudit,
+  AuditAction: {
+    COMMENT_CREATED: "comment_created",
+    COMMENT_UPDATED: "comment_updated",
+    COMMENT_DELETED: "comment_deleted",
   },
 }));
 vi.mock("@/lib/demo-guard", () => ({ demoWriteBlock: vi.fn().mockResolvedValue(null) }));
@@ -103,6 +112,7 @@ describe("/api/comments course scope", () => {
     mocks.commentCreate.mockResolvedValue({ id: "created-comment" });
     mocks.commentUpdate.mockResolvedValue({ ...existingComment, body: "Updated" });
     mocks.commentDelete.mockResolvedValue(existingComment);
+    mocks.logAudit.mockResolvedValue(undefined);
   });
 
   it("requires staff to select a course before reading comments", async () => {
@@ -213,6 +223,16 @@ describe("/api/comments course scope", () => {
         dailyLogId: null,
       }),
     }));
+    expect(mocks.logAudit).toHaveBeenCalledWith(expect.objectContaining({
+      action: "comment_created",
+      target: { type: "comment", id: "created-comment" },
+      metadata: expect.objectContaining({
+        studentId: "learner-1",
+        courseId: "course-a",
+        activityIds: ["interaction-a"],
+      }),
+    }));
+    expect(JSON.stringify(mocks.logAudit.mock.calls[0][0].metadata)).not.toContain("Strong explanation");
   });
 
   it("prevents editing a comment whose activity is not in the selected course", async () => {
@@ -234,5 +254,42 @@ describe("/api/comments course scope", () => {
     ));
     expect(response.status).toBe(403);
     expect(mocks.commentDelete).not.toHaveBeenCalled();
+  });
+
+  it("audits edits without recording comment text", async () => {
+    const response = await PATCH(request(
+      "PATCH",
+      "http://localhost/api/comments?id=comment-1&courseId=course-a",
+      { body: "Updated feedback" },
+    ));
+    expect(response.status).toBe(200);
+    expect(mocks.logAudit).toHaveBeenCalledWith(expect.objectContaining({
+      action: "comment_updated",
+      target: { type: "comment", id: "comment-1" },
+      metadata: expect.objectContaining({
+        studentId: "learner-1",
+        courseId: "course-a",
+        updatedFields: ["body"],
+      }),
+    }));
+    expect(JSON.stringify(mocks.logAudit.mock.calls[0][0].metadata)).not.toContain("Updated feedback");
+  });
+
+  it("audits deletes with course and activity references", async () => {
+    const response = await DELETE(request(
+      "DELETE",
+      "http://localhost/api/comments?id=comment-1&courseId=course-a",
+    ));
+    expect(response.status).toBe(200);
+    expect(mocks.commentDelete).toHaveBeenCalledWith({ where: { id: "comment-1" } });
+    expect(mocks.logAudit).toHaveBeenCalledWith(expect.objectContaining({
+      action: "comment_deleted",
+      target: { type: "comment", id: "comment-1" },
+      metadata: expect.objectContaining({
+        studentId: "learner-1",
+        courseId: "course-a",
+        activityIds: ["interaction-a"],
+      }),
+    }));
   });
 });
