@@ -1,3 +1,13 @@
+## Latest live update — 2026-11-10 (WeeklyTest test-fixture and attempt-selection coverage)
+
+- Live repository: `fccljbplant/ExaminerAI`; base `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft and unmerged on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. Test-change head: `788cad5987ccd869556ea6553c252b61dbfcce4e`; PR metadata reported mergeable.
+- Fixed the weekly-answer route test fixture by adding its stored `week: 1`, matching the route week so the test reaches the intended AI-unavailable path and asserts no fallback grade is persisted.
+- Added a staff edit-weekly-test regression test for omitted `attempt`: verifies selected learner/course/week scoping, descending attempt order and that the latest returned attempt is updated.
+- Exact-code-head GitHub Actions run `42763242665` was in progress at this status update. Do not mark CI green until the completed run and any subsequent docs-head run are checked.
+- Changes are test-only; no runtime code, schema, migration, dependency, production data, merge or deployment change. No local checkout or local tests/browser/a11y review were available.
+- Keep PR #3 draft/unmerged. Production schema rollout remains gated on additive migration/rollback review and explicit production approval.
+
 ## Latest live update — 2026-11-10 (comment write scope and audit trail)
 
 - Live repository: `fccljbplant/ExaminerAI`; `main` HEAD remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
