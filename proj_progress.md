@@ -1,12 +1,12 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-10 (final-result scope CI verified; next endpoint scope blockers recorded)  
+**Updated:** 2026-11-10 (PR #3 rechecked at ad1638fc; exact code-head CI verified; next endpoint scope blockers recorded)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety
 
 ## Current verified state
-- PR #3 is open, draft, unmerged and mergeable. Live head at this refresh: bbb431a585a547bf15fa92d499cbb5f5dec2f0c3; 305 commits and 111 changed files.
+- PR #3 is open, draft, unmerged and mergeable. Latest live head at this refresh: ad1638fc9a1862b2876131fef8e1d656c82d757b; 309 commits and 111 changed files. The latest application-code/test head is earlier; subsequent commits are continuity documentation only.
 - Exact-head GitHub Actions run 42724107308 completed successfully. Install, isolated DB initialization, lint, unit tests, TypeScript, production build, app-page route smoke, authenticated role screenshots and artifact upload all passed.
 - Vercel combined status remains failure due to the project build-rate limit; no Ready preview is verified.
 - No local checkout/test runner was available. No local test, lint, typecheck, build, browser or axe commands were run.
