@@ -162,7 +162,17 @@ export async function POST(req: NextRequest) {
     if (reject) {
       const body = await req.json().catch(() => ({}));
       const reason = (body as { reason?: string })?.reason || "Rejected by staff";
-      await db.certificate.delete({ where: { id: request.id } });
+      await db.certificate.update({
+        where: { id: request.id },
+        data: {
+          grade: "REJECTED",
+          score: null,
+          signedBy: "REJECTED",
+          rejectionReason: String(reason).slice(0, 500),
+          rejectedById: payload.sub,
+          rejectedAt: new Date(),
+        },
+      });
       await logAudit({
         actor: { id: payload.sub, name: payload.name, role: payload.role },
         action: "certificate_rejected",
