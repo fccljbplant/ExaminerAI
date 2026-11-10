@@ -451,7 +451,7 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
           <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
             {data.weeklyTests.map((t) => (
               <div key={`${t.week}-${t.attempt}`} className="flex items-center gap-3 px-4 py-3">
-                <span className="w-28 shrink-0 text-xs tabular-nums text-fg-muted">Week {t.week} · Attempt {t.attempt}</span>
+                <span className="w-32 shrink-0 truncate text-xs tabular-nums text-fg-muted">Week {t.week} · Attempt {t.attempt}</span>
                 {t.score !== null ? (
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
                     <div
@@ -479,7 +479,7 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
         <div className="space-y-1 px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Report cards</h2>
           <p className="text-xs text-fg-muted">
-            Report cards use evidence from this selected course only. Missing evidence remains unavailable, and each correction is retained in version history with its reason.
+            Report cards use evidence from this selected course only. Missing evidence remains unavailable, and new corrections are retained in version history with their reason; older legacy records may have no history.
           </p>
         </div>
         {data.reportCards.length === 0 ? (
