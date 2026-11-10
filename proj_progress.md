@@ -145,3 +145,19 @@ The active role redesign is specified in `docs/UX-PEAK-INSPIRED-ROLE-EXPERIENCE-
 - Owner clarification remains controlling: do not remove required academic outcomes. Staff responses retain academic performance, participation, areasToImprove, overallAssessment, careerReadiness and project/course data where authorised. behavioralPattern remains learner-self only until the approved support consent/feature-gate pathway exists.
 - Comprehensive-report managementAttitude classification remains blocked in QUESTIONS.md; do not change it as part of this next slice.
 - Exact current PR head at this note: 4d394819e074f528b12b821d6d69d54a45c5739f. Portfolio implementation still awaits an exact-head successful Actions run; no local checks were available. Do not claim this review is implementation or validation.
+
+
+## 2026-11-10 — Institutional policy decisions resolved
+
+Owner delegated the outstanding academic/product policy decisions. Adopted direction is documented in `docs/UPGRADE-2026-10/QUESTIONS.md` and summarised in `docs/PROJECT-STATUS.md`.
+
+- Academic record is course-specific: ReportCard and WeeklyTest identity is learner + course + week; certificate is per course completion.
+- Published course-specific grading, pass, retake and credential policies; missing evidence remains unavailable, never defaulted to zero or a fabricated score.
+- Report cards are reviewable/versioned; weekly sequencing remains self-paced and server-enforced.
+- Course project analysis must not combine learner-global legacy fields with course-specific records.
+- Replace subjective management-attitude/manager-readiness labels with observable rubric competencies and human review.
+- Academic integrity indicators require fair human review, learner response and appeal; no automatic penalties.
+- Instructor assignment is same-organisation and course-scoped. Organisation-course removal requires independent org-admin approval; independent instructors may confirm. Pending requests do not revoke access; history is retained.
+- Preserve learner-support privacy and designated crisis oversight boundaries.
+- Historical null-course rows remain legacy/unassigned without reliable provenance; no guessed backfill.
+- This session records policy only. No implementation or migration was performed. Next implementation should be a coordinated, additive, tested course-specific assessment/report-card/certificate slice; keep PR #3 draft and unmerged.
