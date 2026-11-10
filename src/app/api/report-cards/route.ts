@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { logAudit, AuditAction } from "@/lib/audit-log";
 import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 import { ReportCardWriteError, saveCourseReportCard } from "@/modules/course/lib/report-card-records";
+import { parseCourseReportCardPolicy } from "@/modules/course/lib/report-card";
 
 function serialiseList(value: unknown): string | null {
   if (value === undefined || value === null) return JSON.stringify([]);
@@ -89,7 +90,11 @@ export async function POST(req: NextRequest) {
     db.user.findUnique({ where: { id: userId }, select: { id: true, role: true } }),
     db.course.findUnique({
       where: { id: courseId },
-      select: { id: true, weeks: { select: { weekNumber: true } } },
+      select: {
+        id: true,
+        reportCardTemplateJson: true,
+        weeks: { select: { weekNumber: true } },
+      },
     }),
   ]);
   if (!learner || !["learner", "student"].includes(learner.role)) {
@@ -104,9 +109,24 @@ export async function POST(req: NextRequest) {
   if (score !== null && (!Number.isFinite(score) || score < 0 || score > 100)) {
     return NextResponse.json({ error: "score must be null or a number from 0 to 100" }, { status: 400 });
   }
-  const grade = typeof body.grade === "string" && body.grade.trim() ? body.grade.trim().slice(0, 20) : null;
-  if (score === null && grade !== null) {
+  const requestedGrade = typeof body.grade === "string" && body.grade.trim() ? body.grade.trim().slice(0, 20) : null;
+  const gradingPolicy = parseCourseReportCardPolicy(course.reportCardTemplateJson);
+  let grade: string | null = null;
+  if (score === null && requestedGrade !== null) {
     return NextResponse.json({ error: "A grade cannot be assigned when the score is unavailable" }, { status: 400 });
+  }
+  if (score !== null) {
+    if (!gradingPolicy) {
+      return NextResponse.json({ error: "The selected course has no valid grading policy; a graded result cannot be saved" }, { status: 409 });
+    }
+    const matchingGrade = gradingPolicy.gradingScale.find((entry) => score >= entry.min && score <= entry.max)?.grade ?? null;
+    if (!matchingGrade) {
+      return NextResponse.json({ error: "The score is outside the selected course grading scale" }, { status: 400 });
+    }
+    if (requestedGrade && requestedGrade !== matchingGrade) {
+      return NextResponse.json({ error: "The supplied grade does not match the selected course grading scale" }, { status: 400 });
+    }
+    grade = matchingGrade;
   }
 
   const strengths = serialiseList(body.strengths);
