@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -123,16 +123,6 @@ interface StudentProfileData {
   } | null;
 }
 
-interface CommentRow {
-  id: string;
-  body: string;
-  authorName: string;
-  createdAt: string;
-  taskId: string | null;
-  weeklyTestId: string | null;
-  dailyLogId: string | null;
-  interactionId: string | null;
-}
 
 type StudentProfileResponse = StudentProfileData | StudentCourseSelectionData;
 type TabKey = "academic" | "growth" | "psychology" | "project" | "engagement" | "certificates" | "comments";
@@ -1266,107 +1256,6 @@ function CertificatesTab({ data }: { data: StudentProfileData }) {
         </div>
       )}
     </section>
-  );
-}
-
-function CommentsTab({ studentId }: { studentId: string }) {
-  const [comments, setComments] = useState<CommentRow[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [text, setText] = useState("");
-  const [posting, setPosting] = useState(false);
-
-  const load = useCallback(async () => {
-    setError(null);
-    try {
-      const res = await fetch(`/api/comments?studentId=${studentId}`);
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
-      setComments((await res.json()) as CommentRow[]);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load comments");
-    }
-  }, [studentId]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  async function post() {
-    if (!text.trim()) return;
-    setPosting(true);
-    try {
-      const res = await fetch("/api/comments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId, body: text.trim() }),
-      });
-      const payload = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) throw new Error(payload.error || "Post failed");
-      setText("");
-      toast.success("Comment added");
-      await load();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Post failed");
-    } finally {
-      setPosting(false);
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <label htmlFor="instructor-comment" className="sr-only">
-          Add a comment
-        </label>
-        <textarea
-          id="instructor-comment"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={2}
-          placeholder="Add a comment for this student…"
-          className="min-h-20 flex-1 resize-y rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-        />
-        <button
-          type="button"
-          onClick={() => void post()}
-          disabled={posting || !text.trim()}
-          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
-        >
-          {posting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
-          Post
-        </button>
-      </div>
-
-      {error && (
-        <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
-          <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
-          {error}
-          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
-          </button>
-        </div>
-      )}
-
-      {comments === null ? (
-        <div className="h-24 animate-pulse rounded-xl bg-bg-subtle" aria-busy="true" />
-      ) : comments.length === 0 ? (
-        <Empty label="No comments yet." />
-      ) : (
-        <div className="space-y-2">
-          {comments.map((c) => (
-            <div key={c.id} className="rounded-xl border border-line bg-surface px-4 py-3">
-              <p className="text-sm leading-relaxed text-fg">{c.body}</p>
-              <p className="mt-1.5 text-xs text-fg-muted">
-                {c.authorName} · {new Date(c.createdAt).toLocaleDateString()}
-                {c.taskId ? " · on a project task" : ""}
-                {c.weeklyTestId ? " · on a weekly test" : ""}
-                {c.dailyLogId ? " · on a check-in" : ""}
-                {c.interactionId ? " · on a practice answer" : ""}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
