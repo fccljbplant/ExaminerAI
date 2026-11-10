@@ -914,3 +914,19 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - No local checkout was available, so no local tests, lint, typecheck, build, browser, axe, keyboard, screen-reader, reduced-motion, zoom/reflow or manual UX validation was run. Await exact-head Actions evidence.
 - No production database operation, migration deployment, merge, deployment, branch switch, dependency change or main-branch write occurred. Production schema rollout and rollback review remain release gates; keep PR #3 draft.
 - UXPeak remains the standing UI reference. Recent instructor portfolio changes are role- and course-contextual; manual visual/a11y review is still outstanding.
+
+
+## 2026-11-10 — WeeklyTest test-fixture correction and latest-attempt regression test
+
+**Repository:** `fccljbplant/ExaminerAI`  
+**PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`
+
+- Refreshed the live PR state and inspected the failing Actions job. Run `42758219706` showed 478 passed / 1 failed; the failing assertion expected 503 but received 403 in `src/app/api/learn/weekly-test/[week]/answer/route.test.ts`.
+- Root cause: the test fixture's stored test omitted its `week`, while the route correctly rejects a stored test whose course/week does not match the route. Added `week: 1` to the fixture; no route runtime change.
+- Added `src/app/api/students/[id]/edit-weekly-test/route.test.ts` coverage for omitted `attempt`. The route's explicit implementation orders matching learner/course/week attempts by `attempt desc`; the test verifies the query shape and that the latest returned attempt (attempt 3 in the fixture) is updated.
+- Commits: `670d37187ad5601d4accee9b5924c2bbfd941102` (fixture) and `788cad5987ccd869556ea6553c252b61dbfcce4e` (latest-attempt test). Test-change head: `788cad5987ccd869556ea6553c252b61dbfcce4e`.
+- Exact-code-head Actions run `42763242665` was in progress when this entry was prepared. Its result and the final documentation-head run must be checked before reporting validation complete.
+- PR #3 remained open/draft/unmerged; no merge or deployment. No runtime code/schema/migration/dependency/production-data change, branch switch or main write. No local checkout; local tests, lint, typecheck, build and manual browser/accessibility checks were not run.
+- Production schema rollout/rollback review and explicit owner approval remain release gates.
+
