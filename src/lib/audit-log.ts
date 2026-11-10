@@ -63,6 +63,7 @@ export const AuditAction = {
   STUDENT_ALERT_AUTO_CREATED: "student_alert_auto_created",
   WELLBEING_STATE_CHANGED: "wellbeing_state_changed",
   REPORT_CARD_GENERATED: "report_card_generated",
+  REPORT_CARD_UPDATED: "report_card_updated",
   FINAL_RESULT_GENERATED: "final_result_generated",
   COMMENT_CREATED: "comment_created",
   COMMENT_UPDATED: "comment_updated",
