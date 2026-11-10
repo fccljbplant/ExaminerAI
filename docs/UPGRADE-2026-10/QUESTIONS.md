@@ -239,3 +239,14 @@ The owner has delegated routine product, academic and learner-experience policy 
 Maintain a cumulative decision record in this file and docs/PROJECT-STATUS.md / docs/SESSION-LOG.md. The owner intends to compile the accumulated decisions into a polished, consolidated institutional/product policy document later; do not prematurely treat this running ledger as that final document. Keep decisions, implementation status, evidence and open questions clearly distinguished. New owner clarifications supersede conflicting earlier decisions and must be recorded as such.
 
 The current comprehensive-report clarification is one example: retain AI-generated personality/management-style sections, but prominently warn that they are based solely on AI interactions, have highly questionable/limited reliability, are not validated psychometric or comprehensive professional assessments, and require a structured management interview plus independent evidence before consequential decisions.
+
+
+## 2026-11-10 — Learner-detail metric truthfulness and course-context decision
+
+Owner-delegated institutional decision:
+- A missing evidence set is **unavailable**, not a score of zero. This applies to task progress, assessment/attention indicators and report metrics. A genuine zero is valid only when the relevant evidence exists and mathematically supports zero.
+- In instructor learner detail, no assigned tasks means progress is unavailable; no activity dates and no scored tests means the attention score is unavailable. When evidence exists and no risk indicator is present, an attention score of zero is valid.
+- The UI must render unavailable metrics as an em dash (or explicit unavailable label), not as 0% / 0. Risk banners must not be triggered by missing evidence.
+- Course-specific staff views must never silently aggregate several courses and label the result as one course. If the learner has one shared course, it can be selected automatically; if there are multiple shared courses, the staff member must choose the course explicitly. Course-bearing evidence is filtered to that course. Learner-level SkillMastery/Competency records without course provenance must be labelled as learner-level or excluded from course-specific conclusions until their semantics are approved; do not infer course ownership.
+
+Implementation finding still open: GET /api/v2/instructor/students/[id] currently queries all authorised shared course IDs but returns only the first course ID as courseId. It therefore presents a multi-course aggregate under a single-course label. This is a separate course-switcher/API contract change; do not treat the current fix as resolving it.
