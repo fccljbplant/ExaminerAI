@@ -948,3 +948,25 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 ### Guardrails / next
 - Existing PR branch only; no branch switch, no `.env*` access, no production DB/schema action, no merge or deployment.
 - Recheck exact-head Actions run `42865683017`, inspect any failure logs, then refresh Vercel and PR mergeability. Keep PR #3 draft/unmerged.
+
+
+## 2026-11-10 — PR #3 review observations and schema rollout hardening
+
+### Review findings
+- Refreshed PR #3 at head `16092e0a0f55693bb316eb8464931c9dd160b6e6`; PR remained open, draft, unmerged and mergeable.
+- No unresolved inline review threads were returned. The submitted review comment contains three observations.
+- WeeklyTest edit observation: verified fixed in current route. It requires `courseId`, checks the current staff-authorised learner/course intersection and course outline, and selects by learner/course/week plus explicit attempt or latest attempt. Regression tests cover cross-course denial and latest-attempt selection.
+- ReportCard concurrency observation: verified fixed in `report-card-records.ts`. The update is conditional on both ID and current version; a lost race returns `REPORT_CARD_VERSION_CONFLICT` and does not create a version snapshot. A regression test covers the concurrent-loser case.
+
+### Schema and deployment safety changes
+- Compared the canonical `prisma/schema.prisma` model body with the checked-in production and demo derived schema bodies. Both derived files were stale: they omitted the `ReportCardVersion.source` field and used a different parent delete policy. Regenerated both from the canonical source and verified exact model-body equality.
+- Added `docs/UPGRADE-2026-10/PR3-SCHEMA-ROLLOUT.md` describing the uniqueness-key transition, preflight checks, backup/restore, legacy NULL-course handling, baseline ReportCardVersion snapshots, controlled cutover, conditional rollback and explicit approval gate.
+- Removed the non-blocking production `prisma db push` from `scripts/vercel-build.sh`. Schema mutation is no longer part of a Vercel build; use a separately reviewed/versioned migration only after explicit owner approval.
+- This schema transition is not purely additive: WeeklyTest and ReportCard learner/week unique constraints are replaced by course-scoped keys. The new nullable composite keys do not independently enforce uniqueness for NULL-course legacy rows in PostgreSQL. The rollout plan therefore calls for explicit legacy-write analysis and partial unique-index consideration.
+- The canonical schema currently specifies `ReportCardVersion.reportCard onDelete: Cascade`; this policy must be confirmed before migration. No production schema was inspected or changed.
+
+### Validation and gates
+- PR head after code/schema/plan commits: `c3ba33dfdcf2e2d5e48c88849a4e16eb88adc4c1`.
+- Actions run `42867165869` was pending at the last refresh; Vercel combined status was pending. Await final-head checks.
+- No production database operation, migration, merge, deployment, branch switch, dependency change or main-branch write. No local checkout or local commands; no manual browser/axe/accessibility checks.
+- The review's first two observations are corrected in source/tests. The schema plan and build safety correction address the code/process portion of observation 3, but explicit owner approval and a verified executable migration remain external release gates. PR #3 stays draft/unmerged/undeployed.
