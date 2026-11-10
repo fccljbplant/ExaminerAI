@@ -215,3 +215,9 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - No schema/migration/dependency/production data, merge, deployment or main change.
 - Next: verify exact-head CI, add route-level query-isolation tests, then scope Growth/Comments APIs before restoring panels.
 
+
+
+### Route-level tests added — 2026-11-10
+- Added `src/app/api/v2/instructor/students/[id]/route.test.ts` with four cases covering multi-course selection-required/no-query behaviour, selected-course relation filtering, invalid course denial and one-course auto-selection.
+- Test/code head: `f26de0c15cdecb541792066c3d2b34d72914c0b3`. Exact-head CI not yet returned; prior run `42734322946` cancelled during dependency installation. Do not claim checks passed.
+
