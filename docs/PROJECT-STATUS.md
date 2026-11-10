@@ -1,3 +1,17 @@
+## Latest live update — 2026-11-10 (PR #3 review follow-up exact-head validation)
+
+- Live repository: `fccljbplant/ExaminerAI`; base `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft and unmerged on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. Code/schema/rollout-plan head `dd69eb46906d664a860fdb43f613986783066eb3` is mergeable.
+- Exact-head GitHub Actions run [42867410267](https://github.com/fccljbplant/ExaminerAI/actions/runs/42867410267) passed every configured step: dependency installation, isolated DB initialization, lint, unit tests, TypeScript, production build, app-page route smoke tests, authenticated role screenshot capture and artifact upload.
+- Exact-head Vercel combined status is success. Screenshot capture is automated evidence only; no manual visual or accessibility sign-off is claimed.
+- Review observation 1 is corrected: staff weekly-test score edits require selected authorised `courseId`, validate course/week, and select by learner/course/week plus explicit attempt or latest attempt. Route tests cover latest attempt and cross-course denial.
+- Review observation 2 is corrected: report-card updates compare-and-swap on `id + version`; concurrent losers return `REPORT_CARD_VERSION_CONFLICT` without creating a snapshot. Regression test added.
+- Review observation 3: added `docs/UPGRADE-2026-10/PR3-SCHEMA-ROLLOUT.md` with preflight, backup/restore, controlled migration, legacy NULL-course preservation, baseline version snapshots and conditional rollback. Removed production `prisma db push` from the Vercel build script. Production/demo derived Prisma model bodies now match canonical `prisma/schema.prisma`.
+- **Release gate remains:** no production database inspection or migration is authorised; no executable production migration is included/validated, actual production schema/migration history is unknown, and explicit owner approval of exact target/migration/backup/restore window is outstanding. Confirm the ReportCardVersion parent delete policy before migration.
+- PR discussion response updated with fixes and exact-head validation evidence. No unresolved inline review threads were returned.
+- Continuity updates after the validated code/schema head: `proj_progress.md` commit `52f815f73e9de9785c4184b47eac9cf8ea7da791`; `docs/SESSION-LOG.md` commit `4a7172f0bf184459bd71f71cbc855f66b4bcb299`. Recheck checks for the final docs-only head.
+- Keep PR #3 draft, unmerged and undeployed. No production data/schema operation, merge, deployment, branch switch, dependency change or main-branch write.
+
 ## Latest live update — 2026-11-10 (PR #3 review follow-up / schema safety)
 
 - Live repository: `fccljbplant/ExaminerAI`; base `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
