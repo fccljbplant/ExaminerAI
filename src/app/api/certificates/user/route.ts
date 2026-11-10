@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       distinct: ["week"],
     }),
     db.certificate.findFirst({
-      where: { userId: user.id, courseId, grade: { not: "PENDING" } },
+      where: { userId: user.id, courseId, grade: { notIn: ["PENDING", "REJECTED"] } },
       orderBy: { issuedAt: "desc" },
     }),
     checkEligibility(user.id, courseId),
