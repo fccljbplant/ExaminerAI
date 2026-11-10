@@ -152,19 +152,17 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ comments });
 }
 
-/** POST /api/comments — instructor/admin adds a comment on selected-course activity.
+/** POST /api/comments — instructor/admin adds feedback to selected-course activity.
  *
  *  Body:
  *    - studentId (required)
+ *    - courseId (required; server-validated against the caller's current course scope)
  *    - body (required — the comment text)
- *    - interactionId (optional — comment on a practice question)
- *    - taskId (optional — comment on a project task)
- *    - weeklyTestId (optional — comment on a weekly test)
- *    - dailyLogId (optional — comment on a daily check-in)
- *    - marksOverride (optional — override the score on the entity)
+ *    - at least one of interactionId, taskId, weeklyTestId or dailyLogId (required)
+ *    - marksOverride (optional — override the score on the linked entity)
  *
- *  If none of the optional IDs is provided, the comment is a general
- *  project comment shown at the top of the student's portfolio.
+ *  Every supplied activity ID must belong to the target learner and selected
+ *  course. General/unassigned comments are not writable through this endpoint.
  */
 export async function POST(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("posting comments"); if (_demoBlock) return _demoBlock;
@@ -235,7 +233,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ comment });
 }
 
-/** PATCH /api/comments?id=... — instructor/admin edits an existing comment.
+/** PATCH /api/comments?id=...&courseId=... — instructor/admin edits a linked comment after course revalidation.
  *
  *  Body:
  *    - body (optional — new comment text)
@@ -285,7 +283,7 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({ comment: updated });
 }
 
-/** DELETE /api/comments?id=... — instructor/admin deletes a comment. */
+/** DELETE /api/comments?id=...&courseId=... — delete a linked comment after course revalidation. */
 export async function DELETE(req: NextRequest) {
   const _demoBlock = await demoWriteBlock("posting comments"); if (_demoBlock) return _demoBlock;
   const payload = await getAuthUser();
