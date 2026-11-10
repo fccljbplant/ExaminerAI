@@ -2,7 +2,6 @@ import { isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
-import { getCourseDurationWeeks } from "@/modules/course/lib/course-db";
 import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logAudit, AuditAction } from "@/lib/audit-log";
@@ -39,9 +38,13 @@ export async function POST(
   if (!authorisedCourseIds.includes(courseId)) {
     return NextResponse.json({ error: "You cannot unlock tests for this course" }, { status: 403 });
   }
-  const totalWeeks = await getCourseDurationWeeks(id, courseId);
-  if (week > totalWeeks) {
-    return NextResponse.json({ error: `Week must be between 1 and ${totalWeeks} for this course` }, { status: 400 });
+  const course = await db.course.findUnique({
+    where: { id: courseId },
+    select: { id: true, weeks: { select: { weekNumber: true } } },
+  });
+  if (!course) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  if (!course.weeks.some((courseWeek) => courseWeek.weekNumber === week)) {
+    return NextResponse.json({ error: "Week is not part of the selected course outline" }, { status: 400 });
   }
 
   const [student, existing] = await Promise.all([
