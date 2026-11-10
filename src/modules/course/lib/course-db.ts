@@ -24,15 +24,18 @@ import {
 /** Load the full course outline from the DB for a given user.
  *  Returns null if the user's batch has no course assigned (caller falls back). */
 async function loadCourseFromDB(userId: string, courseId?: string): Promise<WeekTopic[] | null> {
-  const enrollment = await db.courseEnrollment.findFirst({
+  const enrollments = await db.courseEnrollment.findMany({
     where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
     select: { courseId: true },
+    take: courseId ? 1 : 2,
   });
 
-  if (!enrollment) return null;
+  if (enrollments.length === 0) return null;
+  // Never silently select the first course when a learner has multiple enrolments.
+  if (!courseId && enrollments.length !== 1) return [];
 
   const course = await db.course.findUnique({
-    where: { id: enrollment.courseId, isActive: true },
+    where: { id: enrollments[0].courseId, isActive: true },
     include: {
       weeks: {
         orderBy: { weekNumber: "asc" },
@@ -136,14 +139,15 @@ export async function getCourseMetadata(userId: string, courseId?: string): Prom
   description: string;
 } | null> {
   try {
-    const enrollment = await db.courseEnrollment.findFirst({
+    const enrollments = await db.courseEnrollment.findMany({
       where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
       select: { courseId: true },
+      take: courseId ? 1 : 2,
     });
-    if (!enrollment) return null;
+    if (enrollments.length === 0 || (!courseId && enrollments.length !== 1)) return null;
 
     const course = await db.course.findUnique({
-      where: { id: enrollment.courseId, isActive: true },
+      where: { id: enrollments[0].courseId, isActive: true },
       select: {
         name: true,
         description: true,
