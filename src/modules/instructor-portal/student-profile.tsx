@@ -149,12 +149,12 @@ type TabKey = "academic" | "growth" | "psychology" | "project" | "engagement" | 
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "academic", label: "Academic" },
-  { key: "growth", label: "Learner-wide growth" },
+  { key: "growth", label: "Growth" },
   { key: "psychology", label: "Psychology" },
   { key: "project", label: "Project" },
   { key: "engagement", label: "Engagement" },
   { key: "certificates", label: "Certificates" },
-  { key: "comments", label: "Learner-wide comments" },
+  { key: "comments", label: "Comments" },
 ];
 
 const TASK_TONE: Record<string, string> = {
@@ -180,21 +180,6 @@ export function StudentProfile({ studentId }: { studentId: string }) {
   const [nudging, setNudging] = useState(false);
   const [messaging, setMessaging] = useState(false);
   const [messageText, setMessageText] = useState("");
-  const [briefing, setBriefing] = useState<Briefing | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/instructor/student-briefing?studentId=${studentId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((b: Briefing | null) => {
-        if (!cancelled) setBriefing(b);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [studentId]);
-
   async function nudge() {
     setNudging(true);
     try {
@@ -381,20 +366,9 @@ export function StudentProfile({ studentId }: { studentId: string }) {
         </div>
       )}
 
-      {/* mentor briefing (v1 StudentBriefing) */}
-      {briefing && (
-        <div className={cn("rounded-xl border px-4 py-3", BRIEFING_TONE[briefing.status])}>
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Mentor briefing
-          </p>
-          <p className="mt-1 text-sm leading-relaxed">{briefing.briefing}</p>
-          <p className="mt-1.5 text-xs text-fg-muted">
-            <span className="font-medium text-fg-secondary">Talking point:</span>{" "}
-            {briefing.suggestedTalkingPoint}
-          </p>
-        </div>
-      )}
+      <p className="rounded-lg border border-line bg-surface px-3 py-2 text-xs text-fg-muted">
+        This view is scoped to the selected course. Learner-wide summaries and unassigned comments are not included here.
+      </p>
 
       {/* risk banner */}
       {atRisk && (
@@ -447,12 +421,16 @@ export function StudentProfile({ studentId }: { studentId: string }) {
       </div>
 
       {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
-      {tab === "growth" && <GrowthTab data={data} studentId={studentId} />}
+      {tab === "growth" && (
+        <Empty label="Learner-wide growth summaries are temporarily unavailable in this course-specific view until their source records can be scoped safely." />
+      )}
       {tab === "psychology" && <PsychologyTab data={data} />}
       {tab === "project" && <ProjectTab data={data} onChanged={retry} />}
       {tab === "engagement" && <EngagementTab data={data} />}
       {tab === "certificates" && <CertificatesTab data={data} />}
-      {tab === "comments" && <CommentsTab studentId={studentId} />}
+      {tab === "comments" && (
+        <Empty label="Unassigned learner-wide comments are temporarily unavailable in this course-specific view." />
+      )}
 
       <Link
         href="/instructor/students"
