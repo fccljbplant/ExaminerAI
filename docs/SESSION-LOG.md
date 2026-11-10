@@ -798,3 +798,31 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 4. Consider restoring mentor briefing UI only after its course-specific contract is validated with instructors.
 5. Keep PR #3 draft/unmerged; no production migration/deploy without explicit approval.
 
+
+
+## 2026-11-10 — Course-scoped comment write safeguards
+
+### Starting state and live repository
+- Started from PR #3 head `7b699fa1b0fdca380ca7f02c9b2c87e6c62f5270` on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- End code head: `c4a63e5c0779aa48150c8405e019e7546549983d`; PR #3 remains open, draft, unmerged and mergeable (387 commits / 121 changed files). `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`. No PR reviews or inline threads returned.
+- No local repository checkout/working tree was available; source inspection and updates were performed against the live branch through GitHub.
+
+### Finding and implementation
+- The comment GET path already enforced selected-course filtering for staff, but POST/PATCH/DELETE still accepted unscoped or mixed-course comment writes.
+- Added a shared link validator that checks only the activity references actually supplied. Every supplied interaction/task/weekly-test/daily-log link must exist for the target learner in the selected course; no activity link means no comment can be created.
+- POST now requires non-empty `studentId` and `courseId`, at least one activity link, and a currently authorised staff/learner course intersection.
+- PATCH/DELETE now require `courseId`, revalidate current staff access, and verify all existing non-null activity links belong to the same learner/course before mutation.
+- Unassigned/general and mixed-course legacy comments are left intact but cannot be created, edited or deleted through these staff routes. Learner self-history remains cross-course.
+- The instructor Comments composer remains unavailable; no UI write surface was restored. The API contract is now safe for a future activity-linked composer.
+- Updated `docs/api.md` with the request contract. No schema change is required because course provenance is derived from the activity relations.
+
+### Tests and CI
+- Added/updated route tests for required course/activity context, denied course, denied activity, mixed-course reference rejection, valid linked creation, and cross-course edit/delete denial.
+- First CI run `42739556837` exposed a real helper bug: omitted relation IDs were represented as null checks, causing a valid single-link comment to be rejected. A test-only reset change did not fix it. Corrected the helper to build checks only for supplied references and require all supplied checks to resolve.
+- Exact-head GitHub Actions run `42740191410` passed all configured steps on `c4a63e5...`: dependency install, isolated DB setup, lint (0 errors; 7 warnings), unit tests (436 passed / 41 files), typecheck, production build, 83/83 app-page route smoke, authenticated role screenshot capture for four roles × seven viewports, and artifact upload `13729306143`.
+- The screenshots were captured/uploaded by CI but were not manually inspected in a browser. No local tests, manual browser, axe, keyboard, screen-reader, reduced-motion, zoom or reflow checks were available.
+- Vercel status remains failed due to the project build-rate limit; no Ready preview is confirmed.
+
+### Safety and next step
+- No schema/migration/dependency/production-data changes, merge, deployment, branch switch or main-branch write. PR #3 remains draft.
+- The next academic-data task remains course-specific WeeklyTest/ReportCard identity and APIs, preserving null-course legacy rows and report-card version history. The Agent Pack `AGENTS.md`, task queue and logged runner are absent from the current branch; do not invent a task card or run the uploaded branch-switching runner.
