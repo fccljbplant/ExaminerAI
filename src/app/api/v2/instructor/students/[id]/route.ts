@@ -151,9 +151,10 @@ export async function GET(
     await Promise.all([
       db.weeklyTest.findMany({
         where: { userId: id, courseId: selectedCourseId },
-        orderBy: { week: "asc" },
+        orderBy: [{ week: "asc" }, { attempt: "asc" }],
         select: {
           week: true,
+          attempt: true,
           score: true,
           status: true,
           completedAt: true,
@@ -169,6 +170,12 @@ export async function GET(
         where: { userId: id, courseId: selectedCourseId },
         orderBy: { date: "desc" },
         take: 10,
+        include: {
+          versions: {
+            orderBy: { version: "asc" },
+            select: { version: true, grade: true, score: true, actorRole: true, reason: true, createdAt: true },
+          },
+        },
       }),
       db.skillMastery.findMany({
         where: { userId: id },
@@ -253,6 +260,7 @@ export async function GET(
       try { weaknesses = JSON.parse(t.weaknesses); } catch { weaknesses = []; }
       return {
         week: t.week,
+        attempt: t.attempt,
         score: t.score,
         status: t.status,
         completedAt: t.completedAt?.toISOString() ?? null,
@@ -269,7 +277,16 @@ export async function GET(
       week: r.week ?? null,
       score: r.score,
       grade: r.grade,
+      version: r.version,
       createdAt: r.date.toISOString(),
+      versions: r.versions.map((version) => ({
+        version: version.version,
+        grade: version.grade,
+        score: version.score,
+        actorRole: version.actorRole,
+        reason: version.reason,
+        createdAt: version.createdAt.toISOString(),
+      })),
     })),
     competencies: competencies.map((c) => ({ topic: c.topic, level: c.masteryLevel })),
     dailyLogs: dailyLogs.map((log) => toDailyLogPayload(log, includeSupportSignals)),
