@@ -74,8 +74,10 @@ async function loadCourseFromDB(userId: string, courseId?: string): Promise<Week
 
 /** Get all week topics for a user (from DB or fallback to hardcoded). */
 export async function getCourseTopics(userId: string, courseId?: string): Promise<WeekTopic[]> {
+  // Course content is never replaced by a global fallback. If no unambiguous
+  // enrolled course or published outline exists, callers receive no topics.
   const dbTopics = await loadCourseFromDB(userId, courseId);
-  return dbTopics ?? WEEKLY_TOPICS;
+  return dbTopics ?? [];
 }
 
 /** Get topics (DailyTopic[]) for a specific week. */
