@@ -29,6 +29,7 @@ import {
   canViewLearnerSupportSignals,
   getAuthorizedStudentCourseIds,
   toDailyLogPayload,
+  resolveAuthorizedCourseSelection,
 } from "@/modules/instructor-portal/student-detail-visibility";
 
 export const runtime = "nodejs";
@@ -36,7 +37,7 @@ export const runtime = "nodejs";
 const INSTRUCTOR_ROLES = new Set(["instructor", "org_admin"]);
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const user = await getAuthUser();
@@ -64,7 +65,6 @@ export async function GET(
   // the learner both hold active memberships.
   const isOrgAdmin = user.role === "org_admin";
   const includeSupportSignals = canViewLearnerSupportSignals(user.role);
-  let sharedCourse: { courseId: string } | null = null;
   let courseIds: string[] = [];
 
   if (isOrgAdmin) {
@@ -100,7 +100,7 @@ export async function GET(
   // exact intersection, not merely to the first shared course.
   const learnerEnrollments = courseIds.length
     ? await db.courseEnrollment.findMany({
-        where: { userId: id, role: "student", courseId: { in: courseIds } },
+        where: { userId: id, role: "student", courseId: selectedCourseId },
         select: { courseId: true },
       })
     : [];
@@ -108,8 +108,21 @@ export async function GET(
     courseIds,
     learnerEnrollments.map((enrollment) => enrollment.courseId),
   );
-  sharedCourse = courseIds.length ? { courseId: courseIds[0] } : null;
-  if (!sharedCourse) {
+
+  const courses = courseIds.length
+    ? await db.course.findMany({
+        where: { id: { in: courseIds } },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
+  const requestedCourseId = req.nextUrl.searchParams.get("courseId");
+  const courseSelection = resolveAuthorizedCourseSelection(
+    courses.map((course) => course.id),
+    requestedCourseId,
+  );
+
+  if (courseSelection.kind === "none" || courseSelection.kind === "forbidden") {
     return apiError(
       isOrgAdmin ? "You cannot access this learner in your organisation" : "You do not teach this student",
       "FORBIDDEN",
@@ -117,10 +130,28 @@ export async function GET(
     );
   }
 
+  // Multiple shared courses are not aggregated. Return only the authorised
+  // course choices until the instructor explicitly selects one.
+  if (courseSelection.kind === "selection_required") {
+    return apiSuccess({
+      student: {
+        id: student.id,
+        name: student.name,
+        email: student.email,
+        lastLogin: student.lastLogin?.toISOString() ?? null,
+        joinedAt: student.createdAt.toISOString(),
+      },
+      courses,
+      courseSelectionRequired: true as const,
+    });
+  }
+
+  const selectedCourseId = courseSelection.courseId;
+
   const [weeklyTests, reportCards, competencies, dailyLogs, tasks, certificates, events, projects, psychWeekly] =
     await Promise.all([
       db.weeklyTest.findMany({
-        where: { userId: id, courseId: { in: courseIds } },
+        where: { userId: id, courseId: selectedCourseId },
         orderBy: { week: "asc" },
         select: {
           week: true,
@@ -136,7 +167,7 @@ export async function GET(
         },
       }),
       db.reportCard.findMany({
-        where: { userId: id, courseId: { in: courseIds } },
+        where: { userId: id, courseId: selectedCourseId },
         orderBy: { date: "desc" },
         take: 10,
       }),
@@ -146,34 +177,34 @@ export async function GET(
         orderBy: { topic: "asc" },
       }),
       db.dailyLog.findMany({
-        where: { userId: id, courseId: { in: courseIds } },
+        where: { userId: id, courseId: selectedCourseId },
         orderBy: { date: "desc" },
         take: 14,
         select: includeSupportSignals ? { date: true, confidence: true } : { date: true },
       }),
       db.projectTask.findMany({
-        where: { userId: id, courseId: { in: courseIds } },
+        where: { userId: id, courseId: selectedCourseId },
         orderBy: [{ week: "asc" }, { createdAt: "asc" }],
         select: { id: true, description: true, status: true, week: true },
       }),
       db.certificate.findMany({
-        where: { userId: id, courseId: { in: courseIds } },
+        where: { userId: id, courseId: selectedCourseId },
         orderBy: { issuedAt: "desc" },
         select: { id: true, courseName: true, grade: true, score: true, issuedAt: true, verifyToken: true },
       }),
       db.engagementEvent.findMany({
-        where: { userId: id, courseId: { in: courseIds } },
+        where: { userId: id, courseId: selectedCourseId },
         orderBy: { createdAt: "desc" },
         take: 12,
         select: { eventType: true, createdAt: true },
       }),
       db.learnProject.findMany({
-        where: { userId: id, courseId: { in: courseIds } },
+        where: { userId: id, courseId: selectedCourseId },
         orderBy: { updatedAt: "desc" },
         include: { tasks: { select: { id: true, status: true } } },
       }),
       includeSupportSignals
-        ? computePsychWeekly(id, sharedCourse.courseId).catch(() => null)
+        ? computePsychWeekly(id, selectedCourseId).catch(() => null)
         : Promise.resolve(null),
     ]);
 
@@ -200,7 +231,8 @@ export async function GET(
       lastLogin: student.lastLogin?.toISOString() ?? null,
       joinedAt: student.createdAt.toISOString(),
     },
-    courseId: sharedCourse.courseId,
+    courseId: selectedCourseId,
+    courses,
     kpis: {
       progress: calculateTaskProgress(totalTasks, completedTasks),
       tasksDone: `${completedTasks}/${totalTasks}`,
