@@ -15,7 +15,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
-import { apiError, apiNotFound, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
+import { apiDegraded, apiError, apiNotFound, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 import { callAIJson } from "@/modules/assessment/lib/ai-json";
 import { awardTypedXP } from "@/modules/learn/lib/xp-ledger";
 import { logger } from "@/lib/logger";
@@ -50,6 +50,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   const test = await db.learnWeeklyTest.findUnique({ where: { id: testId } });
   if (!test) return apiNotFound("Test not found");
   if (test.userId !== user.sub) return apiError("This test belongs to another user", "FORBIDDEN", 403);
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: test.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiError("You are not enrolled in this course", "FORBIDDEN", 403);
   if (test.status === "completed") return apiError("Test is already completed", "CONFLICT", 409);
 
   const questions = test.questions as any[];
@@ -105,17 +110,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
     },
   );
 
-  let evaluation: z.infer<typeof EVAL_SCHEMA>;
-  if (result.ok) {
-    evaluation = result.data;
-  } else {
-    logger.warn("learn weekly-test answer AI failed, fallback", { error: result.error });
-    evaluation = {
-      evaluation: "partial",
-      feedback: "I couldn't fully evaluate your answer right now — I'll give you the benefit of the doubt. Review the week's material and try the next question.",
-      score: 0.5,
-    };
+  if (!result.ok) {
+    logger.warn("learn weekly-test answer AI unavailable; answer not graded or persisted", {
+      error: result.error,
+      testId: test.id,
+      courseId: test.courseId,
+    });
+    return apiDegraded(
+      "Your answer could not be evaluated right now. It has not been graded or saved; please retry.",
+    );
   }
+  const evaluation = result.data;
 
   // Persist answer to the answers JSON array (index = questionIdx).
   const answers = (test.answers as any[]) ?? [];
@@ -158,6 +163,5 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
     isComplete,
     finalScore: isComplete ? finalScore : null,
     // Generic degradation reason when the AI path failed (no secrets).
-    aiError: result.ok ? null : result.error,
   });
 }
