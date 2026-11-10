@@ -386,3 +386,15 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 - **Execution blocker:** the current branch has no `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` or `scripts/agent/run-logged.mjs` (verified from the recursive Git tree). The uploaded Agent Pack contains a queue and runner, but its `run-queue.mjs` automatically switches/creates `upgrade/phase-<N>`, contrary to the repository continuity rule to remain on the existing PR branch; Agent Pack instructions also prohibit modifying its runner. No local repository checkout is available to run its required gates. Do not invent a task card, run the unsafe queue runner, or make a partial high-risk report patch outside the required task workflow.
 - No application code/tests/schema/dependency/migration/production-data change, branch switch, merge, deployment or main-branch write in this continuation. Documentation only.
 - Next safe action: restore a branch-preserving, no-`.env*` task-card/logged-check workflow (or an owner-approved equivalent) on the existing PR branch, then take one bounded comprehensive-report task covering course context, evidence truthfulness, cache/review semantics, route tests and the actual rendering consumer. Keep PR #3 draft/unmerged.
+
+
+## 2026-11-10 — BLOCKED: comprehensive-report follow-up has no safe task workflow
+
+**Status: BLOCKED — no source changes authorised under the current workflow.**
+
+- The latest handoff identifies a bounded comprehensive-report privacy/evidence slice: selected-course evidence context, authorised staff/course/tenant checks, missing-evidence semantics, cache/review versioning, route tests, and the actual report rendering consumer with the owner-approved AI-reliability notice.
+- The current PR branch does not contain `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` or `scripts/agent/run-logged.mjs`.
+- The uploaded Agent Pack queue contains Phase 0/1 cards but no card for this report follow-up. Do not invent a task card.
+- The Agent Pack runner switches/creates `upgrade/phase-<N>`, contrary to the continuity rule to remain on the existing PR #3 branch. Its OpenCode off-peak guard reads `.env`, `.env.local` and `.env.production` to inspect database configuration, contrary to the no-`.env*` rule. Do not execute it unchanged or weaken the protections.
+- No local repository checkout is available to run the required logged checks. GitHub Actions can validate commits, but does not replace the missing task-card contract and local logged-runner workflow.
+- Safe next step requires an owner-approved branch-preserving, no-secret-reading task-card/logged-check alternative, or installation of compatible tooling that preserves the existing branch and never reads `.env*`. Keep PR #3 draft/unmerged.
