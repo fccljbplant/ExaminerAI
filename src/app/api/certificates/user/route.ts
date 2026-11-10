@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       distinct: ["week"],
     }),
     db.weeklyTest.findMany({
-      where: { userId: user.id, courseId, status: "completed", score: { not: null } },
+      where: { userId: user.id, courseId, status: "completed" },
       select: { week: true },
       distinct: ["week"],
     }),
@@ -64,8 +64,9 @@ export async function GET(req: NextRequest) {
   const completedTestWeeks = new Set(completedTestRows.map((row) => row.week));
   const reachedFinalWeek = totalWeeks > 0 && courseWeekNumbers.every((week) => completedWeekNumbers.has(week));
   const allTestsCompleted = totalWeeks > 0 && courseWeekNumbers.every((week) => completedTestWeeks.has(week));
-  const latestCompletedWeek = progressRows.reduce((latest, row) => Math.max(latest, row.week), 0);
-  const currentWeek = totalWeeks > 0 ? Math.min(totalWeeks, latestCompletedWeek + 1) : null;
+  const currentWeek = totalWeeks > 0
+    ? courseWeekNumbers.find((week) => !completedWeekNumbers.has(week)) ?? courseWeekNumbers[courseWeekNumbers.length - 1]
+    : null;
   const progressPercent = totalWeeks > 0
     ? Math.round((
         Math.min(100, Math.round((completedWeeks / totalWeeks) * 100)) +
