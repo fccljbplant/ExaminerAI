@@ -570,7 +570,6 @@ model WeeklyTest {
   course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
   @@unique([userId, courseId, week, attempt])
-  @@index([userId, courseId, week])
   @@index([courseId])
 }
 
@@ -611,7 +610,6 @@ model ReportCard {
   versions ReportCardVersion[]
 
   @@unique([userId, courseId, week])
-  @@index([userId, courseId, week])
   @@index([courseId])
 }
 
