@@ -286,3 +286,53 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 - Added `src/app/api/v2/instructor/students/[id]/route.test.ts` with route-level coverage for: multi-course selection response with no academic queries before selection; exact selected-course filtering for course-bearing relations; denial of a course outside the current authorised intersection; and automatic selection when exactly one shared course exists.
 - This closes the earlier test gap for the course-selection contract at the API boundary. The tests are committed but not yet validated by CI; do not describe them as passing until a successful exact-head run is available.
 
+
+
+## 2026-11-10 — Course-specific learner-detail secondary APIs and assessment write safeguards
+
+**Decision**
+
+- A staff learner-detail view is always bound to one explicitly selected course. The server validates the selection against the current staff-authorised/learner-enrolled course intersection on every request.
+- Staff growth reports require `courseId`; weekly tests and practice interactions are filtered to that course. A learner may still view their own cross-course growth summary or request one of their enrolled courses.
+- Missing test/practice evidence is unavailable, not zero. A measured practice score of zero remains valid evidence. No-data reports return null score fields, an empty strengths list, and an explicit insufficient-evidence growth area.
+- Staff comment reads require `courseId`. A comment is visible in a course view only when it has at least one linked activity record and every non-null linked record ID belongs to that same learner and selected course. Mixed-course and unassigned legacy comments are excluded. Learners retain access to their own complete comment history.
+- Mentor briefings require a selected authorised course and use only course-scoped daily tests, weekly tests, tasks, check-ins and practice interactions. Global last-login/current-week fields are not used as course activity. No evidence yields `insufficient_data`, not a fabricated 999-day inactivity signal.
+- The Growth panel is restored in the instructor course view and passes the selected course ID. Competency/mastery data without a course ID is explicitly labelled learner-level and is not presented as a course result.
+- Comment writing remains unavailable in the course-specific UI. The legacy POST/PATCH/DELETE comment write path is not yet fully course-scoped and the old composer cannot attach a comment to a selected course activity. Do not restore that composer until its write path and record provenance are corrected.
+- Weekly-test retake/unlock and report-card generation controls are withheld from the course-specific instructor profile. The legacy endpoints are keyed by `(userId, week)`, and report-card generation reads learner/week evidence across courses. They can mutate or aggregate the wrong course. Existing course-linked records remain read-only in this view until the assessment identity and APIs are course-specific.
+- Course-specific assessment identity remains: WeeklyTest and ReportCard are independently keyed by learner, course and week. Legacy null-course rows remain unassigned; never backfill them to a guessed course. Any schema work must be additive/reversible and derived schemas must be regenerated from `prisma/schema.prisma`. No production migration is authorised by this implementation.
+
+**Rationale and safeguards**
+
+- Course labels must never imply that a cross-course aggregate belongs to one course.
+- Client course selectors are not authorisation; server-side role, tenant, course and learner-enrolment checks remain authoritative.
+- No learner-global current-week, last-login or project fields are used as selected-course progress.
+- The Growth report's zero score is shown only when zero was measured; absent evidence is null/unavailable.
+- The Comments UI remains a clear unavailable state because the write endpoint still supports unassigned/general comments and does not enforce course-linked writes.
+- Assessment mutation controls remain unavailable rather than silently writing to legacy learner/week records. This is a temporary safety gate, not a permanent removal of assessment functionality.
+
+**Implementation**
+
+- Shared scope resolver: `src/modules/instructor-portal/authorized-student-courses.ts` with instructor, org-admin, platform-admin and explicit-grant/demo scoping; unit tests in the adjacent `.test.ts`.
+- Growth report: `src/app/api/growth-reports/[userId]/route.ts` and `.test.ts`.
+- Comment reads: `src/app/api/comments/route.ts` and `.test.ts`.
+- Mentor briefing: `src/app/api/instructor/student-briefing/route.ts` and `.test.ts`.
+- Instructor profile: `src/modules/instructor-portal/student-profile.tsx` restores course-scoped Growth, labels learner-level competencies, withholds comment writing, withholds unsafe assessment mutations, and displays unavailable test scores without a zero-width bar.
+- The earlier multi-course selector and route tests remain in place in `src/app/api/v2/instructor/students/[id]/route.ts`, `src/modules/instructor-portal/student-detail-visibility.ts`, and the instructor profile.
+
+**Validation**
+
+- Code head: `a5e1ad903d8da5f39d455f297cbf3e94df7e2589`.
+- Exact-head GitHub Actions PR run `42737212881` completed successfully: dependency install, isolated DB setup, lint, unit tests, TypeScript, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload.
+- Vercel combined status remains failure because the project build-rate limit is reached. No Ready preview is confirmed.
+- No local checkout or local test/lint/typecheck/build/browser/axe run was available. CI screenshots are not a substitute for manual keyboard, screen-reader, zoom/reflow and axe validation.
+- PR #3 remains open, draft, unmerged and mergeable. `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`. No schema, migration, dependency, production-data, merge or deployment change.
+
+**Next**
+
+1. Design and implement additive composite identity for WeeklyTest and ReportCard: learner + course + week; preserve legacy null-course rows without guessing.
+2. Refactor unlock, retake and report-card generation endpoints to require `courseId`, enforce the selected course server-side and use only selected-course evidence; keep mutations unavailable until this is complete.
+3. Course-scope comment POST/PATCH/DELETE and provide an activity-linked composer before restoring Comments.
+4. Decide whether/when to restore the course-specific mentor briefing UI; its API is now scoped but no UI consumer is enabled.
+5. Keep PR #3 draft/unmerged; no production migration or deployment without explicit approval.
+

@@ -1,3 +1,18 @@
+## Latest live update — 2026-11-10 (course-specific learner-detail APIs and write safeguards)
+
+- Live repository: `fccljbplant/ExaminerAI`; `main` HEAD remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft, unmerged and mergeable on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. Validated application-code head: `a5e1ad903d8da5f39d455f297cbf3e94df7e2589` (379 commits / 121 changed files at refresh). No PR reviews or inline review threads returned.
+- Exact-head GitHub Actions PR run `42737212881` passed install, isolated DB setup, lint, unit tests, typecheck, production build, app-page route smoke tests, authenticated role screenshots and artifact upload.
+- Vercel combined status remains failure due to the project build-rate limit. No Ready preview is confirmed.
+- Instructor learner-detail selection remains course-specific: one shared course auto-selects; multiple shared courses require explicit selection; invalid course IDs are denied; all course-bearing drill-down queries are filtered to the selected course.
+- Added shared server-side staff/learner course-scope resolution. Growth report, comment reads and mentor briefing now require an authorised selected course for staff and filter source records to that course. Missing growth evidence is null/unavailable; a measured zero remains valid. Mentor briefing no longer uses global login/current-week values and returns `insufficient_data` when there is no evidence.
+- Growth panel is restored with the selected course query. Competency/mastery remains clearly learner-level because the schema has no courseId. Comments composer remains unavailable because comment writes are not yet course-scoped.
+- Weekly-test retake/unlock and report-card generation controls are withheld in the course-specific view. Existing APIs use learner/week identity and report-card generation aggregates cross-course evidence; re-enabling would risk cross-course mutation and false reporting. Existing course-linked rows remain viewable.
+- Added helper and route tests for staff course intersections, growth course filtering/missing evidence, comments same-course linked-record filtering, mentor briefing course filtering/no-data status, plus earlier course-selector route tests.
+- No schema, migration, dependency, production-data, main-branch, merge or deployment change. No local browser/axe/manual accessibility validation.
+- Next: course-specific WeeklyTest/ReportCard composite identity and CRUD/generation, with legacy null-course preservation and additive migration/rollback plan; then scope comment write endpoints and provide an activity-linked composer. Keep PR #3 draft/unmerged.
+
+
 # TraineesAI project status
 
 ## Latest live update — 2026-11-10 (instructor learner-detail course isolation)

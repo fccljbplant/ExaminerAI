@@ -756,3 +756,45 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Added `src/app/api/v2/instructor/students/[id]/route.test.ts` with four route-level cases: no academic queries before multi-course selection, selected-course filtering across all course-bearing queries, 403 for an outside course, and single-course auto-selection.
 - Implementation/test commit: `f26de0c15cdecb541792066c3d2b34d72914c0b3`. No exact-head Actions run returned at refresh. The previous run `42734322946` on `01bb794...` was cancelled during dependency installation; all substantive checks were skipped. No local validation was available.
 
+
+
+## 2026-11-10 — Course-specific learner-detail APIs and assessment safeguards
+
+### Starting state and live repository
+- Starting code head: `a5e1ad903d8da5f39d455f297cbf3e94df7e2589`.
+- `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft, unmerged and mergeable; 379 commits / 121 changed files at the last metadata refresh. No submitted reviews or inline review threads returned.
+
+### Findings and decisions
+- Course-specific learner detail was initially fixed with explicit course selection and selected-course filtering. Follow-up inspection found three adjacent endpoints that still mixed or implied learner-global evidence: growth reports, comments and mentor briefing.
+- Added a reusable server-side staff/learner course intersection resolver. Instructor scope uses teaching enrolments intersected with learner enrolments; org-admin scope uses active shared organisation memberships and linked OrgCourse rows intersected with learner enrolments; platform-admin and explicit-grant/demo access are bounded to actual learner enrolments after the existing access assertion.
+- Growth report staff requests now require `courseId`; weekly tests and interactions are filtered to it. Learner self-view retains own cross-course summary and may request one enrolled course. Missing assessment/practice evidence returns null score fields and no fabricated strength; correctness 0 is counted as measured evidence.
+- Comments staff GET now requires selected course and returns only comments with at least one linked activity and with every non-null linked relation belonging to that learner/course. Mixed-course and unassigned legacy comments are excluded. Learners retain own full history.
+- Mentor briefing now requires selected course and scopes daily tests, weekly tests, project tasks, daily logs and interactions. It no longer uses learner-global lastLogin/currentWeek/currentDay to imply course progress; no evidence returns `insufficient_data`.
+- Restored the Growth panel in the course-specific instructor profile; it passes selected courseId and parses JSON-list response fields. Course-less competencies are labelled learner-level.
+- Kept Comments unavailable because POST/PATCH/DELETE and the existing composer are not yet fully course-aware; do not restore until comments can be attached to selected course activity.
+- Found unsafe assessment writes in AcademicTab: allow-retake and unlock endpoints use unique `(userId, week)`; report-card generator also reads tasks, logs, interactions, weekly tests and comments by learner/week across courses and writes a learner/week report card. Removed those mutation controls from the course-specific profile, while retaining read-only existing course-linked rows. This is a temporary safety gate pending course-specific identity and endpoints.
+- The required identity remains WeeklyTest and ReportCard per `(userId, courseId, week)`. Legacy null-course rows remain unassigned. No schema or migration was changed.
+
+### Files changed
+- `src/modules/instructor-portal/authorized-student-courses.ts` and `.test.ts`
+- `src/app/api/growth-reports/[userId]/route.ts` and `.test.ts`
+- `src/app/api/comments/route.ts` and `.test.ts`
+- `src/app/api/instructor/student-briefing/route.ts` and `.test.ts`
+- `src/modules/instructor-portal/student-profile.tsx`
+- Earlier course-selection changes remain in the v2 instructor student route and student-detail visibility helper/tests.
+
+### Validation
+- Exact code head: `a5e1ad903d8da5f39d455f297cbf3e94df7e2589`.
+- GitHub Actions PR run `42737212881` completed successfully: install, isolated DB, lint, unit tests, typecheck, production build, route smoke, authenticated role screenshots and artifact upload.
+- Vercel status remains failure due to project build-rate limit. No Ready preview verified.
+- No local checkout/tests/lint/typecheck/build/browser/axe run. No manual keyboard/screen-reader/zoom/reflow validation.
+- No schema/migration/dependency/production-data change, merge, deployment or main-branch write.
+
+### Next actions
+1. Implement additive WeeklyTest/ReportCard course identity and selected-course CRUD/generation with legacy null-course preservation, concurrency/idempotency tests and rollback notes.
+2. Keep retake/unlock/report-card generation unavailable until course-specific server-side writes are complete.
+3. Course-scope comment POST/PATCH/DELETE and add activity-linked comment composer before restoring Comments.
+4. Consider restoring mentor briefing UI only after its course-specific contract is validated with instructors.
+5. Keep PR #3 draft/unmerged; no production migration/deploy without explicit approval.
+

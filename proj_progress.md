@@ -1,9 +1,20 @@
 # TraineesAI — Project Progress
 
-**Updated:** 2026-11-10 (PR #3 rechecked at ad1638fc; exact code-head CI verified; next endpoint scope blockers recorded)  
+**Updated:** 2026-11-10 (course-specific learner-detail APIs and assessment write safeguards; code head a5e1ad903d8da5f39d455f297cbf3e94df7e2589)  
 **Repository:** https://github.com/fccljbplant/ExaminerAI  
 **Active PR:** [#3](https://github.com/fccljbplant/ExaminerAI/pull/3)  
 **Only working branch:** ux-audit/fix-dashboard-truthfulness-and-agent-safety
+
+
+## 2026-11-10 — Latest continuation: course-specific secondary APIs and assessment safeguards
+
+- Validated application-code head: `a5e1ad903d8da5f39d455f297cbf3e94df7e2589`; PR #3 open/draft/unmerged/mergeable; 379 commits / 121 changed files. `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Exact-head Actions PR run `42737212881` passed install, isolated DB setup, lint, unit tests, typecheck, production build, route smoke, authenticated role screenshots and artifact upload.
+- Added reusable server-side staff-to-learner course intersection resolution and course-scoped Growth report, Comments GET and mentor briefing endpoints. Missing evidence remains unavailable; measured zero practice accuracy remains real evidence. Course-less competencies are explicitly learner-level.
+- Restored course-scoped Growth panel. Comments composer remains unavailable because write endpoints are not course-scoped.
+- Disabled learner/week-scoped weekly-test retake/unlock and report-card generation controls in the course-specific instructor view. Those legacy endpoints can affect or aggregate another course. Existing course-linked rows remain read-only until WeeklyTest and ReportCard identity becomes learner+course+week.
+- No schema/migration/dependency/production data changes. Vercel remains failure due to build-rate limit; no Ready preview. No local/manual browser/axe checks.
+- Next: additive course-specific WeeklyTest/ReportCard identity + APIs, preserve null-course legacy rows, test same-week/two-course isolation; then scope comment writes and provide an activity-linked composer. Keep PR #3 draft/unmerged.
 
 ## Current verified state
 - PR #3 is open, draft, unmerged and mergeable. Latest live head at this refresh: ad1638fc9a1862b2876131fef8e1d656c82d757b; 309 commits and 111 changed files. The latest application-code/test head is earlier; subsequent commits are continuity documentation only.
