@@ -544,6 +544,11 @@ model WeeklyTest {
   completedAt     DateTime?
   interactionIds  String    @default("[]")
   score           Int?
+  originalScore   Int?
+  scoreEditedById String?
+  scoreEditedByRole String?
+  scoreEditedAt   DateTime?
+  scoreEditReason String?
   strengths       String    @default("[]")
   weaknesses      String    @default("[]")
   nextAction      String?
@@ -554,11 +559,12 @@ model WeeklyTest {
 
   retakeAllowed Boolean @default(false)
   courseId      String?
+  attempt       Int     @default(1) // distinct retake attempt within learner/course/week
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
 
-  @@unique([userId, week])
+  @@unique([userId, courseId, week, attempt])
   @@index([courseId])
 }
 
@@ -578,23 +584,54 @@ model Competency {
 }
 
 model ReportCard {
-  id         String   @id @default(cuid())
-  userId     String
-  week       Int
-  date       DateTime @default(now())
-  grade      String
-  score      Int
-  strengths  String   @default("[]")
-  weaknesses String   @default("[]")
-  progress   String
-  nextSteps  String   @default("[]")
-  courseId   String?
+  id            String   @id @default(cuid())
+  userId        String
+  week          Int
+  date          DateTime @default(now())
+  grade         String?
+  score         Int?
+  strengths     String   @default("[]")
+  weaknesses    String   @default("[]")
+  progress      String
+  nextSteps     String   @default("[]")
+  courseId      String?
+  version       Int      @default(1)
+  updatedAt     DateTime @updatedAt
+  updatedById   String?
+  updatedByRole String?
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course?             @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  versions ReportCardVersion[]
 
-  @@unique([userId, week])
+  @@unique([userId, courseId, week])
   @@index([courseId])
+}
+
+/// Immutable snapshot of each report-card revision, including the initial version.
+model ReportCardVersion {
+  id           String   @id @default(cuid())
+  reportCardId String
+  version      Int
+  userId       String
+  courseId     String?
+  week         Int
+  date         DateTime
+  grade        String?
+  score        Int?
+  strengths    String
+  weaknesses   String
+  progress     String
+  nextSteps    String
+  actorId      String
+  actorRole    String
+  reason       String
+  createdAt    DateTime @default(now())
+
+  reportCard ReportCard @relation(fields: [reportCardId], references: [id], onDelete: Restrict)
+
+  @@unique([reportCardId, version])
+  @@index([userId, courseId, week])
 }
 
 // AI response cache
