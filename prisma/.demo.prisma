@@ -620,10 +620,11 @@ model ReportCardVersion {
   nextSteps    String
   actorId      String
   actorRole    String
+  source       String   @default("manual_correction")
   reason       String
   createdAt    DateTime @default(now())
 
-  reportCard ReportCard @relation(fields: [reportCardId], references: [id], onDelete: Restrict)
+  reportCard ReportCard @relation(fields: [reportCardId], references: [id], onDelete: Cascade)
 
   @@unique([reportCardId, version])
   @@index([userId, courseId, week])
@@ -749,10 +750,13 @@ model Certificate {
   courseName    String
   studentName   String
   grade         String
-  score         Int
+  score         Int?
   issuedAt      DateTime @default(now())
   signedBy      String
   verifyToken   String   @unique
+  rejectionReason String?
+  rejectedById   String?
+  rejectedAt     DateTime?
   pdfUrl        String?
   institutionId String? // legacy Institution reference (pre-org model)
   orgId         String? // issuing Organization (B2B certificates)
