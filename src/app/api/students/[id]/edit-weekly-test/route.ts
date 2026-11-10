@@ -29,7 +29,7 @@ export async function PATCH(
   const courseId = typeof body.courseId === "string" ? body.courseId.trim() : "";
   const week = Number(body.week);
   const attempt = body.attempt === undefined ? undefined : Number(body.attempt);
-  const score = Number(body.score);
+  const score = typeof body.score === "number" ? body.score : Number.NaN;
   const reason = typeof body.reason === "string" ? body.reason.trim() : "";
 
   if (!courseId) return NextResponse.json({ error: "courseId is required" }, { status: 400 });
