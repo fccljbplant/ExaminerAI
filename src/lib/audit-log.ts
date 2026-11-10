@@ -64,6 +64,9 @@ export const AuditAction = {
   WELLBEING_STATE_CHANGED: "wellbeing_state_changed",
   REPORT_CARD_GENERATED: "report_card_generated",
   FINAL_RESULT_GENERATED: "final_result_generated",
+  COMMENT_CREATED: "comment_created",
+  COMMENT_UPDATED: "comment_updated",
+  COMMENT_DELETED: "comment_deleted",
 } as const;
 
 export async function logAudit(params: LogAuditParams): Promise<void> {
