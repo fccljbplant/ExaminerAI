@@ -1,3 +1,15 @@
+## Latest live update — 2026-11-10 (PR #3 review follow-up / schema safety)
+
+- Live repository: `fccljbplant/ExaminerAI`; base `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft, unmerged on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. The code/schema/plan head before continuity updates was `c3ba33dfdcf2e2d5e48c88849a4e16eb88adc4c1`; PR metadata reported mergeable.
+- Review observation 1 is corrected: staff weekly-test score edits require selected authorised `courseId`, validate course/week, and select by learner/course/week plus explicit attempt or latest attempt. Route tests cover latest attempt and cross-course denial.
+- Review observation 2 is corrected: report-card updates compare-and-swap on `id + version`; concurrent losers return `REPORT_CARD_VERSION_CONFLICT` without creating a snapshot. Regression test added.
+- Review observation 3: added `docs/UPGRADE-2026-10/PR3-SCHEMA-ROLLOUT.md` with preflight, backup/restore, controlled migration, legacy NULL-course preservation, baseline version snapshots, and conditional rollback. Removed production `prisma db push` from the Vercel build script.
+- Regenerated production and demo derived Prisma schemas from canonical `prisma/schema.prisma`; model bodies now match byte-for-byte.
+- Exact-head Actions run `42867165869` was pending at the last refresh; Vercel status pending. Recheck the final docs head and all checks before reporting green.
+- **Release gate remains:** no production database inspection or migration is authorised; no executable production migration is included/validated, actual production schema/migration history is unknown, and explicit owner approval of exact target/migration/backup/restore window is outstanding. Confirm the ReportCardVersion parent delete policy before migration.
+- Keep PR #3 draft, unmerged and undeployed. No production data/schema operation, merge, deployment, branch switch, dependency change or main-branch write. No local or manual browser/accessibility validation.
+
 ## Latest live update — 2026-11-10 (WeeklyTest test-fixture and attempt-selection coverage)
 
 - Live repository: `fccljbplant/ExaminerAI`; base `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
