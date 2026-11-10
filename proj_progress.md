@@ -288,3 +288,11 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Next privacy/evidence issue: comprehensive-report route checks `content_only` but calls a learner-global generator. Cross-course evidence, course-less mastery, legacy global project/current-week fields, missing-score-to-zero coercion and default F-grade behavior remain. Keep management-style fields with the owner-approved adjacent AI-reliability notice; no report renderer is yet verified.
 - Blocked: branch-preserving task-card/logged-check workflow is missing. Uploaded Agent Pack has no card for this follow-up; its runner switches branches and its OpenCode guard reads `.env*`. Do not run it, invent a task card, or patch this high-risk slice without the required workflow.
 - No application code/tests/schema/dependency/migration/production data, merge, deployment, branch switch or main write in this refresh. Local/manual accessibility checks remain unavailable.
+
+
+## 2026-11-10 — Post-refresh metadata correction
+
+- The application/code head `69a1fbf65a723badc28bb6a4699ad3a50ddb4382` passed Actions run `42752208726` (438 tests / 41 files, lint 0 errors / 7 warnings, TypeScript, build, 83/83 routes, screenshots/artifact).
+- Subsequent handoff-only commits advanced the branch to `28b4da846b8a5ad9629332e8f8a8ca125b9a9835`; no Actions run was returned for that docs-only head. Vercel reports build-rate-limit failure.
+- PR #3 remains open/draft/unmerged. Latest metadata reported mergeable=false, while compare says 416 ahead / 0 behind main; mergeability is therefore unconfirmed and must be rechecked.
+- No application source changes in the handoff refresh. Comprehensive-report implementation remains blocked pending safe task-card/logged-check workflow.
