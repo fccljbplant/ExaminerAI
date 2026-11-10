@@ -242,3 +242,12 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Exact-head Actions run `42740191410` passed: lint (0 errors, 7 warnings), 436/436 unit tests across 41 files, typecheck, production build, 83/83 route smoke checks, four-role × seven-viewport screenshot capture and artifact upload `13729306143`.
 - Vercel remains blocked by build-rate limit. No Ready preview, local test run, manual browser/axe/a11y validation. No schema/migration/dependency/production data, merge, deploy or main write.
 - Next: coordinated course-specific WeeklyTest/ReportCard schema and APIs, with null-course legacy preservation, report-card versioning and rollback notes. Agent Pack `AGENTS.md`, queue and logged runner are absent; do not invent a task card.
+
+
+## 2026-11-10 — Comment write audit trail
+
+- Current validated application-code head: `b12017d0a5dd4d26da0fcad3726b2b9c9cacffa7`; PR #3 open/draft/unmerged; main unchanged at `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Comment POST/PATCH/DELETE now emit `comment_created`, `comment_updated`, `comment_deleted` audit events through the existing helper. Metadata is privacy-minimised (course ID, activity types, changed field names; no comment text, learner ID or activity IDs).
+- Added tests for audit events and metadata minimisation. Exact-head Actions run `42741613904` passed 438/438 tests across 41 files, lint (0 errors / 7 warnings), typecheck, build, 83/83 route smoke and screenshot artifact upload `13729682267`.
+- Vercel remains blocked by build-rate limit. No local/manual accessibility validation, schema/migration/production data, merge, deployment or main write.
+- Next: course-specific WeeklyTest/ReportCard schema/API work, preserving legacy null-course rows and version history; Agent Pack task-card/runner prerequisites remain absent.
