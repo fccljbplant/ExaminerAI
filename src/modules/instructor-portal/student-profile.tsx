@@ -10,10 +10,8 @@ import {
   Bell,
   CheckCircle2,
   ClipboardCheck,
-  FilePlus2,
   Flame,
   Loader2,
-  LockOpen,
   MessageCircle,
   RefreshCw,
   RotateCcw,
@@ -397,7 +395,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
         ))}
       </div>
 
-      {tab === "academic" && <AcademicTab data={data} studentId={studentId} onChanged={retry} />}
+      {tab === "academic" && <AcademicTab data={data} />}
       {/* Growth is course-scoped; comment writing remains unavailable until activity-linked. */}
       {tab === "growth" && <GrowthTab data={data} studentId={studentId} />}
       {tab === "psychology" && <PsychologyTab data={data} />}
@@ -421,53 +419,16 @@ export function StudentProfile({ studentId }: { studentId: string }) {
 
 /* ---------------- tabs ------------------------------------------------ */
 
-function AcademicTab({
-  data,
-  studentId,
-  onChanged,
-}: {
-  data: StudentProfileData;
-  studentId: string;
-  onChanged: () => void;
-}) {
-  const [busyWeek, setBusyWeek] = useState<number | null>(null);
-  const [generating, setGenerating] = useState(false);
-  const [week, setWeek] = useState(() =>
-    data.weeklyTests.length ? Math.max(...data.weeklyTests.map((t) => t.week)) + 1 : 1
-  );
-
-  async function testAction(path: string, w: number, label: string) {
-    setBusyWeek(w);
-    try {
-      await api.post(`/api/students/${studentId}/${path}`, { week: w });
-      toast.success(label);
-      onChanged();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Action failed");
-    } finally {
-      setBusyWeek(null);
-    }
-  }
-
-  async function generateReportCard() {
-    setGenerating(true);
-    try {
-      await api.post(`/api/students/${studentId}/generate-report-card`, { week });
-      toast.success(`Report card generated for Week ${week}`);
-      onChanged();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Generation failed");
-    } finally {
-      setGenerating(false);
-    }
-  }
-
+function AcademicTab({ data }: { data: StudentProfileData }) {
   return (
     <div className="space-y-4">
       <section className="space-y-2">
         <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
           Weekly tests
         </h2>
+        <p className="px-1 text-xs text-fg-muted">
+          Retakes and unlocks are temporarily unavailable here. The legacy actions are keyed by learner and week, not course, so they must be upgraded before they can safely change a selected course's test.
+        </p>
         {data.weeklyTests.length === 0 ? (
           <Empty label="No weekly tests yet." />
         ) : (
@@ -487,37 +448,7 @@ function AcademicTab({
                 <span className="w-12 shrink-0 text-right text-sm font-medium tabular-nums text-fg-secondary">
                   {t.score != null ? `${t.score}%` : "—"}
                 </span>
-                <div className="flex shrink-0 items-center gap-1">
-                  {t.status === "completed" ? (
-                    <button
-                      type="button"
-                      onClick={() => void testAction("allow-retake", t.week, "Retake allowed")}
-                      disabled={busyWeek === t.week}
-                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50"
-                    >
-                      {busyWeek === t.week ? (
-                        <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
-                      ) : (
-                        <RotateCcw className="h-3 w-3" aria-hidden />
-                      )}
-                      Retake
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => void testAction("unlock-test", t.week, "Test unlocked")}
-                      disabled={busyWeek === t.week}
-                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50"
-                    >
-                      {busyWeek === t.week ? (
-                        <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
-                      ) : (
-                        <LockOpen className="h-3 w-3" aria-hidden />
-                      )}
-                      Unlock
-                    </button>
-                  )}
-                </div>
+
               </div>
             ))}
           </div>
@@ -525,40 +456,11 @@ function AcademicTab({
       </section>
 
       <section className="space-y-2">
-        <div className="flex items-center justify-between gap-2 px-1">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
-            Report cards
-          </h2>
-          <div className="flex items-center gap-1.5">
-            <label htmlFor="rc-week" className="sr-only">
-              Report card week
-            </label>
-            <select
-              id="rc-week"
-              value={week}
-              onChange={(e) => setWeek(Number(e.target.value))}
-              className="h-9 rounded-lg border border-line bg-surface px-2 text-xs text-fg"
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
-                <option key={w} value={w}>
-                  Week {w}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => void generateReportCard()}
-              disabled={generating}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50"
-            >
-              {generating ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-              ) : (
-                <FilePlus2 className="h-3.5 w-3.5" aria-hidden />
-              )}
-              Generate
-            </button>
-          </div>
+        <div className="space-y-1 px-1">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Report cards</h2>
+          <p className="text-xs text-fg-muted">
+            Generation is temporarily unavailable in this course view. The legacy report-card generator aggregates learner/week records and cannot yet guarantee course-only evidence.
+          </p>
         </div>
         {data.reportCards.length === 0 ? (
           <Empty label="No report cards yet." />
