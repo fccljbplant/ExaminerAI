@@ -95,9 +95,8 @@ export async function GET(
     courseIds = teaching.map((teachingCourse) => teachingCourse.courseId);
   }
 
-  // Intersect staff-authorised courses with the learner's active course
-  // enrolments. All course-bearing records below are then filtered to this
-  // exact intersection, not merely to the first shared course.
+  // Intersect staff-authorised courses with the learner's course enrolments.
+  // A selected course is required before any course-bearing records are read.
   const learnerEnrollments = courseIds.length
     ? await db.courseEnrollment.findMany({
         where: { userId: id, role: "student", courseId: { in: courseIds } },
