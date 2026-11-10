@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     };
   }
   const title = `Verify Credential — ${cert.studentName} · ${cert.courseName} — TraineesAI`;
-  const description = `Verified TraineesAI credential for ${cert.studentName} in ${cert.courseName}. Score: ${cert.score}%. Authenticity confirmed on the public TraineesAI registry.`;
+  const scoreText = cert.score === null ? "Score not recorded" : `Score: ${cert.score}%`;
+  const description = `Verified TraineesAI credential for ${cert.studentName} in ${cert.courseName}. ${scoreText}. Authenticity confirmed on the public TraineesAI registry.`;
   return {
     title,
     description,
@@ -99,7 +100,9 @@ export default async function VerifyCredentialPage({ params }: Params) {
     `&certId=${encodeURIComponent(certIdForLinkedIn)}`;
 
   // Twitter/X share intent
-  const tweetText = `I just completed "${certificate.courseName}" on TraineesAI with a score of ${certificate.score}% (${scoreToGrade(certificate.score)}). Verified credential: ${certUrl}`;
+  const tweetText = certificate.score === null
+    ? `I completed "${certificate.courseName}" on TraineesAI. Verified credential: ${certUrl}`
+    : `I just completed "${certificate.courseName}" on TraineesAI with a score of ${certificate.score}% (${scoreToGrade(certificate.score)}). Verified credential: ${certUrl}`;
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
 
   // Facebook share
@@ -206,7 +209,9 @@ export default async function VerifyCredentialPage({ params }: Params) {
                 <Award className="h-5 w-5 text-brand flex-shrink-0" />
                 <div>
                   <p className="text-xs text-fg-muted">Final score</p>
-                  <p className="text-2xl font-bold text-fg">{certificate.score}%</p>
+                  <p className="text-2xl font-bold text-fg">
+                    {certificate.score === null ? "Not recorded" : `${certificate.score}%`}
+                  </p>
                 </div>
               </div>
             </div>
