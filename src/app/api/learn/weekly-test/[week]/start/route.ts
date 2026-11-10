@@ -26,7 +26,6 @@ import { getOrCreateProfile } from "@/modules/learn/lib/learner-profile";
 import { getCourseOutline } from "@/modules/learn/lib/course-outline";
 import { learnerReachedTopic } from "@/modules/learn/lib/today-topic";
 import { getLearnerDifficulty } from "@/modules/learn/lib/learner-difficulty";
-import { WEEKLY_TOPICS } from "@/modules/course/lib/course-topics";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -67,6 +66,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   const course = await db.course.findUnique({ where: { id: courseId } });
   if (!course) return apiNotFound("Course not found");
 
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiError("You are not enrolled in this course", ErrorCode.FORBIDDEN, 403);
+
   await getOrCreateProfile(user.sub, courseId);
 
   // Idempotent — if the weekly test exists for this (user, course, week), return it.
@@ -86,7 +91,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   // Week material: the course's outline days for this week (or the shared ladder).
   const outline = await getCourseOutline(courseId).catch(() => null);
   const outlineWeek = outline?.find((w) => w.week === week);
-  const weekDays = outlineWeek?.days ?? WEEKLY_TOPICS[week - 1]?.topics ?? [];
+  const weekDays = outlineWeek?.days ?? [];
+  if (weekDays.length === 0) {
+    return apiError(
+      "This course week has no published learning outline yet. The weekly test is unavailable until course content is published.",
+      ErrorCode.CONFLICT,
+      409,
+    );
+  }
 
   // ── SEQUENCE GUARD (server-enforced) ─────────────────────────────
   // The UI only offers the weekly test on a week's LAST day, but the
