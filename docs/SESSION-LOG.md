@@ -750,3 +750,9 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 3. Course-scope the Growth and Comments APIs (and any other learner-wide data sources) before restoring those panels.
 4. Keep PR #3 draft/unmerged; no deployment or production migration.
 
+
+
+### Follow-up — API route tests
+- Added `src/app/api/v2/instructor/students/[id]/route.test.ts` with four route-level cases: no academic queries before multi-course selection, selected-course filtering across all course-bearing queries, 403 for an outside course, and single-course auto-selection.
+- Implementation/test commit: `f26de0c15cdecb541792066c3d2b34d72914c0b3`. No exact-head Actions run returned at refresh. The previous run `42734322946` on `01bb794...` was cancelled during dependency installation; all substantive checks were skipped. No local validation was available.
+
