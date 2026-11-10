@@ -236,9 +236,13 @@ export async function POST(req: NextRequest) {
     action: AuditAction.COMMENT_CREATED,
     target: { type: "comment", id: comment.id },
     metadata: {
-      studentId,
       courseId,
-      activityIds: [interactionId, taskId, weeklyTestId, dailyLogId].filter(Boolean),
+      activityTypes: [
+        interactionId ? "interaction" : null,
+        taskId ? "project_task" : null,
+        weeklyTestId ? "weekly_test" : null,
+        dailyLogId ? "daily_log" : null,
+      ].filter(Boolean),
     },
     req,
   });
@@ -298,7 +302,6 @@ export async function PATCH(req: NextRequest) {
     action: AuditAction.COMMENT_UPDATED,
     target: { type: "comment", id },
     metadata: {
-      studentId: existing.studentId,
       courseId,
       updatedFields: Object.keys(data),
     },
@@ -339,9 +342,13 @@ export async function DELETE(req: NextRequest) {
     action: AuditAction.COMMENT_DELETED,
     target: { type: "comment", id },
     metadata: {
-      studentId: comment.studentId,
       courseId,
-      activityIds: [comment.interactionId, comment.taskId, comment.weeklyTestId, comment.dailyLogId].filter(Boolean),
+      activityTypes: [
+        comment.interactionId ? "interaction" : null,
+        comment.taskId ? "project_task" : null,
+        comment.weeklyTestId ? "weekly_test" : null,
+        comment.dailyLogId ? "daily_log" : null,
+      ].filter(Boolean),
     },
     req,
   });
