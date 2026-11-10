@@ -826,3 +826,13 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 ### Safety and next step
 - No schema/migration/dependency/production-data changes, merge, deployment, branch switch or main-branch write. PR #3 remains draft.
 - The next academic-data task remains course-specific WeeklyTest/ReportCard identity and APIs, preserving null-course legacy rows and report-card version history. The Agent Pack `AGENTS.md`, task queue and logged runner are absent from the current branch; do not invent a task card or run the uploaded branch-switching runner.
+
+
+## 2026-11-10 — Privacy-minimised audit trail for comment mutations
+
+- Added `COMMENT_CREATED`, `COMMENT_UPDATED`, `COMMENT_DELETED` to `AuditAction` in `src/lib/audit-log.ts`.
+- `src/app/api/comments/route.ts` now calls `logAudit` after successful POST/PATCH/DELETE. Events include the comment target, actor, selected course, activity types and updated field names. They do not include comment body, learner ID or activity IDs; this avoids copying sensitive comment text or direct learner/activity identifiers into the existing optional audit webhook payload.
+- Extended `src/app/api/comments/route.test.ts` to cover all three audit events and verify comment text is absent from audit metadata.
+- Exact code head: `b12017d0a5dd4d26da0fcad3726b2b9c9cacffa7`; exact-head Actions run `42741613904` passed 438 tests across 41 files, lint (0 errors / 7 warnings), TypeScript, production build, 83/83 page-route smoke, four roles × seven viewports screenshot capture and artifact upload `13729682267`.
+- Vercel remains failed due to build-rate limit; no Ready preview. No local checkout or manual browser/axe/accessibility validation.
+- No schema/migration/dependency/production data, merge, deployment or main-branch write. PR #3 remains open/draft/unmerged.
