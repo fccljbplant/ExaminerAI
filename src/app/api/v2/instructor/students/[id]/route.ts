@@ -100,7 +100,7 @@ export async function GET(
   // exact intersection, not merely to the first shared course.
   const learnerEnrollments = courseIds.length
     ? await db.courseEnrollment.findMany({
-        where: { userId: id, role: "student", courseId: selectedCourseId },
+        where: { userId: id, role: "student", courseId: { in: courseIds } },
         select: { courseId: true },
       })
     : [];
