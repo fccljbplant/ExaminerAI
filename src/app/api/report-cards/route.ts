@@ -8,7 +8,7 @@ import { logAudit, AuditAction } from "@/lib/audit-log";
 import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 import { ReportCardWriteError, saveCourseReportCard } from "@/modules/course/lib/report-card-records";
 
-function serialiseList(value: unknown, field: string): string | null {
+function serialiseList(value: unknown): string | null {
   if (value === undefined || value === null) return JSON.stringify([]);
   if (!Array.isArray(value) && typeof value !== "string") return null;
   const serialised = JSON.stringify(value);
@@ -109,9 +109,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A grade cannot be assigned when the score is unavailable" }, { status: 400 });
   }
 
-  const strengths = serialiseList(body.strengths, "strengths");
-  const weaknesses = serialiseList(body.weaknesses, "weaknesses");
-  const nextSteps = serialiseList(body.nextSteps, "nextSteps");
+  const strengths = serialiseList(body.strengths);
+  const weaknesses = serialiseList(body.weaknesses);
+  const nextSteps = serialiseList(body.nextSteps);
   const progress = typeof body.progress === "string" ? body.progress : "";
   if (strengths === null || weaknesses === null || nextSteps === null ||
       progress.length > 10_000) {
