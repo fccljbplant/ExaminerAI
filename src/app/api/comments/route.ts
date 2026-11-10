@@ -1,13 +1,14 @@
-import { hasRole, ADMIN_ROLES, isStaffRole, UserRole } from "@/lib/rbac";
+import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 
-/** GET /api/comments?studentId=... — list instructor comments for a student.
- *  Staff can view comments for students they have access to.
- *  Students can only view their OWN comments. */
+/** GET /api/comments?studentId=...&courseId=... — list comments.
+ *  Staff must select an authorised course; only comments whose every linked
+ *  activity record belongs to that course are returned. Learners can view
+ *  their own full history or filter it to one enrolled course. */
 export async function GET(req: NextRequest) {
   const payload = await getAuthUser();
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
