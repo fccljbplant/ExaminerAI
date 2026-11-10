@@ -363,3 +363,13 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 
 **Next boundary**
 - Course-specific WeeklyTest/ReportCard identity and CRUD/generation remain the next academic-data priority. Preserve null-course legacy rows and versioned report-card history. The Agent Pack task queue/runner is not present on this branch; do not invent a task card or bypass the missing tooling prerequisite.
+
+
+## 2026-11-10 — Comment mutation audit trail
+
+- Added `COMMENT_CREATED`, `COMMENT_UPDATED` and `COMMENT_DELETED` audit actions to `src/lib/audit-log.ts`.
+- The course-scoped comment POST/PATCH/DELETE routes now call the existing `logAudit` helper after successful mutations. Events identify the comment target and actor and record course ID, activity types and updated field names only. They deliberately exclude comment text, learner ID and activity IDs from metadata to minimise sensitive data exposure through the existing optional audit webhook.
+- Added route tests proving each successful mutation emits the corresponding audit event and that comment text is not copied into audit metadata.
+- This uses the existing audit-log/webhook mechanism; it introduces no new provider or dependency.
+- Exact code head `b12017d0a5dd4d26da0fcad3726b2b9c9cacffa7`; Actions run `42741613904` passed 438 tests / 41 files, lint (0 errors / 7 warnings), typecheck, production build, 83/83 route smoke checks, four-role × seven-viewport screenshot capture and artifact upload `13729682267`.
+- Vercel remains blocked by build-rate limit. No local or manual accessibility validation, schema/migration/production-data change, merge or deployment.
