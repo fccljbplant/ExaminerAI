@@ -1,3 +1,16 @@
+## 2026-11-10 — PR #3 live continuation and local SQLite execution gate
+
+- Live PR #3 head before this continuity update: `f768d9a954071c8ea9cab5aa71b9ee53ac1af2e5`; PR open/draft/unmerged/mergeable; `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Exact-head Actions run `42868179073` passed all configured steps: dependency install, isolated SQLite test DB initialization, lint, unit tests, TypeScript, production build, page-route smoke checks, authenticated role screenshots and artifact upload. Exact-head Vercel status is success. No inline review threads.
+- Re-read current project continuity and upgrade docs. The WeeklyTest edit review observation is corrected: current route requires courseId, checks staff-authorised learner/course intersection and course week, and scopes by learner/course/week/optional attempt with latest-attempt semantics when omitted. Route tests cover latest attempt and cross-course denial.
+- ReportCard concurrency review observation is corrected: current writer uses compare-and-swap on ID + current version; a zero-row update returns `REPORT_CARD_VERSION_CONFLICT` before writing a version snapshot. Regression test covers the concurrent loser.
+- Schema rollout safety remains documented: no automatic production db push during Vercel build; derived schemas aligned; production migration still needs verified target schema/history, executable migration review and explicit owner approval. No production operation authorised.
+- Owner explicitly permits use of the local SQLite development database for non-production migration prototyping/tests. However, this execution environment has no repository checkout or local SQLite database: root is `/`, no git workspace was found under `/home`, `/mnt/data` or `/openai`, and container network access to GitHub is unavailable. CI's isolated SQLite DB is not a persistent local project DB. No local commands or DB operations were run.
+- Agent Pack prerequisites remain absent on PR #3: `AGENTS.md`, `docs/UPGRADE-2026-10/QUEUE.md` and `scripts/agent/run-logged.mjs`. The uploaded runner remains unsafe because it switches branches and reads prohibited `.env*`. Do not invent a task card or invoke it.
+- Comprehensive-report privacy/evidence finding remains unresolved: learner-global generator after staff content_only authorisation, cross-course inputs, missing-score-to-zero coercion and management-style judgments; rendering consumer must be handled in one coherent task with the owner-approved AI-reliability notice. Block pending an approved task card/workflow.
+- Questions recorded in `docs/UPGRADE-2026-10/QUESTIONS.md`. No application code/schema/migration/dependency/production data changes, no merge/deployment/branch switch/main write. PR remains draft.
+- The continuity-only commits after the validated head require their own exact-head CI refresh before calling the branch's latest head green.
+
 # TraineesAI — Project Progress
 
 **Updated:** 2026-11-10 (WeeklyTest fixture correction and latest-attempt regression test; code head 788cad5987ccd869556ea6553c252b61dbfcce4e)  
