@@ -1,3 +1,13 @@
+## Latest live update — 2026-11-10 (PR #3 continuation / SQLite permission)
+
+- PR #3 branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; live application head inspected: `f768d9a954071c8ea9cab5aa71b9ee53ac1af2e5`; PR open/draft/unmerged/mergeable; `main` unchanged at `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Exact-head Actions run [42868179073](https://github.com/fccljbplant/ExaminerAI/actions/runs/42868179073) passed all configured steps: install, isolated SQLite setup, lint, unit tests, typecheck, production build, app-page route smoke checks, authenticated role screenshots and artifact upload. Exact-head Vercel status success. No inline review threads.
+- WeeklyTest edit and ReportCard concurrency review observations are verified fixed in current source and regression tests. Schema rollout remains a release gate; no executable/verified production migration or owner production approval.
+- Owner authorised local SQLite development DB use for non-production migration prototyping/tests. Current execution container has no local checkout or local SQLite DB; no `.git` repo was found and network access to GitHub from container is unavailable. No local command/DB operation performed.
+- `AGENTS.md`, upgrade task queue and safe logged runner remain absent. Uploaded Agent Pack runner must not be used because it changes branches and reads `.env*`. Comprehensive-report course/evidence/privacy correction remains blocked pending approved task card/workflow and actual renderer identification.
+- See `docs/UPGRADE-2026-10/QUESTIONS.md` for exact blocker and safe next step. Docs-only continuity commits require exact-head CI recheck. Keep PR #3 draft/unmerged/undeployed.
+
+
 ## Latest live update — 2026-11-10 (PR #3 review follow-up exact-head validation)
 
 - Live repository: `fccljbplant/ExaminerAI`; base `main` remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
