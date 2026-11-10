@@ -1,3 +1,14 @@
+## Latest live update — 2026-11-10 (course-scoped comment write safeguards)
+
+- Live repository: `fccljbplant/ExaminerAI`; `main` HEAD remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft, unmerged and mergeable on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. Current validated application-code head: `c4a63e5c0779aa48150c8405e019e7546549983d` (387 commits / 121 changed files at refresh). No reviews or inline review threads returned.
+- Comment write endpoints are now course-scoped: staff POST requires `studentId`, an authorised `courseId`, and at least one activity link; every supplied link must resolve to that learner and course. PATCH/DELETE require the selected course and verify every existing linked record against it. General, unassigned and mixed-course comments cannot be created or mutated through these routes. Learner self-history remains cross-course.
+- The comment composer remains unavailable in the instructor profile. No UI composer was restored; the API contract is ready for an activity-linked UI only after that UI is implemented and tested.
+- Exact-head GitHub Actions run `42740191410` passed: install, isolated DB setup, lint (0 errors; 7 existing warnings), unit tests (436/436 across 41 files), TypeScript, production build, 83/83 app-page route smoke checks, authenticated screenshots for four roles across seven viewport sizes, and artifact upload (`13729306143`).
+- Vercel status remains failed because the project build-rate limit is reached; no Ready preview is verified. No local checkout or local tests were available; no manual browser, axe, keyboard, screen-reader, zoom or reflow review was performed.
+- No schema/migration/dependency/production-data change, merge, deployment or main-branch write. PR #3 remains draft.
+- Next: prepare the coordinated course-specific WeeklyTest/ReportCard schema and API slice with legacy null-course preservation, versioning, concurrency/idempotency tests and rollback notes. The Agent Pack `AGENTS.md`, queue and logged runner are absent from this branch, so no Agent Pack task card can be executed or invented; keep that prerequisite explicit.
+
 ## Latest live update — 2026-11-10 (course-specific learner-detail APIs and write safeguards)
 
 - Live repository: `fccljbplant/ExaminerAI`; `main` HEAD remains `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
@@ -28,7 +39,7 @@
 - Next: obtain exact-head CI; inspect failures; add route-level tests for course selection and selected-course query isolation; separately scope Growth/Comments APIs before restoring those panels. Keep PR #3 draft/unmerged.
 
 
-**Snapshot date:** 2026-11-10 (live PR #3 code head 01bb794544bfabb6beca10abd32a1ad97a094ec1)  
+**Snapshot date:** 2026-11-10 (live PR #3 code head c4a63e5c0779aa48150c8405e019e7546549983d)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
