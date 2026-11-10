@@ -175,7 +175,7 @@ export function WeeklyTestPanel({
     try {
       const res = await api.post<{ data: AnswerData }>(
         `/api/learn/weekly-test/${week}/answer`,
-        { testId, questionIdx: qIdx, answer: msg },
+        { testId, courseId, questionIdx: qIdx, answer: msg },
         AI_TIMEOUT_MS,
       );
       const data = res.data;
