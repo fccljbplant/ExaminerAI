@@ -79,6 +79,10 @@ interface StudentProfileData {
     week: number;
     attempt: number;
     score: number | null;
+    originalScore: number | null;
+    scoreEditedAt: string | null;
+    scoreEditedByRole: string | null;
+    scoreEditReason: string | null;
     status: string;
     completedAt: string | null;
     plagiarismScore: number | null;
@@ -452,19 +456,28 @@ function AcademicTab({ data }: { data: StudentProfileData }) {
             {data.weeklyTests.map((t) => (
               <div key={`${t.week}-${t.attempt}`} className="flex items-center gap-3 px-4 py-3">
                 <span className="w-32 shrink-0 truncate text-xs tabular-nums text-fg-muted">Week {t.week} · Attempt {t.attempt}</span>
-                {t.score !== null ? (
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
-                    <div
-                      className={cn(
-                        "h-full rounded-full",
-                        t.score >= 60 ? "bg-success" : "bg-warning"
-                      )}
-                      style={{ width: `${t.score}%` }}
-                    />
-                  </div>
-                ) : (
-                  <span className="flex-1 text-xs text-fg-muted">Score unavailable</span>
-                )}
+                <div className="min-w-0 flex-1 space-y-1">
+                  {t.score !== null ? (
+                    <div className="h-2 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
+                      <div
+                        className={cn(
+                          "h-full rounded-full",
+                          t.score >= 60 ? "bg-success" : "bg-warning"
+                        )}
+                        style={{ width: `${t.score}%` }}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-fg-muted">Score unavailable</p>
+                  )}
+                  {t.scoreEditedAt ? (
+                    <p className="text-xs text-fg-muted">
+                      Reviewed by {t.scoreEditedByRole ?? "staff"}
+                      {t.originalScore !== null ? ` · AI score ${t.originalScore}%` : ""}
+                      {t.scoreEditReason ? ` · ${t.scoreEditReason}` : ""}
+                    </p>
+                  ) : null}
+                </div>
                 <span className="w-12 shrink-0 text-right text-sm font-medium tabular-nums text-fg-secondary">
                   {t.score !== null ? `${t.score}%` : "—"}
                 </span>
