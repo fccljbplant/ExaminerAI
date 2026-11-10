@@ -565,7 +565,7 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
     }
   }
 
-  const scored = data.weeklyTests.filter((t) => t.score != null);
+  const scored = data.weeklyTests.filter((t): t is (typeof data.weeklyTests)[number] & { score: number } => t.score !== null);
 
   return (
     <div className="space-y-4">
@@ -584,9 +584,9 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
                 <div
                   className={cn(
                     "w-full rounded-t-md",
-                    (t.score ?? 0) >= 60 ? "bg-success" : "bg-warning"
+                    t.score >= 60 ? "bg-success" : "bg-warning"
                   )}
-                  style={{ height: `${Math.max(8, t.score ?? 0)}%` }}
+                  style={{ height: `${Math.max(8, t.score)}%` }}
                   title={`Week ${t.week}: ${t.score}%`}
                 />
                 <span className="text-[10px] tabular-nums text-fg-muted">W{t.week}</span>
