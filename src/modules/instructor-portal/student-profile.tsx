@@ -62,7 +62,7 @@ import { useChartColors, tooltipStyle } from "@/lib/chart-theme";
 interface StudentProfileData {
   student: { id: string; name: string; email: string; lastLogin: string | null; joinedAt: string };
   courseId: string;
-  kpis: { progress: number; tasksDone: string; latestScore: number | null; attentionScore: number };
+  kpis: { progress: number | null; tasksDone: string; latestScore: number | null; attentionScore: number | null };
   attentionReasons: string[];
   weeklyTests: Array<{
     week: number;
@@ -92,7 +92,7 @@ interface StudentProfileData {
     approvedAt: string | null;
     deadline: string | null;
     updatedAt: string;
-    kpis: { taskProgress: number; tasksDone: string };
+    kpis: { taskProgress: number | null; tasksDone: string };
   }>;
   certificates: Array<{ id: string; courseName: string; grade: string; score: number; issuedAt: string; verifyUrl: string }>;
   recentEvents: Array<{ type: string; at: string }>;
@@ -234,7 +234,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
     );
   }
 
-  const atRisk = data.kpis.attentionScore >= 30;
+  const atRisk = data.kpis.attentionScore != null && data.kpis.attentionScore >= 30;
 
   return (
     <div className="space-y-4">
@@ -344,7 +344,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-        <Kpi label="Progress" value={`${data.kpis.progress}%`} icon={TrendingUp} tone="brand" />
+        <Kpi label="Progress" value={data.kpis.progress != null ? `${data.kpis.progress}%` : "—"} icon={TrendingUp} tone={data.kpis.progress != null ? "brand" : "muted"} />
         <Kpi label="Tasks done" value={data.kpis.tasksDone} icon={ClipboardCheck} tone="info" />
         <Kpi
           label="Latest test"
@@ -354,9 +354,9 @@ export function StudentProfile({ studentId }: { studentId: string }) {
         />
         <Kpi
           label="Attention"
-          value={data.kpis.attentionScore}
+          value={data.kpis.attentionScore ?? "—"}
           icon={Flame}
-          tone={atRisk ? "warning" : "success"}
+          tone={atRisk ? "warning" : data.kpis.attentionScore == null ? "muted" : "success"}
         />
       </div>
 
