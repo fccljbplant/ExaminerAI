@@ -626,6 +626,17 @@ function AcademicTab({
   );
 }
 
+function parseReportList(value: string | string[] | undefined): string[] {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [value];
+  }
+}
+
 function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: string }) {
   const [report, setReport] = useState<{
     overview?: string;
@@ -642,11 +653,21 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
     try {
       const res = await fetch(`/api/growth-reports/${studentId}?courseId=${encodeURIComponent(data.courseId)}`);
       const payload = (await res.json().catch(() => ({}))) as {
-        report?: typeof report;
+        report?: {
+          overview?: string;
+          strengths?: string | string[];
+          growthAreas?: string | string[];
+          recommendations?: string | string[];
+        };
         error?: string;
       };
       if (!res.ok) throw new Error(payload.error || "Growth report unavailable");
-      setReport(payload.report ?? null);
+      setReport(payload.report ? {
+        ...payload.report,
+        strengths: parseReportList(payload.report.strengths),
+        growthAreas: parseReportList(payload.report.growthAreas),
+        recommendations: parseReportList(payload.report.recommendations),
+      } : null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Growth report unavailable");
     } finally {
@@ -763,7 +784,7 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
       {/* competencies */}
       <section className="space-y-2">
         <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-          Competency mastery
+          Learner-level competencies
         </h2>
         {data.competencies.length === 0 ? (
           <Empty label="No competency data yet." />
