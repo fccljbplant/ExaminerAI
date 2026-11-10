@@ -1,130 +1,117 @@
-import { hasRole, ADMIN_ROLES, isStaffRole } from "@/lib/rbac";
+import { isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
-import { getCourseDurationWeeks } from "@/lib/course-db";
+import { getCourseDurationWeeks } from "@/modules/course/lib/course-db";
+import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { logger } from "@/lib/logger";
+import { logAudit, AuditAction } from "@/lib/audit-log";
 
-/** POST /api/students/[id]/allow-retake — instructor/admin explicitly allows a
- *  student to retake a completed weekly test.
- *
- *  Body: { week: number }
- *
- *  Sets `retakeAllowed = true` on the existing WeeklyTest row. The student
- *  will then see a "Retake Test" button on the completed test results card.
- *  When they start the retake, the flag is cleared and the test is reset.
- *
- *  If no test exists yet (e.g. student hasn't taken it), returns 404 — the
- *  teacher should instead use the "Unlock Test" endpoint to create one.
- */
+async function authoriseCourse(payload: NonNullable<Awaited<ReturnType<typeof getAuthUser>>>, learnerId: string, courseId: string, week: number) {
+  try {
+    await assertCanAccessStudent(payload, learnerId, "content_only");
+  } catch (err) {
+    return { response: NextResponse.json({ error: err instanceof Error ? err.message : "Access denied" }, { status: 403 }) };
+  }
+  const courseIds = await getStaffAuthorizedStudentCourseIds(payload, learnerId);
+  if (!courseIds.includes(courseId)) {
+    return { response: NextResponse.json({ error: "You cannot manage tests for this course" }, { status: 403 }) };
+  }
+  const totalWeeks = await getCourseDurationWeeks(learnerId, courseId);
+  if (!Number.isInteger(week) || week < 1 || week > totalWeeks) {
+    return { response: NextResponse.json({ error: `Valid week (1-${totalWeeks}) required for this course` }, { status: 400 }) };
+  }
+  return { response: null };
+}
+
+/** POST /api/students/[id]/allow-retake — grant one retake for a course/week. */
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const _demoBlock = await demoWriteBlock("allowing retakes"); if (_demoBlock) return _demoBlock;
+  const demoBlock = await demoWriteBlock("allowing retakes");
+  if (demoBlock) return demoBlock;
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
+  if (!payload || !isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
-  // IDOR protection: verify the caller can access this student's data
-  try {
-    await assertCanAccessStudent(payload, id, "content_only");
-  } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
-  }
-
   const body = await req.json().catch(() => ({}));
-  const { week } = body as { week?: number };
+  const courseId = typeof body.courseId === "string" ? body.courseId.trim() : "";
+  const week = Number(body.week);
+  if (!courseId) return NextResponse.json({ error: "courseId is required" }, { status: 400 });
 
-  // Look up the student's course duration (defaults to 6 if no course assigned)
-  const totalWeeks = await getCourseDurationWeeks(id);
-  if (!week || week < 1 || week > totalWeeks) {
-    return NextResponse.json({ error: `Valid week (1-${totalWeeks}) required` }, { status: 400 });
-  }
+  const access = await authoriseCourse(payload, id, courseId, week);
+  if (access.response) return access.response;
 
-  const existing = await db.weeklyTest.findUnique({
-    where: { userId_week: { userId: id, week } },
+  const existing = await db.weeklyTest.findFirst({
+    where: { userId: id, courseId, week },
+    orderBy: { attempt: "desc" },
   });
-
   if (!existing) {
-    return NextResponse.json(
-      { error: `Student hasn't taken Week ${week} test yet. Use "Unlock Test" instead.` },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: `No Week ${week} test exists in the selected course yet. Use Unlock Test instead.` }, { status: 404 });
   }
-
   if (existing.status !== "completed") {
-    return NextResponse.json(
-      { error: `Week ${week} test isn't completed yet (status: ${existing.status}). Student can already continue it.` },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: `Week ${week} attempt ${existing.attempt} is not completed.` }, { status: 400 });
   }
 
   await db.weeklyTest.update({
     where: { id: existing.id },
     data: { retakeAllowed: true },
   });
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
+    action: AuditAction.WEEKLY_TEST_RETAKE_ALLOWED,
+    target: { type: "weekly_test", id: existing.id },
+    after: { courseId, week, attempt: existing.attempt, retakeAllowed: true },
+    req,
+  });
 
   return NextResponse.json({
     ok: true,
-    message: `Retake allowed for Week ${week} test. The student can now retake it from their dashboard.`,
+    message: `One retake allowed for ${existing.courseId} · Week ${week}. The completed attempt remains preserved.`,
+    attempt: existing.attempt,
   });
 }
 
-/** DELETE /api/students/[id]/allow-retake?week=N — instructor/admin REVOKES a
- *  previously-granted retake permission. Sets `retakeAllowed = false`.
- *
- *  Use this when a teacher granted retake by mistake, or wants to take back
- *  the permission before the student has started the retake.
- */
+/** DELETE /api/students/[id]/allow-retake?courseId=...&week=... — revoke the latest attempt's permission. */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const _demoBlock = await demoWriteBlock("allowing retakes"); if (_demoBlock) return _demoBlock;
+  const demoBlock = await demoWriteBlock("revoking retakes");
+  if (demoBlock) return demoBlock;
   const payload = await getAuthUser();
-  if (!payload || (!isStaffRole(payload.role))) {
+  if (!payload || !isStaffRole(payload.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
-  // IDOR protection: verify the caller can access this student's data
-  try {
-    await assertCanAccessStudent(payload, id, "content_only");
-  } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) || "Access denied" }, { status: 403 });
-  }
-
+  const courseId = req.nextUrl.searchParams.get("courseId")?.trim() ?? "";
   const week = Number(req.nextUrl.searchParams.get("week") ?? "0");
+  if (!courseId) return NextResponse.json({ error: "courseId is required" }, { status: 400 });
 
-  // Look up the student's course duration (defaults to 6 if no course assigned)
-  const totalWeeks = await getCourseDurationWeeks(id);
-  if (!week || week < 1 || week > totalWeeks) {
-    return NextResponse.json({ error: `Valid week (1-${totalWeeks}) required as ?week=N` }, { status: 400 });
-  }
+  const access = await authoriseCourse(payload, id, courseId, week);
+  if (access.response) return access.response;
 
-  const existing = await db.weeklyTest.findUnique({
-    where: { userId_week: { userId: id, week } },
+  const existing = await db.weeklyTest.findFirst({
+    where: { userId: id, courseId, week },
+    orderBy: { attempt: "desc" },
   });
-
-  if (!existing) {
-    return NextResponse.json({ error: `No Week ${week} test found.` }, { status: 404 });
-  }
-
+  if (!existing) return NextResponse.json({ error: "No matching course weekly-test attempt found" }, { status: 404 });
   if (!existing.retakeAllowed) {
-    return NextResponse.json({ error: `Retake is not currently allowed for Week ${week}.` }, { status: 400 });
+    return NextResponse.json({ error: "Retake is not currently allowed for this course attempt" }, { status: 400 });
   }
 
-  await db.weeklyTest.update({
-    where: { id: existing.id },
-    data: { retakeAllowed: false },
+  await db.weeklyTest.update({ where: { id: existing.id }, data: { retakeAllowed: false } });
+  await logAudit({
+    actor: { id: payload.sub, name: payload.name || payload.sub, role: payload.role },
+    action: AuditAction.WEEKLY_TEST_RETAKE_REVOKED,
+    target: { type: "weekly_test", id: existing.id },
+    after: { courseId, week, attempt: existing.attempt, retakeAllowed: false },
+    req,
   });
 
-  return NextResponse.json({
-    ok: true,
-    message: `Retake revoked for Week ${week} test. The student can no longer retake it.`,
-  });
+  return NextResponse.json({ ok: true, message: `Retake permission revoked for course week ${week}.` });
 }
