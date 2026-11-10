@@ -710,3 +710,10 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 ### Next
 - Verify exact-head Actions for the new nullable KPI contract.
 - Then implement the separate course selector/API contract so a multi-course aggregate cannot be shown under a single-course label. Keep PR #3 draft and do not deploy/merge.
+
+
+### Validation update — 2026-11-10
+
+- The exact code-head workflow run 42730976622 for 48bc189c48012d62da5dd7582145398fd19293ec was cancelled during dependency installation. Database setup, lint, tests, typecheck, build, route smoke and screenshots were skipped; this is not a successful validation.
+- PR documentation updates advanced head to f332108143ff6f48e99b6f195452e42bd4e8b41a (337 commits / 112 changed files). No Actions run was returned for that documentation-only head.
+- Vercel combined status remains failed due to project build-rate limit. No local validation was available. Do not mark the metric fix fully validated until a successful exact-code-head run is available.
