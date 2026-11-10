@@ -183,6 +183,19 @@ describe("/api/comments course scope", () => {
     expect(mocks.commentCreate).not.toHaveBeenCalled();
   });
 
+  it("rejects mixed-course activity references instead of accepting a partially valid comment", async () => {
+    mocks.projectTaskFindFirst.mockResolvedValueOnce(null);
+    const response = await POST(request("POST", "http://localhost/api/comments", {
+      studentId: "learner-1",
+      courseId: "course-a",
+      interactionId: "interaction-a",
+      taskId: "task-from-other-course",
+      body: "Feedback",
+    }));
+    expect(response.status).toBe(403);
+    expect(mocks.commentCreate).not.toHaveBeenCalled();
+  });
+
   it("creates a comment only after every supplied activity reference is validated in the selected course", async () => {
     const response = await POST(request("POST", "http://localhost/api/comments", {
       studentId: "learner-1",
