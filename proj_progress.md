@@ -311,3 +311,11 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - No local checkout was available, so no local tests, lint, typecheck, build, browser, axe, keyboard, screen-reader, reduced-motion, zoom/reflow or manual UX validation was run. Await exact-head Actions evidence.
 - No production database operation, migration deployment, merge, deployment, branch switch, dependency change or main-branch write occurred. Production schema rollout and rollback review remain release gates; keep PR #3 draft.
 - UXPeak remains the standing UI reference. Recent instructor portfolio changes are role- and course-contextual; manual visual/a11y review is still outstanding.
+
+
+## 2026-11-10 — Additional assessment hardening and course-context fallback removal
+
+- Manual report-card API score validation now requires an integer 0–100 (or null), matching Prisma storage. New route tests cover fractional values, numeric-string input, selected-course grade derivation and cross-course denial.
+- Course outline loading no longer silently chooses the first enrolment or substitutes a global hardcoded topic ladder when course context is missing/ambiguous. Added tests for multi-course ambiguity, absent outlines and explicit course selection. This keeps assessment prompts and unlocks tied to the learner's actual course content.
+- Exact code head at this update: `65adda3fead4875ce45e45a4617beefb7168d402`. GitHub Actions quality checks are queued/in progress (runs `42757359856` and `42757365580`); no pass is claimed. Vercel remains failed by build-rate limit.
+- PR #3 remains open/draft/unmerged. No local test/lint/typecheck/build or manual browser/a11y checks were available. No production schema push, migration deployment, merge or deployment occurred.
