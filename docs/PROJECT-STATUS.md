@@ -310,3 +310,20 @@ Owner delegated resolution of the open academic policy questions. The adopted di
 - Historical null-course records remain legacy/unassigned unless reliable provenance exists. No guessed backfill or production migration.
 
 These are approved planning decisions, not implementation claims. No application code, schema or production data changed in this policy session. Implementation must remain coordinated and additive, with tests and rollback notes.
+
+
+## 2026-11-10 — Comprehensive-report policy clarification and live PR refresh
+
+- Owner clarified that comprehensive reports must retain the AI-generated personality/management-style assessment sections (productivity, professionalism, leadership-potential observations, manager-readiness observations and focus areas). The earlier recommendation to remove those fields is superseded.
+- The retained section must display a prominent AI-reliability limitation notice: it is based solely on learner interactions with the AI, is not a validated psychometric or comprehensive professional assessment, and its reliability/completeness are limited. Management should conduct a structured comprehensive interview and consider work samples, observed performance, references and other appropriate evidence before consequential decisions. Qualified humans remain accountable.
+- The notice must remain adjacent to the assessment and be included in the report/API contract. A human-reviewed flag does not imply psychometric validation and must not remove the notice. The report must not be the sole basis for hiring, placement, promotion, discipline, certification or other consequential decisions.
+- The existing comprehensive-report module gathers learner-global records. Do not use that data as a course-specific staff evaluation until course attribution, authorised course scope, tenant boundaries and evidence provenance are corrected. The policy decision is not implementation evidence.
+- Live PR #3 at session start: open, draft, unmerged, mergeable; branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; head `08073be20037f21f5e52ffa9bead0dcd1f8bd6d6`; 319 commits / 111 changed files. Exact-head GitHub Actions run `42728018598` completed successfully. Combined Vercel status remains failure due to project build-rate limit. No PR reviews or inline review threads returned.
+- Agent Pack prerequisites remain absent from the branch: `AGENTS.md`, task queue and logged runner. `AGENT-INSTRUCTIONS.md` is present. No local repository checkout or local validation was available.
+- This session changed policy documentation only. No application code, tests, schema, dependency, migration, production data, deployment or merge changed. PR #3 remains draft.
+
+### Next
+1. Continue the existing PR #3 review on its current branch; keep it open/draft/unmerged.
+2. Treat the comprehensive-report disclaimer, rendering, course scoping and regression coverage as one coherent follow-up; do not add a warning to an API-only path and claim the user-facing report is fixed when no rendering consumer has been verified.
+3. Do not make a partial cross-course report change: first establish the course selection and authorised evidence set, then apply the disclaimer to every cached/new report and its actual display surface.
+4. Keep course-specific report-card/weekly-test/certificate schema work additive, coordinated and migration-reviewed; no production migration without separate approval.
