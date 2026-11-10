@@ -592,3 +592,33 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Vercel remains failed due to build-rate limit. No Ready preview is verified.
 - No reviews or inline review threads were returned.
 - No application code, tests, schema, dependencies, production data, branch, merge or deployment changed during this refresh.
+
+
+## 2026-11-10 — Owner decision: course-specific report cards and certificates
+
+**Starting PR head:** `ffe5abff4d5c8edecd677743141c769c901be237`  
+**Branch:** `ux-audit/fix-dashboard-truthfulness-and-agent-safety`  
+**PR #3:** open, draft, unmerged, mergeable; 312 commits / 111 changed files.
+
+### Decision
+- Owner confirmed: “Each course has its own report card/course certificate.”
+- This resolves the previously open global-vs-course-specific ReportCard decision.
+
+### Source review
+- `ReportCard.courseId` and `Certificate.courseId` already exist but are nullable.
+- `ReportCard` still has `@@unique([userId, week])`; both `POST /api/students/[id]/generate-report-card` and `/api/report-cards` write learner/week-scoped cards.
+- `WeeklyTest` also has `courseId` but remains unique by `(userId, week)`, preventing separate same-week tests for two courses. The report-card generator reads that global unique test.
+- Certificate request, approval, rejection, and learner retrieval are learner-global. Completion counts aggregate all weekly tests, and issuance chooses the first student course enrollment.
+- `prisma/schema.prisma` is the schema source; `scripts/generate-derived-schemas.mjs` derives production and demo schemas.
+- Existing null-course rows cannot be safely backfilled to a course without reliable provenance.
+
+### Documentation
+- Updated `docs/UPGRADE-2026-10/QUESTIONS.md` to mark the ownership decision resolved and record the schema/API dependencies and safe implementation direction.
+- Updated `docs/PROJECT-STATUS.md` with live PR/CI state and next steps.
+- Updated this append-only log.
+
+### Validation / limitations
+- Exact-head Actions run [42725583405](https://github.com/fccljbplant/ExaminerAI/actions/runs/42725583405) passed install, isolated DB setup, lint, unit tests, TypeScript, production build, app-page route smoke, authenticated role screenshots and artifact upload.
+- Vercel status remains failed due to build-rate limit; no Ready preview verified.
+- No local tests, schema validation, browser or axe checks were run.
+- No application code, tests, schema, dependencies or production data changed. No migration executed, branch switch, merge, deployment or main-branch write.
