@@ -640,7 +640,7 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/growth-reports/${studentId}`);
+      const res = await fetch(`/api/growth-reports/${studentId}?courseId=${encodeURIComponent(data.courseId)}`);
       const payload = (await res.json().catch(() => ({}))) as {
         report?: typeof report;
         error?: string;
