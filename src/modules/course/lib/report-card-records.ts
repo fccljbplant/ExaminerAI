@@ -30,11 +30,14 @@ export async function saveCourseReportCard(input: {
   fields: CourseReportCardFields;
   actorId: string;
   actorRole: string;
+  source?: "ai_generated" | "manual_correction";
   reason?: string;
   expectedVersion?: number;
   requireExpectedVersion?: boolean;
 }) {
   const reason = input.reason?.trim() ?? "";
+  const source = input.source ?? "manual_correction";
+  const isManualCorrection = source === "manual_correction";
 
   return db.$transaction(async (tx) => {
     const existing = await tx.reportCard.findUnique({
@@ -63,8 +66,8 @@ export async function saveCourseReportCard(input: {
           ...input.fields,
           date: new Date(),
           version: existing.version + 1,
-          updatedById: input.actorId,
-          updatedByRole: input.actorRole,
+          updatedById: isManualCorrection ? input.actorId : null,
+          updatedByRole: isManualCorrection ? input.actorRole : null,
         },
       });
       if (updateResult.count !== 1) {
@@ -93,6 +96,7 @@ export async function saveCourseReportCard(input: {
           nextSteps: updated.nextSteps,
           actorId: input.actorId,
           actorRole: input.actorRole,
+          source,
           reason,
         },
       });
@@ -107,8 +111,8 @@ export async function saveCourseReportCard(input: {
         ...input.fields,
         date: new Date(),
         version: 1,
-        updatedById: input.actorId,
-        updatedByRole: input.actorRole,
+        updatedById: isManualCorrection ? input.actorId : null,
+        updatedByRole: isManualCorrection ? input.actorRole : null,
       },
     });
     await tx.reportCardVersion.create({
@@ -127,6 +131,7 @@ export async function saveCourseReportCard(input: {
         nextSteps: created.nextSteps,
         actorId: input.actorId,
         actorRole: input.actorRole,
+        source,
         reason: reason || "Initial course report card creation",
       },
     });
