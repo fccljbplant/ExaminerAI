@@ -139,7 +139,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ comments });
 }
 
-/** POST /api/comments — instructor/admin adds a comment on ANY student activity.
+/** POST /api/comments — instructor/admin adds a comment on selected-course activity.
  *
  *  Body:
  *    - studentId (required)
