@@ -96,9 +96,10 @@ All routes under `src/app/api/*`. Auth via httpOnly + secure cookie. **45+ route
 | `GET/POST` | `/api/messages` | Inbox/sent/all (with `?box=`) |
 | `PATCH` | `/api/messages/[id]/read` | Mark as read |
 | `DELETE` | `/api/messages/[id]` | Delete message |
-| `GET/POST` | `/api/comments` | Teacher comments (supports interactionId, taskId, weeklyTestId, dailyLogId) |
-| `PATCH` | `/api/comments` | Edit comment |
-| `DELETE` | `/api/comments?id=...` | Delete comment |
+| `GET` | `/api/comments?studentId=...&courseId=...` | Staff must select an authorised course; returns only comments whose linked activity records all belong to that learner/course. Learners retain their own cross-course history. |
+| `POST` | `/api/comments` | Requires `studentId`, authorised `courseId`, comment body and at least one activity ID (`interactionId`, `taskId`, `weeklyTestId`, `dailyLogId`); every supplied ID must belong to the same learner/course. |
+| `PATCH` | `/api/comments?id=...&courseId=...` | Edit a linked comment only after the server revalidates the selected course and every existing activity relation. |
+| `DELETE` | `/api/comments?id=...&courseId=...` | Delete a linked comment only after the server revalidates the selected course and every existing activity relation. |
 
 ## AI
 
