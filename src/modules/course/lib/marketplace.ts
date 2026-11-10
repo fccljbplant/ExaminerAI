@@ -222,9 +222,12 @@ export async function fetchCertificateForVerification(credentialId: string) {
   const looksLikeLegacyToken = /^[a-f0-9]{32,}$/i.test(credentialId);
 
   const certificate = await db.certificate.findFirst({
-    where: looksLikeLegacyToken
-      ? { verifyToken: credentialId }
-      : { OR: [{ credentialId }, { verifyToken: credentialId }] },
+    where: {
+      grade: { not: "PENDING" },
+      ...(looksLikeLegacyToken
+        ? { verifyToken: credentialId }
+        : { OR: [{ credentialId }, { verifyToken: credentialId }] }),
+    },
     include: {
       course: {
         select: {
