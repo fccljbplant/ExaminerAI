@@ -148,7 +148,7 @@ export async function checkEligibility(
       };
     }
 
-    const [progressRows, tests, existingCert, completedTask] = await Promise.all([
+    const [progressRows, tests, testConfig, existingCert, completedTask] = await Promise.all([
       db.curriculumProgress.findMany({
         where: { userId, courseId },
         select: { week: true },
