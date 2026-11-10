@@ -347,3 +347,10 @@ These are approved planning decisions, not implementation claims. No application
 - Separate issue discovered and not yet fixed: the detail API queries all courses shared by the instructor and learner, but returns only the first courseId. This can label a multi-course aggregate as a single course. Decision recorded in QUESTIONS.md: auto-select only when exactly one shared course exists; otherwise require explicit course selection; do not infer course attribution for learner-level mastery data.
 - Latest code head at this update: 48bc189c48012d62da5dd7582145398fd19293ec. GitHub Actions run 42730939202 was pending on previous code head 2fc96787c36cce2d6a2cd3c785b63b590b0248ec; latest commit needs its own exact-head run. Vercel remains failed due to build-rate limit.
 - No local test/typecheck/build/browser/axe checks were available. No production data, migration, dependency, merge or deployment changed. PR #3 remains draft.
+
+
+### CI refresh after learner-detail metric fix — 2026-11-10
+
+- Latest code commit: 48bc189c48012d62da5dd7582145398fd19293ec. Its Actions run 42730976622 was cancelled during dependency installation; database setup, lint, unit tests, typecheck, build, route smoke and screenshot steps were skipped. This is not a pass.
+- Documentation commits advanced the PR head to f332108143ff6f48e99b6f195452e42bd4e8b41a (337 commits / 112 changed files). No Actions run was returned for that docs-only head.
+- Combined Vercel status remains failure due to project build-rate limit. PR remains open, draft, unmerged and mergeable. No local checks were run.
