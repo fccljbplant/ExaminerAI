@@ -930,3 +930,21 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - PR #3 remained open/draft/unmerged; no merge or deployment. No runtime code/schema/migration/dependency/production-data change, branch switch or main write. No local checkout; local tests, lint, typecheck, build and manual browser/accessibility checks were not run.
 - Production schema rollout/rollback review and explicit owner approval remain release gates.
 
+
+
+## 2026-11-10 — PR #3 nullable certificate eligibility fix
+
+### Evidence
+- Rechecked live PR #3 metadata and current source on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`.
+- Exact-head run `42763366450` on `a10b93029dc192b3aef08b564840946f3e43d7f3`: install and isolated DB setup passed; lint passed; unit tests passed; TypeScript failed with TS18047 at `src/app/api/certificates/user/route.ts:102-103` because `eligibility` from `checkEligibility` is nullable. Build, page-route smoke and screenshot capture were skipped.
+- The route already treats missing course/certificate records explicitly. Eligibility should remain unknown when its evidence cannot establish a result, not be coerced to false or zero.
+
+### Change
+- Updated the certificate completion projection to use nullable values: `eligibility?.eligible ?? null` and `eligibility?.avgScore ?? null`, with an explanatory comment.
+- Commit: `6e7ea3a8000ae7a59e838c43c3e76d00df8cf138`.
+- Exact-head run [42865683017](https://github.com/fccljbplant/ExaminerAI/actions/runs/42865683017) was in progress at log time; Node setup completed and dependency installation was running. No checks from this new run are yet claimed as passed.
+- Vercel status pending; no Ready preview confirmed.
+
+### Guardrails / next
+- Existing PR branch only; no branch switch, no `.env*` access, no production DB/schema action, no merge or deployment.
+- Recheck exact-head Actions run `42865683017`, inspect any failure logs, then refresh Vercel and PR mergeability. Keep PR #3 draft/unmerged.
