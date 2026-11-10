@@ -23,7 +23,13 @@ import { normalizeRole, UserRole } from "@/lib/rbac";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
 import { computePsychWeekly } from "@/modules/learn/lib/psych-weekly";
-import { canViewLearnerSupportSignals, getAuthorizedStudentCourseIds, toDailyLogPayload } from "@/modules/instructor-portal/student-detail-visibility";
+import {
+  calculateAttentionScore,
+  calculateTaskProgress,
+  canViewLearnerSupportSignals,
+  getAuthorizedStudentCourseIds,
+  toDailyLogPayload,
+} from "@/modules/instructor-portal/student-detail-visibility";
 
 export const runtime = "nodejs";
 
@@ -171,35 +177,20 @@ export async function GET(
         : Promise.resolve(null),
     ]);
 
-  // Academic attention signals (Phase-1 compliant — no psych layer).
-  const attentionReasons: string[] = [];
-  let attentionScore = 0;
-  const lastLog = dailyLogs[0]?.date;
-  if (lastLog) {
-    const days = Math.floor((Date.now() - new Date(lastLog).getTime()) / 86_400_000);
-    if (days >= 3) {
-      attentionScore += 30;
-      attentionReasons.push(`Inactive ${days} days`);
-    } else if (days >= 2) {
-      attentionScore += 15;
-      attentionReasons.push(`Inactive ${days} days`);
-    }
-  }
-  const scored = weeklyTests.filter((t) => t.score !== null);
-  const latest = scored[scored.length - 1];
-  if (latest && (latest.score ?? 0) < 60) {
-    attentionScore += 25;
-    attentionReasons.push(`Last test ${latest.score}%`);
-  }
-  if (scored.length >= 2) {
-    const lastTwo = scored.slice(-2).map((t) => t.score ?? 0);
-    if (lastTwo[1] < lastTwo[0] - 15) {
-      attentionScore += 15;
-      attentionReasons.push("Test scores declining");
-    }
-  }
+  // Academic attention signals are unavailable until at least one source
+  // (activity date or scored test) exists; an evidence-backed score of zero
+  // remains distinct from missing evidence.
+  const scored = weeklyTests
+    .filter((test) => test.score !== null)
+    .map((test) => test.score as number);
+  const latest = scored.length ? scored[scored.length - 1] : null;
+  const attention = calculateAttentionScore(
+    dailyLogs[0]?.date ?? null,
+    scored,
+    new Date(),
+  );
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t) => t.status === "completed").length;
+  const completedTasks = tasks.filter((task) => task.status === "completed").length;
 
   return apiSuccess({
     student: {
@@ -211,12 +202,12 @@ export async function GET(
     },
     courseId: sharedCourse.courseId,
     kpis: {
-      progress: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      progress: calculateTaskProgress(totalTasks, completedTasks),
       tasksDone: `${completedTasks}/${totalTasks}`,
       latestScore: latest?.score ?? null,
-      attentionScore,
+      attentionScore: attention.score,
     },
-    attentionReasons,
+    attentionReasons: attention.reasons,
     weeklyTests: weeklyTests.map((t) => {
       let replies = 0;
       try {
@@ -275,7 +266,7 @@ export async function GET(
         deadline: p.deadline?.toISOString() ?? null,
         updatedAt: p.updatedAt.toISOString(),
         kpis: {
-          taskProgress: total > 0 ? Math.round((done / total) * 100) : 0,
+          taskProgress: calculateTaskProgress(total, done),
           tasksDone: `${done}/${total}`,
         },
       };
