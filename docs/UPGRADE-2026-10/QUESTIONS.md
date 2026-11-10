@@ -398,3 +398,15 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 - The Agent Pack runner switches/creates `upgrade/phase-<N>`, contrary to the continuity rule to remain on the existing PR #3 branch. Its OpenCode off-peak guard reads `.env`, `.env.local` and `.env.production` to inspect database configuration, contrary to the no-`.env*` rule. Do not execute it unchanged or weaken the protections.
 - No local repository checkout is available to run the required logged checks. GitHub Actions can validate commits, but does not replace the missing task-card contract and local logged-runner workflow.
 - Safe next step requires an owner-approved branch-preserving, no-secret-reading task-card/logged-check alternative, or installation of compatible tooling that preserves the existing branch and never reads `.env*`. Keep PR #3 draft/unmerged.
+
+
+## 2026-11-10 — Owner decision implemented: course-specific WeeklyTest and ReportCard
+
+**Status: product decision resolved; implementation in PR #3; CI pending.**
+
+- Owner confirmed one assessment identity per learner + course + week, with WeeklyTest attempts distinguished separately. Null-course legacy rows are retained without backfill, merge or deletion.
+- Staff endpoints now use explicit selected course and authorised learner-course intersections. Report-card evidence is selected-course scoped; manual grades follow the selected course grading policy; report-card versions are immutable and audited. Weekly-test answers, retakes and staff score corrections are bound to the course/attempt. Original AI scores are retained after human correction.
+- Report-card version writes now use a compare-and-swap predicate on `id + version`; concurrent losers receive `REPORT_CARD_VERSION_CONFLICT`. Regression test added.
+- The production and demo derived Prisma schemas were regenerated from the source schema and now contain `ReportCardVersion` and course-specific uniqueness.
+- PR #3 current code/docs head at time of this update: `f2a6eea5289623cb53e07db50df23757dbc8137c`. GitHub Actions run `42757128556` was queued; Vercel remains rate-limited. No local checks or manual accessibility review were run.
+- Remaining gates: verify exact-head Actions; complete production schema change/rollback review before any deployment; confirm all remaining legacy read/write call sites preserve null-course records and course isolation; complete manual UXPeak-informed visual and WCAG review. No production DB action, merge or deployment was performed.
