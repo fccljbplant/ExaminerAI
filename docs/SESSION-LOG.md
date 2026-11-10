@@ -717,3 +717,36 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - The exact code-head workflow run 42730976622 for 48bc189c48012d62da5dd7582145398fd19293ec was cancelled during dependency installation. Database setup, lint, tests, typecheck, build, route smoke and screenshots were skipped; this is not a successful validation.
 - PR documentation updates advanced head to f332108143ff6f48e99b6f195452e42bd4e8b41a (337 commits / 112 changed files). No Actions run was returned for that documentation-only head.
 - Vercel combined status remains failed due to project build-rate limit. No local validation was available. Do not mark the metric fix fully validated until a successful exact-code-head run is available.
+
+
+## 2026-11-10 — Instructor learner-detail multi-course isolation
+
+### Starting point and live repository
+- Starting PR #3 head: `a00590da6e21c1c25ba4502bef8956bc7a1ea32e`.
+- Main HEAD: `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- Ending code head: `01bb794544bfabb6beca10abd32a1ad97a094ec1`; PR #3 remains open, draft, unmerged and mergeable; 350 commits / 112 changed files. No reviews or inline threads returned.
+
+### Finding and adopted policy
+- The instructor learner-detail endpoint intersected staff-authorised courses with learner enrolments, but then queried all shared courses and returned only the first courseId. A multi-course aggregate could therefore be presented as one course.
+- Adopted: auto-select the only shared course; if more than one, require an explicit course selection before loading any course-bearing records. Validate the requested course server-side against the current authorised intersection. No valid shared course or an invalid selection returns 403.
+- Course-less SkillMastery cannot be attributed to a course; the UI labels it learner-level and keeps it separate from course results.
+- Global growth summaries, unassigned comments and global mentor briefing are not appropriate in this course-specific view until their APIs enforce course scope. Those panels are temporarily withheld; separate APIs remain unmodified and must be scoped before re-enabling them.
+
+### Implementation
+- `src/modules/instructor-portal/student-detail-visibility.ts`: added pure authorised-course-selection resolver.
+- `src/modules/instructor-portal/student-detail-visibility.test.ts`: tests single-course auto-selection, multi-course explicit choice, authorised selection, invalid selection and empty scope.
+- `src/app/api/v2/instructor/students/[id]/route.ts`: returns course options; requires selection when multiple courses are shared; filters weekly tests, report cards, daily logs, project tasks, certificates, engagement events and projects to the selected course; passes selected course to psych-weekly calculation.
+- `src/modules/instructor-portal/student-profile.tsx`: accessible course chooser/switcher, selected-course label, stale-data loading guard, learner-level competency label, and suppression of unscoped global panels.
+- No schema, migration, dependency or production-data changes.
+
+### Validation and limitations
+- Prior exact-head Actions run `42731168978` passed all configured steps on `a00590da...` before this implementation. No workflow run was returned for the ending code head `01bb794...`; therefore this implementation is not yet CI-validated.
+- Vercel status remains failure due to the build-rate limit. No local tests, lint, typecheck, production build, browser or axe checks were available.
+- PR #3 remains draft and unmerged. No merge, deployment or main-branch write.
+
+### Next
+1. Verify Actions on `01bb794...` and fix any lint/test/typecheck/build failures.
+2. Add route-level tests proving no academic queries occur before selection, invalid course IDs are denied, and all selected-course relations exclude other courses.
+3. Course-scope the Growth and Comments APIs (and any other learner-wide data sources) before restoring those panels.
+4. Keep PR #3 draft/unmerged; no deployment or production migration.
+
