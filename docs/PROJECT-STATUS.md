@@ -1,6 +1,19 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-10 (live PR #3 head ffe5abff4d5c8edecd677743141c769c901be237)  
+## Latest live update — 2026-11-10 (instructor learner-detail course isolation)
+
+- Live repository: `fccljbplant/ExaminerAI`; `main` HEAD `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
+- PR #3 remains open, draft, unmerged and mergeable on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. Code head after this slice: `01bb794544bfabb6beca10abd32a1ad97a094ec1` (350 commits / 112 changed files). No reviews or inline review threads returned.
+- Fixed the instructor learner-detail multi-course labelling/aggregation defect. Exactly one shared course is auto-selected; multiple shared courses return a course chooser and no academic/activity records until the instructor selects one. Every course-bearing query is filtered to that selected course, and the server rejects course IDs outside the authorised staff/learner intersection.
+- The profile UI includes an accessible course selector, displays the selected course name, and avoids showing stale prior-course data while a switch request is pending. Course-less SkillMastery is labelled learner-level and separated from course results.
+- Learner-wide growth summaries, general comments and global mentor briefing are withheld from this course-specific screen pending course-scoped API support. Their separate APIs have not been changed; do not restore those panels until that follow-up is implemented and tested.
+- Added unit tests for one-course auto-selection, multi-course explicit selection, authorised/invalid selection and empty scope. No route-level integration test was added in this slice.
+- Previous exact-head Actions run `42731168978` passed install, isolated DB setup, lint, unit tests, typecheck, production build, route smoke, authenticated role screenshots and artifact upload on prior head `a00590da6e21c1c25ba4502bef8956bc7a1ea32e`. No Actions run yet returned for implementation head `01bb794...`; this change is not yet CI-validated. Vercel combined status remains failure due to build-rate limit.
+- No local test/typecheck/lint/build/browser/axe validation was available. No schema/migration/dependency/production-data changes, merge, deployment or main-branch write.
+- Next: obtain exact-head CI; inspect failures; add route-level tests for course selection and selected-course query isolation; separately scope Growth/Comments APIs before restoring those panels. Keep PR #3 draft/unmerged.
+
+
+**Snapshot date:** 2026-11-10 (live PR #3 code head 01bb794544bfabb6beca10abd32a1ad97a094ec1)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
