@@ -164,11 +164,16 @@ export async function POST(req: NextRequest) {
     interactionId?: string; taskId?: string; weeklyTestId?: string; dailyLogId?: string;
     studentId?: string; courseId?: string; body?: string; marksOverride?: number;
   };
-  if (!studentId) {
+  if (typeof studentId !== "string" || !studentId.trim()) {
     return NextResponse.json({ error: "studentId required" }, { status: 400 });
   }
-  if (!courseId) {
+  if (typeof courseId !== "string" || !courseId.trim()) {
     return NextResponse.json({ error: "courseId is required for course-linked comments" }, { status: 400 });
+  }
+  const providedRefs = [interactionId, taskId, weeklyTestId, dailyLogId]
+    .filter((id) => id !== undefined && id !== null);
+  if (providedRefs.some((id) => typeof id !== "string" || !id.trim())) {
+    return NextResponse.json({ error: "Activity IDs must be non-empty strings" }, { status: 400 });
   }
   if (![interactionId, taskId, weeklyTestId, dailyLogId].some((id) => typeof id === "string" && id.length > 0)) {
     return NextResponse.json({ error: "A comment must be linked to a course activity" }, { status: 400 });
