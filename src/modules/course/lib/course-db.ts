@@ -23,9 +23,9 @@ import {
 
 /** Load the full course outline from the DB for a given user.
  *  Returns null if the user's batch has no course assigned (caller falls back). */
-async function loadCourseFromDB(userId: string): Promise<WeekTopic[] | null> {
+async function loadCourseFromDB(userId: string, courseId?: string): Promise<WeekTopic[] | null> {
   const enrollment = await db.courseEnrollment.findFirst({
-    where: { userId, role: "student" },
+    where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
     select: { courseId: true },
   });
 
@@ -70,32 +70,32 @@ async function loadCourseFromDB(userId: string): Promise<WeekTopic[] | null> {
 }
 
 /** Get all week topics for a user (from DB or fallback to hardcoded). */
-export async function getCourseTopics(userId: string): Promise<WeekTopic[]> {
-  const dbTopics = await loadCourseFromDB(userId);
+export async function getCourseTopics(userId: string, courseId?: string): Promise<WeekTopic[]> {
+  const dbTopics = await loadCourseFromDB(userId, courseId);
   return dbTopics ?? WEEKLY_TOPICS;
 }
 
 /** Get topics (DailyTopic[]) for a specific week. */
-export async function getCourseWeekTopics(userId: string, week: number): Promise<DailyTopic[]> {
-  const all = await getCourseTopics(userId);
+export async function getCourseWeekTopics(userId: string, week: number, courseId?: string): Promise<DailyTopic[]> {
+  const all = await getCourseTopics(userId, courseId);
   return all.find((t) => t.week === week)?.topics ?? [];
 }
 
 /** Get topic titles (string[]) for a specific week — mirrors getWeekTopicTitles. */
-export async function getCourseWeekTopicTitles(userId: string, week: number): Promise<string[]> {
-  const topics = await getCourseWeekTopics(userId, week);
+export async function getCourseWeekTopicTitles(userId: string, week: number, courseId?: string): Promise<string[]> {
+  const topics = await getCourseWeekTopics(userId, week, courseId);
   return topics.map((t) => t.title);
 }
 
 /** Get the phase name for a specific week. */
-export async function getCourseWeekPhase(userId: string, week: number): Promise<string> {
-  const all = await getCourseTopics(userId);
+export async function getCourseWeekPhase(userId: string, week: number, courseId?: string): Promise<string> {
+  const all = await getCourseTopics(userId, courseId);
   return all.find((t) => t.week === week)?.phase ?? `Week ${week}`;
 }
 
 /** Get today's topic for a user. */
 // L4: deprecated — not used externally, but kept for potential future use
-export async function getCourseTodayTopic(userId: string): Promise<DailyTopic | null> {
+export async function getCourseTodayTopic(userId: string, courseId?: string): Promise<DailyTopic | null> {
   const user = await db.user.findUnique({
     where: { id: userId },
     select: { currentWeek: true },
@@ -103,21 +103,21 @@ export async function getCourseTodayTopic(userId: string): Promise<DailyTopic | 
   if (!user) return null;
 
   const todayDay = getBootcampDayNumber(new Date());
-  const topics = await getCourseWeekTopics(userId, user.currentWeek);
+  const topics = await getCourseWeekTopics(userId, user.currentWeek, courseId);
   return topics[todayDay - 1] ?? topics[0] ?? null;
 }
 
 /** Get the number of weeks in the course (default 6 from hardcoded). */
-export async function getCourseDurationWeeks(userId: string): Promise<number> {
-  const all = await getCourseTopics(userId);
+export async function getCourseDurationWeeks(userId: string, courseId?: string): Promise<number> {
+  const all = await getCourseTopics(userId, courseId);
   return all.length;
 }
 
 /** Build a topic context string for AI prompts (same shape as getWeekTopicContext). */
 // L4: deprecated — not used externally, but kept for potential future use
-export async function getCourseWeekTopicContext(userId: string, week: number): Promise<string> {
-  const topics = await getCourseWeekTopics(userId, week);
-  const phase = await getCourseWeekPhase(userId, week);
+export async function getCourseWeekTopicContext(userId: string, week: number, courseId?: string): Promise<string> {
+  const topics = await getCourseWeekTopics(userId, week, courseId);
+  const phase = await getCourseWeekPhase(userId, week, courseId);
   return `Week ${week}: ${phase}. Topics covered this week:\n${topics
     .map((t, i) => `Day ${i + 1}: ${t.title}`)
     .join("\n")}`;
@@ -126,7 +126,7 @@ export async function getCourseWeekTopicContext(userId: string, week: number): P
 /** Phase 2.2: Get the course's domain metadata (tools, deliverables, domain,
  *  level, assessmentType) for AI prompt customization. Returns null if the
  *  user has no course assigned (caller falls back to defaults). */
-export async function getCourseMetadata(userId: string): Promise<{
+export async function getCourseMetadata(userId: string, courseId?: string): Promise<{
   domain: string;
   level: string;
   assessmentType: string;
@@ -137,7 +137,7 @@ export async function getCourseMetadata(userId: string): Promise<{
 } | null> {
   try {
     const enrollment = await db.courseEnrollment.findFirst({
-      where: { userId, role: "student" },
+      where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
       select: { courseId: true },
     });
     if (!enrollment) return null;
