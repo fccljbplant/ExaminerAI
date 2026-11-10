@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
       ["dailyLogId", comment.dailyLogId],
     ] as const;
     const linked = references.filter(([, id]) => id !== null);
-    return linked.length > 0 && linked.every(([field, id]) => allowed[field].has(id));
+    return linked.length > 0 && linked.every(([field, id]) => id !== null && allowed[field].has(id));
   });
 
   return NextResponse.json({ comments });
