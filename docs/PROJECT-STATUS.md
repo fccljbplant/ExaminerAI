@@ -529,3 +529,16 @@ These are approved planning decisions, not implementation claims. No application
 - Fix commit: `6e7ea3a8000ae7a59e838c43c3e76d00df8cf138`.
 - Exact-head Actions run [42865683017](https://github.com/fccljbplant/ExaminerAI/actions/runs/42865683017) was in progress at the time of this update; only Node setup had completed and dependency installation was running. Recheck before claiming validation.
 - Vercel status pending; no Ready preview confirmed. PR #3 remains draft/unmerged. No schema, migration, production data, merge or deployment operation.
+
+
+## 2026-11-10 — Branch integration inventory and draft PRs
+
+- Rechecked live refs via GitHub: `main` = `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`; PR #3 head = `1fde49d7ad453ccffed955db003ff5b13916570d`; PR #2 head = `350278996da3b6efea200356ba49a1ef02a72dd2`.
+- Current branch inventory: `backup/v3-ui` and `master` both point to `39f2d0faab32b6b4f2054b07b2eedeb108de4300` (identical refs); `fix/ui-simplification-safe` = `f075dc632c891ecdf819592e84afd8eaaae2a126`; `vercel/vercel-web-analytics-integrati-flq88k` = `350278996da3b6efea200356ba49a1ef02a72dd2`.
+- PR #3 compares 547 commits ahead / 0 behind, 159 changed files; remains draft/open/unmerged. Exact-head Actions run `42869512850` and Vercel status both succeeded. Comprehensive-report privacy/evidence and schema rollout owner gates remain unresolved; do not merge solely on CI success.
+- PR #2 is clean/mergeable and has a successful Vercel status, but adds `@vercel/analytics@^2.0.1` and a lockfile with substantial metadata churn; only Vercel Preview Comments is reported as a check. Run/verify the full relevant test/build suite before merge.
+- `backup/v3-ui` / `master` compare 17 commits ahead / 7 behind main and are exactly the same commit. Diff includes `prisma/db/custom.db` and shared classroom, portal layout/navigation, feature-flag, theme-token and UI-v3 changes. The DB binary must be excluded; merge only once, not once per ref.
+- `fix/ui-simplification-safe` compares 1 commit ahead / 7 behind main; overlaps `src/app/(classroom)/learn/page.tsx` with PR #3 and includes role-aware home resolution plus tests.
+- Created draft PR #5 for `fix/ui-simplification-safe` and draft PR #6 for `backup/v3-ui` (also represents identical `master`). GitHub reports both currently not mergeable. PR #6 explicitly records the local DB binary and shared-surface review gates.
+- No merge, branch deletion, force-push, production operation or deployment occurred. The supplied ZIP has no `.git` history; this environment has no local clone/merge engine, and GitHub connector actions available here do not provide a safe conflict-resolution workflow. Do not synthesize merges by blindly copying branch files.
+- Next: obtain a Git-capable checkout of the current refs (or an owner-provided repo workspace) with protected-secret and DB exclusions; merge main into a disposable integration branch, resolve conflicts with three-way Git, run CI and visual/accessibility checks, then merge one reviewed PR at a time. Keep PR #3 draft until its owner decisions are resolved.
