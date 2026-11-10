@@ -2,7 +2,6 @@ import { isStaffRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser, assertCanAccessStudent } from "@/lib/auth";
-import { getCourseDurationWeeks } from "@/modules/course/lib/course-db";
 import { getStaffAuthorizedStudentCourseIds } from "@/modules/instructor-portal/authorized-student-courses";
 import { demoWriteBlock } from "@/lib/demo-guard";
 import { logAudit, AuditAction } from "@/lib/audit-log";
@@ -17,9 +16,13 @@ async function authoriseCourse(payload: NonNullable<Awaited<ReturnType<typeof ge
   if (!courseIds.includes(courseId)) {
     return { response: NextResponse.json({ error: "You cannot manage tests for this course" }, { status: 403 }) };
   }
-  const totalWeeks = await getCourseDurationWeeks(learnerId, courseId);
-  if (!Number.isInteger(week) || week < 1 || week > totalWeeks) {
-    return { response: NextResponse.json({ error: `Valid week (1-${totalWeeks}) required for this course` }, { status: 400 }) };
+  const course = await db.course.findUnique({
+    where: { id: courseId },
+    select: { id: true, weeks: { select: { weekNumber: true } } },
+  });
+  if (!course) return { response: NextResponse.json({ error: "Course not found" }, { status: 404 }) };
+  if (!course.weeks.some((courseWeek) => courseWeek.weekNumber === week)) {
+    return { response: NextResponse.json({ error: "Week is not part of the selected course outline" }, { status: 400 }) };
   }
   return { response: null };
 }
