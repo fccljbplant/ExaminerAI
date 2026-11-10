@@ -55,8 +55,10 @@ export async function saveCourseReportCard(input: {
         throw new ReportCardWriteError("REPORT_CARD_REASON_REQUIRED");
       }
 
-      const updated = await tx.reportCard.update({
-        where: { id: existing.id },
+      // Compare-and-swap the version in the write itself. The initial read
+      // and expectedVersion check cannot prevent a concurrent update race.
+      const updateResult = await tx.reportCard.updateMany({
+        where: { id: existing.id, version: existing.version },
         data: {
           ...input.fields,
           date: new Date(),
@@ -65,6 +67,16 @@ export async function saveCourseReportCard(input: {
           updatedByRole: input.actorRole,
         },
       });
+      if (updateResult.count !== 1) {
+        throw new ReportCardWriteError("REPORT_CARD_VERSION_CONFLICT");
+      }
+
+      const updated = await tx.reportCard.findUnique({
+        where: { id: existing.id },
+      });
+      if (!updated) {
+        throw new ReportCardWriteError("REPORT_CARD_VERSION_CONFLICT");
+      }
       await tx.reportCardVersion.create({
         data: {
           reportCardId: updated.id,
