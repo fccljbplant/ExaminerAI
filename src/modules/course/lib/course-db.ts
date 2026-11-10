@@ -192,25 +192,23 @@ export async function getCourseProjectConfig(userId: string, courseId?: string):
   projectDefaultDurationWeeks: number;
 }> {
   try {
-    let targetCourseId = courseId;
-    if (!targetCourseId) {
-      const enrollment = await db.courseEnrollment.findFirst({
-        where: { userId, role: "student" },
-        select: { courseId: true },
-      });
-      if (!enrollment) {
-        return {
-          courseAssigned: false,
-          courseId: null,
-          courseName: null,
-          totalWeeks: 0,
-          projectEnabled: false,
-          projectRequired: false,
-          projectDefaultDurationWeeks: 4,
-        };
-      }
-      targetCourseId = enrollment.courseId;
+    const enrollments = await db.courseEnrollment.findMany({
+      where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
+      select: { courseId: true },
+      take: courseId ? 1 : 2,
+    });
+    if (enrollments.length === 0 || (!courseId && enrollments.length !== 1)) {
+      return {
+        courseAssigned: false,
+        courseId: null,
+        courseName: null,
+        totalWeeks: 0,
+        projectEnabled: false,
+        projectRequired: false,
+        projectDefaultDurationWeeks: 4,
+      };
     }
+    const targetCourseId = enrollments[0].courseId;
 
     const course = await db.course.findUnique({
       where: { id: targetCourseId, isActive: true },
