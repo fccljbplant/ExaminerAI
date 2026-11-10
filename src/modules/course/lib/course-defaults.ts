@@ -180,6 +180,7 @@ export const DEFAULT_TEST_CONFIG = {
   pillars: [...PILLARS],
   minScoreFloor: 50,
   advanceOnComplete: true,
+  retakePolicy: "best" as const,
 };
 
 // ---- Report Card Template ----
