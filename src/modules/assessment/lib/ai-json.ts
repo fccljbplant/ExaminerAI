@@ -1,6 +1,9 @@
-// FILE: src/lib/ai-json.ts
+// FILE: src/modules/assessment/lib/ai-json.ts
 // JSON-mode AI call helper with zod schema validation + one repair retry.
 // Replaces the brittle "[-]" marker + anti-narration wall parsing pattern.
+//
+// Array schemas are requested as {"items": [...]} and unwrapped before
+// validation — json_object mode cannot emit a bare top-level array.
 //
 // Usage:
 //   import { z } from "zod";
@@ -25,6 +28,13 @@ export interface CallAIJsonOptions {
   maxTokens?: number;
   /** Extra instruction appended to the system prompt to force JSON output. */
   jsonInstruction?: string;
+  /** Opt-in response cache (see token-cache.ts). Only for calls whose
+   *  input recurs across requests — e.g. question generation for the
+   *  same (course, topic). NEVER for per-student conversations or
+   *  grading. Passed straight through to callAI. */
+  cacheable?: boolean;
+  /** Cache TTL in ms — only used together with cacheable. */
+  cacheTtlMs?: number;
 }
 
 export type AIJsonResult<T> =
@@ -42,8 +52,17 @@ export async function callAIJson<T>(
   messages: AIMessage[],
   options: CallAIJsonOptions
 ): Promise<AIJsonResult<T>> {
+  // DeepSeek/Z.ai json_object mode can ONLY emit a JSON OBJECT — a bare
+  // top-level array is rejected by the provider or silently wrapped.
+  // When the zod schema is an array we therefore ask the model for
+  // {"items": [...]} and unwrap it before validation (was: every
+  // array-schema call failed validation and fell back to canned
+  // questions — the root cause of tests never being AI-generated).
+  const schemaIsArray = isZodArray(options.schema);
   const jsonInstruction = options.jsonInstruction ??
-    "Respond with ONLY a valid JSON object. No prose, no markdown fences, no commentary. " +
+    (schemaIsArray
+      ? "Respond with ONLY a valid JSON object of the form {\"items\": [ ... ]} where items is an array. No prose, no markdown fences, no commentary. "
+      : "Respond with ONLY a valid JSON object. No prose, no markdown fences, no commentary. ") +
     "The JSON must conform to this schema: " + describeSchema(options.schema);
 
   const attempt = async (msgs: AIMessage[]): Promise<AIJsonResult<T>> => {
@@ -55,6 +74,10 @@ export async function callAIJson<T>(
       // Proper JSON mode: the provider enforces JSON output
       // (response_format json_object), not just prompt instructions.
       jsonMode: true,
+      // Opt-in response cache for recurring inputs (question gen).
+      // Grading/conversation calls leave this unset on purpose.
+      cacheable: options.cacheable,
+      cacheTtlMs: options.cacheTtlMs,
     });
 
     const raw = result.text || "";
@@ -68,6 +91,14 @@ export async function callAIJson<T>(
       parsed = JSON.parse(jsonStr);
     } catch (e) {
       return { ok: false, error: `JSON parse error: ${e instanceof Error ? e.message : "unknown"}`, raw };
+    }
+
+    // Unwrap the {"items": [...]} envelope we asked for when the
+    // caller's schema is a bare array. Also tolerates models that
+    // chose a different key ("questions", "data", ...) — the first
+    // array-valued property wins.
+    if (schemaIsArray) {
+      parsed = unwrapItemsEnvelope(parsed);
     }
 
     const validation = options.schema.safeParse(parsed);
@@ -145,12 +176,40 @@ function extractJson(text: string): string | null {
   return null;
 }
 
+/** True when the zod schema describes a bare top-level array (zod v4). */
+function isZodArray(schema: z.ZodType<any, any>): boolean {
+  const def = (schema as { _zod?: { def?: { type?: string } } })._zod?.def;
+  return def?.type === "array";
+}
+
+/** Unwrap a `{"items": [...]}` envelope into a bare array.
+ *
+ * json_object mode can only emit objects, so array-schema calls are
+ * requested as {"items": [...]}. Models sometimes pick a different
+ * key ("questions", "data", ...) — the first array-valued property
+ * wins. Non-object input passes through untouched.
+ */
+export function unwrapItemsEnvelope(parsed: unknown): unknown {
+  if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+    const envelope = parsed as Record<string, unknown>;
+    const items = Object.values(envelope).find((v) => Array.isArray(v));
+    if (Array.isArray(items)) return items;
+  }
+  return parsed;
+}
+
 /** Best-effort human-readable description of a zod schema for the JSON instruction. */
 function describeSchema(schema: z.ZodType<any, any>): string {
   try {
     // zod v4: use _zod.def; v3: use _def
     const def = (schema as any)._zod?.def ?? (schema as any)._def;
     if (!def) return "(see schema)";
+
+    // Array schemas are wrapped in {"items": [...]} (json_object mode
+    // cannot emit a bare array) — describe the ITEM shape.
+    if (def.type === "array") {
+      return `{"items": Array<${describeSchema(def.element)}>}`;
+    }
 
     if (def.type === "object") {
       const shape = def.shape ?? def.entries;

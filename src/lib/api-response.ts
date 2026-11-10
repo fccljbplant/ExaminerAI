@@ -48,6 +48,7 @@ export const ErrorCode = {
   // Conflict errors (409)
   ALREADY_EXISTS: "ALREADY_EXISTS",
   CONFLICT: "CONFLICT",
+  OUT_OF_SEQUENCE: "OUT_OF_SEQUENCE", // e.g. weekly test before its week's days are reached (2026-09)
 
   // Rate limiting (429)
   RATE_LIMITED: "RATE_LIMITED",

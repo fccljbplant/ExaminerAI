@@ -31,6 +31,9 @@ interface Question {
   format: string;
   conceptId: string;
   isSpacedRepetition: boolean;
+  /** Additive (2026-09): difficulty band this test was generated for. */
+  difficultyLevel?: number;
+  difficultyLabel?: string;
 }
 
 interface StoredAnswer {
@@ -239,6 +242,8 @@ export function DailyTestPanel({
           {topicLabel
             ? `Covers today's topic: ${topicLabel}.`
             : "Short 3-question Socratic test — sharpens your mastery data daily."}
+          {questions[0]?.difficultyLabel &&
+            ` Difficulty: ${questions[0].difficultyLabel} (${questions[0].difficultyLevel}/5) — adapts to your results.`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

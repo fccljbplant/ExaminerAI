@@ -23,6 +23,7 @@ import { callAIJson } from "@/modules/assessment/lib/ai-json";
 import { getTodayTopic, getTopicByWeekDay } from "@/modules/learn/lib/today-topic";
 import { getCourseOutline } from "@/modules/learn/lib/course-outline";
 import { getOrCreateProfile } from "@/modules/learn/lib/learner-profile";
+import { getLearnerDifficulty } from "@/modules/learn/lib/learner-difficulty";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -93,27 +94,41 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
     srTopic = getTopicByWeekDay(pick.week, pick.day);
   }
 
+  // Question difficulty ADAPTS TO THE LEARNER (2026-09): the level comes
+  // from this learner's own recent daily/weekly test scores for THIS
+  // course — never from the calendar. Weeks/days are a management
+  // structure; the learner sets the pace, difficulty follows the learner.
+  const difficulty = await getLearnerDifficulty(user.sub, courseId);
+
   const systemPrompt = [
-    "You are an AI tutor on the TraineesAI Learn platform. Generate a short daily test.",
-    "Respond with ONLY a JSON array. No prose, no markdown fences.",
-    "Each item: { question: string, format: 'open'|'short'|'probe', conceptId: string, isSpacedRepetition: boolean }.",
+    "You are an expert AI tutor on the TraineesAI Learn platform. Generate a short daily test that CHECKS UNDERSTANDING and TEACHES through the questions themselves.",
+    "The JSON must conform to this schema.",
     "Rules:",
     " - Exactly 3 questions.",
     " - Questions 1 and 2 cover TODAY's topic. Question 3 is a spaced-repetition question on a PAST topic.",
     " - 'open' = one-sentence answer, 'short' = a few words, 'probe' = a Socratic follow-up.",
+    " - Ask WHY / HOW / WHAT-IF questions that probe real understanding and application — never bare definitions or yes/no recall.",
+    ` - Difficulty is calibrated to THIS learner's level: ${difficulty.level}/5 (${difficulty.label}). ${difficulty.directive}`,
+    " - Ramp gently across the test: Q1 the easiest within that band, Q3 the hardest.",
+    " - Anchor each question in a concrete engineering situation when possible (the learner is an internee on the job).",
     " - conceptId = 'today' for Q1+Q2, 'sr' for Q3.",
     " - isSpacedRepetition = false for Q1+Q2, true for Q3.",
+    " - No prose outside the JSON.",
   ].join("\n");
 
   const userPrompt = [
+    `Learner difficulty level: ${difficulty.level}/5 (${difficulty.label}) — from this learner's recent test performance in this course.`,
     `Today's topic (Q1+Q2):`,
     `Week ${today.topic.week} Day ${today.topic.day}: ${today.topic.title}`,
     `Objective: ${today.topic.objective}`,
+    today.topic.whyItMatters ? `Why it matters: ${today.topic.whyItMatters}` : "",
+    today.topic.activity ? `Planned activity: ${today.topic.activity}` : "",
+    today.topic.deliverable ? `Deliverable: ${today.topic.deliverable}` : "",
     ``,
     srTopic
       ? `Spaced-repetition topic (Q3): ${srTopic.title} — ${srTopic.objective}`
       : `Spaced-repetition topic: none available yet — make all 3 questions on today's topic, but mark Q3's isSpacedRepetition=false and conceptId='today'.`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 
   const result = await callAIJson<z.infer<typeof QUESTION_SCHEMA>>(
     [
@@ -125,7 +140,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
       feature: "learn-daily-test-start",
       userId: user.sub,
       temperature: 0.5,
-      maxTokens: 500,
+      // DeepSeek V4 reasons before answering — a tight cap empties
+      // `content` and silently degrades to canned questions. 900 leaves
+      // room for reasoning + 3 teaching-quality questions + valid JSON.
+      maxTokens: 900,
+      // Question generation recurs for every learner hitting the same
+      // (course, day, DIFFICULTY LEVEL) — the difficulty directive is
+      // part of the prompt, so the token-cache key shards per level and
+      // same-level learners still share one cached generation. Grading
+      // is per-student and stays uncached.
+      cacheable: true,
+      cacheTtlMs: 6 * 60 * 60 * 1000,
     },
   );
 
@@ -143,6 +168,23 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
     ];
   }
 
+  // Attach per-question topic context so the answer route can TEACH the
+  // right content without re-deriving the learner's position later
+  // (midnight rollover would otherwise point the grader at the wrong
+  // topic). Spaced-repetition questions carry their own past topic.
+  // difficultyLevel/Label ride on every question (additive JSON) so a
+  // resumed test still shows its band without a schema migration.
+  questions = questions.map((q) => {
+    const topic = q.conceptId === "sr" && srTopic ? srTopic : today.topic;
+    return {
+      ...q,
+      topicTitle: topic.title,
+      topicObjective: topic.objective,
+      difficultyLevel: difficulty.level,
+      difficultyLabel: difficulty.label,
+    };
+  });
+
   // Persist the test.
   const test = await db.learnDailyTest.create({
     data: {
@@ -154,5 +196,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ date: string }
     },
   });
 
-  return apiSuccess({ testId: test.id, questions, status: "in_progress", answers: [] });
+  return apiSuccess({
+    testId: test.id,
+    questions,
+    status: "in_progress",
+    answers: [],
+    difficulty: { level: difficulty.level, label: difficulty.label },
+  });
 }

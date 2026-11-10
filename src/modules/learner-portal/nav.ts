@@ -16,7 +16,10 @@ export const LEARNER_NAV: NavItem[] = [
     label: "Learn",
     href: "/learner/learn",
     icon: BookOpen,
-    match: ["/learner/learn", "/learner/courses", "/learner/assignments"],
+    // "/learn" covers the public/fallback catalog and the classroom
+    // (/learn/[courseId]) — prefix matching is segment-boundary safe
+    // ("/learn" never matches "/learner/*", that's a different prefix).
+    match: ["/learn", "/learner/learn", "/learner/courses", "/learner/assignments"],
   },
   {
     id: "practice",
