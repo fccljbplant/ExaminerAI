@@ -156,6 +156,7 @@ export async function POST(req: NextRequest) {
       },
       actorId: payload.sub,
       actorRole: payload.role,
+      source: "manual_correction",
       reason: typeof body.reason === "string" ? body.reason.slice(0, 500) : undefined,
       expectedVersion: Number.isInteger(body.expectedVersion) ? body.expectedVersion : undefined,
       requireExpectedVersion: true,
