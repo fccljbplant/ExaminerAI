@@ -105,7 +105,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Week is not part of the selected course outline" }, { status: 400 });
   }
 
-  const score = body.score === null || body.score === undefined ? null : Number(body.score);
+  const score = body.score === null || body.score === undefined
+    ? null
+    : typeof body.score === "number" ? body.score : Number.NaN;
   if (score !== null && (!Number.isFinite(score) || score < 0 || score > 100)) {
     return NextResponse.json({ error: "score must be null or a number from 0 to 100" }, { status: 400 });
   }
