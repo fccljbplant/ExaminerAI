@@ -76,14 +76,15 @@ export { DEFAULT_TEST_CONFIG, DEFAULT_REPORT_CARD_TEMPLATE, DEFAULT_PROJECT_TEMP
 
 async function loadCourseConfig<T>(userId: string, field: string, fallback: T, courseId?: string): Promise<T> {
   try {
-    const enrollment = await db.courseEnrollment.findFirst({
+    const enrollments = await db.courseEnrollment.findMany({
       where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
       select: { courseId: true },
+      take: courseId ? 1 : 2,
     });
-    if (!enrollment) return fallback;
+    if (enrollments.length === 0 || (!courseId && enrollments.length !== 1)) return fallback;
 
     const course = await db.course.findUnique({
-      where: { id: enrollment.courseId, isActive: true },
+      where: { id: enrollments[0].courseId, isActive: true },
       select: { [field]: true },
     });
 
@@ -125,16 +126,19 @@ export async function getReportCardTemplate(userId: string): Promise<ReportCardT
   return loadCourseConfig<ReportCardTemplateConfig>(userId, "reportCardTemplateJson", DEFAULT_REPORT_CARD_TEMPLATE);
 }
 
-export async function getCourseInfo(userId: string): Promise<{ courseId: string | null; courseName: string | null }> {
+export async function getCourseInfo(userId: string, courseId?: string): Promise<{ courseId: string | null; courseName: string | null }> {
   try {
-    const enrollment = await db.courseEnrollment.findFirst({
-      where: { userId, role: "student" },
+    const enrollments = await db.courseEnrollment.findMany({
+      where: { userId, role: "student", ...(courseId ? { courseId } : {}) },
       select: { courseId: true },
+      take: courseId ? 1 : 2,
     });
-    if (!enrollment) return { courseId: null, courseName: null };
+    if (enrollments.length === 0 || (!courseId && enrollments.length !== 1)) {
+      return { courseId: null, courseName: null };
+    }
 
     const course = await db.course.findUnique({
-      where: { id: enrollment.courseId },
+      where: { id: enrollments[0].courseId },
       select: { id: true, name: true },
     });
 
