@@ -223,7 +223,7 @@ export async function fetchCertificateForVerification(credentialId: string) {
 
   const certificate = await db.certificate.findFirst({
     where: {
-      grade: { not: "PENDING" },
+      grade: { notIn: ["PENDING", "REJECTED"] },
       ...(looksLikeLegacyToken
         ? { verifyToken: credentialId }
         : { OR: [{ credentialId }, { verifyToken: credentialId }] }),
