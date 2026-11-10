@@ -1,25 +1,26 @@
 # TraineesAI project status
 
-**Snapshot date:** 2026-11-10 (live PR #3 head ad1638fc9a1862b2876131fef8e1d656c82d757b)  
+**Snapshot date:** 2026-11-10 (live PR #3 head ffe5abff4d5c8edecd677743141c769c901be237)  
 **Repository:** [fccljbplant/ExaminerAI](https://github.com/fccljbplant/ExaminerAI)  
 **Active UX baseline PR:** [#3 — UX audit: fix dashboard KPI accuracy and safer failure states](https://github.com/fccljbplant/ExaminerAI/pull/3)
 
-## Latest live update — 2026-11-10 (final-result scope validation and next blockers)
+## Latest live update — 2026-11-10 (course-specific report-card/certificate decision)
 
-- PR #3 remains open, draft, unmerged and mergeable on ux-audit/fix-dashboard-truthfulness-and-agent-safety. Latest live head at this refresh: ad1638fc9a1862b2876131fef8e1d656c82d757b; 309 commits, 111 changed files. Commits after the validated code head are continuity documentation only.
-- Exact-head Actions run [42724107308](https://github.com/fccljbplant/ExaminerAI/actions/runs/42724107308) completed successfully. All configured steps passed: dependency install, isolated test DB, lint, unit tests, typecheck, production build, app-page route smoke, authenticated role screenshots and artifact upload.
-- Vercel combined status is failure because the project is build-rate limited; no Ready preview is verified.
-- Final-result course-scope correction and route tests are committed. All five course-bearing nested relations are scoped; learner self-view remains cross-course; behavioralPattern remains learner-self only.
-- Read-only review identified two additional staff endpoint scope issues: generate-report-card reads course-bearing records learner-wide but writes to a global unique ReportCard(userId, week); generate-project-analysis reads course-bearing project records learner-wide and combines them with legacy User project fields that have no course relation. Both are recorded in QUESTIONS.md pending authoritative data semantics.
-- Comprehensive-report managementAttitude classification remains owner-blocked. No changes were made to these endpoints.
-- No local checks or browser/axe review were run. No schema/dependency/production-data change, branch switch, merge, deployment or main-branch write.
+- PR #3 remains open, draft, unmerged and mergeable on `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; live head at refresh: `ffe5abff4d5c8edecd677743141c769c901be237` (312 commits, 111 changed files).
+- Exact-head GitHub Actions run [42725583405](https://github.com/fccljbplant/ExaminerAI/actions/runs/42725583405) passed all configured quality steps: dependency installation, isolated test DB, lint, unit tests, TypeScript, production build, app-page route smoke tests, authenticated role screenshots and artifact upload.
+- Vercel combined status remains failure due to the project build-rate limit; no Ready preview is verified.
+- Owner decision recorded: **each course has its own report card and course certificate**.
+- Source review confirms the current schema/API does not yet implement that decision: ReportCard and WeeklyTest are both unique by `(userId, week)` despite nullable courseId; report-card generation and manual CRUD are learner/week scoped; certificate request/approval/retrieval is learner-global and selects the first student enrollment on issue.
+- The report-card/certificate findings and a coordinated course-scoping plan are recorded in `docs/UPGRADE-2026-10/QUESTIONS.md`. Historical null-course records must not be assigned to an arbitrary course. No schema or application code changed in this review.
+- Project analysis remains separately blocked: it combines learner-global legacy User.project* fields with course-bearing project records. Comprehensive-report `managementAttitude` visibility remains owner-blocked.
+- No local checks or browser/axe checks were run. No production data/schema migration, deployment, merge, branch switch or main-branch write occurred.
 
 ### Next actions
-1. Obtain the owner decision on whether ReportCard is learner-global per week or course-specific; do not patch around its existing unique key.
-2. Confirm whether project analysis is based on one learner-global legacy project or a course-linked LearnProject before scoping its AI context.
-3. Keep comprehensive-report managementAttitude visibility blocked pending its existing owner decision.
-4. Continue reviewing remaining assertCanAccessStudent callsites for course/field scope, one endpoint slice at a time.
-5. Keep PR #3 draft; no merge or deploy without explicit owner approval.
+
+1. Plan the coordinated course-specific report-card, WeeklyTest identity, report-card CRUD, and certificate request/approval/retrieval changes with additive migration and rollback notes.
+2. Preserve historical null-course records without guessed backfills; define how legacy records are displayed.
+3. Add route/model tests for same-week records across two courses, tenant/course access, and per-course certificate idempotency.
+4. Continue the remaining scoped endpoint review on PR #3; keep the PR draft and do not merge/deploy without owner approval.
 
 ## Latest live update — 2026-11-10
 
