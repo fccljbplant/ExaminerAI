@@ -621,9 +621,9 @@ CRITICAL RULES:
           }
         })();
 
-        // Certificate issuance is intentionally not automatic. A separate,
-        // course-scoped workflow must verify published criteria and obtain
-        // human approval before creating a credential.
+        // Certificate issuance is learner-initiated through the course-scoped
+        // completion check on the learner's Progress page, not a side effect
+        // of completing a weekly test.
 
         return NextResponse.json({
           conversation, currentQuestion: test.currentQuestion, replyCount: newReplyCount,
@@ -780,8 +780,8 @@ CRITICAL RULES:
       }
     })();
 
-    // Certificate issuance is intentionally not automatic; it requires
-    // the separate course-scoped human approval workflow.
+    // Certificate issuance remains learner-initiated through the selected
+    // course's completion check, not a side effect of completing a test.
 
     return NextResponse.json({
       conversation, isComplete: true, ...analysis,
