@@ -32,16 +32,21 @@ const EVAL_SCHEMA = z.object({
 export async function POST(req: Request, ctx: { params: Promise<{ week: string }> }) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-  await ctx.params; // validate route shape
+  const { week: weekParam } = await ctx.params;
+  const routeWeek = Number(weekParam);
+  if (!Number.isInteger(routeWeek) || routeWeek < 1 || routeWeek > 52) {
+    return apiValidationError({ week: "week must be an integer 1-52" });
+  }
 
-  let body: { testId?: string; questionIdx?: number; answer?: string } = {};
+  let body: { testId?: string; courseId?: string; questionIdx?: number; answer?: string } = {};
   try {
     body = await req.json();
   } catch (err) {
     logger.warn("body parse failed", { err });
   }
-  const { testId, questionIdx, answer } = body;
+  const { testId, courseId, questionIdx, answer } = body;
   if (!testId) return apiValidationError({ testId: "testId is required" });
+  if (!courseId) return apiValidationError({ courseId: "courseId is required" });
   if (typeof questionIdx !== "number" || questionIdx < 0) {
     return apiValidationError({ questionIdx: "questionIdx must be a non-negative number" });
   }
@@ -50,8 +55,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   const test = await db.learnWeeklyTest.findUnique({ where: { id: testId } });
   if (!test) return apiNotFound("Test not found");
   if (test.userId !== user.sub) return apiError("This test belongs to another user", "FORBIDDEN", 403);
+  if (test.courseId !== courseId || test.week !== routeWeek) {
+    return apiError("The selected course or week does not match this test", "FORBIDDEN", 403);
+  }
   const enrollment = await db.courseEnrollment.findFirst({
-    where: { userId: user.sub, courseId: test.courseId, role: "student" },
+    where: { userId: user.sub, courseId, role: "student" },
     select: { id: true },
   });
   if (!enrollment) return apiError("You are not enrolled in this course", "FORBIDDEN", 403);
