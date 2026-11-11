@@ -8,7 +8,7 @@
 
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
-import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
+import { apiError, apiSuccess, apiUnauthorized } from "@/lib/api-response";
 import { getTodayTopic } from "@/modules/learn/lib/today-topic";
 import { getLearnerLevel } from "@/modules/learn/lib/xp-ledger";
 
@@ -124,8 +124,12 @@ export async function GET() {
       };
     });
   } catch (e) {
-    // LearnProject table might not exist yet — continue with empty list
-    console.warn("Could not fetch projects:", e instanceof Error ? e.message : String(e));
+    console.error("Learner home project lookup failed:", e);
+    return apiError(
+      "Your dashboard is temporarily unavailable. Please try again.",
+      "SERVICE_UNAVAILABLE",
+      503,
+    );
   }
 
   /* ---- learner totals across courses ---- */
