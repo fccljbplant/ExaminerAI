@@ -1,6 +1,7 @@
 # TraineesAI — Pre-reset Repository Baseline
 
-**Snapshot date:** 11 November 2026  
+**Initial snapshot date:** 11 November 2026
+**Post-documentation main HEAD:** `777f3131fefcb4878973237e1e4ad4e0003ad824`  
 **Repository:** fccljbplant/ExaminerAI  
 **Default branch:** main  
 **Purpose:** A verified starting point for the reset. This is not a full source-code audit.
@@ -104,7 +105,16 @@ These are investigation targets, not final audit conclusions.
 | Course content | src/app/api/learn/today/next-slide/route.ts and LearnSlide model | Verify shared content, concurrency, idempotency and first-learner personalization. |
 | Dashboard sources | src/modules/learn/components/dashboard/LearnerHome.tsx and portal consumers | Verify one canonical dashboard journey and no duplicate/conflicting source of truth. |
 
-## 6. Cleanup constraints
+## 6. Current reset execution state
+
+- Current main HEAD after the documentation programme and instruction updates: `777f3131fefcb4878973237e1e4ad4e0003ad824`.
+- The 19 non-main refs remain. PR #3 and #6 remain open/draft. The archive has not yet been created or restore-tested; therefore no branch refs have been deleted and no PRs closed.
+- This connected environment did not provide a verified encrypted private archive/restore workflow or a remote branch-ref deletion operation. Stage 0 must be completed in an owner-controlled Git-capable workspace.
+- Direct documentation writes to main initiated Vercel production-target builds. Deployment `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` (BUILDING) and `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK` (QUEUED) were canceled. Follow-up listing confirmed both canceled.
+- Current Vercel status on main: failure due to build-rate limit. No exact-head GitHub Actions run was returned by the connected PR-run query. No test/lint/typecheck/build/browser/a11y checks ran for these docs-only changes.
+- No app source, schema, dependency, production data or migration changed.
+
+## 7. Cleanup constraints
 
 - Retire stale plan documents only after a link/reference and unique-content audit.
 - Keep unique decisions, migration history, approved requirements and session logs.
