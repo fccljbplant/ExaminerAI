@@ -1,7 +1,7 @@
 # TraineesAI — Pre-reset Repository Baseline
 
 **Initial snapshot date:** 11 November 2026
-**Post-documentation main HEAD:** `777f3131fefcb4878973237e1e4ad4e0003ad824`  
+**Post-documentation main HEAD before final status refresh:** `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`  
 **Repository:** fccljbplant/ExaminerAI  
 **Default branch:** main  
 **Purpose:** A verified starting point for the reset. This is not a full source-code audit.
@@ -122,3 +122,11 @@ These are investigation targets, not final audit conclusions.
 - Never delete database files, generated artifacts, dependencies or source files until their content/use and consequences have been checked.
 - Do not delete the PR #3 schema rollout record or owner decision history. They remain useful evidence even after PR #3 is closed.
 - Never copy a tracked database binary into a public repository or an uncontrolled archive.
+
+
+## Additional operational evidence — 11 November 2026
+
+- Live reset status rechecked at `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`: 20 refs including main; open PRs #3 and #6 remain; no private archive restore or branch deletion completed.
+- Vercel status fails on build-rate limit and no PR-triggered Actions run was returned for this exact SHA.
+- Direct main documentation commits caused two production-target deployment attempts. Both were explicitly canceled and verified CANCELED: `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` and `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK`.
+- No code, schema, dependency or production data changed and no tests were run.

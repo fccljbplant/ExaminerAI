@@ -1166,3 +1166,19 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - No private archive was created and no branch deletion or PR closure was performed. This environment did not provide a safe verified private archive/restore workflow or remote branch-ref deletion path.
 - No application code, schema, dependency or production data change; no lint, test, typecheck, build, browser or accessibility checks were run. Vercel status: failure due to build-rate limit; no exact-head Actions result returned.
 - Next: use a Git-capable, owner-controlled workspace to create and verify the encrypted archive, close #3/#6 and delete all refs except main; then perform the read-only main audit before implementation.
+
+
+## 2026-11-11 — Mainline reset status and automatic deployment side effect
+
+- Live main before this final documentation status refresh: `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`.
+- Current branch inventory remains 20 refs including main. Open PRs #3 and #6 remain open/draft. No PR closure or branch deletion has occurred; no verified private archive/restore exists yet.
+- Direct documentation commits to main automatically created two production-target Vercel deployments. `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` from commit `2b0badf464682c1c4127b578e1e9a5d4fb49410e` was BUILDING and was canceled. `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK` from commit `9d2178c5b87ba910a25e344e8f2fb68bd3875ae5` was QUEUED and was canceled. Vercel returned CANCELED for both; a follow-up listing confirmed no other deployment records for the docs commits in that first batch.
+- Vercel combined status on `b70cfa719e338d4397e369ecc0a31b71ac5ebd63` is failure due to build-rate limit. No PR-triggered GitHub Actions run was returned for this exact main SHA. No tests/lint/typecheck/build/browser/a11y checks ran for the docs-only work.
+- No application source, schema, dependency, production data or migration changed. No manual deployment was initiated.
+- No secure private archive was available in this session. The remote ref-deletion operation was not available in the connected Git interface. Do not close PRs or delete refs until an owner-controlled Git workspace has archived the refs/metadata and passed a restore rehearsal.
+- Next: execute Stage 0 only in a Git-capable owner-controlled workspace, then audit main read-only.
+
+## 2026-11-11 — Programme and instructions recorded
+
+- New plan docs are under `docs/UPGRADE-2026-11/`; old consolidation instructions and queues have been superseded. Historical decision, migration and log records have been preserved.
+- Main-only implementation is the target after reset, but first check that a main commit will not cause an unapproved production deployment.

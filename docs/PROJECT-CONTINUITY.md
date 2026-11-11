@@ -1,3 +1,7 @@
+> **Reset-programme execution note — 11 November 2026:** The docs-only programme and instruction refresh are saved on main. The last checked main HEAD before the final status/log commit was `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`. The owner-directed branch reset is not executed: 19 non-main refs remain, PR #3 and #6 remain open, and no verified private archive exists yet. Do not delete refs until the private archive restore is verified. Two automatic production-target Vercel deployments from the first documentation commits were canceled (`dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ`, `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK)); Vercel status on the checked main SHA fails due to build-rate limit. Inspect deployment automation before any future source-code commit to main.
+
+---
+
 > **Reset-programme execution note — 11 November 2026:** The new docs have been added to main at `777f3131fefcb4878973237e1e4ad4e0003ad824`. The owner-directed branch reset is not yet executed: 19 non-main refs remain, PR #3 and #6 remain open, and no verified private archive exists yet. Do not delete refs until private archive restore is verified. Two automatic production-target Vercel deployments caused by documentation commits were canceled (`dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ`, `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK)); Vercel status on current main is failing due to build-rate limit. Inspect deployment automation before any future source-code commit to main.
 
 ---

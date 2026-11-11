@@ -1,3 +1,7 @@
+> **CURRENT DIRECTION — 11 November 2026:** Historical operating directions below (including “work only on PR #3”) are superseded. The owner has approved a reset-first, main-only programme. Follow root [AGENTS.md](../../AGENTS.md) and [docs/UPGRADE-2026-11/START-HERE.md](../UPGRADE-2026-11/START-HERE.md). Archive and verify before closing/deleting branches. Then audit main read-only and implement approved gaps directly on main. These historical decisions are retained as evidence and do not authorize current work.
+
+---
+
 > **SUPERSEDED OPERATING HISTORY — 11 November 2026:** The prior statements below that required work only on PR #3 or prohibited mainline reset are historical decisions. The current owner direction is reset-first: archive branch/PR state privately and verify restoration, close the retired open PRs, delete every remote branch except main, audit main read-only, then implement approved gaps directly on main. See [START-HERE](../UPGRADE-2026-11/START-HERE.md), [MASTER-PLAN](../UPGRADE-2026-11/MASTER-PLAN.md) and [AGENTS.md](../../AGENTS.md). Do not execute old task cards.
 
 ---

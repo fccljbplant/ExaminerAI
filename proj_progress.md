@@ -523,3 +523,13 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Current main's Vercel check fails due to build-rate limit; no exact-head Actions run was returned. No tests/lint/typecheck/build/manual browser/a11y checks were run.
 - No app source/schema/dependency/production data changed. No manual deploy, migration or branch deletion/PR closure.
 - Next: private archive and restore verification, then reset refs and close old PRs in a Git-capable owner-controlled environment; deep audit main read-only; create gap-only task register.
+
+
+## 2026-11-11 — Mainline reset programme status
+
+- New programme and research are saved under `docs/UPGRADE-2026-11/`; root AGENTS and legacy Agent Pack instructions have been reconciled.
+- Live main HEAD before this final documentation status refresh: `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`. Reset not yet executed: 20 refs including main, PR #3 and #6 open/draft, and no verified private archive.
+- Vercel status on the checked main SHA is failure due to build-rate limit; exact-head Actions query returned no PR-triggered runs. No test/lint/typecheck/build/browser/a11y check was run for docs-only changes.
+- Two automatic production-target deployment attempts from the initial docs commits were canceled: `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` and `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK`. Both confirmed CANCELED.
+- No app source/schema/dependency/production DB/migration change; no branch deletion or PR closure.
+- Next: verified private archive and reset in a Git-capable owner-controlled workspace, then deep read-only main audit.

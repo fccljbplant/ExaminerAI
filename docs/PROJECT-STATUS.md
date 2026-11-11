@@ -1,3 +1,17 @@
+# LATEST LIVE UPDATE — 11 November 2026 (mainline reset status)
+
+- Live main HEAD verified immediately before this documentation refresh: `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`. This refresh is documentation-only and will create a new main commit.
+- Active programme: `docs/UPGRADE-2026-11/START-HERE.md` and `MASTER-PLAN.md`; the reset-first mainline plan replaces the former branch-consolidation queue.
+- Pre-reset inventory still shows 20 remote branch refs including main (19 non-main refs). Open PRs #3 and #6 remain open/draft. No branches have been deleted and no PR has been closed in this milestone.
+- A secure private archive and restore rehearsal have not been completed. Do not delete refs until both are verified.
+- Vercel combined status on `b70cfa719e338d4397e369ecc0a31b71ac5ebd63` reports failure due to the project's build-rate limit. The connected GitHub Actions query returned no PR-triggered workflow runs for this exact main SHA; do not claim CI passed or failed from that empty result.
+- Direct documentation commits to main automatically queued production-target deployments. Two in-progress deployments were canceled: `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` (commit `2b0badf...`) and `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK` (commit `9d2178c...`). A follow-up list matched all docs commits in the initial batch and confirmed both CANCELED; no other deployments from that set were found.
+- No application source, Prisma schema, dependency, production data, production setting or migration was changed. No tests, lint, typecheck, build, browser or accessibility checks were run for this documentation-only work.
+- The new plan marks already-integrated PR #2, #7–#9, #11 and selective PR #17/#19 work as items to verify, not tasks to rebuild.
+- Next: complete secure private archive/restore and execute branch/PR reset in a Git-capable owner-controlled workspace; then run the read-only mainline audit. Before any further main writes, resolve automatic production deployment behavior and require separate release approval.
+
+---
+
 # LATEST LIVE UPDATE — 11 November 2026 (reset programme docs reconciled)
 
 - Current live main HEAD: `777f3131fefcb4878973237e1e4ad4e0003ad824`.
