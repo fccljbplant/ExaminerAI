@@ -1,5 +1,7 @@
 # Agent Instructions — READ THIS FIRST at the start of every session
 
+> Maintained repository agent pack: read [`AGENTS.md`](./AGENTS.md) and [`docs/agent-pack/README.md`](./docs/agent-pack/README.md) after this file. These canonical files replace any need to maintain a local agent archive.
+
 > **CRITICAL:** This file exists because the sandbox environment can reset
 > between sessions, wiping the working directory and rolling back git.
 > This file is committed to GitHub and survives resets. Read it FIRST.
