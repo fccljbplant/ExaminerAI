@@ -1145,3 +1145,24 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Vercel combined status on the docs-only main HEAD reports failure due to build-rate limit; no PR-triggered Actions run was returned for that exact main SHA. No test, lint, typecheck, build or browser check was run in this documentation session.
 - No application source, schema, dependency, production database, production setting or migration was changed. No manual deployment was initiated. Automatic deployment side effects must be checked as part of reset before source commits.
 - Next: Stage 0 private archive/restore verification and remote branch/PR cleanup; then Stage 1 read-only audit of main. Preserve the PR #3 schema rollout and owner decision history; do not reintroduce the old branch merge strategy.
+
+
+## 2026-11-11 — Automatic Vercel production build side effect contained
+
+- After documentation-only programme files were committed directly to main, the connected Vercel project automatically created production-target deployments from two of those commits.
+- Deployment `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` (commit `2b0badf464682c1c4127b578e1e9a5d4fb49410e`) was BUILDING. It was canceled; Vercel returned `CANCELED`.
+- Deployment `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK` (commit `9d2178c5b87ba910a25e344e8f2fb68bd3875ae5`) was QUEUED. It was canceled; Vercel returned `CANCELED`.
+- A follow-up deployment listing matched all commits in this documentation change set and found only those two deployment records; both were canceled. No Ready release from this change set was observed.
+- Current main HEAD at the time of this log refresh: `777f3131fefcb4878973237e1e4ad4e0003ad824`. Vercel status on this SHA is failure due to build-rate limit; the Actions connector returned no PR-triggered run for this exact SHA.
+- This incident demonstrates that direct main documentation commits can initiate production-target deployment. No further main commits should be made until the deployment path is understood and release approval is separated from main-write approval.
+- No application source, DB/schema, dependency or production data was modified. No manual deployment or production DB operation occurred.
+
+## 2026-11-11 — Mainline reset-first programme and research completed
+
+- Created six active programme documents under `docs/UPGRADE-2026-11/`: START-HERE, MASTER-PLAN, UXPEAK-RESEARCH-AND-DESIGN, AI-AND-DATA-STRATEGY, RESET-BASELINE and DECISIONS-REGISTER.
+- Reconciled root agent contract, old instructions, Agent Pack README/SAFETY/QUEUE, project continuity, status and progress to the new owner direction. Old queue is explicitly historical/non-executable; historical logs and unique schema/privacy decisions are preserved.
+- Research sources include UXPeak public design guidance; IEEE Dashboard Design Patterns; W3C WCAG 2.2; retrieval-practice and feedback reviews; Self-Determination Theory education interventions; UNESCO human-centred GenAI-in-education guidance; OWASP GenAI LLM Top 10 2026; NIST GenAI risk profile; and current DeepSeek model, thinking and context-cache docs.
+- Current live main HEAD: `777f3131fefcb4878973237e1e4ad4e0003ad824`. The reset is not yet executed; 20 refs including main remain, and PR #3/#6 remain open/draft.
+- No private archive was created and no branch deletion or PR closure was performed. This environment did not provide a safe verified private archive/restore workflow or remote branch-ref deletion path.
+- No application code, schema, dependency or production data change; no lint, test, typecheck, build, browser or accessibility checks were run. Vercel status: failure due to build-rate limit; no exact-head Actions result returned.
+- Next: use a Git-capable, owner-controlled workspace to create and verify the encrypted archive, close #3/#6 and delete all refs except main; then perform the read-only main audit before implementation.
