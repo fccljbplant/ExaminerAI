@@ -1054,3 +1054,13 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Confirmed the manifest reports no horizontal overflow at all captured viewports and no heuristic findings for unnamed controls, unlabeled fields, missing image alt, missing document language or missing main landmark. These are structural heuristics only, not WCAG/axe results.
 - Identified learner no-enrollment state with no primary heading at all seven sizes. Source: `src/modules/learner-portal/home.tsx`; `NoEnrollment()` currently uses a paragraph for “Start your first course”. Record as a focused accessibility fix with empty/enrolled regression tests.
 - No application code was modified. Manual keyboard, screen-reader, reduced-motion, zoom/reflow and axe checks were not performed. Agent Pack task queue and safe runner remain missing.
+
+
+## 2026-11-11 — Deployment and repository handoff finalized for this session
+
+- Verified current main HEAD `e390031cbf6eb0203c046947fcd3bd4c260014c7` after PR #13 documentation merge.
+- Verified latest READY production deployment `dpl_AS4D5wBkdubVHXEaXfQmumDSoahQ` from `1c2af3e962290ea20634229dc506e3a71bb51ada`; stable alias is `examiner-ai-tau.vercel.app`. PR #13 was docs-only. Vercel status for current docs-only main HEAD is failure due to free-plan build-rate limit, so no new deployment was produced for that documentation commit.
+- Queried production runtime error/fatal logs for a 15-minute window; no entries were returned. No real production login/course journey or database connectivity test was performed.
+- Current open PRs #3 and #6 remain intentionally blocked/held. PR #3 still requires its schema migration/legacy NULL-course/backup-restore/staging and privacy/task-workflow gates. PR #6 still requires V3 design/role/navigation reconciliation and removal of the tracked SQLite DB before selective salvage.
+- Manual review of 28 role screenshots identified the learner no-enrollment missing-`h1` issue; this is recorded in `docs/UPGRADE-2026-10/QUESTIONS.md` for a future approved UI task.
+- No data was seeded, no database was accessed or migrated, and no branch was deleted. The existing demo seeder includes psychological data and requires privacy/consent review before any execution.
