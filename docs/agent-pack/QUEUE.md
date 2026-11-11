@@ -23,7 +23,7 @@ Exactly one active card per session. Owner-authorised consolidation supersedes h
 - **Scope:** verify branch/PR/CI/deployment state and unresolved application risks.
 
 ### P0-03 — Consolidate existing branches into main
-- **Status:** in progress — owner authorised 2026-11-11.
+- **Status:** in progress — owner authorised 2026-11-11; PR #14 merged (docs-only). PR #3 and PR #6 remain non-mergeable; overlapping branches need three-way conflict resolution.
 - **Scope:** integrate useful unique commits from every existing branch into `main`, preferably through existing PRs; avoid duplicate merges; preserve branch tips; document exclusions and conflicts.
 - **Known inventory evidence:** 13 branches were listed in the initial inventory. `backup/v3-ui` and `master` share the same tip and must not be integrated twice. `backup/v3-ui`/ `master` include tracked `prisma/db/custom.db` and broad UI v3 changes, so they require file-level review and exclusion of the DB artifact before merge. `fix/vercel-build-readonly` contains build-safety source changes and needs code/test review. Documentation branches overlap continuity files and must be reconciled, not blindly merged.
 - **Initial compare snapshot:** main was `e390031cbf6eb0203c046947fcd3bd4c260014c7`; PR #3 head was `db29e45810e7a86e42f35ad5f2c7aba5992d6806`, 590 ahead / 7 behind, GitHub mergeable=false. This is historical after policy commits; re-fetch live state before acting.
