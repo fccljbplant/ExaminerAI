@@ -512,3 +512,14 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Vercel status on this docs-only main commit is failure due to build-rate limit. The connected workflow-run query returned no PR-triggered Actions runs for this exact main SHA. No tests/build/browser checks were run for docs-only changes.
 - No application code, schema, dependency, production DB, migration or deployment was changed. No branch deletion or PR closure performed.
 - Next: verify private archive and restore; close open retired PRs; delete all remote refs except main; verify exactly one branch; then perform the read-only main audit and create a gap-only implementation register.
+
+
+## 2026-11-11 — Mainline reset programme and deployment side-effect record
+
+- New programme saved under `docs/UPGRADE-2026-11/`: START-HERE, MASTER-PLAN, UXPEAK-RESEARCH-AND-DESIGN, AI-AND-DATA-STRATEGY, RESET-BASELINE and DECISIONS-REGISTER.
+- Root AGENTS.md and legacy agent instructions/Agent Pack queue reconciled. Old consolidation cards are historical and non-executable. Project continuity/status/session history retained.
+- Main HEAD at this update: `777f3131fefcb4878973237e1e4ad4e0003ad824`. The actual reset remains pending: 20 branch refs including main; PR #3 and #6 open/draft; no archive restore has been verified; no refs deleted.
+- Vercel auto-created two production-target deployments from programme documentation commits. Canceled `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` (BUILDING) and `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK` (QUEUED). Follow-up listing confirmed both CANCELED.
+- Current main's Vercel check fails due to build-rate limit; no exact-head Actions run was returned. No tests/lint/typecheck/build/manual browser/a11y checks were run.
+- No app source/schema/dependency/production data changed. No manual deploy, migration or branch deletion/PR closure.
+- Next: private archive and restore verification, then reset refs and close old PRs in a Git-capable owner-controlled environment; deep audit main read-only; create gap-only task register.
