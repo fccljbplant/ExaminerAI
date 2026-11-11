@@ -1,3 +1,7 @@
+> **SUPERSEDED OPERATING HISTORY — 11 November 2026:** The prior statements below that required work only on PR #3 or prohibited mainline reset are historical decisions. The current owner direction is reset-first: archive branch/PR state privately and verify restoration, close the retired open PRs, delete every remote branch except main, audit main read-only, then implement approved gaps directly on main. See [START-HERE](../UPGRADE-2026-11/START-HERE.md), [MASTER-PLAN](../UPGRADE-2026-11/MASTER-PLAN.md) and [AGENTS.md](../../AGENTS.md). Do not execute old task cards.
+
+---
+
 # Agent operating decisions
 
 ## 2026-11-11 — Repository-hosted Agent Pack
