@@ -708,3 +708,12 @@ These are approved planning decisions, not implementation claims. No application
 - Remaining PR #3 items are not safe to merge without owner decisions: comprehensive-report field/evidence/course-scope policy; learner-support/psychological signal visibility and consent/role policy; staff final-result access semantics for `content_only` grants; portfolio `CourseEnrollment.expiresAt` semantics; and the additive PostgreSQL migration/legacy NULL-course rollout described in `PR3-SCHEMA-ROLLOUT.md`.
 - No Neon/production database access or modification, schema migration, seed, manual deployment, dependency/provider/billing change, force update, history rewrite or source-branch deletion. Vercel production deployment was Git-integration automatic; no manual deployment action was taken.
 - Next: stop broad PR #3 integration at these gates. Obtain owner answers in `docs/UPGRADE-2026-10/QUESTIONS.md` before any further report/privacy/portfolio/schema changes. Continue app stabilisation and inspect remaining PR #3 UI-only changes only where they do not depend on those policies.
+
+
+## 2026-11-12 — Consolidated audit and fixation plan
+
+- Live main before this documentation update: `43d85da7465c9ad51819ad0f525efe575ad65c62`.
+- Added `docs/UPGRADE-2026-11/COMBINED-AUDIT-AND-FIXATION-PLAN.md` (commit `9e16504ea416d71773a909dc7b0cd27d91209e08`).
+- The document combines the audited security/privacy, assessment, tenant scope, AI governance, data truthfulness, operational, UI and accessibility findings into a bottom-up remediation programme.
+- Audit observations must be revalidated against current source/tests before implementation; this commit changes documentation only. No app code, schema, migration, dependency or production data changed.
+- No test, lint, typecheck, build, browser or accessibility run was performed for this docs-only update.
