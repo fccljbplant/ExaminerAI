@@ -284,3 +284,13 @@ Track:
 - Privacy/scope violations (release blocker: must be zero in tests).
 
 Do not roll out a new model or prompt globally until it meets or beats the agreed baseline for safety and task quality.
+
+
+## 12. Human-centred education and responsible AI references
+
+- UNESCO, *Guidance for generative AI in education and research* (2023; updated 16 January 2026): human-centred use, privacy protection, institutional readiness and pedagogical validation. https://www.unesco.org/en/articles/guidance-generative-ai-education-and-research
+- NIST AI 600-1, *Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile* (26 July 2024; current NIST listing updated 8 April 2026): lifecycle risk identification and trustworthiness practices. https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence
+- OWASP GenAI LLM Top 10 2026 (3 August 2026): current application threat taxonomy for prompt injection, sensitive information disclosure, excessive agency and other LLM risks. https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/
+- DeepSeek model discovery API: use the live metadata rather than assuming a model name, context size or capability remains fixed. https://api-docs.deepseek.com/api/list-models/
+- DeepSeek thinking mode: thinking is enabled by default unless explicitly disabled; explicitly set the chosen request mode. https://api-docs.deepseek.com/guides/thinking_mode/
+- DeepSeek context caching: cache hits depend on exact reusable prefixes; keep stable instructions/material before dynamic learner data and measure actual hit tokens. https://api-docs.deepseek.com/guides/kv_cache/
