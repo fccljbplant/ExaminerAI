@@ -1028,3 +1028,11 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - PR #3 remains draft/unmerged pending the explicit schema transition gate: reviewed additive PostgreSQL migration, legacy NULL-course handling, backup/restore and staging rehearsal, plus owner approval of the exact production target and execution window. Its latest exact-head CI (`42908979890`) passed, including production build and browser evidence, but its branch is behind the newly merged mainline work and needs a conflict-aware update after the schema gate is resolved.
 - PR #6 (V3 UI) remains draft/held. The V3 tree still carries a tracked local SQLite database, replaces current portal shells and role/feature-flag behaviour, removes regression tests, and conflicts with the unresolved learner navigation contract. Do not merge wholesale.
 - V3 is the only remaining named branch intentionally excluded. The safe UI, analytics, learner catalog alias, and learner-home truthfulness changes are merged.
+
+
+## 2026-11-11 — Vercel build write-safety hardening (PR #11)
+
+- Source audit identified that main's Vercel build executed a production schema push, admin-account bootstrap/password reset, and marketplace seeding. These are unsafe deployment side effects.
+- Draft PR #11 (`fix/vercel-build-readonly`) changes the build to Prisma client generation and Next.js build only. Admin bootstrap now requires explicit secret-manager environment variables and never updates an existing account.
+- Exact head `8066af94ae87e6c9c7dc8ef8e49fed37a94babc0`; Actions run `42938312216` is still running at dependency installation and Vercel preview `DC6oshqfcbsywZudqnjDtYcMd5UG` is still building. No passing result is claimed.
+- No database operation, migration, seed, merge, production deployment or branch deletion performed. Continue after exact-head CI and preview finish.

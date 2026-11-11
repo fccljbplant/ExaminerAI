@@ -393,3 +393,12 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Exact-head quality workflows passed for PR #7 (`42909814324`), PR #8 (`42910567097`), and PR #9 (`42911198601`), including build, route smoke and authenticated role screenshot artifacts. Main CI after PR #8 passed (`42911131106`).
 - All automatic production deployments from these merges were cancelled before release. No production database or manual deployment was used.
 - PR #3 stays draft pending the specific PostgreSQL migration, NULL-course legacy treatment, backup/restore, staging rehearsal and owner approval of exact production target/window. PR #6 V3 stays held due shell/role/nav incompatibility, tracked SQLite DB and regression-test removals.
+
+
+## 2026-11-11 — Vercel build write-safety hardening (PR #11)
+
+- Live source audit found `main/scripts/vercel-build.sh` was applying `prisma db push`, running `scripts/ensure-accounts.js` (which reset the platform-admin password to a hardcoded value and swallowed upsert errors), and running `scripts/seed-marketplace-prod.js` during Vercel builds.
+- Created branch `fix/vercel-build-readonly` from main and draft PR #11. Replaced the build script with Prisma client generation plus Next.js build only; removed schema mutation and all account/marketplace seed invocations from deployment.
+- Converted `scripts/ensure-accounts.js` into an explicit one-time bootstrap requiring `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` from a secret manager (minimum 16 characters). Existing accounts are skipped without changing password, role, status or approval state; errors are no longer swallowed.
+- Exact PR head: `8066af94ae87e6c9c7dc8ef8e49fed37a94babc0`. GitHub Actions run `42938312216` is in progress at dependency installation; Vercel preview `DC6oshqfcbsywZudqnjDtYcMd5UG` is BUILDING. No check is claimed passed yet.
+- No database was accessed or modified; no migration, seeding, merge, production deployment, or branch deletion occurred. PR #11 remains draft pending exact-head CI and preview verification.
