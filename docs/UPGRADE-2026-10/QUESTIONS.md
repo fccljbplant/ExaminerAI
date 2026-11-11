@@ -449,3 +449,28 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 - Current source recheck confirms ReportCard writes use `updateMany` with both record ID and current version; a zero-row compare-and-swap returns `REPORT_CARD_VERSION_CONFLICT` before version snapshot creation. The concurrency regression test asserts this.
 - The separate comprehensive-report privacy/evidence issue remains: the route still invokes a learner-global generator after broad `content_only` access; the generator reads cross-course academic records, coerces missing weekly-test scores to zero, and emits management-style judgments. Existing owner-approved direction is to retain those sections with an adjacent AI-reliability notice, but the actual rendering consumer must be located and updated as one coherent task. Do not patch this high-risk slice without the required approved card and task workflow.
 - **Next prerequisite:** restore a branch-preserving, no-`.env*` approved task card/logged-check workflow (or provide an owner-approved task card and safe execution method) and make the PR #3 checkout available. Then use a non-destructive local SQLite fixture/database for a bounded comprehensive-report course/evidence/privacy task, including the actual rendering consumer and regression tests. Keep PR #3 draft/unmerged/undeployed.
+
+
+## 2026-11-11 — Vercel build-time database mutation and bootstrap credentials
+
+**Status:** Deployment blocker; implementation task must be reviewed and tested before production deployment.
+
+A Vercel preview build was started from main commit `8f2e70850f10009bcca041fae7dc128681ff6adb` (deployment `dpl_CDnSNmZcGcDuRX5bmGBW2GeJiyvU`). The build logs show that the current main `scripts/vercel-build.sh` runs `prisma db push` during deployment and then invokes two database-mutating scripts before Next.js build:
+
+- `scripts/ensure-accounts.js` upserts the platform administrator and unconditionally replaces the existing password hash with a fixed in-source password on every build. The code also swallows upsert errors and prints an "ensured" success message, so the log does not prove the database write succeeded.
+- `scripts/seed-marketplace-prod.js` updates published course metadata (including price, currency, duration, instructor copy and learning outcomes) as part of the build. This is an application-data mutation, not build preparation.
+- The main build log records Prisma P1012 because `DATABASE_URL` was unavailable to the preview build during schema sync, and the marketplace seeder failed to initialise its Prisma query. The build continued. This does not establish what a future build with database credentials would mutate.
+
+The PR #3 version of `scripts/vercel-build.sh` removes the automatic `prisma db push`, but it still invokes both account and marketplace seed scripts. Therefore the PR #3 change is not sufficient to make builds free of database writes.
+
+**Required correction:**
+1. Make Vercel build strictly build-only: no schema push/migrate, account upsert/password reset, marketplace seed, or other application-data mutation.
+2. Move account bootstrap to an explicit, one-time, operator-controlled setup flow with a securely supplied password; never embed a reusable administrator password or reset it on every deployment.
+3. Move marketplace metadata population to an explicit development/staging seed or a reviewed admin workflow, with preview/production safeguards and idempotent tests.
+4. Make database-unavailable behaviour explicit and fail/skip only where safe; never log success after a swallowed database write failure.
+5. Add tests/static checks proving build scripts do not invoke mutating DB operations and verify the Vercel build succeeds without `DATABASE_URL`.
+6. Re-run CI and a Vercel preview after the correction; inspect the final deployment logs and verify no DB writes occurred.
+
+**Evidence / boundaries:** The build log showed successful Next.js compilation and entry into TypeScript validation, but the deployment was still BUILDING at the last check. This was a preview deployment only; no production deployment was created. No production database was inspected or modified by this audit. The exact outcome of the swallowed account upsert is unknown. Do not assume it wrote or did not write data.
+
+**Task workflow:** No approved Agent Pack task card/queue or safe logged runner is present on the branch. Keep this as a documented blocker until the branch-preserving, no-`.env*` workflow or an owner-approved equivalent is available.
