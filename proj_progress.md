@@ -533,3 +533,12 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Two automatic production-target deployment attempts from the initial docs commits were canceled: `dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ` and `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK`. Both confirmed CANCELED.
 - No app source/schema/dependency/production DB/migration change; no branch deletion or PR closure.
 - Next: verified private archive and reset in a Git-capable owner-controlled workspace, then deep read-only main audit.
+
+
+## 2026-11-12 — Consolidated audit and bottom-up fixation plan recorded
+
+- Live main before the documentation update: `43d85da7465c9ad51819ad0f525efe575ad65c62`; live branch search returned only `main`.
+- Added `docs/UPGRADE-2026-11/COMBINED-AUDIT-AND-FIXATION-PLAN.md` in commit `9e16504ea416d71773a909dc7b0cd27d91209e08`.
+- The document consolidates the recent security, privacy, assessment, data, AI, operational, UX and accessibility audit findings into a bottom-up remediation sequence and integrated component work-card template.
+- Findings are explicitly marked for revalidation against current main before implementation; no application source, schema, migration, dependency, production data or runtime configuration was changed.
+- No tests/build were run for this documentation-only change. No application fixes were started.
