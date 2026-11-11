@@ -1073,3 +1073,17 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - This is build/deployment evidence only. No authenticated route, runtime database, learner flow, browser, or accessibility validation was performed; web page inspection could not access the URL.
 - The deployment log still contains the failed DB schema validation/seed attempts recorded above. The fixed-password admin upsert's actual DB outcome remains unknown. Do not promote this preview or treat it as production-ready.
 - Latest PR #3 documentation commit head `9676be6daa6c04f95272b66b4c36fbeb1274991a` Actions run `42937739175` was still in progress (dependency installation) at the last check.
+
+
+## 2026-11-11 — Repository-hosted Agent Pack installed
+
+- Installed persistent agent instructions at `AGENTS.md`, canonical operating docs under `docs/agent-pack/` (`README.md`, `SAFETY.md`, `QUEUE.md`, `DECISIONS.md`), and a restricted validation runner at `scripts/agent/run-logged.mjs`.
+- Installation is on the existing PR #3 branch only. No branch was created, restored, switched, merged or deleted; no direct main write occurred.
+- The previous uploaded Agent Pack was not copied wholesale because its old runner/guard had unsafe branch-changing and dotenv-reading behaviour. The new repository-native pack preserves the useful task discipline and project constraints while excluding those unsafe controls.
+- Runner supports only allowlisted lint, test, build, TypeScript, ESLint, Vitest, Prisma validate/generate and Node syntax-check commands; shell execution is disabled. It does not support DB mutation, git operations or arbitrary commands.
+- Queue records one completed documentation/tooling installation card, a read-only continuity reconciliation card, and three held application/data-safety cards. The installation does not authorise application fixes, schema changes, merge or deployment.
+- Live repository state before continuity updates: `main` `8f2e70850f10009bcca041fae7dc128681ff6adb`; PR #3 head before Agent Pack install `29ebbc7a1cfad7da9aa8bb48b70d98f10ef58d63`; PR #3 remains open/draft/unmerged and non-mergeable. The live progress document contained stale PR-head references; reconcile those in the next read-only card.
+- Exact-head CI has not yet been checked for the Agent Pack commits. No local checkout was available; no runner tests, lint, typecheck, build, app tests, browser/a11y checks or deployment were run in this session.
+- Existing `docs/UPGRADE-2026-10/QUESTIONS.md` and historical continuity records were preserved. No application source, schema, database, dependency or production data was changed.
+- Next: verify the final PR head and Actions/Vercel checks; run static syntax/self-tests for the runner in a Git-capable checkout; then execute P0-02 read-only continuity reconciliation. Keep PR #3 draft/unmerged/undeployed.
+
