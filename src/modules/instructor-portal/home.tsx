@@ -13,6 +13,7 @@ import {
 import { useApi } from "@/modules/learner-portal/use-api";
 import { AIAssistantBox } from "./assistant-box";
 import { INSTRUCTOR_MORE } from "./portal-shell";
+import { getAtRiskKpiCount } from "./roster-metrics";
 
 /**
  * modules/instructor-portal — I1 Home (REDESIGN-P3 §I1, W6)
@@ -93,7 +94,7 @@ export function InstructorHome() {
         />
         <Kpi
           label="At risk"
-          value={atRisk.length}
+          value={getAtRiskKpiCount(data.atRisk)}
           hint="need intervention"
           tone={atRisk.length > 0 ? "warning" : "success"}
           icon={AlertTriangle}
