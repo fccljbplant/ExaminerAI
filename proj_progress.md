@@ -444,3 +444,10 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Confirmed PR #11 build-safety work is already represented in `main`; do not re-integrate the older branch wholesale. PR #14 is docs-only and merged.
 - No app source, database, schema, dependency, production setting or deployment was changed. No source branch was deleted and no force update/history rewrite occurred.
 - Next: complete the docs-only Agent Pack PR and CI, then continue P0-03 by verifying commit equivalence and integrating the small learner compatibility/error-handling changes only once. Hold PR #3 until schema/privacy gates are resolved; hold V3 pending selective salvage and DB artifact exclusion.
+
+
+## 2026-11-11 — Duplicate branch content verified against main
+
+- Verified identical blob SHAs for all changed application files in `fix/ui-simplification-safe`, learner-courses compatibility, learner-home error handling, Vercel Analytics, and reviewed Vercel build-safety source/test files. PRs #2/#7/#8/#9/#11 already integrated the code; do not merge these branches again.
+- Documentation branches overlap existing merged records. Remaining substantial unmerged work is PR #3 (large code/schema/privacy surface) and PR #6 (V3 shell/theme/feature flags plus tracked SQLite DB artifact).
+- No app code or database changed in this documentation-only reconciliation.

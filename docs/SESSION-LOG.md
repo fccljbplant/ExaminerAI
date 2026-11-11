@@ -1075,3 +1075,10 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Confirmed PR #11 build-safety work is already represented in `main`; do not re-integrate the older branch wholesale. PR #14 is docs-only and merged.
 - No app source, database, schema, dependency, production setting or deployment was changed. No source branch was deleted and no force update/history rewrite occurred.
 - Next: complete the docs-only Agent Pack PR and CI, then continue P0-03 by verifying commit equivalence and integrating the small learner compatibility/error-handling changes only once. Hold PR #3 until schema/privacy gates are resolved; hold V3 pending selective salvage and DB artifact exclusion.
+
+
+## 2026-11-11 — Duplicate branch content verified against main
+
+- Compared current `main` file blob SHAs against the branch diffs. All 7 changed files from `fix/ui-simplification-safe`, both files from learner-courses compatibility, both files from learner-home error handling, the 3 analytics source/package files, and the 3 reviewed Vercel build-safety source/test files are byte-identical to `main`.
+- PRs #2, #7, #8, #9 and #11 already merged those changes. No additional merge is needed; source branches remain retained.
+- This narrows consolidation work to PR #3's large unique diff and PR #6's V3 tree, both requiring selective conflict/risk review. No force merge or source-branch cleanup.

@@ -598,3 +598,10 @@ These are approved planning decisions, not implementation claims. No application
 - Confirmed PR #11 build-safety work is already represented in `main`; do not re-integrate the older branch wholesale. PR #14 is docs-only and merged.
 - No app source, database, schema, dependency, production setting or deployment was changed. No source branch was deleted and no force update/history rewrite occurred.
 - Next: complete the docs-only Agent Pack PR and CI, then continue P0-03 by verifying commit equivalence and integrating the small learner compatibility/error-handling changes only once. Hold PR #3 until schema/privacy gates are resolved; hold V3 pending selective salvage and DB artifact exclusion.
+
+
+## 2026-11-11 — Branch equivalence verification
+
+- Verified by Git blob SHA that all 7 files in `fix/ui-simplification-safe` match `main`; all 2 files in `ux-audit/learner-courses-compatibility` match; all 2 files in `ux-audit/learner-home-error-handling` match; all 3 application/package files in `vercel/vercel-web-analytics-integrati-flq88k` match; and all 3 reviewed deployment-safety source/test files in `fix/vercel-build-readonly` match. These branches do not require another code merge.
+- PRs #2, #7, #8, #9 and #11 are already merged. Avoid duplicate integration. Documentation-only branches overlap historical status/session/progress updates and need no wholesale merge.
+- PR #3 remains the principal large code integration requiring selective three-way review; PR #6 remains held because of the tracked SQLite DB and broad UI/role/theme changes.

@@ -15,7 +15,7 @@ Exactly one active card per session. Owner-authorised consolidation supersedes h
 
 ### P0-01 — Repository Agent Pack
 - **Status:** in progress — canonical docs reconciled from PR #3 onto a dedicated mainline PR; local runner deliberately excluded pending branch-neutral safety review.
-- **Scope:** repository-hosted instructions, safety, queue, decisions and restricted validation runner.
+- **Scope:** repository-hosted instructions, safety, queue and decisions. The local runner is deferred until a branch-neutral version is reviewed.
 - **Evidence:** Agent Pack installation entry in `docs/SESSION-LOG.md`.
 
 ### P0-02 — Live repository continuity review
@@ -33,7 +33,7 @@ Exactly one active card per session. Owner-authorised consolidation supersedes h
 ### P0-04 — Stabilise consolidated main
 - **Status:** blocked until P0-03 integration is complete.
 - **Required:** run verified lint, unit/integration tests, typecheck, production build, route smoke checks, role-based responsive/a11y checks; fix release-blocking defects only with scoped approval.
-- **Known risks to re-evaluate after consolidation:** comprehensive-report data classification/course scope/missing evidence; portfolio enrollment expiry semantics; schema migration readiness; Vercel build-time account/marketplace DB writes.
+- **Known risks to re-evaluate after consolidation:** comprehensive-report field classification and response scope; portfolio enrollment-expiry semantics; additive schema migration readiness and legacy NULL-course handling; backup/restore and staging rehearsal; authenticated production journeys and accessibility validation. PR #11 already removed build-time application-data writes from main.
 
 ### P1-01 — Comprehensive-report privacy and course scope
 - **Status:** hold pending owner-approved field policy and dedicated implementation scope.
@@ -50,7 +50,7 @@ Exactly one active card per session. Owner-authorised consolidation supersedes h
 
 ### P1-04 — Remove build-time application-data writes
 - **Status:** merged in PR #11; revalidate current main build path rather than re-integrating the older source branch.
-- **Current main status:** PR #11 removed automatic schema push, account bootstrap and marketplace seeding from the Vercel build. Recheck current main source and CI before any release; no production DB operation is authorised.
+- **Current main status:** PR #11 removed automatic schema push, account bootstrap and marketplace seeding from the Vercel build. The old branch's relevant source files have the same blob SHAs as `main`; no further integration is needed. No production DB operation is authorised.
 - **Required:** build-only deployment; operator-controlled bootstrap/seed; no embedded credentials; tests proving no DB writes during build; preview build without DATABASE_URL. No production DB access/write authorised.
 
 
