@@ -66,3 +66,11 @@ The existing `courseId` fields are nullable. In PostgreSQL, a composite unique i
 ## 2026-11-11 status
 
 The source branch has passed its exact-head GitHub CI, but no production schema migration has been approved or executed. Keep the PR draft/unmerged until the PostgreSQL migration is reviewed as additive with rollback, legacy NULL-course rows are explicitly handled, backup/restore and staging rehearsal are complete, and the owner approves the exact production target and execution window. No production database was accessed.
+
+
+## 2026-11-11 — selective application work merged; production schema still blocked
+
+- Current main includes PR #17 and PR #19 selective dashboard/roster and weekly-test safety ports. Neither changes Prisma schema or migration history.
+- PR #3 remains open/draft/non-mergeable at its recorded head; 604 commits ahead / 46 behind current main. Do not treat the successful CI of selective PRs as approval for this schema transition.
+- The production PostgreSQL schema/migration history remains uninspected. No Neon/production database was accessed, no backup was taken, and no migration/schema sync was run.
+- The owner must answer the open data-scope, legacy NULL-course, baseline snapshot and ReportCardVersion delete-policy questions, and explicitly approve the exact additive migration, backup/restore and staging rehearsal, target and execution window before any production operation.
