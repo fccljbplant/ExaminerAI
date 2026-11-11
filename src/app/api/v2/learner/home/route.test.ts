@@ -43,6 +43,22 @@ describe("GET /api/v2/learner/home", () => {
     vi.restoreAllMocks();
   });
 
+  it("returns service unavailable when enrollment profiles cannot be read", async () => {
+    mocks.db.learnProfile.findMany.mockRejectedValue(new Error("table unavailable"));
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await GET();
+
+    expect(mocks.apiError).toHaveBeenCalledWith(
+      "Your dashboard is temporarily unavailable. Please try again.",
+      "SERVICE_UNAVAILABLE",
+      503,
+    );
+    expect(mocks.apiSuccess).not.toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalledOnce();
+    expect(mocks.db.learnDailyTest.findMany).not.toHaveBeenCalled();
+  });
+
   it("returns service unavailable when project data cannot be read", async () => {
     mocks.db.learnProject.findMany.mockRejectedValue(new Error("table unavailable"));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);

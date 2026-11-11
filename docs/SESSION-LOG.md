@@ -1093,3 +1093,12 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Compared full recursive Git trees: PR #3 differs from `main` in 167 blobs and omits 6 files present on `main`; PR #6 differs in 88 blobs and omits 17 files present on `main`. PR #6 additionally includes tracked `prisma/db/custom.db`. Neither branch is safe for wholesale merge.
 - No application source, DB/schema, dependency, production setting or deployment changed in PR #15. No source branch deleted, no force update/history rewrite, and no production DB access.
 - Next: use a Git-capable three-way merge workflow to selectively salvage PR #3 changes after schema/privacy/task sequencing review; separately assess V3 components from PR #6 without the database artifact or removed tests. Then stabilise `main` with role-based tests and accessibility review.
+
+
+## 2026-11-11 — PR #3 selective dashboard/roster fixes ported
+
+- Current `main` is `b8fa2529cd4bc6c91bb1ada017123ed9058c5561` after PR #16. PR #3 remains open/draft/non-mergeable at `4912698a08be04c9ba43632495400bbff4042837` (604 ahead / 16 behind); no wholesale merge was attempted.
+- A current-main-based selective branch ports the learner-home failure correction and instructor roster/KPI fixes from PR #3: no false empty-enrolment success on profile lookup failure; database aggregation for latest daily activity without the 200-row cap; instructor activity/task data restricted to taught courses; deterministic latest scored weekly test; and full at-risk KPI count separate from the five-item preview.
+- Added learner-home and instructor-roster route regression coverage plus roster-metric tests. Full Vitest: 35 files / 384 tests passed against disposable local SQLite. Full ESLint exited 0 with existing warnings; standalone TypeScript and `git diff --check` passed.
+- Local Next.js compilation succeeded, but the 2 GB sandbox killed the build worker during Next.js TypeScript validation (1024 MB heap OOM; 1536 MB attempt SIGKILL). Standalone TypeScript passed; exact-head GitHub Actions production build remains required.
+- No schema/dependency change and no Neon/production database access, migration, seed, deployment, force update or source-branch deletion.
