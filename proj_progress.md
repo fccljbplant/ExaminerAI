@@ -451,3 +451,14 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Verified identical blob SHAs for all changed application files in `fix/ui-simplification-safe`, learner-courses compatibility, learner-home error handling, Vercel Analytics, and reviewed Vercel build-safety source/test files. PRs #2/#7/#8/#9/#11 already integrated the code; do not merge these branches again.
 - Documentation branches overlap existing merged records. Remaining substantial unmerged work is PR #3 (large code/schema/privacy surface) and PR #6 (V3 shell/theme/feature flags plus tracked SQLite DB artifact).
 - No app code or database changed in this documentation-only reconciliation.
+
+
+## 2026-11-11 — Agent Pack merged; consolidation inventory deepened
+
+- PR #15 (`docs: align repository agent pack with consolidation workflow`) was marked ready only after exact-head CI passed, then merged using expected head `07196bd61d2464106b5d9279c72dae8b93dfc843`. Merge commit and current `main`: `930dcdbcdeec9f48b2ffa5f0f3c7697d46f4b9b1`.
+- PR #15 Actions run `42978335750`, retry attempt 2, passed dependency install, isolated test DB setup, lint, unit tests, TypeScript, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload. First attempt failed screenshot capture; retry passed. Vercel status on the new docs-only main commit was pending at verification; no deployment was requested or performed.
+- Root `AGENTS.md` and `docs/agent-pack/{README,SAFETY,QUEUE,DECISIONS}.md` are now on `main`. The proposed `scripts/agent/run-logged.mjs` remains excluded because its hard-coded PR #3 branch restriction is incompatible with consolidation.
+- Verified branch content by Git blob SHA: all changed application files from `fix/ui-simplification-safe`, `ux-audit/learner-courses-compatibility`, `ux-audit/learner-home-error-handling`, Vercel Analytics and the Vercel build-safety branch are already identical to `main`. Do not merge duplicate code again; older documentation-only differences are historical records, not code gaps.
+- Compared full recursive Git trees: PR #3 differs from `main` in 167 blobs and omits 6 files present on `main`; PR #6 differs in 88 blobs and omits 17 files present on `main`. PR #6 additionally includes tracked `prisma/db/custom.db`. Neither branch is safe for wholesale merge.
+- No application source, DB/schema, dependency, production setting or deployment changed in PR #15. No source branch deleted, no force update/history rewrite, and no production DB access.
+- Next: use a Git-capable three-way merge workflow to selectively salvage PR #3 changes after schema/privacy/task sequencing review; separately assess V3 components from PR #6 without the database artifact or removed tests. Then stabilise `main` with role-based tests and accessibility review.

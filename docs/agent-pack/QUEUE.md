@@ -14,16 +14,16 @@ Exactly one active card per session. Owner-authorised consolidation supersedes h
 ## Current cards
 
 ### P0-01 — Repository Agent Pack
-- **Status:** in progress — canonical docs reconciled from PR #3 onto a dedicated mainline PR; local runner deliberately excluded pending branch-neutral safety review.
+- **Status:** done — Agent Pack instructions and safety/queue/decision docs merged to `main` by PR #15 (`930dcdbcdeec9f48b2ffa5f0f3c7697d46f4b9b1`). Local runner deliberately deferred pending branch-neutral safety review.
 - **Scope:** repository-hosted instructions, safety, queue and decisions. The local runner is deferred until a branch-neutral version is reviewed.
 - **Evidence:** Agent Pack installation entry in `docs/SESSION-LOG.md`.
 
 ### P0-02 — Live repository continuity review
-- **Status:** done (historical read-only snapshot; refresh before merges).
+- **Status:** done — refreshed 2026-11-11; recheck before each subsequent integration.
 - **Scope:** verify branch/PR/CI/deployment state and unresolved application risks.
 
 ### P0-03 — Consolidate existing branches into main
-- **Status:** in progress — refreshed 2026-11-11 against `main` `aa64d6aa7d4813c3f3b6b3738216de73375b7a1c`. PR #14 is merged. PR #3 is open/draft/non-mergeable at `4912698a08be04c9ba43632495400bbff4042837` (604 ahead / 11 behind); PR #6 is open/draft/non-mergeable at `39f2d0faab32b6b4f2054b07b2eedeb108de4300` (17 ahead / 19 behind).
+- **Status:** in progress — refreshed 2026-11-11 against `main` `930dcdbcdeec9f48b2ffa5f0f3c7697d46f4b9b1`. PR #14 and docs-only PR #15 are merged. PR #15 exact-head Actions run `42978335750` attempt 2 passed lint, unit tests, typecheck, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload; Vercel status for the merge commit is pending. PR #3 is open/draft/non-mergeable at `4912698a08be04c9ba43632495400bbff4042837` (604 ahead / 11 behind); PR #6 is open/draft/non-mergeable at `39f2d0faab32b6b4f2054b07b2eedeb108de4300` (17 ahead / 19 behind).
 - **Scope:** integrate useful unique commits from every existing branch into `main`, preferably through existing PRs; avoid duplicate merges; preserve branch tips; document exclusions and conflicts.
 - **Known inventory evidence:** 13 branches were listed in the initial inventory. `backup/v3-ui` and `master` share the same tip and must not be integrated twice. `backup/v3-ui`/ `master` include tracked `prisma/db/custom.db` and broad UI v3 changes, so they require file-level review and exclusion of the DB artifact before merge. `fix/vercel-build-readonly` contains build-safety source changes and needs code/test review. Documentation branches overlap continuity files and must be reconciled, not blindly merged.
 - **Current inventory:** 13 branch refs. `backup/v3-ui` and `master` are identical. `fix/ui-simplification-safe` and `ux-audit/ui-simplification-consolidated` overlap classroom/portal home files; the former has 2 commits ahead / 11 behind and the latter 6 / 11. `fix/vercel-build-readonly` is 6 / 7 and overlaps changes already represented by merged PR #11; verify commit equivalence before integrating. Learner courses compatibility is 1 / 10; learner-home error handling is 2 / 9. Documentation branches overlap status/session/progress. Analytics branch has package/lockfile changes and must be checked against merged PR #2. `backup/v3-ui` is 17 / 19 and includes `prisma/db/custom.db`, broad shell/theme/feature-flag changes, and test removals; keep held.
@@ -58,3 +58,14 @@ Exactly one active card per session. Owner-authorised consolidation supersedes h
 - **Status:** identified; deferred until P0-03 integration is complete and the UI task is selected as the single active card.
 - **Evidence:** authenticated screenshot artifact review recorded in `docs/PROJECT-STATUS.md`; `src/modules/learner-portal/home.tsx` renders the no-enrolment title as a paragraph while enrolled home uses an `h1`.
 - **Required:** one meaningful page-level heading in the empty state, regression coverage for empty and enrolled states, then repeat role screenshots and manual keyboard/zoom/axe checks.
+
+
+## 2026-11-11 — Agent Pack merged; consolidation inventory deepened
+
+- PR #15 (`docs: align repository agent pack with consolidation workflow`) was marked ready only after exact-head CI passed, then merged using expected head `07196bd61d2464106b5d9279c72dae8b93dfc843`. Merge commit and current `main`: `930dcdbcdeec9f48b2ffa5f0f3c7697d46f4b9b1`.
+- PR #15 Actions run `42978335750`, retry attempt 2, passed dependency install, isolated test DB setup, lint, unit tests, TypeScript, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload. First attempt failed screenshot capture; retry passed. Vercel status on the new docs-only main commit was pending at verification; no deployment was requested or performed.
+- Root `AGENTS.md` and `docs/agent-pack/{README,SAFETY,QUEUE,DECISIONS}.md` are now on `main`. The proposed `scripts/agent/run-logged.mjs` remains excluded because its hard-coded PR #3 branch restriction is incompatible with consolidation.
+- Verified branch content by Git blob SHA: all changed application files from `fix/ui-simplification-safe`, `ux-audit/learner-courses-compatibility`, `ux-audit/learner-home-error-handling`, Vercel Analytics and the Vercel build-safety branch are already identical to `main`. Do not merge duplicate code again; older documentation-only differences are historical records, not code gaps.
+- Compared full recursive Git trees: PR #3 differs from `main` in 167 blobs and omits 6 files present on `main`; PR #6 differs in 88 blobs and omits 17 files present on `main`. PR #6 additionally includes tracked `prisma/db/custom.db`. Neither branch is safe for wholesale merge.
+- No application source, DB/schema, dependency, production setting or deployment changed in PR #15. No source branch deleted, no force update/history rewrite, and no production DB access.
+- Next: use a Git-capable three-way merge workflow to selectively salvage PR #3 changes after schema/privacy/task sequencing review; separately assess V3 components from PR #6 without the database artifact or removed tests. Then stabilise `main` with role-based tests and accessibility review.
