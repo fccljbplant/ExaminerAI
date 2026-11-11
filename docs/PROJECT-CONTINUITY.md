@@ -4,6 +4,8 @@
 
 ## Start every session here
 
+0. Read the repository-hosted [`AGENTS.md`](../AGENTS.md) and [`docs/agent-pack/README.md`](./agent-pack/README.md); the maintained Agent Pack lives in GitHub and must not depend on a local archive.
+
 1. Read `AGENT-INSTRUCTIONS.md` first. It is the repository's current safety and workflow authority.
 2. Read this file, then `docs/PROJECT-STATUS.md` and the latest entry in `docs/SESSION-LOG.md`.
 3. Confirm the live GitHub state: default branch HEAD, active working branch, open PR head, latest commit, CI checks, deployment checks, reviews, and unresolved review threads.
