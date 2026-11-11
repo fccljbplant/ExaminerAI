@@ -1046,3 +1046,11 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Actions run `42938561279` succeeded across dependency install, isolated test DB, lint, unit tests, TypeScript, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload. Artifact `role-dashboard-screenshots` expires 2026-11-18.
 - Vercel preview `dpl_EDusyC3RNBZPuHwt2wE655Fa9vHS` reached READY. Build logs show the revised read-only build path. Main production-target deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj` was still BUILDING at the last check; follow up on final state and runtime health.
 - No DB was accessed or modified; no migrations/seeds were run. No branch deletion was performed. Continue with PR #3 schema/privacy remediation and V3 selective review only after their documented prerequisites are met.
+
+
+## 2026-11-11 — Manual review of CI role screenshots
+
+- Downloaded and inspected the 28-PNG role screenshot artifact from Actions run `42938561279` (learner, instructor, org admin and platform admin at seven viewport sizes).
+- Confirmed the manifest reports no horizontal overflow at all captured viewports and no heuristic findings for unnamed controls, unlabeled fields, missing image alt, missing document language or missing main landmark. These are structural heuristics only, not WCAG/axe results.
+- Identified learner no-enrollment state with no primary heading at all seven sizes. Source: `src/modules/learner-portal/home.tsx`; `NoEnrollment()` currently uses a paragraph for “Start your first course”. Record as a focused accessibility fix with empty/enrolled regression tests.
+- No application code was modified. Manual keyboard, screen-reader, reduced-motion, zoom/reflow and axe checks were not performed. Agent Pack task queue and safe runner remain missing.
