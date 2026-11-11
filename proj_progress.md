@@ -423,3 +423,13 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Found one concrete accessibility issue: all 7 learner-home screenshots report `primaryHeadings: 0`. Source inspection confirms `LearnerHome` returns `NoEnrollment` when `enrolledCount === 0`, and `NoEnrollment()` renders “Start your first course” as a paragraph rather than a page-level `h1`. The enrolled state has an `h1`.
 - Required follow-up: make the learner no-enrollment state expose one meaningful page-level `h1` (without introducing duplicate headings), add component/route regression coverage for empty and enrolled states, and rerun role screenshots. Manual keyboard, screen-reader, zoom/reflow and axe validation remain outstanding.
 - No application code changed for this finding. It is logged for the next approved UI accessibility task; the required Agent Pack task card/queue and safe logged runner are still absent.
+
+
+## 2026-11-11 — Final deployment state after documentation consolidation
+
+- Current main HEAD is `e390031cbf6eb0203c046947fcd3bd4c260014c7`; it contains the PR #11 deployment-safety fix, PR #12 deployment status documentation, and PR #13 screenshot QA finding documentation.
+- Latest READY production deployment observed is `dpl_AS4D5wBkdubVHXEaXfQmumDSoahQ`, built from main commit `1c2af3e962290ea20634229dc506e3a71bb51ada`. It carries the stable alias `examiner-ai-tau.vercel.app` and the project main aliases. This commit includes all application-code changes from PR #11; PR #13 added documentation only.
+- Vercel status for current docs-only main commit `e390031` is failure due to the free-plan build-rate limit. This does not invalidate the READY application deployment on `1c2af3e`; no application source changed in PR #13.
+- Runtime error/fatal log query for the READY production deployment over the inspected 15-minute window returned no entries. This is not proof of database connectivity or successful user journeys.
+- Open PRs remaining: PR #3 (schema/privacy/task workflow gates) and PR #6 (V3 selective integration hold). All other prior feature PRs are merged/closed. Branch refs remain because the available GitHub integration does not expose branch deletion; preserve unmerged work.
+- No database was accessed or seeded. No migrations were run. No production settings changed.
