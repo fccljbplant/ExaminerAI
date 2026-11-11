@@ -1182,3 +1182,13 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 
 - New plan docs are under `docs/UPGRADE-2026-11/`; old consolidation instructions and queues have been superseded. Historical decision, migration and log records have been preserved.
 - Main-only implementation is the target after reset, but first check that a main commit will not cause an unapproved production deployment.
+
+
+## 2026-11-12 — Consolidated audit and bottom-up fixation plan recorded
+
+- Rechecked live repository main before writing: `43d85da7465c9ad51819ad0f525efe575ad65c62`; branch search returned only `main`.
+- Added `docs/UPGRADE-2026-11/COMBINED-AUDIT-AND-FIXATION-PLAN.md` in commit `9e16504ea416d71773a909dc7b0cd27d91209e08`.
+- Consolidated security, privacy, assessment integrity, tenant/course scope, AI governance/cost, data truthfulness, operations, UI and accessibility observations into a dependency-ordered bottom-up plan.
+- Each component work card combines visual/UX, functionality, authorization, data integrity, AI governance, accessibility and QA.
+- Findings are marked for revalidation against current main before implementation. No application source, schema, migration, dependency, production data or runtime configuration changed.
+- No tests, lint, typecheck, build, browser or accessibility checks were run for this documentation-only update.
