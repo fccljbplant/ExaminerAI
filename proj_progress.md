@@ -414,3 +414,12 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Vercel preview deployment `dpl_EDusyC3RNBZPuHwt2wE655Fa9vHS` reached READY. Its build logs show Prisma client generation and Next.js build without schema push or seeding steps.
 - Main commit `24b69fb` automatically triggered a production-target Vercel deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj`; it was BUILDING at this status update. Recheck final state and runtime health separately.
 - No database was accessed or modified, and no schema migration or seed was run. PR #3 remains blocked by schema/privacy gates; PR #6 remains held for selective V3 salvage only.
+
+
+## 2026-11-11 — Role screenshot review: learner empty-state heading gap
+
+- Manually inspected the 28 screenshot artifact from Actions run `42938561279` (4 roles × 7 viewports: 360, 390, 768, 1024, 1366, 1920, 2560 widths). The artifact was downloaded and the role contact sheets reviewed.
+- Manifest reports no horizontal document overflow at any viewport; no unnamed controls, unlabeled fields, missing image alt text, missing page language, or missing main landmark in the heuristic scan. This is not an axe/WCAG audit.
+- Found one concrete accessibility issue: all 7 learner-home screenshots report `primaryHeadings: 0`. Source inspection confirms `LearnerHome` returns `NoEnrollment` when `enrolledCount === 0`, and `NoEnrollment()` renders “Start your first course” as a paragraph rather than a page-level `h1`. The enrolled state has an `h1`.
+- Required follow-up: make the learner no-enrollment state expose one meaningful page-level `h1` (without introducing duplicate headings), add component/route regression coverage for empty and enrolled states, and rerun role screenshots. Manual keyboard, screen-reader, zoom/reflow and axe validation remain outstanding.
+- No application code changed for this finding. It is logged for the next approved UI accessibility task; the required Agent Pack task card/queue and safe logged runner are still absent.

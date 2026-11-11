@@ -570,3 +570,10 @@ These are approved planning decisions, not implementation claims. No application
 - Added deployment safety regression tests. Exact PR head Actions run `42938561279` passed all configured steps, including lint, unit tests, typecheck, production build, route smoke and authenticated screenshot capture/upload. Vercel preview `dpl_EDusyC3RNBZPuHwt2wE655Fa9vHS` reached READY.
 - Main's production-target deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj` was BUILDING at this update; verify completion and runtime/database health before declaring release complete.
 - No database/schema operation or seed was executed. PR #3 and PR #6 remain unmerged under their separate safety gates.
+
+
+## 2026-11-11 — Screenshot QA follow-up
+
+- Reviewed all 28 authenticated role screenshots from Actions run `42938561279` across seven viewport sizes. No horizontal overflow was reported. Heuristic checks reported no unnamed controls, unlabeled fields, missing image alt text, missing document language or missing main landmark; these checks are not a WCAG conformance audit.
+- Found learner empty-state heading gap: all seven learner-home screenshots report zero primary headings. `src/modules/learner-portal/home.tsx` routes zero-enrollment users to `NoEnrollment()`, which renders “Start your first course” as a paragraph, not an `h1`. Enrolled state has an `h1`.
+- Next UI accessibility task: add a meaningful single page-level heading to the no-enrollment state and regression coverage, then repeat screenshots. Manual keyboard/screen-reader/zoom/reflow and axe review remain required. No code change made in this session for this issue.

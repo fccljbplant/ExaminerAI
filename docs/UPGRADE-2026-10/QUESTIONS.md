@@ -470,3 +470,16 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 - Main production-target deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj` was BUILDING at the time of this record. Verify its final state; no database mutation was performed as part of this deployment.
 
 This resolves the build-script issue only. It does not resolve the separate PR #3 PostgreSQL schema rollout, learner report privacy/evidence, or V3 integration blockers.
+
+
+## 2026-11-11 — Learner no-enrollment page lacks a primary heading
+
+**Status:** Verified UI accessibility finding; implementation is deferred to an approved UI task with regression coverage.
+
+**Evidence:** GitHub Actions run `42938561279` captured 28 authenticated screenshots (four roles × seven viewport widths). The downloaded artifact manifest reports `primaryHeadings: 0` for the learner route `/learner` at all seven viewports. Instructor, org-admin and platform-admin dashboards each report one primary heading at every captured viewport. The manifest reports no horizontal overflow and no heuristic unnamed-control, unlabeled-field, missing-alt, missing-language or missing-main-landmark findings. These heuristics do not establish WCAG conformance.
+
+**Source:** `src/modules/learner-portal/home.tsx` returns `<NoEnrollment />` when `data.learner.enrolledCount === 0`. The `NoEnrollment()` component renders “Start your first course” in a paragraph, with no page-level `h1`; the enrolled state renders a page-level `h1`.
+
+**Required correction:** provide exactly one meaningful page-level `h1` for the no-enrollment state (avoid duplicate headings when the learner is enrolled), and add regression coverage for both empty and enrolled states. Repeat authenticated screenshots after the fix. Complete manual keyboard, screen-reader, zoom/reflow and axe review before claiming accessibility sign-off.
+
+**Execution constraint:** no code change made in this audit. The Agent Pack `AGENTS.md`, approved task queue and branch-preserving logged runner are still unavailable on main; do not bypass this task workflow.
