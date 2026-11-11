@@ -1065,3 +1065,11 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Logged the evidence and required correction in `docs/UPGRADE-2026-10/QUESTIONS.md`: make deploy builds application-data read-only; use secure explicit account bootstrap; move marketplace seeding to a controlled operator workflow; test DB-less builds and do not claim success after swallowed DB errors.
 - This audit did not inspect or change a production database. The exact outcome of the preview's account upsert is unknown. No source code, schema, migration, dependency, branch, PR merge, or production deployment was changed.
 - The required approved Agent Pack task card/queue and safe branch-preserving runner are still absent. No application fix was attempted without that workflow or a local Git checkout.
+
+
+## 2026-11-11 — Main preview build reached Ready
+
+- Rechecked Vercel deployment `dpl_CDnSNmZcGcDuRX5bmGBW2GeJiyvU` for exact main SHA `8f2e70850f10009bcca041fae7dc128681ff6adb`: state `READY`, alias https://examiner-ai-git-main-fccljbplants-projects.vercel.app
+- This is build/deployment evidence only. No authenticated route, runtime database, learner flow, browser, or accessibility validation was performed; web page inspection could not access the URL.
+- The deployment log still contains the failed DB schema validation/seed attempts recorded above. The fixed-password admin upsert's actual DB outcome remains unknown. Do not promote this preview or treat it as production-ready.
+- Latest PR #3 documentation commit head `9676be6daa6c04f95272b66b4c36fbeb1274991a` Actions run `42937739175` was still in progress (dependency installation) at the last check.
