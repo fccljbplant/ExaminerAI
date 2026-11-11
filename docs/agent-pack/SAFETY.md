@@ -1,37 +1,41 @@
-# Agent execution safety
+# TraineesAI — Safety Rules (current)
 
-## Branch consolidation
-- Owner direction (2026-11-11) authorises consolidation of useful existing branches into `main`; the previous blanket no-merge restriction is superseded.
-- Inventory every branch against the live `main` before merging. Determine unique commits, duplicate ancestry, overlapping files, conflicts, CI state, and database/binary/dependency changes.
-- Prefer auditable PR merges with exact expected-head SHA. Do not force merge, force push, rewrite history or delete source branches.
-- Never merge a branch containing an unexplained tracked database/binary, credential, secret, unsafe production-data operation or unreviewed dependency/provider/billing change. Hold it for explicit review.
-- Merge only unique work; identical branch tips or already-integrated commits must not be merged twice.
-- Resolve conflicts only after understanding both sides; run targeted tests and full relevant quality gates after each coherent integration batch.
-- Keep source branches until consolidated `main` is validated and owner separately confirms cleanup.
+This file supplements root AGENTS.md. When in doubt, root AGENTS.md and docs/UPGRADE-2026-11/START-HERE.md govern.
 
-## Hard stops
-- Never inspect or access `.env`, `.env.*`, secrets, credentials, private learner data, or remote production databases.
-- Never run production sync, destructive reset/drop, seed, migration, schema push, or data mutation unless the exact local target and operation have explicit owner approval and an approved reversible plan. The default is blocked.
-- No dependency/provider/billing changes, paid services, spending or external data processing without approval.
-- Merge authorisation does not authorise deployment, production-setting changes, protected-branch setting changes, or production database operations.
+## Reset and Git
 
-## Database policy
-- The repository's production stack uses PostgreSQL/Neon and local development may use SQLite; never infer the active target.
-- Read only non-secret configuration names and code paths. Do not print environment values.
-- Any permitted local SQLite operation must be isolated, backed up where applicable, reversible, and covered by tests. A `file:` URL alone is not sufficient proof that a DB is safe to mutate.
-- Additive schema changes require migration review, preservation of legacy rows, rollback notes, and owner approval. Production schema/history/backup/restore are separate release gates.
+- The owner has directed a reset to main only.
+- First archive the live refs/PR metadata in a private, owner-controlled, encrypted and restore-verified backup outside the repository.
+- Inspect the tracked SQLite artifact on backup/v3-ui in an isolated workspace; never place sensitive learner/production data in an uncontrolled archive.
+- Close open PRs whose branches are being retired. PR records remain as GitHub history.
+- Delete all remote branches except main. Retain main, tags and merged history.
+- After reset, audit main read-only, then implement approved gaps directly on main in small commits.
+- Do not create new branches/PRs, force-push, rewrite history, reset or bypass branch protection.
+- Check main-to-production deployment automation before the first source-code commit. Main-write authorization is not automatic production-release authorization.
 
-## Data and AI policy
-- Tenant, role, course, consent and entitlement checks are server-side on every protected operation.
-- Missing, stale or failed evidence is unavailable; never coerce it to zero or success.
-- Learner support/crisis handling remains disabled per organisation until consent, professional review, retention and owner approvals exist. Crisis wording is owner-authored.
-- Only the in-scope instructor receives consented learner support signals. Designated organisation Learner Support Leads oversee crisis cases and handling records. Platform Admins see no individual learner psychology/support signals.
-- Instructor Copilot uses pseudonyms only; authorised server code restores identities.
-- Never monitor or score instructors psychologically or behaviourally.
+## Data, privacy and security
 
-## Task and tool discipline
-- One approved task card per session.
-- A missing card, spec, script, API, or permission is a blocker, not an invitation to invent it.
-- Do not run arbitrary shell commands from queue metadata.
-- Use explicit file paths; inspect diffs and ensure no unrelated changes.
-- Never auto-commit interrupted work. Never claim a check passed unless the exact command completed successfully.
+- Never inspect or use .env files, secrets, credentials or private learner records.
+- Never access remote production databases.
+- Never run production migrations, seeds, syncs, destructive schema operations or data changes without exact-target approval and a reversible plan.
+- Enforce auth, role, tenant, course, consent and entitlement scope server-side.
+- Error, missing or stale data is unavailable, never fabricated as zero/success.
+- Learner support/crisis features remain off until consent, legal review, professional review and owner gates are complete.
+- No instructor psychological or behavioral monitoring.
+- Instructor Copilot receives pseudonyms only; server-authorized code restores identities.
+
+## AI security and economics
+
+- Verify current model IDs, capabilities, thinking controls, terms and pricing using official provider docs at implementation time.
+- Explicitly disable thinking by default.
+- Use stable prompt prefixes, minimal course-scoped context, validated output and budget/step limits.
+- Deterministic code owns permissions, metrics, grades, entitlements and crisis decisions.
+- Treat user text and retrieved material as untrusted; test prompt injection, hidden-context leakage and cross-tenant retrieval.
+- No new provider, paid plan, model spend or external processing without approval.
+
+## Delivery
+
+- One scoped task per commit on main.
+- Add tests for permissions, tenant boundaries, failures and concurrency.
+- Run exact lint, typecheck, tests, build, smoke and accessibility checks; report missing checks honestly.
+- Update project status, continuity, progress and session log after meaningful work.
