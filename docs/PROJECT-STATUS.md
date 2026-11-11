@@ -1,3 +1,12 @@
+## 2026-11-11 — Owner decision: consolidate branches, then stabilise
+
+- Owner explicitly superseded the previous agent's blanket no-merge rule: consolidate all useful existing branches into `main`, then stabilise the application before cautiously proceeding with further upgrades.
+- Updated repository-hosted `AGENTS.md`, `docs/agent-pack/SAFETY.md`, `README.md`, `QUEUE.md` and `DECISIONS.md` to reflect this direction. Historical session records remain historical; current policy is the owner decision recorded in DECISIONS.
+- Initial live inventory returned 13 branches. `backup/v3-ui` and `master` share the same commit tip; do not integrate twice. They include tracked `prisma/db/custom.db`, so they are not safe to merge wholesale. `fix/vercel-build-readonly` has unique Vercel build/account script/test changes requiring source review. Multiple documentation branches overlap continuity logs; reconcile rather than blindly merge.
+- Initial branch comparisons against main showed PR #3 at 590 ahead / 7 behind and GitHub mergeable=false; other branches include overlapping UI work and several small unique fixes/tests. Re-fetch live refs after policy commits before any merge.
+- No branch has been merged, deleted or force-updated in this update. No application source, schema, dependency or database changed. No production DB access or deployment.
+- Next: complete a branch-by-branch PR inventory and classify unique commits/risky files; prepare a safe integration order. Use existing PRs where possible, exact expected-head SHA, preserve source branches, and stop on unresolved conflicts or DB/binary/secret changes. Then run full stabilisation gates on consolidated main.
+
 ## 2026-11-11 — Read-only PR #3 source reconciliation
 
 - Rechecked current source and tests for the staff portfolio route. The earlier cross-course finding is now corrected in the branch: instructor/learner course intersection, organisation shared-membership + OrgCourse intersection, explicit student-grant fallback, and course filters on ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard are present. Comments are scoped through linked activity records; unlinked comments are omitted. Route tests cover course exclusion, org-admin scope, grant fallback, wellbeing-only denial and grant disappearance. The test suite was inspected but not executed.
