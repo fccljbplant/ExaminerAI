@@ -577,3 +577,13 @@ These are approved planning decisions, not implementation claims. No application
 - Reviewed all 28 authenticated role screenshots from Actions run `42938561279` across seven viewport sizes. No horizontal overflow was reported. Heuristic checks reported no unnamed controls, unlabeled fields, missing image alt text, missing document language or missing main landmark; these checks are not a WCAG conformance audit.
 - Found learner empty-state heading gap: all seven learner-home screenshots report zero primary headings. `src/modules/learner-portal/home.tsx` routes zero-enrollment users to `NoEnrollment()`, which renders “Start your first course” as a paragraph, not an `h1`. Enrolled state has an `h1`.
 - Next UI accessibility task: add a meaningful single page-level heading to the no-enrollment state and regression coverage, then repeat screenshots. Manual keyboard/screen-reader/zoom/reflow and axe review remain required. No code change made in this session for this issue.
+
+
+## 2026-11-11 — Final deployment verification
+
+- Main HEAD: `e390031cbf6eb0203c046947fcd3bd4c260014c7`.
+- Latest READY production deployment observed: `dpl_AS4D5wBkdubVHXEaXfQmumDSoahQ` from commit `1c2af3e962290ea20634229dc506e3a71bb51ada`, with stable alias `examiner-ai-tau.vercel.app`. This deployment includes all application-code changes from PR #11. PR #13 added docs only.
+- Vercel could not create a new deployment for docs-only main commit `e390031` because the free-plan build-rate limit was reached. The already READY application deployment remains the deployed application version; no application source changed in PR #13.
+- Production error/fatal runtime-log query for the inspected 15-minute window returned no entries. This does not replace a real authenticated smoke test against production or database health verification.
+- Remaining open PRs are #3 (schema/privacy/task workflow gates) and #6 (V3 held for selective salvage). Branch deletion has not been performed; the connected GitHub actions do not expose a delete-branch operation and some refs retain unmerged commits.
+- No DB migration or seed was run. Development demo data remains unseeded pending a safe, explicit development database target and review of the existing psychological-data seeder against consent/privacy invariants.
