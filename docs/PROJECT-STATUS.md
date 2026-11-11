@@ -635,3 +635,13 @@ These are approved planning decisions, not implementation claims. No application
 - PR #3 remains open/draft/non-mergeable at `4912698a08be04c9ba43632495400bbff4042837` (604 commits ahead / 29 behind current main). PR #6 remains held at `39f2d0faab32b6b4f2054b07b2eedeb108de4300` (17 ahead / 37 behind). No wholesale PR #3 or PR #6 merge.
 - PR #17 changed no Prisma schema, migration, dependency, provider, billing, learner-support or crisis-handling behavior. No Neon/production database was accessed, and no production data/schema operation, seed, manual deployment, force update or source-branch deletion occurred.
 - Next selective PR #3 review: weekly-test course identity/enrollment checks and AI-unavailable no-grade behavior; verify the existing server-side weekly sequencing guard and add direct regression coverage. Keep portfolio expiry semantics, comprehensive-report field/scope policy and PR #3 schema changes on hold pending their required decisions.
+
+
+## 2026-11-11 — PR #3 weekly-test course and grading safety port prepared
+
+- Based on current `main` `c8fdc2ac58ff500ff38720689c3cd350a655d4dc` after PR #18. This is a selective port from PR #3, not a wholesale merge.
+- Weekly-test start now checks active course enrolment, enforces the final content-day gate before returning even an existing in-progress test, uses the actual final outline day, preserves the legacy topic ladder only when a course has no outline, rejects missing weeks in a published custom outline, and returns `503 SERVICE_UNAVAILABLE` on outline lookup errors rather than silently falling back.
+- Weekly-test answers are bound to the route week, stored test course and current enrolment. AI evaluation failure returns a degraded 503 without persisting a fallback 0.5 grade or awarding XP. The learner panel now sends `courseId` (the previous caller omitted it) and treats incomplete/invalid saved scores as unavailable; genuine zero scores remain valid.
+- Added route and pure score-helper tests. Full Vitest: **38 files / 400 tests passed** against disposable local SQLite. Full ESLint exited 0 with existing repository warnings; TypeScript `tsc --noEmit` passed; `git diff --check` passed. Local production build not run in this 2 GB sandbox; exact-head GitHub Actions production build remains required.
+- No schema, migration, dependency, provider or billing changes. No Neon/production database access, production data changes, manual deployment, force update or source-branch deletion.
+- Next: exact-head GitHub Actions and existing Vercel preview checks; only merge after both required gates pass. PR #3 remains open/draft/non-mergeable; its report/privacy/schema and portfolio-expiry changes remain blocked for separate owner decisions.
