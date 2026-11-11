@@ -1,3 +1,11 @@
+## 2026-11-11 — Consolidation execution checkpoint
+
+- Merged PR #14 (`docs/record-production-ready`) into `main` using an expected-head check. Merge commit: `aa64d6aa7d4813c3f3b6b3738216de73375b7a1c`. Its GitHub Actions workflow `42940179422` completed successfully. Vercel reported a build-rate-limit failure for this docs-only PR; no deployment was performed.
+- Rechecked after the merge: `main` is `aa64d6aa7d4813c3f3b6b3738216de73375b7a1c`. PR #3 remains open/draft and GitHub reports `mergeable=false`; compare is 600 commits ahead / 11 behind. PR #6 remains open/draft and `mergeable=false`; its unique UI V3 changes are mixed with tracked `prisma/db/custom.db` and shared portal/theme/feature-flag changes.
+- Other existing branches remain divergent from main. UI simplification branches overlap; documentation branches overlap continuity files; `backup/v3-ui` and `master` are the same tip and must not be merged twice. `fix/vercel-build-readonly` has unique build-safety code/tests but also continuity-doc edits.
+- No unsafe branch was force-merged. No source branches were deleted. No production database operation, schema change or deployment occurred.
+- Next safe integration prerequisite: a Git-capable working checkout or equivalent verified three-way conflict-resolution workflow is required to reconcile PR #3 and the overlapping branches. The current GitHub connector exposes merge operations but no PR-branch update/cherry-pick workflow; with no local checkout available, conflict resolution cannot be safely fabricated through file-by-file overwrites. Continue with auditable PRs and exact-head CI once conflict resolution is available.
+
 ## 2026-11-11 — Owner decision: consolidate branches, then stabilise
 
 - Owner explicitly superseded the previous agent's blanket no-merge rule: consolidate all useful existing branches into `main`, then stabilise the application before cautiously proceeding with further upgrades.
