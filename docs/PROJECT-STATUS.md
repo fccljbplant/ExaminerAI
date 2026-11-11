@@ -578,3 +578,10 @@ These are approved planning decisions, not implementation claims. No application
 - Source inspection: account script resets the platform-admin password to a fixed in-source value on every build; marketplace script updates published course fields during build. PR #3 removes schema push but leaves both seed scripts. This is a release blocker until builds are made strictly read-only with respect to application data.
 - No production deployment or production DB operation. No source-code change, merge, or branch deletion. Full finding and required fixes are in [QUESTIONS.md](./UPGRADE-2026-10/QUESTIONS.md).
 - Next: approved task card/workflow is still missing; implement build-only deployment + controlled seeding with tests on a safe branch, then refresh preview and re-evaluate PR #3 against main.
+
+
+## Latest verification — 2026-11-11 (main Vercel preview)
+
+- Vercel preview deployment for exact main SHA `8f2e70850f10009bcca041fae7dc128681ff6adb` reached **READY**: [open preview](https://examiner-ai-git-main-fccljbplants-projects.vercel.app). This is a preview, not a production deployment.
+- Ready confirms build/deployment completion only. Runtime route/login/database/browser/a11y checks were not performed; the web page inspection tool could not access the preview URL. Build-time DB mutation and admin-password reset findings remain unresolved in QUESTIONS.md.
+- Latest PR #3 docs-only head `9676be6daa6c04f95272b66b4c36fbeb1274991a` Actions run [42937739175](https://github.com/fccljbplant/ExaminerAI/actions/runs/42937739175) was still in progress at the last check. Do not claim that head is green until completed.
