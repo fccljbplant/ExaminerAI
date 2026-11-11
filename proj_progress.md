@@ -422,3 +422,10 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Recorded exact evidence, scope and required correction in `docs/UPGRADE-2026-10/QUESTIONS.md`. Required correction: build-only deployment, no DB writes/seeds, secure one-time admin bootstrap, marketplace seeding via explicit controlled workflow, no false success after swallowed errors, and tests for DB-less builds.
 - No production deployment or production DB access/change. No merge, branch deletion, source-code change, or local tests. Container GitHub access remains unavailable; no local checkout exists. Do not claim the preview build is Ready until verified.
 - Next: preserve the build-only change already present in PR #3, but also remove build-time account/marketplace mutations in an approved task; rerun exact-head CI and preview; then revisit PR #3 mergeability against current main and keep V3 selective-only.
+
+
+## 2026-11-11 — Main preview build completed
+
+- Follow-up Vercel inspection confirms the exact-main preview deployment `dpl_CDnSNmZcGcDuRX5bmGBW2GeJiyvU` reached `READY` for SHA `8f2e70850f10009bcca041fae7dc128681ff6adb`. Preview URL: https://examiner-ai-git-main-fccljbplants-projects.vercel.app
+- This verifies Vercel's deployment build completed; it does not prove runtime routes, login, database connectivity, seed correctness or browser/accessibility behaviour. The web browser inspection path was unavailable. Build-time DB mutation/password-reset risks remain as recorded in QUESTIONS.md.
+- PR #3 documentation refresh at `9676be6daa6c04f95272b66b4c36fbeb1274991a` triggered Actions run `42937739175`; it was still in progress at last check (dependency install running). Recheck exact-head CI after the run finishes.
