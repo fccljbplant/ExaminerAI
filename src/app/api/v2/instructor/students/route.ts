@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { isPortalEnabled } from "@/lib/feature-flags";
+import { getLatestScoredTest } from "@/modules/instructor-portal/roster-metrics";
 
 export const runtime = "nodejs";
 
@@ -69,22 +70,23 @@ export async function GET(req: NextRequest) {
       where: { userId: { in: studentIds }, courseId: { in: courseIds } },
       select: { userId: true, week: true, score: true, status: true },
     }),
-    db.dailyLog.findMany({
-      where: { userId: { in: studentIds } },
-      select: { userId: true, date: true },
-      orderBy: { date: "desc" },
-      take: 200,
+    // Aggregate at the database so large rosters are not silently capped
+    // at 200 check-ins across all students.
+    db.dailyLog.groupBy({
+      by: ["userId"],
+      where: { userId: { in: studentIds }, courseId: { in: courseIds } },
+      _max: { date: true },
     }),
     db.projectTask.findMany({
-      where: { userId: { in: studentIds } },
+      where: { userId: { in: studentIds }, courseId: { in: courseIds } },
       select: { userId: true, status: true },
     }),
   ]);
 
   // Enrichment: attention score (mirrors the v1 /api/stats rules).
   const lastLogByUser = new Map<string, Date>();
-  for (const l of dailyLogs) {
-    if (!lastLogByUser.has(l.userId)) lastLogByUser.set(l.userId, l.date);
+  for (const log of dailyLogs) {
+    if (log._max.date) lastLogByUser.set(log.userId, log._max.date);
   }
   const testsByUser = new Map<string, { week: number; score: number | null; status: string }[]>();
   for (const t of weeklyTests) {
@@ -115,8 +117,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const tests = (testsByUser.get(s.id) ?? []).filter((t) => t.score !== null);
-    const latest = tests[tests.length - 1];
+    const latest = getLatestScoredTest(testsByUser.get(s.id) ?? []);
     if (latest && latest.score !== null && latest.score < 60) {
       attentionScore += 25;
       attentionReasons.push(`Last test ${latest.score}%`);
