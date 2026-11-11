@@ -1,3 +1,27 @@
+# CURRENT PROJECT STATUS — 11 November 2026
+
+**Active programme:** Mainline Reset & Evidence-Led Product Upgrade  
+**Main HEAD at this update:** 4377fa40854622ca4cc0ad5f7b6f55b48f303404  
+**Latest commit purpose:** docs-only creation of the new reset, product roadmap, UX research, AI/data strategy, pre-reset baseline and owner-decision register.
+
+## Current reset state
+
+- New programme files are saved under docs/UPGRADE-2026-11/.
+- Root AGENTS.md and legacy instruction/queue documents are being reconciled to the new owner direction.
+- The reset itself has NOT yet been executed.
+- At the pre-reset snapshot, 20 branch refs existed including main; 19 non-main refs are to be removed after the private archive is verified.
+- PR #3 and PR #6 remain open/draft at the time of this update. They must be closed before their source branches are deleted.
+- Main is the only branch to retain. Do not merge the old branches as part of this reset.
+- Current Vercel status on the docs-only main HEAD reports failure due to the project's build-rate limit. No PR-triggered GitHub Actions run was returned for that exact main SHA; recheck workflow history. Do not claim the docs update passed CI or that a new deployment is ready.
+- No application source, schema, dependency, production data, production setting or migration was changed in this documentation milestone.
+- No branch was deleted and no PR was closed in this milestone.
+
+## Next required action
+
+Follow docs/UPGRADE-2026-11/START-HERE.md Stage 0: fresh inventory, safe private archive, archive restore verification, close retired open PRs, delete all remote branches except main, verify exactly one branch remains. Then run the full read-only mainline audit before implementation.
+
+---
+
 ## Latest live update — 2026-11-10 (PR #3 continuation / SQLite permission)
 
 - PR #3 branch: `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; live application head inspected: `f768d9a954071c8ea9cab5aa71b9ee53ac1af2e5`; PR open/draft/unmerged/mergeable; `main` unchanged at `fc70a296b28334ff45e8b081a0f8fe9a070be3a4`.
