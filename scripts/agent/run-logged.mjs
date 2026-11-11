@@ -31,8 +31,17 @@ const allowed = [
   ["npx", ["prisma", "validate"]], ["npx", ["prisma", "generate"]],
   ["node", ["--check"]]
 ];
-const ok = allowed.some(([bin, prefix]) => command[0] === bin &&
-  prefix.every((part, i) => command[i + 1] === part));
+const ok = allowed.some(([bin, prefix]) => {
+  if (command[0] !== bin || !prefix.every((part, i) => command[i + 1] === part)) return false;
+  // No trailing flags for commands whose flags can mutate files or broaden execution.
+  if (bin === "npm" || (bin === "npx" && ["tsc", "eslint", "vitest", "prisma"].includes(command[1]) && command[1] !== "prisma"))
+    return command.length === prefix.length + 1;
+  if (bin === "npx" && command[1] === "prisma")
+    return command.length === 3 || (command.length === 4 && /^--schema=prisma\/(schema|schema\.prod|\.demo)\.prisma$/.test(command[3]));
+  if (bin === "node" && command[1] === "--check")
+    return command.length === 3 && /^scripts\/[a-zA-Z0-9_./-]+\.mjs$/.test(command[2]);
+  return false;
+});
 if (!ok) fail("command is not on the validation allowlist");
 const joined = command.join(" ").toLowerCase();
 if (/(^|\s)(db:|migrate|seed|push|reset|drop|--force-reset)(\s|$)/.test(joined))
