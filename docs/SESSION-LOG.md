@@ -1100,3 +1100,15 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Existing PR #3 source risks remain gated: comprehensive-report classification/course scope/missing-evidence behaviour; staff portfolio authorised-course filtering; schema migration and deploy-build DB-write safety. No application or database changes were made.
 - Next: recheck exact-head Actions and Vercel; perform read-only P0-02 source/continuity reconciliation. Keep PR #3 draft, unmerged and undeployed.
 
+
+
+## 2026-11-11 — Read-only PR #3 source reconciliation
+
+- Rechecked current source and tests for the staff portfolio route. The earlier cross-course finding is now corrected in the branch: instructor/learner course intersection, organisation shared-membership + OrgCourse intersection, explicit student-grant fallback, and course filters on ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard are present. Comments are scoped through linked activity records; unlinked comments are omitted. Route tests cover course exclusion, org-admin scope, grant fallback, wellbeing-only denial and grant disappearance. The test suite was inspected but not executed.
+- Remaining portfolio question: course-enrolment resolution does not visibly filter `expiresAt`; confirm whether expired enrolments retain staff visibility before closing the semantics question.
+- Rechecked comprehensive-report route/generator. Staff access still uses `content_only`; the generator remains learner-global (Interaction, WeeklyTest, ProjectTask, ProjectReport, Certificate), emits managementAttitude fields, converts missing weekly scores to zero and returns zero/F when no test evidence exists. This remains blocked; do not patch outside a specific approved card and owner-approved field policy.
+- Rechecked Vercel build. `scripts/vercel-build.sh` no longer applies `prisma db push`, but still runs account bootstrap and marketplace metadata seeding before Next build. `ensure-accounts.js` contains fixed `admin123`, resets the admin password on each build, swallows upsert errors and prints success. `seed-marketplace-prod.js` mutates published course metadata including price. Added P1-04 as a deployment blocker; no database was accessed or modified.
+- Updated `docs/agent-pack/QUEUE.md` and appended both source findings to `docs/UPGRADE-2026-10/QUESTIONS.md`. No application source, schema, dependency or production data changed.
+- No local checkout: source was reviewed through GitHub. No runner syntax/self-tests, application tests, lint, typecheck, build, browser/a11y checks or deployment were run.
+- Next: obtain an approved implementation card for P1-04 and resolve the report field/course evidence contract; keep PR #3 draft/unmerged/undeployed.
+
