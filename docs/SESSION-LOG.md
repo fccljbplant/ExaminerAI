@@ -1036,3 +1036,13 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Draft PR #11 (`fix/vercel-build-readonly`) changes the build to Prisma client generation and Next.js build only. Admin bootstrap now requires explicit secret-manager environment variables and never updates an existing account.
 - Exact head `8066af94ae87e6c9c7dc8ef8e49fed37a94babc0`; Actions run `42938312216` is still running at dependency installation and Vercel preview `DC6oshqfcbsywZudqnjDtYcMd5UG` is still building. No passing result is claimed.
 - No database operation, migration, seed, merge, production deployment or branch deletion performed. Continue after exact-head CI and preview finish.
+
+
+## 2026-11-11 — Deployment safety correction merged
+
+- Audited Vercel build logs and found main previously performed production schema push, admin password reset from a hardcoded source value, and marketplace metadata writes during deployment.
+- Implemented the correction on `fix/vercel-build-readonly`, opened PR #11, added static regression tests, and updated project continuity. PR #11 merged after exact-head CI passed.
+- Main commit: `24b69fbf716d0c4fa3d7fd9f278db4b85163ece8`. PR head validated: `fa59d645d6b729c16d32e4bc1ab23ca814678aa4`.
+- Actions run `42938561279` succeeded across dependency install, isolated test DB, lint, unit tests, TypeScript, production build, all app-page route smoke tests, authenticated role screenshots and artifact upload. Artifact `role-dashboard-screenshots` expires 2026-11-18.
+- Vercel preview `dpl_EDusyC3RNBZPuHwt2wE655Fa9vHS` reached READY. Build logs show the revised read-only build path. Main production-target deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj` was still BUILDING at the last check; follow up on final state and runtime health.
+- No DB was accessed or modified; no migrations/seeds were run. No branch deletion was performed. Continue with PR #3 schema/privacy remediation and V3 selective review only after their documented prerequisites are met.

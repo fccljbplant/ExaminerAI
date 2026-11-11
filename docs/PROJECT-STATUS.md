@@ -560,3 +560,13 @@ These are approved planning decisions, not implementation claims. No application
 - Draft PR #11 (`fix/vercel-build-readonly`) changes the build to Prisma client generation and Next.js build only. Admin bootstrap now requires explicit secret-manager environment variables and never updates an existing account.
 - Exact head `8066af94ae87e6c9c7dc8ef8e49fed37a94babc0`; Actions run `42938312216` is still running at dependency installation and Vercel preview `DC6oshqfcbsywZudqnjDtYcMd5UG` is still building. No passing result is claimed.
 - No database operation, migration, seed, merge, production deployment or branch deletion performed. Continue after exact-head CI and preview finish.
+
+
+## 2026-11-11 — PR #11 merged: deployment build safety
+
+- PR #11 is merged to main as `24b69fbf716d0c4fa3d7fd9f278db4b85163ece8`.
+- Vercel build is now read-only with respect to application data: Prisma client generation plus Next.js build only. Automatic `prisma db push`, account bootstrap and marketplace seeding were removed from deployment.
+- Administrator bootstrap now requires secret-manager supplied `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` (minimum 16 characters), skips existing accounts without mutation and has no hardcoded reusable credential.
+- Added deployment safety regression tests. Exact PR head Actions run `42938561279` passed all configured steps, including lint, unit tests, typecheck, production build, route smoke and authenticated screenshot capture/upload. Vercel preview `dpl_EDusyC3RNBZPuHwt2wE655Fa9vHS` reached READY.
+- Main's production-target deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj` was BUILDING at this update; verify completion and runtime/database health before declaring release complete.
+- No database/schema operation or seed was executed. PR #3 and PR #6 remain unmerged under their separate safety gates.

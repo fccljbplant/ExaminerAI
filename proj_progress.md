@@ -402,3 +402,15 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Converted `scripts/ensure-accounts.js` into an explicit one-time bootstrap requiring `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` from a secret manager (minimum 16 characters). Existing accounts are skipped without changing password, role, status or approval state; errors are no longer swallowed.
 - Exact PR head: `8066af94ae87e6c9c7dc8ef8e49fed37a94babc0`. GitHub Actions run `42938312216` is in progress at dependency installation; Vercel preview `DC6oshqfcbsywZudqnjDtYcMd5UG` is BUILDING. No check is claimed passed yet.
 - No database was accessed or modified; no migration, seeding, merge, production deployment, or branch deletion occurred. PR #11 remains draft pending exact-head CI and preview verification.
+
+
+## 2026-11-11 — PR #11 merged: Vercel build is read-only
+
+- PR #11 merged to main by squash as commit `24b69fbf716d0c4fa3d7fd9f278db4b85163ece8`.
+- `scripts/vercel-build.sh` now only generates the production/demo Prisma clients and runs `next build`; it no longer runs `prisma db push`, admin account bootstrap, or marketplace seeding.
+- `scripts/ensure-accounts.js` is an explicit one-time bootstrap requiring `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` supplied by a secret manager. It skips existing accounts without changing them; no hardcoded default admin password remains.
+- Added `src/lib/vercel-build-safety.test.ts` to enforce the read-only build and safe bootstrap contract.
+- Exact PR head `fa59d645d6b729c16d32e4bc1ab23ca814678aa4` passed Actions run `42938561279`: install, isolated SQLite setup, lint, unit tests, TypeScript, production build, route smoke tests, authenticated role screenshots and artifact upload. Artifact `role-dashboard-screenshots` retained until 2026-11-18.
+- Vercel preview deployment `dpl_EDusyC3RNBZPuHwt2wE655Fa9vHS` reached READY. Its build logs show Prisma client generation and Next.js build without schema push or seeding steps.
+- Main commit `24b69fb` automatically triggered a production-target Vercel deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj`; it was BUILDING at this status update. Recheck final state and runtime health separately.
+- No database was accessed or modified, and no schema migration or seed was run. PR #3 remains blocked by schema/privacy gates; PR #6 remains held for selective V3 salvage only.

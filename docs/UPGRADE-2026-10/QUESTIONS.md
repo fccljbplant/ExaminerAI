@@ -456,3 +456,17 @@ Implementation finding still open: GET /api/v2/instructor/students/[id] currentl
 - Safe mainline merges completed: PR #2, PR #7, PR #8 and PR #9. Their exact-head CI workflows passed. Associated automatic production deployments were cancelled before release.
 - PR #3's exact-head CI passed, but its schema transition still needs an additive PostgreSQL migration, legacy NULL-course handling, backup/restore and staging rehearsal, and explicit owner approval of the exact target and execution window. Keep draft/unmerged until that gate is satisfied.
 - PR #6 remains draft/unmerged: V3 changes the portal shell, role/feature-flag behaviour and learner IA; it also carries a tracked local SQLite database and removes existing regression tests. Reconcile the design decision and remove the DB artifact before any selective re-evaluation.
+
+
+## 2026-11-11 — Vercel build mutation blocker resolved in main
+
+**Status:** Code-level deployment build blocker corrected and merged; runtime/data validation remains separate.
+
+- PR #11 merged to main as `24b69fbf716d0c4fa3d7fd9f278db4b85163ece8`.
+- `scripts/vercel-build.sh` now only generates Prisma clients and builds Next.js. It does not run `prisma db push`, `ensure-accounts.js`, or `seed-marketplace-prod.js`.
+- `ensure-accounts.js` is now an explicit operator-invoked bootstrap using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` from a secret manager; it validates a minimum 16-character password and does not modify an existing account. No default password is embedded.
+- Regression tests in `src/lib/vercel-build-safety.test.ts` enforce these invariants.
+- Exact PR head CI run `42938561279` passed all configured checks. Vercel preview `dpl_EDusyC3RNBZPuHwt2wE655Fa9vHS` reached READY and logs show no schema/seed commands.
+- Main production-target deployment `dpl_2tHWh3SjhiXajjCWQ1cmsfwjAdHj` was BUILDING at the time of this record. Verify its final state; no database mutation was performed as part of this deployment.
+
+This resolves the build-script issue only. It does not resolve the separate PR #3 PostgreSQL schema rollout, learner report privacy/evidence, or V3 integration blockers.
