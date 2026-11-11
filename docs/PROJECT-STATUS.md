@@ -587,3 +587,14 @@ These are approved planning decisions, not implementation claims. No application
 - Production error/fatal runtime-log query for the inspected 15-minute window returned no entries. This does not replace a real authenticated smoke test against production or database health verification.
 - Remaining open PRs are #3 (schema/privacy/task workflow gates) and #6 (V3 held for selective salvage). Branch deletion has not been performed; the connected GitHub actions do not expose a delete-branch operation and some refs retain unmerged commits.
 - No DB migration or seed was run. Development demo data remains unseeded pending a safe, explicit development database target and review of the existing psychological-data seeder against consent/privacy invariants.
+
+
+## 2026-11-11 — Live consolidation refresh and Agent Pack reconciliation
+
+- Refreshed live `main`: `aa64d6aa7d4813c3f3b6b3738216de73375b7a1c`. Exact-head GitHub Actions quality check `42976216079` completed successfully. This verifies configured CI for this docs-only main commit; it is not manual accessibility or production validation.
+- PR #3 remains open/draft/non-mergeable at `4912698a08be04c9ba43632495400bbff4042837` (604 ahead / 11 behind). PR #6 remains open/draft/non-mergeable at `39f2d0faab32b6b4f2054b07b2eedeb108de4300` (17 ahead / 19 behind); its branch contains tracked `prisma/db/custom.db` and broad shared-shell changes.
+- The branch inventory was refreshed: 13 refs. `backup/v3-ui` and `master` are identical. UI simplification branches overlap. Learner courses and learner-home error-handling branches contain small unique file sets. Documentation branches overlap continuity files. Analytics and build-safety branches require duplicate-commit checks against already merged PRs before any integration.
+- The repository Agent Pack is being reconciled onto a dedicated PR from current `main`. The proposed `scripts/agent/run-logged.mjs` was deliberately excluded because its hard-coded PR #3 branch guard is incompatible with the current consolidation workflow; GitHub Actions remains the validation source.
+- Confirmed PR #11 build-safety work is already represented in `main`; do not re-integrate the older branch wholesale. PR #14 is docs-only and merged.
+- No app source, database, schema, dependency, production setting or deployment was changed. No source branch was deleted and no force update/history rewrite occurred.
+- Next: complete the docs-only Agent Pack PR and CI, then continue P0-03 by verifying commit equivalence and integrating the small learner compatibility/error-handling changes only once. Hold PR #3 until schema/privacy gates are resolved; hold V3 pending selective salvage and DB artifact exclusion.
