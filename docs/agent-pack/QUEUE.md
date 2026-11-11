@@ -1,3 +1,7 @@
+> **SUPERSEDED — 2026-11-11. This historical queue is no longer executable.** The owner has replaced the branch-consolidation workflow with the reset-first, main-only upgrade programme in [docs/UPGRADE-2026-11/START-HERE.md](../UPGRADE-2026-11/START-HERE.md) and [MASTER-PLAN.md](../UPGRADE-2026-11/MASTER-PLAN.md). Do not start or continue any P0-03 consolidation card below. The old cards are preserved as historical evidence only. The new process archives branch/PR state privately, removes every remote branch except main, closes open retired PRs, audits main read-only, then implements approved gaps directly on main. This is not permission for production DB operations or unapproved deployment.
+
+---
+
 # Agent task queue
 
 Exactly one active card per session. Owner-authorised consolidation supersedes historical no-merge restrictions. A card is executable when its scope is explicit, prerequisites exist, and its status is `todo`.
