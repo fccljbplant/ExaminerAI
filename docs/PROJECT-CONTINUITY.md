@@ -1,14 +1,18 @@
+> **Current owner decision (2026-11-11):** The previous blanket no-merge rule is superseded. Consolidate all useful existing branches into `main`, then stabilise the application. Follow the current rules in [`AGENTS.md`](./AGENTS.md) and [`docs/agent-pack/SAFETY.md`](./docs/agent-pack/SAFETY.md): inventory first, merge unique useful work only, avoid duplicate ancestry, preserve source branches, do not force-push, and keep production DB operations/deployment separately gated. Historical text below is retained as context, not current merge authority.
+
 # TraineesAI project continuity guide
 
 **Purpose:** Persistent handoff for ChatGPT/Codex/other contributors. Read this file at the start of every new session so work can continue from repository evidence rather than chat memory.
 
 ## Start every session here
 
+0. Read the repository-hosted [`AGENTS.md`](../AGENTS.md) and [`docs/agent-pack/README.md`](./agent-pack/README.md); the maintained Agent Pack lives in GitHub and must not depend on a local archive.
+
 1. Read `AGENT-INSTRUCTIONS.md` first. It is the repository's current safety and workflow authority.
 2. Read this file, then `docs/PROJECT-STATUS.md` and the latest entry in `docs/SESSION-LOG.md`.
 3. Confirm the live GitHub state: default branch HEAD, active working branch, open PR head, latest commit, CI checks, deployment checks, reviews, and unresolved review threads.
 4. Inspect the actual files and current diffs before editing. Never assume a prior sandbox, local checkout, dev server, or uncommitted change survived.
-5. Make scoped changes only on the existing PR #3 branch `ux-audit/fix-dashboard-truthfulness-and-agent-safety`; never create or switch branches. Do not push to `main`; do not merge or deploy without owner approval.
+5. Follow the active approved task card. For P0-03, use a dedicated integration PR/branch where required; integrate unique work only, preserve source refs, and never force-push or rewrite history. The owner has authorised consolidation merges, but not production DB changes or deployment.
 6. After a coherent change, record what changed, exact commit/PR, checks run and not run, and the next safe action in `docs/SESSION-LOG.md` and update `docs/PROJECT-STATUS.md`.
 
 ## Repository identity
@@ -150,13 +154,3 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - The exact-head CI success validates configured automated checks but not manual screenshot inspection, axe, keyboard/screen-reader, reduced-motion, zoom/reflow or end-user task testing. No local checkout or local checks were available.
 - No application code, tests, schema, dependency, migration, production data, merge, deployment, branch switch or `main` write changed in this refresh. This is a documentation/handoff refresh only.
 - Next safe work: resolve the task-card/logged-runner prerequisite without reading `.env*` or switching branches; then take one approved, narrow task. The comprehensive-report consumer, course-context/evidence contract, missing-evidence semantics, cached-report notice and route tests must be handled as one coherent slice. Preserve owner-approved management-style content with the AI-only reliability notice. Keep PR #3 draft/unmerged.
-
-
-## 2026-11-11 — Mainline branch consolidation update
-
-- Main now includes PR #2 (Vercel Analytics), PR #7 (safe UI simplification and role-aware home routing), PR #8 (protected-layout learner courses compatibility redirect), and PR #9 (learner-home project-query failures return 503 instead of a fabricated empty success). Current main commit: `dc683ec9652317f23aa7233625c0ad5ecccfc8f1`.
-- Exact-head GitHub Actions quality workflows passed for PR #7 (`42909814324`), PR #8 (`42910567097`), and PR #9 (`42911198601`): dependency install, isolated DB init, lint, unit tests, typecheck, production build, all-route smoke, authenticated role screenshots and screenshot artifact upload. Mainline workflow after PR #8 also passed (`42911131106`); mainline run after PR #9 is pending/completing.
-- Production deployments automatically queued by the four main merges were cancelled before release: `dpl_3URq5XvyHVWPBWiu8hYGRxS1xm5g`, `dpl_4e5eUTDbNSTXkxjVgsF4p454mh`, `dpl_AJpCKyBgpLeC8u6YS3PFBqDSxskP`, and `dpl_DCi7jADZ6f9f1FfteiXYyfMn6B4g`. No production deployment was allowed to complete and no production database was read or changed.
-- PR #3 remains draft/unmerged pending the explicit schema transition gate: reviewed additive PostgreSQL migration, legacy NULL-course handling, backup/restore and staging rehearsal, plus owner approval of the exact production target and execution window. Its latest exact-head CI (`42908979890`) passed, including production build and browser evidence, but its branch is behind the newly merged mainline work and needs a conflict-aware update after the schema gate is resolved.
-- PR #6 (V3 UI) remains draft/held. The V3 tree still carries a tracked local SQLite database, replaces current portal shells and role/feature-flag behaviour, removes regression tests, and conflicts with the unresolved learner navigation contract. Do not merge wholesale.
-- V3 is the only remaining named branch intentionally excluded. The safe UI, analytics, learner catalog alias, and learner-home truthfulness changes are merged.

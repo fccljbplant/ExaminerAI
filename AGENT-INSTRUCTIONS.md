@@ -1,3 +1,7 @@
+> **Current owner decision (2026-11-11):** The previous blanket no-merge rule is superseded. Consolidate all useful existing branches into `main`, then stabilise the application. Follow [`AGENTS.md`](./AGENTS.md) and [`docs/agent-pack/SAFETY.md`](./docs/agent-pack/SAFETY.md). Historical text below is retained for context, not current merge authority.
+
+> The repository-hosted Agent Pack is canonical; read [`AGENTS.md`](./AGENTS.md) and [`docs/agent-pack/README.md`](./docs/agent-pack/README.md). Do not rely on a local agent archive.
+
 # Agent Instructions — READ THIS FIRST at the start of every session
 
 > **CRITICAL:** This file exists because the sandbox environment can reset
