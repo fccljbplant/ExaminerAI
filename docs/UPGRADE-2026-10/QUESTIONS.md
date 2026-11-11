@@ -474,3 +474,23 @@ The PR #3 version of `scripts/vercel-build.sh` removes the automatic `prisma db 
 **Evidence / boundaries:** The build log showed successful Next.js compilation and entry into TypeScript validation, but the deployment was still BUILDING at the last check. This was a preview deployment only; no production deployment was created. No production database was inspected or modified by this audit. The exact outcome of the swallowed account upsert is unknown. Do not assume it wrote or did not write data.
 
 **Task workflow:** No approved Agent Pack task card/queue or safe logged runner is present on the branch. Keep this as a documented blocker until the branch-preserving, no-`.env*` workflow or an owner-approved equivalent is available.
+
+
+## 2026-11-11 — Staff portfolio course-scope revalidation
+
+**Status:** The previously recorded cross-course portfolio query issue is corrected in the current PR #3 source; expired-enrolment semantics remain to verify.
+
+- `src/app/api/students/[id]/portfolio/route.ts` now resolves instructor teaching-course ∩ learner-enrolment scope, organisation-admin shared-active-membership ∩ linked OrgCourse ∩ learner-enrolment scope, and explicit student-grant fallback when no teaching course is shared.
+- ProjectTask, DailyLog, Interaction, WeeklyTest and ReportCard queries all filter by the authorised course IDs. Comments are filtered through linked course-attributed activity IDs; unlinked comments are omitted. Course-less Competency remains learner-level.
+- `src/app/api/students/[id]/portfolio/route.test.ts` covers cross-course exclusion, org-admin linked-course scope, explicit grant fallback, wellbeing-only denial and grant disappearance. This is source/test inspection only; the suite was not run in this environment.
+- The course-enrolment queries currently select course IDs without an explicit `expiresAt` predicate. Confirm whether expired CourseEnrollment records should remain valid for staff visibility before closing the remaining semantics question.
+
+## 2026-11-11 — Vercel build still performs application-data mutations
+
+**Status:** Deployment blocker; implementation requires a separate approved task card.
+
+- `scripts/vercel-build.sh` no longer runs `prisma db push`, but still executes `scripts/ensure-accounts.js` and `scripts/seed-marketplace-prod.js` before `next build`.
+- `scripts/ensure-accounts.js` embeds `admin123`, hashes it, and upserts the platform-admin account with that password on every build. It catches and discards the upsert error, then prints an "ensured" success message. This is a credential-reset and false-success risk.
+- `scripts/seed-marketplace-prod.js` updates published course metadata, including price, currency, duration, instructor copy, thumbnail and learning outcomes, as a build side effect.
+- The current project owner rules prohibit production-data changes without explicit approval. No production database was accessed or modified in this source audit.
+- Required fix: make Vercel build build-only; move bootstrap to a secure one-time operator workflow and marketplace seeding to an explicit controlled workflow; add tests/static checks proving build has no DB writes; verify DB-less preview build and exact-head CI. No production operation is authorised.
