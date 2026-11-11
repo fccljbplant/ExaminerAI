@@ -67,7 +67,53 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
   const course = await db.course.findUnique({ where: { id: courseId } });
   if (!course) return apiNotFound("Course not found");
 
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiError("You are not enrolled in this course", ErrorCode.FORBIDDEN, 403);
+
   await getOrCreateProfile(user.sub, courseId);
+
+  // Week material: the course's outline days for this week (or the shared ladder).
+  let outline: Awaited<ReturnType<typeof getCourseOutline>>;
+  try {
+    outline = await getCourseOutline(courseId);
+  } catch (error) {
+    logger.error("Weekly test course outline lookup failed", { courseId, error });
+    return apiError(
+      "Course content is temporarily unavailable. Please try again.",
+      "SERVICE_UNAVAILABLE",
+      503,
+    );
+  }
+  const outlineWeek = outline?.find((w) => w.week === week);
+  const weekDays = outlineWeek?.days ?? (outline ? [] : WEEKLY_TOPICS[week - 1]?.topics ?? []);
+  if (weekDays.length === 0) {
+    return apiError(
+      "This course week has no published learning content yet. The weekly test is unavailable until course content is available.",
+      ErrorCode.CONFLICT,
+      409,
+    );
+  }
+
+  // ── SEQUENCE GUARD (server-enforced) ─────────────────────────────
+  // The UI only offers the weekly test on a week's LAST day, but the
+  // API must not rely on the UI: starting week W's test before the
+  // learner has reached its last day would be out of sequence.
+  // Learner-paced, not calendar-based — "reached" means their current
+  // topic is on/after that day, or they already completed the course.
+  const lastDayOfWeek = outlineWeek?.days.at(-1)?.day ?? weekDays.length;
+  if (lastDayOfWeek > 0) {
+    const reached = await learnerReachedTopic(user.sub, courseId, week, lastDayOfWeek);
+    if (!reached) {
+      return apiError(
+        `Weekly test for week ${week} unlocks after you finish its ${lastDayOfWeek} days — keep going!`,
+        ErrorCode.OUT_OF_SEQUENCE,
+        409,
+      );
+    }
+  }
 
   // Idempotent — if the weekly test exists for this (user, course, week), return it.
   const existing = await db.learnWeeklyTest.findUnique({
@@ -81,29 +127,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ week: string }
       status: existing.status,
       answers: existing.answers ?? [],
     });
-  }
-
-  // Week material: the course's outline days for this week (or the shared ladder).
-  const outline = await getCourseOutline(courseId).catch(() => null);
-  const outlineWeek = outline?.find((w) => w.week === week);
-  const weekDays = outlineWeek?.days ?? WEEKLY_TOPICS[week - 1]?.topics ?? [];
-
-  // ── SEQUENCE GUARD (server-enforced) ─────────────────────────────
-  // The UI only offers the weekly test on a week's LAST day, but the
-  // API must not rely on the UI: starting week W's test before the
-  // learner has reached its last day would be out of sequence.
-  // Learner-paced, not calendar-based — "reached" means their current
-  // topic is on/after that day, or they already completed the course.
-  const lastDayOfWeek = weekDays.length;
-  if (lastDayOfWeek > 0) {
-    const reached = await learnerReachedTopic(user.sub, courseId, week, lastDayOfWeek);
-    if (!reached) {
-      return apiError(
-        `Weekly test for week ${week} unlocks after you finish its ${lastDayOfWeek} days — keep going!`,
-        ErrorCode.OUT_OF_SEQUENCE,
-        409,
-      );
-    }
   }
 
   // Question difficulty ADAPTS TO THE LEARNER (2026-09): derived from
