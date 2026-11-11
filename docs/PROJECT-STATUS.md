@@ -1,3 +1,14 @@
+## 2026-11-11 — Live GitHub state after Agent Pack installation
+
+- Current `main` base from GitHub compare: `e390031cbf6eb0203c046947fcd3bd4c260014c7`. The earlier `8f2e708` preview note is historical, not the current main head.
+- PR #3 head after the repository Agent Pack and runner hardening: `ad8dd22f12b9d792a4148b472212e683d9982b01` at the time of this entry. PR remains open, draft, unmerged and `mergeable=false`; compare reports 581 commits ahead and 7 behind. No branch changes were made.
+- Exact-head GitHub Actions query returned no workflow runs for this commit. Vercel combined status is `pending`; this is not a green deployment. Exact-head CI and Vercel must be rechecked after continuity commits.
+- PR #3 has one historical submitted COMMENTED review containing earlier WeeklyTest/ReportCard observations; current review-thread query returned no inline threads. The progress/questions documents record subsequent fixes, but this review history should not be represented as a newly approved review.
+- The Agent Pack is now committed in `AGENTS.md`, `docs/agent-pack/{README,SAFETY,QUEUE,DECISIONS}.md`, and `scripts/agent/run-logged.mjs`. The runner was tightened to exact allowlisted validation commands with shell disabled; arbitrary flags, DB mutation, Git operations and dotenv access are not supported.
+- This session did not have a local repository checkout. The runner was inspected through GitHub source but was not executed; syntax/self-tests, app lint/tests/typecheck/build, browser/accessibility checks and Vercel deployment were not run.
+- Existing PR #3 source risks remain gated: comprehensive-report classification/course scope/missing-evidence behaviour; staff portfolio authorised-course filtering; schema migration and deploy-build DB-write safety. No application or database changes were made.
+- Next: recheck exact-head Actions and Vercel; perform read-only P0-02 source/continuity reconciliation. Keep PR #3 draft, unmerged and undeployed.
+
 ## 2026-11-11 — Repository-hosted Agent Pack installed
 
 - Installed persistent agent instructions at `AGENTS.md`, canonical operating docs under `docs/agent-pack/` (`README.md`, `SAFETY.md`, `QUEUE.md`, `DECISIONS.md`), and a restricted validation runner at `scripts/agent/run-logged.mjs`.
