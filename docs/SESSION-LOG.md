@@ -1133,3 +1133,15 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Remaining PR #3 items are not safe to merge without owner decisions: comprehensive-report field/evidence/course-scope policy; learner-support/psychological signal visibility and consent/role policy; staff final-result access semantics for `content_only` grants; portfolio `CourseEnrollment.expiresAt` semantics; and the additive PostgreSQL migration/legacy NULL-course rollout described in `PR3-SCHEMA-ROLLOUT.md`.
 - No Neon/production database access or modification, schema migration, seed, manual deployment, dependency/provider/billing change, force update, history rewrite or source-branch deletion. Vercel production deployment was Git-integration automatic; no manual deployment action was taken.
 - Next: stop broad PR #3 integration at these gates. Obtain owner answers in `docs/UPGRADE-2026-10/QUESTIONS.md` before any further report/privacy/portfolio/schema changes. Continue app stabilisation and inspect remaining PR #3 UI-only changes only where they do not depend on those policies.
+
+
+## 2026-11-11 — New reset-first mainline upgrade programme created
+
+- Owner supplied TraineesAI-FINAL-PROMPT.md and TraineesAI-Master-Upgrade-Prompt.md and directed a fresh start: remove non-main branches, close/delete the PR #3 source workflow, audit main deeply, then implement approved gaps directly on main.
+- Created docs/UPGRADE-2026-11/START-HERE.md, MASTER-PLAN.md, UXPEAK-RESEARCH-AND-DESIGN.md, AI-AND-DATA-STRATEGY.md, RESET-BASELINE.md and DECISIONS-REGISTER.md.
+- Research incorporated UXPeak public design guidance (hierarchy, spacing, contrast, copy, interaction polish and before/after examples); Dashboard Design Patterns research; WCAG 2.2; NN/g mobile usability; retrieval/spacing practice and feedback research; UNESCO AI-in-education guidance; OWASP GenAI LLM Top 10 2026; NIST GenAI risk guidance; and current official DeepSeek model discovery, thinking and context-cache documentation.
+- Marked the old Agent Pack queue as historical/superseded and reconciled root agent instructions to the new reset-first, main-only direction. Historical project logs and unique migration/privacy evidence are retained.
+- Live main at the docs update: 4377fa40854622ca4cc0ad5f7b6f55b48f303404. Pre-reset branch snapshot: 20 refs including main; PR #3 and PR #6 open/draft. No branch deletion or PR closure has yet occurred.
+- Vercel combined status on the docs-only main HEAD reports failure due to build-rate limit; no PR-triggered Actions run was returned for that exact main SHA. No test, lint, typecheck, build or browser check was run in this documentation session.
+- No application source, schema, dependency, production database, production setting or migration was changed. No manual deployment was initiated. Automatic deployment side effects must be checked as part of reset before source commits.
+- Next: Stage 0 private archive/restore verification and remote branch/PR cleanup; then Stage 1 read-only audit of main. Preserve the PR #3 schema rollout and owner decision history; do not reintroduce the old branch merge strategy.
