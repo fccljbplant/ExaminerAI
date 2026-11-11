@@ -1,3 +1,7 @@
+> **CURRENT OWNER DIRECTION — 11 November 2026 (supersedes older consolidation instructions):** Start the Mainline Reset & Evidence-Led Product Upgrade in [docs/UPGRADE-2026-11/START-HERE.md](./UPGRADE-2026-11/START-HERE.md). Archive the complete pre-reset branch/PR state privately and verify restore; close retired open PRs (including #3/#6); delete every remote branch except main; then audit main read-only and implement approved gaps directly on main in small commits. Do not merge old branch tips as part of this reset. GitHub PR records remain historical records after closure. Check automatic Vercel production deployment behavior before main source commits. See [MASTER-PLAN.md](./UPGRADE-2026-11/MASTER-PLAN.md), [RESET-BASELINE.md](./UPGRADE-2026-11/RESET-BASELINE.md), [DECISIONS-REGISTER.md](./UPGRADE-2026-11/DECISIONS-REGISTER.md). Historical text below is preserved but is not current operating authority.
+
+---
+
 > **Current owner decision (2026-11-11):** The previous blanket no-merge rule is superseded. Consolidate all useful existing branches into `main`, then stabilise the application. Follow the current rules in [`AGENTS.md`](./AGENTS.md) and [`docs/agent-pack/SAFETY.md`](./docs/agent-pack/SAFETY.md): inventory first, merge unique useful work only, avoid duplicate ancestry, preserve source branches, do not force-push, and keep production DB operations/deployment separately gated. Historical text below is retained as context, not current merge authority.
 
 # TraineesAI project continuity guide
