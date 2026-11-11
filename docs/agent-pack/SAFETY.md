@@ -1,17 +1,25 @@
 # Agent execution safety
 
+## Branch consolidation
+- Owner direction (2026-11-11) authorises consolidation of useful existing branches into `main`; the previous blanket no-merge restriction is superseded.
+- Inventory every branch against the live `main` before merging. Determine unique commits, duplicate ancestry, overlapping files, conflicts, CI state, and database/binary/dependency changes.
+- Prefer auditable PR merges with exact expected-head SHA. Do not force merge, force push, rewrite history or delete source branches.
+- Never merge a branch containing an unexplained tracked database/binary, credential, secret, unsafe production-data operation or unreviewed dependency/provider/billing change. Hold it for explicit review.
+- Merge only unique work; identical branch tips or already-integrated commits must not be merged twice.
+- Resolve conflicts only after understanding both sides; run targeted tests and full relevant quality gates after each coherent integration batch.
+- Keep source branches until consolidated `main` is validated and owner separately confirms cleanup.
+
 ## Hard stops
-- Branch must already be `ux-audit/fix-dashboard-truthfulness-and-agent-safety`. No branch creation, checkout, switching, merging, rebasing, deleting, resetting or force updates.
 - Never inspect or access `.env`, `.env.*`, secrets, credentials, private learner data, or remote production databases.
-- Never run production sync, destructive reset/drop, seed, migration, schema push, or data mutation unless the exact local target and operation have explicit owner approval in the active task card. The default is blocked.
+- Never run production sync, destructive reset/drop, seed, migration, schema push, or data mutation unless the exact local target and operation have explicit owner approval and an approved reversible plan. The default is blocked.
 - No dependency/provider/billing changes, paid services, spending or external data processing without approval.
-- No push to main, merge, deploy, production-setting change, or protected-branch action without explicit owner approval.
+- Merge authorisation does not authorise deployment, production-setting changes, protected-branch setting changes, or production database operations.
 
 ## Database policy
 - The repository's production stack uses PostgreSQL/Neon and local development may use SQLite; never infer the active target.
 - Read only non-secret configuration names and code paths. Do not print environment values.
 - Any permitted local SQLite operation must be isolated, backed up where applicable, reversible, and covered by tests. A `file:` URL alone is not sufficient proof that a DB is safe to mutate.
-- Additive schema changes require migration review, preservation of legacy rows, rollback notes, and owner approval. Production schema/history/backup/restore are release gates.
+- Additive schema changes require migration review, preservation of legacy rows, rollback notes, and owner approval. Production schema/history/backup/restore are separate release gates.
 
 ## Data and AI policy
 - Tenant, role, course, consent and entitlement checks are server-side on every protected operation.
