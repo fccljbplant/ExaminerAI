@@ -502,3 +502,13 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Remaining PR #3 items are not safe to merge without owner decisions: comprehensive-report field/evidence/course-scope policy; learner-support/psychological signal visibility and consent/role policy; staff final-result access semantics for `content_only` grants; portfolio `CourseEnrollment.expiresAt` semantics; and the additive PostgreSQL migration/legacy NULL-course rollout described in `PR3-SCHEMA-ROLLOUT.md`.
 - No Neon/production database access or modification, schema migration, seed, manual deployment, dependency/provider/billing change, force update, history rewrite or source-branch deletion. Vercel production deployment was Git-integration automatic; no manual deployment action was taken.
 - Next: stop broad PR #3 integration at these gates. Obtain owner answers in `docs/UPGRADE-2026-10/QUESTIONS.md` before any further report/privacy/portfolio/schema changes. Continue app stabilisation and inspect remaining PR #3 UI-only changes only where they do not depend on those policies.
+
+
+## 2026-11-11 — Reset-first upgrade plan saved to main
+
+- Added the new active programme in docs/UPGRADE-2026-11/: START-HERE.md, MASTER-PLAN.md, UXPEAK-RESEARCH-AND-DESIGN.md, AI-AND-DATA-STRATEGY.md, RESET-BASELINE.md and DECISIONS-REGISTER.md.
+- Reconciled the active agent contract and legacy Agent Pack instructions/queue to the owner’s reset-first, main-only direction. Previous consolidation queue entries are historical and not executable.
+- Snapshot main HEAD for the documentation milestone: 4377fa40854622ca4cc0ad5f7b6f55b48f303404. Pre-reset inventory: 20 refs including main, 19 non-main refs; open/draft PRs #3 and #6. The reset has not yet run; branches are still present and PRs remain open.
+- Vercel status on this docs-only main commit is failure due to build-rate limit. The connected workflow-run query returned no PR-triggered Actions runs for this exact main SHA. No tests/build/browser checks were run for docs-only changes.
+- No application code, schema, dependency, production DB, migration or deployment was changed. No branch deletion or PR closure performed.
+- Next: verify private archive and restore; close open retired PRs; delete all remote refs except main; verify exactly one branch; then perform the read-only main audit and create a gap-only implementation register.
