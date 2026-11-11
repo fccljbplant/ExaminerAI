@@ -12,3 +12,10 @@
 - Generic instructions in older agent material may suggest creating a feature branch. The project continuity guide mandates the existing PR #3 branch; the latter governs.
 - Historical Agent Pack content included unsafe branch-changing and dotenv-reading behaviour. Do not copy or execute those behaviours.
 - The current project status and historical logs contain older heads. Recheck live GitHub state before treating any recorded SHA or CI result as current.
+
+
+## 2026-11-11 — Owner supersedes blanket no-merge policy
+- Owner explicitly directed: consolidate all useful existing branches into `main`, then stabilise the application before cautiously proceeding with further upgrades.
+- This supersedes earlier blanket no-merge/keep-PR-3-draft instructions. Agent instructions and queue must follow this current decision.
+- Consolidation means integrate unique useful work, not blindly merge every branch tip. Avoid duplicate ancestry; review conflicts and risky files; preserve source branches until main is validated and cleanup is separately approved.
+- The merge decision does not authorise force pushes, history rewrites, production DB operations, production settings changes or deployment.
