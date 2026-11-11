@@ -1044,3 +1044,24 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Other live branches reviewed: `fix/ui-simplification-safe` and `ux-audit/ui-simplification-consolidated` contain changes represented by merged PR #7; learner-courses and learner-home branches contain changes represented by merged PRs #8/#9; continuity-refresh is represented by merged PR #10; Vercel analytics is already in main ancestry. No duplicate merge is warranted.
 - Agent prerequisites remain absent on PR #3 (`AGENTS.md`, task queue, safe logged runner). No code edits were made and no local tests/build/browser checks were run. No merge, branch switch, deployment, schema operation or production data access occurred.
 - Next safe action: keep PR #3 and #6 draft; obtain/restore the approved task card + branch-preserving runner; resolve report field classification and implement a course-scoped report with missing values preserved; prepare and validate the exact additive PostgreSQL migration and rollback on staging before any release decision. Re-run exact-head checks after any subsequent edits.
+
+
+## 2026-11-11 — Vercel preview build and deployment safety audit
+
+### Repository and CI
+- Rechecked main at `8f2e70850f10009bcca041fae7dc128681ff6adb`; PR #3 branch head `202295295c5a4832bd718684837c8b4e15f8043e` is four commits behind main and currently not mergeable.
+- PR #3 exact-head Actions run [42924775597](https://github.com/fccljbplant/ExaminerAI/actions/runs/42924775597) completed successfully.
+- The V3 refs `backup/v3-ui` and `master` remain identical; their 63-file diff includes tracked `prisma/db/custom.db`, shared portal shell/role/feature flag changes and removal of existing classroom regression coverage. Do not merge wholesale.
+
+### Vercel preview
+- Created preview deployment `dpl_CDnSNmZcGcDuRX5bmGBW2GeJiyvU` from exact main SHA `8f2e70850f10009bcca041fae7dc128681ff6adb`; URL: https://examiner-h95gyfn6h-fccljbplants-projects.vercel.app
+- At last check deployment remained BUILDING after Next.js compiled successfully and TypeScript validation began. No Ready state or runtime smoke test is claimed.
+- Preview build logs show `prisma db push` attempted and skipped after Prisma P1012 (missing `DATABASE_URL` in this preview build); marketplace seed failed its initial DB query. No production deployment was created.
+
+### Newly discovered release blocker
+- Main `scripts/vercel-build.sh` runs schema sync and invokes `ensure-accounts.js` and `seed-marketplace-prod.js` before Next build.
+- `ensure-accounts.js` unconditionally replaces the platform-admin password hash with a fixed in-source password on each build. It catches the upsert error and still logs success; therefore the build log cannot establish whether the write succeeded.
+- `seed-marketplace-prod.js` mutates published course marketplace fields during the build. The PR #3 branch removes automatic schema push but still invokes both seed scripts.
+- Logged the evidence and required correction in `docs/UPGRADE-2026-10/QUESTIONS.md`: make deploy builds application-data read-only; use secure explicit account bootstrap; move marketplace seeding to a controlled operator workflow; test DB-less builds and do not claim success after swallowed DB errors.
+- This audit did not inspect or change a production database. The exact outcome of the preview's account upsert is unknown. No source code, schema, migration, dependency, branch, PR merge, or production deployment was changed.
+- The required approved Agent Pack task card/queue and safe branch-preserving runner are still absent. No application fix was attempted without that workflow or a local Git checkout.
