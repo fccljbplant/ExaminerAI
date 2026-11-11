@@ -1,47 +1,55 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-require-imports -- CommonJS node script */
 /**
- * ensure-accounts.js — Create the platform admin if it doesn't exist.
- * Safe to run on every Vercel build (upsert, won't overwrite existing data).
+ * Explicit, one-time platform-admin bootstrap.
  *
- * Admin: admin@examiner.ai / admin123
+ * This script is NOT called by the Vercel build. Invoke it manually only in
+ * the intended environment with ADMIN_BOOTSTRAP_EMAIL and
+ * ADMIN_BOOTSTRAP_PASSWORD supplied by a secret manager.
  *
- * Demo accounts are NOT created here — demo data is served exclusively
- * from the bundled local SQLite demo db (see src/lib/demo-db.ts).
+ * Existing accounts are never modified: in particular, this script never
+ * resets an existing password, role, approval state, or account status.
  */
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
 async function main() {
+  const email = process.env.ADMIN_BOOTSTRAP_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_BOOTSTRAP_PASSWORD;
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("ADMIN_BOOTSTRAP_EMAIL must be a valid email address.");
+  }
+  if (!password || password.length < 16) {
+    throw new Error("ADMIN_BOOTSTRAP_PASSWORD must be at least 16 characters.");
+  }
+
   const db = new PrismaClient();
   try {
-    const adminPwd = await bcrypt.hash("admin123", 10);
+    const existing = await db.user.findUnique({ where: { email }, select: { id: true } });
+    if (existing) {
+      console.log("Bootstrap skipped: the requested account already exists; no changes made.");
+      return;
+    }
 
-    // Admin account — always reset password to known value on every build.
-    await db.user.upsert({
-      where: { email: "admin@examiner.ai" },
-      update: { passwordHash: adminPwd, status: "active", role: "platform_admin", approvedAt: new Date() },
-      create: {
-        email: "admin@examiner.ai",
+    const passwordHash = await bcrypt.hash(password, 12);
+    await db.user.create({
+      data: {
+        email,
         name: "Platform Administrator",
-        passwordHash: adminPwd,
+        passwordHash,
         role: "platform_admin",
         status: "active",
         approvedAt: new Date(),
       },
-    }).catch(() => {});
-    console.log("✓ admin@examiner.ai ensured");
-
-    // Demo accounts are NOT created here — demo data is served
-    // exclusively from the bundled local SQLite demo db (see src/lib/demo-db.ts).
-
-    console.log("Core accounts ready.");
+    });
+    console.log("Platform administrator created. Store the credentials in the approved secret manager.");
   } finally {
     await db.$disconnect();
   }
 }
 
-main().catch((e) => {
-  console.error("ensure-accounts failed:", e.message);
-  process.exit(1);
+main().catch((error) => {
+  console.error("Platform-admin bootstrap failed:", error.message);
+  process.exitCode = 1;
 });
