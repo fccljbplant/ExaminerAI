@@ -122,7 +122,7 @@ export function StatStrip({
   className,
   scrollHint,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
   scrollHint?: string;
 }) {
