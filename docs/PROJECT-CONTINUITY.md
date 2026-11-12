@@ -1,3 +1,12 @@
+## 2026-11-12 — Main-only fixation and deployment pause
+
+- Owner approved direct commits to `main` and asked to stop Vercel deployments. Commit `9f104e90855a8953483300da70202e6c06786206` sets `git.deploymentEnabled: false` in `vercel.json` to prevent automatic Git-triggered deployments on all branches. Manual deployments remain possible only by explicit action; no manual deployment was initiated.
+- Before this change, live main was `e9fc682f5233332cc8e10c3c09c1849455ce070c`; branch inventory showed only `main`, no open PRs, no repository rulesets, and branch metadata `protected: false`. The GitHub integration could not read the dedicated branch-protection endpoint (403).
+- Latest inspected GitHub Actions run `43140023300` succeeded on the exact pre-change main SHA. Latest Vercel production-target deployment `dpl_8xUPE6hHFghQv4GaTAQW9nsXT5C9` was `CANCELED`; live listing showed no queued/building deployments.
+- The older working directory was diverged (one local commit ahead/four behind) and had stale local edits. It was preserved in a resumable snapshot `snap_9LzNZJHfbxob30FRC4oohjkMLoHS`, which was successfully restored. A separate clean clone of current `main` is the active implementation checkout; no hard reset, branch rewrite or deletion was used.
+- Daily Test first-pass code is already committed on main (`6c0f36d`, `a9fcb70`, `e9fc682`). Next UI-first screen is Learner Today. Revalidate the existing home API and check-in flow before changing it.
+- No production DB access, schema/migration changes, dependency/provider changes or manual deployment.
+
 > **Reset-programme execution note — 11 November 2026:** The docs-only programme and instruction refresh are saved on main. The last checked main HEAD before the final status/log commit was `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`. The owner-directed branch reset is not executed: 19 non-main refs remain, PR #3 and #6 remain open, and no verified private archive exists yet. Do not delete refs until the private archive restore is verified. Two automatic production-target Vercel deployments from the first documentation commits were canceled (`dpl_3unwXVVjd28KTq4wrkoCMg9DsRrJ`, `dpl_4WskUe79rW5L3Bts3gBqgvzP3WNK)); Vercel status on the checked main SHA fails due to build-rate limit. Inspect deployment automation before any future source-code commit to main.
 
 ---

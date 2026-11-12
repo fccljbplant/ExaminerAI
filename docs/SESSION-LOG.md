@@ -1,3 +1,12 @@
+## 2026-11-12 — Main-only preservation and Vercel deployment pause
+
+- Owner explicitly approved direct commits to `main` and requested Vercel deployments stop. `vercel.json` now sets `git.deploymentEnabled: false`, preventing automatic Git deployments across branches; manual Vercel deployment remains separate and was not invoked.
+- Live main before this commit: `e9fc682f5233332cc8e10c3c09c1849455ce070c`. Live branch list contained only `main`; no open PRs; rulesets endpoint empty; branch metadata `protected: false` (dedicated protection endpoint inaccessible to the integration).
+- GitHub Actions run `43140023300` passed on the pre-change SHA. Vercel latest deployment `dpl_8xUPE6hHFghQv4GaTAQW9nsXT5C9` was CANCELED; zero QUEUED/BUILDING deployments were returned. Post-commit deployment-list verification remains required.
+- Existing Daily Test fixes are already saved on main in `6c0f36d`, `a9fcb70`, `e9fc682`. Older workspace edits were stale relative to main; the original workspace was snapshot-preserved as `snap_9LzNZJHfbxob30FRC4oohjkMLoHS` and successfully resumed.
+- Next screen card: Learner Today home; revalidate UX, course/enrolment truth, check-in API/history scope, errors, accessibility and responsive states.
+- No production DB, migration, schema, dependency or manual deployment changes.
+
 ## 2026-11-09 — PR #3 staff portfolio cross-course review
 
 **PR head inspected:** `9ac14c13069bbe91b8a1fca54d305514f66590e3`  

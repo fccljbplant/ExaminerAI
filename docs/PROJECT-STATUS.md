@@ -1,3 +1,15 @@
+# CURRENT LIVE UPDATE — 12 November 2026 (main-only fixation)
+
+- Verified live `main` HEAD before this update: `e9fc682f5233332cc8e10c3c09c1849455ce070c`. Live branch inventory returned only `main`; open PR inventory returned none; repository rulesets endpoint returned an empty list. The branch-protection endpoint was not accessible to the GitHub integration, but the branch object reports `protected: false`.
+- Latest inspected GitHub Actions run `43140023300` succeeded on the current main SHA. Its configured checks include lint, tests, TypeScript, build, route smoke and role screenshots. This is automated CI evidence, not manual WCAG sign-off.
+- Latest Vercel production-target deployment for `e9fc682` is `CANCELED`; current deployment listing returned zero `QUEUED` and zero `BUILDING` deployments.
+- Owner approved direct commits to `main` and instructed that Vercel deployments stop. Commit `9f104e90855a8953483300da70202e6c06786206` sets `git.deploymentEnabled: false` in `vercel.json`, disabling automatic Git deployments across branches while retaining manual Vercel deployment capability.
+- Daily Test first-pass work is already on main across `6c0f36d`, `a9fcb70` and `e9fc682`. The older workspace contained stale/diverged edits; a point-in-time snapshot `snap_9LzNZJHfbxob30FRC4oohjkMLoHS` was created and successfully resumed. A fresh clean checkout of main is being used for further changes.
+- Next component: Learner Today home. Revalidate the visual composition, continue-learning source, check-in course scope and history behavior, and all loading/empty/error states before implementation. Learner-support processing remains blocked pending consent, legal/data and professional review.
+- No production database, migration, schema, dependency or paid service changes. No manual deployment or production-domain change.
+
+---
+
 # LATEST LIVE UPDATE — 11 November 2026 (mainline reset status)
 
 - Live main HEAD verified immediately before this documentation refresh: `b70cfa719e338d4397e369ecc0a31b71ac5ebd63`. This refresh is documentation-only and will create a new main commit.
