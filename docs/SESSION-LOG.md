@@ -1286,6 +1286,7 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 
 ## 2026-11-12 — Learner Today KPI layout and responsive accessibility
 
+- Main commit for this fixation: `0ea004bf32e90e34020910b6534d08059c4f5ee9` (`fix: improve learner dashboard KPI layout`).
 - Fixed the desktop KPI composition defect: KPI cards previously retained a 240px minimum width at desktop, contradicting StatStrip's equal-width grid and causing the learner's four metrics to wrap into a 3+1 layout. They now retain the 240px minimum only in the mobile horizontal carousel and may shrink at the desktop breakpoint.
 - Corrected the metric region's accessible name to “Key metrics” and attached a unique screen-reader description that accurately says horizontal scrolling applies on small screens. This avoids announcing a mobile-only interaction as though it applied on desktop.
 - Added a regression test for desktop KPI shrink behavior and updated the responsive metric-region accessibility test.
