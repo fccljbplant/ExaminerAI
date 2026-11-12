@@ -237,3 +237,15 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - The SSR regression test checks the heading, course catalog destination and visible focus-outline utility on all six links (one CTA plus five onboarding links). Local targeted test, ESLint, TypeScript `--noEmit --skipLibCheck` and `git diff --check` passed.
 - The focus treatment is now present in markup, but manual Tab/Shift+Tab verification, actual focus-ring contrast review and screen-reader testing remain outstanding. Learner Today is not yet signed off; do not advance to the next screen.
 - Vercel Git deployments remain disabled; no deployment for the source commit, and no production DB, schema, migration, dependency or provider changes.
+
+
+## 2026-11-12 — Learner Today KPI carousel discoverability and validation
+
+- UI finding from authenticated CI screenshots: the 360px learner home showed only part of the next KPI card with no explicit indication that the metric row could be swiped. Added a mobile-only “Swipe to view all metrics” cue, a named keyboard-focusable metrics region, and visible focus styling in the existing shared StatStrip; Learner Today opts into the cue. Existing desktop grid layout is retained.
+- Regression coverage verifies the scroll region name, keyboard tab stop, focus outline, and mobile-only cue. The StatStrip children type remains compatible with existing usages.
+- Fixation commits on main: 812990c011ca5f9ff05e12051b18f0a838037156, 3dc6ce41381ea16203cfa555a796aefa817fdca4, 6075983c997708e63524f247f710333cba226e67, and final corrected head c9cbb80cd522fa4145d45f2299b863d725661915.
+- Exact-head GitHub Actions run 43161460123 passed: dependency install, isolated SQLite setup, lint, 480 unit tests across 55 files, TypeScript, production build, app-page route smoke tests, authenticated role screenshot capture and artifact upload. Screenshot artifact 13917734486 is retained by GitHub Actions for seven days.
+- Final learner screenshot manifest: 360x800 and 390x844 each report one primary heading, zero horizontal overflow, zero unnamed controls, zero unlabeled fields and zero missing image alt text. Bottom captures report lastContentClearsBottomNav: true at both sizes; reserved main bottom padding is 96px. The visible swipe cue appears below the KPI strip in the 360px capture. Wider learner captures (768, 1024, 1366, 1920, 2560px) report no horizontal overflow.
+- Screenshot accessibility metrics are heuristic DOM checks only, not axe/WCAG conformance or manual assistive-technology testing. Manual Tab/Shift+Tab behavior, focus contrast, touch/keyboard scroll interaction and screen-reader review remain outstanding. Learner Today is not signed off; do not advance to another screen until those checks are completed.
+- Vercel deployment lookup for c9cbb80cd522fa4145d45f2299b863d725661915 returned zero deployments. Git deployments remain disabled. No production deployment, database access, schema/migration, dependency, provider or production-data changes.
+- Repository branch inventory at the prior live check contained only main; no open PRs. GitHub reports main as unprotected. No repository settings were changed.
