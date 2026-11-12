@@ -365,3 +365,11 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Regression coverage and validation: 5 focused files / 17 tests passed; ESLint passed for both changed files; `git diff --check` passed. TypeScript check attempted with 1.4 GB heap but the sandbox ran out of memory; no pass is claimed. Production build, browser/responsive review and manual keyboard/screen-reader checks remain unrun.
 - No DB, schema, migration, production data, dependency/provider, Vercel setting or deployment changes. Main-only inventory and zero open PRs were verified before the source commit.
 - Next: continue the Learner Today component-by-component pass; preserve existing features and close responsive/keyboard/screen-reader checks during screen sign-off.
+
+
+## 2026-11-12 — Learner check-in TypeScript correction
+
+- Follow-up source commit: `fda0e3f46a4957692100b49fcdfcc42333b8dd75` (`fix: narrow learner check-in course id`), parent `4e280d6000f01c3bb3dee90546037571ce6b1e87`.
+- Exact-head Actions run `43270113289` exposed one TypeScript error: a nullable course ID was captured inside the nested asynchronous loader. The loader now accepts the narrowed course ID as a required string parameter.
+- Focused tests passed again: 5 files / 17 tests. ESLint and `git diff --check` passed. Local full TypeScript check ran out of sandbox heap; exact-head CI for `fda0e3f` remains the authoritative pending verification.
+- No DB/schema/migration, production-data, dependency/provider, Vercel-setting or deployment changes. No Vercel deployment was found for the preceding source commit.
