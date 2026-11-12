@@ -1,3 +1,13 @@
+## 2026-11-12 — Learner Today KPI layout and responsive accessibility
+
+- Fixed the desktop KPI composition defect: KPI cards previously retained a 240px minimum width at desktop, contradicting StatStrip's equal-width grid and causing the learner's four metrics to wrap into a 3+1 layout. They now retain the 240px minimum only in the mobile horizontal carousel and may shrink at the desktop breakpoint.
+- Corrected the metric region's accessible name to “Key metrics” and attached a unique screen-reader description that accurately says horizontal scrolling applies on small screens. This avoids announcing a mobile-only interaction as though it applied on desktop.
+- Added a regression test for desktop KPI shrink behavior and updated the responsive metric-region accessibility test.
+- Validation on the updated source: LearnerHome tests 4/4 passed; full Vitest suite 55 files / 482 tests passed excluding DB-backed `tutor-context.test.ts`; ESLint passed for changed files; `tsc --noEmit --skipLibCheck` passed; `git diff --check` passed.
+- Production build compiled successfully, then the Next.js build worker ran out of memory during its separate TypeScript phase (1.4GB Node heap in the 2GB sandbox). Standalone TypeScript check passed. Build is therefore not signed off.
+- Browser binaries and Playwright/Puppeteer modules are not installed in this sandbox. Manual keyboard navigation and screen-reader verification remain outstanding; Learner Today stays open. No new dependency was installed.
+- No database, migration, dependency, provider, billing, production data or deployment changes.
+
 ## 2026-11-12 — Learner Today check-in feedback preservation and interaction polish
 
 - Live baseline: `79f2c363c98fa55963d0bb128485eba90ba0e48a` (`main`). Remote inventory rechecked: exactly one branch (`main`), no open PRs, and no remote tags returned. No branch/tag/PR deletion or history rewrite was performed. The older `/vercel/ExaminerAI` worktree's pre-existing uncommitted documentation edits remain untouched; this work was isolated in `/tmp/ExaminerAI-live-main`.

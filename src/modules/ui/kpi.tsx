@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -75,9 +75,9 @@ export function Kpi({
       onClick={onExpand}
       data-slot="kpi"
       className={cn(
-        "relative w-full min-w-[240px] snap-start overflow-hidden rounded-xl border border-line bg-surface p-4 text-left",
+        "relative w-full min-w-[240px] snap-start overflow-hidden rounded-xl border border-line bg-surface p-4 text-left md:min-w-0",
         interactive &&
-          "min-h-11 cursor-pointer transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:min-w-0",
+          "min-h-11 cursor-pointer transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         className
       )}
     >
@@ -126,12 +126,15 @@ export function StatStrip({
   className?: string;
   scrollHint?: string;
 }) {
+  const scrollDescriptionId = useId();
+
   return (
     <div className={scrollHint ? "space-y-1" : undefined}>
       <div
         data-slot="stat-strip"
         role="region"
-        aria-label="Key metrics. Scroll horizontally to view all metrics."
+        aria-label="Key metrics"
+        aria-describedby={scrollHint ? scrollDescriptionId : undefined}
         tabIndex={0}
         className={cn(
           // no-scrollbar keeps the carousel clean; snap gives the "one KPI per swipe" feel
@@ -140,6 +143,11 @@ export function StatStrip({
           className
         )}
       >
+        {scrollHint && (
+          <span id={scrollDescriptionId} className="sr-only">
+            On small screens, scroll horizontally to view all metrics.
+          </span>
+        )}
         {children}
       </div>
       {scrollHint && (

@@ -1284,3 +1284,13 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Vercel Hobby does not support deployment policies (403 `pro_plan_required`). As explicitly requested by the owner, the project-level Git ignore-build-step was updated to `exit 0`. Deployment lookups for all code/test commits and the first progress-document commits returned zero records, confirming automatic Git deployments were suppressed. No deployment was initiated manually.
 - Main source/test commits: `22e9fb4bfb44577bccac976b23719e61d9695b6c` (mentor-feedback preservation), `24c096eea402a48e4c3e0838e16550d62b1dc35a` (saved/edit state and 44px delete target), `a8d32990cf845ea9ede09f5dc36b8057f20bb023` and `a057b7bc64577982cd260077ada1ecb4befb8a9f` (regression coverage). No production database access, schema/migration, dependency/provider, billing, production-data or application deployment changes.
 
+## 2026-11-12 — Learner Today KPI layout and responsive accessibility
+
+- Fixed the desktop KPI composition defect: KPI cards previously retained a 240px minimum width at desktop, contradicting StatStrip's equal-width grid and causing the learner's four metrics to wrap into a 3+1 layout. They now retain the 240px minimum only in the mobile horizontal carousel and may shrink at the desktop breakpoint.
+- Corrected the metric region's accessible name to “Key metrics” and attached a unique screen-reader description that accurately says horizontal scrolling applies on small screens. This avoids announcing a mobile-only interaction as though it applied on desktop.
+- Added a regression test for desktop KPI shrink behavior and updated the responsive metric-region accessibility test.
+- Validation on the updated source: LearnerHome tests 4/4 passed; full Vitest suite 55 files / 482 tests passed excluding DB-backed `tutor-context.test.ts`; ESLint passed for changed files; `tsc --noEmit --skipLibCheck` passed; `git diff --check` passed.
+- Production build compiled successfully, then the Next.js build worker ran out of memory during its separate TypeScript phase (1.4GB Node heap in the 2GB sandbox). Standalone TypeScript check passed. Build is therefore not signed off.
+- Browser binaries and Playwright/Puppeteer modules are not installed in this sandbox. Manual keyboard navigation and screen-reader verification remain outstanding; Learner Today stays open. No new dependency was installed.
+- No database, migration, dependency, provider, billing, production data or deployment changes.
+

@@ -53,9 +53,21 @@ describe("LearnerHome metric strip", () => {
 
     expect(html).toContain('role="region"');
     expect(html).toContain('tabindex="0"');
-    expect(html).toContain("Key metrics. Scroll horizontally to view all metrics.");
+    expect(html).toContain('aria-label="Key metrics"');
+    expect(html).toContain("On small screens, scroll horizontally to view all metrics.");
     expect(html).toContain("Swipe to view all metrics");
     expect(html).toContain("md:hidden");
     expect(html).toContain("focus-visible:outline-2");
+  });
+});
+
+
+describe("LearnerHome desktop KPI sizing", () => {
+  it("allows metric cards to shrink into the equal-width desktop grid", async () => {
+    const { Kpi } = await import("@/modules/ui/kpi");
+    const html = renderToStaticMarkup(createElement(Kpi, { label: "Courses", value: 3 }));
+
+    expect(html).toContain("min-w-[240px]");
+    expect(html).toContain("md:min-w-0");
   });
 });
