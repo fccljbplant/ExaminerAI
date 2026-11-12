@@ -931,3 +931,16 @@ These are approved planning decisions, not implementation claims. No application
 - Exact-head GitHub Actions run `43271612393` was in progress at the time of this record. Typecheck/build/browser checks are not claimed until the run completes. Local full TypeScript check remains limited by sandbox heap exhaustion.
 - No database records were deleted or changed; no schema/migration, dependency/provider, production-data, Vercel setting or deployment changes. Vercel deployment lookup for this source commit returned zero records.
 - Next: apply the same course-owned/current-enrolment rule to the learner's cross-course Projects convenience view, then integrate projects and assignments into the course workspace without inventing activity numbers or assessment policy.
+
+
+## 2026-11-12 — Learner Projects page course-first integration
+
+- API commit: `7e1721c0dac2f41a014eca1fadc67a9eb1bb47df` (`fix: scope learner projects to enrolled courses`).
+- UI/test commit: `fd2795ca460e24176be840a59116460f75e29e9c` (`ux: make learner projects course first`).
+- The Projects list endpoint now returns only projects whose course IDs are in the learner's current student enrolments. Course-less legacy records are excluded from active project lists but preserved in storage. Requests for a specific course continue to be checked against current enrolment.
+- Each returned project carries its course ID and course name from the same enrolment context. The learner UI displays the owning course on each card, uses course-first language, and explains that projects require a course when no enrolments exist.
+- Existing project proposal creation, required course selection, approval notification, milestones and timeline behavior were not removed or rewritten. No activity sequence number was fabricated.
+- Validation: API and UI-render tests passed (2 files / 11 tests); ESLint passed on the four changed files; `git diff --check` passed. Exact-head Actions run `43272947921` was pending at record time; typecheck/build/browser checks are not claimed.
+- No data deletion, DB mutation, schema/migration, dependency/provider, Vercel setting or deployment changes. Vercel deployment lookup for this source commit returned zero records.
+- Model gap: `LearnProject.courseId` is nullable and the model has no stable course-level activity sequence. A shared number must come from a canonical course activity model; do not substitute a per-learner list index or make an unapproved schema migration.
+- Next: integrate existing project and assignment activities into the course workspace/map and align assessment/numbering through the canonical course model, preserving existing proposal, approval, milestone, submission and feedback flows.
