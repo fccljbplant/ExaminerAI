@@ -419,3 +419,16 @@ A component or workstream is complete only when its user journey works, its data
 - No production DB access, schema/migration, dependency/provider, production data, deployment, or Vercel settings changed. Git deployment remains disabled per vercel.json.
 - Learner Today remains open until manual interaction/accessibility QA is completed. Follow-up audit: review the standalone learner project list/detail APIs for the same current-enrolment boundary before considering the project surface fully signed off.
 
+
+
+## 2026-11-12 — Learner project list/create course boundary
+
+- Starting live main: e7c86e979c744c1bdd1a8b9b3251589fb017872f. Re-fetched origin/main before editing; worktree clean and HEAD matched. Remote inventory: main only, no open PRs.
+- The standalone /api/learn/projects GET previously listed all projects owned by the signed-in user regardless of current student course enrolment; optional courseId was not validated. POST required a course ID but did not verify that the authenticated user had a student enrolment in that course.
+- GET and POST now enforce learner/student/demo role access. GET loads the caller's student enrolments first, returns course-linked projects only for those enrolled course IDs (plus legacy course-less personal projects), and rejects a requested course outside that set. POST trims and validates courseId, confirms the caller's student enrolment before idempotency lookup or project creation, and uses the validated ID for writes and instructor notifications.
+- Added eight route regression tests covering unauthenticated/non-learner denial, all-project list scope, selected-course denial/success, create denial for staff and unenrolled learners, and creation after confirmed enrolment.
+- Validation: full Vitest suite excluding DB-backed src/modules/learn/lib/__tests__/tutor-context.test.ts: 56 files / 495 tests passed. ESLint passed on both changed files; git diff --check passed. TypeScript --noEmit --skipLibCheck attempted with a 1.4 GB heap and exited on sandbox heap exhaustion; no typecheck pass is claimed.
+- Production build and browser/manual responsive, keyboard and screen-reader checks not run. This is an API scope slice, not project-surface or Learner Today sign-off.
+- No production DB access, schema/migration, dependency/provider, production data, Vercel setting, or deployment changes. vercel.json keeps Git deployments disabled.
+- Follow-up audit remains: inspect the v2 project detail/tasks/generation and legacy milestone/help endpoints for current-enrolment checks as a single coherent authorization review. Do not assume home/list filtering secures direct-ID routes.
+

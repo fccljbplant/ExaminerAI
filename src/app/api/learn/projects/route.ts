@@ -3,7 +3,7 @@
  *
  * GET  — list the authed user's learn projects (optionally filtered by ?courseId=).
  * POST — create a new project with default milestones. Body:
- *   { courseId?, title, goal?, stack?, currentState?, deadline? }
+ *   { courseId, title, goal?, stack?, currentState?, deadline? }
  *
  * If `courseId` is provided and an active project already exists for
  * (userId, courseId), the existing project is returned (idempotent).
@@ -13,9 +13,11 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { demoWriteBlock } from "@/lib/demo-guard";
-import { apiError, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
+import { apiError, apiForbidden, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
 
 export const runtime = "nodejs";
+
+const LEARNER_ROLES = new Set(["learner", "student", "demo"]);
 
 const DEFAULT_MILESTONES = [
   { title: "Plan & design", description: "Define project goals, scope, and architecture.", order: 0 },
@@ -27,53 +29,48 @@ const DEFAULT_MILESTONES = [
 export async function GET(req: Request) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
-
+  if (!LEARNER_ROLES.has(user.role)) {
+    return apiError("Learner access only", "FORBIDDEN", 403);
+  }
   const url = new URL(req.url);
   const courseId = url.searchParams.get("courseId");
-
-  const [projects, enrollments] = await Promise.all([
-    db.learnProject.findMany({
-      where: { userId: user.sub, ...(courseId ? { courseId } : {}) },
-      orderBy: { createdAt: "desc" },
-      include: {
-        milestones: { orderBy: { order: "asc" } },
-        tasks: { select: { id: true, status: true } },
-      },
-    }),
-    db.courseEnrollment.findMany({
-      where: { userId: user.sub, role: "student" },
-      select: { courseId: true, course: { select: { id: true, name: true } } },
-    }),
-  ]);
-
+  const enrollments = await db.courseEnrollment.findMany({
+    where: { userId: user.sub, role: "student" },
+    select: { courseId: true, course: { select: { id: true, name: true } } },
+  });
+  const enrolledCourseIds = enrollments.map((enrollment) => enrollment.courseId);
+  if (courseId && !enrolledCourseIds.includes(courseId)) {
+    return apiForbidden("You are not enrolled in this course");
+  }
+  const projects = await db.learnProject.findMany({
+    where: courseId
+      ? { userId: user.sub, courseId }
+      : { userId: user.sub, OR: [{ courseId: { in: enrolledCourseIds } }, { courseId: null }] },
+    orderBy: { createdAt: "desc" },
+    include: {
+      milestones: { orderBy: { order: "asc" } },
+      tasks: { select: { id: true, status: true } },
+    },
+  });
   return apiSuccess({
     projects: projects.map((p) => {
       const total = p.tasks.length;
       const done = p.tasks.filter((t) => t.status === "completed").length;
       return {
-        id: p.id,
-        title: p.title,
-        goal: p.goal,
-        status: p.status,
-        durationWeeks: p.durationWeeks,
-        deadline: p.deadline?.toISOString() ?? null,
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString(),
+        id: p.id, title: p.title, goal: p.goal, status: p.status,
+        durationWeeks: p.durationWeeks, deadline: p.deadline?.toISOString() ?? null,
+        createdAt: p.createdAt.toISOString(), updatedAt: p.updatedAt.toISOString(),
         milestones: p.milestones,
-        kpis: {
-          taskProgress: total > 0 ? Math.round((done / total) * 100) : 0,
-          tasksDone: `${done}/${total}`,
-        },
+        kpis: { taskProgress: total > 0 ? Math.round((done / total) * 100) : 0, tasksDone: String(done) + "/" + String(total) },
       };
     }),
-    // Enrolled courses — used by the new-project form's course picker.
     courses: enrollments.map((e) => ({ id: e.course.id, name: e.course.name })),
   });
 }
-
 export async function POST(req: Request) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
+  if (!LEARNER_ROLES.has(user.role)) return apiError("Learner access only", "FORBIDDEN", 403);
 
   const demoBlock = await demoWriteBlock("creating a project");
   if (demoBlock) return demoBlock;
@@ -91,9 +88,15 @@ export async function POST(req: Request) {
   } = {};
   try { body = await req.json(); } catch (err) { logger.warn("body parse failed", { err }); }
   if (!body.title || !body.title.trim()) return apiValidationError({ title: "title is required" });
-  if (!body.courseId) {
+  if (typeof body.courseId !== "string" || !body.courseId.trim()) {
     return apiValidationError({ courseId: "courseId is required — every project belongs to a course" });
   }
+  const courseId = body.courseId.trim();
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiForbidden("You are not enrolled in this course");
 
   // Idempotent on (userId, courseId) when courseId is provided: pending,
   // approved AND rejected projects all count as "in flight" — a rejected
@@ -102,7 +105,7 @@ export async function POST(req: Request) {
     const existing = await db.learnProject.findFirst({
       where: {
         userId: user.sub,
-        courseId: body.courseId,
+        courseId,
         status: { in: ["pending_approval", "approved", "rejected", "active", "completed"] },
       },
       include: { milestones: { orderBy: { order: "asc" } } },
@@ -113,7 +116,7 @@ export async function POST(req: Request) {
   const project = await db.learnProject.create({
     data: {
       userId: user.sub,
-      courseId: body.courseId ?? null,
+      courseId,
       title: body.title.trim(),
       goal: body.goal ?? null,
       stack: body.stack ?? null,
@@ -133,10 +136,10 @@ export async function POST(req: Request) {
   });
 
   // Alert the course instructors so the proposal actually gets reviewed.
-  if (body.courseId) {
+  if (courseId) {
     try {
       const instructors = await db.courseEnrollment.findMany({
-        where: { courseId: body.courseId, role: "instructor" },
+        where: { courseId, role: "instructor" },
         select: { userId: true },
       });
       if (instructors.length > 0) {
