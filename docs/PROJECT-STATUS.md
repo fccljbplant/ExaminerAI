@@ -773,3 +773,11 @@ These are approved planning decisions, not implementation claims. No application
 - Re-inspected the exact-head screenshot artifact `role-dashboard-screenshots`: learner no-enrolment state now has one H1 at 360x800, 390x844 and 1366x768; all role/viewport captures report no horizontal overflow. Aggregate heuristic findings remain zero for unnamed controls, unlabeled fields, missing image alt and missing page language. This is not a full WCAG or manual screen-reader sign-off.
 - Vercel Git deployments are disabled in `vercel.json`; no deployment was created or manually triggered. No production DB, schema, migration, dependency or provider changes.
 - Next: verify exact-head CI and inspect the refreshed learner screenshot/manifest; then complete manual keyboard and screen-reader review before closing Learner Today. Do not advance to the next screen until this card is signed off.
+
+## 2026-11-12 — Learner Today keyboard-focus polish
+
+- Follow-up source fix: the new-learner H1 remains in place, and the primary course-catalog action plus all five onboarding links now declare visible `focus-visible` outlines using the existing focus token. No new design system or dependency.
+- Added SSR regression coverage asserting all six learner empty-state links expose the focus outline utility. Local validation: targeted Vitest 1/1 passed, ESLint passed on both changed files, TypeScript `--noEmit --skipLibCheck` passed, and `git diff --check` passed.
+- Prior source commit `8e3686203b7035f864ed9dd08bb5341e73ac2bcf` has exact-head CI success (run `43147226589`) and screenshots verified one H1 at mobile/desktop widths with no horizontal overflow. This follow-up source change still needs exact-head CI and screenshot verification.
+- This markup-level focus affordance is not a manual keyboard or screen-reader sign-off. Manual interaction review remains open; do not close Learner Today or advance screens until it is completed.
+- Vercel Git deployment is disabled; no production deployment, DB, schema, migration, dependency or provider change.

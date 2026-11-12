@@ -379,7 +379,7 @@ export function NoEnrollment() {
         </p>
         <Link
           href="/learner/learn"
-          className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90"
+          className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <BookOpen className="h-4 w-4" aria-hidden />
           Browse courses
@@ -410,7 +410,7 @@ function OnboardingGuide() {
           <li key={s.n}>
             <Link
               href={s.href}
-              className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-bg-subtle"
+              className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-subtle text-[11px] font-semibold text-fg">
                 {s.n}

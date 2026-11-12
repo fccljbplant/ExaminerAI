@@ -10,5 +10,6 @@ describe("LearnerHome empty state", () => {
     expect(html).toContain("<h1");
     expect(html).toContain("Start your first course");
     expect(html).toContain('href="/learner/learn"');
+    expect(html.match(/focus-visible:outline-2/g)).toHaveLength(6);
   });
 });
