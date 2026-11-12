@@ -37,3 +37,23 @@ describe("LearnerHome next-step actions", () => {
     }
   });
 });
+
+
+describe("LearnerHome metric strip", () => {
+  it("makes the horizontally scrollable metrics keyboard reachable and discoverable", async () => {
+    const { StatStrip } = await import("@/modules/ui/kpi");
+    const html = renderToStaticMarkup(
+      createElement(StatStrip, { scrollHint: "Swipe to view all metrics" },
+        createElement("div", null, "Streak"),
+        createElement("div", null, "Total XP"),
+      ),
+    );
+
+    expect(html).toContain('role="region"');
+    expect(html).toContain('tabindex="0"');
+    expect(html).toContain("Key metrics. Scroll horizontally to view all metrics.");
+    expect(html).toContain("Swipe to view all metrics");
+    expect(html).toContain("md:hidden");
+    expect(html).toContain("focus-visible:outline-2");
+  });
+});

@@ -117,18 +117,36 @@ export function Kpi({
 }
 
 /** xs: horizontal snap carousel · md+: dense equal-width row. */
-export function StatStrip({ children, className }: { children: ReactNode; className?: string }) {
+export function StatStrip({
+  children,
+  className,
+  scrollHint,
+}: {
+  children: ReactNode;
+  className?: string;
+  scrollHint?: string;
+}) {
   return (
-    <div
-      data-slot="stat-strip"
-      className={cn(
-        // no-scrollbar keeps the carousel clean; snap gives the "one KPI per swipe" feel
-        "flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        "md:grid md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] md:overflow-visible md:pb-0",
-        className
+    <div className={scrollHint ? "space-y-1" : undefined}>
+      <div
+        data-slot="stat-strip"
+        role="region"
+        aria-label="Key metrics. Scroll horizontally to view all metrics."
+        tabIndex={0}
+        className={cn(
+          // no-scrollbar keeps the carousel clean; snap gives the "one KPI per swipe" feel
+          "flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+          "md:grid md:grid-cols-[repeat(auto-fit,minmax(180px,1fr)] md:overflow-visible md:pb-0",
+          className
+        )}
+      >
+        {children}
+      </div>
+      {scrollHint && (
+        <p aria-hidden="true" className="text-[11px] text-fg-muted md:hidden">
+          {scrollHint}
+        </p>
       )}
-    >
-      {children}
     </div>
   );
 }
