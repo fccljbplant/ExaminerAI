@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, ChevronDown, History, Loader2, Trash2 } from "lucide-react";
 import { api } from "@/lib/api-client";
@@ -45,18 +45,22 @@ export function CheckInSavedState({ onEdit }: { onEdit: () => void }) {
 }
 
 export function CheckInCard({ courseId }: { courseId?: string }) {
+  const activeCourseId = courseId?.trim() || null;
   const [open, setOpen] = useState(false);
   const [confidence, setConfidence] = useState(3);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
-  const [checkinLoading, setCheckinLoading] = useState(Boolean(courseId));
+  const [checkinLoading, setCheckinLoading] = useState(Boolean(activeCourseId));
   const [checkinLoadError, setCheckinLoadError] = useState<string | null>(null);
   const [checkinRetry, setCheckinRetry] = useState(0);
 
   useEffect(() => {
-    if (!courseId) {
+    const requestedCourseId = activeCourseId;
+    if (!requestedCourseId) {
       setCheckinLoading(false);
+      setCheckinLoadError(null);
+      setOpen(false);
       setDone(false);
       setNote("");
       setConfidence(3);
@@ -72,7 +76,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
       setConfidence(3);
       try {
         const response = await fetch(
-          `/api/v2/learn/checkin?courseId=${encodeURIComponent(courseId)}`,
+          `/api/v2/learn/checkin?courseId=${encodeURIComponent(requestedCourseId)}`,
           { headers: { Accept: "application/json" } },
         );
         const payload = await response.json() as {
@@ -103,15 +107,15 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
 
     void loadTodayCheckin();
     return () => { cancelled = true; };
-  }, [courseId, checkinRetry]);
+  }, [activeCourseId, checkinRetry]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!courseId || !note.trim()) return;
+    if (!activeCourseId || !note.trim()) return;
     setSaving(true);
     try {
       await api.post("/api/v2/learn/checkin", {
-        courseId,
+        courseId: activeCourseId,
         whatDidYouDo: note.trim(),
         confidence,
       });
@@ -131,26 +135,40 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const historyRequestId = useRef(0);
+
+  useEffect(() => {
+    historyRequestId.current += 1;
+    setShowHistory(false);
+    setHistory(null);
+    setHistoryError(null);
+  }, [activeCourseId]);
 
   async function refreshHistory() {
+    if (!activeCourseId) return;
+    const requestId = ++historyRequestId.current;
     setHistory(null);
     setHistoryError(null);
     try {
-      const query = courseId ? `?courseId=${encodeURIComponent(courseId)}` : "";
+      const query = `?courseId=${encodeURIComponent(activeCourseId)}`;
       const response = await fetch(`/api/daily-logs${query}`, {
         headers: { Accept: "application/json" },
       });
       if (!response.ok) throw new Error("History is temporarily unavailable");
       const payload = (await response.json()) as { logs?: unknown };
       if (!Array.isArray(payload.logs)) throw new Error("History response was invalid");
+      if (requestId !== historyRequestId.current) return;
       setHistory(payload.logs as Array<{ id: string; date: string; whatDidYouDo: string; confidence: number | null }>);
     } catch {
       // An unavailable history is not an empty history. Keep the retry visible.
-      setHistoryError("We couldn't load your check-in history. Try again.");
+      if (requestId === historyRequestId.current) {
+        setHistoryError("We couldn't load your check-in history. Try again.");
+      }
     }
   }
 
   function toggleHistory() {
+    if (!activeCourseId) return;
     const next = !showHistory;
     setShowHistory(next);
     if (next) void refreshHistory();
@@ -171,7 +189,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
     }
   }
 
-  if (done) {
+  if (done && activeCourseId) {
     return (
       <CheckInSavedState onEdit={() => { setDone(false); setOpen(true); }} />
     );
@@ -196,42 +214,54 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
           </button>
         </div>
       )}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex min-h-11 w-full items-center justify-between gap-2 text-left"
-      >
-        <span>
-          <span className="block text-sm font-semibold text-fg">Daily check-in</span>
-          <span className="block text-xs text-fg-muted">
-            Share a brief learning update with your instructor.
-          </span>
-        </span>
-        <ChevronDown
-          className={cn("h-4 w-4 shrink-0 text-fg-muted transition-transform", open && "rotate-180")}
-          aria-hidden
-        />
-      </button>
+      {activeCourseId ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            disabled={checkinLoading}
+            className="flex min-h-11 w-full items-center justify-between gap-2 text-left disabled:cursor-wait disabled:opacity-60"
+          >
+            <span>
+              <span className="block text-sm font-semibold text-fg">Daily check-in</span>
+              <span className="block text-xs text-fg-muted">
+                Share a brief learning update with your instructor.
+              </span>
+            </span>
+            <ChevronDown
+              className={cn("h-4 w-4 shrink-0 text-fg-muted transition-transform", open && "rotate-180")}
+              aria-hidden
+            />
+          </button>
 
-      {/* history (v1 CheckInPanel recent logs) */}
-      <button
-        type="button"
-        onClick={toggleHistory}
-        aria-expanded={showHistory}
-        className="flex min-h-11 w-full items-center justify-between gap-2 text-left"
-      >
-        <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
-          <History className="h-3.5 w-3.5" aria-hidden />
-          Recent check-ins
-        </span>
-        <ChevronDown
-          className={cn("h-4 w-4 shrink-0 text-fg-muted transition-transform", showHistory && "rotate-180")}
-          aria-hidden
-        />
-      </button>
+          {/* Keep check-in history scoped to the course shown on Learner Today. */}
+          <button
+            type="button"
+            onClick={toggleHistory}
+            aria-expanded={showHistory}
+            className="flex min-h-11 w-full items-center justify-between gap-2 text-left"
+          >
+            <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
+              <History className="h-3.5 w-3.5" aria-hidden />
+              Recent check-ins
+            </span>
+            <ChevronDown
+              className={cn("h-4 w-4 shrink-0 text-fg-muted transition-transform", showHistory && "rotate-180")}
+              aria-hidden
+            />
+          </button>
+        </>
+      ) : (
+        <div className="rounded-lg bg-bg-subtle px-3 py-3">
+          <p className="text-sm font-semibold text-fg">Daily check-in</p>
+          <p className="mt-1 text-xs text-fg-muted">
+            Select a course to add a learning update and review its check-in history.
+          </p>
+        </div>
+      )}
 
-      {showHistory && (
+      {activeCourseId && showHistory && (
         <div className="space-y-1.5 border-t border-line pt-2">
           {historyError ? (
             <div className="flex flex-wrap items-center justify-between gap-2 py-2" role="alert">
@@ -277,7 +307,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
         </div>
       )}
 
-      {open && (
+      {activeCourseId && open && (
         <form onSubmit={submit} className="mt-3 space-y-3 border-t border-line pt-3">
           <fieldset>
             <legend className="text-xs font-medium text-fg-secondary">How did it go today?</legend>
@@ -320,7 +350,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
           <p className="text-right text-xs text-fg-muted">{note.length}/2,000</p>
           <button
             type="submit"
-            disabled={saving || checkinLoading || !courseId || !note.trim()}
+            disabled={saving || checkinLoading || !activeCourseId || !note.trim()}
             className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCircle2 className="h-4 w-4" aria-hidden />}

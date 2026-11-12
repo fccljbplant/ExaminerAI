@@ -13,6 +13,15 @@ describe("CheckInCard", () => {
     expect(html).toContain("Recent check-ins");
     expect(html).not.toContain("No check-ins yet.");
   });
+
+  it("does not expose an unscoped check-in form or history when no course is selected", () => {
+    const html = renderToStaticMarkup(createElement(CheckInCard));
+
+    expect(html).toContain("Select a course to add a learning update and review its check-in history.");
+    expect(html).not.toContain("Recent check-ins");
+    expect(html).not.toContain('name="daily-checkin-confidence"');
+    expect(html).not.toContain('aria-expanded="false"');
+  });
 });
 
 describe("CheckInSavedState", () => {
