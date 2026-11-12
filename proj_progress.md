@@ -743,3 +743,14 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Live GitHub inventory immediately before the source commit: `main` only, no open PRs. The prior main-head Actions run was failing; exact-head CI for this source commit must be checked before claiming CI success.
 - No database access, schema/migration, production data, dependency/provider, Vercel setting or deployment changes.
 - Next: continue the Learner Today bottom-up pass, preserving its existing features and course context; close manual accessibility and responsive checks as part of screen sign-off rather than treating automated tests as full sign-off.
+
+
+## 2026-11-12 — Learner Today course-owned project cards
+
+- Source commit: `839d5398674b19a8aeed1800894c2d9b126394b2` (`fix: keep learner home projects course owned`), parent `691d1897e492ccadbb14f4c7b46ae0ce51309e1d`.
+- Learner Today now queries project cards only for the learner's current student-enrolled course IDs. Course-less legacy projects are not active personal projects and are excluded from this feed; their records are preserved and not deleted.
+- The card's course name now comes from the same current-enrolment result used to authorize the feed. Missing course context is not replaced with a generic "Project" label. The project lookup is skipped when the learner has no current student enrolments.
+- Updated regression coverage for course-owned projects, exclusion of course-less legacy rows, course-name display data, and no-enrolment behavior. Validation: 6 focused files / 25 tests passed; ESLint passed on the three changed files; `git diff --check` passed.
+- Exact-head GitHub Actions run `43271612393` was in progress at the time of this record. Typecheck/build/browser checks are not claimed until the run completes. Local full TypeScript check remains limited by sandbox heap exhaustion.
+- No database records were deleted or changed; no schema/migration, dependency/provider, production-data, Vercel setting or deployment changes. Vercel deployment lookup for this source commit returned zero records.
+- Next: apply the same course-owned/current-enrolment rule to the learner's cross-course Projects convenience view, then integrate projects and assignments into the course workspace without inventing activity numbers or assessment policy.
