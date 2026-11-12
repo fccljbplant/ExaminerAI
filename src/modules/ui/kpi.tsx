@@ -136,7 +136,7 @@ export function StatStrip({
         className={cn(
           // no-scrollbar keeps the carousel clean; snap gives the "one KPI per swipe" feel
           "flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
-          "md:grid md:grid-cols-[repeat(auto-fit,minmax(180px,1fr)] md:overflow-visible md:pb-0",
+          "md:grid md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] md:overflow-visible md:pb-0",
           className
         )}
       >
