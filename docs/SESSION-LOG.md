@@ -1295,3 +1295,14 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Browser binaries and Playwright/Puppeteer modules are not installed in this sandbox. Manual keyboard navigation and screen-reader verification remain outstanding; Learner Today stays open. No new dependency was installed.
 - No database, migration, dependency, provider, billing, production data or deployment changes.
 
+## 2026-11-12 — Learner check-in saved-state accessibility
+
+- Starting live main: `b28fd54250075f084edee5d2193ea706109dfa62`.
+- Application fix: `58ef99ad98d0eff1d5aa570b12acc0aa5dc857ad`; regression-test preservation: `cf764a8d39d08564e3575739b1fec094bf38b346`.
+- The saved check-in UI now places the polite status announcement on the message paragraph only. The “Edit check-in” button remains a separate sibling control inside the labelled section, rather than a descendant of the live region.
+- Preserved the existing collapsed check-in/history discoverability regression test and the saved-state action/focus assertions; added coverage that the live region contains no interactive control.
+- Validation: focused learner home/check-in and related API tests, 5 files / 12 tests passed; full Vitest suite, 55 files / 482 tests passed excluding the DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`; ESLint passed for both changed files; `git diff --check` passed.
+- TypeScript `--noEmit --skipLibCheck` could not complete: Node ran out of heap at both 950 MB and 1.4 GB settings in the 2 GB sandbox. No typecheck pass is claimed. Production build and browser/manual accessibility checks were not run; no browser binary is installed in the sandbox.
+- `vercel.json` keeps Git deployments disabled. Vercel returned zero deployments for both application commits. No manual deployment, production database access, schema/migration, production data change, dependency or provider change.
+- Remaining Learner Today work: inspect check-in state after a page refresh (the current saved-state flag is component-local), then complete responsive visual, keyboard and screen-reader review before closing the screen.
+
