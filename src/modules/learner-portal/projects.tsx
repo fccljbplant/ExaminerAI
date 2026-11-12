@@ -30,6 +30,8 @@ import { useApi } from "./use-api";
 
 interface ProjectRow {
   id: string;
+  courseId: string;
+  courseName: string;
   title: string;
   goal: string | null;
   status: string;
@@ -86,7 +88,7 @@ export function LearnerProjects() {
         <div>
           <h1 className="text-lg font-semibold text-fg md:text-xl">Projects</h1>
           <p className="text-xs text-fg-muted">
-            Propose a project, get it approved, then work the week-by-week timeline.
+            Projects stay with their course from proposal through approval, milestones and review.
           </p>
         </div>
       </header>
@@ -95,14 +97,16 @@ export function LearnerProjects() {
 
       <section className="space-y-2">
         <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-          Your projects
+          Course projects
         </h2>
         {data.projects.length === 0 ? (
           <div className="rounded-xl border border-line bg-surface p-6 text-center">
             <Target className="mx-auto h-6 w-6 text-fg-muted" aria-hidden />
             <p className="mt-2 text-sm font-medium text-fg">No projects yet</p>
             <p className="mt-1 text-xs text-fg-muted">
-              Use the form above to propose your first project.
+              {data.courses.length > 0
+                ? "Projects from your enrolled courses will appear here."
+                : "Enroll in a course to propose a project and keep its work with that course."}
             </p>
           </div>
         ) : (
@@ -131,6 +135,7 @@ export function LearnerProjects() {
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-brand">{p.courseName}</p>
                   <p className="truncate text-sm font-medium text-fg">{p.title}</p>
                   <p className="truncate text-xs text-fg-muted">
                     {STATUS_LABEL[p.status] ?? p.status}
@@ -196,6 +201,17 @@ function NewProjectForm({ courses, onCreated }: { courses: CourseRow[]; onCreate
     } finally {
       setSaving(false);
     }
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="rounded-xl border border-line bg-surface px-4 py-4">
+        <p className="text-sm font-semibold text-fg">Projects are part of a course</p>
+        <p className="mt-1 text-xs text-fg-muted">
+          Enroll in a course before proposing a project. Its approval, milestones and feedback will stay with that course.
+        </p>
+      </div>
+    );
   }
 
   if (!open) {
