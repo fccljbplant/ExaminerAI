@@ -18,15 +18,35 @@ export async function GET() {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
 
-  // A failed profile lookup must not be presented as a genuine empty
-  // enrollment state. Fail the aggregate so the client can offer a retry.
+  // CourseEnrollment is the source of truth for access and course count.
+  // LearnProfile is progress data only: it may be absent for a new learner
+  // or remain after an enrolment is removed, so it must never define access.
+  let enrollments: { courseId: string; course: { id: string; name: string } }[];
+  try {
+    enrollments = await db.courseEnrollment.findMany({
+      where: { userId: user.sub, role: "student" },
+      include: { course: { select: { id: true, name: true } } },
+      orderBy: { enrolledAt: "desc" },
+    });
+  } catch (e) {
+    console.error("Learner home enrollment lookup failed:", e);
+    return apiError(
+      "Your dashboard is temporarily unavailable. Please try again.",
+      "SERVICE_UNAVAILABLE",
+      503,
+    );
+  }
+
+  const enrolledCourseIds = enrollments.map((enrollment) => enrollment.courseId);
   let profiles: any[];
   try {
-    profiles = await db.learnProfile.findMany({
-      where: { userId: user.sub },
-      include: { course: { select: { id: true, name: true } } },
-      orderBy: { updatedAt: "desc" },
-    });
+    profiles = enrolledCourseIds.length
+      ? await db.learnProfile.findMany({
+          where: { userId: user.sub, courseId: { in: enrolledCourseIds } },
+          include: { course: { select: { id: true, name: true } } },
+          orderBy: { updatedAt: "desc" },
+        })
+      : [];
   } catch (e) {
     console.error("Learner home profile lookup failed:", e);
     return apiError(
@@ -41,39 +61,56 @@ export async function GET() {
     courseId: string;
     courseName: string;
     nextLesson: string;
-    kind: "learn" | "review" | "done";
+    kind: "start" | "learn" | "review" | "done";
     href: string;
   } | null = null;
 
-  if (profiles.length > 0) {
-    const p = profiles[0];
+  const mostRecentlyActiveProfile = profiles[0];
+  if (mostRecentlyActiveProfile) {
+    const p = mostRecentlyActiveProfile;
     const today = await getTodayTopic(user.sub, p.courseId);
-    if (today) {
-      continueCard = {
-        courseId: p.courseId,
-        courseName: p.course.name,
-        nextLesson: `Week ${today.topic.week} · Day ${today.topic.day} — ${today.topic.title}`,
-        kind: today.completed ? "review" : "learn",
-        href: `/learn/${p.courseId}`,
-      };
-    } else {
-      continueCard = {
-        courseId: p.courseId,
-        courseName: p.course.name,
-        nextLesson: "Course complete — revisit any topic",
-        kind: "done",
-        href: `/learn/${p.courseId}`,
-      };
-    }
+    continueCard = today
+      ? {
+          courseId: p.courseId,
+          courseName: p.course.name,
+          nextLesson: `Week ${today.topic.week} · Day ${today.topic.day} — ${today.topic.title}`,
+          kind: today.completed ? "review" : "learn",
+          href: `/learn/${p.courseId}`,
+        }
+      : {
+          courseId: p.courseId,
+          courseName: p.course.name,
+          nextLesson: "Course complete — revisit any topic",
+          kind: "done",
+          href: `/learn/${p.courseId}`,
+        };
+  } else if (enrollments[0]) {
+    // A newly enrolled learner may not have a LearnProfile yet. Offer a
+    // truthful start action instead of treating the missing profile as done.
+    const enrollment = enrollments[0];
+    continueCard = {
+      courseId: enrollment.courseId,
+      courseName: enrollment.course.name,
+      nextLesson: "Start your first study session",
+      kind: "start",
+      href: `/learn/${enrollment.courseId}`,
+    };
   }
 
   /* ---- due today: uncompleted daily tests ---- */
   const todayKey = new Date();
   todayKey.setHours(0, 0, 0, 0);
-  const dailyTests = await db.learnDailyTest.findMany({
-    where: { userId: user.sub, date: todayKey, status: { not: "completed" } },
-    include: { course: { select: { name: true } } },
-  });
+  const dailyTests = enrolledCourseIds.length
+    ? await db.learnDailyTest.findMany({
+        where: {
+          userId: user.sub,
+          courseId: { in: enrolledCourseIds },
+          date: todayKey,
+          status: { not: "completed" },
+        },
+        include: { course: { select: { name: true } } },
+      })
+    : [];
   const dueToday = dailyTests.map((t) => ({
     id: t.id,
     kind: "daily-test" as const,
@@ -141,7 +178,7 @@ export async function GET() {
       totalXP,
       level: getLearnerLevel(totalXP).name,
       streakCurrent,
-      enrolledCount: profiles.length,
+      enrolledCount: enrollments.length,
     },
     continue: continueCard,
     dueToday,

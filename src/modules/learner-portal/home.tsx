@@ -34,7 +34,7 @@ interface ContinueInfo {
   courseId: string;
   courseName: string;
   nextLesson: string;
-  kind: "learn" | "review" | "done";
+  kind: "start" | "learn" | "review" | "done";
   href: string;
 }
 
@@ -101,10 +101,20 @@ export function LearnerHome() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <header className="flex items-center gap-2">
-        <h1 className="text-lg font-semibold text-fg md:text-xl">{greeting()}</h1>
-        <span className="inline-flex items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-fg">
-          <Trophy className="h-3 w-3" aria-hidden />
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+            Your learning space
+          </p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight text-fg md:text-2xl">
+            {greeting()}
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-fg-secondary">
+            Pick up where you left off, or take one small step forward.
+          </p>
+        </div>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-fg">
+          <Trophy className="h-3.5 w-3.5 text-brand" aria-hidden />
           {data.learner.level}
         </span>
       </header>
@@ -112,7 +122,6 @@ export function LearnerHome() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7 lg:space-y-6">
           {data.continue && <ContinueCard info={data.continue} />}
-          <CheckInCard courseId={data.continue?.courseId} />
           <StatStrip>
             <Kpi
               label="Streak"
@@ -125,7 +134,7 @@ export function LearnerHome() {
               icon={<Zap className="h-4 w-4" aria-hidden />}
             />
             <Kpi
-              label="Due today"
+              label="Ready to practice"
               value={data.dueToday.length}
               icon={<ClipboardCheck className="h-4 w-4" aria-hidden />}
             />
@@ -135,6 +144,7 @@ export function LearnerHome() {
               icon={<BookOpen className="h-4 w-4" aria-hidden />}
             />
           </StatStrip>
+          <CheckInCard courseId={data.continue?.courseId} />
         </div>
 
         <div className="space-y-4 lg:col-span-5 lg:space-y-6">
@@ -151,18 +161,41 @@ export function LearnerHome() {
 
 function ContinueCard({ info }: { info: ContinueInfo }) {
   const ctaLabel =
-    info.kind === "done" ? "Revisit course" : info.kind === "review" ? "Review today" : "Resume";
+    info.kind === "start"
+      ? "Start learning"
+      : info.kind === "done"
+        ? "Revisit course"
+        : info.kind === "review"
+          ? "Review today"
+          : "Resume lesson";
+  const statusLabel =
+    info.kind === "start"
+      ? "New course"
+      : info.kind === "done"
+        ? "Course complete"
+        : info.kind === "review"
+          ? "Ready to review"
+          : "In progress";
 
   return (
     <section
-      aria-label="Continue learning"
-      className="rounded-xl border border-line bg-surface p-4 md:p-5"
+      aria-label="Your next learning step"
+      className="overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-subtle via-surface to-bg-subtle p-5 shadow-sm md:p-6"
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Continue learning</p>
-      <h2 className="mt-2 text-lg font-semibold leading-snug text-fg">{info.courseName}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-fg-muted">
+          Your next step
+        </p>
+        <span className="rounded-full border border-line bg-surface/80 px-2.5 py-1 text-[11px] font-semibold text-fg-secondary">
+          {statusLabel}
+        </span>
+      </div>
+      <h2 className="mt-3 text-xl font-semibold leading-snug tracking-tight text-fg md:text-2xl">
+        {info.courseName}
+      </h2>
       <p className="mt-1 text-sm text-fg-secondary">{info.nextLesson}</p>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         <Link
           href={info.href}
           className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90"
@@ -197,12 +230,14 @@ function DueToday({ items }: { items: DueItem[] }) {
     <ListCard
       header={
         <span>
-          Due today <span className="normal-case text-fg-muted">({items.length})</span>
+          Ready to practice <span className="normal-case text-fg-muted">({items.length})</span>
         </span>
       }
     >
       {items.length === 0 ? (
-        <p className="px-4 py-5 text-sm text-fg-muted">All clear — nothing due today.</p>
+        <p className="px-4 py-5 text-sm text-fg-muted">
+          No daily test ready yet. Study a lesson to unlock your next practice.
+        </p>
       ) : (
         items.map((item) => (
           <ListCardRow
@@ -213,7 +248,7 @@ function DueToday({ items }: { items: DueItem[] }) {
                 <ClipboardCheck className="h-4 w-4" aria-hidden />
               </span>
             }
-            title={item.title}
+            title="Daily test"
             meta={item.meta}
             trailing={<ChevronRight className="h-4 w-4 text-fg-muted" aria-hidden />}
           />
@@ -340,7 +375,7 @@ function NoEnrollment() {
         </span>
         <p className="mt-4 text-sm font-semibold text-fg">Start your first course</p>
         <p className="mx-auto mt-1 max-w-xs text-xs text-fg-muted">
-          Browse the catalog and pick a course — your streak starts on day one.
+          Choose a course to build your learning path and study at your own pace.
         </p>
         <Link
           href="/learner/learn"

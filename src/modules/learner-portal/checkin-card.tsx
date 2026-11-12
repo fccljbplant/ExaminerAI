@@ -120,7 +120,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
         <span>
           <span className="block text-sm font-semibold text-fg">Daily check-in</span>
           <span className="block text-xs text-fg-muted">
-            A quick update for your mentor — takes 20 seconds.
+            Share a brief learning update with your instructor.
           </span>
         </span>
         <ChevronDown
