@@ -68,7 +68,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
     }
 
     let cancelled = false;
-    async function loadTodayCheckin() {
+    async function loadTodayCheckin(scopedCourseId: string) {
       setCheckinLoading(true);
       setCheckinLoadError(null);
       setDone(false);
@@ -76,7 +76,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
       setConfidence(3);
       try {
         const response = await fetch(
-          `/api/v2/learn/checkin?courseId=${encodeURIComponent(requestedCourseId)}`,
+          `/api/v2/learn/checkin?courseId=${encodeURIComponent(scopedCourseId)}`,
           { headers: { Accept: "application/json" } },
         );
         const payload = await response.json() as {
@@ -105,7 +105,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
       }
     }
 
-    void loadTodayCheckin();
+    void loadTodayCheckin(requestedCourseId);
     return () => { cancelled = true; };
   }, [activeCourseId, checkinRetry]);
 
