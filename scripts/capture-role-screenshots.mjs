@@ -50,6 +50,11 @@ try {
   });
   const orgAdmin = await prisma.user.findUnique({ where: { email: "ux-ci-org_admin@example.invalid" } });
   await prisma.orgMember.create({ data: { orgId: org.id, userId: orgAdmin.id, role: "admin", status: "active" } });
+  // Capture the enrolled learner start state with synthetic CI-only data.
+  const learner = await prisma.user.findUnique({ where: { email: "ux-ci-learner@example.invalid" }, select: { id: true } });
+  if (!learner) throw new Error("Synthetic learner fixture was not created.");
+  const learnerCourse = await prisma.course.create({ data: { name: "UX Screenshot Learner Course" } });
+  await prisma.courseEnrollment.create({ data: { userId: learner.id, courseId: learnerCourse.id, role: "student" } });
 } finally {
   await prisma.$disconnect();
 }
