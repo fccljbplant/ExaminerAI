@@ -72,17 +72,71 @@ describe("/api/learn/projects", () => {
     expect(mocks.learnProjectFindMany).not.toHaveBeenCalled();
   });
 
-  it("lists only course-linked projects in current student enrolments plus personal course-less projects", async () => {
-    await GET(new Request("http://localhost/api/learn/projects"));
+  it("lists only course-owned projects in current student enrolments with their course identity", async () => {
+    const createdAt = new Date("2026-10-01T00:00:00.000Z");
+    const updatedAt = new Date("2026-10-02T00:00:00.000Z");
+    mocks.learnProjectFindMany.mockResolvedValue([
+      {
+        id: "project-1",
+        courseId: "course-1",
+        title: "Project One",
+        goal: "Build a useful tool",
+        status: "active",
+        durationWeeks: 4,
+        deadline: null,
+        createdAt,
+        updatedAt,
+        milestones: [],
+        tasks: [
+          { id: "task-1", status: "completed" },
+          { id: "task-2", status: "pending" },
+        ],
+      },
+      {
+        id: "legacy-project",
+        courseId: null,
+        title: "Legacy Personal Project",
+        goal: null,
+        status: "active",
+        durationWeeks: null,
+        deadline: null,
+        createdAt,
+        updatedAt,
+        milestones: [],
+        tasks: [],
+      },
+    ]);
+
+    const response = await GET(new Request("http://localhost/api/learn/projects"));
     expect(mocks.learnProjectFindMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         userId: "learner-1",
-        OR: [
-          { courseId: { in: ["course-1", "course-2"] } },
-          { courseId: null },
-        ],
+        courseId: { in: ["course-1", "course-2"] },
       },
     }));
+    const body = await response.json();
+    expect(body.data.projects).toEqual([
+      expect.objectContaining({
+        id: "project-1",
+        courseId: "course-1",
+        courseName: "Course One",
+        kpis: { taskProgress: 50, tasksDone: "1/2" },
+      }),
+    ]);
+    expect(body.data.projects).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "legacy-project" })]),
+    );
+  });
+
+  it("does not query legacy projects when the learner has no current student enrolments", async () => {
+    mocks.enrollmentFindMany.mockResolvedValue([]);
+    const response = await GET(new Request("http://localhost/api/learn/projects"));
+
+    expect(response.status).toBe(200);
+    expect(mocks.learnProjectFindMany).not.toHaveBeenCalled();
+    const body = await response.json();
+    expect(body.data.projects).toEqual([]);
+    expect(body.data.courses).toEqual([]);
   });
 
   it("rejects a requested course outside the learner's current enrolments", async () => {

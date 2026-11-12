@@ -42,28 +42,46 @@ export async function GET(req: Request) {
   if (courseId && !enrolledCourseIds.includes(courseId)) {
     return apiForbidden("You are not enrolled in this course");
   }
-  const projects = await db.learnProject.findMany({
-    where: courseId
-      ? { userId: user.sub, courseId }
-      : { userId: user.sub, OR: [{ courseId: { in: enrolledCourseIds } }, { courseId: null }] },
-    orderBy: { createdAt: "desc" },
-    include: {
-      milestones: { orderBy: { order: "asc" } },
-      tasks: { select: { id: true, status: true } },
-    },
+  const courseNameById = new Map(enrollments.map((enrollment) => [enrollment.courseId, enrollment.course.name]));
+  const projectRows = enrolledCourseIds.length
+    ? await db.learnProject.findMany({
+        where: courseId
+          ? { userId: user.sub, courseId }
+          : { userId: user.sub, courseId: { in: enrolledCourseIds } },
+        orderBy: { createdAt: "desc" },
+        include: {
+          milestones: { orderBy: { order: "asc" } },
+          tasks: { select: { id: true, status: true } },
+        },
+      })
+    : [];
+  const projects = projectRows.flatMap((p) => {
+    if (!p.courseId) return [];
+    const courseName = courseNameById.get(p.courseId);
+    if (!courseName) return [];
+
+    const total = p.tasks.length;
+    const done = p.tasks.filter((t) => t.status === "completed").length;
+    return [{
+      id: p.id,
+      courseId: p.courseId,
+      courseName,
+      title: p.title,
+      goal: p.goal,
+      status: p.status,
+      durationWeeks: p.durationWeeks,
+      deadline: p.deadline?.toISOString() ?? null,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+      milestones: p.milestones,
+      kpis: {
+        taskProgress: total > 0 ? Math.round((done / total) * 100) : 0,
+        tasksDone: String(done) + "/" + String(total),
+      },
+    }];
   });
   return apiSuccess({
-    projects: projects.map((p) => {
-      const total = p.tasks.length;
-      const done = p.tasks.filter((t) => t.status === "completed").length;
-      return {
-        id: p.id, title: p.title, goal: p.goal, status: p.status,
-        durationWeeks: p.durationWeeks, deadline: p.deadline?.toISOString() ?? null,
-        createdAt: p.createdAt.toISOString(), updatedAt: p.updatedAt.toISOString(),
-        milestones: p.milestones,
-        kpis: { taskProgress: total > 0 ? Math.round((done / total) * 100) : 0, tasksDone: String(done) + "/" + String(total) },
-      };
-    }),
+    projects,
     courses: enrollments.map((e) => ({ id: e.course.id, name: e.course.name })),
   });
 }
