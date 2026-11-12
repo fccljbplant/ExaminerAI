@@ -1,3 +1,13 @@
+## 2026-11-12 — Learner Today check-in feedback preservation and interaction polish
+
+- Live baseline: `79f2c363c98fa55963d0bb128485eba90ba0e48a` (`main`). Remote inventory rechecked: exactly one branch (`main`), no open PRs, and no remote tags returned. No branch/tag/PR deletion or history rewrite was performed. The older `/vercel/ExaminerAI` worktree's pre-existing uncommitted documentation edits remain untouched; this work was isolated in `/tmp/ExaminerAI-live-main`.
+- Learner check-in deletion previously removed instructor comments in the same transaction. DELETE now counts linked mentor comments transactionally and returns HTTP 409 with an actionable explanation when feedback exists; the check-in is deleted only when no mentor feedback is attached. Added route tests for both outcomes.
+- Learner Today check-in saved state now announces completion with `role="status"` and retains an “Edit check-in” action that reopens the form with the current note/confidence intact. The history delete action now has a 44px minimum target and explicit keyboard focus styling.
+- Tests: targeted Vitest 3 files / 5 tests passed; broader suite 55 files / 480 tests passed when excluding the DB-backed `tutor-context.test.ts`. Unfiltered full suite: 55 files passed, 1 failed because `DATABASE_URL` is intentionally not supplied in this workspace. No `.env` file or secret was read. ESLint on all four changed source/test files passed; TypeScript `--noEmit --skipLibCheck` passed; `git diff --check` passed.
+- Not run: production build, browser screenshot review, manual Tab/Shift+Tab, screen-reader review, full WCAG 2.2 AA sign-off. Learner Today remains open until manual keyboard and screen-reader checks are completed.
+- Vercel Hobby does not support deployment policies (403 `pro_plan_required`). As explicitly requested by the owner, the project-level Git ignore-build-step was updated to `exit 0` to suppress automatic Git builds/deployments. The setting update was accepted; the first post-change Git commit produced no Vercel deployment record. No deployment was initiated manually.
+- No production database access, schema/migration, dependency/provider, billing, production-data or application deployment changes.
+
 ## 2026-11-12 — Learner Today home data and UI fixation
 
 - Application commit: `2171c98e41fcb80dfdafd8f19a46d13d31acbac5` (`fix: align learner home with enrolled courses`); baseline was `9382e71ec90e0e97f21793f69ea79a20a72345af`.
