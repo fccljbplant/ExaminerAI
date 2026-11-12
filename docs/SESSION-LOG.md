@@ -1397,3 +1397,13 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Exact-head Actions run `43270113289` exposed one TypeScript error: a nullable course ID was captured inside the nested asynchronous loader. The loader now accepts the narrowed course ID as a required string parameter.
 - Focused tests passed again: 5 files / 17 tests. ESLint and `git diff --check` passed. Local full TypeScript check ran out of sandbox heap; exact-head CI for `fda0e3f` remains the authoritative pending verification.
 - No DB/schema/migration, production-data, dependency/provider, Vercel-setting or deployment changes. No Vercel deployment was found for the preceding source commit.
+
+
+## 2026-11-12 — Learner Today course-owned project cards
+
+- Source commit: `839d5398674b19a8aeed1800894c2d9b126394b2` (`fix: keep learner home projects course owned`), parent `691d1897e492ccadbb14f4c7b46ae0ce51309e1d`.
+- Learner Today project cards now include only projects linked to the learner's current student enrolments. Course-less legacy records remain preserved but are excluded from active learning views. No data was deleted.
+- Course names are resolved from the current enrolment context; the UI no longer substitutes a generic "Project" label when course context is missing. The project lookup is skipped with no student enrolments.
+- Validation: 6 focused files / 25 tests passed; ESLint passed on all three changed files; `git diff --check` passed. Exact-head Actions run `43271612393` was in progress at record time; build/typecheck/browser validation is not claimed.
+- No DB/schema/migration, dependency/provider, production-data, Vercel-setting or deployment changes. No Vercel deployment was found for the source commit.
+- Next: make the learner Projects convenience view course-first with the same eligibility rule, then integrate projects/assignments into course workspace and sequence while preserving existing workflows.
