@@ -1379,3 +1379,13 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 55 files / 486 tests passed. Focused check-in suite: 2 files / 8 tests passed. ESLint passed on four changed source/test files; `git diff --check` passed. TypeScript `--noEmit --skipLibCheck` ran out of heap at 1.4 GB in the 2 GB sandbox. No typecheck pass is claimed. Build and browser/manual accessibility checks were not run.
 - No schema/migration, production DB/data access, dependency/provider, Vercel deployment or production-setting changes. Vercel Git deployment remains disabled in `vercel.json`; exact baseline SHA had no Vercel deployment record and no GitHub status checks.
 - Learner Today remains open pending manual responsive, keyboard and screen-reader review; saved-state refresh persistence is addressed by this slice.
+
+
+## 2026-11-12 — Learner Today course-scoped check-in refinement
+
+- Source commit: `8400b8af07a9bc837148fe743f87bd73b777893f` (`fix: keep learner check-ins course scoped`), parent `6d6c21ff084799f1af4847f61be1101138168ce3`.
+- Refined the existing Learner Today check-in without removing its saved-state restoration, edit, history, retry or delete behavior. Blank course context now has an explanatory state and does not expose unscoped form/history actions.
+- Normalized course IDs are used for check-in and history requests. History resets on course changes and ignores late responses from a previous course. Opening the form is disabled while the initial saved-state lookup is loading.
+- Regression coverage and validation: 5 focused files / 17 tests passed; ESLint passed for both changed files; `git diff --check` passed. TypeScript check attempted with 1.4 GB heap but the sandbox ran out of memory; no pass is claimed. Production build, browser/responsive review and manual keyboard/screen-reader checks remain unrun.
+- No DB, schema, migration, production data, dependency/provider, Vercel setting or deployment changes. Main-only inventory and zero open PRs were verified before the source commit.
+- Next: continue the Learner Today component-by-component pass; preserve existing features and close responsive/keyboard/screen-reader checks during screen sign-off.
