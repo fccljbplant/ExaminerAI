@@ -65,6 +65,9 @@ describe("GET /api/v2/learner/home", () => {
   });
 
   it("returns service unavailable when project data cannot be read", async () => {
+    mocks.db.courseEnrollment.findMany.mockResolvedValue([
+      { courseId: "course-1", course: { id: "course-1", name: "Course One" } },
+    ]);
     mocks.db.learnProject.findMany.mockRejectedValue(new Error("table unavailable"));
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
@@ -146,6 +149,7 @@ describe("GET /api/v2/learner/home", () => {
     expect(payload.continue).toBeNull();
     expect(mocks.db.learnProfile.findMany).not.toHaveBeenCalled();
     expect(mocks.db.learnDailyTest.findMany).not.toHaveBeenCalled();
+    expect(mocks.db.learnProject.findMany).not.toHaveBeenCalled();
   });
 
   it("returns service unavailable when student enrollments cannot be read", async () => {
@@ -164,10 +168,29 @@ describe("GET /api/v2/learner/home", () => {
     expect(errorSpy).toHaveBeenCalledOnce();
   });
 
-  it("scopes course-linked project cards to current student enrolments and preserves course-less projects", async () => {
+  it("shows only course-owned projects in the learner's current student enrolments", async () => {
     mocks.db.courseEnrollment.findMany.mockResolvedValue([
       { courseId: "course-1", course: { id: "course-1", name: "Course One" } },
       { courseId: "course-2", course: { id: "course-2", name: "Course Two" } },
+    ]);
+    mocks.db.learnProject.findMany.mockResolvedValue([
+      {
+        id: "project-1",
+        title: "Course Project",
+        status: "active",
+        courseId: "course-1",
+        tasks: [
+          { id: "task-1", status: "completed" },
+          { id: "task-2", status: "pending" },
+        ],
+      },
+      {
+        id: "legacy-project",
+        title: "Legacy Personal Project",
+        status: "active",
+        courseId: null,
+        tasks: [],
+      },
     ]);
 
     await GET();
@@ -175,15 +198,26 @@ describe("GET /api/v2/learner/home", () => {
     expect(mocks.db.learnProject.findMany).toHaveBeenCalledWith({
       where: {
         userId: "learner-1",
-        OR: [
-          { courseId: { in: ["course-1", "course-2"] } },
-          { courseId: null },
-        ],
+        courseId: { in: ["course-1", "course-2"] },
       },
       orderBy: { updatedAt: "desc" },
       take: 4,
       include: { tasks: { select: { id: true, status: true } } },
     });
+    const payload = mocks.apiSuccess.mock.calls[0][0] as {
+      projects: Array<{ id: string; courseName: string; taskProgress: number; tasksDone: string }>;
+    };
+    expect(payload.projects).toEqual([
+      {
+        id: "project-1",
+        title: "Course Project",
+        status: "active",
+        courseName: "Course One",
+        taskProgress: 50,
+        tasksDone: "1/2",
+      },
+    ]);
+    expect(mocks.db.course.findMany).not.toHaveBeenCalled();
   });
 
   it("returns a successful empty project list when the query succeeds with no rows", async () => {

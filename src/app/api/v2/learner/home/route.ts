@@ -127,46 +127,48 @@ export async function GET() {
     select: { id: true, type: true, title: true, body: true, link: true, read: true, createdAt: true },
   });
 
-  /* ---- projects (v2 flow) — recent LearnProjects with status + task rollup ---- */
+  /* ---- projects (v2 flow) — recent course-owned projects ---- */
+  const courseNameById = new Map(
+    enrollments.map((enrollment) => [enrollment.courseId, enrollment.course.name]),
+  );
   let projects: {
     id: string;
     title: string;
     status: string;
-    courseName: string | null;
+    courseName: string;
     taskProgress: number;
     tasksDone: string;
   }[] = [];
   try {
-    const rows = await db.learnProject.findMany({
-      // Keep course-linked project cards inside the learner's current
-      // enrolments. Preserve explicitly course-less personal projects.
-      where: {
-        userId: user.sub,
-        OR: [
-          { courseId: { in: enrolledCourseIds } },
-          { courseId: null },
-        ],
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 4,
-      include: { tasks: { select: { id: true, status: true } } },
-    });
-    const courseRows = await db.course.findMany({
-      where: { id: { in: rows.map((p) => p.courseId).filter(Boolean) as string[] } },
-      select: { id: true, name: true },
-    });
-    const courseNames = new Map(courseRows.map((c) => [c.id, c.name]));
-    projects = rows.map((p) => {
+    const rows = enrolledCourseIds.length
+      ? await db.learnProject.findMany({
+          // Course-less legacy records are retained for history but are not
+          // active course work. Only show projects in currently enrolled courses.
+          where: {
+            userId: user.sub,
+            courseId: { in: enrolledCourseIds },
+          },
+          orderBy: { updatedAt: "desc" },
+          take: 4,
+          include: { tasks: { select: { id: true, status: true } } },
+        })
+      : [];
+
+    projects = rows.flatMap((p) => {
+      if (!p.courseId) return [];
+      const courseName = courseNameById.get(p.courseId);
+      if (!courseName) return [];
+
       const total = p.tasks.length;
       const done = p.tasks.filter((t) => t.status === "completed").length;
-      return {
+      return [{
         id: p.id,
         title: p.title,
         status: p.status,
-        courseName: p.courseId ? courseNames.get(p.courseId) ?? null : null,
+        courseName,
         taskProgress: total > 0 ? Math.round((done / total) * 100) : 0,
         tasksDone: `${done}/${total}`,
-      };
+      }];
     });
   } catch (e) {
     console.error("Learner home project lookup failed:", e);

@@ -60,7 +60,7 @@ interface ProjectRow {
   id: string;
   title: string;
   status: string;
-  courseName: string | null;
+  courseName: string;
   taskProgress: number;
   tasksDone: string;
 }
@@ -289,7 +289,7 @@ function Projects({ items }: { items: ProjectRow[] }) {
             </span>
           }
           title={p.title}
-          meta={`${p.courseName ?? "Project"} · ${PROJECT_STATUS_LABEL[p.status] ?? p.status} · ${p.tasksDone} tasks`}
+          meta={`${p.courseName} · ${PROJECT_STATUS_LABEL[p.status] ?? p.status} · ${p.tasksDone} tasks`}
           trailing={<ChevronRight className="h-4 w-4 text-fg-muted" aria-hidden />}
         />
       ))}
