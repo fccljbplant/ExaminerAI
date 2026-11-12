@@ -30,7 +30,7 @@ describe("TestChatUI accessible learning layout", () => {
     expect(html).toContain('aria-valuenow="2"');
     expect(html).toContain('aria-label="Test conversation"');
     expect(html).toContain('aria-busy="false"');
-    expect(html).toContain('style="max-height:40vh"');
+    expect(html).toContain('style="max-height:40vh;min-height:min(220px, 40vh)"');
     expect(html).toContain('for="test-answer-input"');
     expect(html).toContain('id="test-answer-input"');
     expect(html).toContain("Your answer");
@@ -63,6 +63,6 @@ describe("TestChatUI accessible learning layout", () => {
     );
 
     expect(html).toContain('aria-busy="true"');
-    expect(html).toContain('style="max-height:55vh"');
+    expect(html).toContain('style="max-height:55vh;min-height:min(220px, 55vh)"');
   });
 });

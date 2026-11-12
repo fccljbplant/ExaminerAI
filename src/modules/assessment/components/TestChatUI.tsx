@@ -145,8 +145,8 @@ export function TestChatUI({
         aria-live="polite"
         aria-relevant="additions"
         aria-busy={busy}
-        style={{ maxHeight }}
-        className="flex-1 min-h-[220px] overflow-y-auto space-y-3 rounded-2xl border border-line bg-bg-subtle/45 p-3 sm:p-4"
+        style={{ maxHeight, minHeight: `min(220px, ${maxHeight})` }}
+        className="flex-1 min-h-0 overflow-y-auto space-y-3 rounded-2xl border border-line bg-bg-subtle/45 p-3 sm:p-4"
       >
         {conversation.map((m, i) => (
           <div
