@@ -159,7 +159,7 @@ export function LearnerHome() {
 
 /* ---------------- continue card --------------------------------------- */
 
-function ContinueCard({ info }: { info: ContinueInfo }) {
+export function ContinueCard({ info }: { info: ContinueInfo }) {
   const ctaLabel =
     info.kind === "start"
       ? "Start learning"
@@ -198,7 +198,7 @@ function ContinueCard({ info }: { info: ContinueInfo }) {
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <Link
           href={info.href}
-          className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90"
+          className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <Play className="h-4 w-4" aria-hidden />
           {ctaLabel}
@@ -211,7 +211,7 @@ function ContinueCard({ info }: { info: ContinueInfo }) {
                 key={b.label}
                 href={b.minutes ? `${info.href}?budget=${b.minutes}` : info.href}
                 aria-label={`Start ${b.minutes ? `${b.minutes} minute` : "open-ended"} session`}
-                className="inline-flex h-9 min-w-11 items-center justify-center rounded-full border border-line px-3 text-xs font-semibold text-fg-secondary transition-colors hover:border-brand hover:bg-brand-subtle hover:text-fg"
+                className="inline-flex h-11 min-w-11 items-center justify-center rounded-full border border-line px-3 text-xs font-semibold text-fg-secondary transition-colors hover:border-brand hover:bg-brand-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {b.label}
               </Link>
@@ -273,7 +273,7 @@ function Projects({ items }: { items: ProjectRow[] }) {
       header={
         <span className="flex items-center justify-between">
           Projects
-          <Link href="/learner/projects" className="text-xs font-medium text-brand hover:underline">
+          <Link href="/learner/projects" className="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             See all
           </Link>
         </span>
