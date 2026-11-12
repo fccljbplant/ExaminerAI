@@ -392,3 +392,12 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Project cards display their owning course. With no current course enrolments, the proposal form is replaced by a clear course-required explanation. Proposal creation, approval, milestones and timeline behavior remain intact.
 - Validation: 2 files / 11 tests passed; ESLint on four changed files and `git diff --check` passed. Actions run `43272947921` was pending at record time; no typecheck/build/browser pass is claimed.
 - No DB/data mutation, schema/migration, dependency/provider, Vercel settings or deployment changes. The existing model has no shared course activity number; do not fabricate one or migrate without approval.
+
+
+## 2026-11-12 — Course workspace Coursework tab
+
+- Source commit: `603c2a1fb1ab5db75600e6c310d3291602ebb7a7`.
+- Added an enrolled-learner-only Coursework tab to course detail. It composes the existing Projects and Assignments interfaces with the current course ID, loads them only when opened, and preserves proposal/approval/timeline and assignment status/submission behavior.
+- Projects proposals default to the course currently being viewed. Standalone Projects and Assignments pages remain intact. Non-enrolled learners do not see Coursework.
+- Validation: 3 focused files / 12 tests passed; ESLint on four changed files and `git diff --check` passed. Exact-head Actions/typecheck/build/browser checks remain pending.
+- No DB/schema/migration, production-data, dependency/provider, Vercel setting or deployment changes. Shared course-level numbering and assessment still need canonical course activity modelling; no learner-local counters were introduced.
