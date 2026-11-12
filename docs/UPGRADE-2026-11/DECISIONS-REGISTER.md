@@ -24,6 +24,11 @@
 | UI | Preserve existing theme packs and tokens; no copied Star Admin or UXPeak assets/code. |
 | UI localization | Interface translation with next-intl is not a current phase-one requirement; re-evaluate after audit. |
 | Mainline | After reset, main is the only active branch; implementation is direct on main in scoped commits. |
+| Course-owned projects and assignments | Every project/assignment, learner workspace/submission, task, milestone, rubric, grade and progress record belongs to one course. No course-less standalone activity in active product flows. |
+| Course numbering | Stable activity sequence numbers are unique within each course and shared by all learners; learner submissions inherit the course activity number. Course week/day coordinates remain authoritative. |
+| Course assessment | Rubrics, criteria, score ceilings/weights, attempt rules and feedback are course-scoped. A linked rubric must belong to the same course as its activity. |
+| Course learning flow | Projects, assignments and tests follow the course week/day/prerequisite sequence; unlocks are enforced server-side. Learners control pace; dates are not hidden curriculum gates. |
+| Legacy course-less projects | Preserve but exclude from active course flows. Never infer a course from current enrolment; backfill requires deterministic provenance and separate migration approval. |
 
 ## 2. Defaults from the uploaded specification
 

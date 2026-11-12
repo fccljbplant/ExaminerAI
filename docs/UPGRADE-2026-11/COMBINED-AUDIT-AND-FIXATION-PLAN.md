@@ -432,3 +432,47 @@ A component or workstream is complete only when its user journey works, its data
 - No production DB access, schema/migration, dependency/provider, production data, Vercel setting, or deployment changes. vercel.json keeps Git deployments disabled.
 - Follow-up audit remains: inspect the v2 project detail/tasks/generation and legacy milestone/help endpoints for current-enrolment checks as a single coherent authorization review. Do not assume home/list filtering secures direct-ID routes.
 
+
+
+## 2026-11-12 — Owner decision: projects and assignments are course-owned
+
+**Owner direction (locked product invariant):** Projects and assignments are not standalone learner products. They are course activities and must inherit the course's identity, numbering, assessment rules and learning sequence.
+
+### Required product behaviour
+
+- Every project activity and assignment has one required owning course. Learner workspaces, submissions, tasks, milestones, feedback, grades and progress must resolve through that course activity.
+- Course activities receive stable sequence numbers within their course. The same activity number is shown to every learner; a learner submission does not create a new number. Course/week/day coordinates remain the canonical curriculum coordinates. There is no global or per-learner numbering.
+- Course assessment owns the rubric, criteria, score ceiling/weighting, attempts/resubmission rules and feedback policy. An attached rubric must be scoped to the same course as the activity.
+- Project tasks and assignments are placed in the course sequence and linked to the relevant course week/day or prerequisite. Server code enforces unlock and eligibility rules. Learners retain control of pace; calendar dates must not silently become curriculum unlock gates.
+- Learner and instructor experiences are course-first. Project and assignment detail always displays course context and activity number. Cross-course “My work” views may remain as grouped convenience views, never as an alternate owner or source of truth.
+- Course-less legacy project records are not valid active course work. Preserve them for audit/history, do not silently expose them as personal projects, and never guess their course from a learner's current enrolments.
+
+### Current main evidence and gaps (read-only audit)
+
+- `prisma/schema.prisma`: `CourseWeek.weekNumber` is unique per course and `CourseDay.day` is unique per week. `Course` already has project enable/required/duration and project-template configuration.
+- `LearnProject.courseId` is nullable and has no Prisma Course relation; `ProjectTask.courseId` and `ProjectTask.projectId` are nullable; `ProjectWeek.courseId` and `ProjectWeek.projectId` are nullable; `ProjectMilestone` belongs to a learner project rather than a course activity.
+- `Assignment.courseId` and `GroupTask.courseId` are required, but neither model has a stable course sequence number. `Assignment.week` and `GroupTask.week` are nullable. `Course` has no dedicated course code/number field. `Rubric.courseId` is nullable, and assignment loading does not verify that a linked rubric belongs to the assignment's course.
+- The instructor assignments UI (`src/modules/instructor-portal/assignments.tsx`) creates `GroupTask` records through `/api/group-tasks`; the learner assignments UI and L5/L6 APIs read `Assignment` and `Submission`. These are parallel assignment stores, not one end-to-end creation/submission flow.
+- Learner course detail currently exposes Overview and Syllabus tabs; projects and assignments are separate portal surfaces. The projects list does not display course identity on each row. The assignments list displays course name but is a cross-course status-filtered list.
+- `GET /api/v2/projects/[id]` authorizes by project owner but does not check current course enrolment. It falls back to user-level tasks/weeks with `projectId: null`, allowing unrelated legacy work to be mixed into a project view.
+- Project task, generation, help and milestone routes rely on owner checks without consistently checking current enrolment. The help and legacy milestone endpoints also lack a learner-role guard. The instructor approval route does check that the caller teaches the project's course.
+- `/api/learn/projects` and Learner Today previously retained course-less personal projects for compatibility; that compatibility exception is superseded by this owner decision. The legacy `/api/project/setup` reset path deletes all of a user's project tasks/weeks by `userId`, not by course/project, and requires a separate destructive-scope audit before it is used or changed.
+
+### Integrated bottom-up fixation order
+
+1. Enforce the invariant in every project read/write path: required course, current learner enrolment, instructor course assignment, tenant intersection, and no legacy user-level task/week fallback. Hide course-less legacy records from active learning views; preserve data.
+2. Define the canonical course activity model and numbering contract. Separate the course-owned project definition/activity from each learner's project workspace/submission. Keep the existing `Assignment` + `Submission` direction as the candidate canonical assignment path; reconcile `GroupTask` through a verified mapping, not parallel writes.
+3. Add course/week/day/prerequisite anchors and stable per-course activity numbers. Validate assignment/project rubric ownership against the same course. Make course assessment weights, score ceilings, attempt policy and rollups deterministic and evidence-backed.
+4. Integrate projects, assignments and assessments into the learner's selected course workspace and course map. Show course code/name, activity number, week/day, status, assessment criteria and next eligible action. Preserve a grouped cross-course convenience view only if it remains clearly course-scoped.
+5. Integrate instructor creation, sequencing, rubric authoring, review and grading in the instructor's course workspace. Organisation reporting aggregates course outcomes without widening learner-level access.
+6. Add safe legacy reconciliation and an additive migration plan only after mapping every legacy row and rehearsing rollback. No production DB access, schema migration, backfill, deletion or production seed is authorized by this product decision alone.
+7. Test sequence uniqueness/concurrency, cross-course and cross-tenant isolation, enrolment revocation, rubric/course mismatch, submission/grading lifecycle, course progression/unlock rules, missing/stale evidence, accessibility and responsive course journeys.
+
+### Migration and release guardrails
+
+- Do not guess the course for nullable/legacy project records. Keep them preserved but unavailable in active course flows until deterministic provenance is established.
+- Do not drop `GroupTask`, `LearnProject`, legacy project endpoints or historical submissions as part of this fixation. Establish source-of-truth and read-only transition periods first.
+- Additive schema changes still require exact-target owner approval, a reviewed mapping, backup/restore rehearsal and rollback plan. Never run a migration against production without separate explicit approval.
+- No dependency/provider change, production data change, deployment, Vercel setting change or release is included in this decision.
+- Typecheck/build/browser/accessibility tests were not run for this read-only audit slice. The previous sandbox stopped and the replacement sandbox API rejected creation; the container also has no GitHub network access. Do not claim runtime validation.
+
