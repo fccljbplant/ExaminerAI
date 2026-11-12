@@ -1,4 +1,4 @@
-import { hasRole, ADMIN_ROLES, isStaffRole, UserRole, normalizeRole } from "@/lib/rbac";
+import { isStaffRole, UserRole, normalizeRole } from "@/lib/rbac";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
@@ -23,24 +23,39 @@ export async function GET(
 
   const { id } = await params;
 
-  // N2-fix: track the dataScope for response filtering.
-  // null = full access (admin or teacher in own batch). Otherwise it's
-  // the grant's scope (full, wellbeing_only, crisis_only, content_only).
+  // Access is role-specific: platform admins operate the platform, org admins
+  // are limited to their active organisation's courses, and instructors to
+  // courses they teach. Demo access always requires an explicit student grant.
   let portfolioDataScope: string | null = null;
+  let scopedCourseIds: string[] | null = null;
+  const role = normalizeRole(payload.role);
+  const isPlatformAdmin = role === UserRole.PLATFORM_ADMIN;
 
-  // Phase 0.4 fix: IDOR protection. Instructors can only access learners in
-  // their own courses. Admins can access any learner. This prevents an
-  // instructor from reading another instructor's learners' data.
-  // Post-purge 2026-08: counselor/coordinator/guardian roles were removed.
-  // Demo + non-staff-with-grant now need an AccessGrant — previously they
-  // fell through with no check at all.
-  // N5-fix: legacy teachers (null batch) now also need an AccessGrant —
-  // previously they could see all students institution-wide.
-  let needsGrantCheck = false;
+  if (role === UserRole.ORG_ADMIN) {
+    const memberships = await db.orgMember.findMany({
+      where: { userId: payload.sub, role: "admin", status: "active" },
+      select: { orgId: true },
+    });
+    const orgIds = memberships.map((membership) => membership.orgId);
+    const orgCourses = orgIds.length
+      ? await db.orgCourse.findMany({
+          where: { orgId: { in: orgIds } },
+          select: { courseId: true },
+        })
+      : [];
+    const orgCourseIds = orgCourses.map((course) => course.courseId);
+    const learnerCourses = orgCourseIds.length
+      ? await db.courseEnrollment.findMany({
+          where: { userId: id, role: "student", courseId: { in: orgCourseIds } },
+          select: { courseId: true },
+        })
+      : [];
+    scopedCourseIds = [...new Set(learnerCourses.map((course) => course.courseId))];
 
-  if (hasRole(payload.role, ADMIN_ROLES)) {
-    // Admins — full access, no check needed
-  } else if (normalizeRole(payload.role) === UserRole.INSTRUCTOR) {
+    if (scopedCourseIds.length === 0) {
+      return NextResponse.json({ error: "You do not have access to this learner in your organisation" }, { status: 403 });
+    }
+  } else if (role === UserRole.INSTRUCTOR) {
     const studentCheck = await db.user.findUnique({
       where: { id },
       select: { role: true },
@@ -48,7 +63,7 @@ export async function GET(
     if (!studentCheck || normalizeRole(studentCheck.role) !== UserRole.LEARNER) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
-    // Verify the instructor teaches a course the student is enrolled in
+
     const [instructorCourses, studentCourses] = await Promise.all([
       db.courseEnrollment.findMany({
         where: { userId: payload.sub, role: "instructor" },
@@ -59,18 +74,31 @@ export async function GET(
         select: { courseId: true },
       }),
     ]);
-    const instructorCourseIds = instructorCourses.map(e => e.courseId);
-    const studentCourseIds = studentCourses.map(e => e.courseId);
-    const sharedCourseIds = instructorCourseIds.filter(cid => studentCourseIds.includes(cid));
-    if (sharedCourseIds.length === 0) {
-      needsGrantCheck = true;
-    }
-  } else {
-    // Demo or any non-admin/non-instructor staff — need an AccessGrant
-    needsGrantCheck = true;
-  }
+    const instructorCourseIds = new Set(instructorCourses.map((course) => course.courseId));
+    scopedCourseIds = [...new Set(
+      studentCourses
+        .map((course) => course.courseId)
+        .filter((courseId) => instructorCourseIds.has(courseId)),
+    )];
 
-  if (needsGrantCheck) {
+    if (scopedCourseIds.length === 0) {
+      const grant = await db.accessGrant.findFirst({
+        where: {
+          granteeUserId: payload.sub,
+          scopeType: "student",
+          scopeId: id,
+          dataScope: { in: ["full", "wellbeing_only", "crisis_only", "content_only"] },
+          revokedAt: null,
+        },
+      });
+      if (!grant) {
+        return NextResponse.json({ error: "You need an access grant to view this student" }, { status: 403 });
+      }
+      portfolioDataScope = grant.dataScope;
+      scopedCourseIds = null;
+    }
+  } else if (!isPlatformAdmin) {
+    // Includes demo accounts. They are staff for routing purposes, not admins.
     const grant = await db.accessGrant.findFirst({
       where: {
         granteeUserId: payload.sub,
@@ -83,9 +111,6 @@ export async function GET(
     if (!grant) {
       return NextResponse.json({ error: "You need an access grant to view this student" }, { status: 403 });
     }
-    // N2-fix: capture the grant's dataScope for response filtering below.
-    // A demo with "content_only" should NOT see psychObs or crisis data.
-    // A demo with "crisis_only" should NOT see project content.
     portfolioDataScope = grant.dataScope;
   }
 
@@ -109,40 +134,83 @@ export async function GET(
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
-  const [tasks, dailyLogs, interactions, comments, weeklyTests, competencies, reportCards] = await Promise.all([
-    db.projectTask.findMany({
-      where: { userId: id },
-      orderBy: { week: "asc" },
-    }),
-    db.dailyLog.findMany({
-      where: { userId: id },
-      orderBy: { date: "desc" },
-      take: 10,
-    }),
-    db.interaction.findMany({
-      where: { userId: id },
-      orderBy: { date: "desc" },
-      take: 15,
-    }),
-    db.comment.findMany({
-      where: { studentId: id },
-      orderBy: { createdAt: "desc" },
-      include: { instructor: { select: { name: true, email: true } } },
-    }),
-    db.weeklyTest.findMany({
-      where: { userId: id },
-      orderBy: { week: "asc" },
-      select: { id: true, week: true, status: true, score: true, completedAt: true, retakeAllowed: true, plagiarismScore: true, weaknesses: true, conversation: true },
-    }),
-    db.competency.findMany({
-      where: { userId: id },
-      orderBy: { score: "asc" },
-    }),
-    db.reportCard.findMany({
-      where: { userId: id },
-      orderBy: { week: "asc" },
-    }),
+  const courseScope = scopedCourseIds !== null
+    ? { courseId: { in: scopedCourseIds } }
+    : {};
+  const canSeeContent = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "content_only";
+  const canSeeFullPortfolio = !portfolioDataScope || portfolioDataScope === "full";
+  const canSeeWellbeing = (!portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "wellbeing_only")
+    && !isPlatformAdmin;
+
+  const [tasks, dailyLogs, interactions, weeklyTests, reportCards] = await Promise.all([
+    canSeeContent
+      ? db.projectTask.findMany({
+          where: { userId: id, ...courseScope },
+          orderBy: { week: "asc" },
+        })
+      : Promise.resolve([]),
+    canSeeWellbeing
+      ? db.dailyLog.findMany({
+          where: { userId: id, ...courseScope },
+          orderBy: { date: "desc" },
+          take: 10,
+          // Organisation admins need attendance dates, not private reflections,
+          // confidence or wellbeing detail from learner journals.
+          ...(role === UserRole.ORG_ADMIN ? { select: { date: true } } : {}),
+        })
+      : Promise.resolve([]),
+    canSeeContent
+      ? db.interaction.findMany({
+          where: { userId: id, ...courseScope },
+          orderBy: { date: "desc" },
+          take: 15,
+        })
+      : Promise.resolve([]),
+    canSeeFullPortfolio
+      ? db.weeklyTest.findMany({
+          where: { userId: id, ...courseScope },
+          orderBy: { week: "asc" },
+          select: { id: true, week: true, status: true, score: true, completedAt: true, retakeAllowed: true, plagiarismScore: true, weaknesses: true, conversation: true },
+        })
+      : Promise.resolve([]),
+    canSeeContent
+      ? db.reportCard.findMany({
+          where: { userId: id, ...courseScope },
+          orderBy: { week: "asc" },
+        })
+      : Promise.resolve([]),
   ]);
+
+  // Comments are attached to a course-bearing record. When a caller is
+  // course-scoped, derive comment access from those already-scoped record IDs.
+  const commentRelations = scopedCourseIds === null
+    ? null
+    : [
+        ...(tasks.length ? [{ taskId: { in: tasks.map((task) => task.id) } }] : []),
+        ...(dailyLogs.length ? [{ dailyLogId: { in: dailyLogs.map((log) => log.id) } }] : []),
+        ...(interactions.length ? [{ interactionId: { in: interactions.map((item) => item.id) } }] : []),
+        ...(weeklyTests.length ? [{ weeklyTestId: { in: weeklyTests.map((test) => test.id) } }] : []),
+      ];
+  const comments = canSeeFullPortfolio && (commentRelations === null || commentRelations.length > 0)
+    ? await db.comment.findMany({
+        where: {
+          studentId: id,
+          ...(commentRelations === null ? {} : { OR: commentRelations }),
+        },
+        orderBy: { createdAt: "desc" },
+        include: { instructor: { select: { name: true, email: true } } },
+      })
+    : [];
+
+  // Competency has no courseId in the current schema. Do not expose global
+  // learner-level records to a course-scoped instructor or organisation admin.
+  // A platform admin or explicit whole-learner grant may still see this data.
+  const competencies = canSeeFullPortfolio && scopedCourseIds === null
+    ? await db.competency.findMany({
+        where: { userId: id },
+        orderBy: { score: "asc" },
+      })
+    : [];
 
   // Compute project progress
   const totalTasks = tasks.length;
@@ -150,18 +218,10 @@ export async function GET(
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const hasProject = totalTasks > 0;
 
-  // N2-fix: filter the response based on the grant's dataScope.
-  // - full: everything (default for admins + teachers in own batch)
-  // - wellbeing_only: dailyLogs only (no project content)
-  // - crisis_only: minimal (no project, no daily logs)
-  // - content_only: tasks + reportCards + interactions only
-  const canSeeContent = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "content_only";
-  const canSeeWellbeing = !portfolioDataScope || portfolioDataScope === "full" || portfolioDataScope === "wellbeing_only";
-
   return NextResponse.json({
     student,
-    hasProject,
-    progress,
+    hasProject: canSeeContent ? hasProject : null,
+    progress: canSeeContent ? progress : null,
     // Always return empty arrays/objects (never undefined) so UI never has to null-check.
     // The `dataScope` field tells the client what was filtered out.
     taskSummary: canSeeContent ? {
@@ -170,14 +230,14 @@ export async function GET(
       inProgress: tasks.filter((t) => t.status === "in-progress").length,
       planned: tasks.filter((t) => t.status === "planned").length,
       blocked: tasks.filter((t) => t.status === "blocked").length,
-    } : { total: 0, completed: 0, inProgress: 0, planned: 0, blocked: 0 },
+    } : null,
     tasks: canSeeContent ? tasks : [],
-    dailyLogs: canSeeWellbeing ? dailyLogs : [],
-    interactions: canSeeContent ? interactions : [],
+    dailyLogs,
+    interactions,
     // bugs: removed (Bug model deleted — feature never built out)
     comments,
-    weeklyTests: canSeeContent ? weeklyTests : [],
-    competencies: canSeeContent ? competencies : [],
+    weeklyTests,
+    competencies,
     reportCards: canSeeContent ? reportCards : [],
     dataScope: portfolioDataScope,  // so the client knows what was filtered
   });

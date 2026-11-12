@@ -717,3 +717,13 @@ These are approved planning decisions, not implementation claims. No application
 - The document combines the audited security/privacy, assessment, tenant scope, AI governance, data truthfulness, operational, UI and accessibility findings into a bottom-up remediation programme.
 - Audit observations must be revalidated against current source/tests before implementation; this commit changes documentation only. No app code, schema, migration, dependency or production data changed.
 - No test, lint, typecheck, build, browser or accessibility run was performed for this docs-only update.
+
+## 2026-11-12 — UI-first Daily Test work and integrated fixes
+
+- Owner priority clarified: UI/UX is the primary delivery focus. Work is organised by visible screen/component, with functional, security, data-scope, responsive and accessibility checks performed alongside each UI enhancement.
+- Daily Test first pass is in progress: updated check-in header/context, topic badge, question progress semantics, conversation surface and answer composer. Shared chat presentation also affects Practice and Weekly Test; optional progress total keeps other consumers from showing an invented meter.
+- Added UI markup regression tests and closed two known legacy portfolio gaps: organisation admins receive only daily-log dates, and course-less global competency records are not exposed through course-scoped instructor/org-admin views.
+- The recovered worktree started from 18b2b95011b0480f4176a0d2881788070ddf74c2 with only main present in the live branch search. Application changes are not yet committed at this entry.
+- Full test suite (466/466 across 155 files), full lint, TypeScript and diff whitespace checks passed on a disposable local SQLite database. Tutor-context seeded assertions skipped due missing optional socratic.test seed.
+- Build compiled but could not complete because the sandbox build worker exceeded available memory (1 GB heap OOM; 1.8 GB retry SIGKILL). No browser screenshots/manual WCAG pass was possible because Chrome/Chromium was unavailable.
+- Remaining blockers: AI evaluation/scoring still needs an owner-approved deterministic rubric; learner-support/psychology processing remains gated on consent/legal/professional review; full cross-tenant review and manual responsive/accessibility validation remain open. No production DB, production migration or deployment was touched.

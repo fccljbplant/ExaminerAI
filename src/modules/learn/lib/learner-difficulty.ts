@@ -123,6 +123,7 @@ export async function getLearnerDifficulty(
     // weekly tests ×2 (10 questions is a bigger signal than 3).
     const entries: { score: number; weight: number; at: number }[] = [];
     for (const t of daily) {
+      if (t.score === null) continue;
       const count = Array.isArray(t.questions) ? t.questions.length : 3;
       entries.push({
         score: normalizeScore(Number(t.score ?? 0), count),
@@ -131,6 +132,7 @@ export async function getLearnerDifficulty(
       });
     }
     for (const t of weekly) {
+      if (t.score === null) continue;
       const count = Array.isArray(t.questions) ? t.questions.length : 10;
       entries.push({
         score: normalizeScore(Number(t.score ?? 0), count),

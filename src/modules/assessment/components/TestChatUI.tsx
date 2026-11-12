@@ -63,6 +63,7 @@ interface TestChatUIProps {
   /** One-line hint shown above the chat box — e.g. "This test asks 3 questions."
    *  Set once at test start; not updated per-reply. */
   questionCountLabel?: string;
+  questionTotal?: number;
   topicBadge?: string;
   maxHeight?: string;
   placeholder?: string;
@@ -78,12 +79,14 @@ export function TestChatUI({
   busy,
   currentQuestion,
   questionCountLabel,
+  questionTotal,
   topicBadge,
   maxHeight = "40vh",
   placeholder = "Type your answer... (Enter to send, Shift+Enter for new line)",
   confidenceSelector,
 }: TestChatUIProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const activeQuestion = currentQuestion ?? 0;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -96,21 +99,55 @@ export function TestChatUI({
       {/* Single-line question count hint — shown once, not per-reply.
           No progress bar, no "Q3 of 10", no "Reply 2 of 5". Just the
           question number badge on each examiner bubble + this hint. */}
-      {questionCountLabel && (
-        <div className="flex items-center justify-between text-xs mb-2 flex-shrink-0">
-          <span className="text-fg-muted">{questionCountLabel}</span>
+      {(questionCountLabel || topicBadge) && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <Brain className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-fg">Assessment conversation</p>
+              {questionCountLabel && <p className="text-[11px] text-fg-muted">{questionCountLabel}</p>}
+            </div>
+          </div>
           {topicBadge && (
-            <Badge variant="outline" className="text-[9px] bg-brand-subtle text-brand border-brand/30">
+            <Badge variant="outline" className="max-w-full truncate border-brand/30 bg-brand-subtle px-2.5 py-1 text-[10px] font-medium text-brand">
+              <BookOpen className="mr-1 h-3 w-3 shrink-0" aria-hidden="true" />
               {topicBadge}
             </Badge>
           )}
         </div>
       )}
+      {questionTotal && questionTotal > 0 && (
+        <div
+          className="mb-3 flex gap-1.5 flex-shrink-0"
+          role="progressbar"
+          aria-label="Test question progress"
+          aria-valuemin={0}
+          aria-valuemax={questionTotal}
+          aria-valuenow={Math.min(activeQuestion + 1, questionTotal)}
+          aria-valuetext={questionCountLabel}
+        >
+          {Array.from({ length: questionTotal }, (_, index) => (
+            <span
+              key={index}
+              className={cn(
+                "h-1.5 flex-1 rounded-full transition-colors",
+                index <= activeQuestion ? "bg-brand" : "bg-bg-subtle"
+              )}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Chat messages — fills available height, scrolls to bottom on new messages */}
+      {/* Conversation — scrolls independently while the composer stays in view */}
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 rounded-lg border border-line bg-surface/50 p-3"
+        role="log"
+        aria-label="Test conversation"
+        aria-live="polite"
+        aria-relevant="additions"
+        className="flex-1 min-h-[220px] overflow-y-auto space-y-3 rounded-2xl border border-line bg-bg-subtle/45 p-3 sm:p-4"
       >
         {conversation.map((m, i) => (
           <div
@@ -119,10 +156,10 @@ export function TestChatUI({
           >
             <div
               className={cn(
-                "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                "max-w-[92%] sm:max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
                 m.role === "student"
                   ? "bg-brand text-on-brand rounded-br-md"
-                  : "bg-bg-subtle text-fg rounded-bl-md"
+                  : "border border-line bg-surface text-fg rounded-bl-md"
               )}
             >
               {m.role === "examiner" && (
@@ -177,8 +214,13 @@ export function TestChatUI({
       {confidenceSelector && <div className="flex-shrink-0">{confidenceSelector}</div>}
 
       {/* Input area — stays at the bottom, doesn't scroll with messages */}
-      <div className="space-y-2 flex-shrink-0 pt-2">
+      <div className="flex-shrink-0 space-y-2 border-t border-line pt-3">
+        <label htmlFor="test-answer-input" className="text-xs font-semibold text-fg">
+          Your answer
+        </label>
         <textarea
+          id="test-answer-input"
+          aria-describedby="test-answer-hint"
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={(e) => {
@@ -187,19 +229,22 @@ export function TestChatUI({
               onSend();
             }
           }}
-          className="w-full min-h-[60px] max-h-[120px] rounded-lg bg-bg border border-line p-3 text-sm text-fg resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full min-h-[88px] max-h-[180px] rounded-xl bg-surface border border-line p-3 text-sm text-fg resize-y placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:border-brand disabled:cursor-not-allowed disabled:opacity-60"
           placeholder={placeholder}
           disabled={busy}
-          autoFocus
         />
-        <div className="flex gap-2">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p id="test-answer-hint" className="text-[11px] text-fg-muted">
+            Press Enter to send · Shift + Enter for a new line
+          </p>
+          <div className="flex gap-2">
           <Button
             onClick={onSend}
             disabled={busy || !input.trim()}
-            className="bg-brand hover:bg-brand/90 text-on-brand"
+            className="min-h-11 flex-1 bg-brand hover:bg-brand/90 text-on-brand sm:flex-none"
           >
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Send
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
+            {busy ? "Sending…" : "Send answer"}
           </Button>
           {onEndEarly && (
             <Button
@@ -207,11 +252,12 @@ export function TestChatUI({
               disabled={busy}
               variant="outline"
               size="sm"
-              className="border-line text-fg-muted"
+              className="min-h-11 border-line text-fg-muted"
             >
-              <X className="h-3 w-3" /> End early
+              <X className="h-3 w-3" aria-hidden="true" /> End early
             </Button>
           )}
+          </div>
         </div>
       </div>
     </div>

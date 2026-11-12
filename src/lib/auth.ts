@@ -137,27 +137,13 @@ export async function getAuthUser(): Promise<JwtPayload | null> {
     if (user.blocked) return null;
     // Use the DB role (authoritative) instead of the JWT role (may be stale)
     return { ...payload, role: user.role };
-  } catch {
-    // N3-fix: DB outage fallback. Previously returned the JWT payload
-    // unconditionally — a blocked user with an unexpired JWT could
-    // access the system during the outage. Now we check the cache
-    // (even if expired) for a 'blocked: true' entry. If the last
-    // known state was blocked, deny access. If the last known state
-    // was unblocked OR there's no cache entry, allow access (better
-    // than locking everyone out during a transient DB blip).
-    // N3-R1-fix: also use the cached role (up to 60s stale) instead of
-    // the JWT role (up to 7d stale) when available.
-    const lastKnown = authCheckCache.get(payload.sub);
-    if (lastKnown?.blocked) {
-      // Last known state was blocked — deny even during DB outage
-      return null;
-    }
-    // Use the cached DB role if available (more recent than JWT role)
-    if (lastKnown) {
-      return { ...payload, role: lastKnown.role };
-    }
-    // No cache entry — fall back to JWT-only auth
-    return payload;
+  } catch (err) {
+    // Identity and role revalidation are authoritative. An unavailable DB is
+    // not evidence that an unblocked user still has access, so fail closed.
+    logger.warn("getAuthUser: identity revalidation failed; access denied", {
+      errorName: err instanceof Error ? err.name : "UnknownError",
+    });
+    return null;
   }
 }
 

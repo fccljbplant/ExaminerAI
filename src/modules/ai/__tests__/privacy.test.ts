@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import {
   pseudonym,
   estimateTokens,
@@ -7,6 +7,27 @@ import {
 } from "../privacy";
 
 describe("modules/ai — privacy layer", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("never uses the fixed development secret in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("AI_CONTEXT_SECRET", "");
+    vi.stubEnv("JWT_SECRET", "");
+
+    expect(() => pseudonym("production-user")).toThrow(
+      "AI_CONTEXT_SECRET or JWT_SECRET is required in production",
+    );
+  });
+
+  it("allows the existing JWT secret fallback in production when explicitly configured", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("AI_CONTEXT_SECRET", "");
+    vi.stubEnv("JWT_SECRET", "configured-production-test-secret");
+
+    expect(pseudonym("production-user")).toMatch(/^student-[a-f0-9]{8}$/);
+  });
   it("produces stable, deterministic pseudonyms for the same id", () => {
     const a = pseudonym("user-1");
     const b = pseudonym("user-1");

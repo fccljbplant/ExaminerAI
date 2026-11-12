@@ -122,11 +122,11 @@ let _embedClient: OpenAI | null = null;
 let _embedKey: string | null = null;
 
 /** Embed `text` via the OpenAI-compatible Z.ai embeddings endpoint.
- *  Key comes from env only (ZAI_API_KEY, falling back to DEEPSEEK_API_KEY)
+ *  Key comes only from the Z.ai environment credential (ZAI_API_KEY)
  *  — never from the DB — to keep this module free of db imports.
  *  Returns null on ANY failure (missing key, network, empty output). */
 export async function embedText(text: string): Promise<number[] | null> {
-  const key = process.env.ZAI_API_KEY ?? process.env.DEEPSEEK_API_KEY;
+  const key = process.env.ZAI_API_KEY;
   const trimmed = (text ?? "").trim();
   if (!key || !trimmed) return null;
   try {

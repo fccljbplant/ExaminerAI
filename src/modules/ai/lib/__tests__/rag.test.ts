@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import {
   chunkText,
   cosineSimilarity,
@@ -160,7 +160,18 @@ describe("modules/ai — rag.buildKnowledgeBlock", () => {
 });
 
 describe("modules/ai — rag.embedText", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("returns null immediately for empty input (no network call)", async () => {
     await expect(embedText("   ")).resolves.toBeNull();
+  });
+
+  it("does not send a DeepSeek credential to the Z.ai embeddings endpoint", async () => {
+    vi.stubEnv("ZAI_API_KEY", "");
+    vi.stubEnv("DEEPSEEK_API_KEY", "deepseek-only-test-credential");
+
+    await expect(embedText("course content")).resolves.toBeNull();
   });
 });

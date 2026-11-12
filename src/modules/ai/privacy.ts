@@ -16,15 +16,20 @@ import { createCipheriv, createDecipheriv, createHmac, randomBytes } from "crypt
  *  2. Cached context packs are ENCRYPTED AT REST (AES-256-GCM). Even
  *     if the DB leaks, the learning-data context is ciphertext.
  *
- * Secret priority: AI_CONTEXT_SECRET → JWT_SECRET → dev default.
- * Rotating the secret invalidates pseudonyms and cached packs — an
- * acceptable, documented trade-off for a cache.
+ * Secret priority: AI_CONTEXT_SECRET → JWT_SECRET. The development-only
+ * fallback is never accepted in production. Rotating the secret invalidates
+ * pseudonyms and cached packs — an acceptable, documented trade-off for a cache.
  */
 
 const DEV_SECRET = "examiner-ai-context-dev-secret";
 
 function contextSecret(): string {
-  return process.env.AI_CONTEXT_SECRET || process.env.JWT_SECRET || DEV_SECRET;
+  const configured = process.env.AI_CONTEXT_SECRET || process.env.JWT_SECRET;
+  if (configured) return configured;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("AI_CONTEXT_SECRET or JWT_SECRET is required in production");
+  }
+  return DEV_SECRET;
 }
 
 function hmac(value: string): string {

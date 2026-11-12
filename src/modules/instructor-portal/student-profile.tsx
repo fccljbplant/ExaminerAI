@@ -113,10 +113,8 @@ interface StudentProfileData {
 interface Briefing {
   briefing: string;
   suggestedTalkingPoint: string;
-  week: number;
-  day: number;
-  avgScore: number;
-  status: "on_track" | "needs_attention" | "at_risk";
+  avgScore: number | null;
+  status: "on_track" | "needs_attention" | "at_risk" | "unavailable";
   weakTopics: string[];
 }
 
@@ -136,7 +134,6 @@ type TabKey = "academic" | "growth" | "psychology" | "project" | "engagement" | 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "academic", label: "Academic" },
   { key: "growth", label: "Growth" },
-  { key: "psychology", label: "Psychology" },
   { key: "project", label: "Project" },
   { key: "engagement", label: "Engagement" },
   { key: "certificates", label: "Certificates" },
@@ -154,6 +151,7 @@ const BRIEFING_TONE: Record<Briefing["status"], string> = {
   on_track: "border-success-subtle bg-success-subtle/40 text-fg",
   needs_attention: "border-warning-subtle bg-warning-subtle/40 text-fg",
   at_risk: "border-danger-subtle bg-danger-subtle/40 text-fg",
+  unavailable: "border-line bg-bg-subtle text-fg-muted",
 };
 
 export function StudentProfile({ studentId }: { studentId: string }) {

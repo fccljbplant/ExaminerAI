@@ -34,6 +34,7 @@ interface Question {
   /** Additive (2026-09): difficulty band this test was generated for. */
   difficultyLevel?: number;
   difficultyLabel?: string;
+  generationFallback?: boolean;
 }
 
 interface StoredAnswer {
@@ -48,6 +49,8 @@ interface StartData {
   questions: Question[];
   status: "in_progress" | "completed";
   answers: (StoredAnswer | null)[];
+  aiFallback?: boolean;
+  studyTopicLabel?: string;
 }
 
 interface AnswerData {
@@ -80,7 +83,7 @@ export function DailyTestPanel({
   courseId: string;
   /** Current topic label ("Week X Day Y — title") for the badge. */
   topicLabel?: string;
-  onComplete?: (score: number) => void;
+  onComplete?: (score: number | null) => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [conversation, setConversation] = useState<ChatMessage[]>([]);
@@ -93,6 +96,8 @@ export function DailyTestPanel({
   const [score, setScore] = useState<number | null>(null);
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [generationWarning, setGenerationWarning] = useState<string | null>(null);
+  const [displayTopicLabel, setDisplayTopicLabel] = useState<string | undefined>(topicLabel);
   const scrollRef = useRef<HTMLDivElement>(null);
   const reportedRef = useRef(false);
 
@@ -117,6 +122,7 @@ export function DailyTestPanel({
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
+    setGenerationWarning(null);
     try {
       const res = await api.post<{ data: StartData }>(
         `/api/learn/daily-test/${todayKey()}/start`,
@@ -126,6 +132,12 @@ export function DailyTestPanel({
       const data = res.data;
       setDailyTestId(data.testId);
       setQuestions(data.questions);
+      setDisplayTopicLabel(data.studyTopicLabel ?? topicLabel);
+      if (data.aiFallback || data.questions.some((question) => question.generationFallback)) {
+        setGenerationWarning(
+          "AI question generation is temporarily unavailable. These guided fallback questions are being used; answer grading remains subject to a separate evaluation.",
+        );
+      }
       if (data.status === "completed") {
         const pct = toPercent(
           (data.answers ?? []).reduce<number>((acc, a) => acc + (a ? a.score : 0), 0),
@@ -150,7 +162,7 @@ export function DailyTestPanel({
     } finally {
       setLoading(false);
     }
-  }, [courseId, buildTranscript, onComplete]);
+  }, [courseId, topicLabel, buildTranscript, onComplete]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -201,7 +213,9 @@ export function DailyTestPanel({
       setConversation((prev) => [...prev, ...nextMsgs]);
 
       if (data.isComplete) {
-        const pct = toPercent(data.finalScore ?? 0, questions.length);
+        const pct = data.finalScore === null || !Number.isFinite(data.finalScore)
+          ? null
+          : toPercent(data.finalScore, questions.length);
         setIsComplete(true);
         setScore(pct);
         setLastFeedback(data.feedback);
@@ -215,7 +229,8 @@ export function DailyTestPanel({
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to send reply");
-      // Remove the optimistic message on failure.
+      setInput(msg);
+      // Remove the optimistic message on failure; the server did not save it.
       setConversation((prev) => prev.filter((m) => m !== studentMsg));
     } finally {
       setBusy(false);
@@ -234,34 +249,54 @@ export function DailyTestPanel({
 
   return (
     <Card className="border-brand/30 bg-surface">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base text-fg">
-          <CalendarCheck className="h-4 w-4 text-brand" /> Daily Check-in Test
-        </CardTitle>
-        <CardDescription className="text-fg-muted">
-          {topicLabel
-            ? `Covers today's topic: ${topicLabel}.`
-            : "Short 3-question Socratic test — sharpens your mastery data daily."}
+      <CardHeader className="space-y-3 pb-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+            <CalendarCheck className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-base text-fg">Daily Check-in</CardTitle>
+              <span className="rounded-full border border-line bg-bg-subtle px-2 py-0.5 text-[10px] font-medium text-fg-muted">After your study session</span>
+            </div>
+            <CardDescription className="text-fg-muted">
+          {displayTopicLabel
+            ? <>Checks your completed study topic: <span className="font-medium text-fg">{displayTopicLabel}</span>.</>
+            : "Checks your most recently completed study topic. The daily test follows the lesson."}
           {questions[0]?.difficultyLabel &&
             ` Difficulty: ${questions[0].difficultyLabel} (${questions[0].difficultyLevel}/5) — adapts to your results.`}
-        </CardDescription>
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
+        {generationWarning && (
+          <p role="status" aria-live="polite" className="flex items-start gap-2 rounded-xl border border-line bg-bg-subtle p-3 text-xs text-fg-secondary">
+            <CalendarCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+            {generationWarning}
+          </p>
+        )}
         {error && (
-          <div className="rounded-md bg-destructive/5 p-2 text-xs text-destructive">
+          <div role="alert" className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
             {error}
-            <button type="button" onClick={() => void load()} className="ml-2 underline">
+            <button type="button" onClick={() => void load()} className="ml-2 min-h-11 px-2 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
               Retry
             </button>
           </div>
         )}
 
         {/* Result card after completion */}
-        {isComplete && score !== null && (
-          <div className="py-4 text-center">
-            <CheckCircle2 className="mx-auto mb-2 h-10 w-10 text-success" />
+        {isComplete && (
+          <div className="rounded-2xl border border-success/20 bg-success/5 px-4 py-6 text-center">
+            <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
+              <CheckCircle2 className="h-8 w-8 text-success" aria-hidden="true" />
+            </span>
             <p className="text-sm font-medium text-fg">Daily test complete!</p>
-            <p className="mt-1 text-3xl font-bold text-fg">{score}%</p>
+            {score !== null ? (
+              <p className="mt-1 text-3xl font-bold text-fg">{score}%</p>
+            ) : (
+              <p className="mt-2 text-sm text-fg-muted">Score unavailable — the test is complete, but valid aggregate score evidence was not returned.</p>
+            )}
             {lastFeedback && (
               <p className="mx-auto mt-3 max-w-md rounded-lg bg-bg-subtle px-4 py-3 text-left text-xs leading-relaxed text-fg-secondary">
                 <span className="font-semibold text-fg">Examiner&apos;s note: </span>
@@ -283,7 +318,7 @@ export function DailyTestPanel({
               Done
             </Button>
             {/* Post-test reflection — "testing as learning" */}
-            <PostTestReflection score={score} testType="daily_test" />
+            {score !== null && <PostTestReflection score={score} testType="daily_test" />}
           </div>
         )}
 
@@ -297,7 +332,8 @@ export function DailyTestPanel({
             busy={busy}
             currentQuestion={currentQuestion}
             questionCountLabel={`Question ${Math.min(currentQuestion + 1, questions.length)} of ${questions.length}`}
-            topicBadge={topicLabel ?? "Today's topic"}
+            topicBadge={displayTopicLabel ?? "Today's topic"}
+            questionTotal={questions.length}
           />
         )}
       </CardContent>

@@ -97,10 +97,17 @@ export async function getCategoryLimit(category: AICategory): Promise<number> {
   try {
     const setting = await db.setting.findUnique({ where: { key: SETTING_KEYS[category] } });
     if (setting) {
-      const parsed = parseInt(setting.value, 10);
-      if (!isNaN(parsed) && parsed >= 0) return parsed;
+      const parsed = Number(setting.value);
+      if (Number.isSafeInteger(parsed) && parsed >= 0) return parsed;
+      throw new Error("AI category limit setting is invalid");
     }
-  } catch { /* fall through to default */ }
+  } catch (err) {
+    logger.warn("Failed to read AI category limit", {
+      category,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw new Error("AI rate-limit settings are unavailable");
+  }
   return DEFAULT_LIMITS[category];
 }
 
@@ -110,7 +117,7 @@ export async function isDemoAIEnabled(): Promise<boolean> {
     const setting = await db.setting.findUnique({ where: { key: "demo_ai_enabled" } });
     return setting ? setting.value === "true" : true; // default: enabled
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -143,12 +150,15 @@ async function countTodayUsage(userId: string, category: AICategory): Promise<nu
         userId,
         feature: { in: featuresInCategory },
         createdAt: { gte: start, lt: end },
-        success: true, // only count successful calls against the limit
       },
     });
   } catch (err) {
-    logger.warn("Failed to count AI usage", { userId, category, error: err instanceof Error ? err.message : String(err) });
-    return 0; // fail-open: if we can't count, allow the call
+    logger.warn("Failed to count AI usage; blocking the request", {
+      userId,
+      category,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw new Error("AI usage counts are unavailable");
   }
 }
 
@@ -210,32 +220,34 @@ export async function getOrgBudgetLimit(orgId: string): Promise<number | null> {
   try {
     const setting = await db.setting.findUnique({ where: { key: orgBudgetSettingKey(orgId) } });
     if (setting) {
-      const parsed = parseInt(setting.value, 10);
-      if (!Number.isNaN(parsed) && parsed >= 0) return parsed;
+      const parsed = Number(setting.value);
+      if (Number.isSafeInteger(parsed) && parsed >= 0) return parsed;
+      throw new Error("Organisation AI budget setting is invalid");
     }
   } catch (err) {
     logger.warn("Failed to read org AI budget setting", {
       orgId,
       error: err instanceof Error ? err.message : String(err),
     });
+    throw new Error("Organisation AI budget settings are unavailable");
   }
   return null;
 }
 
-/** Sum the org's successful AI token usage since the 1st of the month. */
+/** Sum all logged AI token usage since the 1st of the month, including failed attempts. */
 async function sumOrgMonthUsage(orgId: string): Promise<number> {
   try {
     const aggregate = await db.aIUsageLog.aggregate({
-      where: { orgId, createdAt: { gte: startOfUTCMonth() }, success: true },
+      where: { orgId, createdAt: { gte: startOfUTCMonth() } },
       _sum: { totalTokens: true },
     });
     return aggregate._sum.totalTokens ?? 0;
   } catch (err) {
-    logger.warn("Failed to count org AI usage", {
+    logger.warn("Failed to count org AI usage; blocking the request", {
       orgId,
       error: err instanceof Error ? err.message : String(err),
     });
-    return 0; // fail-open: an uncountable budget must not block AI
+    throw new Error("Organisation AI usage is unavailable");
   }
 }
 

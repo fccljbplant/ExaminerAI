@@ -542,3 +542,15 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - The document consolidates the recent security, privacy, assessment, data, AI, operational, UX and accessibility audit findings into a bottom-up remediation sequence and integrated component work-card template.
 - Findings are explicitly marked for revalidation against current main before implementation; no application source, schema, migration, dependency, production data or runtime configuration was changed.
 - No tests/build were run for this documentation-only change. No application fixes were started.
+
+## 2026-11-12 — UI-first component work begins (Daily Test)
+
+- Resumed the preserved local main worktree at base SHA 18b2b95011b0480f4176a0d2881788070ddf74c2; origin/main matched at start and only main was listed by the live branch search.
+- Reprioritised delivery to the owner's screen-first direction: each visible component work card combines UX, functional behavior, API/data scope, security, responsive behavior and accessibility. UI is the primary visible outcome; security is addressed in the same component, not as a separate phase.
+- Daily Test first pass: clearer check-in header and study context, topic badge, accessible question progress, refined conversation surface/message hierarchy, labeled answer composer, responsive action layout, explicit busy/error/completion semantics. Shared TestChatUI changes also apply to Practice and Weekly Test consumers; optional progress total prevents misleading progress on other consumers.
+- Added SSR-based UI regression tests for topic/progress/accessible composer and for omitting progress when total is unknown.
+- Continued the recovered API/data work in the same batch. Closed two known legacy portfolio scope gaps: org admins receive date-only daily-log rows; global course-less competencies are omitted for course-scoped instructors/org admins. Added regression assertions.
+- Validation on a disposable local SQLite DB only: full Vitest suite passed (466/466 tests across 155 files); full ESLint passed; TypeScript tsc --noEmit passed; git diff --check passed. Tutor-context seed-dependent assertions still skip when socratic.test seed is absent.
+- Production build compiled but could not complete in the sandbox: default Node heap OOM; retry with 1.8 GB heap was SIGKILLed by sandbox memory limits during build. No production DB accessed, no production migration or deploy.
+- Browser screenshot/manual responsive and WCAG checks remain unrun (no Chrome/Chromium available in this sandbox). No commit/push yet at this entry; preserve progress by committing the validated batch to main after final diff review.
+- Next UI card: finish Daily Test visual review and then continue learner journey screens in bottom-up order; keep AI scoring rubric and consent-dependent support processing blocked pending owner/professional approval.

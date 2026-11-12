@@ -1192,3 +1192,14 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Each component work card combines visual/UX, functionality, authorization, data integrity, AI governance, accessibility and QA.
 - Findings are marked for revalidation against current main before implementation. No application source, schema, migration, dependency, production data or runtime configuration changed.
 - No tests, lint, typecheck, build, browser or accessibility checks were run for this documentation-only update.
+
+## 2026-11-12 — UI-first Daily Test pass and combined regression checks
+
+- Resumed saved Vercel workspace after owner approved team access. Verified branch main, HEAD and origin/main both 18b2b95011b0480f4176a0d2881788070ddf74c2; live branch listing contained only main.
+- Recovered uncommitted changes from previous session; did not assume they had persisted until checked.
+- Owner feedback applied: UI is the primary focus. Updated Daily Test and shared TestChatUI presentation: icon-led check-in header, lesson/topic context, topic badge, accessible question progress, clearer conversation surface, message hierarchy, answer label/hint, larger composer and responsive action buttons. Added TestChatUI.test.ts SSR regression coverage.
+- Alongside this screen, closed portfolio privacy/scope gaps: org_admin daily-log selection limited to date; course-scoped instructor/org_admin responses omit course-less global competency records. Added test assertions.
+- Full test suite passed on disposable local SQLite DB. Full ESLint passed. tsc --noEmit passed. git diff --check passed. The tutor-context test still skipped seed-dependent assertions because socratic.test seed was missing.
+- Build compiled successfully but could not complete: Node heap OOM at default; retry with --max-old-space-size=1800 was SIGKILLed by sandbox memory limit during build worker. Browser screenshot and manual responsive/WCAG review not run; Chrome/Chromium unavailable.
+- No production database accessed; no production migration, deployment, or production setting change. Temporary SQLite test DB files removed. No commit/push had been made at the time of this log entry.
+- Next: commit/push reviewed changes to main; continue screen-first UI enhancements with all related behavior, data scope, security and accessibility checked together. AI scoring rubric and consent-dependent learner-support processing remain blocked pending explicit approvals.

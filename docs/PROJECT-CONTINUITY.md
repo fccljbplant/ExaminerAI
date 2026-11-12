@@ -169,3 +169,14 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 
 
 > **Audit-plan update — 12 November 2026:** Added `docs/UPGRADE-2026-11/COMBINED-AUDIT-AND-FIXATION-PLAN.md` in commit `9e16504ea416d71773a909dc7b0cd27d91209e08`. It consolidates the recent audit into a bottom-up sequence and integrated component work-card format. Treat findings as observations to revalidate against current main before implementation; no application fixes were made in this documentation update.
+
+## 2026-11-12 — Current continuation point: screen-first delivery
+
+- Working base: main at 18b2b95011b0480f4176a0d2881788070ddf74c2; recovered worktree contained the uncommitted audit/fix batch and was aligned with origin/main.
+- Owner's explicit priority: improve UI first. For every screen, combine the visual redesign with behavior, permissions/data scope, security, responsive states and accessibility. Do not drift into a security-only audit phase.
+- First screen: Daily Test. DailyTestPanel.tsx and shared TestChatUI.tsx now have a clearer check-in header/context, topic badge, optional accessible question-progress meter, clearer message surface, labeled answer composer and mobile-friendly action layout. TestChatUI.test.ts checks progress and accessible composer markup.
+- Shared chat component is used by Practice and Weekly Test. Verify those consumers in later visual passes; no progress meter is shown unless a real question total is supplied.
+- Portfolio API scope hardening: org-admin daily logs select only date; global competencies without course ownership are hidden from course-scoped instructor/org-admin results. Tests added.
+- Validation: full Vitest suite, full ESLint, tsc --noEmit, and git diff --check passed on a disposable local SQLite DB. Tutor-context seeded assertions skipped because the optional seed was missing. Build compile succeeded, but build worker was killed by sandbox memory limits; no successful production build claim. Browser screenshots/manual WCAG checks remain unrun because Chrome/Chromium is unavailable.
+- Known unresolved decisions: approved deterministic scoring rubric for AI evaluation; consent/legal/professional review for learner support/psychology; global SkillMastery/Competency ownership semantics; full cross-tenant audit. Do not guess or unblock these.
+- Next: final diff review, commit/push the validated work to main, then continue with the next learner-facing screen after Daily Test. Do not deploy or touch production settings/DB.

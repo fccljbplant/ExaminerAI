@@ -15,7 +15,9 @@ export async function isFeatureEnabled(name: string): Promise<boolean> {
     setTimeout(() => cache.delete(name), 30_000);
     return enabled;
   } catch {
-    return true; // default: enabled on error
+    // An unavailable settings store is not authorization to run a gated feature.
+    // Keep the failure uncached so a later request can re-check the source of truth.
+    return false;
   }
 }
 

@@ -9,6 +9,7 @@
  * new level, an additional XP_AMOUNTS.level_raise (75) bonus is added.
  */
 
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { LEARNER_LEVELS, XP_AMOUNTS, type XPReason } from "../types";
 
@@ -20,71 +21,83 @@ export interface AwardXPInput {
  referenceId?: string; // optional: slideId, topicKey, testId, etc.
 }
 
-/** Append an entry to XPLedger and update LearnProfile.totalXP + learnerLevel.
- * Returns the new total XP for the user (sum across all courses). */
-export async function awardXP(input: AwardXPInput): Promise<number> {
- // 1. Append the ledger entry.
- await db.xPLedger.create({
- data: {
- userId: input.userId,
- courseId: input.courseId ?? null,
- amount: input.amount,
- reason: input.reason,
- referenceId: input.referenceId ?? null,
- },
+type XpAwardClient = Pick<Prisma.TransactionClient, "xPLedger" | "learnProfile">;
+
+/** Sum ledger entries through the supplied client (also works inside a transaction). */
+async function getTotalXPWithClient(client: XpAwardClient, userId: string): Promise<number> {
+ const rows = await client.xPLedger.aggregate({
+  where: { userId },
+  _sum: { amount: true },
+ });
+ return rows._sum.amount ?? 0;
+}
+
+/**
+ * Append an entry to XPLedger and update LearnProfile.totalXP + learnerLevel
+ * using the supplied Prisma client. Passing a transaction client makes the
+ * ledger entry, denormalized profile total and any level-up bonus atomic.
+ */
+export async function awardXPWithClient(
+ client: XpAwardClient,
+ input: AwardXPInput,
+): Promise<number> {
+ await client.xPLedger.create({
+  data: {
+   userId: input.userId,
+   courseId: input.courseId ?? null,
+   amount: input.amount,
+   reason: input.reason,
+   referenceId: input.referenceId ?? null,
+  },
  });
 
- // 2. Update LearnProfile if courseId was provided.
  if (input.courseId) {
- const profile = await db.learnProfile.findUnique({
- where: { userId_courseId: { userId: input.userId, courseId: input.courseId } },
- });
- if (profile) {
- const prevTotal = profile.totalXP;
- const newTotal = prevTotal + input.amount;
- const prevLevel = getLearnerLevel(prevTotal).name;
- const newLevelName = getLearnerLevel(newTotal).name;
+  const profile = await client.learnProfile.findUnique({
+   where: { userId_courseId: { userId: input.userId, courseId: input.courseId } },
+  });
+  if (profile) {
+   const prevTotal = profile.totalXP;
+   const newTotal = prevTotal + input.amount;
+   const prevLevel = getLearnerLevel(prevTotal).name;
+   const newLevelName = getLearnerLevel(newTotal).name;
 
- // Level-up bonus — fire-and-forget (recursive but bounded).
- if (newLevelName !== prevLevel) {
- // Award the level-raise bonus on top of the original amount.
- // We do this AFTER the main update to avoid recursion on the
- // same level transition.
- await db.learnProfile.update({
- where: { id: profile.id },
- data: {
- totalXP: newTotal + XP_AMOUNTS.level_raise,
- learnerLevel: newLevelName,
- },
- });
- await db.xPLedger.create({
- data: {
- userId: input.userId,
- courseId: input.courseId,
- amount: XP_AMOUNTS.level_raise,
- reason: "level_raise",
- referenceId: `level:${newLevelName}`,
- },
- });
- } else {
- await db.learnProfile.update({
- where: { id: profile.id },
- data: { totalXP: newTotal },
- });
- }
- }
+   if (newLevelName !== prevLevel) {
+    await client.learnProfile.update({
+     where: { id: profile.id },
+     data: {
+      totalXP: newTotal + XP_AMOUNTS.level_raise,
+      learnerLevel: newLevelName,
+     },
+    });
+    await client.xPLedger.create({
+     data: {
+      userId: input.userId,
+      courseId: input.courseId,
+      amount: XP_AMOUNTS.level_raise,
+      reason: "level_raise",
+      referenceId: "level:" + newLevelName,
+     },
+    });
+   } else {
+    await client.learnProfile.update({
+     where: { id: profile.id },
+     data: { totalXP: newTotal },
+    });
+   }
+  }
  }
 
- return getTotalXP(input.userId);
+ return getTotalXPWithClient(client, input.userId);
+}
+
+/** Award XP outside a transaction (legacy convenience wrapper). */
+export async function awardXP(input: AwardXPInput): Promise<number> {
+ return awardXPWithClient(db, input);
 }
 
 /** Sum all XPLedger entries for a user (across all courses). */
 export async function getTotalXP(userId: string): Promise<number> {
- const rows = await db.xPLedger.aggregate({
- where: { userId },
- _sum: { amount: true },
- });
- return rows._sum.amount ?? 0;
+ return getTotalXPWithClient(db, userId);
 }
 
 /** Return the LearnerLevel for a given XP total. Pure function. */
@@ -119,17 +132,28 @@ export async function getXPHistory(
 }
 
 /** Award XP for a known reason (typed). Convenience wrapper. */
+export async function awardTypedXPWithClient(
+ client: XpAwardClient,
+ userId: string,
+ reason: XPReason,
+ courseId?: string,
+ referenceId?: string,
+): Promise<number> {
+ return awardXPWithClient(client, {
+  userId,
+  courseId,
+  amount: XP_AMOUNTS[reason],
+  reason,
+  referenceId,
+ });
+}
+
+/** Award XP for a known reason (typed). Convenience wrapper. */
 export async function awardTypedXP(
  userId: string,
  reason: XPReason,
  courseId?: string,
  referenceId?: string,
 ): Promise<number> {
- return awardXP({
- userId,
- courseId,
- amount: XP_AMOUNTS[reason],
- reason,
- referenceId,
- });
+ return awardTypedXPWithClient(db, userId, reason, courseId, referenceId);
 }

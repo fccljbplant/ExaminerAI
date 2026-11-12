@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify as joseVerify } from "jose";
+import { getMiddlewareJwtSecret } from "@/lib/auth-policy";
 
 /** Verify a JWT token using the configured secret.
  *  Uses jose (Edge-compatible) instead of jsonwebtoken (Node.js crypto only). */
@@ -196,8 +197,21 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── Verify JWT ───────────────────────────────────────────────
+  const secret = getMiddlewareJwtSecret(process.env);
+  if (!secret) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { ok: false, error: "Authentication is temporarily unavailable", code: "AUTH_CONFIG_UNAVAILABLE" },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    return new NextResponse("Authentication is temporarily unavailable.", {
+      status: 503,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+
   try {
-    const secret = process.env.JWT_SECRET || "examiner-ai-dev-secret-change-me";
     const payload = await verifyJwt(token, secret);
 
     // Add user info to request headers for downstream handlers
