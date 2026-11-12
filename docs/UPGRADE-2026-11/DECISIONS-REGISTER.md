@@ -85,3 +85,8 @@ The source prompt proposed 180-day signal retention and S1/S2/S3 service targets
 10. What production deployment mechanism is acceptable while direct development happens on main?
 
 Record each answer with date, owner, rationale and affected workstreams. Do not silently decide legal, clinical, provider or spending questions.
+
+## 2026-11-12 — Check-in calendar boundary (open)
+
+- The existing check-in write and the new read use the application server's local calendar-day boundary. The read mirrors the existing write; this fixation does not redefine the meaning of “today”.
+- Before changing this behavior, decide whether a check-in day is defined by the learner, course, organisation or UTC. Consider cross-midnight learners and daylight-saving transitions. `DailyLog` currently has no explicit timezone field.

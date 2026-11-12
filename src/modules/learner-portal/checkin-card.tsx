@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, ChevronDown, History, Loader2, Trash2 } from "lucide-react";
 import { api } from "@/lib/api-client";
@@ -50,6 +50,60 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [checkinLoading, setCheckinLoading] = useState(Boolean(courseId));
+  const [checkinLoadError, setCheckinLoadError] = useState<string | null>(null);
+  const [checkinRetry, setCheckinRetry] = useState(0);
+
+  useEffect(() => {
+    if (!courseId) {
+      setCheckinLoading(false);
+      setDone(false);
+      setNote("");
+      setConfidence(3);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadTodayCheckin() {
+      setCheckinLoading(true);
+      setCheckinLoadError(null);
+      setDone(false);
+      setNote("");
+      setConfidence(3);
+      try {
+        const response = await fetch(
+          `/api/v2/learn/checkin?courseId=${encodeURIComponent(courseId)}`,
+          { headers: { Accept: "application/json" } },
+        );
+        const payload = await response.json() as {
+          ok?: boolean;
+          data?: { checkin?: { id: string; whatDidYouDo: string; confidence: number | null } | null };
+          error?: string;
+        };
+        if (!response.ok || !payload.ok || !payload.data) {
+          throw new Error(payload.error || "Today's check-in is temporarily unavailable");
+        }
+        if (cancelled) return;
+        const saved = payload.data.checkin;
+        if (saved) {
+          setNote(saved.whatDidYouDo);
+          setConfidence(saved.confidence ?? 3);
+          setDone(true);
+        } else {
+          setDone(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setCheckinLoadError(err instanceof Error ? err.message : "Today's check-in is temporarily unavailable");
+        }
+      } finally {
+        if (!cancelled) setCheckinLoading(false);
+      }
+    }
+
+    void loadTodayCheckin();
+    return () => { cancelled = true; };
+  }, [courseId, checkinRetry]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,6 +115,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
         whatDidYouDo: note.trim(),
         confidence,
       });
+      setCheckinLoadError(null);
       setDone(true);
       toast.success("Check-in saved", { description: "Your instructor can see today's update." });
     } catch (err) {
@@ -124,6 +179,23 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
 
   return (
     <section aria-label="Daily check-in" className="rounded-xl border border-line bg-surface p-4">
+      {checkinLoading && (
+        <p className="py-2 text-xs text-fg-muted" role="status" aria-busy="true">
+          Checking today's saved check-in…
+        </p>
+      )}
+      {checkinLoadError && (
+        <div className="flex flex-wrap items-center justify-between gap-2 py-2" role="alert">
+          <p className="text-xs text-danger">{checkinLoadError}</p>
+          <button
+            type="button"
+            onClick={() => setCheckinRetry((value) => value + 1)}
+            className="min-h-11 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            Retry check-in status
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -248,7 +320,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
           <p className="text-right text-xs text-fg-muted">{note.length}/2,000</p>
           <button
             type="submit"
-            disabled={saving || !courseId || !note.trim()}
+            disabled={saving || checkinLoading || !courseId || !note.trim()}
             className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCircle2 className="h-4 w-4" aria-hidden />}

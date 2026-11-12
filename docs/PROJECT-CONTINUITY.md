@@ -281,3 +281,13 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Screenshot accessibility metrics are heuristic DOM checks only, not axe/WCAG conformance or manual assistive-technology testing. Manual Tab/Shift+Tab behavior, focus contrast, touch/keyboard scroll interaction and screen-reader review remain outstanding. Learner Today is not signed off; do not advance to another screen until those checks are completed.
 - Vercel deployment lookup for c9cbb80cd522fa4145d45f2299b863d725661915 returned zero deployments. Git deployments remain disabled. No production deployment, database access, schema/migration, dependency, provider or production-data changes.
 - Repository branch inventory at the prior live check contained only main; no open PRs. GitHub reports main as unprotected. No repository settings were changed.
+
+## 2026-11-12 — Learner check-in refresh persistence
+
+- Baseline: live `main` at `805da1df52e00ea3d11f14129581ad5cc47fb8f4`. Added an authenticated `GET /api/v2/learn/checkin?courseId=...` that requires learner role and active student course enrollment, then selects only that learner/course's current-day check-in fields.
+- Learner Today now restores the saved check-in message and confidence after reload, returns to the saved-state view, and offers a retryable loading error instead of silently treating an unavailable read as no check-in. The save action remains available after a read failure; server-side POST continues to upsert.
+- GET intentionally mirrors POST's existing server-local calendar-day boundary; no date/timezone policy was changed. A course/user timezone policy remains an open product question before any broader calendar semantics change.
+- Regression coverage: GET returns selected-course learner data, null when absent, and rejects missing scope, unenrolled course, unauthenticated and non-learner callers.
+- Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 55 files / 486 tests passed. Focused check-in suite: 2 files / 8 tests passed. ESLint passed on four changed source/test files; `git diff --check` passed. TypeScript `--noEmit --skipLibCheck` ran out of heap at 1.4 GB in the 2 GB sandbox. No typecheck pass is claimed. Build and browser/manual accessibility checks were not run.
+- No schema/migration, production DB/data access, dependency/provider, Vercel deployment or production-setting changes. Vercel Git deployment remains disabled in `vercel.json`; exact baseline SHA had no Vercel deployment record and no GitHub status checks.
+- Learner Today remains open pending manual responsive, keyboard and screen-reader review; saved-state refresh persistence is addressed by this slice.

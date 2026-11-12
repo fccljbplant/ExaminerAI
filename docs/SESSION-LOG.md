@@ -1306,3 +1306,12 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - `vercel.json` keeps Git deployments disabled. Vercel returned zero deployments for both application commits. No manual deployment, production database access, schema/migration, production data change, dependency or provider change.
 - Remaining Learner Today work: inspect check-in state after a page refresh (the current saved-state flag is component-local), then complete responsive visual, keyboard and screen-reader review before closing the screen.
 
+## 2026-11-12 — Learner check-in refresh persistence
+
+- Baseline: live `main` at `805da1df52e00ea3d11f14129581ad5cc47fb8f4`. Added an authenticated `GET /api/v2/learn/checkin?courseId=...` that requires learner role and active student course enrollment, then selects only that learner/course's current-day check-in fields.
+- Learner Today now restores the saved check-in message and confidence after reload, returns to the saved-state view, and offers a retryable loading error instead of silently treating an unavailable read as no check-in. The save action remains available after a read failure; server-side POST continues to upsert.
+- GET intentionally mirrors POST's existing server-local calendar-day boundary; no date/timezone policy was changed. A course/user timezone policy remains an open product question before any broader calendar semantics change.
+- Regression coverage: GET returns selected-course learner data, null when absent, and rejects missing scope, unenrolled course, unauthenticated and non-learner callers.
+- Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 55 files / 486 tests passed. Focused check-in suite: 2 files / 8 tests passed. ESLint passed on four changed source/test files; `git diff --check` passed. TypeScript `--noEmit --skipLibCheck` ran out of heap at 1.4 GB in the 2 GB sandbox. No typecheck pass is claimed. Build and browser/manual accessibility checks were not run.
+- No schema/migration, production DB/data access, dependency/provider, Vercel deployment or production-setting changes. Vercel Git deployment remains disabled in `vercel.json`; exact baseline SHA had no Vercel deployment record and no GitHub status checks.
+- Learner Today remains open pending manual responsive, keyboard and screen-reader review; saved-state refresh persistence is addressed by this slice.

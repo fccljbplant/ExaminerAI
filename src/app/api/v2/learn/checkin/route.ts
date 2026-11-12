@@ -26,6 +26,41 @@ const CheckinSchema = z.object({
   learningReflection: z.string().max(2_000).optional(),
 });
 
+export async function GET(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return apiUnauthorized();
+  if (!LEARNER_ROLES.has(user.role)) {
+    return apiError("Learner access only", "FORBIDDEN", 403);
+  }
+
+  const courseId = req.nextUrl.searchParams.get("courseId");
+  if (!courseId) {
+    return apiError("courseId is required", "VALIDATION_ERROR", 400);
+  }
+
+  // Keep the read boundary identical to POST's existing server-calendar-day
+  // upsert boundary. This avoids changing the established date semantics.
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) {
+    return apiError("You are not enrolled in this course", "FORBIDDEN", 403);
+  }
+
+  const checkin = await db.dailyLog.findFirst({
+    where: { userId: user.sub, courseId, date: { gte: start, lt: end } },
+    select: { id: true, date: true, whatDidYouDo: true, confidence: true },
+  });
+
+  return apiSuccess({ checkin });
+}
+
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
