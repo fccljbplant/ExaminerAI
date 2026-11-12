@@ -27,10 +27,9 @@ export function CheckInSavedState({ onEdit }: { onEdit: () => void }) {
   return (
     <section
       aria-label="Daily check-in"
-      role="status"
       className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success-subtle bg-success-subtle p-4"
     >
-      <p className="flex items-center gap-2 text-sm font-medium text-success-on">
+      <p role="status" className="flex items-center gap-2 text-sm font-medium text-success-on">
         <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
         Today's check-in is saved for this course.
       </p>
