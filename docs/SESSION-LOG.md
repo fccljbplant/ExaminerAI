@@ -1407,3 +1407,12 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Validation: 6 focused files / 25 tests passed; ESLint passed on all three changed files; `git diff --check` passed. Exact-head Actions run `43271612393` was in progress at record time; build/typecheck/browser validation is not claimed.
 - No DB/schema/migration, dependency/provider, production-data, Vercel-setting or deployment changes. No Vercel deployment was found for the source commit.
 - Next: make the learner Projects convenience view course-first with the same eligibility rule, then integrate projects/assignments into course workspace and sequence while preserving existing workflows.
+
+
+## 2026-11-12 — Learner Projects page course-first integration
+
+- API commit: `7e1721c0dac2f41a014eca1fadc67a9eb1bb47df`; UI/test commit: `fd2795ca460e24176be840a59116460f75e29e9c`.
+- Learner Projects now lists only course-owned projects from current student enrolments. Course-less legacy records remain stored but are not presented as active course work. Specific-course reads remain enrolment-checked.
+- Project cards display their owning course. With no current course enrolments, the proposal form is replaced by a clear course-required explanation. Proposal creation, approval, milestones and timeline behavior remain intact.
+- Validation: 2 files / 11 tests passed; ESLint on four changed files and `git diff --check` passed. Actions run `43272947921` was pending at record time; no typecheck/build/browser pass is claimed.
+- No DB/data mutation, schema/migration, dependency/provider, Vercel settings or deployment changes. The existing model has no shared course activity number; do not fabricate one or migrate without approval.
