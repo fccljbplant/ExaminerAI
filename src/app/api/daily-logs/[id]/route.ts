@@ -65,10 +65,10 @@ export async function PATCH(
   return NextResponse.json({ log });
 }
 
-/** DELETE /api/daily-logs/[id] — delete a daily check-in + its comments (cascade).
+/** DELETE /api/daily-logs/[id] — delete a check-in only when no mentor feedback is attached.
  *
- *  Students can delete their OWN check-ins. Staff can delete check-ins for
- *  students they have access to.
+ *  Instructor feedback is an independent mentoring record. Deleting a learner
+ *  check-in must not silently erase that record.
  */
 export async function DELETE(
   _req: NextRequest,
@@ -87,10 +87,22 @@ export async function DELETE(
   const ownership = await verifyDailyLogOwnership(payload, id);
   if ("error" in ownership) return ownership.error;
 
-  // Cascade: delete all comments referencing this check-in first
-  await db.$transaction(async (tx) => {
-    await tx.comment.deleteMany({ where: { dailyLogId: id } });
+  // Keep instructor feedback intact. SQLite transactions are serializable by
+  // default, so the comment check and parent deletion share one atomic unit.
+  const hasMentorFeedback = await db.$transaction(async (tx) => {
+    const commentCount = await tx.comment.count({ where: { dailyLogId: id } });
+    if (commentCount > 0) return true;
+
     await tx.dailyLog.delete({ where: { id } });
+    return false;
   });
+
+  if (hasMentorFeedback) {
+    return NextResponse.json(
+      { error: "This check-in has mentor feedback and can't be deleted. Edit the check-in instead to keep the mentoring history." },
+      { status: 409 },
+    );
+  }
+
   return NextResponse.json({ ok: true });
 }
