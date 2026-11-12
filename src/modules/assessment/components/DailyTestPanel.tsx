@@ -98,7 +98,6 @@ export function DailyTestPanel({
   const [error, setError] = useState("");
   const [generationWarning, setGenerationWarning] = useState<string | null>(null);
   const [displayTopicLabel, setDisplayTopicLabel] = useState<string | undefined>(topicLabel);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const reportedRef = useRef(false);
 
   /** Build the chat transcript from stored questions + answers. */
@@ -166,13 +165,6 @@ export function DailyTestPanel({
 
   useEffect(() => { void load(); }, [load]);
 
-  // Auto-scroll to bottom on new messages.
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [conversation, busy]);
-
   const sendReply = async () => {
     if (!dailyTestId || !input.trim() || busy) return;
     const msg = input.trim();
@@ -239,9 +231,10 @@ export function DailyTestPanel({
 
   if (loading) {
     return (
-      <Card className="border-line bg-surface">
-        <CardContent className="flex items-center justify-center p-6">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+      <Card className="border-line bg-surface" aria-busy="true">
+        <CardContent role="status" aria-live="polite" className="flex items-center justify-center gap-3 p-6 text-sm text-fg-muted">
+          <Loader2 className="h-5 w-5 animate-spin text-brand motion-reduce:animate-none" aria-hidden="true" />
+          <span>Loading your daily check-in…</span>
         </CardContent>
       </Card>
     );

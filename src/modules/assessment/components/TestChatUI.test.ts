@@ -29,6 +29,8 @@ describe("TestChatUI accessible learning layout", () => {
     expect(html).toContain('aria-valuemax="3"');
     expect(html).toContain('aria-valuenow="2"');
     expect(html).toContain('aria-label="Test conversation"');
+    expect(html).toContain('aria-busy="false"');
+    expect(html).toContain('style="max-height:40vh"');
     expect(html).toContain('for="test-answer-input"');
     expect(html).toContain('id="test-answer-input"');
     expect(html).toContain("Your answer");
@@ -46,5 +48,21 @@ describe("TestChatUI accessible learning layout", () => {
     );
 
     expect(html).not.toContain('role="progressbar"');
+  });
+
+  it("bounds the conversation scroll region and exposes its busy state", () => {
+    const html = renderToStaticMarkup(
+      createElement(TestChatUI, {
+        conversation: [],
+        input: "An answer",
+        onInputChange: () => undefined,
+        onSend: () => undefined,
+        busy: true,
+        maxHeight: "55vh",
+      }),
+    );
+
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain('style="max-height:55vh"');
   });
 });

@@ -60,8 +60,7 @@ interface TestChatUIProps {
   /** 0-based index of the current question. Used to show "Q{N+1}" on the
    *  examiner's bubble. Pass -1 or undefined to hide. */
   currentQuestion?: number;
-  /** One-line hint shown above the chat box — e.g. "This test asks 3 questions."
-   *  Set once at test start; not updated per-reply. */
+  /** Current question context shown above the chat, e.g. "Question 2 of 3". */
   questionCountLabel?: string;
   questionTotal?: number;
   topicBadge?: string;
@@ -96,9 +95,7 @@ export function TestChatUI({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Single-line question count hint — shown once, not per-reply.
-          No progress bar, no "Q3 of 10", no "Reply 2 of 5". Just the
-          question number badge on each examiner bubble + this hint. */}
+      {/* Assessment context and verified question progress. */}
       {(questionCountLabel || topicBadge) && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
           <div className="flex min-w-0 items-center gap-2">
@@ -147,6 +144,8 @@ export function TestChatUI({
         aria-label="Test conversation"
         aria-live="polite"
         aria-relevant="additions"
+        aria-busy={busy}
+        style={{ maxHeight }}
         className="flex-1 min-h-[220px] overflow-y-auto space-y-3 rounded-2xl border border-line bg-bg-subtle/45 p-3 sm:p-4"
       >
         {conversation.map((m, i) => (
@@ -203,7 +202,7 @@ export function TestChatUI({
           <div className="flex justify-start">
             <div className="bg-bg-subtle rounded-2xl rounded-bl-md px-4 py-2.5 text-sm flex items-center gap-2">
               <Brain className="h-3 w-3 text-brand opacity-70" />
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" />
               <span className="text-xs text-fg-muted">TraineesAI is thinking...</span>
             </div>
           </div>
