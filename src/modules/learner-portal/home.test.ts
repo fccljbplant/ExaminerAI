@@ -43,10 +43,13 @@ describe("LearnerHome metric strip", () => {
   it("makes the horizontally scrollable metrics keyboard reachable and discoverable", async () => {
     const { StatStrip } = await import("@/modules/ui/kpi");
     const html = renderToStaticMarkup(
-      createElement(StatStrip, { scrollHint: "Swipe to view all metrics" },
-        createElement("div", null, "Streak"),
-        createElement("div", null, "Total XP"),
-      ),
+      createElement(StatStrip, {
+        scrollHint: "Swipe to view all metrics",
+        children: [
+          createElement("div", { key: "streak" }, "Streak"),
+          createElement("div", { key: "xp" }, "Total XP"),
+        ],
+      }),
     );
 
     expect(html).toContain('role="region"');
