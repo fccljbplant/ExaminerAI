@@ -562,3 +562,15 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Production build compiled but could not complete in the sandbox: default Node heap OOM; retry with 1.8 GB heap was SIGKILLed by sandbox memory limits during build. No production DB accessed, no production migration or deploy.
 - Browser screenshot/manual responsive and WCAG checks remain unrun (no Chrome/Chromium available in this sandbox). No commit/push yet at this entry; preserve progress by committing the validated batch to main after final diff review.
 - Next UI card: finish Daily Test visual review and then continue learner journey screens in bottom-up order; keep AI scoring rubric and consent-dependent support processing blocked pending owner/professional approval.
+
+
+## 2026-11-12 — Learner Today daily check-in fixation
+
+- Implementation committed directly to `main`: `d62076da989b2a1e8bf725e87f1f6264a6b1b8ed` (`fix: scope learner check-ins to enrolled courses`).
+- Learner check-in writes now verify a `CourseEnrollment` row for the authenticated learner, requested course and student role before creating/updating a daily log or engagement event. Unenrolled course IDs return 403.
+- Daily-log history now honors the selected `courseId` while retaining the authenticated learner filter. The learner card now distinguishes history-load failure from a genuine empty list and offers retry; its confidence selector uses native keyboard-operable radio inputs, and the note field has a visible label, 2,000-character limit/count and improved focus treatment.
+- Added route and component regression tests. Targeted Vitest: 3 files / 5 tests passed. ESLint on all six changed source/test files exited 0. `git diff --check` passed. `tsc --noEmit --pretty false --skipLibCheck` passed with a 1.5 GB Node heap; full `tsc --noEmit` hit the sandbox's ~1 GB heap limit. No production build, browser screenshot or manual WCAG review was run.
+- Fresh `bun install --frozen-lockfile` could not proceed because the existing `package.json` and `bun.lock` disagree about Prisma dependency groups. No lockfile or dependency was changed. Tests used the already-installed workspace dependencies; this limits reproducibility until the lockfile mismatch is reviewed.
+- Vercel auto Git deployment remains disabled by `vercel.json` (`git.deploymentEnabled: false`). After this code commit, Vercel still reported zero queued/building deployments and no deployment for SHA `d62076d`. GitHub Actions run `43142609752` was in progress at the time of this record.
+- Next: continue Learner Today home-level fixation, including the profile-count versus CourseEnrollment count discrepancy and continue-card data selection. Revalidate the current implementation before changes. Keep learner-support processing blocked pending consent/legal/professional approvals.
+- No production database access, schema/migration changes, new dependency/provider, manual deployment or production setting changes.

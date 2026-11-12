@@ -1,3 +1,13 @@
+## 2026-11-12 — Learner Today check-in slice committed
+
+- Current main: `d62076da989b2a1e8bf725e87f1f6264a6b1b8ed`.
+- The daily check-in API now requires an enrollment row matching learner, course and student role before writing. The daily-log history endpoint applies the selected course filter in addition to the authenticated user ID.
+- The CheckInCard now shows a distinct retryable history error instead of presenting fetch failures as an empty list; confidence uses native radio controls; note input is labeled and length-bounded.
+- Tests: 5 targeted tests passed; ESLint passed; reduced-memory TypeScript with `skipLibCheck` passed. Full TypeScript check OOMed under sandbox heap; production build and manual browser/WCAG review remain outstanding.
+- Frozen Bun install revealed a pre-existing Prisma dependency-group mismatch between package.json and bun.lock. No lockfile changes were made.
+- Vercel Git auto-deployment remains disabled in vercel.json; no queued/building deployment or deployment for this SHA was present after commit. GitHub Actions run `43142609752` was in progress at last check.
+- Next: finish the rest of Learner Today home; revalidate course enrollment count and continue-card source before implementation.
+
 ## 2026-11-12 — Main-only fixation and deployment pause
 
 - Owner approved direct commits to `main` and asked to stop Vercel deployments. Commit `9f104e90855a8953483300da70202e6c06786206` sets `git.deploymentEnabled: false` in `vercel.json` to prevent automatic Git-triggered deployments on all branches. Manual deployments remain possible only by explicit action; no manual deployment was initiated.

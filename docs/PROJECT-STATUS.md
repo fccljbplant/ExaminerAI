@@ -1,3 +1,15 @@
+# CURRENT LIVE UPDATE — 12 November 2026 (Learner Today fixation)
+
+- Current live `main`: `d62076da989b2a1e8bf725e87f1f6264a6b1b8ed`.
+- UI-first Learner Today daily check-in slice committed. Check-in writes verify learner/course enrollment; history is filtered by selected course and authenticated learner; history failure is visible with retry; confidence controls are native radios; note input is labeled and bounded.
+- Targeted Vitest: 3 files / 5 tests passed. Changed-file ESLint passed. Reduced-memory TypeScript with `skipLibCheck` passed; full TypeScript check exceeded sandbox heap. No full build, browser or manual WCAG sign-off.
+- GitHub Actions run `43142609752` was still in progress on this SHA at last inspection.
+- Vercel auto Git deployments are disabled by `vercel.json`. Post-commit Vercel listing showed zero queued/building deployments and no deployment for this SHA. Existing production deployment was not changed.
+- A fresh frozen Bun install is blocked by pre-existing `package.json` / `bun.lock` Prisma dependency-group mismatch; no dependency or lockfile edits were made.
+- Next: continue the Learner Today home-level data/UX pass; current remaining findings include profile count versus course enrollment count and continue-card course selection. Support processing remains blocked pending approvals.
+
+---
+
 # CURRENT LIVE UPDATE — 12 November 2026 (main-only fixation)
 
 - Verified live `main` HEAD before this update: `e9fc682f5233332cc8e10c3c09c1849455ce070c`. Live branch inventory returned only `main`; open PR inventory returned none; repository rulesets endpoint returned an empty list. The branch-protection endpoint was not accessible to the GitHub integration, but the branch object reports `protected: false`.
