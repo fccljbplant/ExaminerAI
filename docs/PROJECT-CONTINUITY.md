@@ -1,3 +1,15 @@
+## 2026-11-12 — Learner Today home data and UI fixation
+
+- Application commit: `2171c98e41fcb80dfdafd8f19a46d13d31acbac5` (`fix: align learner home with enrolled courses`); baseline was `9382e71ec90e0e97f21793f69ea79a20a72345af`.
+- The learner home previously used `LearnProfile` row count as enrolled-course count, included progress totals without validating current student enrolment, and could label a missing progress profile as a completed course.
+- Home API now uses student `CourseEnrollment` rows as the canonical course-count/access source, restricts progress profiles and daily-test cards to those course IDs, and offers a truthful “Start your first study session” action when a learner has enrolled but no progress profile yet.
+- Learner Today UI now has a clearer heading/subheading, a stronger next-step hero with start/resume/review/complete states, “Ready to practice” wording instead of deadline-style “Due today”, and a calmer empty state aligned with learner-controlled pacing. Check-in copy no longer makes an unsupported 20-second promise.
+- Regression coverage includes canonical enrolment count, course-scoped progress/daily tests, missing-profile start state, no-enrolment state, and enrollment/profile lookup failures.
+- Local checks: 8 targeted tests passed across 2 files; ESLint passed on all 4 changed source/test files; `git diff --check` passed; TypeScript `--noEmit --skipLibCheck` passed with 1.5 GB heap. Declaration-file checking was skipped. Full production build, browser visual review and manual WCAG sign-off were not run locally.
+- Tests used existing installed dependencies from the preserved workspace via a temporary local `node_modules` symlink. A fresh frozen Bun install remains blocked by the previously recorded `package.json`/`bun.lock` Prisma dependency-group mismatch; no dependency or lockfile changes were made.
+- Vercel Git auto-deployment remains disabled in `vercel.json` (`git.deploymentEnabled: false`, saved in commit `9f104e90855a8953483300da70202e6c06786206`). No manual deployment or production DB operation. Exact-head GitHub Actions and Vercel status for the application commit must be verified.
+- Next: complete exact-head CI verification, then perform responsive screenshots and keyboard/screen-reader review before moving to the next screen. Keep learner-support processing off pending consent/legal/professional approvals.
+
 ## 2026-11-12 — Learner Today check-in slice committed
 
 - Current main: `d62076da989b2a1e8bf725e87f1f6264a6b1b8ed`.
