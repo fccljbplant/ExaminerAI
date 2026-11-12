@@ -366,14 +366,14 @@ function HomeError({ message, onRetry }: { message: string; onRetry: () => void 
   );
 }
 
-function NoEnrollment() {
+export function NoEnrollment() {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-dashed border-line bg-surface p-8 text-center">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-subtle text-fg">
           <GraduationCap className="h-7 w-7" aria-hidden />
         </span>
-        <p className="mt-4 text-sm font-semibold text-fg">Start your first course</p>
+        <h1 className="mt-4 text-sm font-semibold text-fg">Start your first course</h1>
         <p className="mx-auto mt-1 max-w-xs text-xs text-fg-muted">
           Choose a course to build your learning path and study at your own pace.
         </p>

@@ -763,3 +763,12 @@ These are approved planning decisions, not implementation claims. No application
 - Full test suite (466/466 across 155 files), full lint, TypeScript and diff whitespace checks passed on a disposable local SQLite database. Tutor-context seeded assertions skipped due missing optional socratic.test seed.
 - Build compiled but could not complete because the sandbox build worker exceeded available memory (1 GB heap OOM; 1.8 GB retry SIGKILL). No browser screenshots/manual WCAG pass was possible because Chrome/Chromium was unavailable.
 - Remaining blockers: AI evaluation/scoring still needs an owner-approved deterministic rubric; learner-support/psychology processing remains gated on consent/legal/professional review; full cross-tenant review and manual responsive/accessibility validation remain open. No production DB, production migration or deployment was touched.
+
+## 2026-11-12 — Learner Today empty-state heading correction
+
+- Revalidated live main at `82d6cc85ac20019e8bdb38d778a371ba42b4d56e`; branch inventory contains only `main`, no open PRs. The exact-head Actions run `43144513672` passed on retry attempt 2: install, isolated SQLite setup, lint, unit tests, TypeScript, production build, 84/84 route smoke, authenticated screenshots and artifact upload.
+- Inspected the screenshot manifest for all four roles at 360, 390, 768, 1024, 1366, 1920 and 2560 widths. No horizontal overflow; heuristic counts for unnamed controls, unlabeled fields, missing image alt and missing page language were zero. Learner no-enrolment state had zero H1 headings at all captured sizes; this is a confirmed semantic UX gap, not a layout overflow.
+- Corrected the learner no-enrolment card title to an H1 without changing its visual styling or adding a nested main landmark. Added an SSR regression test for the primary heading and course-catalog link.
+- Local checks: targeted Vitest 1/1 passed; ESLint on both changed files passed; `git diff --check` passed. Full CI for this new change is pending. Screenshot automation initially hit a transient Chrome DevTools startup failure; retry succeeded.
+- Vercel Git deployments are disabled in `vercel.json`; no deployment was created or manually triggered. No production DB, schema, migration, dependency or provider changes.
+- Next: verify exact-head CI and inspect the refreshed learner screenshot/manifest; then complete manual keyboard and screen-reader review before closing Learner Today. Do not advance to the next screen until this card is signed off.

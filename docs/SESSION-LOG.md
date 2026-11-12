@@ -1236,3 +1236,11 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Vercel Git auto-deployment remains disabled in `vercel.json` (`git.deploymentEnabled: false`, saved in commit `9f104e90855a8953483300da70202e6c06786206`). No manual deployment or production DB operation. Exact-head GitHub Actions and Vercel status for the application commit must be verified.
 - Next: complete exact-head CI verification, then perform responsive screenshots and keyboard/screen-reader review before moving to the next screen. Keep learner-support processing off pending consent/legal/professional approvals.
 
+## 2026-11-12 — Learner Today empty-state heading correction
+
+- Revalidated live main at `82d6cc85ac20019e8bdb38d778a371ba42b4d56e`; branch inventory contains only `main`, no open PRs. The exact-head Actions run `43144513672` passed on retry attempt 2: install, isolated SQLite setup, lint, unit tests, TypeScript, production build, 84/84 route smoke, authenticated screenshots and artifact upload.
+- Inspected the screenshot manifest for all four roles at 360, 390, 768, 1024, 1366, 1920 and 2560 widths. No horizontal overflow; heuristic counts for unnamed controls, unlabeled fields, missing image alt and missing page language were zero. Learner no-enrolment state had zero H1 headings at all captured sizes; this is a confirmed semantic UX gap, not a layout overflow.
+- Corrected the learner no-enrolment card title to an H1 without changing its visual styling or adding a nested main landmark. Added an SSR regression test for the primary heading and course-catalog link.
+- Local checks: targeted Vitest 1/1 passed; ESLint on both changed files passed; `git diff --check` passed. Full CI for this new change is pending. Screenshot automation initially hit a transient Chrome DevTools startup failure; retry succeeded.
+- Vercel Git deployments are disabled in `vercel.json`; no deployment was created or manually triggered. No production DB, schema, migration, dependency or provider changes.
+- Next: verify exact-head CI and inspect the refreshed learner screenshot/manifest; then complete manual keyboard and screen-reader review before closing Learner Today. Do not advance to the next screen until this card is signed off.
