@@ -1,3 +1,14 @@
+## 2026-11-12 — Learner Today project-card course scope
+
+- Starting live main: f27f0b3a463a4a95a787c12485a6723b6444ae33. Re-fetched origin/main before editing; local HEAD matched exactly and worktree was clean. Remote inventory: main only, no open PRs.
+- Bottom-up UI/API audit found that the Learner Today projects panel queried the learner's latest four LearnProject rows by userId only. A project linked to a course from which the learner was no longer enrolled could therefore remain visible on the home feed.
+- Scoped course-linked project cards to the learner's current student CourseEnrollment IDs. Explicitly course-less personal projects remain visible; no schema or migration change was needed. The query continues to be learner-owned (userId) and the four most recently updated visible projects.
+- Added a route regression test asserting both the current-enrolment filter and preservation of course-less projects. Existing empty-project and project-query failure coverage remains.
+- Validation: focused learner home/check-in tests, 3 files / 14 tests passed; full Vitest suite passed excluding DB-backed src/modules/learn/lib/__tests__/tutor-context.test.ts (55 files / 487 tests); ESLint passed on both changed files; git diff --check passed.
+- Typecheck and production build not run for this slice. Browser/manual responsive, keyboard and screen-reader checks remain outstanding; no browser session was started and no WCAG sign-off is claimed.
+- No production DB access, schema/migration, dependency/provider, production data, deployment, or Vercel settings changed. Git deployment remains disabled per vercel.json.
+- Learner Today remains open until manual interaction/accessibility QA is completed. Follow-up audit: review the standalone learner project list/detail APIs for the same current-enrolment boundary before considering the project surface fully signed off.
+
 ## 2026-11-12 — Learner check-in saved-state accessibility
 
 - Starting live main: `b28fd54250075f084edee5d2193ea706109dfa62`.

@@ -138,7 +138,15 @@ export async function GET() {
   }[] = [];
   try {
     const rows = await db.learnProject.findMany({
-      where: { userId: user.sub },
+      // Keep course-linked project cards inside the learner's current
+      // enrolments. Preserve explicitly course-less personal projects.
+      where: {
+        userId: user.sub,
+        OR: [
+          { courseId: { in: enrolledCourseIds } },
+          { courseId: null },
+        ],
+      },
       orderBy: { updatedAt: "desc" },
       take: 4,
       include: { tasks: { select: { id: true, status: true } } },

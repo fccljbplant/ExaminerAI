@@ -164,6 +164,28 @@ describe("GET /api/v2/learner/home", () => {
     expect(errorSpy).toHaveBeenCalledOnce();
   });
 
+  it("scopes course-linked project cards to current student enrolments and preserves course-less projects", async () => {
+    mocks.db.courseEnrollment.findMany.mockResolvedValue([
+      { courseId: "course-1", course: { id: "course-1", name: "Course One" } },
+      { courseId: "course-2", course: { id: "course-2", name: "Course Two" } },
+    ]);
+
+    await GET();
+
+    expect(mocks.db.learnProject.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: "learner-1",
+        OR: [
+          { courseId: { in: ["course-1", "course-2"] } },
+          { courseId: null },
+        ],
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 4,
+      include: { tasks: { select: { id: true, status: true } } },
+    });
+  });
+
   it("returns a successful empty project list when the query succeeds with no rows", async () => {
     await GET();
 
