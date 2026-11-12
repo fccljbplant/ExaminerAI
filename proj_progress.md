@@ -604,3 +604,11 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Prior source commit `8e3686203b7035f864ed9dd08bb5341e73ac2bcf` has exact-head CI success (run `43147226589`) and screenshots verified one H1 at mobile/desktop widths with no horizontal overflow. This follow-up source change still needs exact-head CI and screenshot verification.
 - This markup-level focus affordance is not a manual keyboard or screen-reader sign-off. Manual interaction review remains open; do not close Learner Today or advance screens until it is completed.
 - Vercel Git deployment is disabled; no production deployment, DB, schema, migration, dependency or provider change.
+
+## 2026-11-12 — Learner Today focus-fix CI and visual evidence
+
+- Follow-up fixation commit `af49103232e6eb6c1788cd250dca262aa6617b2b` passed exact-head GitHub Actions run `43148181536`: install, isolated SQLite setup, lint, unit tests, TypeScript, production build, 84/84 route smoke, authenticated role screenshots and artifact upload.
+- The screenshot artifact `13912034306` confirms the no-enrolment card heading is visible in the 360px screenshot and remains present at wider captures; no horizontal overflow is reported at the sampled learner viewports. The first 360px manifest DOM sample reports zero H1 while the screenshot visibly contains it, indicating a timing/instrumentation inconsistency; do not treat that single manifest count as a confirmed UI regression or claim the heuristic is a full accessibility scan.
+- The SSR regression test checks the heading, course catalog destination and visible focus-outline utility on all six links (one CTA plus five onboarding links). Local targeted test, ESLint, TypeScript `--noEmit --skipLibCheck` and `git diff --check` passed.
+- The focus treatment is now present in markup, but manual Tab/Shift+Tab verification, actual focus-ring contrast review and screen-reader testing remain outstanding. Learner Today is not yet signed off; do not advance to the next screen.
+- Vercel Git deployments remain disabled; no deployment for the source commit, and no production DB, schema, migration, dependency or provider changes.
