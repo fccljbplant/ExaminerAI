@@ -23,6 +23,28 @@ const CONFIDENCE = [
   { value: 5, label: "Great" },
 ];
 
+export function CheckInSavedState({ onEdit }: { onEdit: () => void }) {
+  return (
+    <section
+      aria-label="Daily check-in"
+      role="status"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success-subtle bg-success-subtle p-4"
+    >
+      <p className="flex items-center gap-2 text-sm font-medium text-success-on">
+        <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+        Today's check-in is saved for this course.
+      </p>
+      <button
+        type="button"
+        onClick={onEdit}
+        className="min-h-11 rounded-lg border border-success-on/20 px-3 text-sm font-semibold text-success-on hover:bg-success-on/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        Edit check-in
+      </button>
+    </section>
+  );
+}
+
 export function CheckInCard({ courseId }: { courseId?: string }) {
   const [open, setOpen] = useState(false);
   const [confidence, setConfidence] = useState(3);
@@ -97,15 +119,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
 
   if (done) {
     return (
-      <section
-        aria-label="Daily check-in"
-        className="rounded-xl border border-success-subtle bg-success-subtle p-4"
-      >
-        <p className="flex items-center gap-2 text-sm font-medium text-success-on">
-          <CheckCircle2 className="h-4 w-4" aria-hidden />
-          Today's check-in is saved for this course.
-        </p>
-      </section>
+      <CheckInSavedState onEdit={() => { setDone(false); setOpen(true); }} />
     );
   }
 
@@ -178,7 +192,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
                   onClick={() => void removeLog(l.id)}
                   disabled={deletingId === l.id}
                   aria-label={`Delete check-in from ${new Date(l.date).toLocaleDateString()}`}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger"
+                  className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
                   {deletingId === l.id ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
