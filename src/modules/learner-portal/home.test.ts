@@ -29,7 +29,7 @@ describe("LearnerHome next-step actions", () => {
       }),
     );
 
-    const links = html.match(/<a\\b[^>]*>/g) ?? [];
+    const links = html.split("<a ").slice(1).map((tag) => tag.split(">")[0]);
     expect(links).toHaveLength(5);
     for (const link of links) {
       expect(link).toContain("h-11");
