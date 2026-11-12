@@ -152,7 +152,7 @@ try {
           returnByValue: true,
         });
         state = result.result.value;
-        if (state?.ready === "complete") break;
+        if (state?.ready === "complete" && state?.accessibility?.primaryHeadings > 0) break;
       } catch {
         // Navigation may replace the execution context; retry after the document loads.
       }
@@ -165,6 +165,19 @@ try {
     await writeFile(join(out, name), Buffer.from(shot.data, "base64"));
     records.push({ role: user.role, route: user.path, viewport: `${width}x${height}`, title: state.title, documentWidth: state.width, horizontalOverflow: state.width > width + 1, accessibility: state.accessibility, screenshot: name });
     console.log(`Captured ${name}`);
+    if (user.role === "learner" && width <= 390) {
+      await cdp.send("Runtime.evaluate", { expression: "window.scrollTo(0, document.documentElement.scrollHeight)", returnByValue: true });
+      await sleep(350);
+      const bottom = await cdp.send("Runtime.evaluate", {
+        expression: "(() => { const main=document.querySelector('main'); const nav=document.querySelector('[data-slot=bottom-nav]'); const last=main?.lastElementChild; const rect=last?.getBoundingClientRect(); const navRect=nav?.getBoundingClientRect(); return { scrollY:window.scrollY, scrollHeight:document.documentElement.scrollHeight, mainPaddingBottom:main ? getComputedStyle(main).paddingBottom : null, lastContentBottom:rect?.bottom ?? null, bottomNavTop:navRect?.top ?? null, lastContentClearsBottomNav:!rect || !navRect || rect.bottom <= navRect.top }; })()",
+        returnByValue: true,
+      });
+      const bottomName = `learner-${width}x${height}-bottom.png`;
+      const bottomShot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true });
+      await writeFile(join(out, bottomName), Buffer.from(bottomShot.data, "base64"));
+      records.push({ role: user.role, route: user.path, viewport: `${width}x${height}-bottom`, title: state.title, documentWidth: state.width, horizontalOverflow: state.width > width + 1, bottomViewport: bottom.result.value, screenshot: bottomName });
+      console.log(`Captured ${bottomName}`);
+    }
   }
   const accessibilitySummary = records.reduce((summary, record) => { for (const key of ["unnamedControls", "unlabeledFields", "imagesMissingAlt"]) summary[key] += record.accessibility?.[key] ?? 0; summary.missingPageLanguage += record.accessibility?.missingPageLanguage ? 1 : 0; summary.missingMainLandmark += record.accessibility?.mainLandmarks === 0 ? 1 : 0; return summary; }, { scope: "heuristic DOM checks across role dashboard screenshots; not an axe/WCAG conformance scan", unnamedControls: 0, unlabeledFields: 0, imagesMissingAlt: 0, missingPageLanguage: 0, missingMainLandmark: 0 });
   await writeFile(join(out, "manifest.json"), JSON.stringify({ generatedAt: new Date().toISOString(), note: "Synthetic CI users and isolated SQLite only; screenshots are viewport captures. Accessibility findings are heuristic and require manual triage.", accessibilitySummary, records }, null, 2));
