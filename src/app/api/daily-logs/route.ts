@@ -9,9 +9,11 @@ export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const week = req.nextUrl.searchParams.get("week");
+  const courseId = req.nextUrl.searchParams.get("courseId");
   const logs = await db.dailyLog.findMany({
     where: {
       userId: user.id,
+      ...(courseId ? { courseId } : {}),
       ...(week ? { week: Number(week) } : {}),
     },
     orderBy: { date: "desc" },

@@ -43,6 +43,16 @@ export async function POST(req: NextRequest) {
     return apiError("Invalid check-in", "VALIDATION_ERROR", 400, parsed.error.flatten());
   }
 
+  // A learner may only write a check-in for a course they are enrolled in.
+  // Do not trust the client-supplied courseId or the presence of a profile.
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: parsed.data.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) {
+    return apiError("You are not enrolled in this course", "FORBIDDEN", 403);
+  }
+
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const end = new Date(start);

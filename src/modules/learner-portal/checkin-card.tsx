@@ -52,20 +52,32 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
   }
 
   const [history, setHistory] = useState<Array<{ id: string; date: string; whatDidYouDo: string; confidence: number | null }> | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  async function loadHistory() {
-    setShowHistory((v) => {
-      if (!v) {
-        setHistory(null);
-        fetch("/api/daily-logs" + (courseId ? `?courseId=${encodeURIComponent(courseId)}` : ""))
-          .then((r) => (r.ok ? r.json() : null))
-          .then((d: { logs?: typeof history } | null) => setHistory(d?.logs ?? []))
-          .catch(() => setHistory([]));
-      }
-      return !v;
-    });
+  async function refreshHistory() {
+    setHistory(null);
+    setHistoryError(null);
+    try {
+      const query = courseId ? `?courseId=${encodeURIComponent(courseId)}` : "";
+      const response = await fetch(`/api/daily-logs${query}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new Error("History is temporarily unavailable");
+      const payload = (await response.json()) as { logs?: unknown };
+      if (!Array.isArray(payload.logs)) throw new Error("History response was invalid");
+      setHistory(payload.logs as Array<{ id: string; date: string; whatDidYouDo: string; confidence: number | null }>);
+    } catch {
+      // An unavailable history is not an empty history. Keep the retry visible.
+      setHistoryError("We couldn't load your check-in history. Try again.");
+    }
+  }
+
+  function toggleHistory() {
+    const next = !showHistory;
+    setShowHistory(next);
+    if (next) void refreshHistory();
   }
 
   async function removeLog(id: string) {
@@ -91,7 +103,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
       >
         <p className="flex items-center gap-2 text-sm font-medium text-success-on">
           <CheckCircle2 className="h-4 w-4" aria-hidden />
-          Checked in — see you tomorrow!
+          Today's check-in is saved for this course.
         </p>
       </section>
     );
@@ -120,7 +132,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
       {/* history (v1 CheckInPanel recent logs) */}
       <button
         type="button"
-        onClick={() => void loadHistory()}
+        onClick={toggleHistory}
         aria-expanded={showHistory}
         className="flex min-h-11 w-full items-center justify-between gap-2 text-left"
       >
@@ -136,8 +148,19 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
 
       {showHistory && (
         <div className="space-y-1.5 border-t border-line pt-2">
-          {history === null ? (
-            <p className="py-2 text-xs text-fg-muted" aria-busy="true">Loading…</p>
+          {historyError ? (
+            <div className="flex flex-wrap items-center justify-between gap-2 py-2" role="alert">
+              <p className="text-xs text-danger">{historyError}</p>
+              <button
+                type="button"
+                onClick={() => void refreshHistory()}
+                className="min-h-11 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              >
+                Try again
+              </button>
+            </div>
+          ) : history === null ? (
+            <p className="py-2 text-xs text-fg-muted" role="status" aria-busy="true">Loading check-ins…</p>
           ) : history.length === 0 ? (
             <p className="py-2 text-xs text-fg-muted">No check-ins yet.</p>
           ) : (
@@ -173,42 +196,50 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
         <form onSubmit={submit} className="mt-3 space-y-3 border-t border-line pt-3">
           <fieldset>
             <legend className="text-xs font-medium text-fg-secondary">How did it go today?</legend>
-            <div className="mt-2 flex gap-1.5" role="radiogroup" aria-label="Confidence">
+            <div className="mt-2 grid grid-cols-5 gap-1.5">
               {CONFIDENCE.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={confidence === c.value}
-                  onClick={() => setConfidence(c.value)}
-                  className={cn(
-                    "min-h-11 flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition-colors",
+                <label key={c.value} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="daily-checkin-confidence"
+                    value={c.value}
+                    checked={confidence === c.value}
+                    onChange={() => setConfidence(c.value)}
+                    className="peer sr-only"
+                  />
+                  <span className={cn(
+                    "flex min-h-11 items-center justify-center rounded-lg border px-1.5 py-2 text-center text-xs font-medium transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand",
                     confidence === c.value
                       ? "border-brand bg-brand-subtle text-fg"
                       : "border-line bg-bg-subtle text-fg-secondary hover:border-line-strong"
-                  )}
-                >
-                  {c.label}
-                </button>
+                  )}>
+                    {c.label}
+                  </span>
+                </label>
               ))}
             </div>
           </fieldset>
+          <label htmlFor="daily-checkin-note" className="text-xs font-medium text-fg-secondary">
+            What did you work on today?
+          </label>
           <textarea
+            id="daily-checkin-note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
+            maxLength={2000}
             required
-            placeholder="What did you work on today?"
-            aria-label="What did you work on today?"
-            className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            placeholder="Share a short learning update…"
+            className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
           />
+          <p className="text-right text-xs text-fg-muted">{note.length}/2,000</p>
           <button
             type="submit"
-            disabled={saving || !note.trim()}
+            disabled={saving || !courseId || !note.trim()}
             className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCircle2 className="h-4 w-4" aria-hidden />}
-            Save check-in
+            {saving ? "Saving check-in…" : "Save check-in"}
           </button>
         </form>
       )}
