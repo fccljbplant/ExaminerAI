@@ -767,3 +767,16 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - No data deletion, DB mutation, schema/migration, dependency/provider, Vercel setting or deployment changes. Vercel deployment lookup for this source commit returned zero records.
 - Model gap: `LearnProject.courseId` is nullable and the model has no stable course-level activity sequence. A shared number must come from a canonical course activity model; do not substitute a per-learner list index or make an unapproved schema migration.
 - Next: integrate existing project and assignment activities into the course workspace/map and align assessment/numbering through the canonical course model, preserving existing proposal, approval, milestone, submission and feedback flows.
+
+
+## 2026-11-12 — Course workspace Coursework tab
+
+- Source commit: `603c2a1fb1ab5db75600e6c310d3291602ebb7a7` (`feat: bring projects and assignments into course workspace`).
+- Enrolled learners now see a Coursework tab in course detail. The tab lazily composes the existing Projects and Assignments experiences, each filtered by the current course ID.
+- Reused existing proposal, approval, project timeline, assignment status filters and L6 submission links. Embedded mode removes duplicate page-level headings; project proposals preselect the course being viewed. The standalone Projects and Assignments pages remain available.
+- Course overview and syllabus remain separate; projects and assignments are not fetched until Coursework is opened. The tab is not offered to non-enrolled learners.
+- Validation: 3 focused files / 12 tests passed (coursework composition, project page course context, and project API scope); ESLint passed on all four changed files; `git diff --check` passed.
+- Exact-head Actions and full typecheck/build/browser validation are still pending; no broader CI success is claimed. Local full TypeScript remains constrained by sandbox heap exhaustion.
+- No DB/schema/migration, production-data, dependency/provider, Vercel setting or deployment changes.
+- Remaining model gap: shared course-level activity numbering and assessment policy cannot be derived from per-learner LearnProject rows. Do not invent sequence numbers or alter schemas without approved canonical course activity design and migration plan.
+- Next: verify course detail behavior and course-level assignment/project access end-to-end, then align numbering, assessment, weekly placement and learner-paced unlock rules with the canonical course model.
