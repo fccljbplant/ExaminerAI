@@ -730,3 +730,16 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 55 files / 486 tests passed. Focused check-in suite: 2 files / 8 tests passed. ESLint passed on four changed source/test files; `git diff --check` passed. TypeScript `--noEmit --skipLibCheck` ran out of heap at 1.4 GB in the 2 GB sandbox. No typecheck pass is claimed. Build and browser/manual accessibility checks were not run.
 - No schema/migration, production DB/data access, dependency/provider, Vercel deployment or production-setting changes. Vercel Git deployment remains disabled in `vercel.json`; exact baseline SHA had no Vercel deployment record and no GitHub status checks.
 - Learner Today remains open pending manual responsive, keyboard and screen-reader review; saved-state refresh persistence is addressed by this slice.
+
+
+## 2026-11-12 — Learner Today course-scoped check-in refinement
+
+- Source commit: `8400b8af07a9bc837148fe743f87bd73b777893f` (`fix: keep learner check-ins course scoped`), parent `6d6c21ff084799f1af4847f61be1101138168ce3`.
+- Refined the existing Learner Today check-in rather than replacing it. A missing/blank course context now shows a clear course-selection explanation instead of exposing an inert check-in form or unscoped history control.
+- All check-in and history requests now use the normalized active course ID. History state resets when course context changes, and late responses from an earlier course are ignored. The check-in form remains unavailable while the saved-state lookup is loading, avoiding a save racing the initial restore.
+- Preserved the existing save/edit, saved-state restoration, history retry and delete behavior. Added a regression test for the no-course state.
+- Validation: focused learner portal and connected check-in/history API tests passed (5 files / 17 tests); ESLint passed on both changed files; `git diff --check` passed.
+- TypeScript `--noEmit --skipLibCheck` was attempted with a 1.4 GB heap and exited due sandbox heap exhaustion. No typecheck pass is claimed. Production build, browser/responsive screenshots, manual keyboard navigation and screen-reader checks were not run.
+- Live GitHub inventory immediately before the source commit: `main` only, no open PRs. The prior main-head Actions run was failing; exact-head CI for this source commit must be checked before claiming CI success.
+- No database access, schema/migration, production data, dependency/provider, Vercel setting or deployment changes.
+- Next: continue the Learner Today bottom-up pass, preserving its existing features and course context; close manual accessibility and responsive checks as part of screen sign-off rather than treating automated tests as full sign-off.
