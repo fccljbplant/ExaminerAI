@@ -16,13 +16,16 @@ import { cn } from "@/lib/utils";
 import { ActionBar } from "@/modules/shell";
 import { RadialProgress } from "@/modules/ui/radial-progress";
 import { useApi } from "./use-api";
+import { LearnerProjects } from "./projects";
+import { LearnerAssignments } from "./assignments";
 
 /**
  * modules/learner-portal — L3 Course detail (REDESIGN-P3 §L3)
  *
  * Compact header (title, chips, ring, primary Continue/Enroll) +
- * scrollable tab row: Overview / Syllabus. Syllabus fetches lazily
- * on first open. xs gets a sticky BottomActionBar CTA.
+ * scrollable tab row: Overview / Syllabus / Coursework (enrolled learners).
+ * Syllabus and coursework data load only when their tabs are opened.
+ * xs gets a sticky BottomActionBar CTA.
  */
 
 /* ---------------- payload types --------------------------------------- */
@@ -77,7 +80,7 @@ interface SyllabusData {
 /* ---------------- page -------------------------------------------------- */
 
 export function CourseDetail({ courseId }: { courseId: string }) {
-  const [tab, setTab] = useState<"overview" | "syllabus">("overview");
+  const [tab, setTab] = useState<"overview" | "syllabus" | "coursework">("overview");
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
 
@@ -188,7 +191,10 @@ export function CourseDetail({ courseId }: { courseId: string }) {
 
       {/* tab row */}
       <nav aria-label="Course sections" className="flex gap-1 border-b border-line">
-        {(["overview", "syllabus"] as const).map((t) => (
+        {(enrolled
+          ? (["overview", "syllabus", "coursework"] as const)
+          : (["overview", "syllabus"] as const)
+        ).map((t) => (
           <button
             key={t}
             type="button"
@@ -201,25 +207,40 @@ export function CourseDetail({ courseId }: { courseId: string }) {
                 : "border-transparent text-fg-muted hover:text-fg"
             )}
           >
-            {t}
+            {t === "coursework" ? "Coursework" : t}
           </button>
         ))}
       </nav>
 
       {tab === "overview" ? (
         <OverviewTab data={overview.data} />
-      ) : syllabus.isLoading ? (
-        <DetailSkeleton />
-      ) : syllabus.error ? (
-        <StatePanel message={syllabus.error} onRetry={syllabus.retry} />
-      ) : syllabus.data ? (
-        <SyllabusTab data={syllabus.data} />
-      ) : null}
+      ) : tab === "syllabus" ? (
+        syllabus.isLoading ? (
+          <DetailSkeleton />
+        ) : syllabus.error ? (
+          <StatePanel message={syllabus.error} onRetry={syllabus.retry} />
+        ) : syllabus.data ? (
+          <SyllabusTab data={syllabus.data} />
+        ) : null
+      ) : enrolled ? (
+        <CourseworkTab courseId={courseId} />
+      ) : (
+        <OverviewTab data={overview.data} />
+      )}
 
       {/* xs sticky CTA */}
       <div className="md:hidden">
         <ActionBar>{cta}</ActionBar>
       </div>
+    </div>
+  );
+}
+
+export function CourseworkTab({ courseId }: { courseId: string }) {
+  return (
+    <div className="space-y-6">
+      <LearnerProjects courseId={courseId} embedded />
+      <LearnerAssignments courseId={courseId} embedded />
     </div>
   );
 }

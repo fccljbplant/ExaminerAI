@@ -72,20 +72,33 @@ function dueLabel(dueDate: string | null): string {
 
 /* ---------------- page ------------------------------------------------ */
 
-export function LearnerAssignments() {
+export function LearnerAssignments({
+  courseId,
+  embedded = false,
+}: {
+  courseId?: string;
+  embedded?: boolean;
+}) {
   const [filter, setFilter] = useState<string>("all");
 
-  const path = useMemo(
-    () => `/api/v2/assignments${filter !== "all" ? `?status=${filter}` : ""}`,
-    [filter],
-  );
+  const path = useMemo(() => {
+    const params = new URLSearchParams();
+    if (courseId) params.set("courseId", courseId);
+    if (filter !== "all") params.set("status", filter);
+    const query = params.toString();
+    return `/api/v2/assignments${query ? `?${query}` : ""}`;
+  }, [courseId, filter]);
 
   const { data, error, isLoading, retry } = useApi<AssignmentsData>(path);
 
   return (
     <div className="space-y-4">
       <header className="space-y-3">
-        <h1 className="text-lg font-semibold text-fg md:text-xl">Assignments</h1>
+        {embedded ? (
+          <h2 className="text-sm font-semibold text-fg">Assignments</h2>
+        ) : (
+          <h1 className="text-lg font-semibold text-fg md:text-xl">Assignments</h1>
+        )}
 
         {/* status filter chips */}
         <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

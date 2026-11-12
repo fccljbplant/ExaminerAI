@@ -59,8 +59,17 @@ const STATUS_LABEL: Record<string, string> = {
   active: "In progress",
 };
 
-export function LearnerProjects() {
-  const { data, error, isLoading, retry } = useApi<ProjectsData>("/api/learn/projects");
+export function LearnerProjects({
+  courseId,
+  embedded = false,
+}: {
+  courseId?: string;
+  embedded?: boolean;
+}) {
+  const path = courseId
+    ? `/api/learn/projects?courseId=${encodeURIComponent(courseId)}`
+    : "/api/learn/projects";
+  const { data, error, isLoading, retry } = useApi<ProjectsData>(path);
 
   if (isLoading) return <ProjectsSkeleton />;
   if (error || !data) {
@@ -83,17 +92,19 @@ export function LearnerProjects() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-2">
-        <FolderKanban className="h-5 w-5 text-brand" aria-hidden />
-        <div>
-          <h1 className="text-lg font-semibold text-fg md:text-xl">Projects</h1>
-          <p className="text-xs text-fg-muted">
-            Projects stay with their course from proposal through approval, milestones and review.
-          </p>
-        </div>
-      </header>
+      {!embedded && (
+        <header className="flex items-center gap-2">
+          <FolderKanban className="h-5 w-5 text-brand" aria-hidden />
+          <div>
+            <h1 className="text-lg font-semibold text-fg md:text-xl">Projects</h1>
+            <p className="text-xs text-fg-muted">
+              Projects stay with their course from proposal through approval, milestones and review.
+            </p>
+          </div>
+        </header>
+      )}
 
-      <NewProjectForm courses={data.courses} onCreated={retry} />
+      <NewProjectForm courses={data.courses} preferredCourseId={courseId} onCreated={retry} />
 
       <section className="space-y-2">
         <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
@@ -104,9 +115,11 @@ export function LearnerProjects() {
             <Target className="mx-auto h-6 w-6 text-fg-muted" aria-hidden />
             <p className="mt-2 text-sm font-medium text-fg">No projects yet</p>
             <p className="mt-1 text-xs text-fg-muted">
-              {data.courses.length > 0
-                ? "Projects from your enrolled courses will appear here."
-                : "Enroll in a course to propose a project and keep its work with that course."}
+              {courseId
+                ? "No projects in this course yet. Use the form above to propose one."
+                : data.courses.length > 0
+                  ? "Projects from your enrolled courses will appear here."
+                  : "Enroll in a course to propose a project and keep its work with that course."}
             </p>
           </div>
         ) : (
@@ -156,9 +169,19 @@ export function LearnerProjects() {
 
 /* ---------------- new project form ------------------------------------- */
 
-function NewProjectForm({ courses, onCreated }: { courses: CourseRow[]; onCreated: () => void }) {
+function NewProjectForm({
+  courses,
+  preferredCourseId,
+  onCreated,
+}: {
+  courses: CourseRow[];
+  preferredCourseId?: string;
+  onCreated: () => void;
+}) {
   const [open, setOpen] = useState(false);
-  const [courseId, setCourseId] = useState(() => courses[0]?.id ?? "");
+  const [courseId, setCourseId] = useState(
+    () => courses.find((course) => course.id === preferredCourseId)?.id ?? courses[0]?.id ?? "",
+  );
   const [title, setTitle] = useState("");
   const [goal, setGoal] = useState("");
   const [description, setDescription] = useState("");
