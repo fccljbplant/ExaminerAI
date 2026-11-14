@@ -22,10 +22,17 @@ const LEARNER_ROLES = new Set(["learner", "student", "demo"]);
 const VALID_STATUSES = new Set(["planned", "in_progress", "completed", "blocked"]);
 
 async function loadOwnedProject(id: string, userId: string) {
-  return db.learnProject.findFirst({
+  const project = await db.learnProject.findFirst({
     where: { id, userId },
     select: { id: true, courseId: true },
   });
+  if (!project?.courseId) return null;
+
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId, courseId: project.courseId, role: "student" },
+    select: { id: true },
+  });
+  return enrollment ? project : null;
 }
 
 export async function POST(
@@ -100,7 +107,7 @@ export async function PATCH(
     return apiValidationError({ status: "status must be planned | in_progress | completed | blocked" });
   }
 
-  const task = await db.projectTask.findFirst({ where: { id: taskId, projectId: project.id } });
+  const task = await db.projectTask.findFirst({ where: { id: taskId, projectId: project.id, courseId: project.courseId } });
   if (!task) return apiError("Task not found", "NOT_FOUND", 404);
 
   const updated = await db.projectTask.update({
@@ -146,7 +153,7 @@ export async function DELETE(
   const taskId = req.nextUrl.searchParams.get("taskId");
   if (!taskId) return apiValidationError({ taskId: "taskId query param is required" });
 
-  const task = await db.projectTask.findFirst({ where: { id: taskId, projectId: project.id } });
+  const task = await db.projectTask.findFirst({ where: { id: taskId, projectId: project.id, courseId: project.courseId } });
   if (!task) return apiError("Task not found", "NOT_FOUND", 404);
 
   await db.projectTask.delete({ where: { id: taskId } });
