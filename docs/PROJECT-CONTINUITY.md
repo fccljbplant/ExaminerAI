@@ -452,3 +452,16 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Full TypeScript check exhausted the 1.4 GB Node heap; no typecheck pass is claimed. Production build, browser screenshots, responsive manual review, keyboard and screen-reader verification were not run.
 - No schema/migration, database access, production data, dependency/provider, deployment setting or release changes. `vercel.json` keeps Git deployments disabled; Vercel returned zero deployment records for the application commit.
 - Next: continue the learner project workspace bottom-up through task/generation endpoints and their UI states, then audit instructor approval/mentoring. Keep AI project help blocked pending the consent/data-processing decision already recorded in DECISIONS-REGISTER.
+
+
+## 2026-11-15 — Learner project task course scope
+
+**Application commit:** `230467e03da2dbe3fbfffa5f008aa62bf11b45c4`
+
+- The shared project loader for `POST/PATCH/DELETE /api/v2/projects/[id]/tasks` now requires an owned project with a non-null owning course and the learner's current `CourseEnrollment` row with role `student`. Course-less legacy projects and projects from which the learner is unenrolled are unavailable to all task mutations.
+- Task updates and deletes now match the task ID together with both the project ID and course ID. Task creation continues to persist the validated project/course IDs, and completion events retain the same course scope.
+- Added six route tests covering course-less denial, revoked enrollment, scoped task creation, update denial, scoped completion/event recording and scoped deletion.
+- Validation on the combined learner-project changes: full Vitest run excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 186 suites / 530 tests passed. Focused task-route tests: 6/6 passed. ESLint and `git diff --check` passed.
+- Full TypeScript check remains blocked by Node heap exhaustion at 1.4 GB. Production build and manual browser, responsive, keyboard and screen-reader verification were not run.
+- No schema/migration, database access, production data, dependency/provider, deployment setting or release changes. Vercel returned zero deployment records for this application commit.
+- Next: inspect the project timeline generation path for course enrollment, organisation AI enablement/consent, data minimisation and budget controls before changing AI processing; continue safe non-AI learner/instructor workflow work meanwhile.
