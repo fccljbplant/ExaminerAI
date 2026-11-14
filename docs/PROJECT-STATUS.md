@@ -986,3 +986,13 @@ These are approved planning decisions, not implementation claims. No application
 - Tests: 59 files / 512 tests passed excluding DB-backed tutor-context test; focused learner portal 3 files / 15 tests passed; ESLint and focused TypeScript passed; diff check passed. Full-project typecheck remains unverified (1.4 GB heap exhaustion); build and manual browser/accessibility checks not run.
 - No schema/API/database/dependency/provider/deployment changes.
 - Remaining: end-to-end learner/instructor project and assignment access verification, then responsive/manual assistive-tech review.
+
+
+## 2026-11-14 — Project milestone course boundary correction
+
+- Main application commit: `eae4bf33676fafc6f94532bd4ad8f50980e4976f` (parent `f3e13aad371d425c660329e400059e19e013e7f2`).
+- Milestone completion now enforces learner/student/demo role, project ownership, non-null course association and current student enrollment before mutating milestone state or awarding XP. This prevents a learner who lost course enrollment from continuing a course-owned project through the direct endpoint.
+- Added six regression tests. Full suite: 60 files / 518 tests passed excluding DB-backed tutor-context; focused route tests 2 files / 15 tests passed; ESLint and focused TypeScript passed; diff check passed. Full-project typecheck remains unverified due prior 1.4 GB heap exhaustion; build/browser QA not run.
+- Project AI help was audited and recorded as blocked in DECISIONS-REGISTER: it sends project context/blockers to the provider and persists responses without a demonstrated org consent/enablement, course-enrollment or org-budget gate. No changes to that AI route pending owner/legal/data approval.
+- No schema/database/migration/dependency/provider/Vercel/deployment changes.
+- Next: resolve the AI help gate decision; continue non-AI course-owned project/assignment and instructor review paths.
