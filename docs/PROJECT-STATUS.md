@@ -976,3 +976,13 @@ These are approved planning decisions, not implementation claims. No application
 - Added four path-scoping regression tests. Full suite: 59 files / 507 tests passed excluding DB-backed tutor-context test. Focused learner portal: 3 files / 10 tests passed. ESLint and focused TypeScript check passed. Full-project typecheck remains unverified (1.4 GB heap exhaustion); build and browser/manual accessibility checks not run.
 - No database/schema/migration, API contract, dependency/provider, Vercel setting or deployment changes.
 - Remaining: verify full course detail and course-owned project/assignment journeys, and continue responsive/keyboard/screen-reader review. Canonical activity numbering/assessment design remains separate.
+
+
+## 2026-11-14 — Course detail accessibility and route-state correction
+
+- Main application commit: `f1a078bc1487e7d961b0128ec0ef0480eed45a8a` (parent `3f4286e450083fb9e45f3c4c5c5d7e65bf9c8689`).
+- Course section controls now use proper tab/tablist/tabpanel semantics, correct selected state and panel associations, roving focus, visible focus styling and Arrow/Home/End keyboard navigation. Mobile tab row scrolls horizontally instead of compressing labels.
+- Tab state resets when courseId changes; Coursework is hidden/normalized to Overview when enrollment is unavailable. Syllabus remains lazy-loaded.
+- Tests: 59 files / 512 tests passed excluding DB-backed tutor-context test; focused learner portal 3 files / 15 tests passed; ESLint and focused TypeScript passed; diff check passed. Full-project typecheck remains unverified (1.4 GB heap exhaustion); build and manual browser/accessibility checks not run.
+- No schema/API/database/dependency/provider/deployment changes.
+- Remaining: end-to-end learner/instructor project and assignment access verification, then responsive/manual assistive-tech review.
