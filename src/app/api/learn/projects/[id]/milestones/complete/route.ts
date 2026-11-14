@@ -16,9 +16,12 @@ import { awardTypedXP } from "@/modules/learn/lib/xp-ledger";
 
 export const runtime = "nodejs";
 
+const LEARNER_ROLES = new Set(["learner", "student", "demo"]);
+
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
+  if (!LEARNER_ROLES.has(user.role)) return apiForbidden("Learner access only");
   const { id: projectId } = await ctx.params;
 
   let body: { milestoneId?: string } = {};
@@ -32,6 +35,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   });
   if (!project) return apiNotFound("Project not found");
   if (project.userId !== user.sub) return apiForbidden("This project belongs to another user");
+  if (!project.courseId) return apiForbidden("This project is not linked to an available course");
+
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: project.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiForbidden("You are not enrolled in this course");
 
   // Approval gate (2026-08-18 audit): an unapproved proposal must not be
   // completable — mirrors the v2 route so the drawer and the v2 flow agree.
@@ -50,7 +60,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     data: { status: "completed", completedAt: new Date() },
   });
 
-  await awardTypedXP(user.sub, "project_step", project.courseId ?? undefined, `milestone:${milestoneId}`);
+  await awardTypedXP(user.sub, "project_step", project.courseId, `milestone:${milestoneId}`);
 
   const nextMilestone = project.milestones.find((m) => m.order > milestone.order && m.status !== "completed") ?? null;
 
