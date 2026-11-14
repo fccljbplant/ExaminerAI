@@ -401,3 +401,13 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Projects proposals default to the course currently being viewed. Standalone Projects and Assignments pages remain intact. Non-enrolled learners do not see Coursework.
 - Validation: 3 focused files / 12 tests passed; ESLint on four changed files and `git diff --check` passed. Exact-head Actions/typecheck/build/browser checks remain pending.
 - No DB/schema/migration, production-data, dependency/provider, Vercel setting or deployment changes. Shared course-level numbering and assessment still need canonical course activity modelling; no learner-local counters were introduced.
+
+
+## 2026-11-14 — Course-workspace proposal fixation checkpoint
+
+- Current live main includes application commit `00d6fffe0eb3aa0285757577bae4e6d5c69ecec5`, parent `829ea9f7ad5ccb225b72f94928b6c3bdbff5c148`.
+- Changed `src/modules/learner-portal/projects.tsx` and `projects.test.ts` only. Course-specific proposal creation now displays and enforces the active course, fails closed if that course is not in the learner's available course set, and resets form state on course-context changes. The standalone Projects page remains cross-course and editable.
+- Added visible keyboard focus treatment to form controls/actions and explicit required/saving semantics. No API, schema or data changes.
+- Validation: full Vitest suite excluding the DB-backed tutor-context test passed (58 files / 503 tests); focused tests passed (2 files / 6 tests); ESLint passed; focused TypeScript check passed; diff check passed. Full TypeScript check OOM at 1.4 GB. Build and browser/manual QA remain unrun.
+- GitHub confirms main-only branch inventory and zero open PRs. `vercel.json` disables Git deployments; exact commit deployment lookup returned none. No deployment or production data operation was performed.
+- Next: resume on live main, verify course detail and course-owned project/assignment access end-to-end, then proceed upward to instructor course workspace. Do not introduce shared numbering, assessment or curriculum schema changes without canonical activity design and explicit migration approval.
