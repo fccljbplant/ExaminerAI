@@ -827,3 +827,16 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - **Blocked finding recorded in DECISIONS-REGISTER:** project AI help sends project context and blockers to `callAI` and stores the response, but no explicit per-org consent/enablement, course-enrollment or org-budget gate was found. No AI help changes were made pending owner/legal/data approval.
 - No database/schema/migration, dependency/provider, production data, Vercel setting or deployment changes.
 - Next: resolve the project AI help consent/data/budget decision before touching that route; continue non-AI course-owned project and assignment access review.
+
+
+## 2026-11-15 — Learner project detail course scope
+
+**Application commit:** `103365949185b0c69c6ba3a89b494e745d3a7a38`
+
+- Closed a direct-ID course-boundary gap in `GET /api/v2/projects/[id]` and `PATCH /api/v2/projects/[id]`: both now require the owning project to have a course and the learner to retain a `CourseEnrollment` with role `student`. Unenrolled and course-less legacy projects return the same not-found response without exposing whether the record exists.
+- Removed the user-level `projectId: null` task/week fallback. Project detail now loads only tasks and weeks matching both the current project ID and its owning course ID; legacy rows remain preserved and are not silently merged into active course work.
+- Added six route regression tests for legacy project denial, revoked enrollment, successful enrolled access, and mutation prevention.
+- Validation: full Vitest run excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 184 suites / 524 tests passed. Focused route tests: 6/6 passed. ESLint and `git diff --check` passed.
+- Full TypeScript check exhausted the 1.4 GB Node heap; no typecheck pass is claimed. Production build, browser screenshots, responsive manual review, keyboard and screen-reader verification were not run.
+- No schema/migration, database access, production data, dependency/provider, deployment setting or release changes. `vercel.json` keeps Git deployments disabled; Vercel returned zero deployment records for the application commit.
+- Next: continue the learner project workspace bottom-up through task/generation endpoints and their UI states, then audit instructor approval/mentoring. Keep AI project help blocked pending the consent/data-processing decision already recorded in DECISIONS-REGISTER.
