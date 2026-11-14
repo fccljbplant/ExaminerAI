@@ -420,3 +420,12 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Added four tests for stale data/error isolation, same-path refetch retention and null/disabled paths. Validation: 59 files / 507 tests passed excluding DB-backed tutor-context; 3 focused files / 10 tests passed; ESLint and focused TypeScript passed; full TypeScript OOM at 1.4 GB; build/browser QA not run.
 - No database, migration, dependency/provider, production data, Vercel settings or deployment changes.
 - Next: verify course detail navigation and end-to-end learner/instructor course-owned project/assignment paths. Do not infer canonical shared activity numbering from per-learner records.
+
+
+## 2026-11-14 — Course detail tab accessibility checkpoint
+
+- Current main application commit: `f1a078bc1487e7d961b0128ec0ef0480eed45a8a`, parent `3f4286e450083fb9e45f3c4c5c5d7e65bf9c8689`.
+- Course detail tabs now follow the accessible tab pattern with explicit tablist/tab/tabpanel relationships, selected state, roving tab index, Arrow/Home/End navigation, focus visibility and mobile horizontal scrolling. Tab selection is keyed to courseId and resets to Overview when the course changes; non-enrolled users cannot remain on Coursework.
+- Regression tests cover markup relationships, route-state normalization and keyboard navigation. Full suite: 59 files / 512 tests passed excluding DB-backed tutor-context; focused 3 files / 15 tests passed; ESLint and focused TypeScript passed; full TypeScript heap-limited; build/manual browser QA not run.
+- No schema/API/data/dependency/provider/Vercel deployment changes.
+- Next: validate course-owned learner/instructor project and assignment flows end-to-end, including cross-course authorization and clear loading/error states.
