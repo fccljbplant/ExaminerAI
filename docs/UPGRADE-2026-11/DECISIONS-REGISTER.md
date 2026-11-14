@@ -95,3 +95,14 @@ Record each answer with date, owner, rationale and affected workstreams. Do not 
 
 - The existing check-in write and the new read use the application server's local calendar-day boundary. The read mirrors the existing write; this fixation does not redefine the meaning of “today”.
 - Before changing this behavior, decide whether a check-in day is defined by the learner, course, organisation or UTC. Consider cross-midnight learners and daylight-saving transitions. `DailyLog` currently has no explicit timezone field.
+
+
+## 2026-11-14 — Project AI help consent, course access and budget gate (BLOCKED)
+
+**Evidence inspected:** `src/app/api/learn/projects/[id]/help/route.ts`, `src/modules/assessment/lib/ai-provider.ts`, `src/modules/assessment/lib/ai-rate-limits.ts`.
+
+- The project-help route sends project title, goal, stack, current state, current milestone context and the learner's blocker to `callAI`, then persists the generated hint and conversation in `ProjectHelpSession`.
+- The route checks project ownership, but no explicit learner-role, active course-enrollment, per-organisation AI enablement/consent or organisation-budget check was found in the route. It calls `callAI` with `userId` but no `orgId`. The shared provider wrapper documents organisation budget enforcement as a route-level responsibility; no route-level budget gate is present here. No central consent gate was found in `callAI`.
+- This means an owner may still invoke project AI help after course unenrolment, and project content may be sent to configured AI providers without a demonstrated org consent/DPA gate. Do not assume deployment-time flags or provider configuration provide legal consent.
+- **Blocked:** do not enable, expand or modify this AI processing path until the owner approves the intended org-level feature/consent gate and the legal/data review confirms DPA, permitted content, provider routing, retention, pseudonymisation/minimisation and budget/rate enforcement. Then implement and test role, ownership, course-enrollment, org-flag, consent and budget guards server-side.
+- The hint-level progression does update `hintLevel` after a successful call; no progression defect was confirmed in this inspection.
