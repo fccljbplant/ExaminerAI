@@ -2,8 +2,8 @@
  * /api/v2/projects/[id] — L7 Project workspace (v2 project flow)
  *
  * GET   — full project picture: proposal + approval state, milestones,
- *         project-scoped weeks + tasks (falls back to legacy user-level
- *         rows when the project has no generated timeline yet), KPIs.
+ *         course- and project-scoped weeks + tasks, and KPIs. Requires
+ *         the learner's current student enrollment in the owning course.
  * PATCH — owner edits the project: title/goal/stack/currentState/deadline
  *         always editable; proposal fields (description/objectives/
  *         durationWeeks) editable while pending_approval or rejected.
@@ -50,39 +50,32 @@ export async function GET(
   const { id } = await params;
 
   const project = await db.learnProject.findFirst({
-    where: { id, userId: user.sub }, // IDOR: owner-only
+    where: { id, userId: user.sub }, // owner-scoped lookup prevents IDOR
     include: { milestones: { orderBy: { order: "asc" } } },
   });
-  if (!project) return apiError("Project not found", "NOT_FOUND", 404);
+  // Course-less legacy rows are retained for history, never active course work.
+  if (!project?.courseId) return apiError("Project not found", "NOT_FOUND", 404);
 
-  const [projectTasks, legacyTasks, projectWeeks, legacyWeeks, approver, courseName] =
-    await Promise.all([
-      db.projectTask.findMany({
-        where: { projectId: project.id },
-        orderBy: [{ week: "asc" }, { day: "asc" }, { createdAt: "asc" }],
-      }),
-      db.projectTask.findMany({
-        where: { userId: user.sub, ...(project.courseId ? { courseId: project.courseId } : {}), projectId: null },
-        orderBy: [{ week: "asc" }, { createdAt: "asc" }],
-      }),
-      db.projectWeek.findMany({
-        where: { projectId: project.id },
-        orderBy: { weekNumber: "asc" },
-      }),
-      db.projectWeek.findMany({
-        where: { userId: user.sub, projectId: null },
-        orderBy: { weekNumber: "asc" },
-      }),
-      project.approvedById
-        ? db.user.findUnique({ where: { id: project.approvedById }, select: { name: true } })
-        : null,
-      project.courseId
-        ? db.course.findUnique({ where: { id: project.courseId }, select: { name: true } })
-        : null,
-    ]);
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: project.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiError("Project not found", "NOT_FOUND", 404);
 
-  const weeks = projectWeeks.length > 0 ? projectWeeks : legacyWeeks;
-  const tasks = projectTasks.length > 0 ? projectTasks : legacyTasks;
+  const [tasks, weeks, approver, courseName] = await Promise.all([
+    db.projectTask.findMany({
+      where: { projectId: project.id, courseId: project.courseId },
+      orderBy: [{ week: "asc" }, { day: "asc" }, { createdAt: "asc" }],
+    }),
+    db.projectWeek.findMany({
+      where: { projectId: project.id, courseId: project.courseId },
+      orderBy: { weekNumber: "asc" },
+    }),
+    project.approvedById
+      ? db.user.findUnique({ where: { id: project.approvedById }, select: { name: true } })
+      : null,
+    db.course.findUnique({ where: { id: project.courseId }, select: { name: true } }),
+  ]);
 
   const done = project.milestones.filter((m) => m.status === "completed").length;
   const tasksDone = tasks.filter((t) => t.status === "completed").length;
@@ -168,7 +161,14 @@ export async function PATCH(
   const project = await db.learnProject.findFirst({
     where: { id, userId: user.sub },
   });
-  if (!project) return apiError("Project not found", "NOT_FOUND", 404);
+  // Keep legacy/un-enrolled projects unavailable in active course workflows.
+  if (!project?.courseId) return apiError("Project not found", "NOT_FOUND", 404);
+
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: project.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiError("Project not found", "NOT_FOUND", 404);
 
   const body = await req.json().catch(() => ({}));
   const {
