@@ -967,3 +967,12 @@ These are approved planning decisions, not implementation claims. No application
 - Tests: 58 files / 503 tests passed excluding the DB-backed tutor-context test; final focused tests 2 files / 6 tests passed; ESLint on both changed files passed; focused TypeScript check passed; diff check passed. Full TypeScript check did not complete because Node exhausted its 1.4 GB heap. Build and browser/manual accessibility checks were not run.
 - No schema, migration, database, production data, dependency, provider, Vercel setting or deployment changes. Git deployments remain disabled in `vercel.json`; no deployment exists for the application commit.
 - Remaining: complete browser/manual accessibility review and verify full learner/instructor project-assignment course journeys. Shared activity numbering and assessment remain blocked on canonical course activity modelling and separately approved migration design.
+
+
+## 2026-11-14 — Shared learner API path-change correctness
+
+- Main application commit: `0e1d3e2920b582ee710a7ac4014917fcfaeb2ae2` (parent `95bfceef31bf1d43dc5be77df71a107f249844d6`).
+- Fixed `useApi` retaining previous resource data/errors when a mounted learner-portal component receives a new request path. New paths now immediately project as loading with no previous-path data/error; same-path refetches retain the last good response. This prevents course A data from appearing in course B while navigation requests are pending.
+- Added four path-scoping regression tests. Full suite: 59 files / 507 tests passed excluding DB-backed tutor-context test. Focused learner portal: 3 files / 10 tests passed. ESLint and focused TypeScript check passed. Full-project typecheck remains unverified (1.4 GB heap exhaustion); build and browser/manual accessibility checks not run.
+- No database/schema/migration, API contract, dependency/provider, Vercel setting or deployment changes.
+- Remaining: verify full course detail and course-owned project/assignment journeys, and continue responsive/keyboard/screen-reader review. Canonical activity numbering/assessment design remains separate.
