@@ -411,3 +411,12 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Validation: full Vitest suite excluding the DB-backed tutor-context test passed (58 files / 503 tests); focused tests passed (2 files / 6 tests); ESLint passed; focused TypeScript check passed; diff check passed. Full TypeScript check OOM at 1.4 GB. Build and browser/manual QA remain unrun.
 - GitHub confirms main-only branch inventory and zero open PRs. `vercel.json` disables Git deployments; exact commit deployment lookup returned none. No deployment or production data operation was performed.
 - Next: resume on live main, verify course detail and course-owned project/assignment access end-to-end, then proceed upward to instructor course workspace. Do not introduce shared numbering, assessment or curriculum schema changes without canonical activity design and explicit migration approval.
+
+
+## 2026-11-14 — Shared learner API resource-path fix
+
+- Current main includes `0e1d3e2920b582ee710a7ac4014917fcfaeb2ae2`, parent `95bfceef31bf1d43dc5be77df71a107f249844d6`.
+- `useApi` now associates each response/error with its request path and refuses to expose a prior resource's data or error after the path changes. New resource paths display loading until their own response arrives; same-path refresh behavior is preserved. This affects learner course detail, syllabus and course-scoped Coursework consumers without changing API or data contracts.
+- Added four tests for stale data/error isolation, same-path refetch retention and null/disabled paths. Validation: 59 files / 507 tests passed excluding DB-backed tutor-context; 3 focused files / 10 tests passed; ESLint and focused TypeScript passed; full TypeScript OOM at 1.4 GB; build/browser QA not run.
+- No database, migration, dependency/provider, production data, Vercel settings or deployment changes.
+- Next: verify course detail navigation and end-to-end learner/instructor course-owned project/assignment paths. Do not infer canonical shared activity numbering from per-learner records.
