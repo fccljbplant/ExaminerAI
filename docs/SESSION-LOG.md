@@ -1439,3 +1439,15 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Validation: 58 Vitest files / 503 tests passed excluding DB-backed `tutor-context.test.ts`; focused 2 files / 6 tests passed; ESLint passed on both changed files; focused TypeScript check passed; `git diff --check` passed. Full TypeScript check exhausted the 1.4 GB Node heap. Build, screenshots and manual keyboard/screen-reader verification were not run.
 - No database/schema/migration, production data, dependency/provider, deployment setting or release changes. `vercel.json` remains Git-deployment-disabled and the Vercel lookup returned no deployment for the application commit.
 - Next: inspect course detail navigation and the end-to-end learner/instructor course-owned project/assignment paths. Course-wide numbering, assessment rules and week/day placement remain separate canonical-model work; do not infer them from per-learner project records.
+
+
+## 2026-11-14 — Shared learner API resource-path isolation
+
+**Application commit:** `0e1d3e2920b582ee710a7ac4014917fcfaeb2ae2`  
+**Parent:** `95bfceef31bf1d43dc5be77df71a107f249844d6`
+
+- Fixed `useApi` so data and errors are associated with the request path that produced them. When a mounted consumer changes from course/resource A to B, A's data/error is hidden immediately and B shows loading until its own request resolves. Same-path refetch retention is preserved.
+- Added four tests for path-switch data isolation, stale-error isolation, same-path refetch retention and disabled requests.
+- Validation: 59 Vitest files / 507 tests passed excluding DB-backed `tutor-context.test.ts`; focused learner-portal tests 3 files / 10 tests passed; ESLint passed; focused TypeScript passed; `git diff --check` passed. Full-project TypeScript check previously exhausted 1.4 GB heap. Build, screenshots and manual responsive/keyboard/screen-reader QA not run.
+- No API contract/schema/database/dependency/provider/Vercel setting/deployment changes.
+- Next: continue end-to-end course detail, coursework, assignment and instructor access verification; keep canonical course activity numbering and assessment changes separate pending approved data model and migration plan.
