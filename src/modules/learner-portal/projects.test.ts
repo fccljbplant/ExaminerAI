@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("./use-api", () => ({ useApi: mocks.useApi }));
 
-import { LearnerProjects } from "./projects";
+import { LearnerProjects, ProjectCourseField } from "./projects";
 
 describe("LearnerProjects course context", () => {
   beforeEach(() => {
@@ -44,6 +44,54 @@ describe("LearnerProjects course context", () => {
     expect(html).toContain("Course One");
     expect(html).toContain("Project One");
     expect(html).toContain("Projects stay with their course");
+  });
+
+  it("locks proposal course selection to the active course workspace", () => {
+    const html = renderToStaticMarkup(createElement(ProjectCourseField, {
+      courses: [
+        { id: "course-1", name: "Course One" },
+        { id: "course-2", name: "Course Two" },
+      ],
+      preferredCourseId: "course-2",
+      selectedCourseId: "course-1",
+      onCourseChange: vi.fn(),
+    }));
+
+    expect(html).toContain("Course Two");
+    expect(html).toContain("Current course");
+    expect(html).not.toContain("<select");
+    expect(html).not.toContain("Course One");
+  });
+
+  it("fails closed when the active course is not in the learner's available courses", () => {
+    const html = renderToStaticMarkup(createElement(ProjectCourseField, {
+      courses: [{ id: "course-1", name: "Course One" }],
+      preferredCourseId: "course-2",
+      selectedCourseId: "course-1",
+      onCourseChange: vi.fn(),
+    }));
+
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("Course unavailable");
+    expect(html).not.toContain("<select");
+  });
+
+  it("shows the active course on the embedded proposal action", () => {
+    mocks.useApi.mockReturnValue({
+      data: { courses: [{ id: "course-2", name: "Course Two" }], projects: [] },
+      error: null,
+      isLoading: false,
+      retry: vi.fn(),
+    });
+
+    const html = renderToStaticMarkup(createElement(LearnerProjects, {
+      courseId: "course-2",
+      embedded: true,
+    }));
+
+    expect(mocks.useApi).toHaveBeenCalledWith("/api/learn/projects?courseId=course-2");
+    expect(html).toContain("New project proposal");
+    expect(html).toContain("Course Two");
   });
 
   it("explains that projects require a course when no enrolments exist", () => {

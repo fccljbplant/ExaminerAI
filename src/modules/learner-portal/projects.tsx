@@ -52,6 +52,62 @@ interface ProjectsData {
   courses: CourseRow[];
 }
 
+/** Course selection is editable in the cross-course workspace, but fixed when
+ * a proposal is started from a specific course's Coursework tab. */
+export function ProjectCourseField({
+  courses,
+  preferredCourseId,
+  selectedCourseId,
+  onCourseChange,
+}: {
+  courses: CourseRow[];
+  preferredCourseId?: string;
+  selectedCourseId: string;
+  onCourseChange: (courseId: string) => void;
+}) {
+  if (preferredCourseId) {
+    const preferredCourse = courses.find((course) => course.id === preferredCourseId);
+    if (!preferredCourse) {
+      return (
+        <div role="alert" className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-3">
+          <p className="text-sm font-semibold text-fg">Course unavailable</p>
+          <p className="mt-1 text-xs text-fg-muted">
+            This course is no longer available for new project proposals. Return to your course list and refresh before trying again.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="block space-y-1.5">
+        <span className="text-xs font-medium text-fg">Course</span>
+        <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-line bg-bg px-3">
+          <span className="min-w-0 truncate text-sm text-fg">{preferredCourse.name}</span>
+          <span className="shrink-0 rounded-full bg-brand-subtle px-2 py-1 text-[11px] font-semibold text-brand">
+            Current course
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-medium text-fg">Course</span>
+      <select
+        value={selectedCourseId}
+        onChange={(event) => onCourseChange(event.target.value)}
+        className="h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+      >
+        <option value="">Select a course…</option>
+        {courses.map((course) => (
+          <option key={course.id} value={course.id}>{course.name}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 const STATUS_LABEL: Record<string, string> = {
   pending_approval: "Awaiting approval",
   approved: "Approved",
@@ -104,7 +160,12 @@ export function LearnerProjects({
         </header>
       )}
 
-      <NewProjectForm courses={data.courses} preferredCourseId={courseId} onCreated={retry} />
+      <NewProjectForm
+        key={courseId ?? "all-courses"}
+        courses={data.courses}
+        preferredCourseId={courseId}
+        onCreated={retry}
+      />
 
       <section className="space-y-2">
         <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
@@ -182,6 +243,10 @@ function NewProjectForm({
   const [courseId, setCourseId] = useState(
     () => courses.find((course) => course.id === preferredCourseId)?.id ?? courses[0]?.id ?? "",
   );
+  const preferredCourse = preferredCourseId
+    ? courses.find((course) => course.id === preferredCourseId) ?? null
+    : null;
+  const selectedCourseId = preferredCourseId ? preferredCourse?.id ?? "" : courseId;
   const [title, setTitle] = useState("");
   const [goal, setGoal] = useState("");
   const [description, setDescription] = useState("");
@@ -193,14 +258,14 @@ function NewProjectForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
+    if (!selectedCourseId) {
+      toast.error("Pick the course this project belongs to");
+      return;
+    }
     setSaving(true);
     try {
-      if (!courseId) {
-        toast.error("Pick the course this project belongs to");
-        return;
-      }
       await api.post("/api/learn/projects", {
-        courseId,
+        courseId: selectedCourseId,
         title: title.trim(),
         goal: goal.trim() || null,
         description: description.trim() || null,
@@ -226,6 +291,17 @@ function NewProjectForm({
     }
   }
 
+  if (preferredCourseId && !preferredCourse) {
+    return (
+      <ProjectCourseField
+        courses={courses}
+        preferredCourseId={preferredCourseId}
+        selectedCourseId={selectedCourseId}
+        onCourseChange={setCourseId}
+      />
+    );
+  }
+
   if (courses.length === 0) {
     return (
       <div className="rounded-xl border border-line bg-surface px-4 py-4">
@@ -242,16 +318,22 @@ function NewProjectForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full min-h-12 items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-surface px-4 text-sm font-semibold text-brand transition-colors hover:border-brand/50 hover:bg-brand-subtle/40"
+        aria-label={preferredCourse ? `New project proposal for ${preferredCourse.name}` : undefined}
+        className="flex w-full min-h-12 flex-wrap items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-surface px-4 text-sm font-semibold text-brand transition-colors hover:border-brand/50 hover:bg-brand-subtle/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       >
         <Plus className="h-4 w-4" aria-hidden />
-        New project proposal
+        <span>New project proposal</span>
+        {preferredCourse && (
+          <span className="max-w-[45%] truncate rounded-full bg-brand-subtle px-2 py-1 text-[11px] font-semibold text-brand">
+            {preferredCourse.name}
+          </span>
+        )}
       </button>
     );
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-xl border border-brand/30 bg-surface p-4">
+    <form onSubmit={submit} aria-busy={saving} className="space-y-3 rounded-xl border border-brand/30 bg-surface p-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
           New project proposal
@@ -259,33 +341,27 @@ function NewProjectForm({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="inline-flex min-h-11 items-center rounded-lg px-2 text-xs font-medium text-fg-muted hover:text-fg"
+          className="inline-flex min-h-11 items-center rounded-lg px-2 text-xs font-medium text-fg-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         >
           Cancel
         </button>
       </div>
       {courses.length > 0 && (
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-fg">Course</span>
-          <select
-            value={courseId}
-            onChange={(e) => setCourseId(e.target.value)}
-            className="h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg"
-          >
-            <option value="">Select a course…</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </label>
+        <ProjectCourseField
+          courses={courses}
+          preferredCourseId={preferredCourseId}
+          selectedCourseId={selectedCourseId}
+          onCourseChange={setCourseId}
+        />
       )}
       <label className="block space-y-1.5">
         <span className="text-xs font-medium text-fg">Title</span>
         <input
+          required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="What will you build?"
-          className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+          className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         />
       </label>
       <label className="block space-y-1.5">
@@ -294,7 +370,7 @@ function NewProjectForm({
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
           placeholder="What does success look like?"
-          className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+          className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         />
       </label>
       <label className="block space-y-1.5">
@@ -304,7 +380,7 @@ function NewProjectForm({
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
           placeholder="Describe the project your instructor will review."
-          className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted"
+          className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         />
       </label>
       <label className="block space-y-1.5">
@@ -314,7 +390,7 @@ function NewProjectForm({
           onChange={(e) => setObjectives(e.target.value)}
           rows={2}
           placeholder="Pick a niche\nList 5 products"
-          className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted"
+          className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         />
       </label>
       <div className="grid grid-cols-2 gap-3">
@@ -323,7 +399,7 @@ function NewProjectForm({
           <select
             value={durationWeeks}
             onChange={(e) => setDurationWeeks(Number(e.target.value))}
-            className="h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg"
+            className="h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             {Array.from({ length: 25 }, (_, i) => i + 2).map((w) => (
               <option key={w} value={w}>{w} weeks</option>
@@ -336,14 +412,14 @@ function NewProjectForm({
             type="date"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg"
+            className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           />
         </label>
       </div>
       <button
         type="submit"
         disabled={saving || !title.trim()}
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand disabled:opacity-50"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
         Submit for approval
