@@ -794,3 +794,13 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Not run: production build, browser screenshots, manual responsive/keyboard/screen-reader verification or full WCAG 2.2 AA sign-off. The tests are server-rendered component tests, not browser interaction tests.
 - No production DB access, migration, production data change, dependency/provider change, Vercel setting change or deployment. `vercel.json` continues to set `git.deploymentEnabled: false`; exact-commit Vercel deployment lookup returned no deployment.
 - Next: verify the selected course detail journey and the complete learner/instructor project and assignment access paths. Keep course-wide activity numbering, assessment policy, curriculum placement and learner-paced unlock design separate from per-learner project rows; do not invent counters or migrate data without the approved canonical activity model and separate migration approval.
+
+
+## 2026-11-14 — Learner API resource-path isolation
+
+- Application fix committed directly to main as `0e1d3e2920b582ee710a7ac4014917fcfaeb2ae2` (parent `95bfceef31bf1d43dc5be77df71a107f249844d6`): `fix: scope learner api state to current resource`.
+- Fixed shared `useApi` state leakage across resource path changes. Previously, when a component stayed mounted while its course/resource path changed, the hook could expose the previous path's data or error until the next request completed. It now stores the owning path with each snapshot, hides mismatched data/errors immediately, and reports loading for the new path. Same-path refetches retain their last good data.
+- Added four regression tests covering path changes, stale errors, same-path refetch retention and disabled requests. This protects course detail, lazy syllabus, embedded projects and assignments from briefly rendering the previous course's records during navigation.
+- Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 59 files / 507 tests passed. Focused learner portal tests: 3 files / 10 tests passed. ESLint passed for the hook and test. Focused TypeScript check passed. `git diff --check` passed. Full-project TypeScript check remains unverified because the previous attempt exhausted the 1.4 GB Node heap; build and browser/manual QA were not run.
+- No API contract, schema, migration, database, production data, dependency/provider, Vercel setting or deployment changes.
+- Next: verify the complete course-detail → Coursework → learner/instructor project and assignment journeys, then continue the bottom-up course workspace UX/accessibility pass. Keep shared activity numbering and assessment changes behind canonical course activity modelling and separate migration approval.
