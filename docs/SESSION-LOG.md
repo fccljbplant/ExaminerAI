@@ -1463,3 +1463,15 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Added tests for accessible markup, route-state behavior and keyboard navigation. Validation: 59 Vitest files / 512 tests passed excluding DB-backed `tutor-context.test.ts`; focused learner-portal 3 files / 15 tests passed; ESLint and focused TypeScript passed; `git diff --check` passed. Full-project typecheck heap-exhausted earlier; build and manual browser/screen-reader checks not run.
 - No API/schema/database/dependency/provider/Vercel setting/deployment changes.
 - Next: end-to-end learner/instructor project and assignment access checks, then manual responsive and assistive-technology review.
+
+
+## 2026-11-14 — Project milestone course access and AI-help gate
+
+**Application commit:** `eae4bf33676fafc6f94532bd4ad8f50980e4976f`  
+**Parent:** `f3e13aad371d425c660329e400059e19e013e7f2`
+
+- Added learner-role, project ownership, course association and active student-enrollment guards to project milestone completion before milestone mutation or XP award. This closes post-unenrolment access through the direct milestone endpoint.
+- Added six route regression tests. Validation: 60 Vitest files / 518 tests passed excluding DB-backed `tutor-context.test.ts`; focused route 2 files / 15 tests passed; ESLint, focused TypeScript and `git diff --check` passed. Full-project typecheck previously exhausted the 1.4 GB heap; build and manual browser/accessibility QA not run.
+- Audited project AI help. It sends project content and blockers to `callAI` and persists the response, with no demonstrated org consent/enablement, course-enrollment or org-budget gate. Added a BLOCKED owner/legal/data decision to DECISIONS-REGISTER; did not change this AI route.
+- No schema/API contract/database/dependency/provider/Vercel setting/deployment changes.
+- Next: continue non-AI course-owned project and assignment workflows; resolve project AI consent/data-processing gate before implementation.
