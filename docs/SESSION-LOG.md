@@ -1451,3 +1451,15 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Validation: 59 Vitest files / 507 tests passed excluding DB-backed `tutor-context.test.ts`; focused learner-portal tests 3 files / 10 tests passed; ESLint passed; focused TypeScript passed; `git diff --check` passed. Full-project TypeScript check previously exhausted 1.4 GB heap. Build, screenshots and manual responsive/keyboard/screen-reader QA not run.
 - No API contract/schema/database/dependency/provider/Vercel setting/deployment changes.
 - Next: continue end-to-end course detail, coursework, assignment and instructor access verification; keep canonical course activity numbering and assessment changes separate pending approved data model and migration plan.
+
+
+## 2026-11-14 — Course detail tabs accessibility and state
+
+**Application commit:** `f1a078bc1487e7d961b0128ec0ef0480eed45a8a`  
+**Parent:** `3f4286e450083fb9e45f3c4c5c5d7e65bf9c8689`
+
+- Replaced `aria-current="page"` on in-page controls with proper tab semantics and associated tab panels. Added roving focus, Left/Right Arrow, Home/End navigation, visible focus styles and horizontal scrolling for narrow screens.
+- Tab state is course-scoped and resets to Overview when the learner opens another course; Coursework is not selected when enrollment is unavailable. Syllabus remains lazy-loaded.
+- Added tests for accessible markup, route-state behavior and keyboard navigation. Validation: 59 Vitest files / 512 tests passed excluding DB-backed `tutor-context.test.ts`; focused learner-portal 3 files / 15 tests passed; ESLint and focused TypeScript passed; `git diff --check` passed. Full-project typecheck heap-exhausted earlier; build and manual browser/screen-reader checks not run.
+- No API/schema/database/dependency/provider/Vercel setting/deployment changes.
+- Next: end-to-end learner/instructor project and assignment access checks, then manual responsive and assistive-technology review.
