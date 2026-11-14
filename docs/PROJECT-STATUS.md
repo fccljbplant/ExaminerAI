@@ -957,3 +957,13 @@ These are approved planning decisions, not implementation claims. No application
 - No DB/schema/migration, production-data, dependency/provider, Vercel setting or deployment changes.
 - Remaining model gap: shared course-level activity numbering and assessment policy cannot be derived from per-learner LearnProject rows. Do not invent sequence numbers or alter schemas without approved canonical course activity design and migration plan.
 - Next: verify course detail behavior and course-level assignment/project access end-to-end, then align numbering, assessment, weekly placement and learner-paced unlock rules with the canonical course model.
+
+
+## 2026-11-14 — Learner Coursework proposal course boundary
+
+- Live main application commit: `00d6fffe0eb3aa0285757577bae4e6d5c69ecec5` (parent `829ea9f7ad5ccb225b72f94928b6c3bdbff5c148`).
+- Embedded project proposals are now bound to the selected course workspace. The current course is visible and read-only, unavailable course context fails closed, and changing course context remounts the form to discard stale proposal state. The standalone Projects page retains its cross-course selector.
+- Added keyboard-visible focus treatments across proposal controls, an explicit required title and a saving announcement state. Existing API and data contracts are unchanged.
+- Tests: 58 files / 503 tests passed excluding the DB-backed tutor-context test; final focused tests 2 files / 6 tests passed; ESLint on both changed files passed; focused TypeScript check passed; diff check passed. Full TypeScript check did not complete because Node exhausted its 1.4 GB heap. Build and browser/manual accessibility checks were not run.
+- No schema, migration, database, production data, dependency, provider, Vercel setting or deployment changes. Git deployments remain disabled in `vercel.json`; no deployment exists for the application commit.
+- Remaining: complete browser/manual accessibility review and verify full learner/instructor project-assignment course journeys. Shared activity numbering and assessment remain blocked on canonical course activity modelling and separately approved migration design.
