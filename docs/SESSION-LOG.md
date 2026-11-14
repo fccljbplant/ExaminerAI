@@ -1425,3 +1425,17 @@ Vercel status remains failed due to the project build-rate limit. The Vercel san
 - Projects proposals default to the course currently being viewed. Standalone Projects and Assignments pages remain intact. Non-enrolled learners do not see Coursework.
 - Validation: 3 focused files / 12 tests passed; ESLint on four changed files and `git diff --check` passed. Exact-head Actions/typecheck/build/browser checks remain pending.
 - No DB/schema/migration, production-data, dependency/provider, Vercel setting or deployment changes. Shared course-level numbering and assessment still need canonical course activity modelling; no learner-local counters were introduced.
+
+
+## 2026-11-14 — Course-workspace project proposal scope and UX fixation
+
+**Starting main:** `829ea9f7ad5ccb225b72f94928b6c3bdbff5c148`  
+**Application commit:** `00d6fffe0eb3aa0285757577bae4e6d5c69ecec5`
+
+- Fixed the embedded Coursework proposal flow so a learner cannot switch the owning course from inside a selected course workspace. The course name is visible in the collapsed proposal action and as a fixed field in the open form.
+- Course identity is derived from the current `preferredCourseId`; unavailable context fails closed. The proposal form remounts on course changes to avoid carrying unsent title/goal/objective data into another course. The standalone Projects page remains course-selectable.
+- Added visible keyboard focus styles to the form's interactive controls and actions, required title semantics and `aria-busy` while submitting.
+- Added tests for fixed-course rendering, unavailable-course handling and embedded course label/query behavior.
+- Validation: 58 Vitest files / 503 tests passed excluding DB-backed `tutor-context.test.ts`; focused 2 files / 6 tests passed; ESLint passed on both changed files; focused TypeScript check passed; `git diff --check` passed. Full TypeScript check exhausted the 1.4 GB Node heap. Build, screenshots and manual keyboard/screen-reader verification were not run.
+- No database/schema/migration, production data, dependency/provider, deployment setting or release changes. `vercel.json` remains Git-deployment-disabled and the Vercel lookup returned no deployment for the application commit.
+- Next: inspect course detail navigation and the end-to-end learner/instructor course-owned project/assignment paths. Course-wide numbering, assessment rules and week/day placement remain separate canonical-model work; do not infer them from per-learner project records.
