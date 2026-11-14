@@ -23,14 +23,41 @@ export interface ApiState<T> {
   retry: () => void;
 }
 
+interface ApiSnapshot<T> {
+  path: string | null;
+  data: T | null;
+  error: string | null;
+  loading: boolean;
+}
+
+/** Never project data fetched for a different resource path into the current view. */
+export function getApiStateForPath<T>(
+  state: ApiSnapshot<T>,
+  path: string | null,
+): Omit<ApiState<T>, "retry"> {
+  const matchesPath = Boolean(path) && state.path === path;
+  const data = matchesPath ? state.data : null;
+  const error = matchesPath ? state.error : null;
+
+  return {
+    data,
+    error,
+    isLoading: Boolean(path) && (
+      !matchesPath || state.loading || (data === null && error === null)
+    ),
+  };
+}
+
 export function useApi<T>(path: string | null): ApiState<T> {
-  // Single state atom so a refetch keeps showing stale data (no
-  // synchronous setState in the fetch effect — react-hooks rule).
-  const [state, setState] = useState<{
-    data: T | null;
-    error: string | null;
-    loading: boolean;
-  }>({ data: null, error: null, loading: Boolean(path) });
+  // Keep the path with its data so a route change never renders the previous
+  // course/resource while the next request is pending. Same-path refetches
+  // continue to retain their last good data.
+  const [state, setState] = useState<ApiSnapshot<T>>({
+    path,
+    data: null,
+    error: null,
+    loading: Boolean(path),
+  });
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -40,12 +67,13 @@ export function useApi<T>(path: string | null): ApiState<T> {
       .get<ApiEnvelope<T>>(path)
       .then((res) => {
         if (cancelled) return;
-        setState({ data: res.data ?? null, error: null, loading: false });
+        setState({ path, data: res.data ?? null, error: null, loading: false });
       })
       .catch((e: unknown) => {
         if (cancelled) return;
         setState((prev) => ({
-          ...prev,
+          path,
+          data: prev.path === path ? prev.data : null,
           error: e instanceof Error ? e.message : "Something went wrong",
           loading: false,
         }));
@@ -57,13 +85,5 @@ export function useApi<T>(path: string | null): ApiState<T> {
 
   const retry = useCallback(() => setTick((t) => t + 1), []);
 
-  return {
-    data: state.data,
-    error: state.error,
-    // Also covers late-activated paths (e.g. lazy tabs): no data and no
-    // error yet means the first fetch is in flight.
-    isLoading:
-      state.loading || (path !== null && state.data === null && state.error === null),
-    retry,
-  };
+  return { ...getApiStateForPath(state, path), retry };
 }
