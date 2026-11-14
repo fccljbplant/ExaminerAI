@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -77,18 +77,51 @@ interface SyllabusData {
   weeks: { week: number; phase: string; milestone: string; days: SyllabusDay[] }[];
 }
 
+export type CourseTab = "overview" | "syllabus" | "coursework";
+
+export function resolveCourseTab(
+  selected: { courseId: string; tab: CourseTab },
+  courseId: string,
+  enrolled: boolean,
+): CourseTab {
+  if (selected.courseId !== courseId) return "overview";
+  if (!enrolled && selected.tab === "coursework") return "overview";
+  return selected.tab;
+}
+
+export function getNextCourseTab(
+  tabs: readonly CourseTab[],
+  currentTab: CourseTab,
+  key: string,
+): CourseTab | null {
+  const currentIndex = tabs.indexOf(currentTab);
+  if (currentIndex < 0 || tabs.length === 0) return null;
+  if (key === "ArrowRight") return tabs[(currentIndex + 1) % tabs.length];
+  if (key === "ArrowLeft") return tabs[(currentIndex - 1 + tabs.length) % tabs.length];
+  if (key === "Home") return tabs[0];
+  if (key === "End") return tabs[tabs.length - 1];
+  return null;
+}
+
 /* ---------------- page -------------------------------------------------- */
 
 export function CourseDetail({ courseId }: { courseId: string }) {
-  const [tab, setTab] = useState<"overview" | "syllabus" | "coursework">("overview");
+  const [selectedTab, setSelectedTab] = useState<{ courseId: string; tab: CourseTab }>({
+    courseId,
+    tab: "overview",
+  });
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
 
   const overview = useApi<OverviewData>(`/api/v2/courses/${courseId}/overview`);
+  const hasCourseworkAccess = overview.data?.enrollment.enrolled ?? false;
+  const tab = resolveCourseTab(selectedTab, courseId, hasCourseworkAccess);
   // Tab-lazy: syllabus only fetched once the tab is opened.
   const syllabus = useApi<SyllabusData>(
     tab === "syllabus" ? `/api/v2/courses/${courseId}/syllabus` : null
   );
+  const tabRefs = useRef<Partial<Record<CourseTab, HTMLButtonElement | null>>>({});
+  const selectTab = (nextTab: CourseTab) => setSelectedTab({ courseId, tab: nextTab });
 
   if (overview.isLoading) return <DetailSkeleton />;
   if (overview.error || !overview.data) {
@@ -100,7 +133,8 @@ export function CourseDetail({ courseId }: { courseId: string }) {
     );
   }
 
-  const { course, enrollment } = overview.data;
+  const overviewData = overview.data;
+  const { course, enrollment } = overviewData;
   const enrolled = enrollment.enrolled;
 
   async function enroll() {
@@ -138,6 +172,19 @@ export function CourseDetail({ courseId }: { courseId: string }) {
       {enrolling ? "Enrolling…" : "Enroll"}
     </button>
   );
+
+  const tabs: CourseTab[] = enrolled
+    ? ["overview", "syllabus", "coursework"]
+    : ["overview", "syllabus"];
+
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentTab: CourseTab) {
+    const nextTab = getNextCourseTab(tabs, currentTab, event.key);
+    if (!nextTab) return;
+
+    event.preventDefault();
+    selectTab(nextTab);
+    tabRefs.current[nextTab]?.focus();
+  }
 
   return (
     <div className="space-y-4 pb-20 md:pb-0">
@@ -189,19 +236,26 @@ export function CourseDetail({ courseId }: { courseId: string }) {
         <div className="mt-4 hidden md:block">{cta}</div>
       </header>
 
-      {/* tab row */}
-      <nav aria-label="Course sections" className="flex gap-1 border-b border-line">
-        {(enrolled
-          ? (["overview", "syllabus", "coursework"] as const)
-          : (["overview", "syllabus"] as const)
-        ).map((t) => (
+      {/* Accessible tabs: arrow keys move focus and selection; each tab owns a panel. */}
+      <div
+        role="tablist"
+        aria-label="Course sections"
+        className="flex gap-1 overflow-x-auto border-b border-line"
+      >
+        {tabs.map((t) => (
           <button
             key={t}
+            ref={(element) => { tabRefs.current[t] = element; }}
+            id={`course-tab-${courseId}-${t}`}
             type="button"
-            onClick={() => setTab(t)}
-            aria-current={tab === t ? "page" : undefined}
+            role="tab"
+            aria-selected={tab === t}
+            aria-controls={`course-panel-${courseId}-${t}`}
+            tabIndex={tab === t ? 0 : -1}
+            onClick={() => selectTab(t)}
+            onKeyDown={(event) => handleTabKeyDown(event, t)}
             className={cn(
-              "-mb-px inline-flex h-11 items-center border-b-2 px-4 text-sm font-medium capitalize transition-colors",
+              "-mb-px inline-flex h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-4 text-sm font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset",
               tab === t
                 ? "border-brand text-fg"
                 : "border-transparent text-fg-muted hover:text-fg"
@@ -210,23 +264,35 @@ export function CourseDetail({ courseId }: { courseId: string }) {
             {t === "coursework" ? "Coursework" : t}
           </button>
         ))}
-      </nav>
+      </div>
 
-      {tab === "overview" ? (
-        <OverviewTab data={overview.data} />
-      ) : tab === "syllabus" ? (
-        syllabus.isLoading ? (
-          <DetailSkeleton />
-        ) : syllabus.error ? (
-          <StatePanel message={syllabus.error} onRetry={syllabus.retry} />
-        ) : syllabus.data ? (
-          <SyllabusTab data={syllabus.data} />
-        ) : null
-      ) : enrolled ? (
-        <CourseworkTab courseId={courseId} />
-      ) : (
-        <OverviewTab data={overview.data} />
-      )}
+      {tabs.map((t) => (
+        <div
+          key={t}
+          id={`course-panel-${courseId}-${t}`}
+          role="tabpanel"
+          aria-labelledby={`course-tab-${courseId}-${t}`}
+          tabIndex={0}
+          hidden={tab !== t}
+          aria-busy={t === "syllabus" && tab === t && syllabus.isLoading}
+        >
+          {tab === t && (
+            t === "overview" ? (
+              <OverviewTab data={overviewData} />
+            ) : t === "syllabus" ? (
+              syllabus.isLoading ? (
+                <DetailSkeleton />
+              ) : syllabus.error ? (
+                <StatePanel message={syllabus.error} onRetry={syllabus.retry} />
+              ) : syllabus.data ? (
+                <SyllabusTab data={syllabus.data} />
+              ) : null
+            ) : (
+              <CourseworkTab courseId={courseId} />
+            )
+          )}
+        </div>
+      ))}
 
       {/* xs sticky CTA */}
       <div className="md:hidden">

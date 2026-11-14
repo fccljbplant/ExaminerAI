@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("./use-api", () => ({ useApi: mocks.useApi }));
 
-import { CourseworkTab } from "./course-detail";
+import { CourseDetail, CourseworkTab, getNextCourseTab, resolveCourseTab } from "./course-detail";
 
 describe("CourseworkTab", () => {
   beforeEach(() => {
@@ -81,5 +81,90 @@ describe("CourseworkTab", () => {
     expect(html).toContain("Assignments");
     expect(html).toContain("Assignment One");
     expect(html).toContain('href="/learner/assignments/assignment-1"');
+  });
+});
+
+
+describe("CourseDetail accessible tabs", () => {
+  beforeEach(() => {
+    mocks.useApi.mockImplementation((path: string | null) => {
+      if (path === "/api/v2/courses/course-1/overview") {
+        return {
+          data: {
+            course: {
+              id: "course-1",
+              name: "Course One",
+              subtitle: null,
+              description: "Learn practical skills.",
+              category: "Engineering",
+              level: "Core",
+              durationWeeks: 4,
+              rating: 0,
+              reviewCount: 0,
+              enrollmentCount: 1,
+              thumbnailUrl: null,
+              skillsVerified: [],
+              whatYouWillLearn: [],
+              prerequisites: [],
+              toolsUsed: [],
+              weekCount: 4,
+              instructorName: null,
+            },
+            enrollment: {
+              enrolled: true,
+              totalXP: 0,
+              streakCurrent: 0,
+              position: null,
+              nextLesson: null,
+            },
+          },
+          error: null,
+          isLoading: false,
+          retry: vi.fn(),
+        };
+      }
+      return { data: null, error: null, isLoading: false, retry: vi.fn() };
+    });
+  });
+
+  it("renders linked tab and tabpanel semantics for course sections", () => {
+    const html = renderToStaticMarkup(createElement(CourseDetail, { courseId: "course-1" }));
+
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain('role="tab"');
+    expect(html).toContain('aria-selected="true"');
+    expect(html).toContain('aria-controls="course-panel-course-1-overview"');
+    expect(html).toContain('role="tabpanel"');
+    expect(html).toContain('aria-labelledby="course-tab-course-1-overview"');
+    expect(html).not.toContain('aria-current="page"');
+  });
+});
+
+describe("course detail tab state", () => {
+  it("resets to overview when the learner opens a different course", () => {
+    expect(
+      resolveCourseTab({ courseId: "course-1", tab: "coursework" }, "course-2", true),
+    ).toBe("overview");
+  });
+
+  it("does not retain the coursework tab when enrollment is unavailable", () => {
+    expect(
+      resolveCourseTab({ courseId: "course-1", tab: "coursework" }, "course-1", false),
+    ).toBe("overview");
+  });
+
+  it("preserves the selected tab for the same enrolled course", () => {
+    expect(
+      resolveCourseTab({ courseId: "course-1", tab: "syllabus" }, "course-1", true),
+    ).toBe("syllabus");
+  });
+
+  it("wraps arrow navigation and supports Home and End", () => {
+    const tabs = ["overview", "syllabus", "coursework"] as const;
+    expect(getNextCourseTab(tabs, "coursework", "ArrowRight")).toBe("overview");
+    expect(getNextCourseTab(tabs, "overview", "ArrowLeft")).toBe("coursework");
+    expect(getNextCourseTab(tabs, "coursework", "Home")).toBe("overview");
+    expect(getNextCourseTab(tabs, "overview", "End")).toBe("coursework");
+    expect(getNextCourseTab(tabs, "overview", "Enter")).toBeNull();
   });
 });
