@@ -804,3 +804,15 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 59 files / 507 tests passed. Focused learner portal tests: 3 files / 10 tests passed. ESLint passed for the hook and test. Focused TypeScript check passed. `git diff --check` passed. Full-project TypeScript check remains unverified because the previous attempt exhausted the 1.4 GB Node heap; build and browser/manual QA were not run.
 - No API contract, schema, migration, database, production data, dependency/provider, Vercel setting or deployment changes.
 - Next: verify the complete course-detail → Coursework → learner/instructor project and assignment journeys, then continue the bottom-up course workspace UX/accessibility pass. Keep shared activity numbering and assessment changes behind canonical course activity modelling and separate migration approval.
+
+
+## 2026-11-14 — Accessible course detail tabs and route-scoped tab state
+
+- Application fix committed directly to main as `f1a078bc1487e7d961b0128ec0ef0480eed45a8a` (parent `3f4286e450083fb9e45f3c4c5c5d7e65bf9c8689`): `feat: improve accessible course detail tabs`.
+- Replaced navigation-style `aria-current="page"` buttons with an accessible tab interface: `tablist`, `tab`, `tabpanel`, unique `aria-controls`/label relationships, `aria-selected`, roving tab focus, visible focus styling and horizontal scrolling on narrow screens.
+- Added Left/Right Arrow, Home and End keyboard navigation with wraparound. Enter/Space retain native button activation.
+- Tab state is now scoped to the current course. Opening a different course starts at Overview; Coursework is not selected or exposed when the learner is not enrolled. Syllabus remains lazy-loaded only when selected.
+- Added regression tests for panel/tab semantics, course-change reset, enrollment loss, selection retention and keyboard navigation.
+- Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 59 files / 512 tests passed. Focused learner-portal tests: 3 files / 15 tests passed. ESLint passed for changed component/tests. Focused TypeScript check passed. `git diff --check` passed. Full-project TypeScript check remains unverified after the earlier 1.4 GB heap exhaustion; production build and manual browser/keyboard/screen-reader checks were not run.
+- No database/schema/API contract/migration, dependency/provider, Vercel setting, production data or deployment changes.
+- Next: verify learner and instructor project/assignment journeys end-to-end, including course ownership and cross-course denial. Keep course activity numbering and assessment policy separate pending canonical activity model and approved migration design.
