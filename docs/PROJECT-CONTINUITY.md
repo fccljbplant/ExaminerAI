@@ -429,3 +429,13 @@ Owner requested the full UXPeak product concept set: gamification, role dashboar
 - Regression tests cover markup relationships, route-state normalization and keyboard navigation. Full suite: 59 files / 512 tests passed excluding DB-backed tutor-context; focused 3 files / 15 tests passed; ESLint and focused TypeScript passed; full TypeScript heap-limited; build/manual browser QA not run.
 - No schema/API/data/dependency/provider/Vercel deployment changes.
 - Next: validate course-owned learner/instructor project and assignment flows end-to-end, including cross-course authorization and clear loading/error states.
+
+
+## 2026-11-14 — Project milestone access checkpoint and AI-help blocker
+
+- Current main application commit: `eae4bf33676fafc6f94532bd4ad8f50980e4976f`, parent `f3e13aad371d425c660329e400059e19e013e7f2`.
+- Fixed the project milestone completion route to enforce learner role, project ownership, course association and current course enrollment before state mutation/XP award. Six new route tests cover denied and successful paths.
+- Validation: 60 Vitest files / 518 tests passed excluding DB-backed tutor-context; focused 2 files / 15 tests passed; ESLint, focused TypeScript and diff check passed. Full-project typecheck heap-exhausted earlier; build/manual browser QA not run.
+- Project AI help route was inspected and recorded as BLOCKED in DECISIONS-REGISTER: it forwards project context/blocker to AI and persists the response, but no explicit org consent/enablement, course-enrollment or org-budget guard was found. Do not change this AI processing path until owner/legal/data approval.
+- No database, schema, migration, dependency/provider, production data, Vercel setting or deployment changes.
+- Next: continue non-AI course-owned project/assignment access review and instructor-side workflow; resolve AI help consent and data-processing decision separately.
