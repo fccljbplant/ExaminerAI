@@ -780,3 +780,17 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - No DB/schema/migration, production-data, dependency/provider, Vercel setting or deployment changes.
 - Remaining model gap: shared course-level activity numbering and assessment policy cannot be derived from per-learner LearnProject rows. Do not invent sequence numbers or alter schemas without approved canonical course activity design and migration plan.
 - Next: verify course detail behavior and course-level assignment/project access end-to-end, then align numbering, assessment, weekly placement and learner-paced unlock rules with the canonical course model.
+
+
+## 2026-11-14 — Course-workspace project proposal scope and accessibility
+
+- Starting live main: `829ea9f7ad5ccb225b72f94928b6c3bdbff5c148`. Application fix committed directly to main as `00d6fffe0eb3aa0285757577bae4e6d5c69ecec5` (`fix: lock course workspace project proposals`).
+- The embedded Coursework proposal flow now binds the proposal to the course currently being viewed. The course is shown as a fixed, read-only context instead of an editable cross-course selector; the proposal action also names the active course.
+- The selected course is derived from the current `preferredCourseId`, not stale local selection. The proposal form remounts when course context changes, preventing a partially completed proposal from silently carrying into a different course. Missing/unavailable course context fails closed and does not render an editable selector or proposal action.
+- Preserved the standalone cross-course Projects experience, where learners can still choose among their currently available enrolled courses. No project workflow, API contract, schema or data model was changed.
+- Refined the proposal form's keyboard affordances: visible focus rings on the proposal action, course/timeline selectors, text/date inputs, textareas and form actions; title is explicitly required; saving state is exposed with `aria-busy`.
+- Added regression tests for fixed-course rendering, unavailable-course fail-closed behavior and the active course label/API filter in embedded mode.
+- Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 58 files / 503 tests passed. Final focused run: 2 files / 6 tests passed. ESLint passed for both changed files. Focused TypeScript check for the changed component and tests passed. `git diff --check` passed. Full-project TypeScript check attempted with a 1.4 GB heap but exited on heap exhaustion; no full typecheck pass is claimed.
+- Not run: production build, browser screenshots, manual responsive/keyboard/screen-reader verification or full WCAG 2.2 AA sign-off. The tests are server-rendered component tests, not browser interaction tests.
+- No production DB access, migration, production data change, dependency/provider change, Vercel setting change or deployment. `vercel.json` continues to set `git.deploymentEnabled: false`; exact-commit Vercel deployment lookup returned no deployment.
+- Next: verify the selected course detail journey and the complete learner/instructor project and assignment access paths. Keep course-wide activity numbering, assessment policy, curriculum placement and learner-paced unlock design separate from per-learner project rows; do not invent counters or migrate data without the approved canonical activity model and separate migration approval.
