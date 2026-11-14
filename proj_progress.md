@@ -816,3 +816,14 @@ Owner delegated the outstanding academic/product policy decisions. Adopted direc
 - Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 59 files / 512 tests passed. Focused learner-portal tests: 3 files / 15 tests passed. ESLint passed for changed component/tests. Focused TypeScript check passed. `git diff --check` passed. Full-project TypeScript check remains unverified after the earlier 1.4 GB heap exhaustion; production build and manual browser/keyboard/screen-reader checks were not run.
 - No database/schema/API contract/migration, dependency/provider, Vercel setting, production data or deployment changes.
 - Next: verify learner and instructor project/assignment journeys end-to-end, including course ownership and cross-course denial. Keep course activity numbering and assessment policy separate pending canonical activity model and approved migration design.
+
+
+## 2026-11-14 — Project milestone course-access enforcement
+
+- Application fix committed directly to main as `eae4bf33676fafc6f94532bd4ad8f50980e4976f` (parent `f3e13aad371d425c660329e400059e19e013e7f2`): `fix: enforce course access for project milestones`.
+- The milestone completion endpoint now restricts callers to learner/student/demo roles, requires the project to have an active course association and verifies the learner still has a student enrollment in that course before changing a milestone or awarding XP. This closes the gap where a former enrollee who still owned a project could continue advancing milestones and XP.
+- Added six route tests for role denial, owner mismatch, course-less legacy projects, lost enrollment, pending approval and successful completion/XP award. Existing project route tests also remain green.
+- Validation: full Vitest suite excluding DB-backed `src/modules/learn/lib/__tests__/tutor-context.test.ts`: 60 files / 518 tests passed. Focused route tests: 2 files / 15 tests passed. ESLint passed for route/test. Focused TypeScript check passed. `git diff --check` passed. Full-project TypeScript check remains unverified after prior 1.4 GB heap exhaustion; production build and browser/manual QA were not run.
+- **Blocked finding recorded in DECISIONS-REGISTER:** project AI help sends project context and blockers to `callAI` and stores the response, but no explicit per-org consent/enablement, course-enrollment or org-budget gate was found. No AI help changes were made pending owner/legal/data approval.
+- No database/schema/migration, dependency/provider, production data, Vercel setting or deployment changes.
+- Next: resolve the project AI help consent/data/budget decision before touching that route; continue non-AI course-owned project and assignment access review.
