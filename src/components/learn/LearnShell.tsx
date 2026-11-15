@@ -111,6 +111,16 @@ export function LearnShell({ courseId, courseName }: Props) {
  }
  }, [courseId]);
 
+ // ── Deep-linked panels (?panel=journey|project|grow|library) ──────
+ // Lets outside links (e.g. the /learn hero's "View journey map") open
+ // a specific panel directly instead of just landing on the classroom.
+ useEffect(() => {
+ const panel = new URLSearchParams(window.location.search).get("panel");
+ if (panel === "journey" || panel === "project" || panel === "grow" || panel === "library") {
+ setActivePanel(panel);
+ }
+ }, []);
+
  // ── Fetchers ──────────────────────────────────────────────────────
  const fetchNow = useCallback(async () => {
  try {

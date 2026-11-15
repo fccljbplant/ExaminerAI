@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
@@ -48,6 +49,23 @@ describe("SiteHeader (rules 1 + 3 + 12)", () => {
     expect(html).not.toContain('aria-expanded="true"');
     // the category strip is rendered when the menu is closed
     expect(html).toContain('aria-label="Course categories"');
+  });
+
+  it("anchors the mobile sheet flush under the sticky header at every scroll position (rule 2)", () => {
+    // The sheet is an absolute child of the sticky header (top-full),
+    // not a fixed top-24 panel — the old anchor left a 4px gap at
+    // scroll-top and a 32px strip of page content once the
+    // announcement bar scrolled away. See site-header.tsx.
+    const source = readFileSync(new URL("./site-header.tsx", import.meta.url), "utf8");
+    expect(source).toContain("absolute inset-x-0 top-full");
+    // no class list may still anchor the sheet to a fixed viewport offset
+    expect(source).not.toMatch(/className="[^"]*\btop-24\b/);
+  });
+
+  it("locks body scroll and closes on Escape while the sheet is open (rule 6)", () => {
+    const source = readFileSync(new URL("./site-header.tsx", import.meta.url), "utf8");
+    expect(source).toContain('document.body.style.overflow = "hidden"');
+    expect(source).toContain('e.key === "Escape"');
   });
 });
 

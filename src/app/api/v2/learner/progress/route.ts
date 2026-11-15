@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized } from "@/lib/api-response";
 import { getLearnerLevel } from "@/modules/learn/lib/xp-ledger";
+import { readPosition, ringPercent } from "@/modules/learn/lib/course-position";
 
 export const runtime = "nodejs";
 
@@ -137,19 +138,4 @@ function daysAgo(n: number): Date {
   d.setHours(0, 0, 0, 0);
   d.setDate(d.getDate() - n);
   return d;
-}
-
-function readPosition(masteryMap: unknown): { week: number; day: number } | null {
-  if (!masteryMap) return null;
-  const m = masteryMap as { topicProgress?: { current?: { week?: number; day?: number } } };
-  const cur = m.topicProgress?.current;
-  return cur?.week ? { week: cur.week, day: cur.day ?? 1 } : null;
-}
-
-/** Coarse ring: days completed before the current position / total days. */
-function ringPercent(pos: { week: number; day: number } | null, totalWeeks: number): number {
-  if (!pos || totalWeeks <= 0) return 0;
-  const totalDays = totalWeeks * 7;
-  const completedDays = (pos.week - 1) * 7 + (pos.day - 1);
-  return Math.min(100, Math.round((completedDays / totalDays) * 100));
 }

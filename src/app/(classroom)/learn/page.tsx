@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { homeForRole } from "@/lib/portal-home";
+import { readPosition, ringPercent } from "@/modules/learn/lib/course-position";
 import {
   Sparkles, ArrowRight, BookOpen, GraduationCap, Map as MapIcon,
 } from "lucide-react";
@@ -35,7 +36,7 @@ export default async function LearnHomePage() {
   const user = await getAuthUser();
 
   // Parallel data fetch
-  const [courses, learnerCourses] = await Promise.all([
+  const [courses, learnerCourses, weekCounts] = await Promise.all([
     db.course.findMany({
       where: { isActive: true },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
@@ -51,16 +52,30 @@ export default async function LearnHomePage() {
           include: { course: { select: { id: true, name: true } } },
         })
       : [],
+    // Week counts for the resume hero's progress line (one grouped
+    // query, same shape as the progress API's ring denominators).
+    db.courseWeek.groupBy({
+      by: ["courseId"],
+      where: user
+        ? { course: { learnProfiles: { some: { userId: user.sub } } } }
+        : { id: { in: [] } },
+      _count: { weekNumber: true },
+    }),
   ]);
 
   const lastCourse = learnerCourses[0]?.course ?? null;
+  const lastProfile = learnerCourses[0] ?? null;
+  const weeksByCourse = new Map(weekCounts.map((w) => [w.courseId, w._count.weekNumber]));
+  const position = lastProfile ? readPosition(lastProfile.masteryMap) : null;
+  const totalWeeks = lastProfile ? (weeksByCourse.get(lastProfile.courseId) ?? 0) : 0;
+  const percent = ringPercent(position, totalWeeks);
 
   return (
     <div className="min-h-screen flex flex-col bg-bg text-fg">
       {/* Top bar */}
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+          <Link href="/" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <Sparkles className="h-5 w-5 text-brand" />
             TraineesAI <span className="text-fg-muted">/ Learn</span>
           </Link>
@@ -68,10 +83,10 @@ export default async function LearnHomePage() {
             {user ? (
               <>
                 <span className="hidden sm:inline text-fg-muted">Hi, {user.name.split(" ")[0]}</span>
-                <Link href={homeForRole(user.role)} className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Dashboard</Link>
+                <Link href={homeForRole(user.role)} className="inline-flex min-h-11 items-center px-3 rounded-md border hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Dashboard</Link>
               </>
             ) : (
-              <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+              <Link href="/login" className="inline-flex min-h-11 items-center px-3 rounded-md bg-brand text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 Sign in
               </Link>
             )}
@@ -97,16 +112,43 @@ export default async function LearnHomePage() {
                     <p className="text-fg-muted mt-2 max-w-xl">
                       Pick up where you left off. Your AI tutor is ready to walk you through the next topic.
                     </p>
+                    {/* Real position, only when the data says so — no
+                        invented numbers (rule 7). */}
+                    {position && (
+                      <div className="mt-4">
+                        <div
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={percent}
+                          aria-label={`Progress in ${lastCourse.name}`}
+                          className="max-w-md"
+                        >
+                          <div className="flex items-baseline justify-between text-xs text-fg-muted">
+                            <span>
+                              Week {position.week} of {totalWeeks || "—"}
+                            </span>
+                            <span className="tabular-nums">{percent}%</span>
+                          </div>
+                          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-bg-subtle">
+                            <div
+                              className="h-full rounded-full bg-brand transition-[width]"
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <Link
                         href={`/learn/${lastCourse.id}`}
-                        className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         Resume session <ArrowRight className="h-4 w-4" />
                       </Link>
                       <Link
-                        href={`/learn/${lastCourse.id}`}
-                        className="text-sm text-fg-muted hover:text-fg inline-flex items-center gap-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        href={`/learn/${lastCourse.id}?panel=journey`}
+                        className="text-sm text-fg-muted hover:text-fg inline-flex min-h-11 items-center gap-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         <MapIcon className="h-3.5 w-3.5" /> View journey map
                       </Link>
@@ -155,7 +197,7 @@ export default async function LearnHomePage() {
               <div className="mt-4">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   Sign in to start <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -176,7 +218,7 @@ export default async function LearnHomePage() {
       <footer className="border-t mt-auto">
         <div className="max-w-6xl mx-auto px-4 py-4 text-xs text-fg-muted flex items-center justify-between">
           <span>© TraineesAI — AI-guided learning.</span>
-          <Link href="/" className="hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Back to home</Link>
+          <Link href="/" className="inline-flex min-h-11 items-center hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Back to home</Link>
         </div>
       </footer>
     </div>
@@ -241,7 +283,7 @@ function CourseGrid({
             </div>
             <Link
               href={`/learn/${c.id}`}
-              className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-md border border-brand/30 bg-brand-subtle px-3 py-1.5 text-xs font-medium text-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              className="mt-4 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-md border border-brand/30 bg-brand-subtle px-3 text-xs font-medium text-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {enrolled ? "Continue" : "Start"}
               <ArrowRight className="h-3.5 w-3.5" />

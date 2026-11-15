@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Bot,
@@ -98,6 +98,27 @@ export function SiteHeader({
   dashboardHref: string;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Lock body scroll while the mobile sheet is open — the page behind
+  // must not scroll under the menu.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
+
+  // Escape closes the sheet (keyboard parity with the toggle button).
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   return (
     <>
@@ -197,15 +218,20 @@ export function SiteHeader({
             ))}
           </div>
         </nav>
-      </header>
 
-      {/* ── Mobile menu sheet ─────────────────────────────────── */}
-      {menuOpen && (
-        <div
-          id="site-mobile-menu"
-          className="fixed inset-x-0 top-24 bottom-0 z-[var(--p-z-drawer)] border-t border-line bg-bg lg:hidden"
-        >
-          <nav className="mx-auto max-w-7xl space-y-1 px-4 py-4" aria-label="Site mobile">
+        {/* ── Mobile menu sheet ───────────────────────────────────
+            Anchored to the sticky header (absolute top-full) so it
+            sits flush under the bar at every scroll position — the
+            old fixed top-24 left a 4px gap at scroll-top and a 32px
+            strip of page content once the announcement bar scrolled
+            away. The header is a positioned element (sticky), which
+            makes it the anchor for this absolute child. */}
+        {menuOpen && (
+          <div
+            id="site-mobile-menu"
+            className="absolute inset-x-0 top-full z-[var(--p-z-drawer)] h-[calc(100dvh-4rem)] overflow-y-auto bg-bg lg:hidden"
+          >
+            <nav className="mx-auto max-w-7xl space-y-1 px-4 py-4" aria-label="Site mobile">
             <SearchForm className="mb-3" />
             {NAV_LINKS.map((l) => (
               <Link
@@ -241,7 +267,8 @@ export function SiteHeader({
             </div>
           </nav>
         </div>
-      )}
+        )}
+      </header>
     </>
   );
 }
