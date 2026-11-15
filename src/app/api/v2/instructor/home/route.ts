@@ -32,7 +32,8 @@ export async function GET(req: NextRequest) {
   }
 
   // Queue preview (same service the I3 queue uses — one source of truth).
-  const { items } = await reviewQueue(user.sub, { limit: 5 });
+  // withTotal: the preview is capped at 5 — KPIs need the real queue size.
+  const { items, total, returned } = await reviewQueue(user.sub, { limit: 5, withTotal: true });
 
   // At-risk roster: compose the students route in-process (no HTTP hop).
   const rosterUrl = new URL(req.url);
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
   const atRisk = body?.ok && Array.isArray(body?.data?.items) ? body.data.items : [];
 
   return apiSuccess({
-    queue: { count: items.length, preview: items.slice(0, 5) },
+    queue: { count: total ?? items.length, returned: returned ?? 0, preview: items.slice(0, 5) },
     atRisk: { count: atRisk.length, items: atRisk.slice(0, 5) },
     studentsTotal: body?.data?.total ?? 0,
   });

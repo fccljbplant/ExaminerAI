@@ -666,8 +666,15 @@ export async function reviewQueue(
     courseId?: string;
     cursor?: string;
     limit?: number;
+    /** Also return the true totals (all active statuses + returned) — the I1 home KPIs need them; one page of items cannot compute a queue size. */
+    withTotal?: boolean;
   },
-): Promise<{ items: ReviewQueueItem[]; nextCursor: string | null }> {
+): Promise<{
+  items: ReviewQueueItem[];
+  nextCursor: string | null;
+  total?: number;
+  returned?: number;
+}> {
   await ensureDefaultRegistries();
   let courseIds = await enrolledCourseIds(instructorId, "instructor");
   if (query.courseId) courseIds = courseIds.filter((c) => c === query.courseId);
@@ -729,7 +736,25 @@ export async function reviewQueue(
     : items;
 
   const nextCursor = rows.length === limit ? rows[rows.length - 1].id : null;
-  return { items: filtered, nextCursor };
+  const result: {
+    items: ReviewQueueItem[];
+    nextCursor: string | null;
+    total?: number;
+    returned?: number;
+  } = { items: filtered, nextCursor };
+  if (query.withTotal) {
+    const where = {
+      status: { in: statuses },
+      assignment: { courseId: { in: courseIds } },
+    };
+    const [total, returned] = await Promise.all([
+      db.submission.count({ where }),
+      db.submission.count({ where: { ...where, status: "changes_requested" } }),
+    ]);
+    result.total = total;
+    result.returned = returned;
+  }
+  return result;
 }
 
 // ── I4: review detail + grade/decision/feedback ──────────────────────────

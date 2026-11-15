@@ -4,9 +4,9 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowRight,
-  BarChart3,
   ClipboardCheck,
   RefreshCw,
+  RotateCcw,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -41,7 +41,7 @@ interface AtRiskItem {
 }
 
 interface HomeData {
-  queue: { count: number; preview: QueuePreviewItem[] };
+  queue: { count: number; returned: number; preview: QueuePreviewItem[] };
   atRisk: { count: number; items: AtRiskItem[] };
   studentsTotal: number;
 }
@@ -77,31 +77,18 @@ export function InstructorHome() {
 
   const queueItems = data.queue.preview;
   const atRisk = data.atRisk.items;
-  const inReview = queueItems.filter((i) => i.status !== "changes_requested").length;
 
   return (
     <div className="space-y-4 md:space-y-6">
       <h1 className="text-lg font-semibold text-fg md:text-xl">Instructor home</h1>
 
       {/* KPI strip (P3 I1: queue + at-risk above the fold) */}
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
-        <Kpi
-          label="In queue"
-          value={queueItems.length}
-          hint="awaiting review"
-          tone="info"
-          icon={ClipboardCheck}
-        />
-        <Kpi
-          label="At risk"
-          value={getAtRiskKpiCount(data.atRisk)}
-          hint="need intervention"
-          tone={atRisk.length > 0 ? "warning" : "success"}
-          icon={AlertTriangle}
-        />
-        <Kpi label="Students" value={data.studentsTotal} hint="enrolled" tone="brand" icon={UserRound} />
-        <Kpi label="In review" value={inReview} hint="being graded" tone="muted" icon={BarChart3} />
-      </div>
+      <HomeKpis
+        queueCount={data.queue.count}
+        returnedCount={data.queue.returned}
+        atRiskCount={getAtRiskKpiCount(data.atRisk)}
+        studentsTotal={data.studentsTotal}
+      />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-12">
         {/* grading queue preview */}
@@ -203,6 +190,40 @@ export function InstructorHome() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** The four above-the-fold KPIs — every value comes from a real count, never a capped preview. */
+export function HomeKpis({
+  queueCount,
+  returnedCount,
+  atRiskCount,
+  studentsTotal,
+}: {
+  queueCount: number;
+  returnedCount: number;
+  atRiskCount: number;
+  studentsTotal: number;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
+      <Kpi
+        label="In queue"
+        value={queueCount}
+        hint="active submissions"
+        tone="info"
+        icon={ClipboardCheck}
+      />
+      <Kpi
+        label="At risk"
+        value={atRiskCount}
+        hint="need intervention"
+        tone={atRiskCount > 0 ? "warning" : "success"}
+        icon={AlertTriangle}
+      />
+      <Kpi label="Students" value={studentsTotal} hint="enrolled" tone="brand" icon={UserRound} />
+      <Kpi label="Returned" value={returnedCount} hint="waiting on the learner" tone="muted" icon={RotateCcw} />
     </div>
   );
 }

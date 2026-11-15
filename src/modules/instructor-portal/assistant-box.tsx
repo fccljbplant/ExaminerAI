@@ -54,7 +54,7 @@ export function AIAssistantBox() {
         AI assistant
       </h2>
       <div className="rounded-xl border border-line bg-surface">
-        <div className="max-h-72 space-y-2 overflow-y-auto p-3">
+        <div className="max-h-72 space-y-2 overflow-y-auto p-3" role="log" aria-label="Assistant conversation">
           {turns.length === 0 && (
             <p className="text-xs text-fg-muted">
               Ask about your class — “who is struggling this week?”, “which topics need a
