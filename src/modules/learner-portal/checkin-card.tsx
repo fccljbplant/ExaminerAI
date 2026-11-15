@@ -36,7 +36,7 @@ export function CheckInSavedState({ onEdit }: { onEdit: () => void }) {
       <button
         type="button"
         onClick={onEdit}
-        className="min-h-11 rounded-lg border border-success-on/20 px-3 text-sm font-semibold text-success-on hover:bg-success-on/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="min-h-11 rounded-lg border border-success-on/20 px-3 text-sm font-semibold text-success-on hover:bg-success-on/5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         Edit check-in
       </button>
@@ -208,7 +208,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
           <button
             type="button"
             onClick={() => setCheckinRetry((value) => value + 1)}
-            className="min-h-11 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="min-h-11 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             Retry check-in status
           </button>
@@ -269,7 +269,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
               <button
                 type="button"
                 onClick={() => void refreshHistory()}
-                className="min-h-11 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                className="min-h-11 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Try again
               </button>
@@ -293,7 +293,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
                   onClick={() => void removeLog(l.id)}
                   disabled={deletingId === l.id}
                   aria-label={`Delete check-in from ${new Date(l.date).toLocaleDateString()}`}
-                  className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {deletingId === l.id ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />

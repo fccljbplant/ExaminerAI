@@ -83,7 +83,7 @@ export function ProjectQueue() {
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -123,7 +123,7 @@ export function ProjectQueue() {
                     <p className="text-sm font-semibold text-fg">{p.title}</p>
                     <Link
                       href={`/instructor/students/${p.learner.id}`}
-                      className="rounded text-xs text-brand hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                      className="rounded text-xs text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {p.learner.name}
                     </Link>
@@ -156,7 +156,7 @@ export function ProjectQueue() {
                     rows={2}
                     placeholder="Feedback for the learner (shown with the decision)"
                     aria-label="Approval note"
-                    className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                    className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   />
                 )}
                 <div className="flex flex-wrap gap-2 border-t border-line pt-2.5">
@@ -164,7 +164,7 @@ export function ProjectQueue() {
                     type="button"
                     onClick={() => decide(p.id, "approve")}
                     disabled={busyId === p.id}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-success-on hover:bg-success/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-success-on hover:bg-success/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
                   >
                     {busyId === p.id ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -179,7 +179,7 @@ export function ProjectQueue() {
                         type="button"
                         onClick={() => decide(p.id, "reject")}
                         disabled={busyId === p.id || !note.trim()}
-                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 text-xs font-semibold text-danger hover:bg-danger/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 text-xs font-semibold text-danger hover:bg-danger/20 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
                       >
                         Send back with note
                       </button>
@@ -189,7 +189,7 @@ export function ProjectQueue() {
                           setNoteFor(null);
                           setNote("");
                         }}
-                        className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-fg-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                        className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         Cancel
                       </button>
@@ -199,7 +199,7 @@ export function ProjectQueue() {
                       type="button"
                       onClick={() => setNoteFor(p.id)}
                       disabled={busyId === p.id}
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
                     >
                       <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                       Send back…

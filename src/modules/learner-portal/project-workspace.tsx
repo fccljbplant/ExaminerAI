@@ -231,7 +231,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
       {/* header */}
       <header className="space-y-1">
         <p className="text-xs text-fg-muted">
-          <Link href="/learner" className="rounded hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+          <Link href="/learner" className="rounded hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             Home
           </Link>{" "}
           · {project.courseName ?? "Project"}
@@ -331,7 +331,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
                       onClick={() => completeMilestone(m.id)}
                       disabled={busyId === m.id || !canWork}
                       title={canWork ? undefined : "Unlocks after instructor approval"}
-                      className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {busyId === m.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -350,7 +350,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
 
       <Link
         href="/learner"
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Back to home
@@ -406,7 +406,7 @@ function StatusBanner({
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <Pencil className="h-3.5 w-3.5" aria-hidden />
           Edit proposal
@@ -426,7 +426,7 @@ function StatusBanner({
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <Pencil className="h-3.5 w-3.5" aria-hidden />
             Edit &amp; resubmit
@@ -455,7 +455,7 @@ function StatusBanner({
             type="button"
             onClick={onGenerate}
             disabled={generating}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
           >
             {generating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Sparkles className="h-4 w-4" aria-hidden />}
             Generate timeline
@@ -529,7 +529,7 @@ function ProposalCard({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-brand-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <Pencil className="h-3.5 w-3.5" aria-hidden />
               Edit
@@ -559,15 +559,15 @@ function ProposalCard({
   }
 
   const INPUT_CLS =
-    "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+    "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
   const TEXTAREA_CLS =
-    "w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+    "w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
   const SELECT_CLS =
-    "h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+    "h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
   const BTN_PRIMARY_CLS =
-    "inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50";
+    "inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50";
   const BTN_SECONDARY_CLS =
-    "inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-4 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+    "inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-4 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
 
   return (
     <section className="space-y-3 rounded-xl border border-brand/30 bg-surface p-4">
@@ -737,7 +737,7 @@ function TimelineSection({
                   value={tasksPerWeek}
                   onChange={(e) => setTasksPerWeek(Number(e.target.value))}
                   aria-label="Tasks per week"
-                  className="h-11 flex-1 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  className="h-11 flex-1 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {[3, 4, 5, 6, 7].map((n) => (
                     <option key={n} value={n}>{n} tasks/week</option>
@@ -747,7 +747,7 @@ function TimelineSection({
                   type="button"
                   onClick={onGenerate}
                   disabled={generating}
-                  className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
+                  className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
                 >
                   {generating ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -781,7 +781,7 @@ function TimelineSection({
             type="button"
             onClick={onRegenerate}
             disabled={generating}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-fg-muted hover:bg-bg-subtle hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-fg-muted hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
           >
             {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <RefreshCw className="h-3.5 w-3.5" aria-hidden />}
             Regenerate
@@ -796,13 +796,13 @@ function TimelineSection({
           onChange={(e) => setNewTask(e.target.value)}
           placeholder="Add a task…"
           aria-label="New task description"
-          className="h-11 min-w-40 flex-1 rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className="h-11 min-w-40 flex-1 rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
         <select
           value={newTaskWeek}
           onChange={(e) => setNewTaskWeek(Number(e.target.value))}
           aria-label="Task week"
-          className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {Array.from({ length: Math.max(maxWeek, 12) }, (_, i) => i + 1).map((w) => (
             <option key={w} value={w}>Week {w}</option>
@@ -811,7 +811,7 @@ function TimelineSection({
         <button
           type="submit"
           disabled={adding || !newTask.trim()}
-          className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
         >
           {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
           Add
@@ -857,7 +857,7 @@ function TimelineSection({
                         aria-pressed={t.status === "completed"}
                         aria-label={t.status === "completed" ? `Mark ${t.title} incomplete` : `Mark ${t.title} complete`}
                         className={cn(
-                          "flex h-11 w-11 shrink-0 items-center justify-center rounded-md hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-wait disabled:opacity-60",
+                          "flex h-11 w-11 shrink-0 items-center justify-center rounded-md hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:cursor-wait disabled:opacity-60",
                         )}
                       >
                         <span
@@ -895,7 +895,7 @@ function TimelineSection({
                         onClick={() => onDeleteTask(t)}
                         disabled={busyId === t.id}
                         aria-label={`Delete ${t.title}`}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
                       >
                         <Trash2 className="h-3.5 w-3.5" aria-hidden />
                       </button>
