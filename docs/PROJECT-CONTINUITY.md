@@ -1,3 +1,16 @@
+## 2026-11-15 (cont.) — Tutor panel twelve-rule + SR pass (0afafb7)
+
+The last surface without a recorded audit: the floating AI tutor (`modules/tutor`). The P6 pass had already given it rings, aria-live and gesture parity; this slice closed six genuine gaps found against the twelve rules and WCAG 2.1:
+
+1. **Error recovery** — on a failed ask the question survived in the transcript but there was no affordance to retry it. The hook gained `retry()` (re-sends the last unanswered question without duplicating the transcript), and the error alert now carries a real Retry button ("Your question is saved").
+2. **Ghost FAB** — while the panel was open, the FAB was visually gone (opacity-0, pointer-events-none) but still in the tab order and the a11y tree: keyboard users tabbed into an invisible control and screen readers announced a phantom "Open AI tutor" button. Now `aria-hidden` + `tabIndex=-1` while open.
+3. **Modal focus handling** — the xs full-screen dialog declares `aria-modal` but trapped nothing and never returned focus. Tab/Shift+Tab now cycle inside the panel, and on close focus returns to the FAB — but only if the user hasn't deliberately moved focus elsewhere.
+4. **Destructive clear** — "New conversation" wiped the chat instantly; it now confirms first when there is a conversation to lose.
+5. **Honest live regions** — `aria-live` sat on the whole message scroller, so every streamed token chunk was re-announced (unusable chatter for SR users). The scroller is silent now; a derived, clipped (200-char) announcer fires only for completed exchanges ("You asked…" / "Tutor replied…"), alongside the existing header status line. Exactly two polite regions remain — asserted by test.
+6. **Stop button** — `cancel()` existed in the hook with no UI. The send control now flips to a labelled Stop button while streaming.
+
+Validation: 9 new tests (SSR smoke: labelled dialog, value-first empty state with quick prompts, named composer/controls, text-only honesty, live-region count and scroller silence; plus `clipForLive` units). Full suite 695 passed / 2 skipped (only the known DB-backed `tutor-context.test.ts` fails without a DB), ESLint 0 errors 0 warnings on the module, `tsc --noEmit` 0. Committed and pushed; tree clean at `0afafb7`. Not run: production build; a real NVDA/VoiceOver session and the `top-24` sheet anchor on a real phone remain open, as before.
+
 ## 2026-11-15 (cont.) — Assignment/GroupTask reconciliation + accessible-names guard (341b2c9..6d7f50e)
 
 The standing structural task is done. Sandbox had been recycled (workspace reset to the initial commit); the repo was re-cloned from origin at `31de1a6` — nothing was lost, everything had been pushed.
