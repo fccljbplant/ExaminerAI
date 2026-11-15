@@ -160,53 +160,69 @@ export function LearnerMessages() {
       {messages === null ? (
         <div className="h-32 animate-pulse rounded-xl bg-bg-subtle" aria-busy="true" />
       ) : messages.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-bg-subtle px-4 py-10 text-center">
-          <Mail className="h-6 w-6 text-fg-muted" aria-hidden />
-          <p className="text-sm font-medium text-fg">No {box} messages</p>
-          <p className="max-w-xs text-xs text-fg-muted">
-            {instructor
-              ? `Ask ${instructor.name} a question above — replies land here.`
-              : "Once you're enrolled with an instructor, your conversation lives here."}
-          </p>
-        </div>
+        <MessagesEmpty instructorName={instructor?.name ?? null} box={box} />
       ) : (
         <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {messages.map((m) => (
-            <div key={m.id} className="flex items-start gap-3 px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-fg-muted">
-                  <span className="font-medium text-fg-secondary">
-                    {box === "sent" ? `To ${m.to.name}` : `From ${m.from.name}`}
-                  </span>{" "}
-                  · {new Date(m.sentAt).toLocaleString()}
-                  {box !== "sent" && !m.isRead && (
-                    <span className="ml-2 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-on-brand">
-                      new
-                    </span>
-                  )}
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-fg">{m.body}</p>
-                {m.reply && (
-                  <p className="mt-1.5 rounded-lg bg-bg-subtle px-3 py-2 text-sm leading-relaxed text-fg">
-                    <span className="text-xs font-semibold text-fg-muted">Reply: </span>
-                    {m.reply}
-                  </p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm("Delete this message? This cannot be undone.")) void remove(m.id);
-                }}
-                aria-label="Delete message"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-              >
-                <Trash2 className="h-3.5 w-3.5" aria-hidden />
-              </button>
-            </div>
+            <MessageRow key={m.id} msg={m} box={box} onDelete={(id) => void remove(id)} />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ---------------- pieces ------------------------------------------------ */
+
+/** Empty inbox. The composer above stays the way forward (rule 9). */
+export function MessagesEmpty({ instructorName, box }: { instructorName: string | null; box: "all" | "received" | "sent" }) {
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-bg-subtle px-4 py-10 text-center">
+      <Mail className="h-6 w-6 text-fg-muted" aria-hidden />
+      <p className="text-sm font-medium text-fg">No {box} messages</p>
+      <p className="max-w-xs text-xs text-fg-muted">
+        {instructorName
+          ? `Ask ${instructorName} a question above — replies land here.`
+          : "Once you're enrolled with an instructor, your conversation lives here."}
+      </p>
+    </div>
+  );
+}
+
+/** One inbox row: correspondent leads, meta demotes, unread status is a chip (rules 7 + 10). */
+export function MessageRow({ msg, box, onDelete }: { msg: Msg; box: "all" | "received" | "sent"; onDelete: (id: string) => void }) {
+  return (
+    <div className="flex items-start gap-3 px-4 py-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-fg-muted">
+          <span className="font-medium text-fg-secondary">
+            {box === "sent" ? `To ${msg.to.name}` : `From ${msg.from.name}`}
+          </span>{" "}
+          · {new Date(msg.sentAt).toLocaleString()}
+          {box !== "sent" && !msg.isRead && (
+            <span className="ml-2 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-on-brand">
+              new
+            </span>
+          )}
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-fg">{msg.body}</p>
+        {msg.reply && (
+          <p className="mt-1.5 rounded-lg bg-bg-subtle px-3 py-2 text-sm leading-relaxed text-fg">
+            <span className="text-xs font-semibold text-fg-muted">Reply: </span>
+            {msg.reply}
+          </p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          if (window.confirm("Delete this message? This cannot be undone.")) onDelete(msg.id);
+        }}
+        aria-label="Delete message"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+      >
+        <Trash2 className="h-3.5 w-3.5" aria-hidden />
+      </button>
     </div>
   );
 }
