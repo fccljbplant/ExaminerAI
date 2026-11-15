@@ -220,7 +220,7 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
             placeholder="Ask your tutor…"
             aria-label="Message the AI tutor"
             maxLength={8000}
-            className="min-h-11 flex-1 resize-none rounded-xl border border-line bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="min-h-11 flex-1 resize-none rounded-xl border border-line bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <button
             type="submit"

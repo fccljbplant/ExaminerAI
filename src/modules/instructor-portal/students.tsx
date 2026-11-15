@@ -68,7 +68,7 @@ export function StudentsRoster() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search students"
             aria-label="Search students"
-            className="h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
         </label>
 

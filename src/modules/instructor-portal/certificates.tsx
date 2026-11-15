@@ -144,7 +144,7 @@ export function CertificatesPanel() {
             onChange={(e) => setStudentId(e.target.value)}
             required
             aria-label="Student"
-            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <option value="">Select student…</option>
             {data?.students.map((s) => (
@@ -158,7 +158,7 @@ export function CertificatesPanel() {
             onChange={(e) => setCourseId(e.target.value)}
             required
             aria-label="Course"
-            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <option value="">Select course…</option>
             {data?.courses.map((c) => (
@@ -171,7 +171,7 @@ export function CertificatesPanel() {
             value={grade}
             onChange={(e) => setGrade(e.target.value)}
             aria-label="Grade"
-            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {["A", "B", "C", "D", "F"].map((g) => (
               <option key={g} value={g}>
@@ -187,7 +187,7 @@ export function CertificatesPanel() {
               value={score}
               onChange={(e) => setScore(Number(e.target.value))}
               aria-label="Score"
-              className="h-11 w-20 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+              className="h-11 w-20 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
             <button
               type="submit"

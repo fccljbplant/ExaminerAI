@@ -292,7 +292,7 @@ function SecurityCard({ user }: { user: ProfileInfo }) {
             required
             value={current}
             onChange={(e) => setCurrent(e.target.value)}
-            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
         </label>
         <label className="block">
@@ -304,7 +304,7 @@ function SecurityCard({ user }: { user: ProfileInfo }) {
             minLength={6}
             value={next}
             onChange={(e) => setNext(e.target.value)}
-            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
         </label>
         {result && (
@@ -363,7 +363,7 @@ function SecurityQuestionCard() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="e.g. What was your first pet's name?"
-            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
         </label>
         <label className="block">
@@ -373,7 +373,7 @@ function SecurityQuestionCard() {
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             placeholder="Your answer"
-            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="mt-1 h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
         </label>
         {result && (

@@ -166,7 +166,7 @@ export function OrgBilling() {
                       setSeatsInput((prev) => ({ ...prev, [plan.id]: e.target.value }))
                     }
                     aria-label={`Seats for ${plan.label} plan`}
-                    className="h-9 w-24 rounded-lg border border-line bg-surface px-2 text-sm tabular-nums text-fg focus:border-brand focus:outline-none"
+                    className="h-9 w-24 rounded-lg border border-line bg-surface px-2 text-sm tabular-nums text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   />
                 </label>
                 <button

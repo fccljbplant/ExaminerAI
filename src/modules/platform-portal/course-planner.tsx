@@ -528,7 +528,7 @@ export function CoursePlanner({
 /* ── pieces ──────────────────────────────────────────────────────── */
 
 const inputCls =
-  "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none";
+  "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

@@ -403,7 +403,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
               }}
               rows={4}
               placeholder="In your own words: what did you do, and what should your mentor look at?"
-              className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+              className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
             <p className="text-xs text-fg-muted">
               Required — this is the text the AI assistant reads (photos and videos are for
@@ -731,7 +731,7 @@ function PartEditor({
           rows={5}
           placeholder="Write your answer…"
           aria-label={PART_LABELS.text}
-          className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
       )}
 
@@ -742,7 +742,7 @@ function PartEditor({
           onChange={(e) => onChange({ type: "link", url: e.target.value })}
           placeholder="https://…"
           aria-label={PART_LABELS.link}
-          className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
       )}
 
@@ -755,7 +755,7 @@ function PartEditor({
           }
           placeholder="https://… (video link)"
           aria-label={PART_LABELS.video}
-          className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
       )}
 
@@ -920,7 +920,7 @@ function ChecklistEditor({
           }}
           placeholder="Add a step (e.g. “Harness checked”)"
           aria-label="New checklist step"
-          className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
         <button
           type="button"

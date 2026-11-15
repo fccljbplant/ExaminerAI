@@ -66,7 +66,7 @@ export function LearnerHelp() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search help articles"
             aria-label="Search help articles"
-            className="h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
         </label>
       </header>

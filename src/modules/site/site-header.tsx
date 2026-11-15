@@ -75,7 +75,7 @@ function SearchForm({ className = "" }: { className?: string }) {
           type="search"
           name="search"
           placeholder="Search courses, skills, topics…"
-          className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm text-fg placeholder:text-fg-muted focus:outline-none"
+          className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm text-fg placeholder:text-fg-muted focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
         <button
           type="submit"

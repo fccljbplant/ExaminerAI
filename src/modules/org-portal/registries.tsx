@@ -145,7 +145,7 @@ export function OrgRegistries() {
               required
               placeholder="key (e.g. photo_evidence)"
               aria-label="Registry key"
-              className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+              className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
             <input
               value={label}
@@ -153,7 +153,7 @@ export function OrgRegistries() {
               required
               placeholder="Label shown to users"
               aria-label="Registry label"
-              className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+              className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
           </div>
           <textarea
@@ -162,7 +162,7 @@ export function OrgRegistries() {
             rows={3}
             placeholder='Optional config JSON, e.g. {"captureHint":"Wide angle","maxBytes":5000000}'
             aria-label="Config JSON"
-            className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2 font-mono text-xs text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2 font-mono text-xs text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <button
             type="submit"

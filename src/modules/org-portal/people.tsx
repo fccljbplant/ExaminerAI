@@ -256,13 +256,13 @@ export function OrgPeople() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="member@company.com"
             aria-label="Member email"
-            className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="h-11 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as typeof role)}
             aria-label="Member role"
-            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <option value="member">Member</option>
             <option value="mentor">Mentor</option>
@@ -320,7 +320,7 @@ export function OrgPeople() {
                 onChange={(e) => setNewDepartment(e.target.value)}
                 placeholder="New department"
                 aria-label="New department name"
-                className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+                className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               />
               <button
                 type="submit"
@@ -469,7 +469,7 @@ export function OrgPeople() {
                     }
                     disabled={busyId === m.id}
                     aria-label={`Department for ${m.user.name}`}
-                    className="h-9 shrink-0 rounded-lg border border-line bg-surface px-2 text-xs text-fg-secondary focus:border-brand focus:outline-none disabled:opacity-50"
+                    className="h-9 shrink-0 rounded-lg border border-line bg-surface px-2 text-xs text-fg-secondary focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
                   >
                     <option value="">No department</option>
                     {deptRows.map((d) => (

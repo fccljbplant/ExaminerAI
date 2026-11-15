@@ -205,7 +205,7 @@ export function InstructorAssignments() {
           value={courseId}
           onChange={(e) => setCourseId(e.target.value)}
           aria-label="Select course"
-          className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+          className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {courses.map((c) => (
             <option key={c.id} value={c.id}>

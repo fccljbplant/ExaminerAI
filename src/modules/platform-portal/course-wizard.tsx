@@ -54,7 +54,7 @@ interface GeneratedCourse {
 
 const LEVELS = ["beginner", "intermediate", "advanced"] as const;
 const inputCls =
-  "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none";
+  "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
 
 function parseList(s: string): string[] {
   return s.split(",").map((x) => x.trim()).filter(Boolean);

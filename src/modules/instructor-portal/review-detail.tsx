@@ -472,7 +472,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
             rows={4}
             placeholder="What should the learner change, and why?"
             aria-label="Feedback for the learner"
-            className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="w-full resize-y rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <button
             type="button"

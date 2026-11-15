@@ -284,7 +284,7 @@ function OrgAnnouncements() {
           placeholder="Title"
           maxLength={140}
           aria-label="Announcement title"
-          className="h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="h-10 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
         <textarea
           value={body}
@@ -293,7 +293,7 @@ function OrgAnnouncements() {
           maxLength={2000}
           rows={2}
           aria-label="Announcement body"
-          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
         <div className="flex items-center justify-between gap-2">
           <p className="text-[11px] text-fg-muted">

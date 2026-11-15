@@ -150,7 +150,7 @@ export function PlatformTenants() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name or slug…"
-              className="w-48 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none"
+              className="w-48 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
           </div>
           <button

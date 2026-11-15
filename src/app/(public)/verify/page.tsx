@@ -42,7 +42,7 @@ export default function VerifyPage() {
           required
           placeholder="Credential ID or /verify/… link"
           aria-label="Credential ID"
-          className="h-12 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+          className="h-12 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         />
         <button
           type="submit"

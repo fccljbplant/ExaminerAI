@@ -311,7 +311,7 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
             onChange={(e) => setCode(e.target.value)}
             placeholder="SAVE20"
             aria-label="Coupon code"
-            className="h-9 w-28 rounded-lg border border-line bg-bg px-2 font-mono text-sm uppercase text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="h-9 w-28 rounded-lg border border-line bg-bg px-2 font-mono text-sm uppercase text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             required
           />
           <input
@@ -322,7 +322,7 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
             max={100}
             placeholder="% off"
             aria-label="Percent off"
-            className="h-9 w-20 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="h-9 w-20 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             required
           />
           <input
@@ -332,7 +332,7 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
             min={1}
             placeholder="Max uses"
             aria-label="Max uses"
-            className="h-9 w-24 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="h-9 w-24 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <button
             type="submit"

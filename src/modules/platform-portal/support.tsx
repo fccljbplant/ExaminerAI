@@ -124,7 +124,7 @@ export function PlatformSupport() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="user@example.com"
             type="email"
-            className="min-w-0 flex-1 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none"
+            className="min-w-0 flex-1 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             required
           />
         </div>

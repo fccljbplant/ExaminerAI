@@ -232,7 +232,7 @@ export function OrgControl() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Inzet Enterprises"
-              className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+              className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
           </label>
 
@@ -246,7 +246,7 @@ export function OrgControl() {
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="inzetenterprises"
                 aria-label="Organization slug"
-                className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+                className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               />
             </span>
             {slugState === "checking" && (
@@ -274,7 +274,7 @@ export function OrgControl() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Engineering training for power-plant teams"
-            className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+            className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
         </label>
 
@@ -286,7 +286,7 @@ export function OrgControl() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Lahore, Pakistan"
-              className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+              className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
           </label>
           <label className="space-y-1">
@@ -296,7 +296,7 @@ export function OrgControl() {
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://inzet.pk"
-              className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+              className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
           </label>
         </div>
@@ -351,7 +351,7 @@ export function OrgControl() {
               if (/^#[0-9a-fA-F]{6}$/.test(v)) setBrandHex(v.toLowerCase());
             }}
             aria-label="Brand color hex"
-            className="h-11 w-28 rounded-lg border border-line bg-surface px-3 font-mono text-sm text-fg focus:border-brand focus:outline-none"
+            className="h-11 w-28 rounded-lg border border-line bg-surface px-3 font-mono text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <span className="inline-flex items-center gap-1 rounded-md bg-success-subtle px-2 py-1 text-xs font-medium text-success-on">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
@@ -510,7 +510,7 @@ function OrgCatalogSection() {
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
             aria-label="Add a course to your catalog"
-            className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <option value="">Add a published course…</option>
             {available.map((c) => (
