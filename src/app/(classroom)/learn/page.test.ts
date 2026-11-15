@@ -12,7 +12,10 @@ import { describe, expect, it } from "vitest";
 
 const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
 const shell = readFileSync(
-  new URL("../../../components/learn/LearnShell.tsx", import.meta.url),
+  new URL(
+    "../../../modules/learn/components/classroom/ClassroomShell.tsx",
+    import.meta.url,
+  ),
   "utf8",
 );
 

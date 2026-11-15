@@ -16,7 +16,6 @@ import {
   isVoiceInputAvailable,
   type VoiceInputSession,
 } from "@/modules/learn/lib/voice-input";
-import { tutor } from "@/modules/learn/lib/tutor-bus";
 
 interface VoiceBarProps {
   /** Live partial transcript — parent mirrors it into the textarea. */
@@ -51,10 +50,10 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
     sessionRef.current = createVoiceInput({
       onInterim: (text) => interimRef.current(text),
       onFinal: (text) => finalRef.current(text),
-      // Barge-in: learner starts speaking → avatar stops talking immediately.
+      // Barge-in: learner starts speaking → the tutor stops talking
+      // immediately (stopTTS halts the Web Speech utterance directly).
       onSpeechStart: () => {
         stopTTS();
-        tutor.emit("tts", "end");
       },
       onEnd: () => setListening(false),
       onError: (message) => toast.error(message),
@@ -72,7 +71,6 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
       session.stop();
       setListening(false);
     } else {
-      tutor.play("listen");
       session.start();
       setListening(true);
     }
@@ -85,7 +83,7 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
         type="button"
         disabled
         aria-label="Voice input initializing"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border text-muted-foreground opacity-40"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40"
       >
         <Mic className="h-4 w-4" />
       </button>
@@ -99,7 +97,7 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
         disabled
         title="Voice input isn't supported in this browser — type your question instead"
         aria-label="Voice input not supported"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border text-muted-foreground opacity-40 cursor-not-allowed"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 cursor-not-allowed"
       >
         <MicOff className="h-4 w-4" />
       </button>
@@ -115,10 +113,10 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
       aria-label={listening ? "Stop voice input" : "Start voice input"}
       aria-pressed={listening}
       className={cn(
-        "relative inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors disabled:opacity-40",
+        "relative inline-flex h-11 w-11 items-center justify-center rounded-md border border-line transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-40",
         listening
-          ? "border-destructive/40 bg-destructive/10 text-destructive"
-          : "hover:bg-muted text-muted-foreground"
+          ? "border-danger/40 bg-danger-subtle text-danger-on"
+          : "hover:bg-bg-subtle text-fg-muted"
       )}
     >
       {/* Listening pulse — SpeechRecognition exposes no amplitude, so a

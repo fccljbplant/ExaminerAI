@@ -67,8 +67,8 @@ export function VideoStage({ video, onEnded, onSkipToSlides }: VideoStageProps) 
   return (
     <div className="mx-auto w-full max-w-3xl">
       {/* Section label — matches the slide stage's banner rhythm */}
-      <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        <MonitorPlay className="h-3.5 w-3.5 text-primary" aria-hidden />
+      <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+        <MonitorPlay className="h-3.5 w-3.5 text-brand" aria-hidden />
         Watch first · video lesson
       </div>
 
@@ -78,9 +78,9 @@ export function VideoStage({ video, onEnded, onSkipToSlides }: VideoStageProps) 
           onRetry={() => { setFailed(false); setReady(false); setRetryNonce(n => n + 1); }}
         />
       ) : (
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-line bg-bg-subtle">
           {!ready && (
-            <div className="absolute inset-0 animate-pulse bg-muted" aria-label="Loading video player" />
+            <div className="absolute inset-0 animate-pulse bg-bg-subtle" aria-label="Loading video player" />
           )}
           {/* The IFrame API replaces this div with the player iframe */}
           <div ref={mountRef} className="absolute inset-0 h-full w-full" />
@@ -94,7 +94,7 @@ export function VideoStage({ video, onEnded, onSkipToSlides }: VideoStageProps) 
         <button
           type="button"
           onClick={onSkipToSlides}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md border border-line px-3 text-xs font-medium hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <SkipForward className="h-3.5 w-3.5" aria-hidden />
           Skip to slides

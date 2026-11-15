@@ -99,7 +99,7 @@ export function LessonStage({
               disabled={!generated}
               aria-label={`Slide ${i + 1}`}
               className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors md:h-8 md:w-8",
+                "flex h-11 w-11 items-center justify-center rounded-full text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
                 isCurrent
                   ? "bg-brand text-on-brand"
                   : generated
@@ -217,7 +217,7 @@ export function LessonStage({
         </article>
       ) : (
         <div className="rounded-lg border-2 border-dashed py-16 text-center">
-          <Sparkles className="mx-auto h-8 w-8 text-primary" />
+          <Sparkles className="mx-auto h-8 w-8 text-brand" aria-hidden />
           <p className="mt-3 text-sm font-medium">Ready to start learning</p>
           <p className="mt-1 text-xs text-fg-muted">
             Click &quot;Start learning&quot; below and I&apos;ll teach this topic to you, one slide at a time.
@@ -229,7 +229,7 @@ export function LessonStage({
       {topicComplete && (
         <div className="mt-4 rounded-lg border-2 border-primary/40 bg-brand/5 p-4 md:mt-6">
           <div className="mb-2 flex items-center gap-2">
-            <ListChecks className="h-4 w-4 text-primary" />
+            <ListChecks className="h-4 w-4 text-brand" aria-hidden />
             <h3 className="font-semibold">Topic resources</h3>
           </div>
           <p className="mb-3 text-sm text-fg-muted">
@@ -242,7 +242,7 @@ export function LessonStage({
                   href={r.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   → {r.label}
                 </a>

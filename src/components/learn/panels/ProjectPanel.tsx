@@ -9,7 +9,6 @@ import {
  CheckCircle2, Circle, Loader2, Plus, Lightbulb, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { tutor } from "@/modules/learn/lib/tutor-bus";
 
 interface Milestone {
  id: string;
@@ -74,7 +73,6 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  setProject(res.data.project);
  setForm({ title: "", goal: "", stack: "" });
  toast.success("Project created", { description: "4 default milestones added." });
- tutor.play("thumbsup");
  } catch (e) {
  toast.error("Couldn't create project", { description: e instanceof Error ? e.message : undefined });
  } finally {
@@ -96,7 +94,6 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  status: res.data.projectCompleted ? "completed" : prev.status,
  } : null);
  toast.success("Milestone complete!", { description: "+15 XP" });
- tutor.play("cheer");
  onMilestoneComplete?.();
  } catch (e) {
  toast.error("Couldn't mark milestone", { description: e instanceof Error ? e.message : undefined });
@@ -120,7 +117,6 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  );
  setHint(res.data.hint);
  setHintLevel(res.data.hintLevel);
- tutor.play("explain");
  } catch (e) {
  toast.error("Couldn't get a hint", { description: e instanceof Error ? e.message : undefined });
  } finally {
