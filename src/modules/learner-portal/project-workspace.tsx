@@ -231,7 +231,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
       {/* header */}
       <header className="space-y-1">
         <p className="text-xs text-fg-muted">
-          <Link href="/learner" className="hover:text-fg">
+          <Link href="/learner" className="rounded hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
             Home
           </Link>{" "}
           · {project.courseName ?? "Project"}
@@ -331,7 +331,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
                       onClick={() => completeMilestone(m.id)}
                       disabled={busyId === m.id || !canWork}
                       title={canWork ? undefined : "Unlocks after instructor approval"}
-                      className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50"
+                      className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {busyId === m.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -350,7 +350,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
 
       <Link
         href="/learner"
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Back to home
@@ -406,7 +406,7 @@ function StatusBanner({
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <Pencil className="h-3.5 w-3.5" aria-hidden />
           Edit proposal
@@ -426,7 +426,7 @@ function StatusBanner({
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             <Pencil className="h-3.5 w-3.5" aria-hidden />
             Edit &amp; resubmit
@@ -455,7 +455,7 @@ function StatusBanner({
             type="button"
             onClick={onGenerate}
             disabled={generating}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
           >
             {generating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Sparkles className="h-4 w-4" aria-hidden />}
             Generate timeline
@@ -529,7 +529,7 @@ function ProposalCard({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-brand-subtle"
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand hover:bg-brand-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <Pencil className="h-3.5 w-3.5" aria-hidden />
               Edit
@@ -558,6 +558,17 @@ function ProposalCard({
     );
   }
 
+  const INPUT_CLS =
+    "h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+  const TEXTAREA_CLS =
+    "w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+  const SELECT_CLS =
+    "h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+  const BTN_PRIMARY_CLS =
+    "inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50";
+  const BTN_SECONDARY_CLS =
+    "inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-4 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+
   return (
     <section className="space-y-3 rounded-xl border border-brand/30 bg-surface p-4">
       <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
@@ -569,7 +580,7 @@ function ProposalCard({
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+            className={INPUT_CLS}
           />
         </label>
         <label className="block space-y-1.5">
@@ -578,7 +589,7 @@ function ProposalCard({
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             placeholder="What does success look like?"
-            className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+            className={INPUT_CLS}
           />
         </label>
         <label className="block space-y-1.5">
@@ -588,7 +599,7 @@ function ProposalCard({
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
             placeholder="Describe the project your instructor will review: the problem, your approach, the deliverable."
-            className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted"
+            className={TEXTAREA_CLS}
           />
         </label>
         <label className="block space-y-1.5">
@@ -598,7 +609,7 @@ function ProposalCard({
             onChange={(e) => setObjectives(e.target.value)}
             rows={3}
             placeholder={"Research competitor stores\nPick 5 products to test\nList first 10 products"}
-            className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted"
+            className={TEXTAREA_CLS}
           />
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -607,7 +618,7 @@ function ProposalCard({
             <select
               value={durationWeeks}
               onChange={(e) => setDurationWeeks(Number(e.target.value))}
-              className="h-11 w-full rounded-lg border border-line bg-bg px-2 text-sm text-fg"
+              className={SELECT_CLS}
             >
               {Array.from({ length: 25 }, (_, i) => i + 2).map((w) => (
                 <option key={w} value={w}>{w} weeks</option>
@@ -620,7 +631,7 @@ function ProposalCard({
               type="date"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
-              className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg"
+              className={INPUT_CLS}
             />
           </label>
         </div>
@@ -629,7 +640,7 @@ function ProposalCard({
             type="button"
             onClick={save}
             disabled={saving || !title.trim()}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand disabled:opacity-50"
+            className={BTN_PRIMARY_CLS}
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
             {project.status === "rejected" ? "Save & resubmit" : "Save proposal"}
@@ -637,7 +648,7 @@ function ProposalCard({
           <button
             type="button"
             onClick={() => setEditing(false)}
-            className="inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-4 text-xs font-medium text-fg hover:border-line-strong"
+            className={BTN_SECONDARY_CLS}
           >
             Cancel
           </button>
@@ -726,7 +737,7 @@ function TimelineSection({
                   value={tasksPerWeek}
                   onChange={(e) => setTasksPerWeek(Number(e.target.value))}
                   aria-label="Tasks per week"
-                  className="h-11 flex-1 rounded-lg border border-line bg-bg px-2 text-sm text-fg"
+                  className="h-11 flex-1 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
                   {[3, 4, 5, 6, 7].map((n) => (
                     <option key={n} value={n}>{n} tasks/week</option>
@@ -736,7 +747,7 @@ function TimelineSection({
                   type="button"
                   onClick={onGenerate}
                   disabled={generating}
-                  className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand disabled:opacity-50"
+                  className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
                 >
                   {generating ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -770,7 +781,7 @@ function TimelineSection({
             type="button"
             onClick={onRegenerate}
             disabled={generating}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-fg-muted hover:bg-bg-subtle hover:text-fg disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-fg-muted hover:bg-bg-subtle hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
           >
             {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <RefreshCw className="h-3.5 w-3.5" aria-hidden />}
             Regenerate
@@ -785,13 +796,13 @@ function TimelineSection({
           onChange={(e) => setNewTask(e.target.value)}
           placeholder="Add a task…"
           aria-label="New task description"
-          className="h-11 min-w-40 flex-1 rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+          className="h-11 min-w-40 flex-1 rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         />
         <select
           value={newTaskWeek}
           onChange={(e) => setNewTaskWeek(Number(e.target.value))}
           aria-label="Task week"
-          className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg"
+          className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           {Array.from({ length: Math.max(maxWeek, 12) }, (_, i) => i + 1).map((w) => (
             <option key={w} value={w}>Week {w}</option>
@@ -800,7 +811,7 @@ function TimelineSection({
         <button
           type="submit"
           disabled={adding || !newTask.trim()}
-          className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
         >
           {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
           Add
@@ -843,12 +854,21 @@ function TimelineSection({
                         type="button"
                         onClick={() => onToggleTask(t)}
                         disabled={busyId === t.id}
+                        aria-pressed={t.status === "completed"}
                         aria-label={t.status === "completed" ? `Mark ${t.title} incomplete` : `Mark ${t.title} complete`}
                         className={cn(
-                          "h-4 w-4 shrink-0 rounded-full border",
-                          t.status === "completed" ? "border-success bg-success" : "border-line bg-bg"
+                          "flex h-11 w-11 shrink-0 items-center justify-center rounded-md hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-wait disabled:opacity-60",
                         )}
-                      />
+                      >
+                        <span
+                          className={cn(
+                            "flex h-5 w-5 items-center justify-center rounded-full border",
+                            t.status === "completed" ? "border-success bg-success" : "border-line-strong bg-bg",
+                          )}
+                        >
+                          {t.status === "completed" && <CheckCircle2 className="h-3.5 w-3.5 text-success-on" aria-hidden />}
+                        </span>
+                      </button>
                       <div className="min-w-0 flex-1">
                         <p className={cn("truncate text-sm", t.status === "completed" ? "text-fg-muted line-through" : "text-fg")}>
                           {t.title}
@@ -875,7 +895,7 @@ function TimelineSection({
                         onClick={() => onDeleteTask(t)}
                         disabled={busyId === t.id}
                         aria-label={`Delete ${t.title}`}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
                       >
                         <Trash2 className="h-3.5 w-3.5" aria-hidden />
                       </button>
