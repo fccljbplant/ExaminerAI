@@ -150,14 +150,14 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
         {learnCourseId && (
           <section className="surface-card flex flex-col justify-between gap-4 p-5 lg:col-span-2">
             <div>
-              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                <BookOpen className="h-3.5 w-3.5 text-primary" aria-hidden />
+              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                <BookOpen className="h-3.5 w-3.5 text-brand" aria-hidden />
                 Continue learning
               </div>
               <h3 className="mt-2 text-lg font-semibold leading-snug">
                 {activeEnrollment?.courseName ?? stats.projectConfig?.courseName ?? "Your course"}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-fg-muted">
                 Step into your classroom — your AI teacher has today&apos;s lesson ready, with video,
                 slides, and voice Q&amp;A.
               </p>
@@ -165,7 +165,7 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
             <div>
               <a
                 href={`/learn/${learnCourseId}`}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <PlayCircle className="h-4 w-4" aria-hidden />
                 Enter classroom
@@ -182,7 +182,7 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
             <button
               type="button"
               onClick={() => onNavigate("project")}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-muted"
+              className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-3 text-xs font-medium text-brand hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Open <ArrowRight className="h-3 w-3" aria-hidden />
             </button>
@@ -194,24 +194,24 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
                 <span className="text-2xl font-bold">
                   {s.tasksThisWeek > 0 ? Math.round((s.completedTasksThisWeek / s.tasksThisWeek) * 100) : 0}%
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-fg-muted">
                   {s.completedTasksThisWeek} of {s.tasksThisWeek} tasks
                 </span>
               </div>
               <div
-                className="h-1.5 overflow-hidden rounded-full bg-muted"
+                className="h-1.5 overflow-hidden rounded-full bg-bg-subtle"
                 role="progressbar"
                 aria-valuenow={s.tasksThisWeek > 0 ? Math.round((s.completedTasksThisWeek / s.tasksThisWeek) * 100) : 0}
                 aria-valuemin={0}
                 aria-valuemax={100}
               >
                 <div
-                  className="h-full rounded-full bg-primary transition-all"
+                  className="h-full rounded-full bg-brand transition-all"
                   style={{ width: `${s.tasksThisWeek > 0 ? Math.round((s.completedTasksThisWeek / s.tasksThisWeek) * 100) : 0}%` }}
                 />
               </div>
               {nextMilestone && (
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <p className="flex items-center gap-1.5 text-xs text-fg-muted">
                   <Target className="h-3.5 w-3.5 text-growth-amber" aria-hidden />
                   Milestone due week {nextMilestone.week}
                 </p>
@@ -226,14 +226,14 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
                 <button
                   type="button"
                   onClick={() => onNavigate("project")}
-                  className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                  className="min-h-11 rounded-md bg-brand px-3 text-xs font-medium text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   Set up project
                 </button>
               }
             />
           ) : (
-            <p className="text-sm text-muted-foreground">No project tasks this week yet.</p>
+            <p className="text-sm text-fg-muted">No project tasks this week yet.</p>
           )}
         </WidgetCard>
       </div>
@@ -257,7 +257,7 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
                   <button
                     type="button"
                     onClick={() => onNavigate("study")}
-                    className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                    className="min-h-11 rounded-md bg-brand px-3 text-xs font-medium text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     Go to Study
                   </button>
@@ -289,8 +289,8 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
                           {t.isMilestone && <Target className="mr-1 inline h-3 w-3 text-growth-amber" aria-hidden />}
                           {t.description}
                         </td>
-                        <td className="text-muted-foreground">W{t.week}</td>
-                        <td className="text-muted-foreground">
+                        <td className="text-fg-muted">W{t.week}</td>
+                        <td className="text-fg-muted">
                           {t.dueDate ? formatRelativeTime(t.dueDate) : "—"}
                         </td>
                         <td className="pr-4">
@@ -317,10 +317,10 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
             <ul className="space-y-3">
               {activity.map(a => (
                 <li key={a.id} className="flex gap-2.5 text-sm">
-                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" aria-hidden />
+                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand" aria-hidden />
                   <div className="min-w-0">
                     <p className="truncate">{a.text}</p>
-                    <p className="text-[10px] text-muted-foreground">{formatRelativeTime(a.date)}</p>
+                    <p className="text-[10px] text-fg-muted">{formatRelativeTime(a.date)}</p>
                   </div>
                 </li>
               ))}
@@ -341,19 +341,19 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
                   <button
                     type="button"
                     onClick={() => switchCourse(enr.courseId)}
-                    className="block w-full text-left"
+                    className="block w-full rounded-md py-1.5 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     title={isActive ? "Current course" : "Switch to this course"}
                   >
                     <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                      <span className={cn("truncate text-sm font-medium", isActive && "text-primary")}>
+                      <span className={cn("truncate text-sm font-medium", isActive && "text-brand")}>
                         {enr.courseName}
                       </span>
-                      <span className="shrink-0 text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs text-fg-muted">
                         Week {enr.currentWeek}/{enr.totalWeeks} · {pct}%
                       </span>
                     </div>
                     <div
-                      className="h-1.5 overflow-hidden rounded-full bg-muted"
+                      className="h-1.5 overflow-hidden rounded-full bg-bg-subtle"
                       role="progressbar"
                       aria-valuenow={pct}
                       aria-valuemin={0}
@@ -361,7 +361,7 @@ export function LearnerHome({ stats, enrollments, activeCourseId, onNavigate, on
                       aria-label={`${enr.courseName} coverage`}
                     >
                       <div
-                        className={cn("h-full rounded-full transition-all", isActive ? "bg-primary" : "bg-primary/50")}
+                        className={cn("h-full rounded-full transition-all", isActive ? "bg-brand" : "bg-brand/50")}
                         style={{ width: `${pct}%` }}
                       />
                     </div>

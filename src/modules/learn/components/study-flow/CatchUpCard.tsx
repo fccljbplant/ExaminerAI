@@ -67,7 +67,7 @@ export function CatchUpCard({ daysSince, onChoose }: CatchUpCardProps) {
             key={opt.value}
             type="button"
             onClick={() => onChoose(opt.value)}
-            className="rounded-lg border border-line bg-bg p-3 text-left transition-colors hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="w-full rounded-lg border border-line bg-bg p-3 text-left transition-colors hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <p className="text-sm font-semibold text-fg">{opt.label}</p>
             <p className="mt-0.5 text-xs text-fg-muted">{opt.description}</p>

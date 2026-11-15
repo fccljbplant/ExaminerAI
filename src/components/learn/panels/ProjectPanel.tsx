@@ -127,7 +127,7 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  if (loading) {
  return (
  <div className="flex items-center justify-center h-40">
- <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+ <Loader2 className="h-5 w-5 animate-spin text-fg-muted" />
  </div>
  );
  }
@@ -137,45 +137,45 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  return (
  <div className="p-5">
  <h2 className="text-lg font-semibold">Start your project</h2>
- <p className="text-sm text-muted-foreground mt-1">
+ <p className="text-sm text-fg-muted mt-1">
  You'll get 4 default milestones. You can update the details later.
  </p>
  <form onSubmit={handleCreate} className="mt-4 space-y-3">
  <div>
- <label className="text-xs font-medium text-muted-foreground">Project title</label>
+ <label className="text-xs font-medium text-fg-muted">Project title</label>
  <input
  value={form.title}
  onChange={e => setForm(s => ({ ...s, title: e.target.value }))}
  placeholder="e.g. AI-powered WordPress blog assistant"
- className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+ className="mt-1 w-full rounded-md border border-line bg-bg px-3 py-2 text-sm focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
  maxLength={120}
  />
  </div>
  <div>
- <label className="text-xs font-medium text-muted-foreground">Goal (optional)</label>
+ <label className="text-xs font-medium text-fg-muted">Goal (optional)</label>
  <textarea
  value={form.goal}
  onChange={e => setForm(s => ({ ...s, goal: e.target.value }))}
  placeholder="What will this project do for its users?"
  rows={3}
- className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+ className="mt-1 w-full rounded-md border border-line bg-bg px-3 py-2 text-sm focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus resize-none"
  maxLength={500}
  />
  </div>
  <div>
- <label className="text-xs font-medium text-muted-foreground">Stack (optional)</label>
+ <label className="text-xs font-medium text-fg-muted">Stack (optional)</label>
  <input
  value={form.stack}
  onChange={e => setForm(s => ({ ...s, stack: e.target.value }))}
  placeholder="e.g. WordPress, PHP, MySQL, Gemini API"
- className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+ className="mt-1 w-full rounded-md border border-line bg-bg px-3 py-2 text-sm focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
  maxLength={200}
  />
  </div>
  <button
  type="submit"
  disabled={creating}
- className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+ className="inline-flex items-center gap-2 min-h-11 rounded-md bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
  >
  {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
  Create project
@@ -192,31 +192,31 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  <div className="flex flex-col h-full">
  <header className="px-5 py-4 border-b">
  <h2 className="text-lg font-semibold truncate">{project.title}</h2>
- <p className="text-xs text-muted-foreground mt-0.5">
+ <p className="text-xs text-fg-muted mt-0.5">
  {completedMilestones}/{project.milestones.length} milestones · {project.status === "completed" ? "Completed" : project.status === "approved" ? "Approved — in progress" : project.status === "pending_approval" ? "Awaiting approval" : project.status === "rejected" ? "Changes requested" : "In progress"}
  </p>
- {project.goal && <p className="text-sm text-muted-foreground mt-2">{project.goal}</p>}
+ {project.goal && <p className="text-sm text-fg-muted mt-2">{project.goal}</p>}
  </header>
 
  <div className="flex-1 overflow-y-auto p-5 space-y-6">
  {/* NOW card */}
  {activeMilestone && (
- <section className="rounded-lg border-2 border-primary/40 bg-primary/5 p-4">
+ <section className="rounded-lg border-2 border-brand/40 bg-brand-subtle p-4">
  <div className="flex items-center gap-2 mb-1">
- <Sparkles className="h-4 w-4 text-primary" />
- <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">Now</span>
+ <Sparkles className="h-4 w-4 text-brand" />
+ <span className="text-[10px] font-semibold uppercase tracking-wide text-brand">Now</span>
  </div>
  <h3 className="font-semibold">{activeMilestone.title}</h3>
- {activeMilestone.description && <p className="text-sm text-muted-foreground mt-1">{activeMilestone.description}</p>}
+ {activeMilestone.description && <p className="text-sm text-fg-muted mt-1">{activeMilestone.description}</p>}
  {project.status === "pending_approval" || project.status === "rejected" ? (
- <p className="mt-3 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+ <p className="mt-3 rounded-md bg-bg-subtle px-3 py-2 text-xs text-fg-muted">
  {project.status === "rejected" ? "Your instructor requested changes — milestones unlock once it is approved again." : "Awaiting instructor approval — milestones unlock once the project is approved."}
  </p>
  ) : (
  <button
  onClick={() => handleCompleteMilestone(activeMilestone.id)}
  disabled={completingId === activeMilestone.id}
- className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+ className="mt-3 inline-flex items-center gap-2 min-h-11 rounded-md bg-brand px-3 text-xs font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
  >
  {completingId === activeMilestone.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
  Mark complete (+15 XP)
@@ -227,22 +227,22 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
 
  {/* Milestones */}
  <section>
- <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Milestones</h3>
+ <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-muted mb-2">Milestones</h3>
  <ol className="space-y-2">
  {project.milestones.map(m => (
  <li key={m.id} className={cn(
  "flex items-start gap-3 rounded-md px-3 py-2 text-sm",
  m.status === "completed" && "bg-growth-sage dark:bg-growth-sage/30",
- m.status !== "completed" && !activeMilestone?.id && "hover:bg-muted/60",
+ m.status !== "completed" && !activeMilestone?.id && "hover:bg-bg-subtle/60",
  )}>
  <span className="mt-0.5">
  {m.status === "completed"
  ? <CheckCircle2 className="h-4 w-4 text-growth-sage" />
- : <Circle className="h-4 w-4 text-muted-foreground" />}
+ : <Circle className="h-4 w-4 text-fg-muted" />}
  </span>
  <div className="min-w-0 flex-1">
- <p className={cn("font-medium leading-snug", m.status === "completed" && "line-through text-muted-foreground")}>{m.title}</p>
- {m.description && <p className="text-xs text-muted-foreground line-clamp-2">{m.description}</p>}
+ <p className={cn("font-medium leading-snug", m.status === "completed" && "line-through text-fg-muted")}>{m.title}</p>
+ {m.description && <p className="text-xs text-fg-muted line-clamp-2">{m.description}</p>}
  </div>
  {m.status !== "completed" && m.id !== activeMilestone?.id && (
  <Lock label="Complete the previous milestone first" />
@@ -258,7 +258,7 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  <Lightbulb className="h-4 w-4 text-growth-amber" />
  <h3 className="text-sm font-semibold">Stuck on something?</h3>
  </div>
- <p className="text-xs text-muted-foreground mb-3">
+ <p className="text-xs text-fg-muted mb-3">
  Describe what's blocking you. I'll give you a nudge first, then a stronger hint if you ask again.
  </p>
  <textarea
@@ -266,19 +266,19 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
  onChange={e => setBlocker(e.target.value)}
  placeholder="e.g. I don't know how to authenticate with the Gemini API."
  rows={3}
- className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+ className="w-full rounded-md border border-line bg-bg px-3 py-2 text-sm focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus resize-none"
  maxLength={2000}
  />
  <button
  onClick={handleGetHint}
  disabled={hintLoading}
- className="mt-2 inline-flex items-center gap-2 rounded-md bg-growth-amber/90 px-3 py-1.5 text-xs font-medium text-white hover:bg-growth-amber disabled:opacity-50"
+ className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-md bg-growth-amber/90 px-3 text-xs font-medium text-white hover:bg-growth-amber disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
  >
  {hintLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lightbulb className="h-3.5 w-3.5" />}
  Get {hintLevel >= 2 ? "another" : "a"} hint
  </button>
  {hint && (
- <div className="mt-3 rounded-md bg-muted/60 p-3 text-sm">
+ <div className="mt-3 rounded-md bg-bg-subtle/60 p-3 text-sm">
  <div className="flex items-center gap-2 mb-1">
  <span className="text-[10px] font-semibold uppercase tracking-wide text-growth-amber">
  Hint level {hintLevel + 1}
@@ -295,6 +295,6 @@ export function ProjectPanel({ courseId, onMilestoneComplete }: Props) {
 
 function Lock({ label }: { label: string }) {
  return (
- <span title={label} className="text-[10px] text-muted-foreground/60 px-2 py-1 rounded bg-muted/50">locked</span>
+ <span title={label} className="text-[10px] text-fg-muted/60 px-2 py-1 rounded bg-bg-subtle/50">locked</span>
  );
 }

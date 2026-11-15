@@ -172,7 +172,7 @@ export function SrsQueueCard({ cards, onQueueChange }: SrsQueueCardProps) {
                     type="button"
                     disabled={submitting}
                     onClick={() => void rate(r.score)}
-                    className="rounded-lg border border-line bg-bg p-3 text-left transition-colors hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-lg border border-line bg-bg p-3 text-left transition-colors hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <p className="text-sm font-semibold text-fg">{r.label}</p>
                     <p className="mt-0.5 text-xs text-fg-muted">{r.hint}</p>
@@ -189,7 +189,7 @@ export function SrsQueueCard({ cards, onQueueChange }: SrsQueueCardProps) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="w-full text-center text-xs font-semibold text-fg-muted transition-colors hover:text-fg"
+                className="inline-flex min-h-11 w-full items-center justify-center text-center text-xs font-semibold text-fg-muted transition-colors hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Stop reviewing for now
               </button>
@@ -204,7 +204,7 @@ export function SrsQueueCard({ cards, onQueueChange }: SrsQueueCardProps) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover sm:w-auto"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover sm:w-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Done
               </button>

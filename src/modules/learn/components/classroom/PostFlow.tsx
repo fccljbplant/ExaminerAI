@@ -70,7 +70,7 @@ export function PostFlowStepper({
               disabled={!done}
               aria-current={active ? "step" : undefined}
               className={cn(
-                "inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
+                "inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
                 done
                   ? "bg-bg-subtle text-fg-muted hover:text-fg"
                   : active

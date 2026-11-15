@@ -49,9 +49,8 @@ export function BudgetSelector({ value, suggested, onChange }: BudgetSelectorPro
               onClick={() => onChange(opt.value)}
               className={
                 isSelected
-                  ? "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-brand px-3 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover"
-                  : "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-line px-3 text-xs font-semibold text-fg-secondary transition-colors hover:border-brand hover:bg-brand-subtle hover:text-fg" +
-                    (isSuggested ? " outline-2 outline-offset-2 outline-focus" : "")
+                  ? "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-brand px-3 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  : "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-line px-3 text-xs font-semibold text-fg-secondary transition-colors hover:border-brand hover:bg-brand-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               }
             >
               {opt.label}

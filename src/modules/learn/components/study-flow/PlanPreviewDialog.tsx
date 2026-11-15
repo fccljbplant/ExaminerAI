@@ -83,7 +83,7 @@ export function PlanPreviewDialog({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="inline-flex h-10 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             Not now
           </button>
@@ -91,7 +91,7 @@ export function PlanPreviewDialog({
             type="button"
             onClick={onConfirm}
             disabled={busy || items.length === 0}
-            className="inline-flex h-10 items-center rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-11 items-center rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
           >
             {busy ? "Confirming…" : confirmLabel}
           </button>

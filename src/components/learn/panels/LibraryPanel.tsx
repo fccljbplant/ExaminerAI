@@ -86,7 +86,7 @@ export function LibraryPanel({ courseId, slideId }: Props) {
  if (loading) {
  return (
  <div className="flex items-center justify-center h-40">
- <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+ <Loader2 className="h-5 w-5 animate-spin text-fg-muted" />
  </div>
  );
  }
@@ -95,17 +95,17 @@ export function LibraryPanel({ courseId, slideId }: Props) {
  <div className="flex flex-col h-full">
  <header className="px-5 py-4 border-b">
  <h2 className="text-lg font-semibold">Library</h2>
- <p className="text-xs text-muted-foreground mt-0.5">Curated resources and your private notes.</p>
- <div className="mt-3 inline-flex rounded-md border bg-muted/40 p-0.5 text-xs">
+ <p className="text-xs text-fg-muted mt-0.5">Curated resources and your private notes.</p>
+ <div className="mt-3 inline-flex rounded-md border bg-bg-subtle/40 p-0.5 text-xs">
  <button
  onClick={() => setTab("resources")}
- className={cn("px-3 py-1 rounded inline-flex items-center gap-1.5", tab === "resources" ? "bg-background shadow-sm font-medium" : "text-muted-foreground")}
+ className={cn("px-3 min-h-11 rounded inline-flex items-center gap-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus", tab === "resources" ? "bg-bg shadow-sm font-medium" : "text-fg-muted")}
  >
  <BookOpen className="h-3.5 w-3.5" /> Resources
  </button>
  <button
  onClick={() => setTab("notes")}
- className={cn("px-3 py-1 rounded inline-flex items-center gap-1.5", tab === "notes" ? "bg-background shadow-sm font-medium" : "text-muted-foreground")}
+ className={cn("px-3 min-h-11 rounded inline-flex items-center gap-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus", tab === "notes" ? "bg-bg shadow-sm font-medium" : "text-fg-muted")}
  >
  <StickyNote className="h-3.5 w-3.5" /> Notes
  </button>
@@ -116,12 +116,12 @@ export function LibraryPanel({ courseId, slideId }: Props) {
  {tab === "resources" && (
  <section>
  {resourceData?.topic && (
- <div className="mb-4 rounded-md bg-muted/40 p-3 text-sm">
- <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+ <div className="mb-4 rounded-md bg-bg-subtle/40 p-3 text-sm">
+ <div className="text-[10px] uppercase tracking-wide text-fg-muted">
  Week {resourceData.topic.week} Day {resourceData.topic.day} · {resourceData.topic.phase}
  </div>
  <p className="font-medium mt-0.5">{resourceData.topic.title}</p>
- <p className="text-xs text-muted-foreground mt-0.5">{resourceData.topic.objective}</p>
+ <p className="text-xs text-fg-muted mt-0.5">{resourceData.topic.objective}</p>
  </div>
  )}
  {resourceData?.resources && resourceData.resources.length > 0 ? (
@@ -132,20 +132,20 @@ export function LibraryPanel({ courseId, slideId }: Props) {
  href={r.url}
  target="_blank"
  rel="noopener noreferrer"
- className="group flex items-start gap-3 rounded-md border p-3 hover:bg-muted/40 transition-colors"
+ className="group flex items-start gap-3 rounded-md border border-line p-3 transition-colors hover:bg-bg-subtle/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
  >
- <FileText className="h-4 w-4 mt-0.5 text-muted-foreground group-hover:text-primary" />
+ <FileText className="h-4 w-4 mt-0.5 text-fg-muted group-hover:text-brand" />
  <div className="min-w-0 flex-1">
  <p className="text-sm font-medium leading-snug">{r.label}</p>
- <p className="text-xs text-muted-foreground truncate">{r.url}</p>
+ <p className="text-xs text-fg-muted truncate">{r.url}</p>
  </div>
- <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100" />
+ <ExternalLink className="h-3.5 w-3.5 text-fg-muted opacity-0 group-hover:opacity-100" />
  </a>
  </li>
  ))}
  </ul>
  ) : (
- <p className="text-sm text-muted-foreground">No curated resources for this topic yet.</p>
+ <p className="text-sm text-fg-muted">No curated resources for this topic yet.</p>
  )}
  </section>
  )}
@@ -158,26 +158,26 @@ export function LibraryPanel({ courseId, slideId }: Props) {
  onChange={e => setNoteInput(e.target.value)}
  placeholder="Jot down a quick note about what you just learned..."
  rows={3}
- className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+ className="w-full rounded-md border border-line bg-bg px-3 py-2 text-sm focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus resize-none"
  maxLength={5000}
  />
  <button
  type="submit"
  disabled={savingNote || !noteInput.trim()}
- className="mt-2 inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+ className="mt-2 inline-flex items-center gap-2 min-h-11 rounded-md bg-brand px-3 text-xs font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
  >
  {savingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
  Save note
  </button>
  </form>
  {notes.length === 0 ? (
- <p className="text-sm text-muted-foreground">No notes yet. Notes you save will appear here in reverse-chronological order.</p>
+ <p className="text-sm text-fg-muted">No notes yet. Notes you save will appear here in reverse-chronological order.</p>
  ) : (
  <ul className="space-y-2">
  {notes.map(n => (
  <li key={n.id} className="rounded-md border p-3 text-sm">
  <p className="whitespace-pre-wrap leading-relaxed">{n.content}</p>
- <p className="text-[10px] text-muted-foreground mt-2">
+ <p className="text-[10px] text-fg-muted mt-2">
  {new Date(n.createdAt).toLocaleString()}
  {n.slideId && " · linked to current slide"}
  </p>

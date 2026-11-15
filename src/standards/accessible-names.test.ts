@@ -25,6 +25,8 @@ const ROOT = resolve(__dirname, "../..");
 
 const SCOPED_DIRS = [
   "app",
+  "modules/learn",
+  "components/learn",
   "modules/learner-portal",
   "modules/instructor-portal",
   "modules/org-portal",

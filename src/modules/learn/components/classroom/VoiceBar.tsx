@@ -83,7 +83,7 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
         type="button"
         disabled
         aria-label="Voice input initializing"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <Mic className="h-4 w-4" />
       </button>
@@ -97,7 +97,7 @@ export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps
         disabled
         title="Voice input isn't supported in this browser — type your question instead"
         aria-label="Voice input not supported"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 cursor-not-allowed"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 cursor-not-allowed focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <MicOff className="h-4 w-4" />
       </button>

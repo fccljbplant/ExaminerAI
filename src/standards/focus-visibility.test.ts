@@ -10,16 +10,14 @@ import { describe, expect, it } from "vitest";
  * alone is not a focus ring, and `focus:outline-none` without a
  * replacement indicator is an invisible focus state.
  *
- * Scope: the surfaces governed by the twelve rules. `src/modules/ui`
- * (shared primitives on the legacy token system) and the legacy learn
- * system (`src/modules/learn`, `src/components/learn`) use their own
- * focus treatments and are excluded.
  */
 
 const ROOT = resolve(__dirname, "../..");
 
 const SCOPED_DIRS = [
   "app",
+  "modules/learn",
+  "components/learn",
   "modules/learner-portal",
   "modules/instructor-portal",
   "modules/org-portal",

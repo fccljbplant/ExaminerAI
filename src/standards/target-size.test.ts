@@ -11,9 +11,6 @@ import { describe, expect, it } from "vitest";
  * place — plus the raw <button>/<input> controls in the scoped product
  * surfaces that bypass the primitives.
  *
- * Scope: the same product surfaces as focus-visibility.test.ts.
- * Excluded: src/modules/learn and src/components/learn (legacy learn
- * system, own focus/size treatments — per-slice pins there).
  *
  * Known non-offenders (do not "fix" these):
  *   - inline text links (a/Link) — their target is the text line-box;
@@ -39,6 +36,8 @@ const SUB_44_HEIGHT = /(^|\s)(h|size|w)-[1-9](\s|$)|(^|\s)(h|size)-1[01](\s|$)/;
 
 const SCOPED_DIRS = [
   "app",
+  "modules/learn",
+  "components/learn",
   "modules/learner-portal",
   "modules/instructor-portal",
   "modules/org-portal",
