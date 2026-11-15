@@ -91,7 +91,7 @@ export function PrivateReports() {
           type="button"
           onClick={() => void generate()}
           disabled={!meId}
-          className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+          className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
         >
           <Sparkles className="h-4 w-4" aria-hidden />
           Generate my reports
@@ -109,7 +109,7 @@ export function PrivateReports() {
         <p role="alert" className="mt-3 flex items-center gap-2 text-xs font-medium text-danger">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />
           {error}
-          <button type="button" onClick={() => void generate()} className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-lg border border-line px-2 text-xs font-semibold text-fg hover:bg-bg-subtle">
+          <button type="button" onClick={() => void generate()} className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-lg border border-line px-2 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
             <RefreshCw className="h-3 w-3" aria-hidden /> Retry
           </button>
         </p>
@@ -216,7 +216,7 @@ export function ClaimCertificate({ courseId, courseName }: { courseId: string; c
       type="button"
       onClick={() => void claim()}
       disabled={busy}
-      className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-semibold text-fg transition-colors hover:border-brand disabled:opacity-50"
+      className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-semibold text-fg transition-colors hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
     >
       {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <Award className="h-3.5 w-3.5" aria-hidden />}
       Claim certificate · {courseName}

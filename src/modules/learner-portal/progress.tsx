@@ -150,7 +150,7 @@ function CourseRings({ courses }: { courses: ProgressData["courses"] }) {
       {courses.length === 0 ? (
         <p className="mt-3 text-sm text-fg-muted">
           No enrollments yet —{" "}
-          <Link href="/learner/learn" className="font-semibold text-brand hover:underline">
+          <Link href="/learner/learn" className="rounded font-semibold text-brand hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
             browse the catalog
           </Link>
           .
@@ -161,7 +161,7 @@ function CourseRings({ courses }: { courses: ProgressData["courses"] }) {
             <li key={c.courseId}>
               <Link
                 href={`/learner/courses/${c.courseId}`}
-                className="flex items-center gap-4 rounded-lg p-2 transition-colors hover:bg-bg-subtle"
+                className="flex items-center gap-4 rounded-lg p-2 transition-colors hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
               >
                 <RadialProgress value={c.percent} size="md" autoTone label={`${c.courseName} progress`} />
                 <div className="min-w-0">

@@ -114,13 +114,13 @@ export function LearnerMessages() {
             rows={2}
             placeholder="Type your question…"
             disabled={!instructor}
-            className="min-h-20 flex-1 resize-y rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted disabled:opacity-50"
+            className="min-h-20 flex-1 resize-y rounded-lg border border-line bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
           />
           <button
             type="button"
             onClick={() => void send()}
             disabled={sending || !body.trim() || !instructor}
-            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
             Send
@@ -136,7 +136,7 @@ export function LearnerMessages() {
             type="button"
             aria-pressed={box === b}
             onClick={() => setBox(b)}
-            className={`inline-flex h-11 shrink-0 items-center rounded-lg px-3 text-xs font-semibold capitalize transition-colors ${
+            className={`inline-flex h-11 shrink-0 items-center rounded-lg px-3 text-xs font-semibold capitalize transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
               box === b
                 ? "bg-brand text-on-brand"
                 : "border border-line bg-surface text-fg-secondary hover:text-fg"
@@ -151,7 +151,7 @@ export function LearnerMessages() {
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
           <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
           {error}
-          <button type="button" onClick={() => void load(box)} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+          <button type="button" onClick={() => void load(box)} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
           </button>
         </div>
@@ -163,6 +163,11 @@ export function LearnerMessages() {
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-bg-subtle px-4 py-10 text-center">
           <Mail className="h-6 w-6 text-fg-muted" aria-hidden />
           <p className="text-sm font-medium text-fg">No {box} messages</p>
+          <p className="max-w-xs text-xs text-fg-muted">
+            {instructor
+              ? `Ask ${instructor.name} a question above — replies land here.`
+              : "Once you're enrolled with an instructor, your conversation lives here."}
+          </p>
         </div>
       ) : (
         <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
@@ -190,9 +195,11 @@ export function LearnerMessages() {
               </div>
               <button
                 type="button"
-                onClick={() => void remove(m.id)}
+                onClick={() => {
+                  if (window.confirm("Delete this message? This cannot be undone.")) void remove(m.id);
+                }}
                 aria-label="Delete message"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden />
               </button>
