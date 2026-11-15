@@ -28,7 +28,7 @@
     }
   ],
   "git": {
-    "deploymentEnabled": false
+    "deploymentEnabled": true
   },
   "github": {
     "silent": false
