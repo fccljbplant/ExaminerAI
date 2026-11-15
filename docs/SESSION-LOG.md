@@ -1,3 +1,16 @@
+## 2026-11-15 (cont.) — Top-level chrome: site header/footer, auth pages, portal shell (7df7abe..e44c7ac)
+
+Second sweep of the night, working up from the portals to the chrome every visitor sees. Push state was verified first (clean tree, main == origin/main); every commit below is pushed and live on Vercel.
+
+- Site header (`7df7abe`): every nav link, category chip and footer link raised to 44px with rings; search pill 40→44px with a 36px inner submit; the mobile sheet no longer half-covers the category strip (strip hides while the sheet is open, sheet anchored to the 96px header); brand links 44px. The new `site-chrome.test.ts` (6 tests) caught the footer brand link I'd missed — tests before commit, again.
+- Footer (`7df7abe`): removed the duplicate "Contact Support" entry (a second link to the same /support route as Help Center — rule 3: real destinations, once each).
+- ForgotPassword (`7df7abe`): **the whole page was on shadcn default tokens** (`bg-background`, `border-border`, `text-foreground`, `bg-primary`, `text-destructive`, `bg-secondary`) — it rendered with raw default-theme colors instead of the project palette in every theme. Fully retokenized (surface/line/fg/brand/danger/bg-subtle); `bg-card` kept (registered token, used by the Card primitive).
+- Auth layout (`7df7abe`): "Browse courses" and logo links ringed and 44px.
+- Portal shell (`e44c7ac`): UserMenu Sign out `text-destructive` → `text-danger` token (same class of bug as ForgotPassword), theme chips 36→44px with rings; ClassicTopbar search trigger and bell ringed + 44px, unread badge `text-white` → `text-danger-on`; TopNav links/More/brand 36→44px with rings.
+- Audited clean, no changes needed: login/register forms (Button/Input primitives, honest demo-account copy), RoleSettings, BottomNav (exemplary — safe-area insets, reduced motion, prefix-match active state), TutorPanel (aria-live states, quick prompts, honest error, 44px throughout).
+- Validation per slice: targeted tests → full Vitest (674 passed / 2 skipped, only the known DB-backed `tutor-context.test.ts` fails), ESLint 0, `tsc --noEmit` 0. Process note: one push failed with "unable to parse command-line config" (transient git env issue) — retried immediately, succeeded.
+- Known remaining: the Assignment/GroupTask reconciliation audit (structural, still queued), a manual keyboard/screen-reader pass for WCAG sign-off, and the `top-28`→`top-24` sheet anchor should be eyeballed on a real phone once.
+
 ## 2026-11-15 — Overnight bottom-up sweep: learner, instructor, org and platform surfaces (cdd51a0..fa3b9ff)
 
 All eleven commits of this sweep are pushed and live; Vercel deploys track origin/main. The owner is asleep — decisions below were made per MASTER-PLAN priority order (bottom-up: learner → instructor → org → platform), keeping the twelve-rules discipline from the earlier sessions.
