@@ -26,6 +26,12 @@ import {
   type SubmissionStatus,
 } from "../contracts";
 import {
+  mapCanonicalAssignmentRow,
+  mapGroupTaskRow,
+  mergeInstructorAssignments,
+  type ReconciledAssignmentRow,
+} from "./instructor-assignments";
+import {
   canResubmit,
   canSign,
   chainComplete,
@@ -1076,4 +1082,164 @@ export function describeChain(
       .filter((s) => !done.some((d) => d.signerId === s.signerId))
       .map((s) => s.signerName || s.signerId),
   };
+}
+
+// ── Instructor assignment management (canonical store) ─────────────────
+// Assignment/GroupTask reconciliation (COMBINED-AUDIT fixation 2):
+// instructors create/list/manage canonical Assignment rows here; legacy
+// GroupTask rows are reconciled read-time through the verified mapping
+// in instructor-assignments.ts. Access model: the caller must teach the
+// course (same enrolledCourseIds guard as the review queue).
+
+async function teachesCourse(instructorId: string, courseId: string): Promise<boolean> {
+  const ids = await enrolledCourseIds(instructorId, "instructor");
+  return ids.includes(courseId);
+}
+
+export async function listInstructorAssignments(
+  instructorId: string,
+  courseId: string,
+): Promise<ReconciledAssignmentRow[]> {
+  if (!(await teachesCourse(instructorId, courseId))) return [];
+  const [assignments, groupTasks] = await Promise.all([
+    db.assignment.findMany({
+      where: { courseId, status: { in: ["published", "archived"] } },
+      orderBy: [{ dueDate: "asc" }, { title: "asc" }],
+      select: {
+        id: true,
+        courseId: true,
+        title: true,
+        description: true,
+        dueDate: true,
+        week: true,
+        maxScore: true,
+        status: true,
+        _count: { select: { submissions: true } },
+      },
+    }),
+    db.groupTask.findMany({
+      where: { courseId },
+      orderBy: [{ dueDate: "asc" }, { title: "asc" }],
+      select: {
+        id: true,
+        courseId: true,
+        title: true,
+        description: true,
+        type: true,
+        dueDate: true,
+        week: true,
+        maxScore: true,
+        status: true,
+        _count: { select: { submissions: true } },
+      },
+    }),
+  ]);
+  return mergeInstructorAssignments(
+    assignments.map((a) =>
+      mapCanonicalAssignmentRow({ ...a, submissionCount: a._count.submissions }),
+    ),
+    groupTasks.map((t) =>
+      mapGroupTaskRow({ ...t, submissionCount: t._count.submissions }),
+    ),
+  );
+}
+
+export async function createInstructorAssignment(
+  instructorId: string,
+  input: {
+    courseId: string;
+    title: string;
+    description?: string;
+    dueDate?: string | null;
+    week?: number | null;
+    maxScore?: number | null;
+  },
+): Promise<ReconciledAssignmentRow> {
+  if (!input.title?.trim()) {
+    throw new SubmissionError("Title is required", "VALIDATION_ERROR", 400);
+  }
+  if (!(await teachesCourse(instructorId, input.courseId))) {
+    throw new SubmissionError(
+      "You can only create assignments for courses you teach",
+      "FORBIDDEN",
+      403,
+    );
+  }
+  const created = await db.assignment.create({
+    data: {
+      courseId: input.courseId,
+      instructorId,
+      title: input.title.trim(),
+      description: input.description?.trim() || "",
+      instructions: input.description?.trim() || "",
+      dueDate: input.dueDate ? new Date(input.dueDate) : null,
+      week: input.week ?? null,
+      maxScore: input.maxScore ?? 100,
+      status: "published",
+    },
+  });
+  return mapCanonicalAssignmentRow({ ...created, submissionCount: 0 });
+}
+
+export async function setAssignmentStatus(
+  instructorId: string,
+  assignmentId: string,
+  status: "published" | "archived",
+): Promise<ReconciledAssignmentRow> {
+  const existing = await db.assignment.findUnique({
+    where: { id: assignmentId },
+    select: { courseId: true, _count: { select: { submissions: true } } },
+  });
+  if (!existing) {
+    throw new SubmissionError("Assignment not found", "NOT_FOUND", 404);
+  }
+  if (!(await teachesCourse(instructorId, existing.courseId))) {
+    throw new SubmissionError(
+      "You can only manage assignments for courses you teach",
+      "FORBIDDEN",
+      403,
+    );
+  }
+  const updated = await db.assignment.update({
+    where: { id: assignmentId },
+    data: { status },
+  });
+  return mapCanonicalAssignmentRow({
+    ...updated,
+    submissionCount: existing._count.submissions,
+  });
+}
+
+/**
+ * Deleting a canonical assignment wipes learner submissions with it
+ * (cascade) — so rows that already have submissions must be archived,
+ * not deleted. Legacy GroupTask rows keep their v1 delete behavior.
+ */
+export async function deleteAssignmentIfClean(
+  instructorId: string,
+  assignmentId: string,
+): Promise<{ ok: true }> {
+  const existing = await db.assignment.findUnique({
+    where: { id: assignmentId },
+    select: { courseId: true, _count: { select: { submissions: true } } },
+  });
+  if (!existing) {
+    throw new SubmissionError("Assignment not found", "NOT_FOUND", 404);
+  }
+  if (!(await teachesCourse(instructorId, existing.courseId))) {
+    throw new SubmissionError(
+      "You can only manage assignments for courses you teach",
+      "FORBIDDEN",
+      403,
+    );
+  }
+  if (existing._count.submissions > 0) {
+    throw new SubmissionError(
+      `This assignment has ${existing._count.submissions} submission(s) — archive it instead of deleting`,
+      "CONFLICT",
+      409,
+    );
+  }
+  await db.assignment.delete({ where: { id: assignmentId } });
+  return { ok: true };
 }

@@ -4,40 +4,38 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  Archive,
   CalendarDays,
   ClipboardList,
   Loader2,
   Plus,
   RefreshCw,
+  RotateCcw,
   Trash2,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
+import { useApi } from "@/modules/learner-portal/use-api";
+import {
+  assignmentStatusChip,
+  type ReconciledAssignmentRow,
+} from "@/modules/submission/lib/instructor-assignments";
 
 /**
- * modules/instructor-portal — Assignments & Events (W11 audit: V1
- * AssignmentsTab restored)
+ * modules/instructor-portal — Assignments & Events
  *
- * Class-level group tasks (create / close / delete, submission counts)
- * and calendar events (create / delete) for the instructor's course.
- * Consumes the surviving RBAC-guarded v1 endpoints.
+ * Assignments are created in the CANONICAL `Assignment` store
+ * (/api/v2/instructor/assignments), so they flow end-to-end: learners
+ * see them, submit against them, and they arrive in the review queue.
+ * Legacy `GroupTask` rows are reconciled into the same list through the
+ * verified read-time mapping — badged "Legacy" so provenance is always
+ * visible (COMBINED-AUDIT fixation 2; no parallel writes, nothing
+ * dropped). Class events (create / delete) are unchanged.
  */
 
 interface Course {
   id: string;
   name: string;
   isActive: boolean;
-}
-
-interface GroupTask {
-  id: string;
-  title: string;
-  description: string | null;
-  type: string | null;
-  dueDate: string | null;
-  week: number | null;
-  maxScore: number | null;
-  status: string;
-  _count?: { submissions: number };
 }
 
 interface CalEvent {
@@ -53,14 +51,15 @@ interface CalEvent {
 export function InstructorAssignments() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseId, setCourseId] = useState("");
-  const [tasks, setTasks] = useState<GroupTask[] | null>(null);
   const [events, setEvents] = useState<CalEvent[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [eventError, setEventError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // task form
+  // assignment form — title/description/due/week/maxScore go to the
+  // canonical store; the old "type" select had no canonical column and
+  // was write-only data, so it is gone.
   const [tTitle, setTTitle] = useState("");
-  const [tType, setTType] = useState("assignment");
+  const [tDescription, setTDescription] = useState("");
   const [tDue, setTDue] = useState("");
   const [tWeek, setTWeek] = useState("1");
   const [tMax, setTMax] = useState("100");
@@ -71,6 +70,17 @@ export function InstructorAssignments() {
   const [eStart, setEStart] = useState("");
   const [eEnd, setEEnd] = useState("");
   const [eLoc, setELoc] = useState("");
+
+  const listPath = courseId
+    ? `/api/v2/instructor/assignments?courseId=${courseId}`
+    : null;
+  const {
+    data: listData,
+    error: listError,
+    isLoading,
+    retry: reloadList,
+  } = useApi<{ items: ReconciledAssignmentRow[] }>(listPath);
+  const assignments = listData?.items ?? null;
 
   useEffect(() => {
     let cancelled = false;
@@ -90,69 +100,114 @@ export function InstructorAssignments() {
     };
   }, []);
 
-  const load = useCallback(async (cid: string) => {
+  const loadEvents = useCallback(async (cid: string) => {
     if (!cid) return;
-    setError(null);
+    setEventError(null);
     try {
-      const [t, e] = await Promise.all([
-        fetch(`/api/group-tasks?courseId=${cid}`).then((r) => r.json()),
-        fetch(`/api/events?courseId=${cid}`).then((r) => r.json()),
-      ]);
-      setTasks((t as { tasks: GroupTask[] }).tasks ?? []);
+      const e = await fetch(`/api/events?courseId=${cid}`).then((r) => r.json());
       setEvents((e as { events: CalEvent[] }).events ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load");
+      setEvents([]);
+      setEventError(err instanceof Error ? err.message : "Failed to load events");
     }
   }, []);
 
   useEffect(() => {
-    if (courseId) void load(courseId);
-  }, [courseId, load]);
+    if (courseId) void loadEvents(courseId);
+  }, [courseId, loadEvents]);
 
-  async function createTask(e: React.FormEvent) {
+  async function createAssignment(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/api/group-tasks", {
+      await api.post("/api/v2/instructor/assignments", {
         courseId,
         title: tTitle.trim(),
-        type: tType,
+        description: tDescription.trim() || undefined,
         dueDate: tDue || undefined,
         week: Number(tWeek) || undefined,
         maxScore: Number(tMax) || undefined,
       });
-      toast.success("Assignment created");
+      toast.success("Assignment published — learners can see it now");
       setTTitle("");
-      void load(courseId);
+      setTDescription("");
+      reloadList();
     } catch (err) {
-      toast.error("Couldn't create assignment", { description: err instanceof Error ? err.message : "" });
+      toast.error("Couldn't create assignment", {
+        description: err instanceof Error ? err.message : "",
+      });
     } finally {
       setBusy(false);
     }
   }
 
-  async function closeTask(taskId: string) {
+  async function setCanonicalStatus(row: ReconciledAssignmentRow, status: "published" | "archived") {
     setBusy(true);
     try {
-      await api.patch("/api/group-tasks", { taskId, status: "closed" });
-      toast.success("Assignment closed");
-      void load(courseId);
+      await api.patch("/api/v2/instructor/assignments", {
+        assignmentId: row.id,
+        status,
+      });
+      toast.success(status === "archived" ? "Assignment archived" : "Assignment published");
+      reloadList();
     } catch (err) {
-      toast.error("Couldn't close assignment", { description: err instanceof Error ? err.message : "" });
+      toast.error("Couldn't update assignment", {
+        description: err instanceof Error ? err.message : "",
+      });
     } finally {
       setBusy(false);
     }
   }
 
-  async function deleteTask(taskId: string) {
-    if (!window.confirm("Delete this assignment and its submissions?")) return;
+  async function deleteCanonical(row: ReconciledAssignmentRow) {
+    if (
+      !window.confirm(
+        `Delete "${row.title}"? Assignments with submissions are protected — archive those instead.`,
+      )
+    )
+      return;
     setBusy(true);
     try {
-      await api.del("/api/group-tasks", { taskId });
+      await api.del("/api/v2/instructor/assignments", { assignmentId: row.id });
       toast.success("Assignment deleted");
-      void load(courseId);
+      reloadList();
     } catch (err) {
-      toast.error("Couldn't delete assignment", { description: err instanceof Error ? err.message : "" });
+      // 409 carries the server's "has N submissions — archive instead".
+      toast.error("Couldn't delete assignment", {
+        description: err instanceof Error ? err.message : "",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Legacy GroupTask rows keep their v1 actions (close/delete). */
+  async function closeLegacy(row: ReconciledAssignmentRow) {
+    setBusy(true);
+    try {
+      await api.patch("/api/group-tasks", { taskId: row.id, status: "closed" });
+      toast.success("Legacy task closed");
+      reloadList();
+    } catch (err) {
+      toast.error("Couldn't close legacy task", {
+        description: err instanceof Error ? err.message : "",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteLegacy(row: ReconciledAssignmentRow) {
+    if (!window.confirm(`Delete legacy task "${row.title}" and its submissions?`)) return;
+    setBusy(true);
+    try {
+      await api.del("/api/group-tasks", { taskId: row.id });
+      toast.success("Legacy task deleted");
+      reloadList();
+    } catch (err) {
+      toast.error("Couldn't delete legacy task", {
+        description: err instanceof Error ? err.message : "",
+      });
     } finally {
       setBusy(false);
     }
@@ -174,9 +229,11 @@ export function InstructorAssignments() {
       setETitle("");
       setEEnd("");
       setELoc("");
-      void load(courseId);
+      void loadEvents(courseId);
     } catch (err) {
-      toast.error("Couldn't create event", { description: err instanceof Error ? err.message : "" });
+      toast.error("Couldn't create event", {
+        description: err instanceof Error ? err.message : "",
+      });
     } finally {
       setBusy(false);
     }
@@ -187,13 +244,17 @@ export function InstructorAssignments() {
     try {
       await api.del("/api/events", { eventId });
       toast.success("Event deleted");
-      void load(courseId);
+      void loadEvents(courseId);
     } catch (err) {
-      toast.error("Couldn't delete event", { description: err instanceof Error ? err.message : "" });
+      toast.error("Couldn't delete event", {
+        description: err instanceof Error ? err.message : "",
+      });
     } finally {
       setBusy(false);
     }
   }
+
+  const hasLegacy = (assignments ?? []).some((r) => r.legacy);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -215,24 +276,14 @@ export function InstructorAssignments() {
         </select>
       </label>
 
-      {error && (
-        <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
-          <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
-          {error}
-          <button type="button" onClick={() => void load(courseId)} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
-          </button>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-        {/* assignments */}
+        {/* assignments — canonical store + reconciled legacy rows */}
         <section className="space-y-2">
           <h2 className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
             <ClipboardList className="h-3.5 w-3.5" aria-hidden />
             Assignments
           </h2>
-          <form onSubmit={createTask} className="space-y-2 rounded-xl border border-line bg-surface p-3">
+          <form onSubmit={createAssignment} className="space-y-2 rounded-xl border border-line bg-surface p-3">
             <input
               value={tTitle}
               onChange={(e) => setTTitle(e.target.value)}
@@ -241,12 +292,16 @@ export function InstructorAssignments() {
               aria-label="Assignment title"
               className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
+            <textarea
+              value={tDescription}
+              onChange={(e) => setTDescription(e.target.value)}
+              placeholder="What should learners do? (optional)"
+              aria-label="Assignment description"
+              rows={2}
+              maxLength={4000}
+              className="min-h-11 w-full resize-y rounded-lg border border-line bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            />
             <div className="flex flex-wrap gap-2">
-              <select value={tType} onChange={(e) => setTType(e.target.value)} aria-label="Type" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
-                {["assignment", "quiz", "project", "reading", "exercise"].map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
               <input type="date" value={tDue} onChange={(e) => setTDue(e.target.value)} aria-label="Due date" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" />
               <select value={tWeek} onChange={(e) => setTWeek(e.target.value)} aria-label="Week" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
@@ -260,48 +315,103 @@ export function InstructorAssignments() {
                 className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
-                Create
+                Publish
               </button>
             </div>
           </form>
-          {tasks === null ? (
+
+          {listError ? (
+            <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-danger" aria-hidden />
+              {listError}
+              <button type="button" onClick={reloadList} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
+              </button>
+            </div>
+          ) : assignments === null && isLoading ? (
             <div className="h-24 animate-pulse rounded-xl bg-bg-subtle" aria-busy="true" />
-          ) : tasks.length === 0 ? (
+          ) : (assignments ?? []).length === 0 ? (
             <p className="rounded-xl border border-dashed border-line bg-surface p-5 text-center text-sm text-fg-muted">
-              No assignments yet for this course.
+              No assignments yet for this course — publish the first one above and learners
+              will see it instantly.
             </p>
           ) : (
-            <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
-              {tasks.map((t) => (
-                <div key={t.id} className="flex items-center gap-3 px-3 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-fg">{t.title}</p>
-                    <p className="truncate text-xs text-fg-muted">
-                      {t.type} · due {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "—"} ·{" "}
-                      {t._count?.submissions ?? 0} submissions
-                      {t.status === "closed" ? " · closed" : ""}
-                    </p>
-                  </div>
-                  {t.status !== "closed" && (
-                    <button
-                      type="button"
-                      onClick={() => void closeTask(t.id)}
-                      className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line px-3 text-xs font-medium text-fg-secondary hover:border-line-strong hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-                    >
-                      Close
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => void deleteTask(t.id)}
-                    aria-label={`Delete ${t.title}`}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                </div>
-              ))}
-            </div>
+            <>
+              {hasLegacy && (
+                <p className="px-1 text-[11px] leading-relaxed text-fg-muted">
+                  Rows badged <span className="font-semibold">Legacy</span> were created in
+                  the previous assignments tool. They stay visible here but are not part of
+                  the learner submission flow.
+                </p>
+              )}
+              <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+                {(assignments ?? []).map((t) => {
+                  const chip = assignmentStatusChip(t);
+                  return (
+                    <div key={t.id} className="flex items-center gap-3 px-3 py-2.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-fg">
+                          <span className="truncate">{t.title}</span>
+                          <span
+                            className={
+                              chip.tone === "active"
+                                ? "shrink-0 rounded-full bg-brand-subtle px-1.5 py-0.5 text-[10px] font-semibold text-brand"
+                                : "shrink-0 rounded-full bg-bg-subtle px-1.5 py-0.5 text-[10px] font-semibold text-fg-muted"
+                            }
+                          >
+                            {chip.label}
+                          </span>
+                        </p>
+                        <p className="truncate text-xs text-fg-muted">
+                          due {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "—"}
+                          {t.week ? ` · week ${t.week}` : ""} · {t.maxScore} pts ·{" "}
+                          {t.submissionCount} submission{t.submissionCount === 1 ? "" : "s"}
+                        </p>
+                      </div>
+                      {t.legacy ? (
+                        // legacy rows keep their v1 close action
+                        t.status !== "archived" && (
+                          <button
+                            type="button"
+                            onClick={() => void closeLegacy(t)}
+                            className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line px-3 text-xs font-medium text-fg-secondary hover:border-line-strong hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                          >
+                            Close
+                          </button>
+                        )
+                      ) : (
+                        // canonical rows: archive/unarchive
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void setCanonicalStatus(t, t.status === "archived" ? "published" : "archived")
+                          }
+                          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-medium text-fg-secondary hover:border-line-strong hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        >
+                          {t.status === "archived" ? (
+                            <>
+                              <RotateCcw className="h-3.5 w-3.5" aria-hidden /> Publish
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="h-3.5 w-3.5" aria-hidden /> Archive
+                            </>
+                          )}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => void (t.legacy ? deleteLegacy(t) : deleteCanonical(t))}
+                        aria-label={`Delete ${t.title}`}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </section>
 
@@ -339,7 +449,15 @@ export function InstructorAssignments() {
               </button>
             </div>
           </form>
-          {events === null ? (
+          {eventError ? (
+            <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-danger" aria-hidden />
+              {eventError}
+              <button type="button" onClick={() => void loadEvents(courseId)} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
+              </button>
+            </div>
+          ) : events === null ? (
             <div className="h-24 animate-pulse rounded-xl bg-bg-subtle" aria-busy="true" />
           ) : events.length === 0 ? (
             <p className="rounded-xl border border-dashed border-line bg-surface p-5 text-center text-sm text-fg-muted">
