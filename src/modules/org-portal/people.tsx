@@ -320,13 +320,13 @@ export function OrgPeople() {
                 onChange={(e) => setNewDepartment(e.target.value)}
                 placeholder="New department"
                 aria-label="New department name"
-                className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               />
               <button
                 type="submit"
                 disabled={creatingDepartment || !newDepartment.trim()}
                 aria-label="Create department"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <Plus className="h-4 w-4" aria-hidden />
               </button>
@@ -469,7 +469,7 @@ export function OrgPeople() {
                     }
                     disabled={busyId === m.id}
                     aria-label={`Department for ${m.user.name}`}
-                    className="h-9 shrink-0 rounded-lg border border-line bg-surface px-2 text-xs text-fg-secondary focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
+                    className="h-11 shrink-0 rounded-lg border border-line bg-surface px-2 text-xs text-fg-secondary focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
                   >
                     <option value="">No department</option>
                     {deptRows.map((d) => (
@@ -493,8 +493,8 @@ export function OrgPeople() {
                     aria-label={`${m.seat ? "Remove seat from" : "Assign seat to"} ${m.user.name}`}
                     className={
                       m.seat
-                        ? "shrink-0 rounded-md bg-brand-subtle px-2 py-1 text-xs font-medium text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-                        : "shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg-secondary hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        ? "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand-subtle text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        : "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line bg-bg-subtle text-fg-secondary hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     }
                   >
                     <Armchair className="h-3.5 w-3.5" aria-hidden />
@@ -505,8 +505,8 @@ export function OrgPeople() {
                     disabled={busyId === m.id}
                     className={
                       m.status === "active"
-                        ? "shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-danger-on hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-                        : "shrink-0 rounded-md bg-success-subtle px-2 py-1 text-xs font-medium text-success-on disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        ? "inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-danger-on hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        : "inline-flex min-h-11 shrink-0 items-center rounded-lg bg-success-subtle px-3 text-xs font-medium text-success-on disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     }
                   >
                     {m.status === "active" ? "Deactivate" : "Restore"}
@@ -573,7 +573,7 @@ function CsvImportButton({ onImported }: { onImported: () => void }) {
         type="button"
         disabled={busy}
         onClick={() => fileRef.current?.click()}
-        className="flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        className="flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <Upload className="h-3.5 w-3.5" aria-hidden />
         {busy ? "Importing…" : "Import CSV"}

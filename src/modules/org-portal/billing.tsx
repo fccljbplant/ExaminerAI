@@ -166,14 +166,14 @@ export function OrgBilling() {
                       setSeatsInput((prev) => ({ ...prev, [plan.id]: e.target.value }))
                     }
                     aria-label={`Seats for ${plan.label} plan`}
-                    className="h-9 w-24 rounded-lg border border-line bg-surface px-2 text-sm tabular-nums text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    className="h-11 w-24 rounded-lg border border-line bg-surface px-2 text-sm tabular-nums text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   />
                 </label>
                 <button
                   type="button"
                   disabled={busyPlan === plan.id}
                   onClick={() => void upgrade(plan.id)}
-                  className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  className="flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   <Rocket className="h-3.5 w-3.5" aria-hidden />
                   {busyPlan === plan.id

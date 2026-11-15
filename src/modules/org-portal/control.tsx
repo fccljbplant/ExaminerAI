@@ -200,7 +200,7 @@ export function OrgControl() {
           )}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-1.5">
-              <label className="inline-flex min-h-9 cursor-pointer items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg transition-colors hover:bg-bg-subtle">
+              <label className="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg transition-colors hover:bg-bg-subtle focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-focus">
                 {logoUrl ? "Change logo" : "Upload logo"}
                 <input
                   type="file"
@@ -214,7 +214,7 @@ export function OrgControl() {
                   type="button"
                   onClick={() => setLogoUrl(null)}
                   aria-label="Remove logo"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-line text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   <Trash2 className="h-4 w-4" aria-hidden />
                 </button>
@@ -495,7 +495,7 @@ function OrgCatalogSection() {
               <button
                 type="button"
                 onClick={() => void remove(c.id)}
-                className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 text-xs font-semibold text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-line px-3 text-xs font-semibold text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden /> Remove
               </button>

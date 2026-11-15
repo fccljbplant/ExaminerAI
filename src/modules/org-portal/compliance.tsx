@@ -225,7 +225,7 @@ function MemberList({
             type="button"
             disabled={nudging === busyKey(m)}
             onClick={() => onNudge(m)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <BellRing className="h-3.5 w-3.5" aria-hidden />
             {nudging === busyKey(m) ? "Sending…" : "Nudge"}
