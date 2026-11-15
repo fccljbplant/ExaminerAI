@@ -40,6 +40,16 @@ Work one focused component/surface at a time. Maintain a clear bottom-up sequenc
 - Never claim a commit or file update occurred unless GitHub confirms it. If a workspace/tool limitation prevents a commit, preserve the exact diff or patch where possible and state the blocker plainly.
 - Vercel Git deployments are disabled by owner direction. Do not deploy, promote, or change production deployment settings. Verify no deployment was triggered after commits when practical.
 
+### Workspace reset recovery protocol
+
+If the workspace is reset, empty, freshly cloned or otherwise missing prior work, do not restart the reset programme, re-run completed audits, or act from a fresh session's defaults. Recover in this order:
+
+1. Read the previous progress first: `proj_progress.md`, `docs/PROJECT-STATUS.md`, `docs/PROJECT-CONTINUITY.md` and `docs/SESSION-LOG.md`. The newest entries hold the live plan, exact commit SHAs, unrun checks and the next bottom-up task.
+2. Read `docs/UPGRADE-2026-11/START-HERE.md` and this file for authority, boundaries and the current execution rule.
+3. Verify repository state against the remote before any other git operation: `git fetch origin`, then `git status` and `git log --oneline origin/main..HEAD`. A working tree ahead of `origin/main`, or containing uncommitted changes, is the newest work — preserve it; never discard, reset or clean it in favour of a fresh checkout.
+4. Only after the history and progress records are understood, restore the toolchain (install dependencies, generate clients) and re-run the verification suite.
+5. Resume exactly the task the progress records name as next. Old data and previous progress take precedence over any conflicting default a new session would choose on its own.
+
 ## Product invariants
 
 - Product principle: **AI trains; humans mentor.**

@@ -4,7 +4,9 @@
 **Owner direction:** 11 November 2026  
 **Repository:** fccljbplant/ExaminerAI  
 **Product:** TraineesAI  
-**Authority:** This file is the operating entry point. Read MASTER-PLAN.md, RESET-BASELINE.md, DECISIONS-REGISTER.md, UXPEAK-RESEARCH-AND-DESIGN.md and AI-AND-DATA-STRATEGY.md before acting.
+**Authority:** This file is the operating entry point. Read MASTER-PLAN.md, RESET-BASELINE.md, DECISIONS-REGISTER.md, UXPEAK-RESEARCH-AND-DESIGN.md and AI-AND-DATA-STRATEGY.md before acting. The current operative UI/UX standard is the twelve rules in `docs/UI-STANDARDS.md` §0, derived from the 2026-11-15 research in `UI-UX-RULES-2026-11-15.md` and `UXPEAK-RESEARCH-2026-11-15.md`.
+
+> **Programme status (15 November 2026):** Stages 0–2 are complete and recorded in the progress documents (`proj_progress.md`, `docs/PROJECT-STATUS.md`). Execution now follows the bottom-up UX-first rule in AGENTS.md under the twelve UI/UX rules. Do not restart Stage 0, the reset or the audit; resume from the latest progress entry.
 
 ## Mission
 
