@@ -36,7 +36,7 @@ export function LearnerExams() {
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/learner/practice"
-          className="flex flex-col gap-1 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand"
+          className="flex flex-col gap-1 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-subtle text-fg">
             <Brain className="h-4 w-4" aria-hidden />
@@ -53,9 +53,9 @@ export function LearnerExams() {
 
         <Link
           href="/learner/exams/daily"
-          className="flex flex-col gap-1 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand"
+          className="flex flex-col gap-1 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning-subtle text-warning-on">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-subtle text-fg">
             <CalendarCheck className="h-4 w-4" aria-hidden />
           </span>
           <span className="mt-2 text-sm font-medium text-fg">Socratic daily test</span>
@@ -71,9 +71,9 @@ export function LearnerExams() {
 
         <Link
           href="/learner/exams/weekly"
-          className="flex flex-col gap-1 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand"
+          className="flex flex-col gap-1 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-info-subtle text-info-on">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-subtle text-fg">
             <ClipboardCheck className="h-4 w-4" aria-hidden />
           </span>
           <span className="mt-2 text-sm font-medium text-fg">Socratic weekly test</span>
