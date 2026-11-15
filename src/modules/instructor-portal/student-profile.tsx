@@ -368,8 +368,8 @@ export function StudentProfile({ studentId }: { studentId: string }) {
             aria-pressed={tab === t.key}
             className={
               tab === t.key
-                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                ? "inline-flex min-h-11 shrink-0 items-center rounded-full bg-brand px-3 text-xs font-medium text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                : "inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-surface px-3 text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             }
           >
             {t.label}
@@ -470,7 +470,7 @@ function AcademicTab({
                       type="button"
                       onClick={() => void testAction("allow-retake", t.week, "Retake allowed")}
                       disabled={busyWeek === t.week}
-                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-line px-3 text-xs font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {busyWeek === t.week ? (
                         <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
@@ -484,7 +484,7 @@ function AcademicTab({
                       type="button"
                       onClick={() => void testAction("unlock-test", t.week, "Test unlocked")}
                       disabled={busyWeek === t.week}
-                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-line px-3 text-xs font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {busyWeek === t.week ? (
                         <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
@@ -514,7 +514,7 @@ function AcademicTab({
               id="rc-week"
               value={week}
               onChange={(e) => setWeek(Number(e.target.value))}
-              className="h-9 rounded-lg border border-line bg-surface px-2 text-xs text-fg"
+              className="h-11 rounded-lg border border-line bg-surface px-2 text-xs text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
                 <option key={w} value={w}>
@@ -526,7 +526,7 @@ function AcademicTab({
               type="button"
               onClick={() => void generateReportCard()}
               disabled={generating}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {generating ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -981,7 +981,7 @@ function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?:
                       rows={2}
                       placeholder="Feedback for the learner (shown with the decision)"
                       aria-label="Approval note"
-                      className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-fg placeholder:text-fg-muted"
+                      className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     />
                   )}
                   <div className="flex flex-wrap gap-2">
@@ -989,7 +989,7 @@ function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?:
                       type="button"
                       onClick={() => decide(p.id, "approve")}
                       disabled={busyId === p.id}
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-success-on disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {busyId === p.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -1200,7 +1200,7 @@ function CertificatesTab({ data }: { data: StudentProfileData }) {
               <Link
                 href={c.verifyUrl}
                 target="_blank"
-                className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Verify
               </Link>

@@ -426,7 +426,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
               type="button"
               onClick={() => decide("approve")}
               disabled={decisionBusy}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-success px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-success px-4 text-sm font-medium text-success-on transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {decisionBusy ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -439,7 +439,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
               type="button"
               onClick={() => setChangeSheet(true)}
               disabled={decisionBusy}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-warning-on transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <Undo2 className="h-4 w-4" aria-hidden />
               Request changes
@@ -451,7 +451,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
                 disabled={decisionBusy}
                 className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
-                {data.signOffs.length > 0 ? "Sign off" : "Sign off"}
+                "Sign off"
               </button>
             )}
           </div>
@@ -478,7 +478,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
             type="button"
             onClick={() => decide("request_changes")}
             disabled={decisionBusy || !changeText.trim()}
-            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-warning-on transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {decisionBusy ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
