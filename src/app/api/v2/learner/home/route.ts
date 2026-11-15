@@ -114,8 +114,10 @@ export async function GET() {
   const dueToday = dailyTests.map((t) => ({
     id: t.id,
     kind: "daily-test" as const,
-    title: "Daily check-in",
-    meta: t.course.name,
+    // Value-first (UXPeak): the course is the decision value, the item
+    // kind is the label and stays secondary.
+    title: t.course.name,
+    meta: "Daily check-in",
     href: `/learn/${t.courseId}`,
   }));
 

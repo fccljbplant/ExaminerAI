@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Kpi, StatStrip } from "@/modules/ui/kpi";
 import { ListCard, ListCardRow } from "@/modules/ui/list-card";
+import { cn } from "@/lib/utils";
 import { useApi } from "./use-api";
 import { CheckInCard } from "./checkin-card";
 
@@ -235,9 +236,18 @@ function DueToday({ items }: { items: DueItem[] }) {
       }
     >
       {items.length === 0 ? (
-        <p className="px-4 py-5 text-sm text-fg-muted">
-          No daily test ready yet. Study a lesson to unlock your next practice.
-        </p>
+        <div className="px-4 py-5">
+          <p className="text-sm text-fg-muted">
+            No daily test ready yet. Study a lesson to unlock your next practice.
+          </p>
+          <Link
+            href="/learner/learn"
+            className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg transition-colors hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          >
+            <BookOpen className="h-3.5 w-3.5" aria-hidden />
+            Study a lesson
+          </Link>
+        </div>
       ) : (
         items.map((item) => (
           <ListCardRow
@@ -248,7 +258,7 @@ function DueToday({ items }: { items: DueItem[] }) {
                 <ClipboardCheck className="h-4 w-4" aria-hidden />
               </span>
             }
-            title="Daily test"
+            title={item.title}
             meta={item.meta}
             trailing={<ChevronRight className="h-4 w-4 text-fg-muted" aria-hidden />}
           />
@@ -265,6 +275,13 @@ const PROJECT_STATUS_LABEL: Record<string, string> = {
   approved: "Approved",
   rejected: "Needs changes",
   active: "In progress",
+};
+
+const PROJECT_STATUS_TONE: Record<string, string> = {
+  pending_approval: "bg-warning-subtle text-warning-on",
+  approved: "bg-success-subtle text-success-on",
+  rejected: "bg-danger-subtle text-danger-on",
+  active: "bg-info-subtle text-info-on",
 };
 
 function Projects({ items }: { items: ProjectRow[] }) {
@@ -288,8 +305,35 @@ function Projects({ items }: { items: ProjectRow[] }) {
               <Target className="h-4 w-4" aria-hidden />
             </span>
           }
-          title={p.title}
-          meta={`${p.courseName} · ${PROJECT_STATUS_LABEL[p.status] ?? p.status} · ${p.tasksDone} tasks`}
+          title={
+            <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+              <span className="truncate">{p.title}</span>
+              <span
+                className={cn(
+                  "shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+                  PROJECT_STATUS_TONE[p.status] ?? "bg-bg-subtle text-fg-muted"
+                )}
+              >
+                {PROJECT_STATUS_LABEL[p.status] ?? p.status}
+              </span>
+            </span>
+          }
+          meta={
+            <span className="flex items-center gap-2">
+              <span className="truncate">{p.courseName}</span>
+              {/* Show the status, don't tell it: real task progress bar. */}
+              <span
+                aria-hidden
+                className="h-1.5 w-14 shrink-0 overflow-hidden rounded-full bg-bg-subtle"
+              >
+                <span
+                  className="block h-full rounded-full bg-brand"
+                  style={{ width: `${Math.min(100, Math.max(0, p.taskProgress))}%` }}
+                />
+              </span>
+              <span className="shrink-0 tabular-nums">{p.tasksDone} tasks</span>
+            </span>
+          }
           trailing={<ChevronRight className="h-4 w-4 text-fg-muted" aria-hidden />}
         />
       ))}
@@ -357,7 +401,7 @@ function HomeError({ message, onRetry }: { message: string; onRetry: () => void 
       <button
         type="button"
         onClick={onRetry}
-        className="mt-4 inline-flex h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+        className="mt-4 inline-flex h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <RefreshCw className="h-4 w-4" aria-hidden />
         Retry
