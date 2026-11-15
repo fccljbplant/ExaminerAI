@@ -1,3 +1,11 @@
+## 2026-11-15 — Project flow authorization completion + L7/queue UI accessibility
+
+- Live main baseline: `8370808`. Six local commits in `/home/z/my-project/examinerai` (NOT pushed — the sandbox lacks GitHub credentials; `git push` fails with an authentication error; push from a credentialed environment): `df3ddf0`, `d2ba7a8`, `1ac494b`, `5f2ad23`, `2687287`, `8ecfc78`.
+- Scope completed: remaining learner project endpoints (generate, v2 milestone complete, help) now enforce owner + owning course + current student enrollment; L7 workspace and instructor approval queue received 44px touch targets, `aria-pressed` task state, portal-wide focus-outline convention and the `text-success-on` token fix; 26 regression tests added.
+- Validation: full Vitest 556 passed / 2 skipped (excluding DB-backed `tutor-context.test.ts`); ESLint 0 errors / 7 pre-existing warnings; `tsc --noEmit --skipLibCheck` clean on a 4 GB sandbox. Production build, browser, responsive, keyboard and screen-reader checks remain outstanding.
+- Project-help route: only access guards added; AI processing stays subject to the 2026-11-14 BLOCKED DECISIONS-REGISTER entry (consent/DPA/org-budget gate) — owner confirmation of this interpretation is recorded in proj_progress.md.
+- Next bottom-up task: instructor projects page wrapper, then remaining instructor-portal surfaces; then the Assignment/GroupTask parallel-store reconciliation audit per the course-owned activities decision. Manual accessibility QA of the learner project workspace remains open.
+
 ## 2026-11-12 — Owner decision: projects and assignments are course-owned
 
 **Owner direction (locked product invariant):** Projects and assignments are not standalone learner products. They are course activities and must inherit the course's identity, numbering, assessment rules and learning sequence.

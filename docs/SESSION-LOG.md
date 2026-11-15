@@ -1,3 +1,16 @@
+## 2026-11-15 — Project flow authorization completion + L7/queue UI accessibility
+
+**Application commits (local only — see blocker):** `df3ddf0` · `d2ba7a8` · `1ac494b` · `5f2ad23` · `2687287` · `8ecfc78`
+
+- Fresh 4 GB sandbox; clean clone of live main `8370808`; `bun install` completed without lockfile changes (the re-lock artifact was reverted, `git status` clean before work started).
+- Completed the learner-project authorization review the previous session queued: `generate` and `v2 milestones/[mid]/complete` now require an owned course-linked project plus current student enrollment (same pattern as detail/tasks); `learn help` additionally gains the missing learner-role guard and course boundary. 13 route tests added across three files.
+- L7 learner project workspace: 16 px task toggle → 44 px target with `aria-pressed` + check glyph; 32 px delete → 44 px; 36 px regenerate → 44 px; focus-outline convention applied to every interactive control; `text-on-brand` on `bg-success` corrected to `text-success-on`. Instructor approval queue received the same treatment. 13 component tests added.
+- Validation: full Vitest 556 passed / 2 skipped (excluding DB-backed `tutor-context.test.ts`); ESLint 0 errors / 7 pre-existing warnings; `tsc --noEmit --skipLibCheck` 0 errors — this sandbox's 4 GB heap completed the check that the previous 2 GB sandbox could not, catching 11 type errors in the two newest test files (fixed first as `df3ddf0`). `git diff --check` clean per slice.
+- Judgment call recorded: the project-help change adds access guards only (the course-unenrolment defect the 2026-11-14 BLOCKED register entry itself documents) and does not touch AI payload/provider/retention. Owner should confirm or order a revert of `5f2ad23`.
+- Blocker: no GitHub credentials in this sandbox — `git push` to origin/main failed (authentication error). All commits exist only in the local clone at `/home/z/my-project/examinerai`; push from a credentialed environment.
+- Not run: production build; browser, responsive, keyboard, screen-reader and WCAG checks. No schema/migration, database, dependency, provider, deployment or Vercel setting changes.
+- Next: instructor projects page wrapper and remaining instructor-portal surfaces, then the Assignment/GroupTask parallel-store reconciliation audit per the course-owned activities decision.
+
 ## 2026-11-12 — Owner decision: projects and assignments are course-owned
 
 **Owner direction (locked product invariant):** Projects and assignments are not standalone learner products. They are course activities and must inherit the course's identity, numbering, assessment rules and learning sequence.

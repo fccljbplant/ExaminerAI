@@ -1,3 +1,12 @@
+## 2026-11-15 — Project flow authorization completion + L7/queue UI accessibility
+
+- Baseline: clean clone of live main `8370808`. Local commits (not pushed — sandbox has no GitHub credentials, `git push` failed with an auth error): `df3ddf0` test typing, `d2ba7a8` generate course access, `1ac494b` v2 milestone course access, `5f2ad23` help learner guard + course access, `2687287` L7 workspace touch/focus/a11y, `8ecfc78` approval queue focus/tokens.
+- All learner project endpoints now enforce owner + owning course + current student enrollment consistently: detail, tasks, generate, v2 milestone complete, help. The instructor approve route already enforced the teaching assignment. 26 new regression tests across 4 new test files; full suite 556 passed / 2 skipped excluding the DB-backed `tutor-context.test.ts`.
+- First recorded clean `tsc --noEmit --skipLibCheck` since the 2 GB heap blocker (this sandbox has 4 GB): it caught 11 type errors in the two newest test files, now fixed. ESLint 0 errors / 7 pre-existing warnings.
+- Project-help route: access guards added only; the AI processing path itself (payload, provider routing, retention) is untouched and remains subject to the 2026-11-14 BLOCKED register entry pending owner consent/DPA decisions.
+- Not run: production build; browser, responsive, keyboard and screen-reader review; no WCAG sign-off claimed. No schema/migration, database, dependency, provider, deployment or Vercel setting changes.
+- Next bottom-up: instructor projects page wrapper, remaining instructor-portal surfaces, then the Assignment/GroupTask parallel-store reconciliation audit per the course-owned activities decision.
+
 ## 2026-11-12 — Owner decision: projects and assignments are course-owned
 
 **Owner direction (locked product invariant):** Projects and assignments are not standalone learner products. They are course activities and must inherit the course's identity, numbering, assessment rules and learning sequence.
