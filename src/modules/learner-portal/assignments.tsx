@@ -12,6 +12,10 @@ import { useApi } from "./use-api";
  * chips (sheet on xs → inline chips here; the list itself is the xs
  * table). Rows link to the L6 submission flow. States: skeleton /
  * error+retry / empty.
+ *
+ * UI-UX-RULES-2026-11-15: chips carry real counts (rule 5), are 44px
+ * with focus rings (rule 12), due dates get urgency readings (rule 10),
+ * and the empty state ends with a next action (rule 9).
  */
 
 /* ---------------- payload types (mirror GET /api/v2/assignments) ------- */
@@ -38,6 +42,8 @@ interface AssignmentItem {
 interface AssignmentsData {
   items: AssignmentItem[];
   nextCursor: string | null;
+  /** Per-filter totals for the chip row; absent in older payloads. */
+  counts?: Record<string, number>;
 }
 
 const FILTERS = [
@@ -65,10 +71,28 @@ const TONE_CLASSES: Record<(typeof STATUS_META)[string]["tone"], string> = {
   muted: "bg-bg-subtle text-fg-muted",
 };
 
-function dueLabel(dueDate: string | null): string {
-  if (!dueDate) return "No due date";
-  return `Due ${new Date(dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+/** Plain-language due reading + urgency tone (rule 10). */
+function dueLabel(dueDate: string | null): { text: string; tone: "danger" | "warning" | null } {
+  if (!dueDate) return { text: "No due date", tone: null };
+  const due = new Date(dueDate);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate()).getTime();
+  const days = Math.round((dueDay - startOfToday) / 86_400_000);
+  if (days < 0) return { text: days === -1 ? "Overdue 1d" : `Overdue ${Math.abs(days)}d`, tone: "danger" };
+  if (days === 0) return { text: "Due today", tone: "warning" };
+  if (days === 1) return { text: "Due tomorrow", tone: "warning" };
+  if (days <= 7) return { text: `Due in ${days}d`, tone: null };
+  return {
+    text: `Due ${due.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`,
+    tone: null,
+  };
 }
+
+const DUE_TONE_CLASSES = {
+  danger: "bg-danger-subtle text-danger-on",
+  warning: "bg-warning-subtle text-warning-on",
+} as const;
 
 /* ---------------- page ------------------------------------------------ */
 
@@ -100,23 +124,38 @@ export function LearnerAssignments({
           <h1 className="text-lg font-semibold text-fg md:text-xl">Assignments</h1>
         )}
 
-        {/* status filter chips */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setFilter(f.key)}
-              aria-pressed={filter === f.key}
-              className={
-                filter === f.key
-                  ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand"
-                  : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong hover:text-fg"
-              }
-            >
-              {f.label}
-            </button>
-          ))}
+        {/* status filter chips — 44px targets, focus-visible, real counts */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {FILTERS.map((f) => {
+            const count = data?.counts?.[f.key];
+            const active = filter === f.key;
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilter(f.key)}
+                aria-pressed={active}
+                className={
+                  active
+                    ? "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-brand px-3.5 text-xs font-medium text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    : "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                }
+              >
+                {f.label}
+                {typeof count === "number" && (
+                  <span
+                    className={
+                      active
+                        ? "rounded-full bg-on-brand/15 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-on-brand"
+                        : "rounded-full bg-bg-subtle px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-fg-muted"
+                    }
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </header>
 
@@ -128,7 +167,7 @@ export function LearnerAssignments({
           <button
             type="button"
             onClick={retry}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-bg-subtle px-4 text-sm font-medium text-fg hover:border-line-strong"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-bg-subtle px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Retry
@@ -143,11 +182,21 @@ export function LearnerAssignments({
               ? "Assignments from your courses will show up here."
               : "Nothing matches this filter — try another one."}
           </p>
+          {filter === "all" && (
+            <Link
+              href={courseId ? `/learner/courses/${courseId}` : "/learner/learn"}
+              className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg transition-colors hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            >
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden />
+              {courseId ? "Open the course" : "Browse courses"}
+            </Link>
+          )}
         </div>
       ) : (
         <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {data?.items.map((a) => {
             const meta = STATUS_META[a.status ?? ""];
+            const due = dueLabel(a.dueDate);
             return (
               <Link
                 key={a.id}
@@ -159,9 +208,17 @@ export function LearnerAssignments({
                   <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-fg-muted">
                     <CalendarDays className="h-3 w-3 shrink-0" aria-hidden />
                     <span className="truncate">
-                      {a.courseName ?? "Course"} · {dueLabel(a.dueDate)}
-                      {a.cycle != null && a.cycle > 1 ? ` · cycle ${a.cycle}` : ""}
+                      {a.courseName ?? "Course"} · {a.cycle != null && a.cycle > 1 ? `cycle ${a.cycle} · ` : ""}
                     </span>
+                    {due.tone ? (
+                      <span
+                        className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${DUE_TONE_CLASSES[due.tone]}`}
+                      >
+                        {due.text}
+                      </span>
+                    ) : (
+                      <span className="shrink-0">{due.text}</span>
+                    )}
                   </p>
                 </div>
                 {a.score != null && (

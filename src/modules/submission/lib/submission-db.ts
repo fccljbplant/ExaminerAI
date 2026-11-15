@@ -222,6 +222,49 @@ const FILTER_STATUSES: Record<Exclude<AssignmentFilter, "all">, string[]> = {
   graded: ["approved", "signed_off"],
 };
 
+/** Per-filter chip counts (UI-UX-RULES-2026-11-15 rule 5: curate, show). */
+export type AssignmentCounts = Record<AssignmentFilter, number>;
+
+/** Reverse index of FILTER_STATUSES: submission status → chip buckets. */
+const STATUS_BUCKETS: Record<string, Exclude<AssignmentFilter, "all">[]> = {
+  __none__: ["due"],
+  draft: ["due"],
+  submitted: ["in_review"],
+  in_review: ["in_review"],
+  resubmitted: ["in_review"],
+  changes_requested: ["returned"],
+  approved: ["graded"],
+  signed_off: ["graded"],
+};
+
+/** Bucket one status per assignment (null = not started) into chip counts. */
+export function bucketAssignmentCounts(statuses: Array<string | null>): AssignmentCounts {
+  const counts: AssignmentCounts = { all: 0, due: 0, in_review: 0, returned: 0, graded: 0 };
+  for (const s of statuses) {
+    counts.all += 1;
+    for (const bucket of STATUS_BUCKETS[s ?? "__none__"] ?? []) counts[bucket] += 1;
+  }
+  return counts;
+}
+
+/** Total counts per filter chip over the learner's published assignments. */
+export async function listLearnerAssignmentCounts(
+  userId: string,
+  query: { courseId?: string },
+): Promise<AssignmentCounts> {
+  await ensureDefaultRegistries();
+  let courseIds = await enrolledCourseIds(userId, "student");
+  if (query.courseId) courseIds = courseIds.filter((c) => c === query.courseId);
+  if (courseIds.length === 0) {
+    return { all: 0, due: 0, in_review: 0, returned: 0, graded: 0 };
+  }
+  const rows = await db.assignment.findMany({
+    where: { courseId: { in: courseIds }, status: "published" },
+    select: { submissions: { where: { userId }, select: { status: true } } },
+  });
+  return bucketAssignmentCounts(rows.map((r) => r.submissions[0]?.status ?? null));
+}
+
 export async function listLearnerAssignments(
   userId: string,
   query: { status?: AssignmentFilter; courseId?: string; cursor?: string; limit?: number },

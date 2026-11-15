@@ -10,7 +10,10 @@ import { NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { apiSuccess, apiUnauthorized, apiError } from "@/lib/api-response";
 import { AssignmentsQuery } from "@/modules/submission/contracts";
-import { listLearnerAssignments } from "@/modules/submission/lib/submission-db";
+import {
+  listLearnerAssignmentCounts,
+  listLearnerAssignments,
+} from "@/modules/submission/lib/submission-db";
 import { isSubmissionsEnabled } from "@/modules/submission/lib/submission-flag";
 import { submissionErrorResponse } from "@/modules/submission/lib/http";
 
@@ -36,13 +39,18 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { items, nextCursor } = await listLearnerAssignments(user.sub, {
-      status: parsed.data.status,
-      courseId: parsed.data.courseId,
-      cursor: parsed.data.cursor,
-      limit: parsed.data.limit,
-    });
-    return apiSuccess({ items, nextCursor });
+    // Counts run alongside the page so the filter chips can show real
+    // numbers (UI-UX-RULES-2026-11-15 rule 5 — curate, don't shrink).
+    const [{ items, nextCursor }, counts] = await Promise.all([
+      listLearnerAssignments(user.sub, {
+        status: parsed.data.status,
+        courseId: parsed.data.courseId,
+        cursor: parsed.data.cursor,
+        limit: parsed.data.limit,
+      }),
+      listLearnerAssignmentCounts(user.sub, { courseId: parsed.data.courseId }),
+    ]);
+    return apiSuccess({ items, nextCursor, counts });
   } catch (err) {
     return submissionErrorResponse(err);
   }

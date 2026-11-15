@@ -6,6 +6,77 @@
 
 ---
 
+## 0. The product bar (owner's brief, 2026-11-15)
+
+> Extremely decent, modern, professional. Easy to use, self-explanatory,
+> with flows. Something the user already knows. Don't ask the user — give
+> the user options. Grab the user by its power, never force anything
+> upon them.
+
+Every section below serves that bar. The bar itself is governed by the
+**twelve rules** distilled from the UXPeak deep research
+(`docs/UPGRADE-2026-11/UI-UX-RULES-2026-11-15.md` — corpus, sources and
+per-rule rationale live there). Check every surface against them:
+
+**Familiarity**
+
+1. **Standard pattern first** — use the pattern users already know from
+   mainstream apps; never invent an interaction where a familiar one
+   exists. Active nav state changes at least two of: icon style
+   (outline→filled), color, label weight.
+2. **Recognition over recall** — choice sets of ≤7 render inline
+   (chips, toggles, swatches, steppers), never in dropdowns or nested
+   menus. Labels visible at the point of choice.
+3. **One icon family** — Lucide outline everywhere (selected state may
+   fill). Simple, familiar glyphs. Brand + fixed status tones only, no
+   per-item rainbow.
+
+**Options, not interrogation**
+
+4. **Infer, don't ask** — pre-fill from known context; sensible
+   defaults; a field exists only for what the system genuinely cannot
+   know. "A form aids in the accurate and efficient entry of
+   information" — not just its capture.
+5. **Curate, don't shrink** — long lists surface a recommended subset
+   first with the full set one visible tap away (Hick's Law mitigated
+   by curation, never by hiding).
+6. **Never force** — no blocking modal outside red-tier alerts; every
+   flow shows its exit; every wait shows a way out (retry/cancel);
+   destructive actions get one plain-language confirm.
+
+**Show, don't tell**
+
+7. **Status is visual** — toned chip + icon (+ count), never prose.
+   Status colors come only from the fixed status tokens
+   (success/warning/danger/info), never the brand.
+8. **The four-question audit** — every waiting screen answers: one
+   definite answer? visible change? a countable unit? a way out if it
+   stalls? Progress bars reflect real computed units.
+9. **The calm test** — a screen is done when the user has fewer
+   questions after looking at it than before (where am I, what is
+   this, what changed, what's next).
+
+**Value-first hierarchy**
+
+10. **The decision value leads** — what the user acts on is the title
+    and the largest element; labels demote to meta. One hero number
+    per card with a plain-language reading beside it.
+11. **One primary action per view** — exactly one brand-filled button,
+    adjacent to what it affects; button copy states the payoff
+    ("Start 15-min session"), refusal copy is honest ("I'll risk it",
+    not "Maybe later").
+12. **Craft levers** — hierarchy by size/contrast/spacing/placement;
+    separate sections with whitespace and surface tones before
+    borders; borders thin and light (`border-line`); secondary text
+    never below 4.5:1; 44px targets everywhere; spacing on the 4px
+    grid; 3–5 nav items with short labels.
+
+Each bottom-up UI slice audits its components against all twelve and
+ships tests asserting the applicable ones (focus rings, target sizes,
+chip tones, value-first ordering, empty-state CTAs, exit affordances).
+
+---
+
 ## 1. The header rule (max 96 px)
 
 **Every app page uses `PageHeader`**. No exceptions.
