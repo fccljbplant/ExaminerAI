@@ -12,119 +12,119 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { stopTTS } from "@/modules/learn/lib/tts-filter";
 import {
-  createVoiceInput,
-  isVoiceInputAvailable,
-  type VoiceInputSession,
+ createVoiceInput,
+ isVoiceInputAvailable,
+ type VoiceInputSession,
 } from "@/modules/learn/lib/voice-input";
 
 interface VoiceBarProps {
-  /** Live partial transcript — parent mirrors it into the textarea. */
-  onInterim: (text: string) => void;
-  /** Complete utterance — parent auto-sends it as the question. */
-  onFinal: (text: string) => void;
-  /** Disable mic while the tutor is answering. */
-  disabled?: boolean;
+ /** Live partial transcript — parent mirrors it into the textarea. */
+ onInterim: (text: string) => void;
+ /** Complete utterance — parent auto-sends it as the question. */
+ onFinal: (text: string) => void;
+ /** Disable mic while the tutor is answering. */
+ disabled?: boolean;
 }
 
 export function VoiceBar({ onInterim, onFinal, disabled = false }: VoiceBarProps) {
-  // Defer voice support detection to avoid hydration mismatch.
-  // Server always renders the loading state; client updates after mount.
-  const [supported, setSupported] = useState<boolean | null>(null);
-  const [listening, setListening] = useState(false);
-  const sessionRef = useRef<VoiceInputSession | null>(null);
+ // Defer voice support detection to avoid hydration mismatch.
+ // Server always renders the loading state; client updates after mount.
+ const [supported, setSupported] = useState<boolean | null>(null);
+ const [listening, setListening] = useState(false);
+ const sessionRef = useRef<VoiceInputSession | null>(null);
 
-  useEffect(() => {
-    setSupported(isVoiceInputAvailable());
-  }, []);
+ useEffect(() => {
+ setSupported(isVoiceInputAvailable());
+ }, []);
 
-  // Keep callbacks in refs so the recognition session never goes stale.
-  const interimRef = useRef(onInterim);
-  const finalRef = useRef(onFinal);
-  useEffect(() => {
-    interimRef.current = onInterim;
-    finalRef.current = onFinal;
-  });
+ // Keep callbacks in refs so the recognition session never goes stale.
+ const interimRef = useRef(onInterim);
+ const finalRef = useRef(onFinal);
+ useEffect(() => {
+ interimRef.current = onInterim;
+ finalRef.current = onFinal;
+ });
 
-  useEffect(() => {
-    if (supported === false) return;
-    sessionRef.current = createVoiceInput({
-      onInterim: (text) => interimRef.current(text),
-      onFinal: (text) => finalRef.current(text),
-      // Barge-in: learner starts speaking → the tutor stops talking
-      // immediately (stopTTS halts the Web Speech utterance directly).
-      onSpeechStart: () => {
-        stopTTS();
-      },
-      onEnd: () => setListening(false),
-      onError: (message) => toast.error(message),
-    });
-    return () => {
-      sessionRef.current?.dispose();
-      sessionRef.current = null;
-    };
-  }, [supported]);
+ useEffect(() => {
+ if (supported === false) return;
+ sessionRef.current = createVoiceInput({
+ onInterim: (text) => interimRef.current(text),
+ onFinal: (text) => finalRef.current(text),
+ // Barge-in: learner starts speaking → the tutor stops talking
+ // immediately (stopTTS halts the Web Speech utterance directly).
+ onSpeechStart: () => {
+ stopTTS();
+ },
+ onEnd: () => setListening(false),
+ onError: (message) => toast.error(message),
+ });
+ return () => {
+ sessionRef.current?.dispose();
+ sessionRef.current = null;
+ };
+ }, [supported]);
 
-  function toggle() {
-    const session = sessionRef.current;
-    if (!session || disabled) return;
-    if (listening) {
-      session.stop();
-      setListening(false);
-    } else {
-      session.start();
-      setListening(true);
-    }
-  }
+ function toggle() {
+ const session = sessionRef.current;
+ if (!session || disabled) return;
+ if (listening) {
+ session.stop();
+ setListening(false);
+ } else {
+ session.start();
+ setListening(true);
+ }
+ }
 
-  // Loading state: render a disabled button that matches both renders
-  if (supported === null) {
-    return (
-      <button
-        type="button"
-        disabled
-        aria-label="Voice input initializing"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-      >
-        <Mic className="h-4 w-4" />
-      </button>
-    );
-  }
+ // Loading state: render a disabled button that matches both renders
+ if (supported === null) {
+ return (
+ <button
+ type="button"
+ disabled
+ aria-label="Voice input initializing"
+ className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+ >
+ <Mic className="h-4 w-4" />
+ </button>
+ );
+ }
 
-  if (!supported) {
-    return (
-      <button
-        type="button"
-        disabled
-        title="Voice input isn't supported in this browser — type your question instead"
-        aria-label="Voice input not supported"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 cursor-not-allowed focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-      >
-        <MicOff className="h-4 w-4" />
-      </button>
-    );
-  }
+ if (!supported) {
+ return (
+ <button
+ type="button"
+ disabled
+ title="Voice input isn't supported in this browser — type your question instead"
+ aria-label="Voice input not supported"
+ className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line text-fg-muted opacity-40 cursor-not-allowed focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+ >
+ <MicOff className="h-4 w-4" />
+ </button>
+ );
+ }
 
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      disabled={disabled}
-      title={listening ? "Stop listening" : "Ask by voice"}
-      aria-label={listening ? "Stop voice input" : "Start voice input"}
-      aria-pressed={listening}
-      className={cn(
-        "relative inline-flex h-11 w-11 items-center justify-center rounded-md border border-line transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-40",
-        listening
-          ? "border-danger/40 bg-danger-subtle text-danger-on"
-          : "hover:bg-bg-subtle text-fg-muted"
-      )}
-    >
-      {/* Listening pulse — SpeechRecognition exposes no amplitude, so a
-          simple ring signals "I'm hearing you" instead of a fake meter. */}
-      {listening && (
-        <span className="absolute inset-0 rounded-md border border-destructive/60 animate-ping" aria-hidden />
-      )}
-      <Mic className="h-4 w-4" />
-    </button>
-  );
+ return (
+ <button
+ type="button"
+ onClick={toggle}
+ disabled={disabled}
+ title={listening ? "Stop listening" : "Ask by voice"}
+ aria-label={listening ? "Stop voice input" : "Start voice input"}
+ aria-pressed={listening}
+ className={cn(
+ "relative inline-flex h-11 w-11 items-center justify-center rounded-md border border-line transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-40",
+ listening
+ ? "border-danger/40 bg-danger-subtle text-danger-on"
+ : "hover:bg-bg-subtle text-fg-muted"
+ )}
+ >
+ {/* Listening pulse — SpeechRecognition exposes no amplitude, so a
+ simple ring signals "I'm hearing you" instead of a fake meter. */}
+ {listening && (
+ <span className="absolute inset-0 rounded-md border border-danger/60 animate-ping" aria-hidden />
+ )}
+ <Mic className="h-4 w-4" />
+ </button>
+ );
 }

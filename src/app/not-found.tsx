@@ -4,8 +4,8 @@ import { BookOpen, Sparkles, LogIn, GraduationCap, ArrowRight } from "lucide-rea
 import { Button } from "@/modules/ui/button";
 
 export const metadata: Metadata = {
-  title: "Page Not Found — TraineesAI",
-  description: "The page you were looking for doesn't exist or has moved.",
+ title: "Page Not Found — TraineesAI",
+ description: "The page you were looking for doesn't exist or has moved.",
 };
 
 /**
@@ -18,74 +18,74 @@ export const metadata: Metadata = {
  * returning users looking for the dashboard.
  */
 export default function RootNotFound() {
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Minimal header — logo only, no nav */}
-      <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-center">
-          <Link href="/" className="flex items-center gap-2 font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span>TraineesAI</span>
-          </Link>
-        </div>
-      </header>
+ return (
+ <div className="min-h-screen bg-bg text-fg flex flex-col">
+ {/* Minimal header — logo only, no nav */}
+ <header className="border-b border-line bg-surface/50 backdrop-blur supports-[backdrop-filter]:bg-surface/30">
+ <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-center">
+ <Link href="/" className="flex items-center gap-2 font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+ <Sparkles className="h-5 w-5 text-brand" />
+ <span>TraineesAI</span>
+ </Link>
+ </div>
+ </header>
 
-      {/* Body — centered 404 */}
-      <main className="flex-1 flex items-center justify-center px-4 py-20">
-        <div className="text-center max-w-md mx-auto space-y-6">
-          {/* Big icon */}
-          <div className="flex justify-center">
-            <div className="relative">
-              <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full" aria-hidden />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
-                <BookOpen className="h-10 w-10 text-primary" />
-              </div>
-            </div>
-          </div>
+ {/* Body — centered 404 */}
+ <main className="flex-1 flex items-center justify-center px-4 py-20">
+ <div className="text-center max-w-md mx-auto space-y-6">
+ {/* Big icon */}
+ <div className="flex justify-center">
+ <div className="relative">
+ <div className="absolute inset-0 blur-3xl bg-brand-subtle rounded-full" aria-hidden />
+ <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-subtle border border-brand/20">
+ <BookOpen className="h-10 w-10 text-brand" />
+ </div>
+ </div>
+ </div>
 
-          {/* 404 mark + heading */}
-          <div className="space-y-2">
-            <p className="text-7xl font-black tracking-tighter text-foreground/10 leading-none">
-              404
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Page Not Found
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              The page you&apos;re looking for doesn&apos;t exist, may have been
-              moved, or the link is no longer valid.
-            </p>
-          </div>
+ {/* 404 mark + heading */}
+ <div className="space-y-2">
+ <p className="text-7xl font-black tracking-tighter text-fg/10 leading-none">
+ 404
+ </p>
+ <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+ Page Not Found
+ </h1>
+ <p className="text-sm text-fg-muted">
+ The page you&apos;re looking for doesn&apos;t exist, may have been
+ moved, or the link is no longer valid.
+ </p>
+ </div>
 
-          {/* CTAs — recovery links for lost users */}
-          <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
-            <Button asChild>
-              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/learn">
-                <ArrowRight className="h-4 w-4" />
-                Go to my learning
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">
-                <LogIn className="h-4 w-4" />
-                Sign in
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">
-                <GraduationCap className="h-4 w-4" />
-                Browse Courses
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </main>
+ {/* CTAs — recovery links for lost users */}
+ <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+ <Button asChild>
+ <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/learn">
+ <ArrowRight className="h-4 w-4" />
+ Go to my learning
+ </Link>
+ </Button>
+ <Button asChild variant="outline">
+ <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">
+ <LogIn className="h-4 w-4" />
+ Sign in
+ </Link>
+ </Button>
+ <Button asChild variant="outline">
+ <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">
+ <GraduationCap className="h-4 w-4" />
+ Browse Courses
+ </Link>
+ </Button>
+ </div>
+ </div>
+ </main>
 
-      <footer className="border-t border-border py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-muted-foreground text-center">
-          © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
-        </div>
-      </footer>
-    </div>
-  );
+ <footer className="border-t border-line py-6">
+ <div className="mx-auto max-w-7xl px-4 sm:px-6 text-xs text-fg-muted text-center">
+ © {new Date().getFullYear()} TraineesAI · Verified digital credentials · AI-driven curriculum
+ </div>
+ </footer>
+ </div>
+ );
 }

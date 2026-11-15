@@ -4,27 +4,25 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Token-purity standard (UI-STANDARDS §12 — one token system):
- * the shared primitives in src/modules/ui must use only v2 token
- * classes. The legacy shadcn token layer (bg-primary, text-muted-
- * foreground, bg-accent, border-input, focus:ring-2…) is kept in
- * globals.css purely for strangulation and is deleted at cutover
- * (REDESIGN-P5); every primitive that still references it would
- * break at that deletion.
+ * every component in src uses only v2 token classes. The legacy
+ * shadcn token layer (bg-primary, text-muted-foreground, bg-accent,
+ * border-input, focus:ring-2…) was deleted at the P5 cutover; any
+ * reference to it now resolves to nothing — a silent style break.
  *
- * Scope: src/modules/ui — every .tsx file, source-level scan. The
- * variant-prefixed forms (hover:, dark:, data-[state=open]:,
- * [a&]:, selection:, file:, aria-selected:, group-hover:,
- * navigation-menu:) count: the class is the same legacy token.
+ * Scope: ALL of src, every .tsx file, source-level. The
+ * variant-prefixed forms (hover:, dark:, data-[state=open]:, [a&]:,
+ * selection:, file:, aria-selected:, group-hover:, navigation-menu:)
+ * count: the class is the same legacy token. fill-* and stroke-*
+ * count alongside text-/bg-/border-/ring-/outline-*.
  *
- * Allowed look-alikes that are NOT legacy tokens: *-sidebar-* (the
- * sidebar keeps its own token family), --tw variable references,
- * class names in comments.
+ * Allowed look-alikes that are NOT legacy tokens: --tw variable
+ * references and class names in comments.
  */
 
 const ROOT = resolve(__dirname, "../..");
 
 /** legacy token classes, longest-first where one contains another. */
-const LEGACY_TOKEN = /\b(?:[a-z-]+:)*(?:text|bg|border|ring|outline)-(?:primary-foreground|primary|muted-foreground|muted|background|foreground|card-foreground|card|popover-foreground|popover|accent-foreground|accent|destructive-foreground|destructive|secondary-foreground|secondary|input|border)(?:\/[\w.]+)?\b/g;
+const LEGACY_TOKEN = /\b(?:[a-z-]+:)*(?:text|bg|border|ring|outline|fill|stroke)-(?:primary-foreground|primary|muted-foreground|muted|background|foreground|card-foreground|card|popover-foreground|popover|accent-foreground|accent|destructive-foreground|destructive|secondary-foreground|secondary|input|border)(?:\/[\w.]+)?\b/g;
 
 function collectTsx(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -44,7 +42,7 @@ function collectTsx(dir: string, out: string[] = []): string[] {
 /** Lines with legacy token classes; comment lines excluded. */
 function legacyLines(): string[] {
   const offenders: string[] = [];
-  for (const file of collectTsx(join(ROOT, "src/modules/ui"))) {
+  for (const file of collectTsx(join(ROOT, "src"))) {
     const lines = readFileSync(file, "utf8").split("\n");
     lines.forEach((line, i) => {
       const code = line.replace(/\/\/.*$/, "");
@@ -55,12 +53,12 @@ function legacyLines(): string[] {
   return offenders;
 }
 
-describe("token-purity standard (UI-STANDARDS §12 — v2 tokens only in shared primitives)", () => {
-  it("src/modules/ui contains zero legacy shadcn token classes", () => {
+describe("token-purity standard (UI-STANDARDS §12 — v2 tokens only)", () => {
+  it("all of src contains zero legacy shadcn token classes", () => {
     const offenders = legacyLines();
     expect(
       offenders,
-      `legacy token classes in shared primitives (break at the P5 cutover deletion):\n${offenders.join("\n")}`,
+      `legacy token classes (the layer is deleted — these resolve to nothing):\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
 });

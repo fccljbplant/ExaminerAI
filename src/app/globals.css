@@ -22,8 +22,6 @@
 @utility z-tutor { z-index: var(--p-z-tutor); }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -39,23 +37,6 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -125,25 +106,6 @@
    ============================================================ */
 :root {
   --radius: 0.75rem;
-  --background: #fafafa;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #0f172a;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #fef3c7;
-  --accent-foreground: #92400e;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #f59e0b;
   --chart-1: #f59e0b;
   --chart-2: #10b981;
   --chart-3: #3b82f6;
@@ -180,25 +142,6 @@
    Deep charcoal background, amber accents, vibrant chart colors.
    ============================================================ */
 .dark {
-  --background: #0a0a0f;
-  --foreground: #fafafa;
-  --card: #16161f;
-  --card-foreground: #fafafa;
-  --popover: #1c1c28;
-  --popover-foreground: #fafafa;
-  --primary: #fbbf24;
-  --primary-foreground: #0a0a0f;
-  --secondary: #26263a;
-  --secondary-foreground: #e5e7eb;
-  --muted: #1c1c28;
-  --muted-foreground: #9ca3af;
-  --accent: #3d2e0e;
-  --accent-foreground: #fbbf24;
-  --destructive: #f87171;
-  --destructive-foreground: #0a0a0f;
-  --border: #2a2a3a;
-  --input: #2a2a3a;
-  --ring: #fbbf24;
   --chart-1: #fbbf24;
   --chart-2: #34d399;
   --chart-3: #60a5fa;
@@ -227,7 +170,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-line outline-focus/50;
     /* Mobile comfort: kill the grey iOS/Android tap flash — components
        own their focus-visible rings (shell tokens) instead. */
     -webkit-tap-highlight-color: transparent;
@@ -239,7 +182,7 @@
     text-size-adjust: 100%;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-bg text-fg;
     font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -274,16 +217,16 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
      (modals, popovers, command palette, hover lift). */
 
   .surface-card {
-    @apply rounded-xl border border-border bg-card;
+    @apply rounded-xl border border-line bg-surface;
     /* no shadow — depth comes from the border + bg tint */
   }
 
   .surface-muted {
-    @apply rounded-xl border border-border bg-muted/40;
+    @apply rounded-xl border border-line bg-bg-subtle/40;
   }
 
   .surface-hover {
-    @apply transition-colors hover:border-foreground/20 hover:bg-muted/50;
+    @apply transition-colors hover:border-fg/20 hover:bg-bg-subtle/50;
   }
 
   /* Hover-to-reveal UI chrome (Notion / Linear pattern).
@@ -296,7 +239,7 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
   /* Keyboard hint chip — shown next to a button label to surface the
      shortcut. Linear/Superhuman/Raycast all do this. */
   .kbd {
-    @apply inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground;
+    @apply inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded border border-line bg-bg-subtle px-1.5 font-mono text-[10px] font-medium text-fg-muted;
   }
 
   .animate-pulse-slow {
@@ -353,7 +296,7 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
   }
 
   .shimmer {
-    background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+    background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-strong) 50%, var(--bg-subtle) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.4s linear infinite;
   }
@@ -394,8 +337,8 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
   .bg-card-ai-gradient {
     background:
       linear-gradient(180deg,
-        color-mix(in srgb, var(--growth-sage-soft) 50%, var(--card)) 0%,
-        var(--card) 60%);
+        color-mix(in srgb, var(--growth-sage-soft) 50%, var(--surface)) 0%,
+        var(--surface) 60%);
   }
 
   /* ---- Phase C: filled card variant (for stat blocks) ----
@@ -422,7 +365,7 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
     @apply text-base font-semibold leading-tight;
   }
   .widget-subtitle {
-    @apply mt-0.5 text-xs text-muted-foreground;
+    @apply mt-0.5 text-xs text-fg-muted;
   }
 
   /* Delta chip — the small +0.5% / -0.5% badge next to a stat value. */
@@ -434,10 +377,10 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
     color: var(--growth-sage-foreground);
   }
   .chip-delta-down {
-    @apply bg-destructive/10 text-destructive;
+    @apply bg-danger-subtle text-danger-on;
   }
   .chip-delta-flat {
-    @apply bg-muted text-muted-foreground;
+    @apply bg-bg-subtle text-fg-muted;
   }
 
   /* Status pill — Star Admin table badges (In progress / Pending / Done). */
@@ -457,7 +400,7 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
     color: var(--growth-coral-foreground);
   }
   .badge-pill-muted {
-    @apply bg-muted text-muted-foreground;
+    @apply bg-bg-subtle text-fg-muted;
   }
 
   /* Modern table — hairline rows, hover tint, uppercase header labels. */
@@ -465,13 +408,13 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
     @apply w-full text-sm;
   }
   .table-modern thead th {
-    @apply border-b border-border pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground;
+    @apply border-b border-line pb-2 text-left text-[10px] font-semibold uppercase tracking-wider text-fg-muted;
   }
   .table-modern tbody tr {
-    @apply transition-colors hover:bg-muted/40;
+    @apply transition-colors hover:bg-bg-subtle/40;
   }
   .table-modern tbody td {
-    @apply border-b border-border/60 py-3 align-middle;
+    @apply border-b border-line/60 py-3 align-middle;
   }
   .table-modern tbody tr:last-child td {
     @apply border-b-0;
@@ -482,7 +425,7 @@ body[data-exam="on"] [data-slot="bottom-nav"] {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
+  background: var(--text-muted);
   opacity: 0.3;
   border-radius: 6px;
   border: 2px solid transparent;
