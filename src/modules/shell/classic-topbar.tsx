@@ -81,7 +81,8 @@ export function ClassicTopbar({ trailing }: { trailing?: ReactNode }) {
       <button
         type="button"
         onClick={openPalette}
-        className="mr-auto flex h-10 min-w-48 max-w-md flex-1 items-center gap-2 rounded-lg border border-line bg-bg px-3 text-sm text-fg-muted transition-colors hover:border-line-strong"
+        aria-label="Search (Ctrl K)"
+        className="mr-auto flex h-11 min-w-48 max-w-md flex-1 items-center gap-2 rounded-lg border border-line bg-bg px-3 text-sm text-fg-muted transition-colors hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <Search className="h-4 w-4 shrink-0" aria-hidden />
         <span className="truncate">Search…</span>
@@ -94,11 +95,11 @@ export function ClassicTopbar({ trailing }: { trailing?: ReactNode }) {
       <Link
         href={bellHrefFor(me?.role)}
         aria-label="Notifications"
-        className="relative flex h-10 w-10 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
+        className="relative flex h-11 w-11 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <Bell className="h-5 w-5" aria-hidden />
         {unread > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold tabular-nums text-white">
+          <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold tabular-nums text-danger-on">
             {unread > 9 ? "9+" : unread}
           </span>
         )}

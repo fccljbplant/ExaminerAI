@@ -225,8 +225,8 @@ export function UserMenu({
               aria-pressed={themeMounted && themeMode === t.mode}
               className={
                 themeMounted && themeMode === t.mode
-                  ? "flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-2 text-xs font-semibold text-on-brand"
-                  : "flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
+                  ? "flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-2 text-xs font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  : "flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               }
             >
               <t.icon className="h-3.5 w-3.5" aria-hidden />
@@ -240,7 +240,7 @@ export function UserMenu({
             e.preventDefault();
             void signOut();
           }}
-          className="text-destructive focus:text-destructive"
+          className="text-danger focus:text-danger"
         >
           <LogOut className="h-4 w-4" aria-hidden />
           <span>Sign out</span>
