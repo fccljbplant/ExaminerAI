@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -45,11 +46,11 @@ const project = {
 };
 
 function getRequest() {
-  return new Request("http://localhost/api/v2/projects/project-1");
+  return new NextRequest("http://localhost/api/v2/projects/project-1");
 }
 
 function patchRequest(body: unknown = { title: "Updated title" }) {
-  return new Request("http://localhost/api/v2/projects/project-1", {
+  return new NextRequest("http://localhost/api/v2/projects/project-1", {
     method: "PATCH",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),

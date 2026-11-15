@@ -50,7 +50,7 @@ function context() {
 }
 
 function postRequest() {
-  return new Request("http://localhost/api/v2/projects/project-1/tasks", {
+  return new NextRequest("http://localhost/api/v2/projects/project-1/tasks", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ description: "Review the design", week: 1, day: 2 }),
@@ -58,7 +58,7 @@ function postRequest() {
 }
 
 function patchRequest() {
-  return new Request("http://localhost/api/v2/projects/project-1/tasks", {
+  return new NextRequest("http://localhost/api/v2/projects/project-1/tasks", {
     method: "PATCH",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ taskId: "task-1", status: "completed" }),
