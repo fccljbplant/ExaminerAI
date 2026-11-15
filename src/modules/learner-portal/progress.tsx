@@ -27,7 +27,7 @@ import { PrivateReports, ClaimCertificate } from "./reports";
 
 /* ---------------- payload types ----------------------------------------- */
 
-interface ProgressData {
+export interface ProgressData {
   learner: {
     totalXP: number;
     level: string;
@@ -184,7 +184,7 @@ function CourseRings({ courses }: { courses: ProgressData["courses"] }) {
 
 /* ---------------- 14-day activity strip -------------------------------------- */
 
-function ActivityStrip({ activity }: { activity: ProgressData["activity"] }) {
+export function ActivityStrip({ activity }: { activity: ProgressData["activity"] }) {
   const max = Math.max(1, ...activity.map((d) => d.xp));
   const total = activity.reduce((sum, d) => sum + d.xp, 0);
 
@@ -194,27 +194,31 @@ function ActivityStrip({ activity }: { activity: ProgressData["activity"] }) {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Last 14 days</h2>
         <p className="text-xs tabular-nums text-fg-secondary">{total} XP earned</p>
       </div>
-      <div className="mt-4 flex h-24 items-end gap-1.5" role="img" aria-label={`Daily XP for the last 14 days, ${total} total`}>
-        {activity.map((d) => (
-          <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-            <div
-              title={`${d.date}: ${d.xp} XP`}
-              className={
-                "w-full rounded-sm " +
-                (d.xp > 0 ? "bg-brand" : "bg-bg-subtle")
-              }
-              style={{ height: `${Math.max(6, Math.round((d.xp / max) * 100))}%` }}
-            />
-          </div>
-        ))}
-      </div>
+      {activity.length === 0 ? (
+        <p className="mt-3 text-sm text-fg-muted">No activity yet — your daily XP will chart here.</p>
+      ) : (
+        <div className="mt-4 flex h-24 items-end gap-1.5" role="img" aria-label={`Daily XP for the last 14 days, ${total} total`}>
+          {activity.map((d) => (
+            <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+              <div
+                title={`${d.date}: ${d.xp} XP`}
+                className={
+                  "w-full rounded-sm " +
+                  (d.xp > 0 ? "bg-brand" : "bg-bg-subtle")
+                }
+                style={{ height: `${Math.max(6, Math.round((d.xp / max) * 100))}%` }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
 /* ---------------- credentials --------------------------------------------------- */
 
-function Credentials({
+export function Credentials({
   certificates,
   courses,
 }: {
@@ -239,8 +243,7 @@ function Credentials({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-fg">{c.courseName}</p>
                 <p className="mt-0.5 truncate text-xs text-fg-muted">
-                  {new Date(c.issuedAt).toLocaleDateString()}
-                  {c.grade} · {c.score}%
+                  {new Date(c.issuedAt).toLocaleDateString()} · {c.grade} · {c.score}%
                 </p>
               </div>
               {c.verifyUrl ? (
@@ -248,7 +251,7 @@ function Credentials({
                   href={c.verifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   Verify
                 </a>
@@ -275,7 +278,7 @@ function Credentials({
 
 /* ---------------- badges ---------------------------------------------------------- */
 
-function WeeklyTests({ tests }: { tests: ProgressData["weeklyTests"] }) {
+export function WeeklyTests({ tests }: { tests: ProgressData["weeklyTests"] }) {
   if (tests.length === 0) return null;
   return (
     <section aria-label="Weekly tests" className="rounded-xl border border-line bg-surface p-4 md:p-5">
@@ -336,6 +339,7 @@ function CheckinsHeatmap({ checkins }: { checkins: ProgressData["checkins"] }) {
           <span
             key={c.date}
             title={`${c.date} · confidence ${c.confidence}/5`}
+            aria-label={`${c.date}, confidence ${c.confidence} of 5`}
             className={`rounded-md px-2 py-1 text-[11px] tabular-nums ${
               c.confidence >= 3 ? "bg-success-subtle text-success-on" : "bg-bg-subtle text-fg-muted"
             }`}
@@ -348,7 +352,7 @@ function CheckinsHeatmap({ checkins }: { checkins: ProgressData["checkins"] }) {
   );
 }
 
-function Badges({ badges }: { badges: ProgressData["badges"] }) {
+export function Badges({ badges }: { badges: ProgressData["badges"] }) {
   return (
     <section aria-label="Badges" className="rounded-xl border border-line bg-surface p-4 md:p-5">
       <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">Badges</h2>
@@ -377,7 +381,7 @@ function Badges({ badges }: { badges: ProgressData["badges"] }) {
 
 /* ---------------- weak topics ------------------------------------------------------- */
 
-function WeakTopics({ topics }: { topics: ProgressData["weakTopics"] }) {
+export function WeakTopics({ topics }: { topics: ProgressData["weakTopics"] }) {
   return (
     <section aria-label="Topics to strengthen" className="rounded-xl border border-line bg-surface p-4 md:p-5">
       <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-muted">To strengthen</h2>
@@ -392,12 +396,14 @@ function WeakTopics({ topics }: { topics: ProgressData["weakTopics"] }) {
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-fg">{t.topic}</p>
-                <p className="text-xs text-fg-muted">{t.pillar}</p>
+                <p className="text-xs text-fg-muted">
+                  {t.pillar} · {t.masteryLevel}
+                </p>
               </div>
               {t.trend === "up" ? (
-                <TrendingUp className="h-4 w-4 shrink-0 text-success" aria-label="trending up" />
+                <TrendingUp className="h-4 w-4 shrink-0 text-success" role="img" aria-label="trending up" />
               ) : t.trend === "down" ? (
-                <TrendingDown className="h-4 w-4 shrink-0 text-danger" aria-label="trending down" />
+                <TrendingDown className="h-4 w-4 shrink-0 text-danger" role="img" aria-label="trending down" />
               ) : null}
             </li>
           ))}
@@ -422,7 +428,7 @@ function ProgressSkeleton() {
   );
 }
 
-function ProgressError({ message, onRetry }: { message: string; onRetry: () => void }) {
+export function ProgressError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div role="alert" className="rounded-xl border border-line bg-surface p-8 text-center">
       <AlertTriangle className="mx-auto h-6 w-6 text-danger" aria-hidden />
