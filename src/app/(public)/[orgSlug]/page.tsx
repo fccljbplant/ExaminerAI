@@ -82,7 +82,7 @@ export default async function OrgStorefrontPage({ params }: Params) {
                     href={org.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-brand hover:underline"
+                    className="inline-flex items-center gap-1 font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     {org.website.replace(/^https?:\/\//, "")}
                   </a>
@@ -113,7 +113,7 @@ export default async function OrgStorefrontPage({ params }: Params) {
             </p>
             <Link
               href="/courses"
-              className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover"
+              className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Browse the marketplace
             </Link>

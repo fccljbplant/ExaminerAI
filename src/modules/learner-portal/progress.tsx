@@ -248,7 +248,7 @@ function Credentials({
                   href={c.verifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong"
+                  className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   Verify
                 </a>
@@ -431,7 +431,7 @@ function ProgressError({ message, onRetry }: { message: string; onRetry: () => v
       <button
         type="button"
         onClick={onRetry}
-        className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+        className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         Retry
       </button>

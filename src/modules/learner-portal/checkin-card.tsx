@@ -221,7 +221,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             disabled={checkinLoading}
-            className="flex min-h-11 w-full items-center justify-between gap-2 text-left disabled:cursor-wait disabled:opacity-60"
+            className="flex min-h-11 w-full items-center justify-between gap-2 text-left disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <span>
               <span className="block text-sm font-semibold text-fg">Daily check-in</span>
@@ -240,7 +240,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
             type="button"
             onClick={toggleHistory}
             aria-expanded={showHistory}
-            className="flex min-h-11 w-full items-center justify-between gap-2 text-left"
+            className="flex min-h-11 w-full items-center justify-between gap-2 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <span className="flex items-center gap-2 text-xs font-medium text-fg-secondary">
               <History className="h-3.5 w-3.5" aria-hidden />
@@ -351,7 +351,7 @@ export function CheckInCard({ courseId }: { courseId?: string }) {
           <button
             type="submit"
             disabled={saving || checkinLoading || !activeCourseId || !note.trim()}
-            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCircle2 className="h-4 w-4" aria-hidden />}
             {saving ? "Saving check-in…" : "Save check-in"}

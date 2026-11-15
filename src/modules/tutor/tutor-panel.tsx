@@ -113,7 +113,7 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
           onClick={onFlipEdge}
           title={edge === "right" ? "Dock panel to the left" : "Dock panel to the right"}
           aria-label={edge === "right" ? "Dock panel to the left" : "Dock panel to the right"}
-          className="hidden h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg md:flex"
+          className="hidden h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg md:flex focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <MoveHorizontal className="h-4.5 w-4.5" aria-hidden />
         </button>
@@ -122,7 +122,7 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
           onClick={clear}
           title="Start a new conversation"
           aria-label="Start a new conversation"
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <SquarePen className="h-4.5 w-4.5" aria-hidden />
         </button>
@@ -130,7 +130,7 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
           type="button"
           onClick={onClose}
           aria-label="Close tutor"
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <X className="h-5 w-5" aria-hidden />
         </button>
@@ -155,7 +155,7 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
                   key={p}
                   type="button"
                   onClick={() => submit(p)}
-                  className="min-h-11 rounded-full border border-line bg-bg-subtle px-3.5 text-xs text-fg-secondary transition-colors hover:border-brand hover:text-fg"
+                  className="min-h-11 rounded-full border border-line bg-bg-subtle px-3.5 text-xs text-fg-secondary transition-colors hover:border-brand hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {p}
                 </button>
@@ -226,7 +226,7 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
             type="submit"
             disabled={!draft.trim() || streaming}
             aria-label="Send message"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand transition-opacity disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand transition-opacity disabled:opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <Send className="h-4.5 w-4.5" aria-hidden />
           </button>

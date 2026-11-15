@@ -100,7 +100,7 @@ export default async function InstructorProfilePage({
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href="/courses">Courses</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Courses</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator>
@@ -108,7 +108,7 @@ export default async function InstructorProfilePage({
               </BreadcrumbSeparator>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href="/courses">Instructors</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Instructors</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator>

@@ -60,7 +60,7 @@ export default async function LearnHomePage() {
       {/* Top bar */}
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <Sparkles className="h-5 w-5 text-brand" />
             TraineesAI <span className="text-fg-muted">/ Learn</span>
           </Link>
@@ -68,10 +68,10 @@ export default async function LearnHomePage() {
             {user ? (
               <>
                 <span className="hidden sm:inline text-fg-muted">Hi, {user.name.split(" ")[0]}</span>
-                <Link href={homeForRole(user.role)} className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle">Dashboard</Link>
+                <Link href={homeForRole(user.role)} className="px-3 py-1.5 rounded-md border hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Dashboard</Link>
               </>
             ) : (
-              <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90">
+              <Link href="/login" className="px-3 py-1.5 rounded-md bg-brand text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 Sign in
               </Link>
             )}
@@ -100,13 +100,13 @@ export default async function LearnHomePage() {
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <Link
                         href={`/learn/${lastCourse.id}`}
-                        className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90"
+                        className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         Resume session <ArrowRight className="h-4 w-4" />
                       </Link>
                       <Link
                         href={`/learn/${lastCourse.id}`}
-                        className="text-sm text-fg-muted hover:text-fg inline-flex items-center gap-1.5"
+                        className="text-sm text-fg-muted hover:text-fg inline-flex items-center gap-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         <MapIcon className="h-3.5 w-3.5" /> View journey map
                       </Link>
@@ -155,7 +155,7 @@ export default async function LearnHomePage() {
               <div className="mt-4">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90"
+                  className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   Sign in to start <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -176,7 +176,7 @@ export default async function LearnHomePage() {
       <footer className="border-t mt-auto">
         <div className="max-w-6xl mx-auto px-4 py-4 text-xs text-fg-muted flex items-center justify-between">
           <span>© TraineesAI — AI-guided learning.</span>
-          <Link href="/" className="hover:text-fg">Back to home</Link>
+          <Link href="/" className="hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Back to home</Link>
         </div>
       </footer>
     </div>
@@ -241,7 +241,7 @@ function CourseGrid({
             </div>
             <Link
               href={`/learn/${c.id}`}
-              className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-md border border-brand/30 bg-brand-subtle px-3 py-1.5 text-xs font-medium text-brand hover:bg-brand-subtle"
+              className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-md border border-brand/30 bg-brand-subtle px-3 py-1.5 text-xs font-medium text-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {enrolled ? "Continue" : "Start"}
               <ArrowRight className="h-3.5 w-3.5" />

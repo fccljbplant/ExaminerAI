@@ -87,7 +87,7 @@ export default async function CategoryPage({
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href="/courses">Courses</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Courses</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator>
@@ -122,7 +122,7 @@ export default async function CategoryPage({
               Check back soon — new programs are added regularly.
             </p>
             <Button asChild variant="outline" size="sm" className="mt-4">
-              <Link href="/courses">Browse all courses</Link>
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Browse all courses</Link>
             </Button>
           </div>
         ) : (

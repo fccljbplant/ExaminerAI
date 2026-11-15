@@ -127,7 +127,7 @@ export function PlatformRevenue() {
           <button
             type="button"
             onClick={() => void retry()}
-            className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg hover:bg-bg-subtle"
+            className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             Refresh
           </button>
@@ -135,7 +135,7 @@ export function PlatformRevenue() {
             type="button"
             onClick={() => void sweep()}
             disabled={sweeping}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {sweeping ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             Run payout sweep
@@ -146,7 +146,7 @@ export function PlatformRevenue() {
       {isLoading && <div className="h-24 animate-pulse rounded-xl bg-bg-subtle" aria-busy="true" />}
       {error && (
         <div role="alert" className="rounded-xl border border-line bg-surface p-4 text-sm text-fg">
-          Couldn&apos;t load revenue. <button type="button" onClick={() => void retry()} className="underline">Retry</button>
+          Couldn&apos;t load revenue. <button type="button" onClick={() => void retry()} className="underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Retry</button>
         </div>
       )}
 
@@ -241,7 +241,7 @@ export function PlatformRevenue() {
                       onClick={() => void refund(p.id)}
                       disabled={refundingId === p.id || !p.refundable}
                       title={p.refundable ? "Refund this payment" : "No Stripe intent recorded — refund not possible"}
-                      className="inline-flex min-h-9 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger disabled:opacity-40"
+                      className="inline-flex min-h-9 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger disabled:opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {refundingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Refund"}
                     </button>
@@ -337,7 +337,7 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
           <button
             type="submit"
             disabled={busy || !code.trim() || !percentOff}
-            className="inline-flex h-9 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+            className="inline-flex h-9 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Create"}
           </button>
@@ -347,7 +347,7 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
       {isLoading ? (
         <div className="mt-2 h-16 animate-pulse rounded-lg bg-bg-subtle" aria-busy="true" />
       ) : error ? (
-        <p className="mt-2 text-xs text-danger-on">Couldn&apos;t load coupons. <button onClick={() => void retry()} className="underline">Retry</button></p>
+        <p className="mt-2 text-xs text-danger-on">Couldn&apos;t load coupons. <button onClick={() => void retry()} className="underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Retry</button></p>
       ) : (data?.coupons?.length ?? 0) === 0 ? (
         <p className="mt-2 text-sm text-fg-muted">No coupons yet — create one above (usable at B2C checkout).</p>
       ) : (
@@ -368,8 +368,8 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
                 onClick={() => void toggle(c)}
                 className={
                   c.active
-                    ? "inline-flex min-h-8 shrink-0 items-center rounded-md bg-success-subtle px-2.5 text-xs font-semibold text-success-on"
-                    : "inline-flex min-h-8 shrink-0 items-center rounded-md bg-bg-subtle px-2.5 text-xs font-semibold text-fg-muted"
+                    ? "inline-flex min-h-8 shrink-0 items-center rounded-md bg-success-subtle px-2.5 text-xs font-semibold text-success-on focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    : "inline-flex min-h-8 shrink-0 items-center rounded-md bg-bg-subtle px-2.5 text-xs font-semibold text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 }
               >
                 {c.active ? "Active" : "Disabled"}

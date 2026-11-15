@@ -46,14 +46,14 @@ export default function B2BSignupPage() {
       {/* Nav */}
       <nav className="border-b border-line">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <Building2 className="h-5 w-5" />
             </div>
             TraineesAI
           </Link>
           <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Sign in</Link>
+            <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">Sign in</Link>
           </Button>
         </div>
       </nav>

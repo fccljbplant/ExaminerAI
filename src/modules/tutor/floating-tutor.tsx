@@ -202,7 +202,7 @@ export function FloatingTutor() {
         }}
         className={`fixed z-tutor flex items-center justify-center rounded-full border-2 border-[var(--tutor-ring)] bg-[var(--tutor-fab)] shadow-elev-2 transition-shadow hover:shadow-elev-3 ${
           open ? "pointer-events-none opacity-0" : "opacity-100"
-        } ${dragPos ? "cursor-grabbing" : "cursor-grab touch-none"}`}
+        } ${dragPos ? "cursor-grabbing" : "cursor-grab touch-none"}focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus`}
         style={{
           width: FAB_SIZE,
           height: FAB_SIZE,

@@ -125,7 +125,7 @@ export function PlatformAccess() {
           <button
             type="submit"
             disabled={creating || !grantee.trim() || !scopeId.trim()}
-            className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ShieldCheck className="h-4 w-4" aria-hidden />}
             Grant
@@ -139,7 +139,7 @@ export function PlatformAccess() {
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
           <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
           {error}
-          <button type="button" onClick={() => void retry()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+          <button type="button" onClick={() => void retry()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
           </button>
         </div>
@@ -168,7 +168,7 @@ export function PlatformAccess() {
               <button
                 type="button"
                 onClick={() => void revokeGrant(g.id)}
-                className="inline-flex min-h-9 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger"
+                className="inline-flex min-h-9 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 title="Revoke this grant"
               >
                 Revoke

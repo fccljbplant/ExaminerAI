@@ -163,7 +163,7 @@ export function OrgControl() {
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -214,7 +214,7 @@ export function OrgControl() {
                   type="button"
                   onClick={() => setLogoUrl(null)}
                   aria-label="Remove logo"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   <Trash2 className="h-4 w-4" aria-hidden />
                 </button>
@@ -308,7 +308,7 @@ export function OrgControl() {
             href={`/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-brand hover:underline"
+            className="font-medium text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             /{slug}
           </a>
@@ -386,7 +386,7 @@ export function OrgControl() {
         type="button"
         onClick={save}
         disabled={saving || !hydrated || !palette}
-        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 md:w-auto md:px-8"
+        className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 md:w-auto md:px-8 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         {saving ? (
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -460,7 +460,7 @@ function OrgCatalogSection() {
         <button
           type="button"
           onClick={retry}
-          className="ml-auto inline-flex min-h-11 items-center rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle"
+          className="ml-auto inline-flex min-h-11 items-center rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Retry
         </button>
@@ -495,7 +495,7 @@ function OrgCatalogSection() {
               <button
                 type="button"
                 onClick={() => void remove(c.id)}
-                className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 text-xs font-semibold text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-danger"
+                className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 text-xs font-semibold text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden /> Remove
               </button>
@@ -523,7 +523,7 @@ function OrgCatalogSection() {
             type="button"
             onClick={() => void add()}
             disabled={adding || !selected}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : "Add to catalog"}
           </button>

@@ -53,7 +53,7 @@ export default function PricingPage() {
             </ul>
 
             <Button asChild className="mt-8 w-full" size="lg">
-              <Link href="/for-business">Book a Demo <ArrowRight className="h-4 w-4 ml-2" /></Link>
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-business">Book a Demo <ArrowRight className="h-4 w-4 ml-2" /></Link>
             </Button>
             <p className="mt-3 text-center text-xs text-fg-muted">No credit card for pilot</p>
           </div>
@@ -88,7 +88,7 @@ export default function PricingPage() {
             </ul>
 
             <Button asChild variant="outline" className="mt-8 w-full" size="lg">
-              <Link href="/for-learners">Start Free <ArrowRight className="h-4 w-4 ml-2" /></Link>
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-learners">Start Free <ArrowRight className="h-4 w-4 ml-2" /></Link>
             </Button>
             <p className="mt-3 text-center text-xs text-fg-muted">No credit card required</p>
           </div>

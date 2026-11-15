@@ -64,7 +64,7 @@ export function OrgAudit() {
               metadata, for SOC-2-style requests. */}
           <a
             href="/api/v2/org/audit/export"
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <Download className="h-4 w-4" aria-hidden />
             Server export
@@ -73,7 +73,7 @@ export function OrgAudit() {
             type="button"
             onClick={exportCsv}
             disabled={!data || data.items.length === 0}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <Download className="h-4 w-4" aria-hidden />
             Export CSV
@@ -90,8 +90,8 @@ export function OrgAudit() {
             aria-pressed={action === a.key}
             className={
               action === a.key
-                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand"
-                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong"
+                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             }
           >
             {a.label}
@@ -109,7 +109,7 @@ export function OrgAudit() {
           <button
             type="button"
             onClick={retry}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Retry

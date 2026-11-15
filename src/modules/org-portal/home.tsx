@@ -60,7 +60,7 @@ export function OrgHome() {
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -105,7 +105,7 @@ export function OrgHome() {
             </h2>
             <Link
               href="/org/people"
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Manage people
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -137,7 +137,7 @@ export function OrgHome() {
             </h2>
             <Link
               href="/org/audit"
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Full audit
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -302,7 +302,7 @@ function OrgAnnouncements() {
           <button
             type="submit"
             disabled={posting || !title.trim() || !body.trim()}
-            className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+            className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {posting ? "Posting…" : "Post announcement"}
           </button>
@@ -317,7 +317,7 @@ function OrgAnnouncements() {
           <button
             type="button"
             onClick={retry}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs font-medium text-fg-secondary hover:border-line-strong"
+            className="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-3 w-3" aria-hidden />
             Retry

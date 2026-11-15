@@ -131,7 +131,7 @@ export function PlatformSupport() {
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           Look up
@@ -160,7 +160,7 @@ export function PlatformSupport() {
               type="button"
               onClick={() => void loginAs()}
               disabled={busy || user.blocked}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <LifeBuoy className="h-4 w-4" aria-hidden />
               Login as user
@@ -169,14 +169,14 @@ export function PlatformSupport() {
               type="button"
               onClick={() => void toggleBan()}
               disabled={busy}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-bg px-4 text-sm font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-bg px-4 text-sm font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <ShieldCheck className="h-4 w-4" aria-hidden />
               {user.blocked ? "Unblock" : "Ban"}
             </button>
             <a
               href="/platform/resets"
-              className="inline-flex min-h-11 items-center rounded-lg border border-line bg-bg px-4 text-sm font-semibold text-fg hover:bg-bg-subtle"
+              className="inline-flex min-h-11 items-center rounded-lg border border-line bg-bg px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Temp password →
             </a>
@@ -220,7 +220,7 @@ export function PlatformSupport() {
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex min-h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50"
+          className="inline-flex min-h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Broadcast to org
         </button>

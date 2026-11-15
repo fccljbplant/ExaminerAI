@@ -64,7 +64,7 @@ export default function CurriculumAccordion({ weeks, totalDays, enrollHref = "/r
         </p>
         <Link
           href={enrollHref}
-          className="inline-flex min-h-9 shrink-0 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover sm:ml-auto"
+          className="inline-flex min-h-9 shrink-0 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover sm:ml-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Enroll to see full syllabus
         </Link>

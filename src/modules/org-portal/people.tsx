@@ -280,7 +280,7 @@ export function OrgPeople() {
           <button
             type="submit"
             disabled={inviting}
-            className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {inviting ? "Inviting…" : "Invite"}
           </button>
@@ -326,7 +326,7 @@ export function OrgPeople() {
                 type="submit"
                 disabled={creatingDepartment || !newDepartment.trim()}
                 aria-label="Create department"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <Plus className="h-4 w-4" aria-hidden />
               </button>
@@ -337,8 +337,8 @@ export function OrgPeople() {
                 onClick={() => setSelectedDepartment(null)}
                 className={
                   selectedDepartment === null
-                    ? "flex w-full items-center justify-between gap-2 rounded-lg bg-brand-subtle px-3 py-2 text-left text-sm font-medium text-fg"
-                    : "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle"
+                    ? "flex w-full items-center justify-between gap-2 rounded-lg bg-brand-subtle px-3 py-2 text-left text-sm font-medium text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    : "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 }
               >
                 All members
@@ -353,8 +353,8 @@ export function OrgPeople() {
                   onClick={() => setSelectedDepartment(d.id)}
                   className={
                     selectedDepartment === d.id
-                      ? "flex w-full items-center justify-between gap-2 rounded-lg bg-brand-subtle px-3 py-2 text-left text-sm font-medium text-fg"
-                      : "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle"
+                      ? "flex w-full items-center justify-between gap-2 rounded-lg bg-brand-subtle px-3 py-2 text-left text-sm font-medium text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      : "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   }
                 >
                   <span className="truncate">{d.name}</span>
@@ -426,7 +426,7 @@ export function OrgPeople() {
               <button
                 type="button"
                 onClick={retry}
-                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <RefreshCw className="h-4 w-4" aria-hidden />
                 Retry
@@ -493,8 +493,8 @@ export function OrgPeople() {
                     aria-label={`${m.seat ? "Remove seat from" : "Assign seat to"} ${m.user.name}`}
                     className={
                       m.seat
-                        ? "shrink-0 rounded-md bg-brand-subtle px-2 py-1 text-xs font-medium text-fg disabled:opacity-50"
-                        : "shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg-secondary hover:border-line-strong disabled:opacity-50"
+                        ? "shrink-0 rounded-md bg-brand-subtle px-2 py-1 text-xs font-medium text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        : "shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg-secondary hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     }
                   >
                     <Armchair className="h-3.5 w-3.5" aria-hidden />
@@ -505,8 +505,8 @@ export function OrgPeople() {
                     disabled={busyId === m.id}
                     className={
                       m.status === "active"
-                        ? "shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-danger-on hover:border-line-strong disabled:opacity-50"
-                        : "shrink-0 rounded-md bg-success-subtle px-2 py-1 text-xs font-medium text-success-on disabled:opacity-50"
+                        ? "shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-danger-on hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        : "shrink-0 rounded-md bg-success-subtle px-2 py-1 text-xs font-medium text-success-on disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     }
                   >
                     {m.status === "active" ? "Deactivate" : "Restore"}
@@ -573,7 +573,7 @@ function CsvImportButton({ onImported }: { onImported: () => void }) {
         type="button"
         disabled={busy}
         onClick={() => fileRef.current?.click()}
-        className="flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50"
+        className="flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <Upload className="h-3.5 w-3.5" aria-hidden />
         {busy ? "Importing…" : "Import CSV"}

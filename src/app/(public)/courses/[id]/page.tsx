@@ -143,7 +143,7 @@ export default async function CourseDetailPage({ params }: Params) {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href="/courses">Courses</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Courses</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator>
@@ -151,7 +151,7 @@ export default async function CourseDetailPage({ params }: Params) {
               </BreadcrumbSeparator>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href={`/courses/category/${course.category}`}>{categoryLabel}</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href={`/courses/category/${course.category}`}>{categoryLabel}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator>
@@ -379,7 +379,7 @@ export default async function CourseDetailPage({ params }: Params) {
               </ul>
               <div className="mt-3">
                 <Button asChild size="sm" className="w-full">
-                  <Link href="#enroll">Enroll Now</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="#enroll">Enroll Now</Link>
                 </Button>
               </div>
             </CardContent>

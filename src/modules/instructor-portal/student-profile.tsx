@@ -223,7 +223,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -240,7 +240,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-fg-muted">
-            <Link href="/instructor/students" className="hover:text-fg">
+            <Link href="/instructor/students" className="hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
               Students
             </Link>{" "}
             · {data.student.email}
@@ -262,7 +262,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
               "inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors",
               messaging
                 ? "border-brand bg-brand-subtle text-fg"
-                : "border-line bg-surface text-fg hover:border-line-strong"
+                : "border-line bg-surface text-fg hover:border-line-strong", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             )}
           >
             <MessageCircle className="h-4 w-4" aria-hidden />
@@ -272,7 +272,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
             type="button"
             onClick={nudge}
             disabled={nudging}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {nudging ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -303,7 +303,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
               type="button"
               onClick={() => void sendMessage()}
               disabled={messaging || !messageText.trim()}
-              className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+              className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {messaging ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
               Send
@@ -368,8 +368,8 @@ export function StudentProfile({ studentId }: { studentId: string }) {
             aria-pressed={tab === t.key}
             className={
               tab === t.key
-                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand"
-                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong"
+                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             }
           >
             {t.label}
@@ -387,7 +387,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
 
       <Link
         href="/instructor/students"
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Back to students
@@ -470,7 +470,7 @@ function AcademicTab({
                       type="button"
                       onClick={() => void testAction("allow-retake", t.week, "Retake allowed")}
                       disabled={busyWeek === t.week}
-                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50"
+                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {busyWeek === t.week ? (
                         <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
@@ -484,7 +484,7 @@ function AcademicTab({
                       type="button"
                       onClick={() => void testAction("unlock-test", t.week, "Test unlocked")}
                       disabled={busyWeek === t.week}
-                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50"
+                      className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {busyWeek === t.week ? (
                         <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
@@ -526,7 +526,7 @@ function AcademicTab({
               type="button"
               onClick={() => void generateReportCard()}
               disabled={generating}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {generating ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -653,7 +653,7 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
               Generate
@@ -663,7 +663,7 @@ function GrowthTab({ data, studentId }: { data: StudentProfileData; studentId: s
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden />
               Refresh
@@ -989,7 +989,7 @@ function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?:
                       type="button"
                       onClick={() => decide(p.id, "approve")}
                       disabled={busyId === p.id}
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {busyId === p.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -1004,7 +1004,7 @@ function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?:
                           type="button"
                           onClick={() => decide(p.id, "reject")}
                           disabled={busyId === p.id || !note.trim()}
-                          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 text-xs font-semibold text-danger disabled:opacity-50"
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 text-xs font-semibold text-danger disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                         >
                           Send back with note
                         </button>
@@ -1014,7 +1014,7 @@ function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?:
                             setNoteFor(null);
                             setNote("");
                           }}
-                          className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-fg-muted hover:text-fg"
+                          className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                         >
                           Cancel
                         </button>
@@ -1024,7 +1024,7 @@ function ProjectTab({ data, onChanged }: { data: StudentProfileData; onChanged?:
                         type="button"
                         onClick={() => setNoteFor(p.id)}
                         disabled={busyId === p.id}
-                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong disabled:opacity-50"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                         Send back…
@@ -1200,7 +1200,7 @@ function CertificatesTab({ data }: { data: StudentProfileData }) {
               <Link
                 href={c.verifyUrl}
                 target="_blank"
-                className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong"
+                className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Verify
               </Link>
@@ -1272,7 +1272,7 @@ function CommentsTab({ studentId }: { studentId: string }) {
           type="button"
           onClick={() => void post()}
           disabled={posting || !text.trim()}
-          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {posting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
           Post
@@ -1283,7 +1283,7 @@ function CommentsTab({ studentId }: { studentId: string }) {
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
           <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
           {error}
-          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
           </button>
         </div>

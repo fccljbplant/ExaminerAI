@@ -192,7 +192,7 @@ export function CertificatesPanel() {
             <button
               type="submit"
               disabled={issuing || !studentId || !courseId}
-              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {issuing ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Award className="h-4 w-4" aria-hidden />}
               Issue
@@ -237,7 +237,7 @@ export function CertificatesPanel() {
                     type="button"
                     onClick={() => void decide(r.userId, false)}
                     disabled={busyReq === r.userId || !r.eligible}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     {busyReq === r.userId && rejectingId !== r.userId ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -253,7 +253,7 @@ export function CertificatesPanel() {
                       void decide(r.userId, true);
                     }}
                     disabled={busyReq === r.userId}
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-secondary hover:border-danger hover:text-danger disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-secondary hover:border-danger hover:text-danger disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     <XCircle className="h-3.5 w-3.5" aria-hidden />
                     Reject
@@ -275,7 +275,7 @@ export function CertificatesPanel() {
           <button
             type="button"
             onClick={retry}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Retry
@@ -308,7 +308,7 @@ export function CertificatesPanel() {
                 href={c.verifyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong"
+                className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Verify
               </a>

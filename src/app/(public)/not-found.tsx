@@ -48,19 +48,19 @@ export default function PublicNotFound() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
             <Button asChild>
-              <Link href="/learn">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/learn">
                 <GraduationCap className="h-4 w-4" />
                 Go to my learning
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/courses">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">
                 Browse Courses
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/">
                 <Home className="h-4 w-4" />
                 Go Home
               </Link>

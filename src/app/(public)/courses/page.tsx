@@ -128,7 +128,7 @@ export default async function CoursesPage({
                 !category
                   ? "border-brand bg-brand text-on-brand"
                   : "border-line bg-bg hover:bg-bg-subtle"
-              }`}
+              }focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus`}
             >
               All Categories
               <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4">
@@ -147,7 +147,7 @@ export default async function CoursesPage({
                     active
                       ? "border-brand bg-brand text-on-brand"
                       : "border-line bg-bg hover:bg-bg-subtle"
-                  }`}
+                  }focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus`}
                 >
                   {c.label}
                   <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4">
@@ -231,7 +231,7 @@ async function MarketplaceContent({
             Try clearing some filters or browsing all courses.
           </p>
           <Button asChild variant="outline" size="sm" className="mt-4">
-            <Link href="/courses">Clear filters</Link>
+            <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Clear filters</Link>
           </Button>
         </div>
       )}
@@ -403,7 +403,7 @@ function LearningPathCard({
             )}
           </div>
           <Button asChild size="sm">
-            <Link href={`/paths/${path.id}`}>View Path</Link>
+            <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href={`/paths/${path.id}`}>View Path</Link>
           </Button>
         </div>
       </CardContent>

@@ -46,7 +46,7 @@ export default function VerifyPage() {
         />
         <button
           type="submit"
-          className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-brand px-6 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover"
+          className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg bg-brand px-6 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Verify
         </button>

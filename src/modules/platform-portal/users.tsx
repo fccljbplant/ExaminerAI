@@ -223,7 +223,7 @@ export function PlatformUsers() {
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
           <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
           {error}
-          <button type="button" onClick={() => void load(q, role, page)} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+          <button type="button" onClick={() => void load(q, role, page)} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
           </button>
         </div>
@@ -262,7 +262,7 @@ export function PlatformUsers() {
                       type="button"
                       onClick={() => approve(u)}
                       disabled={busyId === u.id}
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand transition-colors hover:bg-brand/90 disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       <UserCheck className="h-3.5 w-3.5" aria-hidden />
                       Approve
@@ -273,7 +273,7 @@ export function PlatformUsers() {
                       <button
                         type="button"
                         aria-label={`Actions for ${u.name}`}
-                        className="flex h-11 w-9 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+                        className="flex h-11 w-9 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         <MoreHorizontal className="h-4 w-4" aria-hidden />
                       </button>
@@ -320,7 +320,7 @@ export function PlatformUsers() {
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="inline-flex h-11 items-center gap-1 rounded-lg border border-line px-3 text-xs font-semibold text-fg disabled:opacity-40"
+            className="inline-flex h-11 items-center gap-1 rounded-lg border border-line px-3 text-xs font-semibold text-fg disabled:opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <ChevronLeft className="h-4 w-4" aria-hidden /> Prev
           </button>
@@ -331,7 +331,7 @@ export function PlatformUsers() {
             type="button"
             onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
             disabled={page >= data.pagination.totalPages}
-            className="inline-flex h-11 items-center gap-1 rounded-lg border border-line px-3 text-xs font-semibold text-fg disabled:opacity-40"
+            className="inline-flex h-11 items-center gap-1 rounded-lg border border-line px-3 text-xs font-semibold text-fg disabled:opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             Next <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
@@ -369,7 +369,7 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
       aria-pressed={active}
       className={`inline-flex h-11 shrink-0 items-center rounded-lg px-3 text-xs font-semibold transition-colors ${
         active ? "bg-brand text-on-brand" : "border border-line bg-surface text-fg-secondary hover:text-fg"
-      }`}
+      }focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus`}
     >
       {label}
     </button>

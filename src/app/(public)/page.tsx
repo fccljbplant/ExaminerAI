@@ -111,14 +111,14 @@ export default async function LandingPage() {
               </p>
               <div className="mt-6 flex flex-col justify-center gap-2.5 sm:flex-row lg:justify-start">
                 <Button asChild size="lg" className="h-12 min-w-0 text-base">
-                  <Link href="/courses">
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">
                     <PackageOpen className="h-4 w-4 mr-2" />
                     Browse Courses
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="h-12 min-w-0 text-base">
-                  <Link href="/for-business">
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-business">
                     <Building2 className="h-4 w-4 mr-2" />
                     {/* The full label can't fit a 320px viewport (Button is
                         whitespace-nowrap) — short label on phones. */}
@@ -169,7 +169,7 @@ export default async function LandingPage() {
               </p>
             </div>
             <Button asChild variant="outline" className="shrink-0">
-              <Link href="/courses">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">
                 View all courses <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
@@ -210,7 +210,7 @@ export default async function LandingPage() {
                   <Link
                     key={p.id}
                     href={`/paths/${p.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand"
+                    className="flex items-center gap-3 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-subtle text-fg">
                       <TrendingUp className="h-4 w-4" aria-hidden />
@@ -291,12 +291,12 @@ export default async function LandingPage() {
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/courses">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">
                 Browse Courses <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/for-business">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-business">
                 <Building2 className="h-4 w-4 mr-2" /> For Teams
               </Link>
             </Button>

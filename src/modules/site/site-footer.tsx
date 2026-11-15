@@ -34,7 +34,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
         {/* Brand */}
         <div className="space-y-3">
-          <Link href="/" className="flex items-center gap-2 text-lg font-bold text-fg">
+          <Link href="/" className="flex items-center gap-2 text-lg font-bold text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <GraduationCap className="h-5 w-5" aria-hidden />
             </span>
@@ -58,7 +58,7 @@ export function SiteFooter() {
               <li key={l.href + l.label}>
                 <Link
                   href={l.href}
-                  className="inline-flex min-h-9 items-center rounded-md text-sm text-fg-muted transition-colors hover:text-fg"
+                  className="inline-flex min-h-9 items-center rounded-md text-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {l.label}
                 </Link>
@@ -75,7 +75,7 @@ export function SiteFooter() {
               <li key={l.href + l.label}>
                 <Link
                   href={l.href}
-                  className="inline-flex min-h-9 items-center rounded-md text-sm text-fg-muted transition-colors hover:text-fg"
+                  className="inline-flex min-h-9 items-center rounded-md text-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {l.label}
                 </Link>
@@ -92,7 +92,7 @@ export function SiteFooter() {
               <li key={l.href + l.label}>
                 <Link
                   href={l.href}
-                  className="inline-flex min-h-9 items-center rounded-md text-sm text-fg-muted transition-colors hover:text-fg"
+                  className="inline-flex min-h-9 items-center rounded-md text-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {l.label}
                 </Link>

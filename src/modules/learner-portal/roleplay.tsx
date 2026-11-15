@@ -154,7 +154,7 @@ export function RoleplayPractice() {
             <button
               type="button"
               onClick={() => void loadScenarios()}
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <RefreshCw className="h-4 w-4" aria-hidden />
               Retry
@@ -178,7 +178,7 @@ export function RoleplayPractice() {
                 type="button"
                 onClick={() => void start(s)}
                 disabled={starting !== null}
-                className="flex min-h-36 flex-col rounded-xl border border-line bg-surface p-4 text-left transition-colors hover:border-brand disabled:opacity-60"
+                className="flex min-h-36 flex-col rounded-xl border border-line bg-surface p-4 text-left transition-colors hover:border-brand disabled:opacity-60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold text-fg">{s.title}</span>
@@ -224,7 +224,7 @@ export function RoleplayPractice() {
             setRun(null);
           }}
           aria-label="Back to scenarios"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface text-fg-secondary transition-colors hover:text-fg"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface text-fg-secondary transition-colors hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
         </button>
@@ -296,7 +296,7 @@ export function RoleplayPractice() {
           <button
             type="button"
             onClick={() => void start(active)}
-            className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand"
+            className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RotateCcw className="h-4 w-4" aria-hidden />
             Try again
@@ -323,7 +323,7 @@ export function RoleplayPractice() {
           <button
             type="submit"
             disabled={sending || !input.trim() || remaining <= 0}
-            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
             Send

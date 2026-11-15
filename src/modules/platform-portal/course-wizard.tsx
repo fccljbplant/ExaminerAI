@@ -260,7 +260,7 @@ export function CourseCreationWizard({
           type="button"
           onClick={onBack}
           aria-label="Back to course list"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle"
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
         </button>
@@ -284,7 +284,7 @@ export function CourseCreationWizard({
                   "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold",
                   done && "bg-bg-subtle text-fg-muted hover:text-fg",
                   active && "bg-brand text-on-brand",
-                  !done && !active && "bg-bg-subtle text-fg-muted/60"
+                  !done && !active && "bg-bg-subtle text-fg-muted/60", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 )}
               >
                 {done && <CheckCircle2 className="h-3 w-3" aria-hidden />}
@@ -339,7 +339,7 @@ export function CourseCreationWizard({
               type="button"
               onClick={() => setStep(2)}
               disabled={!step1Valid}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Next: Marketplace <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
@@ -372,14 +372,14 @@ export function CourseCreationWizard({
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden /> Back
             </button>
             <button
               type="button"
               onClick={() => setStep(3)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Next: Curriculum <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
@@ -417,7 +417,7 @@ export function CourseCreationWizard({
                   type="button"
                   onClick={() => void generateCurriculum()}
                   disabled={generating || !step1Valid}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 sm:w-auto"
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 sm:w-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {generating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Wand2 className="h-4 w-4" aria-hidden />}
                   {generating ? genStatus || "Generating…" : "Generate curriculum"}
@@ -441,7 +441,7 @@ export function CourseCreationWizard({
                   type="button"
                   onClick={() => void convertPastedOutline()}
                   disabled={generating || !pastedOutline.trim()}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 sm:w-auto"
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 sm:w-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   {generating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ClipboardPaste className="h-4 w-4" aria-hidden />}
                   {generating ? genStatus || "Converting…" : "Convert outline"}
@@ -480,7 +480,7 @@ export function CourseCreationWizard({
                           return next;
                         })
                       }
-                      className="flex w-full items-center gap-2 text-left"
+                      className="flex w-full items-center gap-2 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {expandedWeeks.has(w.weekNumber) ? (
                         <ChevronDown className="h-3.5 w-3.5 text-fg-muted" aria-hidden />
@@ -512,7 +512,7 @@ export function CourseCreationWizard({
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   <ArrowLeft className="h-4 w-4" aria-hidden /> Back
                 </button>
@@ -521,7 +521,7 @@ export function CourseCreationWizard({
                     type="button"
                     onClick={() => void createCourse(false)}
                     disabled={creating || !step1Valid}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <FileText className="h-4 w-4" aria-hidden />}
                     Save as draft
@@ -530,7 +530,7 @@ export function CourseCreationWizard({
                     type="button"
                     onClick={() => void createCourse(true)}
                     disabled={creating || !step1Valid}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-success px-5 text-sm font-semibold text-white disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-success px-5 text-sm font-semibold text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
                     {creating ? "Creating…" : "Create & publish course"}
@@ -572,7 +572,7 @@ function ModeTab({
       aria-pressed={active}
       className={cn(
         "inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 text-xs font-semibold transition-colors",
-        active ? "bg-brand text-on-brand" : "border border-line bg-surface text-fg-secondary hover:text-fg"
+        active ? "bg-brand text-on-brand" : "border border-line bg-surface text-fg-secondary hover:text-fg", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       )}
     >
       {icon}

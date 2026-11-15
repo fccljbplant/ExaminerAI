@@ -82,7 +82,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
             {/* CTA + price */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Button asChild size="lg">
-                <Link href="/login">
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">
                   {isFree ? "Start free path" : "Enroll in Path"} <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -140,7 +140,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                   </div>
                 )}
                 <Button asChild className="w-full mt-2">
-                  <Link href="/login">{isFree ? "Start free path" : "Enroll in Path"}</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">{isFree ? "Start free path" : "Enroll in Path"}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -185,7 +185,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                               <h3 className="font-semibold text-sm">
                                 <Link
                                   href={`/courses/${c.courseId}`}
-                                  className="hover:underline"
+                                  className="hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                                 >
                                   {c.name}
                                 </Link>
@@ -273,7 +273,7 @@ export default async function LearningPathDetailPage({ params }: Params) {
                 <li>Distinct grade if score ≥ 85</li>
               </ul>
               <Button asChild size="sm" className="w-full mt-3">
-                <Link href="/login">{isFree ? "Start free path" : "Enroll in Path"}</Link>
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">{isFree ? "Start free path" : "Enroll in Path"}</Link>
               </Button>
             </CardContent>
           </Card>

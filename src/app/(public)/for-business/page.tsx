@@ -247,13 +247,13 @@ export default function ForBusinessPage() {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3" id="cta">
               <Button asChild size="lg" className="h-12 px-6 text-base">
-                <Link href="/signup/b2b">
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/signup/b2b">
                   <CalendarClock className="h-4 w-4" />
                   Book a Demo
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                <Link href="/signup/b2b">
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/signup/b2b">
                   <Users className="h-4 w-4" />
                   Start 10-Seat Pilot
                 </Link>
@@ -487,7 +487,7 @@ export default function ForBusinessPage() {
                     variant={tier.highlight ? "default" : "outline"}
                     size="lg"
                   >
-                    <Link href={tier.href}>
+                    <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href={tier.href}>
                       {tier.cta}
                       <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -517,7 +517,7 @@ export default function ForBusinessPage() {
             </h2>
             <p className="mt-3 text-base text-fg-muted">
               Don&apos;t see your question?{" "}
-              <Link href="/signup/b2b" className="text-brand hover:underline">
+              <Link href="/signup/b2b" className="text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 Talk to sales →
               </Link>
             </p>
@@ -562,13 +562,13 @@ export default function ForBusinessPage() {
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg" className="h-12 px-6 text-base">
-              <Link href="/signup/b2b">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/signup/b2b">
                 <CalendarClock className="h-4 w-4" />
                 Book a Demo
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-              <Link href="/signup/b2b">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/signup/b2b">
                 <Users className="h-4 w-4" />
                 Start 10-Seat Pilot
               </Link>
@@ -605,20 +605,20 @@ export default function ForBusinessPage() {
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg" className="h-12 text-base">
-              <Link href="/signup/b2b">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/signup/b2b">
                 <Briefcase className="h-4 w-4 mr-2" />
                 Create Your Org
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-12 text-base">
-              <a href="mailto:sales@traineesai.com?subject=B2B%20Inquiry">
+              <a className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="mailto:sales@traineesai.com?subject=B2B%20Inquiry">
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Email Sales
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-12 text-base">
-              <Link href="/support">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/support">
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Help Center
               </Link>
@@ -639,13 +639,13 @@ export default function ForBusinessPage() {
             <span>© {new Date().getFullYear()} TraineesAI · AI-driven training for engineering teams</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/courses" className="hover:text-fg transition-colors">
+            <Link href="/courses" className="hover:text-fg transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
               Browse Courses
             </Link>
-            <Link href="/for-business" className="hover:text-fg transition-colors">
+            <Link href="/for-business" className="hover:text-fg transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
               For Business
             </Link>
-            <Link href="/login" className="hover:text-fg transition-colors">
+            <Link href="/login" className="hover:text-fg transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
               Sign in
             </Link>
           </div>

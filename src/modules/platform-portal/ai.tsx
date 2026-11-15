@@ -33,7 +33,7 @@ export function PlatformAI() {
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -228,7 +228,7 @@ function OrgBudgetsSection() {
           <button
             type="button"
             onClick={retry}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
             Retry
@@ -291,7 +291,7 @@ function OrgBudgetsSection() {
                 type="button"
                 onClick={() => void save(b.orgId)}
                 disabled={saving === b.orgId}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {saving === b.orgId ? (
                   <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden />

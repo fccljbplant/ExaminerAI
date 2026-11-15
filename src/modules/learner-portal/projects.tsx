@@ -137,7 +137,7 @@ export function LearnerProjects({
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -189,7 +189,7 @@ export function LearnerProjects({
               <Link
                 key={p.id}
                 href={`/learner/projects/${p.id}`}
-                className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle/60"
+                className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <span
                   className={cn(

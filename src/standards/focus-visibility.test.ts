@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import * as ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -46,6 +47,52 @@ function scopedFiles(): { file: string; lines: string[] }[] {
 /** Any visible focus treatment on the same line counts as an indicator. */
 const VISIBLE_FOCUS = /focus-visible:outline|focus-visible:ring|focus:ring-2|focus:ring-inset/;
 
+const SEMANTIC_INTERACTIVE = new Set(["button", "a", "Link"]);
+
+/**
+ * Semantic interactive elements (button/a/Link) must carry a visible
+ * keyboard ring in their own className. Component wrappers (Button,
+ * DropdownMenuItem, chips…) are excluded: their focus lives in the
+ * component definition. A className that is a bare identifier (shared
+ * class constant) is skipped — a known limitation; the constants in use
+ * were verified to contain the ring.
+ */
+function interactiveElementsWithoutRing(): string[] {
+  const offenders: string[] = [];
+  for (const dir of SCOPED_DIRS) {
+    for (const file of collectTsxFiles(join(ROOT, "src", dir))) {
+      if (file.endsWith(".test.tsx")) continue;
+      const src = readFileSync(file, "utf8");
+      const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+      (function walk(node: ts.Node) {
+        if (ts.isJsxOpeningLikeElement(node)) {
+          const tag = node.tagName.getText();
+          if (SEMANTIC_INTERACTIVE.has(tag)) {
+            const cls = node.attributes.properties.find(
+              (a): a is ts.JsxAttribute => ts.isJsxAttribute(a) && a.name.getText() === "className",
+            );
+            if (!cls) {
+              offenders.push(`${file}:<${tag}> no className`);
+            } else if (
+              cls.initializer &&
+              ts.isJsxExpression(cls.initializer) &&
+              cls.initializer.expression &&
+              ts.isIdentifier(cls.initializer.expression)
+            ) {
+              // shared class constant — skipped (see docblock)
+            } else if (!cls.getText().includes("focus-visible:")) {
+              const { line } = sf.getLineAndCharacterOfPosition(node.getStart());
+              offenders.push(`${file}:${line + 1} <${tag}>`);
+            }
+          }
+        }
+        ts.forEachChild(node, walk);
+      })(sf);
+    }
+  }
+  return offenders;
+}
+
 describe("focus visibility standard (UI-STANDARDS §0 rule 12)", () => {
   it("keeps the border-focus pattern paired with a visible keyboard ring", () => {
     const offenders = scopedFiles().flatMap(({ file, lines }) =>
@@ -69,5 +116,10 @@ describe("focus visibility standard (UI-STANDARDS §0 rule 12)", () => {
     );
 
     expect(offenders, `focus:outline-none needs a visible ring/outline on the same line:\n${offenders.join("\n")}`).toEqual([]);
+  });
+
+  it("gives every semantic interactive element (button/a/Link) a visible keyboard ring", () => {
+    const offenders = interactiveElementsWithoutRing();
+    expect(offenders, `interactive elements missing focus rings:\n${offenders.join("\n")}`).toEqual([]);
   });
 });

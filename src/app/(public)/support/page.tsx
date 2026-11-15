@@ -21,18 +21,18 @@ export default function SupportPage() {
     <div className="min-h-screen bg-bg text-fg">
       <nav className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <GraduationCap className="h-5 w-5" />
             </div>
             TraineesAI
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/for-business" className="text-fg-muted hover:text-fg">For Teams</Link>
-            <Link href="/for-learners" className="text-fg-muted hover:text-fg">For Learners</Link>
-            <Link href="/pricing" className="text-fg-muted hover:text-fg">Pricing</Link>
+            <Link href="/for-business" className="text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">For Teams</Link>
+            <Link href="/for-learners" className="text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">For Learners</Link>
+            <Link href="/pricing" className="text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Pricing</Link>
           </div>
-          <Button asChild size="sm"><Link href="/login">Sign In</Link></Button>
+          <Button asChild size="sm"><Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">Sign In</Link></Button>
         </div>
       </nav>
 
@@ -68,7 +68,7 @@ export default function SupportPage() {
               <p className="text-sm text-fg-muted mb-4">
                 Stuck on something? Send us a message — we respond within 24 hours.
               </p>
-              <a href="mailto:support@traineesai.com" className="text-sm text-brand hover:underline">
+              <a href="mailto:support@traineesai.com" className="text-sm text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 support@traineesai.com →
               </a>
             </CardContent>
@@ -87,7 +87,7 @@ export default function SupportPage() {
                 Talk to our team about your training needs — for teams or individual learners.
               </p>
               <Button asChild size="sm" variant="outline">
-                <Link href="/for-business">Book a Demo <ArrowRight className="h-3 w-3 ml-1" /></Link>
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-business">Book a Demo <ArrowRight className="h-3 w-3 ml-1" /></Link>
               </Button>
             </CardContent>
           </Card>
@@ -105,9 +105,9 @@ export default function SupportPage() {
                 Technical docs, API reference, and guides for developers and admins.
               </p>
               <div className="space-y-1 text-sm">
-                <Link href="/docs/BLUEPRINT" className="block text-brand hover:underline">Product Blueprint →</Link>
-                <Link href="/docs/ARCHITECTURE" className="block text-brand hover:underline">Architecture →</Link>
-                <Link href="/docs/UI-STANDARDS" className="block text-brand hover:underline">UI Standards →</Link>
+                <Link href="/docs/BLUEPRINT" className="block text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Product Blueprint →</Link>
+                <Link href="/docs/ARCHITECTURE" className="block text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Architecture →</Link>
+                <Link href="/docs/UI-STANDARDS" className="block text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">UI Standards →</Link>
               </div>
             </CardContent>
           </Card>
@@ -149,7 +149,7 @@ export default function SupportPage() {
                 <h3 className="font-bold text-lg">For Teams</h3>
                 <p className="mt-1 text-sm text-fg-muted">Need to train 10+ engineers? Get a demo + pilot.</p>
                 <Button asChild className="mt-4" size="sm">
-                  <Link href="/for-business">Book a Demo <ArrowRight className="h-3 w-3 ml-1" /></Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-business">Book a Demo <ArrowRight className="h-3 w-3 ml-1" /></Link>
                 </Button>
               </CardContent>
             </Card>
@@ -159,7 +159,7 @@ export default function SupportPage() {
                 <h3 className="font-bold text-lg">For Learners</h3>
                 <p className="mt-1 text-sm text-fg-muted">Individual learner? Start free in under a minute.</p>
                 <Button asChild variant="outline" className="mt-4" size="sm">
-                  <Link href="/for-learners">Start Free <ArrowRight className="h-3 w-3 ml-1" /></Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-learners">Start Free <ArrowRight className="h-3 w-3 ml-1" /></Link>
                 </Button>
               </CardContent>
             </Card>

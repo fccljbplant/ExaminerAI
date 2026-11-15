@@ -275,7 +275,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
         <button
           type="button"
           onClick={retry}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-bg-subtle px-4 text-sm font-medium text-fg hover:border-line-strong"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-bg-subtle px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -291,7 +291,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs text-fg-muted">
-              <Link href="/learner/assignments" className="hover:text-fg">
+              <Link href="/learner/assignments" className="hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 Assignments
               </Link>{" "}
               · {data.courseName ?? "Course"}
@@ -541,7 +541,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
             <button
               type="button"
               onClick={() => setStep((s) => (s as number) - 1)}
-              className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong"
+              className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden />
               Back
@@ -551,7 +551,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Start your work
               <ArrowRight className="h-4 w-4" aria-hidden />
@@ -562,7 +562,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
               type="button"
               onClick={() => setStep(2)}
               disabled={missing.length > 0}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Review
               <ArrowRight className="h-4 w-4" aria-hidden />
@@ -573,7 +573,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
               type="button"
               onClick={handleSubmit}
               disabled={submitting || missing.length > 0}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {submitting ? "Submitting…" : resubmitMode ? "Resubmit" : "Submit"}
               <CloudUpload className="h-4 w-4" aria-hidden />
@@ -583,7 +583,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
             <>
               <Link
                 href="/learner/assignments"
-                className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong"
+                className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Back to assignments
               </Link>
@@ -594,7 +594,7 @@ export function SubmissionFlow({ assignmentId }: { assignmentId: string }) {
                     setResubmitMode(true);
                     setStep(1);
                   }}
-                  className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover"
+                  className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   Edit and resubmit
                 </button>
@@ -902,7 +902,7 @@ function ChecklistEditor({
             type="button"
             onClick={() => onChange(items.filter((_, j) => j !== i))}
             aria-label={`Remove "${item.label}"`}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
@@ -926,7 +926,7 @@ function ChecklistEditor({
           type="button"
           onClick={add}
           disabled={!draft.trim()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line bg-bg-subtle text-fg hover:border-line-strong disabled:opacity-50"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line bg-bg-subtle text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           aria-label="Add step"
         >
           <Plus className="h-4 w-4" aria-hidden />

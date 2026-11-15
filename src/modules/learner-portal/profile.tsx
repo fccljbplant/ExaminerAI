@@ -318,7 +318,7 @@ function SecurityCard({ user }: { user: ProfileInfo }) {
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle disabled:opacity-60"
+          className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle disabled:opacity-60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {busy ? "Saving…" : "Change password"}
         </button>
@@ -387,7 +387,7 @@ function SecurityQuestionCard() {
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle disabled:opacity-60"
+          className="inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle disabled:opacity-60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {busy ? "Saving…" : "Save security question"}
         </button>
@@ -404,7 +404,7 @@ function HelpCard() {
       </p>
       <Link
         href="/learner/help"
-        className="mt-3 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+        className="mt-3 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         Open help center
       </Link>
@@ -432,7 +432,7 @@ function SignOutCard() {
         type="button"
         onClick={signOut}
         disabled={busy}
-        className="mt-3 inline-flex h-11 items-center gap-2 rounded-lg border border-danger/40 px-4 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle disabled:opacity-60"
+        className="mt-3 inline-flex h-11 items-center gap-2 rounded-lg border border-danger/40 px-4 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle disabled:opacity-60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <LogOut className="h-4 w-4" aria-hidden />
         {busy ? "Signing out…" : "Sign out"}

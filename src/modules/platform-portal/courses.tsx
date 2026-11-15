@@ -63,7 +63,7 @@ export function PlatformCourses() {
       <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
         <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
         {error}
-        <button type="button" onClick={retry} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+        <button type="button" onClick={retry} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
           <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
         </button>
       </div>
@@ -80,7 +80,7 @@ export function PlatformCourses() {
         <h1 className="text-lg font-semibold text-fg md:text-xl">Courses</h1>
         <Link
           href="/platform/courses/planner"
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <Wand2 className="h-4 w-4" aria-hidden />
           Course planner
@@ -171,7 +171,7 @@ function Toggle({
         "inline-flex min-h-9 items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50",
         on
           ? "bg-brand-subtle text-brand"
-          : "border border-line bg-bg-subtle text-fg-muted hover:border-line-strong hover:text-fg"
+          : "border border-line bg-bg-subtle text-fg-muted hover:border-line-strong hover:text-fg", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       )}
     >
       {busy ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> : null}

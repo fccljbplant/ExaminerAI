@@ -99,7 +99,7 @@ export function OrgRegistries() {
         <button
           type="button"
           onClick={() => setShowAdd((v) => !v)}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {showAdd ? (
             <>
@@ -125,8 +125,8 @@ export function OrgRegistries() {
             aria-pressed={kind === k.key}
             className={
               kind === k.key
-                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand"
-                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong"
+                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             }
           >
             {k.label}
@@ -167,7 +167,7 @@ export function OrgRegistries() {
           <button
             type="submit"
             disabled={saving}
-            className="flex h-11 items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {saving ? "Saving…" : "Add row"}
           </button>
@@ -184,7 +184,7 @@ export function OrgRegistries() {
           <button
             type="button"
             onClick={retry}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Retry
@@ -221,8 +221,8 @@ export function OrgRegistries() {
                   onClick={() => toggle(row)}
                   className={
                     row.isActive
-                      ? "relative h-7 w-12 shrink-0 rounded-full bg-brand transition-colors"
-                      : "relative h-7 w-12 shrink-0 rounded-full bg-bg-subtle transition-colors"
+                      ? "relative h-7 w-12 shrink-0 rounded-full bg-brand transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      : "relative h-7 w-12 shrink-0 rounded-full bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   }
                 >
                   <span

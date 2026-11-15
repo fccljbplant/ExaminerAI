@@ -138,19 +138,19 @@ export default function CourseProgressPreview({ courseId }: { courseId: string }
         <div className="flex flex-wrap gap-2 pt-1">
           {data.hasCertificate ? (
             <Button asChild size="sm" className="flex-1">
-              <Link href="/app?view=credentials">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/app?view=credentials">
                 <Trophy className="h-3.5 w-3.5" /> View your certificate
               </Link>
             </Button>
           ) : data.certificateEligible ? (
             <Button asChild size="sm" className="flex-1">
-              <Link href="/app?view=credentials">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/app?view=credentials">
                 <Award className="h-3.5 w-3.5" /> Claim your certificate
               </Link>
             </Button>
           ) : (
             <Button asChild size="sm" className="flex-1">
-              <Link href="/login">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">
                 {isComplete ? "Review Course" : "Continue Learning"}
                 <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Link>

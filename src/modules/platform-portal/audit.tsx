@@ -73,7 +73,7 @@ export function PlatformAudit() {
               not just the client-visible page. */}
           <a
             href="/api/v2/platform/audit/export"
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <Download className="h-4 w-4" aria-hidden />
             Server export
@@ -82,7 +82,7 @@ export function PlatformAudit() {
             type="button"
             onClick={exportCsv}
             disabled={!data || data.items.length === 0}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <Download className="h-4 w-4" aria-hidden />
             Export CSV
@@ -108,8 +108,8 @@ export function PlatformAudit() {
             aria-pressed={action === a.key}
             className={
               action === a.key
-                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand"
-                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong"
+                ? "shrink-0 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                : "shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             }
           >
             {a.label}
@@ -128,7 +128,7 @@ export function PlatformAudit() {
           <button
             type="button"
             onClick={retry}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Retry
@@ -150,7 +150,7 @@ export function PlatformAudit() {
                 type="button"
                 onClick={() => setExpanded(expanded === r.id ? null : r.id)}
                 aria-expanded={expanded === r.id}
-                className="flex min-h-12 w-full items-center gap-3 text-left"
+                className="flex min-h-12 w-full items-center gap-3 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-fg">{r.action}</p>

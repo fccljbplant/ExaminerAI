@@ -118,7 +118,7 @@ export default function MarketplaceCourseCard({
             )}
           </div>
           <Button asChild size="sm">
-            <Link href={`/courses/${course.id}`}>{ctaLabel}</Link>
+            <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href={`/courses/${course.id}`}>{ctaLabel}</Link>
           </Button>
         </div>
       </CardContent>

@@ -23,7 +23,7 @@ export default function RootNotFound() {
       {/* Minimal header — logo only, no nav */}
       <header className="border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-center">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
+          <Link href="/" className="flex items-center gap-2 font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <Sparkles className="h-5 w-5 text-primary" />
             <span>TraineesAI</span>
           </Link>
@@ -60,19 +60,19 @@ export default function RootNotFound() {
           {/* CTAs — recovery links for lost users */}
           <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
             <Button asChild>
-              <Link href="/learn">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/learn">
                 <ArrowRight className="h-4 w-4" />
                 Go to my learning
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/login">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">
                 <LogIn className="h-4 w-4" />
                 Sign in
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/courses">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">
                 <GraduationCap className="h-4 w-4" />
                 Browse Courses
               </Link>

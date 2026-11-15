@@ -378,7 +378,7 @@ export function CoursePlanner({
               <button
                 type="button"
                 onClick={addWeek}
-                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-line px-2 text-xs font-semibold text-fg hover:border-line-strong"
+                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-line px-2 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden /> Add week
               </button>
@@ -396,7 +396,7 @@ export function CoursePlanner({
                         return next;
                       })
                     }
-                    className="flex w-full items-center gap-2 text-left"
+                    className="flex w-full items-center gap-2 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     {expandedWeeks.has(w.weekNumber) ? (
                       <ChevronDown className="h-3.5 w-3.5 text-fg-muted" aria-hidden />
@@ -414,7 +414,7 @@ export function CoursePlanner({
                         removeWeek(w.weekNumber);
                       }}
                       aria-label={`Delete week ${w.weekNumber}`}
-                      className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger"
+                      className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden />
                     </button>
@@ -436,7 +436,7 @@ export function CoursePlanner({
               type="button"
               onClick={() => void save()}
               disabled={saving || !form.name.trim()}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Save className="h-4 w-4" aria-hidden />}
               {saving ? "Saving…" : "Save course"}
@@ -460,7 +460,7 @@ export function CoursePlanner({
         <button
           type="button"
           onClick={() => setView("generate")}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <Sparkles className="h-4 w-4" aria-hidden />
           Generate with AI
@@ -471,7 +471,7 @@ export function CoursePlanner({
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
           <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
           {error}
-          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
           </button>
         </div>
@@ -512,7 +512,7 @@ export function CoursePlanner({
               <button
                 type="button"
                 onClick={() => void openEdit(c)}
-                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <Pencil className="h-3.5 w-3.5" aria-hidden />
                 Edit
@@ -560,7 +560,7 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
         type="button"
         onClick={onBack}
         aria-label="Back to course list"
-        className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle"
+        className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
       </button>
@@ -724,7 +724,7 @@ function AITools({
         <button
           type="submit"
           disabled={busy === "material" || !materialTitle.trim()}
-          className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+          className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {busy === "material" && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
           {materialKind === "text" ? "Add material" : "Upload file"}
@@ -752,7 +752,7 @@ function AITools({
             type="button"
             onClick={() => void generateQuiz()}
             disabled={busy === "quiz" || !module}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50"
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {busy === "quiz" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <Wand2 className="h-3.5 w-3.5" aria-hidden />}
             Generate
@@ -767,7 +767,7 @@ function AITools({
           type="button"
           onClick={() => void reindex()}
           disabled={busy === "reindex"}
-          className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50"
+          className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {busy === "reindex" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <RefreshCw className="h-3.5 w-3.5" aria-hidden />}
           Reindex
@@ -857,7 +857,7 @@ function ThumbnailEditor({
             <button
               type="button"
               onClick={() => onChange(null)}
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-muted hover:border-danger hover:text-danger"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-muted hover:border-danger hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
               Clear
@@ -883,7 +883,7 @@ function ThumbnailEditor({
         <button
           type="button"
           onClick={() => refreshImages(search)}
-          className="inline-flex h-11 shrink-0 items-center rounded-lg border border-line bg-bg-subtle px-3 text-xs font-semibold text-fg hover:border-line-strong"
+          className="inline-flex h-11 shrink-0 items-center rounded-lg border border-line bg-bg-subtle px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Refresh
         </button>
@@ -900,7 +900,7 @@ function ThumbnailEditor({
               }}
               className={cn(
                 "aspect-video overflow-hidden rounded-md border-2 transition-colors",
-                currentUrl === url ? "border-brand" : "border-transparent hover:border-line-strong"
+                currentUrl === url ? "border-brand" : "border-transparent hover:border-line-strong", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               )}
             >
               <img src={url} alt="" className="h-full w-full object-cover" />

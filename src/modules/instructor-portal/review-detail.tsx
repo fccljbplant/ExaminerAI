@@ -159,7 +159,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
         <button
           type="button"
           onClick={retry}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-bg-subtle px-4 text-sm font-medium text-fg hover:border-line-strong"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-bg-subtle px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -253,7 +253,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs text-fg-muted">
-              <Link href="/instructor/review" className="hover:text-fg">
+              <Link href="/instructor/review" className="hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 Review
               </Link>{" "}
               · {data.assignment.courseName ?? "Course"}
@@ -300,7 +300,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
               type="button"
               onClick={runAiDraft}
               disabled={aiBusy || !activeReview}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {aiBusy ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -327,7 +327,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
               type="button"
               onClick={saveGrade}
               disabled={savingGrade || entries.length === 0}
-              className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+              className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {savingGrade ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -426,7 +426,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
               type="button"
               onClick={() => decide("approve")}
               disabled={decisionBusy}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-success px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-success px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {decisionBusy ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -439,7 +439,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
               type="button"
               onClick={() => setChangeSheet(true)}
               disabled={decisionBusy}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <Undo2 className="h-4 w-4" aria-hidden />
               Request changes
@@ -449,7 +449,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
                 type="button"
                 onClick={() => decide("signoff")}
                 disabled={decisionBusy}
-                className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50"
+                className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {data.signOffs.length > 0 ? "Sign off" : "Sign off"}
               </button>
@@ -478,7 +478,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
             type="button"
             onClick={() => decide("request_changes")}
             disabled={decisionBusy || !changeText.trim()}
-            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-warning px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {decisionBusy ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -492,7 +492,7 @@ export function ReviewDetail({ submissionId }: { submissionId: string }) {
 
       <Link
         href="/instructor/review"
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Back to queue

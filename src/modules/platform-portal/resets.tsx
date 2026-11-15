@@ -68,7 +68,7 @@ export function PlatformResets() {
               status === s
                 ? "bg-brand text-on-brand"
                 : "border border-line bg-surface text-fg-secondary hover:text-fg"
-            }`}
+            }focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus`}
           >
             {s}
           </button>
@@ -81,7 +81,7 @@ export function PlatformResets() {
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
           <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
           {error}
-          <button type="button" onClick={retry} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+          <button type="button" onClick={retry} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
           </button>
         </div>
@@ -128,7 +128,7 @@ export function PlatformResets() {
                     <button
                       type="button"
                       onClick={() => void approve(r.id)}
-                      className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand/90"
+                      className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       <KeyRound className="h-3.5 w-3.5" aria-hidden /> Approve
                     </button>
@@ -141,7 +141,7 @@ export function PlatformResets() {
                       setTempPassword("");
                       setNote("");
                     }}
-                    className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle"
+                    className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     <KeyRound className="h-3.5 w-3.5" aria-hidden /> Set password
                   </button>

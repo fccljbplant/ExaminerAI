@@ -163,7 +163,7 @@ export function ROICalculator() {
 
             {/* CTA */}
             <Button asChild size="lg" className="w-full">
-              <Link href="/signup/b2b">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/signup/b2b">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Start Saving — Create Your Org
                 <ArrowRight className="h-4 w-4 ml-2" />

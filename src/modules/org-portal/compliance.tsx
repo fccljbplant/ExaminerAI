@@ -68,7 +68,7 @@ export function OrgCompliance() {
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -225,7 +225,7 @@ function MemberList({
             type="button"
             disabled={nudging === busyKey(m)}
             onClick={() => onNudge(m)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-xs font-medium text-fg-secondary transition-colors hover:border-line-strong disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <BellRing className="h-3.5 w-3.5" aria-hidden />
             {nudging === busyKey(m) ? "Sending…" : "Nudge"}

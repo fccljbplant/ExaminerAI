@@ -45,7 +45,7 @@ export default async function PathsPage() {
             <RouteIcon className="h-10 w-10 mx-auto text-fg-muted mb-3" />
             <h2 className="text-lg font-semibold">No learning paths yet</h2>
             <p className="text-sm text-fg-muted mt-1">We're curating career tracks. Check back soon!</p>
-            <Button asChild variant="outline" size="sm" className="mt-4"><Link href="/courses">Browse Individual Courses</Link></Button>
+            <Button asChild variant="outline" size="sm" className="mt-4"><Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Browse Individual Courses</Link></Button>
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -67,7 +67,7 @@ export default async function PathsPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-line mt-auto">
                     <span className="text-base font-semibold">{path.price === 0 ? <span className="text-growth-sage">Free</span> : formatPrice(path.price, path.currency)}</span>
-                    <Button asChild size="sm"><Link href={`/paths/${path.id}`}>View Path</Link></Button>
+                    <Button asChild size="sm"><Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href={`/paths/${path.id}`}>View Path</Link></Button>
                   </div>
                 </CardContent>
               </Card>

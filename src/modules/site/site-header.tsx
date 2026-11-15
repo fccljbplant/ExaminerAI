@@ -79,7 +79,7 @@ function SearchForm({ className = "" }: { className?: string }) {
         />
         <button
           type="submit"
-          className="mr-1 inline-flex h-8 shrink-0 items-center rounded-full bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover"
+          className="mr-1 inline-flex h-8 shrink-0 items-center rounded-full bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Search
         </button>
@@ -110,7 +110,7 @@ export function SiteHeader({
       {/* ── Main header ──────────────────────────────────────── */}
       <header className="sticky top-0 z-[var(--p-z-sticky)] border-b border-line bg-surface/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-bold text-fg">
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-bold text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <GraduationCap className="h-5 w-5" aria-hidden />
             </span>
@@ -123,7 +123,7 @@ export function SiteHeader({
               <Link
                 key={l.href}
                 href={l.href}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {l.label}
               </Link>
@@ -137,17 +137,17 @@ export function SiteHeader({
           <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
             {signedIn ? (
               <Button asChild size="sm">
-                <Link href={dashboardHref}>
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href={dashboardHref}>
                   Dashboard <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden />
                 </Link>
               </Button>
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
-                  <Link href="/login">Sign in</Link>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">Sign in</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link href="/for-learners">
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-learners">
                     Start Free <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden />
                   </Link>
                 </Button>
@@ -161,7 +161,7 @@ export function SiteHeader({
               aria-expanded={menuOpen}
               aria-controls="site-mobile-menu"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg lg:hidden focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {menuOpen ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
             </button>
@@ -173,7 +173,7 @@ export function SiteHeader({
           <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
             <Link
               href="/courses"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-xs font-semibold text-on-brand"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-xs font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <PackageOpen className="h-3.5 w-3.5" aria-hidden />
               All Courses
@@ -185,7 +185,7 @@ export function SiteHeader({
               <Link
                 key={c.value}
                 href={`/courses/category/${c.value}`}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <CategoryIcon category={c.value} />
                 {c.label}
@@ -208,7 +208,7 @@ export function SiteHeader({
                 key={l.href}
                 href={l.href}
                 onClick={() => setMenuOpen(false)}
-                className="flex min-h-12 items-center rounded-lg px-3 text-base font-medium text-fg transition-colors hover:bg-bg-subtle"
+                className="flex min-h-12 items-center rounded-lg px-3 text-base font-medium text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {l.label}
               </Link>
@@ -216,19 +216,19 @@ export function SiteHeader({
             <div className="flex flex-col gap-2 pt-4">
               {signedIn ? (
                 <Button asChild>
-                  <Link href={dashboardHref} onClick={() => setMenuOpen(false)}>
+                  <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href={dashboardHref} onClick={() => setMenuOpen(false)}>
                     Dashboard
                   </Link>
                 </Button>
               ) : (
                 <>
                   <Button asChild variant="outline">
-                    <Link href="/login" onClick={() => setMenuOpen(false)}>
+                    <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login" onClick={() => setMenuOpen(false)}>
                       Sign in
                     </Link>
                   </Button>
                   <Button asChild>
-                    <Link href="/for-learners" onClick={() => setMenuOpen(false)}>
+                    <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/for-learners" onClick={() => setMenuOpen(false)}>
                       Start Free
                     </Link>
                   </Button>

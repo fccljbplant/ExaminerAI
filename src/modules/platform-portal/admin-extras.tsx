@@ -99,7 +99,7 @@ export function HomeOverview({ data }: { data: OverviewData }) {
                 <a
                   key={a.label}
                   href={a.href}
-                  className="flex min-h-12 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle"
+                  className="flex min-h-12 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   <span className="text-sm font-medium text-fg">{a.label}</span>
                   <span className="rounded-full bg-warning-subtle px-2 py-0.5 text-xs font-semibold tabular-nums text-warning-on">
@@ -233,7 +233,7 @@ export function AILimitsCard() {
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-fg">
           <AlertTriangle className="h-4 w-4 text-danger" aria-hidden />
           {error}
-          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle">
+          <button type="button" onClick={() => void load()} className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Retry
           </button>
         </div>
@@ -274,7 +274,7 @@ export function AILimitsCard() {
             type="button"
             onClick={() => void save()}
             disabled={saving}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Zap className="h-4 w-4" aria-hidden />}
             Save limits
@@ -344,7 +344,7 @@ export function AIConnectionCard() {
             type="button"
             onClick={() => void test()}
             disabled={busy}
-            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <KeyRound className="h-4 w-4" aria-hidden />}
             Test connection
@@ -541,7 +541,7 @@ export function CacheStatsCard() {
                       type="button"
                       onClick={() => void clear(n.namespace)}
                       disabled={clearing !== null}
-                      className="shrink-0 rounded-md px-1.5 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger disabled:opacity-50"
+                      className="shrink-0 rounded-md px-1.5 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {clearing === n.namespace ? "…" : "Clear"}
                     </button>
@@ -555,7 +555,7 @@ export function CacheStatsCard() {
             type="button"
             onClick={() => void clear()}
             disabled={clearing !== null}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {clearing === "memory" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <UserCheck className="h-3.5 w-3.5" aria-hidden />}
             Clear response cache

@@ -46,7 +46,7 @@ export default async function OrgPortalLayout({ children }: { children: ReactNod
           </p>
           <a
             href="/api/auth/logout"
-            className="inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+            className="inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             Sign out
           </a>

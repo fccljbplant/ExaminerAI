@@ -41,7 +41,7 @@ export default function CoursePreviewSection({ courseId }: { courseId: string })
       <div className="rounded-xl border border-brand/30 bg-brand-subtle overflow-hidden">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between p-5 text-left"
+          className="w-full flex items-center justify-between p-5 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-brand/15 flex items-center justify-center">
@@ -101,7 +101,7 @@ export default function CoursePreviewSection({ courseId }: { courseId: string })
                 Like what you see? Enroll to access all {preview.totalDays} lessons across {preview.totalWeeks} weeks.
               </p>
               <Button asChild size="sm">
-                <a href="#enroll">Enroll Now</a>
+                <a className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="#enroll">Enroll Now</a>
               </Button>
             </div>
           </div>

@@ -66,7 +66,7 @@ export function InstructorHome() {
         <button
           type="button"
           onClick={retry}
-          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <RefreshCw className="h-4 w-4" aria-hidden />
           Retry
@@ -112,7 +112,7 @@ export function InstructorHome() {
             </h2>
             <Link
               href="/instructor/review"
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               Open queue
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -161,7 +161,7 @@ export function InstructorHome() {
                 <Link
                   key={s.id}
                   href={`/instructor/students/${s.id}`}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle"
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-fg">{s.name}</p>
@@ -176,7 +176,7 @@ export function InstructorHome() {
           )}
           <Link
             href="/instructor/students"
-            className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg"
+            className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             View all students
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -195,7 +195,7 @@ export function InstructorHome() {
             <Link
               key={m.id}
               href={m.href}
-              className="flex min-h-14 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong"
+              className="flex min-h-14 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               {Icon && <Icon className="h-4 w-4 text-fg-muted" aria-hidden />}
               {m.label}

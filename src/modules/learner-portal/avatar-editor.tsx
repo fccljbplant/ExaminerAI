@@ -195,7 +195,7 @@ export function AvatarEditor({ initial, badgeIcon, onChange }: AvatarEditorProps
               type="button"
               onClick={() => void remove()}
               disabled={busy}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-fg hover:border-danger hover:text-danger disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-fg hover:border-danger hover:text-danger disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <Trash2 className="h-4 w-4" aria-hidden />
               Remove
@@ -218,7 +218,7 @@ export function AvatarEditor({ initial, badgeIcon, onChange }: AvatarEditorProps
                 type="button"
                 onClick={() => setEditing(false)}
                 aria-label="Close cropper"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-fg"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>
@@ -251,7 +251,7 @@ export function AvatarEditor({ initial, badgeIcon, onChange }: AvatarEditorProps
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-line text-sm font-semibold text-fg hover:bg-bg-subtle"
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-line text-sm font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Cancel
               </button>
@@ -259,7 +259,7 @@ export function AvatarEditor({ initial, badgeIcon, onChange }: AvatarEditorProps
                 type="button"
                 onClick={() => void save()}
                 disabled={busy}
-                className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand text-sm font-semibold text-on-brand disabled:opacity-50"
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand text-sm font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
                 Save

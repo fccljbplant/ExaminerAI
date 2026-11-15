@@ -27,20 +27,20 @@ export default function ForLearnersPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <GraduationCap className="h-5 w-5" />
             </div>
             TraineesAI
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/for-business" className="text-fg-muted hover:text-fg">For Teams</Link>
-            <Link href="/courses" className="text-fg-muted hover:text-fg">Courses</Link>
-            <Link href="/pricing" className="text-fg-muted hover:text-fg">Pricing</Link>
-            <Link href="/support" className="text-fg-muted hover:text-fg">Support</Link>
+            <Link href="/for-business" className="text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">For Teams</Link>
+            <Link href="/courses" className="text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Courses</Link>
+            <Link href="/pricing" className="text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Pricing</Link>
+            <Link href="/support" className="text-fg-muted hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">Support</Link>
           </div>
           <Button asChild size="sm">
-            <Link href="/login">Start Free <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+            <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/login">Start Free <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
           </Button>
         </div>
       </nav>
@@ -67,14 +67,14 @@ export default function ForLearnersPage() {
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild size="lg" className="h-12 text-base">
-                <Link href="/app?view=signup">
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/app?view=signup">
                   <Sparkles className="h-4 w-4 mr-2" />
                   Start Free — No Credit Card
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 text-base">
-                <Link href="/courses">Browse Courses</Link>
+                <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/courses">Browse Courses</Link>
               </Button>
             </div>
             <p className="mt-4 text-xs text-fg-muted">
@@ -144,14 +144,14 @@ export default function ForLearnersPage() {
             <h2 className="text-3xl sm:text-4xl font-bold">Start free. Upgrade when you're ready.</h2>
             <p className="mt-4 text-fg-muted">No credit card to start. No lock-in. Cancel anytime.</p>
             <Button asChild size="lg" className="mt-8 h-12 text-base">
-              <Link href="/app?view=signup">
+              <Link className="focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" href="/app?view=signup">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Create Your Free Account
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
             <p className="mt-4 text-xs text-fg-muted">
-              <Link href="/pricing" className="text-brand hover:underline">See pricing →</Link>
+              <Link href="/pricing" className="text-brand hover:underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">See pricing →</Link>
             </p>
           </div>
         </div>
