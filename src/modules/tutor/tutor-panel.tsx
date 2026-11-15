@@ -12,8 +12,8 @@
  * status line (P6 §4), and every gesture has a button equivalent.
  */
 
-import { useEffect, useRef, useState } from "react";
-import { MoveHorizontal, Send, Sparkles, SquarePen, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MoveHorizontal, Send, Sparkles, Square, SquarePen, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBreakpoint } from "@/modules/shell";
 import { useTutorChat } from "./use-tutor-chat";
@@ -32,6 +32,47 @@ const QUICK_PROMPTS = [
   "Plan my next 15 minutes",
 ];
 
+/** Completed exchanges are announced politely, clipped so a long reply
+ *  doesn't monopolize the screen reader. */
+const LIVE_CLIP = 200;
+
+export function clipForLive(text: string, max: number = LIVE_CLIP): string {
+  const t = text.trim();
+  return t.length <= max ? t : `${t.slice(0, max)}…`;
+}
+
+const TABBABLE = [
+  "a[href]",
+  "button:not([disabled])",
+  "textarea:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+/**
+ * Modal focus trap for the xs full-screen dialog: keeps Tab (and
+ * Shift+Tab) cycling inside the panel. Returns true when the event was
+ * handled (the caller should preventDefault).
+ */
+function trapTab(panel: HTMLElement, shiftKey: boolean): boolean {
+  const focusables = Array.from(panel.querySelectorAll<HTMLElement>(TABBABLE)).filter(
+    (el) => el.offsetParent !== null || el === document.activeElement,
+  );
+  if (focusables.length === 0) return true; // nothing to cycle to — swallow Tab
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (shiftKey && document.activeElement === first) {
+    last.focus();
+    return true;
+  }
+  if (!shiftKey && document.activeElement === last) {
+    first.focus();
+    return true;
+  }
+  return false;
+}
+
 export interface TutorPanelProps {
   open: boolean;
   onClose: () => void;
@@ -47,11 +88,13 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
   const bp = useBreakpoint();
   const fullScreen = bp === "xs";
   const state = useTutorStore((s) => s.state);
-  const { messages, streamText, streaming, error, ask, clear } = useTutorChat(surface);
+  const { messages, streamText, streaming, error, ask, retry, clear, cancel } = useTutorChat(surface);
 
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
 
   // Keep the latest message in view while streaming.
   useEffect(() => {
@@ -59,20 +102,50 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages.length, streamText, open]);
 
+  // Announce completed exchanges only — the streaming bubble renders
+  // outside any live region so token chunks aren't re-announced. The
+  // header status line covers thinking/replying state separately.
+  // Derived, not state: the live region fires when the text changes.
+  const liveMsg = useMemo(() => {
+    if (messages.length === 0) return "";
+    const last = messages[messages.length - 1];
+    return `${last.role === "user" ? "You asked" : "Tutor replied"}: ${clipForLive(last.content)}`;
+  }, [messages]);
+
   // Focus the composer when the panel opens.
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  // Esc closes (both docked and full-screen).
+  // Esc closes (both docked and full-screen). The xs full-screen dialog
+  // is modal (aria-modal), so Tab is trapped inside it; on close, focus
+  // goes back to what opened us (the FAB) — but only if the user hasn't
+  // deliberately moved focus elsewhere.
   useEffect(() => {
     if (!open) return;
+    restoreFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (fullScreen && e.key === "Tab" && panelRef.current) {
+        if (trapTab(panelRef.current, e.shiftKey)) e.preventDefault();
+      }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      const restore = restoreFocusRef.current;
+      const current = document.activeElement;
+      const focusInsidePanel =
+        current instanceof Node && panelRef.current?.contains(current) === true;
+      if (restore && document.body.contains(restore) && (focusInsidePanel || current === document.body)) {
+        restore.focus();
+      }
+    };
+  }, [open, onClose, fullScreen]);
 
   const submit = (text: string) => {
     if (!text.trim() || streaming) return;
@@ -80,8 +153,17 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
     void ask(text);
   };
 
+  /** New conversation — confirm first when there is a chat to lose. */
+  const onClear = () => {
+    if (messages.length > 0 && !window.confirm("Start a new conversation? The current chat will be cleared.")) {
+      return;
+    }
+    clear();
+  };
+
   return (
     <section
+      ref={panelRef}
       role="dialog"
       aria-modal={fullScreen}
       aria-label="AI tutor chat"
@@ -119,7 +201,7 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
         </button>
         <button
           type="button"
-          onClick={clear}
+          onClick={onClear}
           title="Start a new conversation"
           aria-label="Start a new conversation"
           className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
@@ -136,8 +218,14 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
         </button>
       </header>
 
+      {/* Completed-exchange announcements (the scroller itself is NOT a
+          live region — streaming chunks would be re-announced). */}
+      <p aria-live="polite" className="sr-only">
+        {liveMsg}
+      </p>
+
       {/* messages */}
-      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-3" aria-live="polite">
+      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-3">
         {messages.length === 0 && !streaming && (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand/10 text-brand">
@@ -190,9 +278,19 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
         {error && (
           <div
             role="alert"
-            className="rounded-xl border border-danger/30 bg-danger-subtle px-3 py-2 text-xs text-danger"
+            className="flex flex-wrap items-center gap-2 rounded-xl border border-danger/30 bg-danger-subtle px-3 py-2 text-xs text-danger"
           >
-            Couldn&apos;t reach the tutor: {error}. Please try again in a moment.
+            <p className="min-w-0 flex-1">
+              Couldn&apos;t reach the tutor: {error}. Your question is saved —
+              retry when you&apos;re ready.
+            </p>
+            <button
+              type="button"
+              onClick={() => void retry()}
+              className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-danger/40 px-3 text-xs font-semibold text-danger hover:bg-danger/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            >
+              Retry
+            </button>
           </div>
         )}
       </div>
@@ -223,12 +321,17 @@ export function TutorPanel({ open, onClose, edge, onFlipEdge, bottomOffset, surf
             className="min-h-11 flex-1 resize-none rounded-xl border border-line bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <button
-            type="submit"
-            disabled={!draft.trim() || streaming}
-            aria-label="Send message"
+            type="button"
+            onClick={() => (streaming ? cancel() : submit(draft))}
+            disabled={!streaming && !draft.trim()}
+            aria-label={streaming ? "Stop generating" : "Send message"}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand transition-opacity disabled:opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
-            <Send className="h-4.5 w-4.5" aria-hidden />
+            {streaming ? (
+              <Square className="h-4 w-4" aria-hidden />
+            ) : (
+              <Send className="h-4.5 w-4.5" aria-hidden />
+            )}
           </button>
         </div>
         <p className="mt-1.5 px-1 text-[11px] text-fg-muted">

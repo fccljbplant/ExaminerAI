@@ -63,6 +63,21 @@ export function useTutorChat(surface: string) {
     [messages, streaming, send, setState, surface]
   );
 
+  /**
+   * Re-send the last unanswered question after an error. The question
+   * stays in the transcript (it already reads as asked); only the
+   * request is repeated, so nothing is duplicated and the user never
+   * has to retype what they already wrote.
+   */
+  const retry = useCallback(async () => {
+    if (streaming) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "user") return;
+    setError(null);
+    setState("thinking");
+    await send({ messages: messages.slice(-CONTEXT_WINDOW), surface });
+  }, [messages, streaming, send, setState, surface]);
+
   const clear = useCallback(() => {
     cancel();
     setMessages([]);
@@ -70,5 +85,5 @@ export function useTutorChat(surface: string) {
     setState("idle");
   }, [cancel, setState]);
 
-  return { messages, streamText: text, streaming, error, ask, clear, cancel };
+  return { messages, streamText: text, streaming, error, ask, retry, clear, cancel };
 }

@@ -193,6 +193,12 @@ export function FloatingTutor() {
         type="button"
         aria-label={badge > 0 ? `Open AI tutor (${badge} new)` : "Open AI tutor"}
         aria-expanded={open}
+        // While the panel is open the FAB is visually gone — keep it out
+        // of the tab order and the a11y tree too, or keyboard users tab
+        // into an invisible control and screen readers announce a ghost
+        // button.
+        aria-hidden={open}
+        tabIndex={open ? -1 : 0}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
