@@ -890,10 +890,12 @@ function ThumbnailEditor({
       </div>
       {images.length > 0 && (
         <div className="grid grid-cols-4 gap-1.5">
-          {images.map((url) => (
+          {images.map((url, i) => (
             <button
               key={url}
               type="button"
+              aria-label={`Select thumbnail ${i + 1}`}
+              aria-pressed={currentUrl === url}
               onClick={() => {
                 onChange(url);
                 toast.success("Thumbnail selected");
