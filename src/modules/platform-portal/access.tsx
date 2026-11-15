@@ -168,7 +168,7 @@ export function PlatformAccess() {
               <button
                 type="button"
                 onClick={() => void revokeGrant(g.id)}
-                className="inline-flex min-h-9 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 title="Revoke this grant"
               >
                 Revoke

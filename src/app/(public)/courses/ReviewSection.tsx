@@ -296,7 +296,7 @@ export default function ReviewSection({ courseId }: { courseId: string }) {
                         type="button"
                         onClick={() => setRating(s)}
                         aria-label={`Rate ${s} stars`}
-                        className="p-1 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                       >
                         <Star
                           className={`h-6 w-6 transition-colors ${

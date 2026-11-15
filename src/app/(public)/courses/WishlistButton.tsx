@@ -30,7 +30,7 @@ export default function WishlistButton({ courseId, variant = "icon" }: { courseI
         onClick={toggle}
         disabled={loading}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+          "inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors",
           saved ? "border-brand bg-brand-subtle text-brand" : "border-line bg-bg hover:bg-bg-subtle", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         )}
       >
@@ -44,7 +44,7 @@ export default function WishlistButton({ courseId, variant = "icon" }: { courseI
     <button
       onClick={toggle}
       disabled={loading}
-      className="absolute top-2 right-2 z-10 rounded-full bg-black/40 backdrop-blur p-1.5 text-white hover:bg-black/60 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+      className="absolute top-2 right-2 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-black/40 backdrop-blur text-white hover:bg-black/60 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
     >
       <Bookmark className={cn("h-4 w-4", saved && "fill-current")} />

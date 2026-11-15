@@ -127,7 +127,7 @@ export function PlatformRevenue() {
           <button
             type="button"
             onClick={() => void retry()}
-            className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             Refresh
           </button>
@@ -135,7 +135,7 @@ export function PlatformRevenue() {
             type="button"
             onClick={() => void sweep()}
             disabled={sweeping}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand hover:bg-brand-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {sweeping ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             Run payout sweep
@@ -368,8 +368,8 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
                 onClick={() => void toggle(c)}
                 className={
                   c.active
-                    ? "inline-flex min-h-8 shrink-0 items-center rounded-md bg-success-subtle px-2.5 text-xs font-semibold text-success-on focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-                    : "inline-flex min-h-8 shrink-0 items-center rounded-md bg-bg-subtle px-2.5 text-xs font-semibold text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    ? "inline-flex min-h-11 shrink-0 items-center rounded-md bg-success-subtle px-2.5 text-xs font-semibold text-success-on focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    : "inline-flex min-h-11 shrink-0 items-center rounded-md bg-bg-subtle px-2.5 text-xs font-semibold text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 }
               >
                 {c.active ? "Active" : "Disabled"}

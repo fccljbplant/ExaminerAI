@@ -168,7 +168,7 @@ function Toggle({
       disabled={busy}
       aria-pressed={on}
       className={cn(
-        "inline-flex min-h-9 items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50",
+        "inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50",
         on
           ? "bg-brand-subtle text-brand"
           : "border border-line bg-bg-subtle text-fg-muted hover:border-line-strong hover:text-fg", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"

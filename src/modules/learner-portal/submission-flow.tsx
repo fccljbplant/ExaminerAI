@@ -902,7 +902,7 @@ function ChecklistEditor({
             type="button"
             onClick={() => onChange(items.filter((_, j) => j !== i))}
             aria-label={`Remove "${item.label}"`}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>

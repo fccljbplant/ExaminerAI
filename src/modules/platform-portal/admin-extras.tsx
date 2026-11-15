@@ -541,7 +541,7 @@ export function CacheStatsCard() {
                       type="button"
                       onClick={() => void clear(n.namespace)}
                       disabled={clearing !== null}
-                      className="shrink-0 rounded-md px-1.5 py-1 text-[10px] font-semibold text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 shrink-0 items-center rounded-md px-2.5 text-[10px] font-semibold text-fg-muted transition-colors hover:bg-bg-subtle hover:text-danger disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {clearing === n.namespace ? "…" : "Clear"}
                     </button>

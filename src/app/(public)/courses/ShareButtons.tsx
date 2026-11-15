@@ -21,7 +21,7 @@ export default function ShareButtons({ courseName, courseUrl }: { courseName: st
         href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="rounded-md border border-line bg-bg p-2 hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-line bg-bg hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         aria-label="Share on LinkedIn"
       >
         <Linkedin className="h-4 w-4" />
@@ -30,7 +30,7 @@ export default function ShareButtons({ courseName, courseUrl }: { courseName: st
         href={`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="rounded-md border border-line bg-bg p-2 hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-line bg-bg hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         aria-label="Share on Twitter"
       >
         <Twitter className="h-4 w-4" />
@@ -39,14 +39,14 @@ export default function ShareButtons({ courseName, courseUrl }: { courseName: st
         href={`https://wa.me/?text=${encodedText}%20${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="rounded-md border border-line bg-bg p-2 hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-line bg-bg hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         aria-label="Share on WhatsApp"
       >
         <MessageCircle className="h-4 w-4" />
       </a>
       <button
         onClick={copyLink}
-        className="rounded-md border border-line bg-bg p-2 hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-line bg-bg hover:bg-bg-subtle transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         aria-label="Copy link"
       >
         {copied ? <Check className="h-4 w-4 text-growth-sage" /> : <Copy className="h-4 w-4" />}

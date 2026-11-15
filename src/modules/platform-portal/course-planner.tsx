@@ -414,7 +414,7 @@ export function CoursePlanner({
                         removeWeek(w.weekNumber);
                       }}
                       aria-label={`Delete week ${w.weekNumber}`}
-                      className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="ml-auto flex h-11 w-11 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       <Trash2 className="h-3.5 w-3.5" aria-hidden />
                     </button>
@@ -560,7 +560,7 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
         type="button"
         onClick={onBack}
         aria-label="Back to course list"
-        className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        className="flex h-11 w-11 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
       </button>
@@ -752,7 +752,7 @@ function AITools({
             type="button"
             onClick={() => void generateQuiz()}
             disabled={busy === "quiz" || !module}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {busy === "quiz" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <Wand2 className="h-3.5 w-3.5" aria-hidden />}
             Generate
@@ -767,7 +767,7 @@ function AITools({
           type="button"
           onClick={() => void reindex()}
           disabled={busy === "reindex"}
-          className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           {busy === "reindex" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <RefreshCw className="h-3.5 w-3.5" aria-hidden />}
           Reindex
@@ -857,7 +857,7 @@ function ThumbnailEditor({
             <button
               type="button"
               onClick={() => onChange(null)}
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-muted hover:border-danger hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-muted hover:border-danger hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
               Clear

@@ -144,18 +144,18 @@ export function PlatformTenants() {
             void load();
           }}
         >
-          <div className="flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3">
+          <div className="flex min-h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3">
             <Search className="h-4 w-4 text-fg-muted" aria-hidden />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name or slug…"
-              className="w-48 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              className="min-h-11 w-48 bg-transparent text-sm text-fg placeholder:text-fg-muted focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
           </div>
           <button
             type="submit"
-            className="inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 items-center rounded-lg bg-brand px-4 text-sm font-medium text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             Search
           </button>
@@ -163,7 +163,7 @@ export function PlatformTenants() {
             type="button"
             onClick={() => void createOrg()}
             disabled={busy}
-            className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-4 text-sm font-medium text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             + Create org
           </button>
@@ -222,7 +222,7 @@ export function PlatformTenants() {
                       type="button"
                       onClick={() => void openDetail(t.id)}
                       disabled={busy}
-                      className="inline-flex min-h-9 items-center rounded-md border border-line px-3 text-xs font-medium text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 items-center rounded-md border border-line px-3 text-xs font-medium text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       Manage
                     </button>
@@ -275,7 +275,7 @@ export function PlatformTenants() {
                         const end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
                         void patchTenant(detail.id, { status: "trial", trialEndsAt: end }, "Tenant approved — trial started");
                       }}
-                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-success-on hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-success-on hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       <CheckCircle2 className="h-4 w-4" aria-hidden /> Approve &amp; start trial
                     </button>
@@ -285,7 +285,7 @@ export function PlatformTenants() {
                       type="button"
                       disabled={busy}
                       onClick={() => void patchTenant(detail.id, { status: "active" }, "Tenant reactivated")}
-                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-success-on hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-xs font-semibold text-success-on hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       <CheckCircle2 className="h-4 w-4" aria-hidden /> Reactivate
                     </button>
@@ -297,7 +297,7 @@ export function PlatformTenants() {
                         const reason = window.prompt("Suspension reason (shown to the org):");
                         if (reason) void patchTenant(detail.id, { status: "suspended", suspendedReason: reason }, "Tenant suspended");
                       }}
-                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-danger px-3 text-xs font-semibold text-danger-on hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-danger px-3 text-xs font-semibold text-danger-on hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       <Ban className="h-4 w-4" aria-hidden /> Suspend
                     </button>
@@ -309,7 +309,7 @@ export function PlatformTenants() {
                       const end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
                       void patchTenant(detail.id, { trialEndsAt: end }, "Trial extended 30 days");
                     }}
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     <Clock className="h-4 w-4" aria-hidden /> Extend trial +30d
                   </button>
@@ -321,7 +321,7 @@ export function PlatformTenants() {
                       const n = Number(seats);
                       if (seats && Number.isFinite(n) && n > 0) void patchTenant(detail.id, { seats: n }, "Seats updated");
                     }}
-                    className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    className="inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     Edit seats
                   </button>
@@ -336,7 +336,7 @@ export function PlatformTenants() {
                 )}
                 <a
                   href="/platform/support"
-                  className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                 >
                   Support tools →
                 </a>

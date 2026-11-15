@@ -79,7 +79,7 @@ function SearchForm({ className = "" }: { className?: string }) {
         />
         <button
           type="submit"
-          className="mr-1 inline-flex h-9 shrink-0 items-center rounded-full bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          className="mr-1 inline-flex min-h-11 shrink-0 items-center rounded-full bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Search
         </button>

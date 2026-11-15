@@ -260,7 +260,7 @@ export function CourseCreationWizard({
           type="button"
           onClick={onBack}
           aria-label="Back to course list"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          className="flex h-11 w-11 items-center justify-center rounded-lg border border-line text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
         </button>
@@ -281,7 +281,7 @@ export function CourseCreationWizard({
                 onClick={() => done && setStep(n)}
                 disabled={!done}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold",
+                  "inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-semibold",
                   done && "bg-bg-subtle text-fg-muted hover:text-fg",
                   active && "bg-brand text-on-brand",
                   !done && !active && "bg-bg-subtle text-fg-muted/60", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
@@ -571,7 +571,7 @@ function ModeTab({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 text-xs font-semibold transition-colors",
+        "inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-xs font-semibold transition-colors",
         active ? "bg-brand text-on-brand" : "border border-line bg-surface text-fg-secondary hover:text-fg", "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       )}
     >

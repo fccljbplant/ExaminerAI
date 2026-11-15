@@ -218,7 +218,7 @@ export function AvatarEditor({ initial, badgeIcon, onChange }: AvatarEditorProps
                 type="button"
                 onClick={() => setEditing(false)}
                 aria-label="Close cropper"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>
