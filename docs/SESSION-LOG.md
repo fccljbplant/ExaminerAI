@@ -1,3 +1,12 @@
+## 2026-11-15 — UXPeak research refresh + learner-surface value-first pass
+
+- Push blocker cleared with an owner-supplied credential: prior session's commits are on origin/main (`8370808..1ff80ad`). New application commits this session: `ad6cb3c` (learner home value-first) and `f01cfe2` (messages/reports/help/progress controls).
+- UXPeak public research recorded in `docs/UPGRADE-2026-11/UXPEAK-RESEARCH-2026-11-15.md`; six principles now govern the bottom-up UI checklist (show-don't-tell status, value-first cards, hero number + plain reading, hierarchy levers, empty-state CTAs, confidence-building forms).
+- Learner home: dueToday payload and rows are value-first (course name leads, kind label demoted); project rows show toned status chips plus a task-progress bar (taskProgress previously unrendered); empty due-list has a Study CTA; Retry is focus-visible. Five new tests.
+- Messages: focus rings on composer/filters/retry, 44px delete with confirmation, value-stating empty state. Reports/help/progress: all interactive controls focus-visible.
+- Validation: Vitest 561 passed / 2 skipped (excluding DB-backed tutor-context); ESLint 0 errors / 7 pre-existing warnings; tsc clean; per-slice `git diff --check` clean. Production build and manual browser/keyboard/screen-reader checks remain outstanding; no WCAG sign-off claimed.
+- Next: assignments list course-grouping + status chips, catalog/course-detail empty states, instructor students roster; then the Assignment/GroupTask reconciliation audit.
+
 ## 2026-11-15 — Project flow authorization completion + L7/queue UI accessibility
 
 **Application commits (local only — see blocker):** `df3ddf0` · `d2ba7a8` · `1ac494b` · `5f2ad23` · `2687287` · `8ecfc78`

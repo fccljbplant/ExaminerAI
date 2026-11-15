@@ -1,3 +1,13 @@
+## 2026-11-15 — UXPeak research refresh + learner-surface value-first pass
+
+- Owner supplied a push credential: the previous session's six commits went to origin/main as `8370808..1ff80ad` (verified; repository canonical at fccljbplant/ExaminerAI).
+- UXPeak public research refreshed and recorded in `docs/UPGRADE-2026-11/UXPEAK-RESEARCH-2026-11-15.md` (public pages only; no paid playbook content or copied assets). Six working principles: show-don't-tell status; value-first (not label-first) cards; one hero number + plain-language reading; hierarchy = size/contrast/spacing/placement; empty states are retention surfaces with CTAs; forms that build confidence.
+- Learner Today home (`ad6cb3c`): `/api/v2/learner/home` dueToday payload reordered value-first — the course name is now the row title and "Daily check-in" is demoted to meta. Home project rows now show status as a toned chip (info/success/warning/danger) plus a real task-progress bar and count; previously status sat in a prose meta line and `taskProgress` was never rendered. Empty due-list gained a "Study a lesson" CTA; Retry gained a focus ring. Five new LearnerHome tests (value-first ordering, empty CTA, status chips, progress width, error focus).
+- Messages/reports/help/progress (`f01cfe2`): every interactive control now carries the portal focus-outline convention; message delete grew 32 px → 44 px and requires confirmation (destructive action); composer, box filters and Retry focus-visible; messages empty state explains the value and next step; help contact cards and progress links focus-visible.
+- Validation: full Vitest 561 passed / 2 skipped across 67 files (excluding DB-backed `tutor-context.test.ts`); ESLint 0 errors / 7 pre-existing warnings; `tsc --noEmit --skipLibCheck` 0 errors; `git diff --check` clean per slice.
+- Not run: production build; browser, responsive, keyboard and screen-reader review; no WCAG sign-off claimed. No schema/migration, database, production data, dependency, provider or deployment changes.
+- Next bottom-up: assignments list (course-grouped view + status chips), catalog and course-detail empty states, then instructor students roster per the UXPeak checklist; the Assignment/GroupTask reconciliation audit remains the next structural task.
+
 ## 2026-11-15 — Project flow authorization completion + L7/queue UI accessibility
 
 - Starting live main: `8370808` (clean clone of origin/main). This sandbox has 4 GB RAM, so the full TypeScript check that previously exhausted the 2 GB heap now completes: it found 11 `Request`-vs-`NextRequest` type errors in the two newest route test files. Fixed as `df3ddf0` (test-only).
