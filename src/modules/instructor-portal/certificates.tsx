@@ -60,6 +60,7 @@ export function CertificatesPanel() {
   const [requests, setRequests] = useState<PendingRequest[] | null>(null);
   const [busyReq, setBusyReq] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const loadRequests = useCallback(async () => {
     try {
@@ -76,18 +77,21 @@ export function CertificatesPanel() {
     void loadRequests();
   }, [loadRequests]);
 
-  async function decide(userId: string, reject: boolean) {
+  async function decide(userId: string, reject: boolean, reason?: string) {
     setBusyReq(userId);
     try {
       if (reject) {
-        const reason = window.prompt("Reason for rejection (shown in the audit log):") ?? "Rejected by staff";
-        await api.post(`/api/certificates/generate?userId=${userId}&reject=true`, { reason });
+        await api.post(`/api/certificates/generate?userId=${userId}&reject=true`, {
+          reason: reason?.trim() || "Rejected by staff",
+        });
         toast.success("Request rejected");
       } else {
         await api.post(`/api/certificates/generate?userId=${userId}`, {});
         toast.success("Certificate issued", { description: "The student has been notified." });
         retry();
       }
+      setRejectingId(null);
+      setRejectReason("");
       void loadRequests();
     } catch (e) {
       toast.error(reject ? "Couldn't reject request" : "Couldn't approve request", {
@@ -95,7 +99,6 @@ export function CertificatesPanel() {
       });
     } finally {
       setBusyReq(null);
-      setRejectingId(null);
     }
   }
 
@@ -249,16 +252,45 @@ export function CertificatesPanel() {
                   <button
                     type="button"
                     onClick={() => {
-                      setRejectingId(r.userId);
-                      void decide(r.userId, true);
+                      if (rejectingId === r.userId) {
+                        setRejectingId(null);
+                        setRejectReason("");
+                      } else {
+                        setRejectingId(r.userId);
+                      }
                     }}
                     disabled={busyReq === r.userId}
                     className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-semibold text-fg-secondary hover:border-danger hover:text-danger disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     <XCircle className="h-3.5 w-3.5" aria-hidden />
-                    Reject
+                    {rejectingId === r.userId ? "Cancel" : "Reject"}
                   </button>
                 </div>
+                {rejectingId === r.userId && (
+                  <div className="flex w-full flex-wrap items-center gap-2 border-t border-line pt-2.5">
+                    <label htmlFor={`reject-reason-${r.userId}`} className="sr-only">
+                      Reason for rejection (shown in the audit log)
+                    </label>
+                    <input
+                      id={`reject-reason-${r.userId}`}
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="Reason for rejection (shown in the audit log)…"
+                      className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 text-xs text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void decide(r.userId, true, rejectReason)}
+                      disabled={busyReq === r.userId || !rejectReason.trim()}
+                      className="inline-flex min-h-11 items-center rounded-lg bg-danger px-3 text-xs font-semibold text-danger-on disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    >
+                      {busyReq === r.userId ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      ) : null}
+                      Confirm reject
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -308,7 +340,7 @@ export function CertificatesPanel() {
                 href={c.verifyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 rounded-md border border-line bg-bg-subtle px-2 py-1 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line bg-bg-subtle px-3 text-xs font-medium text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 Verify
               </a>

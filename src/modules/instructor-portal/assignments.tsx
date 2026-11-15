@@ -239,21 +239,21 @@ export function InstructorAssignments() {
               required
               placeholder="Assignment title"
               aria-label="Assignment title"
-              className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+              className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
             <div className="flex flex-wrap gap-2">
-              <select value={tType} onChange={(e) => setTType(e.target.value)} aria-label="Type" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg">
+              <select value={tType} onChange={(e) => setTType(e.target.value)} aria-label="Type" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 {["assignment", "quiz", "project", "reading", "exercise"].map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
-              <input type="date" value={tDue} onChange={(e) => setTDue(e.target.value)} aria-label="Due date" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg" />
-              <select value={tWeek} onChange={(e) => setTWeek(e.target.value)} aria-label="Week" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg">
+              <input type="date" value={tDue} onChange={(e) => setTDue(e.target.value)} aria-label="Due date" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" />
+              <select value={tWeek} onChange={(e) => setTWeek(e.target.value)} aria-label="Week" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
                   <option key={w} value={w}>Week {w}</option>
                 ))}
               </select>
-              <input type="number" value={tMax} onChange={(e) => setTMax(e.target.value)} aria-label="Max score" className="h-11 w-24 rounded-lg border border-line bg-bg px-2 text-sm text-fg" />
+              <input type="number" value={tMax} onChange={(e) => setTMax(e.target.value)} aria-label="Max score" className="h-11 w-24 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" />
               <button
                 type="submit"
                 disabled={busy || !tTitle.trim() || !courseId}
@@ -286,7 +286,7 @@ export function InstructorAssignments() {
                     <button
                       type="button"
                       onClick={() => void closeTask(t.id)}
-                      className="shrink-0 rounded-md border border-line px-2 py-1 text-[11px] font-medium text-fg-secondary hover:border-line-strong hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line px-3 text-xs font-medium text-fg-secondary hover:border-line-strong hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       Close
                     </button>
@@ -295,7 +295,7 @@ export function InstructorAssignments() {
                     type="button"
                     onClick={() => void deleteTask(t.id)}
                     aria-label={`Delete ${t.title}`}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden />
                   </button>
@@ -318,17 +318,17 @@ export function InstructorAssignments() {
               required
               placeholder="Event title"
               aria-label="Event title"
-              className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted"
+              className="h-11 w-full rounded-lg border border-line bg-bg px-3 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
             <div className="flex flex-wrap gap-2">
-              <select value={eType} onChange={(e) => setEType(e.target.value)} aria-label="Event type" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg">
+              <select value={eType} onChange={(e) => setEType(e.target.value)} aria-label="Event type" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
                 {["deadline", "exam", "meeting", "vocational", "holiday", "other"].map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>
-              <input type="datetime-local" value={eStart} onChange={(e) => setEStart(e.target.value)} required aria-label="Start date" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg" />
-              <input type="datetime-local" value={eEnd} onChange={(e) => setEEnd(e.target.value)} aria-label="End date" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg" />
-              <input value={eLoc} onChange={(e) => setELoc(e.target.value)} placeholder="Location" aria-label="Location" className="h-11 w-28 rounded-lg border border-line bg-bg px-2 text-sm text-fg placeholder:text-fg-muted" />
+              <input type="datetime-local" value={eStart} onChange={(e) => setEStart(e.target.value)} required aria-label="Start date" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" />
+              <input type="datetime-local" value={eEnd} onChange={(e) => setEEnd(e.target.value)} aria-label="End date" className="h-11 rounded-lg border border-line bg-bg px-2 text-sm text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" />
+              <input value={eLoc} onChange={(e) => setELoc(e.target.value)} placeholder="Location" aria-label="Location" className="h-11 w-28 rounded-lg border border-line bg-bg px-2 text-sm text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus" />
               <button
                 type="submit"
                 disabled={busy || !eTitle.trim() || !eStart || !courseId}
@@ -361,7 +361,7 @@ export function InstructorAssignments() {
                     type="button"
                     onClick={() => void deleteEvent(ev.id)}
                     aria-label={`Delete ${ev.title}`}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-bg-subtle hover:text-danger focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden />
                   </button>
