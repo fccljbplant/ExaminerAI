@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, RefreshCw, Search, UserRound } from "lucide-react";
+import { AlertTriangle, Check, RefreshCw, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useApi } from "@/modules/learner-portal/use-api";
 
@@ -53,7 +53,11 @@ export function StudentsRoster() {
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-lg font-semibold text-fg md:text-xl">Students</h1>
           <span className="shrink-0 rounded-md bg-bg-subtle px-2 py-1 text-xs font-medium tabular-nums text-fg-secondary">
-            {data?.total ?? 0}
+            {data ? (
+              data.total
+            ) : isLoading ? (
+              <span className="inline-block h-3 w-8 animate-pulse rounded bg-bg" aria-label="Loading student count" />
+            ) : null}
           </span>
         </div>
 
@@ -78,9 +82,10 @@ export function StudentsRoster() {
             onClick={() => setOnlyRisk(false)}
             aria-pressed={!onlyRisk}
             className={
-              !onlyRisk
-                ? "rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-on-brand"
-                : "rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong"
+              "inline-flex min-h-11 shrink-0 items-center rounded-full border px-3.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus " +
+              (!onlyRisk
+                ? "border-transparent bg-brand text-on-brand"
+                : "border-line bg-surface text-fg-secondary hover:border-line-strong hover:text-fg")
             }
           >
             All
@@ -90,11 +95,13 @@ export function StudentsRoster() {
             onClick={() => setOnlyRisk(true)}
             aria-pressed={onlyRisk}
             className={
-              onlyRisk
-                ? "rounded-full bg-warning px-3 py-1.5 text-xs font-medium text-white"
-                : "rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-fg-secondary hover:border-line-strong"
+              "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus " +
+              (onlyRisk
+                ? "border-warning bg-warning-subtle text-warning-on"
+                : "border-line bg-surface text-fg-secondary hover:border-line-strong hover:text-fg")
             }
           >
+            <AlertTriangle className="h-3 w-3" aria-hidden />
             At risk
           </button>
         </div>
@@ -110,59 +117,85 @@ export function StudentsRoster() {
           <button
             type="button"
             onClick={retry}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Retry
           </button>
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-bg-subtle px-4 py-10 text-center">
-          <UserRound className="h-6 w-6 text-fg-muted" aria-hidden />
-          <p className="text-sm font-medium text-fg">
-            {onlyRisk ? "No at-risk students" : "No students match your search"}
-          </p>
-          <p className="max-w-sm text-xs text-fg-muted">
-            {onlyRisk ? "Everyone is on track — nice work." : "Try clearing the search or the filter."}
-          </p>
-        </div>
+        <RosterEmpty onlyRisk={onlyRisk} hasSearch={Boolean(q.trim())} onClear={() => { setQ(""); setOnlyRisk(false); }} />
       ) : (
         <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {rows.map((s) => (
-            <Link
-              key={s.id}
-              href={`/instructor/students/${s.id}`}
-              className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-subtle text-fg-secondary">
-                <UserRound className="h-4 w-4" aria-hidden />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-fg">{s.name}</p>
-                <p className="mt-0.5 truncate text-xs text-fg-muted">
-                  {s.attentionReasons[0] ?? "On track"}
-                </p>
-              </div>
-              <div className="hidden w-24 shrink-0 sm:block">
-                <div className="h-1.5 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
-                  <div className="h-full rounded-full bg-brand" style={{ width: `${s.progress}%` }} />
-                </div>
-                <p className="mt-1 text-right text-[11px] tabular-nums text-fg-muted">{s.progress}%</p>
-              </div>
-              {s.attentionScore >= 30 ? (
-                <span className="shrink-0 rounded-md bg-warning-subtle px-2 py-0.5 text-xs font-medium text-warning-on">
-                  {s.attentionScore} pts
-                </span>
-              ) : (
-                <span className="shrink-0 rounded-md bg-success-subtle px-2 py-0.5 text-xs font-medium text-success-on">
-                  OK
-                </span>
-              )}
-            </Link>
+            <RosterRow key={s.id} s={s} />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+/* ---------------- pieces ------------------------------------------------ */
+
+/** Empty roster. Ends somewhere: the clear action exits a narrowed view (rule 9). */
+export function RosterEmpty({ onlyRisk, hasSearch, onClear }: { onlyRisk: boolean; hasSearch: boolean; onClear: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-bg-subtle px-4 py-10 text-center">
+      <UserRound className="h-6 w-6 text-fg-muted" aria-hidden />
+      <p className="text-sm font-medium text-fg">
+        {onlyRisk ? "No at-risk students" : "No students match your search"}
+      </p>
+      <p className="max-w-sm text-xs text-fg-muted">
+        {onlyRisk ? "Everyone is on track — nice work." : "Try clearing the search or the filter."}
+      </p>
+      {(hasSearch || onlyRisk) && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="mt-2 inline-flex min-h-11 items-center rounded-full border border-line bg-surface px-3.5 text-xs font-semibold text-fg transition-colors hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        >
+          Clear search &amp; filters
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** One roster row: the learner leads, attention reason as meta, status is a toned chip + icon (rules 7 + 10). */
+export function RosterRow({ s }: { s: RosterStudent }) {
+  return (
+    <Link
+      href={`/instructor/students/${s.id}`}
+      className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-subtle text-fg-secondary">
+        <UserRound className="h-4 w-4" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-fg">{s.name}</p>
+        <p className="mt-0.5 truncate text-xs text-fg-muted">
+          {s.attentionReasons[0] ?? "On track"}
+        </p>
+      </div>
+      <div className="hidden w-24 shrink-0 sm:block">
+        <div className="h-1.5 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
+          <div className="h-full rounded-full bg-brand" style={{ width: `${s.progress}%` }} />
+        </div>
+        <p className="mt-1 text-right text-[11px] tabular-nums text-fg-muted">{s.progress}%</p>
+      </div>
+      {s.attentionScore >= 30 ? (
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning-subtle px-2 py-0.5 text-xs font-medium text-warning-on">
+          <AlertTriangle className="h-3 w-3" aria-hidden />
+          {s.attentionScore} pts
+        </span>
+      ) : (
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-success-subtle px-2 py-0.5 text-xs font-medium text-success-on">
+          <Check className="h-3 w-3" aria-hidden />
+          OK
+        </span>
+      )}
+    </Link>
   );
 }
 
