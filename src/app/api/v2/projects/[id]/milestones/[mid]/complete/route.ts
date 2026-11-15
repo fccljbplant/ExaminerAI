@@ -3,7 +3,9 @@
  * completion (REDESIGN-P3 §L7; mirrors the kept v1 route semantics)
  *
  * Marks a milestone complete (idempotent), awards project XP once, and
- * logs the engagement event. Owner-only.
+ * logs the engagement event. Owner-only, and requires the learner's
+ * current student enrollment in the owning course — course-less legacy
+ * rows are not active course work.
  */
 
 import { NextRequest } from "next/server";
@@ -40,7 +42,14 @@ export async function POST(
     where: { id, userId: user.sub }, // IDOR: owner-only
     select: { id: true, courseId: true, status: true },
   });
-  if (!project) return apiError("Project not found", "NOT_FOUND", 404);
+  // Course-less legacy rows are history, never active course work.
+  if (!project?.courseId) return apiError("Project not found", "NOT_FOUND", 404);
+
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: project.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiError("Project not found", "NOT_FOUND", 404);
 
   // Milestone work starts after the instructor approves the proposal —
   // nothing is completable while pending or rejected.
@@ -75,7 +84,7 @@ export async function POST(
       });
     }
     try {
-      await awardTypedXP(user.sub, "project_step", project.courseId ?? undefined, `milestone:${mid}`);
+      await awardTypedXP(user.sub, "project_step", project.courseId, `milestone:${mid}`);
     } catch {
       // XP is best-effort
     }
