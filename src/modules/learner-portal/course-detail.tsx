@@ -157,7 +157,7 @@ export function CourseDetail({ courseId }: { courseId: string }) {
   const cta = enrolled ? (
     <Link
       href={`/learn/${courseId}`}
-      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90"
+      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
     >
       <Play className="h-4 w-4" aria-hidden />
       Continue
@@ -167,7 +167,7 @@ export function CourseDetail({ courseId }: { courseId: string }) {
       type="button"
       onClick={enroll}
       disabled={enrolling}
-      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90 disabled:opacity-60"
+      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-on-brand transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
     >
       {enrolling ? "Enrolling…" : "Enroll"}
     </button>
@@ -192,7 +192,7 @@ export function CourseDetail({ courseId }: { courseId: string }) {
       <header className="rounded-xl border border-line bg-surface p-4 md:p-5">
         <Link
           href="/learner/learn"
-          className="inline-flex items-center gap-1 text-xs font-medium text-fg-muted transition-colors hover:text-fg"
+          className="inline-flex min-h-11 items-center gap-1 rounded-md text-xs font-medium text-fg-muted transition-colors hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           Courses
@@ -378,9 +378,12 @@ function OverviewTab({ data }: { data: OverviewData }) {
 function SyllabusTab({ data }: { data: SyllabusData }) {
   if (data.weeks.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-line bg-surface p-8 text-center text-sm text-fg-muted">
-        The syllabus for this course hasn&apos;t been published yet.
-      </p>
+      <div className="rounded-xl border border-dashed border-line bg-surface p-8 text-center">
+        <p className="text-sm font-medium text-fg">The syllabus hasn&apos;t been published yet</p>
+        <p className="mx-auto mt-1 max-w-xs text-xs text-fg-muted">
+          Everything else about this course — what you&apos;ll learn, skills and tools — lives in the Overview tab above.
+        </p>
+      </div>
     );
   }
   return (
@@ -419,17 +422,37 @@ function SyllabusTab({ data }: { data: SyllabusData }) {
   );
 }
 
-function StatusDot({ status }: { status: SyllabusDay["status"] }) {
+/**
+ * Shape carries the status, color only reinforces it (rule 7 + the
+ * a11y standard "color is never the sole indicator"): completed days
+ * get a check, the current day pulses, upcoming days stay hollow.
+ */
+export function StatusDot({ status }: { status: SyllabusDay["status"] }) {
+  if (status === "completed") {
+    return (
+      <span
+        aria-label="Completed"
+        title="Completed"
+        className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-success-subtle"
+      >
+        <Check className="h-3 w-3 text-success" aria-hidden />
+      </span>
+    );
+  }
+  if (status === "current") {
+    return (
+      <span
+        aria-label="Current"
+        title="Current"
+        className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-brand ring-2 ring-brand-subtle"
+      />
+    );
+  }
   return (
     <span
-      aria-label={status}
-      title={status}
-      className={cn(
-        "h-2.5 w-2.5 shrink-0 rounded-full",
-        status === "completed" && "bg-success",
-        status === "current" && "bg-brand ring-2 ring-brand-subtle",
-        status === "upcoming" && "border border-line-strong bg-bg-subtle"
-      )}
+      aria-label="Upcoming"
+      title="Upcoming"
+      className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-line-strong"
     />
   );
 }
@@ -465,7 +488,7 @@ function StatePanel({ message, onRetry }: { message: string; onRetry?: () => voi
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:border-line-strong hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Retry
         </button>

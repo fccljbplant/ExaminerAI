@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("./use-api", () => ({ useApi: mocks.useApi }));
 
-import { CourseDetail, CourseworkTab, getNextCourseTab, resolveCourseTab } from "./course-detail";
+import { CourseDetail, CourseworkTab, getNextCourseTab, resolveCourseTab, StatusDot } from "./course-detail";
 
 describe("CourseworkTab", () => {
   beforeEach(() => {
@@ -138,6 +138,17 @@ describe("CourseDetail accessible tabs", () => {
     expect(html).toContain('aria-labelledby="course-tab-course-1-overview"');
     expect(html).not.toContain('aria-current="page"');
   });
+
+  it("keeps the primary Continue CTA, back link, and tabs keyboard-visible (rule 12)", () => {
+    const html = renderToStaticMarkup(createElement(CourseDetail, { courseId: "course-1" }));
+
+    const cta = html.split("<a ").slice(1).find((tag) => tag.includes("/learn/course-1"));
+    expect(cta).toContain("Continue");
+    expect(cta).toContain("focus-visible:outline-2");
+
+    const back = html.split("<a ").slice(1).find((tag) => tag.includes("/learner/learn"));
+    expect(back).toContain("focus-visible:outline-2");
+  });
 });
 
 describe("course detail tab state", () => {
@@ -166,5 +177,29 @@ describe("course detail tab state", () => {
     expect(getNextCourseTab(tabs, "coursework", "Home")).toBe("overview");
     expect(getNextCourseTab(tabs, "overview", "End")).toBe("coursework");
     expect(getNextCourseTab(tabs, "overview", "Enter")).toBeNull();
+  });
+});
+
+describe("StatusDot carries status by shape, not color alone (rule 7)", () => {
+  it("marks completed days with a check on a success-tinted disc", () => {
+    const html = renderToStaticMarkup(createElement(StatusDot, { status: "completed" }));
+    expect(html).toContain('aria-label="Completed"');
+    expect(html).toContain("bg-success-subtle");
+    expect(html).toContain("<svg"); // check glyph, not just a colored dot
+  });
+
+  it("pulses the current day", () => {
+    const html = renderToStaticMarkup(createElement(StatusDot, { status: "current" }));
+    expect(html).toContain('aria-label="Current"');
+    expect(html).toContain("animate-pulse");
+    expect(html).toContain("bg-brand");
+  });
+
+  it("keeps upcoming days hollow with a named state", () => {
+    const html = renderToStaticMarkup(createElement(StatusDot, { status: "upcoming" }));
+    expect(html).toContain('aria-label="Upcoming"');
+    expect(html).toContain("border-2 border-line-strong");
+    expect(html).not.toContain("bg-brand");
+    expect(html).not.toContain("bg-success");
   });
 });

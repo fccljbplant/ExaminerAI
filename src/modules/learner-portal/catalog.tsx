@@ -100,14 +100,14 @@ export function LearnerCatalog() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Search courses"
               aria-label="Search courses"
-              className="h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none"
+              className="h-11 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             />
           </label>
           <select
             value={level}
             onChange={(e) => setLevel(e.target.value)}
             aria-label="Filter by level"
-            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none"
+            className="h-11 rounded-lg border border-line bg-surface px-3 text-sm text-fg focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <option value="">All levels</option>
             <option value="beginner">Beginner</option>
@@ -160,10 +160,10 @@ function CategoryChip({ label, active, onClick }: { label: string; active: boole
       onClick={onClick}
       aria-pressed={active}
       className={
-        "inline-flex h-9 shrink-0 items-center rounded-full border px-3.5 text-xs font-semibold capitalize transition-colors " +
+        "inline-flex min-h-11 shrink-0 items-center rounded-full border px-3.5 text-xs font-semibold capitalize transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus " +
         (active
           ? "border-transparent bg-brand text-on-brand"
-          : "border-line bg-surface text-fg-secondary hover:bg-bg-subtle")
+          : "border-line bg-surface text-fg-secondary hover:border-line-strong hover:text-fg")
       }
     >
       {label}
@@ -176,7 +176,7 @@ function CourseCard({ course }: { course: CourseItem }) {
     <li>
       <Link
         href={`/learner/courses/${course.id}`}
-        className="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong"
+        className="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         {/* thumbnail / fallback */}
         <div className="relative aspect-[16/7] w-full overflow-hidden bg-brand-subtle">
@@ -253,7 +253,7 @@ function CatalogError({ message, onRetry }: { message: string; onRetry: () => vo
       <button
         type="button"
         onClick={onRetry}
-        className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+        className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:border-line-strong hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         Retry
       </button>
@@ -271,14 +271,21 @@ function NoMatches({ hasFilters, onClear }: { hasFilters: boolean; onClear: () =
           ? "Try different keywords or drop a filter."
           : "Nothing is published in the catalog yet — check back soon."}
       </p>
-      {hasFilters && (
+      {hasFilters ? (
         <button
           type="button"
           onClick={onClear}
-          className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:bg-bg-subtle"
+          className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:border-line-strong hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Clear filters
         </button>
+      ) : (
+        <Link
+          href="/learner"
+          className="mt-4 inline-flex h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold text-fg transition-colors hover:border-line-strong hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+        >
+          Go to Today
+        </Link>
       )}
     </div>
   );
