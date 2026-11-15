@@ -7,6 +7,9 @@
  * pseudo-code) for a project blocker. Each call advances the hint level
  * by 1, capped at 3. Hints are persisted in a ProjectHelpSession row.
  *
+ * Learner-only; requires a current student enrollment in the project's
+ * owning course — course-less legacy rows are not active course work.
+ *
  * Returns: { hint, hintLevel, resolved }
  *
  * The frontend should let the learner mark the blocker resolved at any
@@ -15,7 +18,6 @@
  */
 
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
 import { db } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth";
 import { apiError, apiForbidden, apiNotFound, apiSuccess, apiUnauthorized, apiValidationError } from "@/lib/api-response";
@@ -24,6 +26,8 @@ import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+const LEARNER_ROLES = new Set(["learner", "student", "demo"]);
 
 const HINT_LEVELS = [
   {
@@ -46,6 +50,7 @@ const HINT_LEVELS = [
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user) return apiUnauthorized();
+  if (!LEARNER_ROLES.has(user.role)) return apiError("Learner access only", "FORBIDDEN", 403);
   const { id: projectId } = await ctx.params;
 
   let body: { blocker?: string } = {};
@@ -63,6 +68,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   });
   if (!project) return apiNotFound("Project not found");
   if (project.userId !== user.sub) return apiForbidden("This project belongs to another user");
+  // Course-less legacy rows are history, never active course work.
+  if (!project.courseId) return apiNotFound("Project not found");
+
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: project.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiForbidden("You are not enrolled in this course");
 
   // Reuse the most recent unresolved help session, or create a new one.
   let helpSession = project.helpSessions[0] ?? null;
@@ -72,7 +85,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     });
   }
 
-  const nextLevel = Math.min(HINT_LEVELS.length - 1, helpSession.hintLevel + 0); // current
   // Advance the level for THIS call (so first call = nudge, second = clue, third = scaffold).
   const callLevel = Math.min(HINT_LEVELS.length - 1, helpSession.hintLevel);
   const hintInstruction = HINT_LEVELS[callLevel];
@@ -146,5 +158,4 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     nextHintAvailable: callLevel < HINT_LEVELS.length - 1,
     resolved: false,
   });
-  void nextLevel;
 }
