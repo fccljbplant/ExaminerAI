@@ -68,7 +68,7 @@ function SearchForm({ className = "" }: { className?: string }) {
       <label htmlFor="site-search" className="sr-only">
         Search courses
       </label>
-      <div className="flex h-10 w-full items-center overflow-hidden rounded-full border border-line bg-bg transition-colors focus-within:border-brand">
+      <div className="flex h-11 w-full items-center overflow-hidden rounded-full border border-line bg-bg transition-colors focus-within:border-brand">
         <Search className="ml-3 h-4 w-4 shrink-0 text-fg-muted" aria-hidden />
         <input
           id="site-search"
@@ -79,7 +79,7 @@ function SearchForm({ className = "" }: { className?: string }) {
         />
         <button
           type="submit"
-          className="mr-1 inline-flex h-8 shrink-0 items-center rounded-full bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+          className="mr-1 inline-flex h-9 shrink-0 items-center rounded-full bg-brand px-4 text-xs font-semibold text-on-brand transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
         >
           Search
         </button>
@@ -110,7 +110,7 @@ export function SiteHeader({
       {/* ── Main header ──────────────────────────────────────── */}
       <header className="sticky top-0 z-[var(--p-z-sticky)] border-b border-line bg-surface/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-bold text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+          <Link href="/" className="flex min-h-11 shrink-0 items-center gap-2 text-lg font-bold text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
               <GraduationCap className="h-5 w-5" aria-hidden />
             </span>
@@ -123,7 +123,7 @@ export function SiteHeader({
               <Link
                 key={l.href}
                 href={l.href}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 {l.label}
               </Link>
@@ -168,12 +168,16 @@ export function SiteHeader({
           </div>
         </div>
 
-        {/* ── Category strip — the storefront nav ─────────────── */}
-        <nav className="border-t border-line" aria-label="Course categories">
+        {/* ── Category strip — the storefront nav (hidden while the
+            mobile sheet is open, so the sheet never half-covers it) ── */}
+        <nav
+          className={`border-t border-line ${menuOpen ? "hidden lg:block" : ""}`}
+          aria-label="Course categories"
+        >
           <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
             <Link
               href="/courses"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-xs font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+              className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-brand px-3.5 text-xs font-semibold text-on-brand focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             >
               <PackageOpen className="h-3.5 w-3.5" aria-hidden />
               All Courses
@@ -185,7 +189,7 @@ export function SiteHeader({
               <Link
                 key={c.value}
                 href={`/courses/category/${c.value}`}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-fg-secondary transition-colors hover:bg-bg-subtle hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <CategoryIcon category={c.value} />
                 {c.label}
@@ -199,7 +203,7 @@ export function SiteHeader({
       {menuOpen && (
         <div
           id="site-mobile-menu"
-          className="fixed inset-x-0 top-28 bottom-0 z-[var(--p-z-drawer)] border-t border-line bg-bg lg:hidden"
+          className="fixed inset-x-0 top-24 bottom-0 z-[var(--p-z-drawer)] border-t border-line bg-bg lg:hidden"
         >
           <nav className="mx-auto max-w-7xl space-y-1 px-4 py-4" aria-label="Site mobile">
             <SearchForm className="mb-3" />

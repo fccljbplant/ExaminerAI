@@ -26,7 +26,7 @@ export function AuthLayout({
   return (
     <div className="flex min-h-dvh flex-col bg-bg text-fg">
       <header className="flex items-center justify-between px-4 py-3 md:px-6">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-fg">
+        <Link href="/" className="flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-on-brand">
             <GraduationCap className="h-4.5 w-4.5" aria-hidden />
           </span>
@@ -35,7 +35,7 @@ export function AuthLayout({
         <div className="flex items-center gap-2">
           <Link
             href="/courses"
-            className="hidden text-sm text-fg-secondary transition-colors hover:text-fg sm:inline"
+            className="hidden rounded-lg px-2 text-sm text-fg-secondary transition-colors hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus min-h-11 items-center sm:inline-flex"
           >
             Browse courses
           </Link>

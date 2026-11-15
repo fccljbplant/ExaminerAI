@@ -94,24 +94,24 @@ export default function ForgotPassword({ onBack }: Props) {
   }, [email, answer, newPassword, confirmPassword]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="flex min-h-dvh items-center justify-center bg-bg p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-on-brand shadow-lg">
             <KeyRound className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Forgot Password</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-fg">Forgot Password</h1>
         </div>
 
-        <Card className="border-border bg-card text-foreground shadow-sm">
+        <Card className="border-line bg-card text-fg shadow-sm">
           <CardHeader>
-            <CardTitle className="text-foreground flex items-center gap-2">
+            <CardTitle className="text-fg flex items-center gap-2">
               {step === "email" && <>Reset your password</>}
-              {step === "security" && <><ShieldCheck className="h-5 w-5 text-primary" /> Security Question</>}
-              {step === "admin" && <><KeyRound className="h-5 w-5 text-primary" /> Request Admin Reset</>}
-              {step === "done" && <><CheckCircle2 className="h-5 w-5 text-primary" /> Done</>}
+              {step === "security" && <><ShieldCheck className="h-5 w-5 text-brand" /> Security Question</>}
+              {step === "admin" && <><KeyRound className="h-5 w-5 text-brand" /> Request Admin Reset</>}
+              {step === "done" && <><CheckCircle2 className="h-5 w-5 text-brand" /> Done</>}
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-fg-muted">
               {step === "email" && "Enter your email to begin the password reset process."}
               {step === "security" && "Answer your security question to set a new password."}
               {step === "admin" && "Your request has been sent to the administrator."}
@@ -119,41 +119,41 @@ export default function ForgotPassword({ onBack }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
 
             {/* Step 1: Email entry */}
             {step === "email" && (
               <form onSubmit={submitEmail} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fp-email" className="text-foreground">Email</Label>
+                  <Label htmlFor="fp-email" className="text-fg">Email</Label>
                   <Input
                     id="fp-email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-background border-border text-foreground placeholder:text-muted-foreground"
+                    className="bg-surface border-line text-fg placeholder:text-fg-muted"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fp-reason" className="text-foreground">Reason (optional)</Label>
+                  <Label htmlFor="fp-reason" className="text-fg">Reason (optional)</Label>
                   <Textarea
                     id="fp-reason"
                     placeholder="Briefly explain why you need a reset (e.g., 'forgot my password')"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="bg-background border-border text-foreground placeholder:text-muted-foreground min-h-16"
+                    className="bg-surface border-line text-fg placeholder:text-fg-muted min-h-16"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-fg-muted">
                     If you set a security question during signup, you&apos;ll be able to reset your password instantly.
                     Otherwise, an admin will review your request.
                   </p>
                 </div>
-                <Button type="submit" disabled={busy} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button type="submit" disabled={busy} className="w-full bg-brand hover:bg-brand-hover text-on-brand">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}
                 </Button>
-                <Button type="button" variant="ghost" onClick={onBack} className="w-full text-muted-foreground">
+                <Button type="button" variant="ghost" onClick={onBack} className="w-full text-fg-muted">
                   <ArrowLeft className="h-4 w-4" /> Back to login
                 </Button>
               </form>
@@ -162,49 +162,49 @@ export default function ForgotPassword({ onBack }: Props) {
             {/* Step 2: Security question */}
             {step === "security" && (
               <form onSubmit={submitSecurityAnswer} className="space-y-4">
-                <div className="rounded-lg bg-secondary/40 border border-border p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Your security question:</p>
-                  <p className="text-sm font-medium text-foreground">{securityQuestion}</p>
+                <div className="rounded-lg bg-bg-subtle/40 border border-line p-3">
+                  <p className="text-xs text-fg-muted mb-1">Your security question:</p>
+                  <p className="text-sm font-medium text-fg">{securityQuestion}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fp-answer" className="text-foreground">Your answer</Label>
+                  <Label htmlFor="fp-answer" className="text-fg">Your answer</Label>
                   <Input
                     id="fp-answer"
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
-                    className="bg-background border-border text-foreground"
+                    className="bg-surface border-line text-fg"
                     placeholder="Type your answer..."
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fp-newpw" className="text-foreground">New password</Label>
+                  <Label htmlFor="fp-newpw" className="text-fg">New password</Label>
                   <Input
                     id="fp-newpw"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="bg-background border-border text-foreground"
+                    className="bg-surface border-line text-fg"
                     placeholder="At least 6 characters"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fp-confirmpw" className="text-foreground">Confirm new password</Label>
+                  <Label htmlFor="fp-confirmpw" className="text-fg">Confirm new password</Label>
                   <Input
                     id="fp-confirmpw"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-background border-border text-foreground"
+                    className="bg-surface border-line text-fg"
                     placeholder="Re-type your new password"
                     required
                   />
                 </div>
-                <Button type="submit" disabled={busy} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button type="submit" disabled={busy} className="w-full bg-brand hover:bg-brand-hover text-on-brand">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Reset Password"}
                 </Button>
-                <Button type="button" variant="ghost" onClick={() => setStep("email")} className="w-full text-muted-foreground">
+                <Button type="button" variant="ghost" onClick={() => setStep("email")} className="w-full text-fg-muted">
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
               </form>
@@ -214,14 +214,14 @@ export default function ForgotPassword({ onBack }: Props) {
             {step === "admin" && (
               <div className="space-y-4 text-center">
                 <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
-                <p className="text-sm text-foreground">
+                <p className="text-sm text-fg">
                   Your password reset request has been sent to the administrator.
                   They will reset your password and share the temporary password with you.
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-fg-muted">
                   This typically happens within 24 hours. Contact your instructor if urgent.
                 </p>
-                <Button onClick={onBack} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button onClick={onBack} className="w-full bg-brand hover:bg-brand-hover text-on-brand">
                   Back to login
                 </Button>
               </div>
@@ -231,8 +231,8 @@ export default function ForgotPassword({ onBack }: Props) {
             {step === "done" && (
               <div className="space-y-4 text-center">
                 <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
-                <p className="text-sm text-foreground">{success}</p>
-                <Button onClick={onBack} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                <p className="text-sm text-fg">{success}</p>
+                <Button onClick={onBack} className="w-full bg-brand hover:bg-brand-hover text-on-brand">
                   Go to login
                 </Button>
               </div>
