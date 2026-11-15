@@ -241,7 +241,7 @@ export function PlatformRevenue() {
                       onClick={() => void refund(p.id)}
                       disabled={refundingId === p.id || !p.refundable}
                       title={p.refundable ? "Refund this payment" : "No Stripe intent recorded — refund not possible"}
-                      className="inline-flex min-h-9 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger disabled:opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                      className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg hover:bg-bg-subtle hover:text-danger disabled:opacity-40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
                     >
                       {refundingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Refund"}
                     </button>
@@ -311,7 +311,7 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
             onChange={(e) => setCode(e.target.value)}
             placeholder="SAVE20"
             aria-label="Coupon code"
-            className="h-9 w-28 rounded-lg border border-line bg-bg px-2 font-mono text-sm uppercase text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="h-11 w-28 rounded-lg border border-line bg-bg px-2 font-mono text-sm uppercase text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             required
           />
           <input
@@ -322,7 +322,7 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
             max={100}
             placeholder="% off"
             aria-label="Percent off"
-            className="h-9 w-20 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="h-11 w-20 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
             required
           />
           <input

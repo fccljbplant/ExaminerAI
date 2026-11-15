@@ -71,8 +71,26 @@ describe("MessagesEmpty (rule 9 — empty states point forward)", () => {
   });
 });
 
-describe("MessageRow (rules 7 + 10 + 12)", () => {
-  it("leads with the correspondent and marks unread with a chip", () => {
+describe("Truncation honesty (rules 7 + 8 — the API pages by 50)", () => {
+  // The notice renders only after data arrives, so pin it at the source
+  // (same pattern as the delete-confirm pin above).
+  const source = readFileSync(new URL("./messages.tsx", import.meta.url), "utf8");
+
+  it("says how much is hidden instead of silently truncating", () => {
+    expect(source).toContain("Showing {messages.length} of {total} messages");
+  });
+
+  it("offers the rest via an explicit Show older action that pages the API", () => {
+    expect(source).toContain("Show older");
+    expect(source).toContain("pageSize=50&page=${nextPage}");
+  });
+
+  it("reads the count the API already returns instead of guessing", () => {
+    expect(source).toContain("pagination?.total");
+  });
+});
+
+describe("MessageRow (rules 7 + 10 + 12)", () => {  it("leads with the correspondent and marks unread with a chip", () => {
     const html = renderToStaticMarkup(createElement(MessageRow, { msg: msg(), box: "received", onDelete: () => {} }));
     expect(html).toContain("From Dr. Ayesha Khan");
     expect(html).toContain(">new</span>");

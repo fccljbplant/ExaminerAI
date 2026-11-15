@@ -37,6 +37,10 @@ interface InstructorInfo {
 export function LearnerMessages() {
   const [box, setBox] = useState<"all" | "received" | "sent">("all");
   const [messages, setMessages] = useState<Msg[] | null>(null);
+  const [total, setTotal] = useState<number | null>(null);
+  /** Highest page loaded (the API pages by 50 — see /api/messages). */
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [instructor, setInstructor] = useState<InstructorInfo["instructor"]>(null);
   const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState("");
@@ -49,7 +53,12 @@ export function LearnerMessages() {
         fetch(`/api/messages?box=${b}&pageSize=50`).then((r) => r.json()),
         fetch("/api/messages/instructor").then((r) => (r.ok ? r.json() : null)),
       ]);
-      setMessages((m as { messages: Msg[] }).messages ?? []);
+      const payload = m as { messages?: Msg[]; pagination?: { total?: number } };
+      setMessages(payload.messages ?? []);
+      // The API already returns the full count — use it so the list can
+      // say honestly how much is hidden instead of silently truncating.
+      setTotal(payload.pagination?.total ?? payload.messages?.length ?? 0);
+      setPage(1);
       setInstructor((t as InstructorInfo | null)?.instructor ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load messages");
@@ -59,6 +68,28 @@ export function LearnerMessages() {
   useEffect(() => {
     void load(box);
   }, [box, load]);
+
+  /** Append the next page (older messages) to the list. */
+  async function loadMore() {
+    if (messages === null || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const r = await fetch(`/api/messages?box=${box}&pageSize=50&page=${nextPage}`);
+      const payload = (await r.json()) as { messages?: Msg[]; pagination?: { total?: number } };
+      const older = payload.messages ?? [];
+      // Dedupe on append — a new message arriving mid-session could
+      // otherwise appear twice across page boundaries.
+      const seen = new Set(messages.map((m) => m.id));
+      setMessages((prev) => [...(prev ?? []), ...older.filter((m) => !seen.has(m.id))]);
+      setTotal(payload.pagination?.total ?? messages.length + older.length);
+      setPage(nextPage);
+    } catch {
+      toast.error("Couldn't load older messages");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   async function send() {
     if (!body.trim() || !instructor) return;
@@ -166,6 +197,29 @@ export function LearnerMessages() {
           {messages.map((m) => (
             <MessageRow key={m.id} msg={m} box={box} onDelete={(id) => void remove(id)} />
           ))}
+        </div>
+      )}
+
+      {/* Honest status when the first page doesn't cover everything:
+           say how much is hidden and offer the rest (rules 7 + 8). */}
+      {messages !== null && total !== null && total > messages.length && (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-fg-muted">
+          <p aria-live="polite">
+            Showing {messages.length} of {total} messages
+          </p>
+          <button
+            type="button"
+            onClick={() => void loadMore()}
+            disabled={loadingMore}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-fg hover:bg-bg-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus disabled:opacity-50"
+          >
+            {loadingMore ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+            )}
+            Show older
+          </button>
         </div>
       )}
     </div>
