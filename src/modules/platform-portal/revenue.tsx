@@ -332,12 +332,12 @@ function CouponsSection({ onChanged }: { onChanged: () => void }) {
             min={1}
             placeholder="Max uses"
             aria-label="Max uses"
-            className="h-9 w-24 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="h-11 w-24 rounded-lg border border-line bg-bg px-2 text-sm tabular-nums text-fg placeholder:text-fg-muted focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           />
           <button
             type="submit"
             disabled={busy || !code.trim() || !percentOff}
-            className="inline-flex h-9 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+            className="inline-flex min-h-11 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-on-brand disabled:opacity-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Create"}
           </button>

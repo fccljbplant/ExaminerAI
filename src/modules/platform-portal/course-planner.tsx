@@ -378,7 +378,7 @@ export function CoursePlanner({
               <button
                 type="button"
                 onClick={addWeek}
-                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-line px-2 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-line px-3 text-xs font-semibold text-fg hover:border-line-strong focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden /> Add week
               </button>
