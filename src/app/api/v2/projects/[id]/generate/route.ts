@@ -2,7 +2,11 @@
  * POST /api/v2/projects/[id]/generate — AI timeline + task generation.
  *
  * Approval gate: only "approved" projects (or legacy "active" ones) may
- * generate. The AI call uses feature "project-timeline" which is exempt
+ * generate. Generation also requires the learner's current student
+ * enrollment in the owning course — course-less legacy rows are not
+ * active course work.
+ *
+ * The AI call uses feature "project-timeline" which is exempt
  * from the per-user daily AI limit.
  *
  * Body: { tasksPerWeek?: number } (default 5, max 10)
@@ -42,7 +46,14 @@ export async function POST(
   const project = await db.learnProject.findFirst({
     where: { id, userId: user.sub }, // IDOR: owner-only
   });
-  if (!project) return apiError("Project not found", "NOT_FOUND", 404);
+  // Course-less legacy rows are history, never active course work.
+  if (!project?.courseId) return apiError("Project not found", "NOT_FOUND", 404);
+
+  const enrollment = await db.courseEnrollment.findFirst({
+    where: { userId: user.sub, courseId: project.courseId, role: "student" },
+    select: { id: true },
+  });
+  if (!enrollment) return apiError("Project not found", "NOT_FOUND", 404);
 
   // Approval gate — the core of the v2 project flow.
   if (project.status !== "approved" && project.status !== "active") {
