@@ -23,6 +23,42 @@ interface EarningsData {
 
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
+/** Monthly earnings bars — one row per month, earnings and labeled sales count. */
+export function MonthlyTrend({
+  monthlyData,
+}: {
+  monthlyData: EarningsData["monthlyData"];
+}) {
+  const maxMonth = Math.max(0, ...monthlyData.map((m) => m.earnings));
+  return (
+    <section className="space-y-2">
+      <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
+        Monthly
+      </h2>
+      <div className="space-y-2 rounded-xl border border-line bg-surface p-4">
+        {monthlyData.slice(0, 6).map((m) => (
+          <div key={m.month} className="flex items-center gap-3">
+            <span className="w-16 shrink-0 text-xs tabular-nums text-fg-muted">{m.month}</span>
+            <div
+              className="h-2 flex-1 overflow-hidden rounded-full bg-bg-subtle"
+              role="img"
+              aria-label={`${m.month}: ${fmt(m.earnings)} from ${m.sales} sale${m.sales === 1 ? "" : "s"}`}
+            >
+              <div
+                className="h-full rounded-full bg-brand"
+                style={{ width: `${maxMonth > 0 ? (m.earnings / maxMonth) * 100 : 0}%` }}
+              />
+            </div>
+            <span className="w-24 shrink-0 text-right text-xs tabular-nums text-fg-secondary">
+              {fmt(m.earnings)} · {m.sales} sale{m.sales === 1 ? "" : "s"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function InstructorEarnings() {
   const { data, error, isLoading, retry } = useApi<EarningsData>(
     "/api/v2/instructor/earnings",
@@ -47,7 +83,6 @@ export function InstructorEarnings() {
     );
   }
 
-  const maxMonth = Math.max(0, ...data.monthlyData.map((m) => m.earnings));
   const hasSales = data.totalEarnings > 0 || data.recentSales.length > 0;
 
   return (
@@ -88,27 +123,7 @@ export function InstructorEarnings() {
 
           {/* monthly bars */}
           {data.monthlyData.length > 0 && (
-            <section className="space-y-2">
-              <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-                Monthly
-              </h2>
-              <div className="space-y-2 rounded-xl border border-line bg-surface p-4">
-                {data.monthlyData.slice(0, 6).map((m) => (
-                  <div key={m.month} className="flex items-center gap-3">
-                    <span className="w-16 shrink-0 text-xs tabular-nums text-fg-muted">{m.month}</span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-subtle" aria-hidden>
-                      <div
-                        className="h-full rounded-full bg-brand"
-                        style={{ width: `${maxMonth > 0 ? (m.earnings / maxMonth) * 100 : 0}%` }}
-                      />
-                    </div>
-                    <span className="w-20 shrink-0 text-right text-xs tabular-nums text-fg-secondary">
-                      {fmt(m.earnings)} ({m.sales})
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <MonthlyTrend monthlyData={data.monthlyData} />
           )}
 
           {/* top courses + recent sales */}

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/modules/learner-portal/use-api", () => ({ useApi: mocks.useApi }));
 
-import { ProjectQueue } from "./project-queue";
+import { ProjectQueue, projectMetaText } from "./project-queue";
 
 function queueData(overrides: Record<string, unknown> = {}) {
   return {
@@ -152,5 +152,36 @@ describe("ProjectQueue instructor approval surface", () => {
     expect(html).toContain("Couldn&#x27;t load the project queue");
     expect(html).toContain("Retry");
     expect(html).toContain('role="alert"');
+  });
+});
+
+describe("projectMetaText (rule 7 — no orphaned separators)", () => {
+  it("joins whichever parts exist, never a leading separator", () => {
+    expect(projectMetaText(4, "2026-12-01T00:00:00.000Z")).toContain("4-week timeline");
+    expect(projectMetaText(4, "2026-12-01T00:00:00.000Z")).toContain("due ");
+    expect(projectMetaText(4, null)).toBe("4-week timeline");
+    expect(projectMetaText(null, "2026-12-01T00:00:00.000Z")).toMatch(/^due /);
+    expect(projectMetaText(null, null)).toBe("");
+  });
+
+  it("no longer renders a leading · when only a deadline exists", () => {
+    mocks.useApi.mockReturnValue({
+      data: queueData({
+        pending: [
+          {
+            ...queueData().pending[0],
+            durationWeeks: null,
+            deadline: "2026-12-01T00:00:00.000Z",
+          },
+        ],
+      }),
+      error: null,
+      isLoading: false,
+      retry: vi.fn(),
+    });
+
+    const html = renderToStaticMarkup(createElement(ProjectQueue));
+    expect(html).not.toContain("· due");
+    expect(html).toContain("due ");
   });
 });

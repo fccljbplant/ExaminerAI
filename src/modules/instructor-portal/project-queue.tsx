@@ -47,6 +47,14 @@ interface QueueData {
   kpis: { pendingCount: number; totalCount: number };
 }
 
+/** Duration + deadline as one honest line — no leading separator when either is missing. */
+export function projectMetaText(durationWeeks: number | null, deadline: string | null): string {
+  const parts: string[] = [];
+  if (durationWeeks) parts.push(`${durationWeeks}-week timeline`);
+  if (deadline) parts.push(`due ${new Date(deadline).toLocaleDateString()}`);
+  return parts.join(" · ");
+}
+
 export function ProjectQueue() {
   const { data, error, isLoading, retry } = useApi<QueueData>("/api/v2/instructor/projects");
   const [noteFor, setNoteFor] = useState<string | null>(null);
@@ -145,10 +153,11 @@ export function ProjectQueue() {
                     ))}
                   </ul>
                 )}
-                <p className="text-[11px] text-fg-muted">
-                  {p.durationWeeks ? `${p.durationWeeks}-week timeline` : ""}
-                  {p.deadline ? ` · due ${new Date(p.deadline).toLocaleDateString()}` : ""}
-                </p>
+                {projectMetaText(p.durationWeeks, p.deadline) && (
+                  <p className="text-[11px] text-fg-muted">
+                    {projectMetaText(p.durationWeeks, p.deadline)}
+                  </p>
+                )}
                 {noteFor === p.id && (
                   <textarea
                     value={note}
