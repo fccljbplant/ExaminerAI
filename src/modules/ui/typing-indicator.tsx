@@ -11,25 +11,25 @@
 import { cn } from "@/lib/utils";
 
 export function TypingIndicator({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={cn("inline-flex items-center gap-1", className)}
-      role="status"
-      aria-label="AI is typing"
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.3s]" />
-      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.15s]" />
-      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce" />
-    </div>
-  );
+ return (
+ <div
+ className={cn("inline-flex items-center gap-1", className)}
+ role="status"
+ aria-label="AI is typing"
+ >
+ <span className="h-1.5 w-1.5 rounded-full bg-fg-muted/60 animate-bounce [animation-delay:-0.3s]" />
+ <span className="h-1.5 w-1.5 rounded-full bg-fg-muted/60 animate-bounce [animation-delay:-0.15s]" />
+ <span className="h-1.5 w-1.5 rounded-full bg-fg-muted/60 animate-bounce" />
+ </div>
+ );
 }
 
 /** A larger variant for full-width loading states. */
 export function TypingIndicatorBlock({ label = "Thinking" }: { label?: string }) {
-  return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-      <TypingIndicator />
-      <span>{label}…</span>
-    </div>
-  );
+ return (
+ <div className="flex items-center gap-2 text-xs text-fg-muted py-2">
+ <TypingIndicator />
+ <span>{label}…</span>
+ </div>
+ );
 }
